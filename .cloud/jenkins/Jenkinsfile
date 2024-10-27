@@ -1,0 +1,43 @@
+pipeline {
+    agent { label 'codeclarity' }
+
+    environment {
+        DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+    }
+    stages {
+        stage('Login') {
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+        stage('Build') {
+            steps {
+                sh 'docker system prune -af'
+                sh 'git submodule update --init --recursive'
+                sh 'git fetch --tags --force'
+                script {
+                    def project =readJSON file: 'package.json'
+                    env.Version = project.version
+                    env.Name = project.name
+                    sh 'echo $Version'
+                    env.Tag = "ceherzog/${Name}:${Version}"
+                    sh 'echo $Tag'
+                    sh "sh .cloud/jenkins/check_version.sh ${Version}"
+                }
+            }
+        }
+        // stage('Test') {
+        //     steps {
+        //         // Output will be something like "go version go1.19 darwin/arm64"
+        //         sh 'make'
+        //     }
+        // }
+        stage('Deploy') {
+            steps {
+                sh 'docker buildx rm frontend || true'
+                sh 'docker buildx create --name frontend --use --bootstrap'
+                sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64 --tag ceherzog/frontend:latest --tag $Tag --push .'
+            }
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "matthewpi.caddyfile-support",
+    "golang.go",
+    "esbenp.prettier-vscode",
+    "gruntfuggly.todo-tree",
+    "vue.vscode-typescript-vue-plugin",
+    "vue.volar",
+    "dbaeumer.vscode-eslint",
+    "arcanis.vscode-zipfs"
+  ]
+}

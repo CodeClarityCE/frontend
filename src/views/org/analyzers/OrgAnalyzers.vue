@@ -1,0 +1,56 @@
+<script lang="ts" setup>
+import { useStateStore } from '@/stores/state';
+
+import ErrorComponent from '@/common_components/ErrorComponent.vue';
+import LoadingComponent from '@/common_components/LoadingComponent.vue';
+import { defineAsyncComponent } from 'vue';
+
+const OrgAnalyzersList = defineAsyncComponent({
+    loader: () => import('@/views/org/analyzers/OrgAnalyzersList.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
+    delay: 200,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
+const OrgAnalyzerEdit = defineAsyncComponent({
+    loader: () => import('@/views/org/analyzers/OrgAnalyzerEdit.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
+    delay: 200,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
+const OrgAnalyzerCreate = defineAsyncComponent({
+    loader: () => import('@/views/org/analyzers/OrgAnalyzerCreate.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
+    delay: 200,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
+const state = useStateStore();
+state.$reset();
+
+state.page = 'orgs';
+
+defineProps<{
+    page: string;
+    orgId: string;
+    action?: string;
+}>();
+</script>
+<template>
+    <OrgAnalyzersList v-if="action == 'manage'" :page="page" :orgId="orgId" />
+    <OrgAnalyzerEdit v-else-if="action == 'edit'" :page="page" :orgId="orgId" />
+    <OrgAnalyzerCreate v-else-if="action == 'add'" :page="page" :orgId="orgId" />
+</template>

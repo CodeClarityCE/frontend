@@ -1,0 +1,82 @@
+/*****************************************************************************/
+/*                          Findings patch container                         */
+/*****************************************************************************/
+
+.finding-patching-info-box {
+    margin-top: 10px;
+}
+
+.finding-patching-info-box > a {
+    color: inherit;
+}
+
+.findings-patch-container {
+    background-color: #fff;
+    border: 1px solid #94a0b4;
+    border-radius: 4px;
+    padding: 10px;
+    border: 1px solid #cecbcb;
+    border-left-color: rgb(206, 203, 203);
+    border-left-style: solid;
+    border-left-width: 1px;
+    color: #44423b;
+    box-shadow: 0 0.1rem 0.3rem 0.05rem rgba(58, 59, 69, 0.15) !important;
+}
+
+.findings-patch-container .findings-patch-container-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.findings-patch-container .findings-patch-container-header .collapse-icon {
+    cursor: pointer;
+}
+
+.findings-patch-type-indicator-full {
+    color: $patch-type-full;
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+    font-size: 1em;
+    font-family: lato;
+    font-weight: 900;
+}
+
+.findings-patch-type-indicator-partial {
+    color: $patch-type-partial;
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+    font-size: 1em;
+    font-family: lato;
+    font-weight: 900;
+}
+
+.findings-patch-type-indicator-none {
+    color: $patch-type-none;
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+    font-size: 1em;
+    font-family: lato;
+    font-weight: 900;
+}
+
+.findings-patch-type-indicator-full > ion-icon,
+.findings-patch-type-indicator-partial > ion-icon,
+.findings-patch-type-indicator-none > ion-icon {
+    font-size: 1.5em;
+}
+
+.findings-patch-container-full {
+    border-left: 3px solid $patch-type-full;
+}
+
+.findings-patch-container-partial {
+    border-left: 3px solid $patch-type-partial;
+}
+
+.findings-patch-container-none {
+    border-left: 3px solid $patch-type-none;
+}

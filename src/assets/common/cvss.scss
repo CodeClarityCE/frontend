@@ -1,0 +1,70 @@
+/*****************************************************************************/
+/*                               CVSS Table                                  */
+/*****************************************************************************/
+
+.cvss-table tr > td:first-child {
+    padding-right: 3em;
+}
+
+.cvss-table tr > td:nth-child(2) {
+    text-transform: lowercase;
+}
+
+.cvss-table tr:nth-child(n + 4) {
+    cursor: help;
+}
+
+.cvss-table tr > td:nth-child(2)::first-letter {
+    text-transform: capitalize;
+}
+
+.cvss-table tr:nth-child(2),
+.cvss-table tr:nth-child(3) {
+    font-weight: 700;
+    color: gray;
+}
+
+.cvss-table tr:nth-child(n + 4) {
+    font-weight: 450;
+    color: gray;
+}
+
+.cvss-table tr:first-child > td:nth-child(1) {
+    font-size: 1.5em;
+    font-weight: 600;
+    vertical-align: bottom;
+    font-family: lato;
+    color: #444;
+}
+
+.cvss-table tr:first-child > td:nth-child(2) {
+    font-size: 2.5em;
+    font-weight: 900;
+    font-family: lato;
+    color: $accent-dark;
+}
+
+.cvss-field-value-high {
+    color: $cvss-field-value-high;
+}
+
+.cvss-field-value-medium {
+    color: $cvss-field-value-medium;
+}
+
+.cvss-field-value-low {
+    color: $cvss-field-value-low;
+}
+
+.cvss-field-value {
+    font-weight: 900;
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+    color: #bdbdbd;
+}
+
+.cvss-field-value > div + div {
+    border-left: 1px solid #bdbdbd;
+    padding-left: 10px;
+}

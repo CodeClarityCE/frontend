@@ -1,0 +1,14 @@
+{$SERVER_NAME}{$SERVER_NAME_EXTRA} {
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy api:3000
+	}
+
+	tls /etc/caddy/certs/tls.pem /etc/caddy/certs/tls.key
+
+	reverse_proxy frontend:5173
+}
+
+{$SERVER_NAME}:15672 {
+	reverse_proxy rabbitmq:15672
+}

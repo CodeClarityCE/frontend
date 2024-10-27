@@ -1,0 +1,217 @@
+/*****************************************************************************/
+/*                             Dependency Tree                               */
+/*****************************************************************************/
+
+.dependency-tree .node {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 5px 10px 5px 10px;
+    text-decoration: none;
+    width: fit-content;
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+    align-items: center;
+    z-index: 1;
+    position: relative;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.dependency-tree .prefix {
+    width: 50px;
+    position: relative;
+}
+
+.dependency-tree .prefix > .prefixVertical {
+    border-left: 1px solid #999;
+    position: absolute;
+    right: 15px;
+    width: 1px;
+}
+
+.dependency-tree .prefix > .prefixHorizontal {
+    border-top: 1px solid #999;
+    position: absolute;
+    right: 0px;
+    width: 16px;
+}
+
+.dependency-tree .node.root-node {
+    color: #2b2b2b;
+    border-left: 3px solid #2b2b2b;
+}
+
+.dependency-tree .details-node-div {
+    display: flex;
+    flex-direction: row;
+    column-gap: 15px;
+    border-left: 1px solid #cacaca;
+    padding-left: 10px;
+    align-items: center;
+}
+
+.dependency-tree .tree-not-patchable-vuln {
+    font-weight: 900;
+    color: var(--patch-type-none);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.dependency-tree .tree-patchable-vuln {
+    font-weight: 900;
+    color: var(--patch-type-full);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.dependency-tree .tree-partially-patchable-vuln {
+    font-weight: 900;
+    color: var(--patch-type-partial);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.dependency-tree li.patchable::before {
+    border-color: var(--patch-type-full);
+    border-width: 2px;
+}
+
+.dependency-tree li.partially-patchable::before {
+    border-color: var(--patch-type-partial);
+    border-width: 2px;
+}
+
+.dependency-tree li.unpatchable::before {
+    border-color: var(--patch-type-none);
+    border-width: 2px;
+}
+
+.dependency-tree li.patchable::after {
+    border-color: var(--patch-type-full);
+    border-width: 2px;
+}
+
+.dependency-tree li.patchable-backdrop::before {
+    background-color: #0471040a;
+    width: 100%;
+    z-index: 0;
+}
+
+.dependency-tree li.partially-patchable-backdrop::before {
+    background-color: #ffa70017;
+    width: 100%;
+}
+
+.dependency-tree li:last-child.partially-patchable-backdrop::after {
+    background-color: #ffa70017;
+    width: 100%;
+    height: 100%;
+}
+
+.dependency-tree li:last-child.unpatchable-backdrop::after {
+    background-color: #ff4b4b14;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border-image: linear-gradient(to right, var(--patch-type-none) 0px, rgba(0, 0, 0, 0) 10%) 1;
+}
+
+.dependency-tree li:last-child.patchable-backdrop::after {
+    background-color: #0471040a;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border-image: linear-gradient(to right, var(--patch-type-full) 0px, rgba(0, 0, 0, 0) 10%) 1;
+}
+
+.dependency-tree li:last-child.partially-patchable-backdrop::after {
+    background-color: #ffa70017;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border-image: linear-gradient(to right, var(--patch-type-partial) 0px, rgba(0, 0, 0, 0) 10%) 1;
+}
+
+.dependency-tree li:last-child.partially-patchable-backdrop::after {
+    background-color: #ffa70017;
+    width: 100%;
+    height: 100%;
+}
+
+.dependency-tree li.unpatchable-backdrop::before {
+    background-color: #ff4b4b14;
+    width: 100%;
+}
+
+.dependency-tree li.partially-patchable::after {
+    border-color: var(--patch-type-partial);
+    border-width: 2px;
+}
+
+.dependency-tree li.unpatchable::after {
+    border-color: var(--patch-type-none);
+    border-width: 2px;
+}
+
+.dependency-tree-node-container {
+    display: flex;
+    justify-content: row;
+    column-gap: 15px;
+    align-items: center;
+}
+
+.dependency-tree li::after {
+    border-top: 1px solid #999;
+    height: 20px;
+    top: 30px;
+    width: 25px;
+}
+
+.dependency-tree li span.root-node > div:nth-child(1) {
+    font-family: Arial;
+    font-weight: 400;
+}
+
+.dependency-tree li.parent_li > span {
+    cursor: pointer;
+}
+
+.dependency-tree > ul > li::before,
+.dependency-tree > ul > li::after {
+    border: 0;
+}
+
+.dependency-tree li:last-child::before {
+    height: 30px;
+}
+
+.dependency-tree li.parent_li > span:hover,
+.dependency-tree li.parent_li > span:hover + ul li span {
+    background: #eee;
+    border: 1px solid #94a0b4;
+    color: #000;
+}
+
+.dependency-tree .vulnerable-dep {
+    border-left: 3px solid $patch-type-none;
+    font-weight: 700;
+}
+
+.dependency-tree .highlight-dep {
+    border-left: 3px solid $accent-light;
+    font-weight: 700;
+}
+
+.dependency-tree > ul {
+    margin-left: 0px;
+    padding-left: 0px;
+}

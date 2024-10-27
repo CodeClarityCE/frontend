@@ -1,0 +1,122 @@
+<template>
+    <Card>
+        <CardContent class="pt-4">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-row items-center gap-8 font-bold">
+                    <Badge>{{ type }}</Badge>
+                    <div class="text-2xl">
+                        {{ name }}
+                    </div>
+                    <div>
+                        <span
+                            v-if="patch.IsPatchable == 'FULL'"
+                            class="flex gap-1 items-center text-severityLow"
+                        >
+                            <Icon icon="bi:shield-fill-check" />
+                            Full patch available
+                        </span>
+                        <span
+                            v-else-if="patch.IsPatchable == 'PARTIAL'"
+                            class="flex gap-1 items-center text-severityMedium"
+                        >
+                            <Icon icon="bi:shield-fill-minus" />
+                            Partial patch available
+                        </span>
+                        <span v-else class="flex gap-1 items-center text-severityHigh">
+                            <Icon icon="bi:shield-fill-exclamation" />
+                            No patch available
+                        </span>
+                    </div>
+                </div>
+
+                <Tabs default-value="patches" class="w-full">
+                    <TabsList class="grid w-full grid-cols-2">
+                        <TabsTrigger value="patches"> <Icon icon="bi:list" /> Patches </TabsTrigger>
+                        <TabsTrigger value="tree"> <Icon icon="ri:node-tree" /> Tree </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="patches">
+                        <div v-for="(unpatchable, index) in patch.Unpatchable" :key="index">
+                            <PatchInformation :patch="unpatchable" :patchInfo="patch" />
+                        </div>
+                        <div v-for="(patchable, index) in patch.Patchable" :key="index">
+                            <PatchInformation :patch="patchable" :patchInfo="patch" />
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="tree">
+                        <Tree :nodes="node_array" :show-vuln-i-ds="true" />
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </CardContent>
+    </Card>
+</template>
+<script lang="ts" setup>
+import { ref, watch, type Ref } from 'vue';
+import Tree from '../location_subtree/PatchingTree.vue';
+import { TreeGenerator } from '@/utils/tree/patching/TreeGenerator';
+import type { TreeNode } from '@/utils/tree/patching/TreeNode';
+import type { PatchOccurenceInfo } from '@/utils/tree/patching/TreeGenerator';
+import { Icon } from '@iconify/vue';
+import type { PatchInfo } from '@/repositories/types/entities/Patching';
+import PatchInformation from './PatchInformation.vue';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
+import Card from '@/shadcn/ui/card/Card.vue';
+import CardContent from '@/shadcn/ui/card/CardContent.vue';
+import Tabs from '@/shadcn/ui/tabs/Tabs.vue';
+import TabsList from '@/shadcn/ui/tabs/TabsList.vue';
+import TabsTrigger from '@/shadcn/ui/tabs/TabsTrigger.vue';
+import TabsContent from '@/shadcn/ui/tabs/TabsContent.vue';
+
+export interface Props {
+    patch: PatchInfo;
+    name: string | number;
+    type: string;
+}
+
+withDefaults(defineProps<Props>(), {});
+
+const node_array: Ref<TreeNode[]> = ref(new Array<TreeNode>());
+const active_view = ref('patches');
+
+// function computeTree() {
+//     if (props.patch && props.patch.patches) {
+//         let paths = [];
+//         let patched_paths = [];
+//         let unpatched_paths = [];
+//         let introduced_paths = [];
+//         for (let [, directDepPatchInfo] of Object.entries(props.patch.patches)) {
+//             if ('patched_occurences' in directDepPatchInfo) {
+//                 paths.push(...directDepPatchInfo['patched_occurences'].Paths);
+//                 patched_paths.push(...directDepPatchInfo['patched_occurences'].Paths);
+//             }
+//             if ('unpatched_occurences' in directDepPatchInfo) {
+//                 paths.push(...directDepPatchInfo['unpatched_occurences'].Paths);
+//                 unpatched_paths.push(...directDepPatchInfo['unpatched_occurences'].Paths);
+//             }
+//             if ('introduced_occurences' in directDepPatchInfo) {
+//                 paths.push(...directDepPatchInfo['introduced_occurences'].Paths);
+//                 introduced_paths.push(...directDepPatchInfo['introduced_occurences'].Paths);
+//             }
+//         }
+//         let data: PatchOccurenceInfo[] = [
+//             {
+//                 vulnerability_id: props.patch.vulnerability_id,
+//                 affected_deps: props.patch.affected_deps,
+//                 all_occurences: paths,
+//                 patched_occurences: patched_paths,
+//                 unpatched_occurences: unpatched_paths,
+//                 introduced_occurences: introduced_paths
+//             }
+//         ];
+//         node_array.value = new TreeGenerator().generateTree(data);
+//     }
+// }
+// computeTree();
+
+// watch(
+//     () => props.patch,
+//     () => {
+//         computeTree();
+//     }
+// );
+</script>

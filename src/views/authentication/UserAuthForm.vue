@@ -151,7 +151,7 @@ async function submit(values: any) {
         </template>
     </ErrorCard>
     <div :class="cn('grid gap-6', $attrs.class ?? '')">
-        <Form
+        <form
             class="flex flex-col gap-4"
             :validation-schema="formSchema"
             @submit="onSubmit"
@@ -183,7 +183,7 @@ async function submit(values: any) {
                 </FormItem>
             </FormField>
             <Button type="submit" class="w-full"> Sign in </Button>
-        </Form>
+        </form>
         <div class="flex flex-col items-center" v-else>
             Connecting <Icon icon="line-md:loading-twotone-loop" class="animate-spin"></Icon>
         </div>

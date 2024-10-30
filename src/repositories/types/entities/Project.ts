@@ -33,11 +33,11 @@ export class Project {
 
     @IsDate()
     @Type(() => Date)
-    imported_on!: Date;
+    added_on!: Date;
 
     @IsOptional()
     @Type(() => TeamMember)
-    imported_by?: TeamMember;
+    added_by?: TeamMember;
 
     @IsNotEmpty()
     organization_id!: string;

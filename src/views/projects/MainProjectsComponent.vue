@@ -153,7 +153,7 @@ fetchOrgMetaData();
                     <RouterLink
                         v-if="orgMetaData.integrations.length == 0"
                         :to="{
-                            name: 'orgManage',
+                            name: 'orgs',
                             params: { orgId: defaultOrg!.id, page: 'integrations' }
                         }"
                     >

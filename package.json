@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.0.1",
+  "version": "0.0.3-alpha",
   "private": true,
   "type": "module",
   "scripts": {
@@ -87,5 +87,5 @@
     "vitest": "2.1.1",
     "vue-tsc": "2.1.6"
   },
-  "packageManager": "yarn@4.5.1"
+  "packageManager": "yarn@4.5.2"
 }

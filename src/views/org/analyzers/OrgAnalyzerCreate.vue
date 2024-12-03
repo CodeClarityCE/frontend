@@ -139,10 +139,9 @@ function addPluginsToGraph() {
         const element = plugins.value[index];
         const title = element.name;
 
-        if (title == 'codeql' || title == 'notifier:v0.0.0') {
+        if (title == 'codeql' || title.includes('notifier')) {
             continue;
         }
-        
 
         const new_type = createNode(title, element, graph, nodes, nodes_to_link);
 

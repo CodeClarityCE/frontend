@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="container relative hidden h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"
-    >
+    <div>
         <RouterLink
             :to="{ name: 'login' }"
             :class="
@@ -14,22 +12,7 @@
             <img src="@/imgs/logos/logo.svg" class="w-8" />
             Sign In
         </RouterLink>
-        <div class="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-            <div class="absolute inset-0 bg-zinc-900"></div>
-            <div class="relative z-20 flex items-center text-lg font-medium">
-                <img src="@/imgs/logos/logo-white.svg" class="w-8 mr-2" />
-                CodeClarity
-            </div>
-            <div class="relative z-20 mt-auto">
-                <blockquote class="space-y-2">
-                    <p class="text-lg">
-                        &ldquo;The digital platform for software developers to eliminate all safety
-                        issues from their code automatically.&rdquo;
-                    </p>
-                </blockquote>
-            </div>
-        </div>
-        <div class="lg:p-8">
+        <div class="py-10">
             <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                 <img src="@/imgs/logos/logo.svg" class="w-20 self-center" />
                 <div class="flex flex-col space-y-2 text-center">
@@ -201,9 +184,9 @@
                         <Icon icon="line-md:loading-twotone-loop" class="animate-spin"></Icon>
                     </div>
 
-                    <SSOAuth />
+                    <!-- <SSOAuth /> -->
                 </div>
-                <p class="px-8 text-center text-sm text-muted-foreground">
+                <!-- <p class="px-8 text-center text-sm text-muted-foreground">
                     By clicking continue, you agree to our
                     <Button variant="link" class="h-4 p-0">
                         <RouterLink to="/terms">Terms of Service</RouterLink>
@@ -213,7 +196,7 @@
                         <RouterLink to="/privacy">Privacy Policy</RouterLink>
                     </Button>
                     .
-                </p>
+                </p> -->
             </div>
         </div>
     </div>

@@ -188,6 +188,6 @@ async function submit(values: any) {
             Connecting <Icon icon="line-md:loading-twotone-loop" class="animate-spin"></Icon>
         </div>
 
-        <SSOAuth />
+        <!-- <SSOAuth /> -->
     </div>
 </template>

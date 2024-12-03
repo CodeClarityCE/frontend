@@ -36,7 +36,7 @@ pipeline {
             steps {
                 sh 'docker buildx rm frontend || true'
                 sh 'docker buildx create --name frontend --use --bootstrap'
-                sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64 --tag ceherzog/frontend:latest --tag $Tag --push .'
+                sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag ceherzog/frontend:latest --tag $Tag --push .'
             }
         }
     }

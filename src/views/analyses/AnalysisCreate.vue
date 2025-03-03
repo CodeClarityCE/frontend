@@ -187,7 +187,7 @@ function onSubmit(values: any, plugin_name: string) {
 
     if (plugin_name === 'js-sbom') {
         configuration.value[plugin_name]['project'] =
-            `${user.defaultOrg?.id}/${project_id.value}/${values.branch}`;
+            `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
         selected_branch.value = values.branch;
     }
 

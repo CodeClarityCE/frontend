@@ -154,7 +154,7 @@ fetchOrgMetaData();
                         v-if="orgMetaData.integrations.length == 0"
                         :to="{
                             name: 'orgs',
-                            params: { orgId: defaultOrg!.id, page: 'integrations' }
+                            params: { orgId: defaultOrg!.id, page: 'integrations', action: 'add' }
                         }"
                     >
                         <Button> Link to Github or Gitlab </Button>

@@ -49,7 +49,7 @@
                     </p>
                 </CardContent>
             </Card>
-            <Card>
+            <!-- <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle class="text-sm font-medium"> Direct Dependencies </CardTitle>
                     <Icon :icon="'bx:bx-transfer-alt'" class="text-gray-400"></Icon>
@@ -78,7 +78,7 @@
                         {{ stats.number_of_transitive_vulnerabilities_diff }}
                     </p>
                 </CardContent>
-            </Card>
+            </Card> -->
         </div>
 
         <VulnsGraph v-if="render" :analysisID="analysisID" :projectID="projectID" :stats="stats" />

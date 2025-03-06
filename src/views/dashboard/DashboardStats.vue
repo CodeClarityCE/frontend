@@ -321,7 +321,18 @@ fetchVcsIntegrations();
         </div>
     </div>
     <div class="space-y-4" v-else>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
+            <Card class="col-span-4 col-start-3 flex flex-col">
+                <CardHeader>
+                    <CardTitle>Overall Exposure</CardTitle>
+                    <CardDescription> Overall exposure of your projects. </CardDescription>
+                </CardHeader>
+                <CardContent class="flex items-center justify-center flex-grow">
+                    <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
+                </CardContent>
+            </Card>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
             <QuickStats class="col-span-2" :integration-ids="activeIntegrationIds" />
             <Card class="col-span-2 flex flex-col">
                 <CardHeader>
@@ -345,18 +356,6 @@ fetchVcsIntegrations();
                     <LicenseDist :integration-ids="activeIntegrationIds"></LicenseDist>
                 </CardContent>
             </Card>
-        </div>
-
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-            <Card class="col-span-4 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Overall Exposure</CardTitle>
-                    <CardDescription> Overall exposure of your projects. </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
-                </CardContent>
-            </Card>
             <Card class="col-span-2 flex flex-col">
                 <CardHeader>
                     <CardTitle>Potential CIA Impact</CardTitle>
@@ -364,40 +363,6 @@ fetchVcsIntegrations();
                 </CardHeader>
                 <CardContent class="flex items-center justify-center flex-grow">
                     <CIAImpact :integration-ids="activeIntegrationIds"></CIAImpact>
-                </CardContent>
-            </Card>
-            <Card class="col-span-2 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Attack Vectors</CardTitle>
-                    <CardDescription>
-                        Indicates the channels through which vulnerabilities in your projects can be
-                        exploited.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <AttackVectorDist :integration-ids="activeIntegrationIds"></AttackVectorDist>
-                </CardContent>
-            </Card>
-        </div>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <Card class="col-span-3 flex flex-col">
-                <CardHeader>
-                    <CardTitle> Project Problems </CardTitle>
-                    <CardDescription> Quickly identify problematic projects. </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <ProjectProblems :integration-ids="activeIntegrationIds"></ProjectProblems>
-                </CardContent>
-            </Card>
-            <Card class="col-span-2 flex flex-col">
-                <CardHeader>
-                    <CardTitle> Project Problems </CardTitle>
-                    <CardDescription> Quickly identify problematic projects. </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <ProjectProblemsHeatmap
-                        :integration-ids="activeIntegrationIds"
-                    ></ProjectProblemsHeatmap>
                 </CardContent>
             </Card>
         </div>

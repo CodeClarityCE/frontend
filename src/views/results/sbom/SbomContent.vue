@@ -1,7 +1,7 @@
 <template>
     <div value="sbom" class="space-y-4">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-            <Card>
+            <!-- <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle class="text-sm font-medium"> NodeJS Supported Version </CardTitle>
                     <Icon :icon="'akar-icons:node-fill'" class="text-gray-400"></Icon>
@@ -11,9 +11,9 @@
                         {{ stats.node_min_supported_version }} >
                         {{ stats.node_max_supported_version }}
                     </div>
-                    <!-- <p class="text-xs text-muted-foreground">last month</p> -->
+                    <p class="text-xs text-muted-foreground">last month</p>
                 </CardContent>
-            </Card>
+            </Card> -->
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle class="text-sm font-medium"> Direct Dependencies </CardTitle>
@@ -66,7 +66,7 @@
                     </p>
                 </CardContent>
             </Card>
-            <Card>
+            <!-- <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle class="text-sm font-medium"> Transitive Dependencies </CardTitle>
                     <svg
@@ -196,7 +196,7 @@
                         }}
                     </p>
                 </CardContent>
-            </Card>
+            </Card> -->
         </div>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <div class="grid gap-4 col-span-3">

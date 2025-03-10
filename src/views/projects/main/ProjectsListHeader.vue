@@ -4,7 +4,7 @@ import SearchBar from '@/common_components/SearchBar.vue';
 import { SortDirection } from '@/repositories/types/PaginatedRequestOptions';
 import { ProjectsSortInterface } from '@/repositories/ProjectRepository';
 import UtilitiesSort from '@/common_components/UtilitiesSort.vue';
-import { useProjectsMainStore } from '@/utils/StateStore';
+import { useProjectsMainStore } from '@/stores/StateStore';
 import { storeToRefs } from 'pinia';
 
 // State

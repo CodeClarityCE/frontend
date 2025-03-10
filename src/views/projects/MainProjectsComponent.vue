@@ -5,7 +5,7 @@ import TextLoader from '@/common_components/TextLoader.vue';
 import BoxLoader from '@/common_components/BoxLoader.vue';
 // import { useStateStore } from '@/stores/state';
 import ProjectsList from '@/views/projects/main/ProjectsList.vue';
-import { useProjectsMainStore } from '@/utils/StateStore';
+import { useProjectsMainStore } from '@/stores/StateStore';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user';
 import { OrgRepository } from '@/repositories/OrganizationRepository';

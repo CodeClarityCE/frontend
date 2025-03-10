@@ -8,7 +8,7 @@ import { ProjectsSortInterface, ProjectRepository } from '@/repositories/Project
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/repositories/BaseRepository';
 import ProjectsListHeader from './ProjectsListHeader.vue';
-import { useProjectsMainStore } from '@/utils/StateStore';
+import { useProjectsMainStore } from '@/stores/StateStore';
 import { debounce } from '@/utils/searchUtils';
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import { APIErrors } from '@/repositories/types/errors/ApiErrors';

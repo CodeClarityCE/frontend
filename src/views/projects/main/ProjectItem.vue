@@ -10,7 +10,7 @@ import { ProjectRepository } from '@/repositories/ProjectRepository';
 import { BusinessLogicError } from '@/repositories/BaseRepository';
 import { errorToast, successToast } from '@/utils/toasts';
 import { APIErrors } from '@/repositories/types/errors/ApiErrors';
-import { useProjectsMainStore } from '@/utils/StateStore';
+import { useProjectsMainStore } from '@/stores/StateStore';
 import { IntegrationProvider } from '@/repositories/types/entities/Integrations';
 import BlueButton from '@/common_components/buttons/BlueButton.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';

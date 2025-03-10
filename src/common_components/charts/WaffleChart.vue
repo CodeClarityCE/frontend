@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import { interpolateColors } from '@/utils/colors';
+import { interpolateColors } from '@/common_components/charts/colors-waffle';
 import CenteredModal from '../CenteredModal.vue';
 import { Icon } from '@iconify/vue';
 import NormalButton from '../buttons/NormalButton.vue';

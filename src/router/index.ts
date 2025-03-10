@@ -1,28 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { loadAuthStoreFromLocalStorage, useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { AuthRepository } from '@/repositories/AuthRepository';
-import { AuthenticatedUser } from '@/repositories/types/entities/AuthenticatedUser';
-import { OrgRepository } from '@/repositories/OrganizationRepository';
-import { BusinessLogicError } from '@/repositories/BaseRepository';
-import { APIErrors } from '@/repositories/types/errors/ApiErrors';
-import { SocialProvider } from '@/repositories/types/entities/Integrations';
-import ProjectsView from '@/views/ProjectsView.vue';
-import ResultsView from '@/views/ResultsView.vue';
-import NotFoundView from '@/views/NotFoundView.vue';
-import TrialView from '@/views/TrialView.vue';
-import TermsView from '@/views/TermsView.vue';
-import AnalysesView from '@/views/AnalysesView.vue';
-import LoginView from '@/views/LoginView.vue';
-import SignupView from '@/views/SignupView.vue';
-import SettingsView from '@/views/SettingsView.vue';
-import OAuthCallbackView from '@/views/OAuthCallbackView.vue';
-import PasswordResetRequestView from '@/views/PasswordResetRequestView.vue';
-import OrganizationView from '@/views/OrganizationView.vue';
-import DashboardView from '@/views/DashboardView.vue';
-import HelpView from '@/views/HelpView.vue';
-import EmailActionView from '@/views/EmailActionView.vue';
-import type { Organization } from '@/repositories/types/entities/Organization';
+import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
+import { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
+import ProjectsView from '@/codeclarity_components/projects/ProjectsView.vue';
+import ResultsView from '@/codeclarity_components/results/ResultsView.vue';
+import NotFoundView from '@/codeclarity_components/errors/NotFoundView.vue';
+import TermsView from '@/codeclarity_components/terms/TermsView.vue';
+import AnalysesView from '@/codeclarity_components/analyses/AnalysesView.vue';
+import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue';
+import SignupView from '@/codeclarity_components/authentication/signup/SignupView.vue';
+import SettingsView from '@/codeclarity_components/settings/SettingsView.vue';
+import OAuthCallbackView from '@/codeclarity_components/authentication/oauth/OAuthCallbackView.vue';
+import PasswordResetRequestView from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue';
+import OrganizationView from '@/codeclarity_components/organizations/OrganizationView.vue';
+import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
+import HelpView from '@/codeclarity_components/help/HelpView.vue';
+import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -107,11 +106,6 @@ const router = createRouter({
             }
         },
         {
-            path: '/trial',
-            name: 'trial',
-            component: TrialView
-        },
-        {
             path: '/404',
             name: 'notfound',
             component: NotFoundView
@@ -146,7 +140,6 @@ router.beforeEach(async (to) => {
         '/signup',
         '/password_reset_request',
         '/404',
-        '/trial',
         '/terms',
         '/privacy',
         '/auth/gitlab/callback',
@@ -212,14 +205,14 @@ router.beforeEach(async (to) => {
             if (user.activated == false) {
                 userStore.$reset();
                 authStore.$reset();
-                return { path: '/trial' };
+                return { path: '/login' };
             }
 
             userStore.setUser(user);
         } catch (error) {
             userStore.$reset();
             authStore.$reset();
-            return { path: '/login' };
+            
         }
     }
 
@@ -281,7 +274,7 @@ router.beforeEach(async (to) => {
     if (authRequired && user && user.activated == false) {
         userStore.$reset();
         authStore.$reset();
-        return { path: '/trial' };
+        return { path: '/login' };
     }
 
     if (authRequired && authStore.getAuthenticated == false) {

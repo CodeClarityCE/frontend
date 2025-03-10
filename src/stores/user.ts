@@ -1,5 +1,5 @@
-import type { AuthenticatedUser } from '@/repositories/types/entities/AuthenticatedUser';
-import type { Organization } from '@/repositories/types/entities/Organization';
+import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
+import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 import { defineStore } from 'pinia';
 
 interface UserStoreState {

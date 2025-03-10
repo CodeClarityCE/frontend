@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ActionSeverity, AuditLog } from '@/repositories/types/entities/AuditLog';
-import type { Organization } from '@/repositories/types/entities/Organization';
-import { MemberRole } from '@/repositories/types/entities/Organization';
+import { ActionSeverity, AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
+import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
+import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import moment from 'moment';
 
 defineProps<{
@@ -92,7 +92,7 @@ defineProps<{
     </tr>
 </template>
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
+@use '@/assets/colors.scss';
 
 .org-membership {
     border-radius: 15px;
@@ -115,7 +115,7 @@ defineProps<{
 }
 
 .membership-moderator {
-    background-color: $accent;
+    background-color: colors.$accent;
 }
 
 .membership-user {
@@ -132,19 +132,19 @@ defineProps<{
     }
 
     .log-severity-critical {
-        background-color: $severity-critical;
+        background-color: colors.$severity-critical;
     }
 
     .log-severity-high {
-        background-color: $severity-high;
+        background-color: colors.$severity-high;
     }
 
     .log-severity-medium {
-        background-color: $severity-medium;
+        background-color: colors.$severity-medium;
     }
 
     .log-severity-low {
-        background-color: $severity-low;
+        background-color: colors.$severity-low;
     }
 }
 </style>

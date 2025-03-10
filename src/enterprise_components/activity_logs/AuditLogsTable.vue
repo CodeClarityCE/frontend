@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import SearchBar from '@/common_components/SearchBar.vue';
-import Pagination from '@/common_components/PaginationComponent.vue';
+import SearchBar from '@/base_components/SearchBar.vue';
+import Pagination from '@/base_components/PaginationComponent.vue';
 import OrgAuditLogItem from './audit/OrgAuditLogItem.vue';
-import SortableTable from '@/common_components/tables/SortableTable.vue';
-import { SortDirection } from '@/repositories/types/PaginatedRequestOptions';
-import type { TableHeader } from '@/common_components/tables/SortableTable.vue';
-import type { AuditLog } from '@/repositories/types/entities/AuditLog';
-import type { Organization } from '@/repositories/types/entities/Organization';
+import SortableTable from '@/base_components/tables/SortableTable.vue';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import type { TableHeader } from '@/base_components/tables/SortableTable.vue';
+import type { AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
+import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 
 defineProps<{
     placeholder: 'Search by user email, log class, log type or log text';

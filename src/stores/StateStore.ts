@@ -1,5 +1,5 @@
-import type { Project } from '@/repositories/types/entities/Project';
-import type { PaginatedResponse } from '@/repositories/types/responses/PaginatedResponse';
+import type { Project } from '@/codeclarity_components/projects/project.entity';
+import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
 import { defineStore } from 'pinia';
 import { ref, type Ref } from 'vue';
 

@@ -1,3 +1,5 @@
+@use '../colors.scss';
+
 $primary-color: black;
 
 input[type='text'],
@@ -16,19 +18,19 @@ select {
 button[type='submit'],
 input[type='submit'] {
     width: 100%;
-    background-color: $base-color;
+    background-color: colors.$base-color;
     color: white;
     padding: 14px 20px;
     margin: 0px 0;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    border: 2px solid $base-color;
+    border: 2px solid colors.$base-color;
 }
 button[type='submit']:hover,
 input[type='submit']:hover {
-    border: 2px solid $accent-darker;
-    background-color: $accent-dark;
+    border: 2px solid colors.$accent-darker;
+    background-color: colors.$accent-dark;
 }
 
 input[type='submit']:not(:disabled):active {
@@ -245,7 +247,7 @@ textarea[invalid='true']:focus {
 .login-form input[type='checkbox'],
 .registration-form input[type='checkbox'] {
     cursor: pointer;
-    accent-color: $base-color;
+    accent-color: colors.$base-color;
     width: 15px;
 }
 
@@ -260,7 +262,7 @@ textarea[invalid='true']:focus {
 
 .login-form a,
 .registration-form a {
-    color: $base-color;
+    color: colors.$base-color;
     text-decoration: none;
 }
 
@@ -310,7 +312,7 @@ textarea[invalid='true']:focus {
 
 .submit-button {
     width: 100%;
-    background-color: $base-color;
+    background-color: colors.$base-color;
     color: white;
     padding: 14px 20px;
     border: none;
@@ -320,11 +322,11 @@ textarea[invalid='true']:focus {
 }
 
 .submit-button-dark {
-    background-color: $accent-dark;
+    background-color: colors.$accent-dark;
 }
 
 .submit-button-darker {
-    background-color: $accent-darker;
+    background-color: colors.$accent-darker;
 }
 
 .submit-button:disabled {

@@ -1,4 +1,4 @@
-import type { Plugin } from '@/repositories/types/entities/Plugin';
+import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import * as lite from 'litegraph.js';
 import * as d3 from 'd3';
 import type { Ref } from 'vue';

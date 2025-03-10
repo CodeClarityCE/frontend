@@ -481,7 +481,7 @@ init();
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
-@import '@/assets/common/summary.scss';
-@import '@/assets/common/cvss.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/summary.scss';
+@use '@/assets/common/cvss.scss';
 </style>

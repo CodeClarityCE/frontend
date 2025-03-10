@@ -646,7 +646,7 @@ function getPatchingUrl() {
 // const active_view = defineModel<string>('active_view', { required: true })
 </script>
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
-@import '@/assets/common/details.scss';
-@import '@/assets/common/finding-patch.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/details.scss';
+@use '@/assets/common/finding-patch.scss';
 </style>

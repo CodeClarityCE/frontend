@@ -411,8 +411,8 @@ init();
     </CenteredModal>
 </template>
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
-@import '@/assets/common/form.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/form.scss';
 .gitlab-host-selection-container {
     position: relative;
     width: 100%;

@@ -538,7 +538,7 @@ getFinding(props.projectID, props.analysisID);
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
-@import '@/assets/common/details.scss';
-@import '@/assets/common/cvss.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/details.scss';
+@use '@/assets/common/cvss.scss';
 </style>

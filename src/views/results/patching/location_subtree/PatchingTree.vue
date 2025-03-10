@@ -21,6 +21,6 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors.scss';
-@import '@/assets/common/dependency-tree.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/dependency-tree.scss';
 </style>

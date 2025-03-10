@@ -75,6 +75,6 @@ defineProps<{
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
-@import '@/assets/common/details.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/details.scss';
 </style>

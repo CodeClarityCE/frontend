@@ -78,7 +78,7 @@
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/common/oauth.scss';
+@use '@/assets/common/oauth.scss';
 </style>
 
 <script lang="ts" setup>

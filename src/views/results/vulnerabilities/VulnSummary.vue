@@ -1154,11 +1154,8 @@ function createRadarChart() {
 }
 </script>
 
-<style>
-@import '@/assets/common/chart.scss';
-</style>
-
 <style scoped lang="scss">
-@import '@/assets/colors.scss';
-@import '@/assets/common/summary.scss';
+@use '@/assets/common/chart.scss';
+@use '@/assets/colors.scss';
+@use '@/assets/common/summary.scss';
 </style>

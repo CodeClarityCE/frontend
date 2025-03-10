@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="TData, TValue">
-import { valueUpdater } from '@/lib/utils';
+import { valueUpdater } from '@/utils/shadcn';
 import type { License } from '@/repositories/types/entities/License';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Input from '@/shadcn/ui/input/Input.vue';

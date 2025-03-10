@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-// import { camelize, getCurrentInstance, toHandlerKey } from 'vue';
 
 import type { Updater } from '@tanstack/vue-table';
 import { type Ref } from 'vue';

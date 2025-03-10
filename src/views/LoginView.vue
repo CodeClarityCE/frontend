@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/shadcn';
 import { buttonVariants } from '@/shadcn/ui/button';
 
 import { useStateStore } from '@/stores/state';

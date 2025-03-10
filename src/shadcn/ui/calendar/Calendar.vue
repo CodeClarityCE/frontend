@@ -19,7 +19,7 @@ import {
     CalendarNextButton,
     CalendarPrevButton
 } from '.';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/shadcn';
 
 const props = defineProps<CalendarRootProps & { class?: HTMLAttributes['class'] }>();
 

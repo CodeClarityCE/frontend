@@ -3,7 +3,7 @@ import { type HTMLAttributes, computed } from 'vue';
 import { PaginationLast, type PaginationLastProps } from 'radix-vue';
 import { ChevronsRight } from 'lucide-vue-next';
 import { Button } from '@/shadcn/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/shadcn';
 
 const props = withDefaults(
     defineProps<PaginationLastProps & { class?: HTMLAttributes['class'] }>(),

@@ -206,7 +206,7 @@ function performOrgAction() {
                             border-radius: 15px;
                             font-size: 0.8em;
                         "
-                        >{{ membership.organization.number_of_members }}</span
+                        >{{ membership.organization.organizationMemberships.length }}</span
                     >
                 </div>
                 <div>
@@ -313,7 +313,8 @@ function performOrgAction() {
             </div>
         </template>
         <template #buttons>
-            <AlertButton
+            <Button
+                variant="destructive"
                 @click="
                     performOrgAction();
                     orgActionModalRef.toggle();
@@ -327,15 +328,15 @@ function performOrgAction() {
                 </template>
                 <template v-if="orgAction == OrgAction.DELETE" #text> Delete </template>
                 <template v-else-if="orgAction == OrgAction.LEAVE" #text> Leave </template>
-            </AlertButton>
-            <NormalButton
+            </Button>
+            <Button
                 @click="
                     orgActionId = '';
                     orgActionModalRef.toggle();
                 "
             >
                 <template #text> Cancel </template>
-            </NormalButton>
+            </Button>
         </template>
     </CenteredModal>
 </template>

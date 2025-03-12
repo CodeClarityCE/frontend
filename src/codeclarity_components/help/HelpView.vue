@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import FaqBox from '@/base_components/FaqBox.vue';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import { useStateStore } from '@/stores/state';
 
 const state = useStateStore();
@@ -11,14 +10,11 @@ state.publicPage = false;
 </script>
 <template>
     <div class="flex flex-col gap-8 p-12">
-        <TitleAndSubtitle>
-            <template #title>Help</template>
-            <template #subtitle>How can we help you?</template>
-            <template #description>
+        <h2 class="text-3xl font-bold tracking-tight">Help</h2>
+        <!-- <template #description>
                 Within this page you can find a section on frequently asked questions. If your
                 question is not answered within, the please take up contact with us.
-            </template>
-        </TitleAndSubtitle>
+            </template> -->
         <div>
             <div class="flex flex-col gap-8">
                 <h2 class="font-black text-2xl">Faq</h2>

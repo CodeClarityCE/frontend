@@ -13,7 +13,6 @@ const auth = useAuthStore();
 import LoadingContainer from '@/base_components/LoadingContainer.vue';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
 
 const project: Ref<Project | undefined> = ref();
@@ -57,36 +56,30 @@ getProject();
 
 <template>
     <div class="flex flex-row justify-between">
-        <!-- Header -->
-        <TitleAndSubtitle>
-            <template #title>Analyze your project</template>
-            <template #description>Analyze your project using our analyzers.</template>
-        </TitleAndSubtitle>
-        <div>
-            <LoadingContainer ref="upload_loading_ref">
-                <template #content>
-                    <div class="flex flex-row gap-5 mt-2">
-                        <div
-                            class="flex flex-row justify-center items-center bg-gray-100 rounded-lg text-gray-400 text-4xl h-14 w-14 p-4">
-                            <Icon v-if="project?.type == IntegrationProvider.GITHUB" icon="simple-icons:github" />
-                            <Icon v-else-if="project?.type == IntegrationProvider.GITLAB" icon="simple-icons:gitlab" />
+        <h2 class="text-3xl font-bold tracking-tight">Analysis</h2>
+        <LoadingContainer ref="upload_loading_ref">
+            <template #content>
+                <div class="flex flex-row gap-5 mt-2">
+                    <div
+                        class="flex flex-row justify-center items-center bg-gray-100 rounded-lg text-gray-400 text-4xl h-14 w-14 p-4">
+                        <Icon v-if="project?.type == IntegrationProvider.GITHUB" icon="simple-icons:github" />
+                        <Icon v-else-if="project?.type == IntegrationProvider.GITLAB" icon="simple-icons:gitlab" />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="font-bold text-gray-600 text-lg">
+                            {{ project?.name }}
                         </div>
-                        <div class="flex flex-col gap-1">
-                            <div class="font-bold text-gray-600 text-lg">
-                                {{ project?.name }}
-                            </div>
-                            <div class="font-medium text-gray-500">
-                                {{ project?.type }} :
-                                {{ project?.url }}
-                            </div>
+                        <div class="font-medium text-gray-500">
+                            {{ project?.type }} :
+                            {{ project?.url }}
                         </div>
                     </div>
-                </template>
+                </div>
+            </template>
 
-                <template #error>
-                    {{ upload_loading_error }}
-                </template>
-            </LoadingContainer>
-        </div>
+            <template #error>
+                {{ upload_loading_error }}
+            </template>
+        </LoadingContainer>
     </div>
 </template>

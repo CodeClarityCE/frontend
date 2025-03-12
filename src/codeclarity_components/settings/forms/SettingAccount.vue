@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { useStateStore } from '@/stores/state';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import { useUserStore } from '@/stores/user';
 import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
 import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
@@ -15,21 +13,12 @@ import DeleteUserForm from './DeleteUserForm.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 const state = useStateStore();
-const userStore = useUserStore();
 state.menu = 'settingsAccount';
-
-const user = userStore.user
 
 </script>
 
 <template>
-    <!-- Header -->
-    <TitleAndSubtitle>
-        <template #title>Settings</template>
-        <template #subtitle>Account</template>
-        <template #description>Update your personal information, update your password or delete your
-            account.</template>
-    </TitleAndSubtitle>
+    <h2 class="text-3xl font-bold tracking-tight">Settings</h2>
 
     <div class="grid grid-cols-3 gap-8 mt-10">
         <!-- Personal information -->

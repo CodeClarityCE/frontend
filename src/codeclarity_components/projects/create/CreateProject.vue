@@ -15,7 +15,6 @@ import BoxLoader from '@/base_components/BoxLoader.vue';
 import { storeToRefs } from 'pinia';
 import NoIntegration from './integrations/NoIntegration.vue';
 import Integrations from './integrations/IntegrationsComponent.vue';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 // Repositories
@@ -142,10 +141,7 @@ fetchVcsIntegrations();
         <!-- Import Repo Screen -->
         <div v-else-if="!error && selectedVCS">
             <div class="flex flex-col gap-12">
-                <TitleAndSubtitle>
-                    <template #title>Import repositories</template>
-                    <template #description> Select the repositories you wish to import. </template>
-                </TitleAndSubtitle>
+                <h2 class="text-3xl font-bold tracking-tight">Projects</h2>
                 <GithubImportComponent v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
                     :integration="selectedVCS.id">
                 </GithubImportComponent>

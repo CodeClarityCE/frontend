@@ -7,7 +7,6 @@ import { Icon } from '@iconify/vue';
 import SearchBar from '@/base_components/SearchBar.vue';
 import Pagination from '@/base_components/PaginationComponent.vue';
 import OrgListItem from './ListItem.vue';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
 
 const search = ref('');
@@ -64,14 +63,11 @@ fetch();
 <template>
     <div class="flex flex-col gap-8">
         <div class="flex flex-row justify-between items-center">
-            <TitleAndSubtitle>
-                <template #title>Organizations</template>
-                <template #subtitle>Manage your organizations</template>
-                <template #description>
-                    Within this page you can find a list of all your organizations. You can create a
-                    new organization, or manage your existing ones.
-                </template>
-            </TitleAndSubtitle>
+            <h2 class="text-3xl font-bold tracking-tight">Organizations</h2>
+            <!-- <template #description>
+                Within this page you can find a list of all your organizations. You can create a
+                new organization, or manage your existing ones.
+            </template> -->
             <div class="text-sm">
                 <RouterLink
                     class="py-2 px-2 rounded-md text-white cursor-pointer border-2 border-primary bg-primary flex flex-row gap-1.5 items-center justify-center"

@@ -7,7 +7,6 @@ import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import { Icon } from '@iconify/vue';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 
 // Repositories
@@ -63,11 +62,7 @@ async function submit() {
 <template>
     <div class="flex flex-col justify-center items-center my-20">
         <div class="max-w-lg w-full flex flex-col" v-if="!success">
-            <!-- Header -->
-            <TitleAndSubtitle>
-                <template #title>Password Reset</template>
-                <template #description>To reset your password, enter your email below</template>
-            </TitleAndSubtitle>
+            <h2 class="text-3xl font-bold tracking-tight">Password Reset</h2>
 
             <div class="flex flex-col gap-8">
                 <div v-if="error">

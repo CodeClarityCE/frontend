@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import type { PropType } from 'vue';
@@ -16,11 +15,8 @@ defineProps({
 
 <template>
     <div class="flex flex-col gap-2">
-        <TitleAndSubtitle>
-            <template #title>{{ dependency.name }}</template>
-            <template #subtitle>@{{ dependency.version }}</template>
-        </TitleAndSubtitle>
-
+        <div>{{ dependency.name }}</div>
+        <div>@{{ dependency.version }}</div>
         <div class="text-gray-600">
             <div v-if="!dependency.transitive">
                 This is a direct dependency of the project.

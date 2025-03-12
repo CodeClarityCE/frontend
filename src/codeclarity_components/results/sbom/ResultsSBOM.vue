@@ -2,14 +2,10 @@
 import { onUpdated, ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import SbomContent from './SbomContent.vue';
-import { Icon } from '@iconify/vue';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 
 // Import stores
 import { Project } from '@/codeclarity_components/projects/project.entity';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import { Badge } from '@/shadcn/ui/badge';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 defineProps<{
@@ -50,29 +46,6 @@ watch(activeTab, async (newTab, oldTab) => {
 
 <template>
     <div v-show="!details" v-if="!only_details" class="w-full flex flex-col gap-14" id="main-container">
-        <TitleAndSubtitle class="pt-8">
-            <template #title>
-                <div class="flex flex-row gap-2 items-center">
-                    <Icon v-if="project.type == IntegrationProvider.GITHUB" icon="bi:github"></Icon>
-                    <Icon v-else-if="project.type == IntegrationProvider.GITLAB" icon="bi:gitlab"></Icon>
-                    <Icon v-else icon="material-symbols:drive-folder-upload-outline"></Icon>
-                    <span class="text-gray-500">{{ project.name }}</span>
-                </div>
-            </template>
-            <template #description>
-                <div class="flex flex-row items-center gap-4">
-                    <div v-if="project.integration_id" class="flex flex-row items-center gap-2">
-                        <span>Branch:</span>
-                        <Badge>{{ analysis.branch }}</Badge>
-                    </div>
-                    <div class="flex flex-row items-center gap-2">
-                        <span>Workspace:</span>
-                        <Badge>default</Badge>
-                    </div>
-                </div>
-            </template>
-        </TitleAndSubtitle>
-
         <template v-if="(bill_of_materials == null || bill_of_materials.length == 0) && !is_loading">
             <div style="margin-bottom: 100px">
                 <Alert>

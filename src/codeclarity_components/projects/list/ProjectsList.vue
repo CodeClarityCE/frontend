@@ -12,7 +12,6 @@ import { OrgRepository } from '@/codeclarity_components/organizations/organizati
 import { useAuthStore } from '@/stores/auth';
 import type { OrganizationMetaData } from '@/codeclarity_components/organizations/organization.entity';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
 import { Button } from '@/shadcn/ui/button';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
 
@@ -78,20 +77,7 @@ fetchOrgMetaData();
         <!-- Header -->
         <div class="flex flex-row gap-4 justify-between items-center">
             <div class="flex flex-row gap-4 justify-between flex-wrap items-center w-full">
-                <TitleAndSubtitle>
-                    <template #title>Analyze your project</template>
-                    <template #description>
-                        <div v-if="!reposLoading && projectsResponse">
-                            You have {{ projectsResponse!.total_entries }} projects
-                        </div>
-                        <div v-else-if="projectsResponse">
-                            <div class="flex flex-row gap-5 justify-start items-center">
-                                <TextLoader class="max-w-72 w-full" />
-                                <BoxLoader :dimensions="{ width: '150px', height: '50px' }" />
-                            </div>
-                        </div>
-                    </template>
-                </TitleAndSubtitle>
+                <h2 class="text-3xl font-bold tracking-tight">Projects</h2>
                 <div v-if="orgMetaData && orgMetaData.integrations.length > 0">
                     <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
                         <Button>

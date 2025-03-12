@@ -10,8 +10,8 @@ import {
     IsNumber,
     IsOptional
 } from 'class-validator';
-import type { IntegrationType, VCS } from './integrations/Integrations';
 import type { Project } from '../projects/project.entity';
+import type { OrganizationMembership } from './organization_membership.entity';
 
 export class Organization {
     @IsNotEmpty()
@@ -48,6 +48,8 @@ export class Organization {
     @IsNumber()
     number_of_members!: number;
 
+    organizationMemberships!: OrganizationMembership[];
+
     @IsDateString()
     joined_on!: Date;
 }
@@ -60,19 +62,7 @@ export class OrganizationMetaData {
     created_on!: Date;
 
     @IsArray()
-    integrations!: VCS[];
-
-    @IsArray()
     projects!: Project[];
-
-    // @IsBoolean()
-    // vcs_integrations_added!: boolean;
-    // @IsBoolean()
-    // integrations_added!: boolean;
-    // @IsBoolean()
-    // projects_added!: boolean;
-    // @IsBoolean()
-    // analyses_started!: boolean;
 }
 
 export enum MemberRole {

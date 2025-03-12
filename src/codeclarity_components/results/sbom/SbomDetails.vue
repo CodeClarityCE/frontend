@@ -1,41 +1,3 @@
-<template>
-    <div class="flex flex-col gap-10">
-        <!--------------------------------------------------------------------------->
-        <!--                               Navigation                              -->
-        <!--------------------------------------------------------------------------->
-        <div v-if="showBack" class="cursor-pointer">
-            <Badge variant="secondary" @click="goBack()" title="Go back to preview page">
-                <Icon :icon="'material-symbols:keyboard-backspace'"></Icon>
-                Go back
-            </Badge>
-        </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                                 Content                               -->
-        <!--------------------------------------------------------------------------->
-        <div v-if="render" class="flex flex-col gap-10">
-            <SbomDetailsHeader :dependency="dependency"></SbomDetailsHeader>
-            <div class="flex flex-row flex-wrap gap-y-10">
-                <SbomInformation class="w-1/2" :dependency="dependency"></SbomInformation>
-                <SbomImportPaths
-                    class="w-1/2"
-                    :dependency="dependency"
-                    :analysisID="analysisID"
-                    :projectID="projectID"
-                ></SbomImportPaths>
-                <SbomDependencyHealth class="w-1/2" :dependency="dependency"></SbomDependencyHealth>
-            </div>
-        </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                            Loading skeleton                           -->
-        <!--------------------------------------------------------------------------->
-        <div v-else>
-            <SbomDetailsLoader></SbomDetailsLoader>
-        </div>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { ref, type Ref } from 'vue';
 
@@ -124,6 +86,40 @@ async function getDependency(projectID: string, analysisID: string) {
 
 getDependency(props.projectID, props.analysisID);
 </script>
+
+<template>
+    <div class="flex flex-col gap-10">
+        <!--------------------------------------------------------------------------->
+        <!--                               Navigation                              -->
+        <!--------------------------------------------------------------------------->
+        <div v-if="showBack" class="cursor-pointer">
+            <Badge variant="secondary" @click="goBack()" title="Go back to preview page">
+                <Icon :icon="'material-symbols:keyboard-backspace'"></Icon>
+                Go back
+            </Badge>
+        </div>
+
+        <!--------------------------------------------------------------------------->
+        <!--                                 Content                               -->
+        <!--------------------------------------------------------------------------->
+        <div v-if="render" class="flex flex-col gap-10">
+            <SbomDetailsHeader :dependency="dependency"></SbomDetailsHeader>
+            <div class="flex flex-row flex-wrap gap-y-10">
+                <SbomInformation class="w-1/2" :dependency="dependency"></SbomInformation>
+                <SbomImportPaths class="w-1/2" :dependency="dependency" :analysisID="analysisID" :projectID="projectID">
+                </SbomImportPaths>
+                <SbomDependencyHealth class="w-1/2" :dependency="dependency"></SbomDependencyHealth>
+            </div>
+        </div>
+
+        <!--------------------------------------------------------------------------->
+        <!--                            Loading skeleton                           -->
+        <!--------------------------------------------------------------------------->
+        <div v-else>
+            <SbomDetailsLoader></SbomDetailsLoader>
+        </div>
+    </div>
+</template>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

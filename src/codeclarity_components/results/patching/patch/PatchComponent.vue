@@ -1,55 +1,3 @@
-<template>
-    <Card>
-        <CardContent class="pt-4">
-            <div class="flex flex-col gap-4">
-                <div class="flex flex-row items-center gap-8 font-bold">
-                    <Badge>{{ type }}</Badge>
-                    <div class="text-2xl">
-                        {{ name }}
-                    </div>
-                    <div>
-                        <span
-                            v-if="patch.IsPatchable == 'FULL'"
-                            class="flex gap-1 items-center text-severityLow"
-                        >
-                            <Icon icon="bi:shield-fill-check" />
-                            Full patch available
-                        </span>
-                        <span
-                            v-else-if="patch.IsPatchable == 'PARTIAL'"
-                            class="flex gap-1 items-center text-severityMedium"
-                        >
-                            <Icon icon="bi:shield-fill-minus" />
-                            Partial patch available
-                        </span>
-                        <span v-else class="flex gap-1 items-center text-severityHigh">
-                            <Icon icon="bi:shield-fill-exclamation" />
-                            No patch available
-                        </span>
-                    </div>
-                </div>
-
-                <Tabs default-value="patches" class="w-full">
-                    <TabsList class="grid w-full grid-cols-2">
-                        <TabsTrigger value="patches"> <Icon icon="bi:list" /> Patches </TabsTrigger>
-                        <TabsTrigger value="tree"> <Icon icon="ri:node-tree" /> Tree </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="patches">
-                        <div v-for="(unpatchable, index) in patch.Unpatchable" :key="index">
-                            <PatchInformation :patch="unpatchable" :patchInfo="patch" />
-                        </div>
-                        <div v-for="(patchable, index) in patch.Patchable" :key="index">
-                            <PatchInformation :patch="patchable" :patchInfo="patch" />
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="tree">
-                        <Tree :nodes="node_array" :show-vuln-i-ds="true" />
-                    </TabsContent>
-                </Tabs>
-            </div>
-        </CardContent>
-    </Card>
-</template>
 <script lang="ts" setup>
 import { ref, watch, type Ref } from 'vue';
 import Tree from '../location_subtree/PatchingTree.vue';
@@ -120,3 +68,55 @@ const active_view = ref('patches');
 //     }
 // );
 </script>
+
+<template>
+    <Card>
+        <CardContent class="pt-4">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-row items-center gap-8 font-bold">
+                    <Badge>{{ type }}</Badge>
+                    <div class="text-2xl">
+                        {{ name }}
+                    </div>
+                    <div>
+                        <span v-if="patch.IsPatchable == 'FULL'" class="flex gap-1 items-center text-severityLow">
+                            <Icon icon="bi:shield-fill-check" />
+                            Full patch available
+                        </span>
+                        <span v-else-if="patch.IsPatchable == 'PARTIAL'"
+                            class="flex gap-1 items-center text-severityMedium">
+                            <Icon icon="bi:shield-fill-minus" />
+                            Partial patch available
+                        </span>
+                        <span v-else class="flex gap-1 items-center text-severityHigh">
+                            <Icon icon="bi:shield-fill-exclamation" />
+                            No patch available
+                        </span>
+                    </div>
+                </div>
+
+                <Tabs default-value="patches" class="w-full">
+                    <TabsList class="grid w-full grid-cols-2">
+                        <TabsTrigger value="patches">
+                            <Icon icon="bi:list" /> Patches
+                        </TabsTrigger>
+                        <TabsTrigger value="tree">
+                            <Icon icon="ri:node-tree" /> Tree
+                        </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="patches">
+                        <div v-for="(unpatchable, index) in patch.Unpatchable" :key="index">
+                            <PatchInformation :patch="unpatchable" :patchInfo="patch" />
+                        </div>
+                        <div v-for="(patchable, index) in patch.Patchable" :key="index">
+                            <PatchInformation :patch="patchable" :patchInfo="patch" />
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="tree">
+                        <Tree :nodes="node_array" :show-vuln-i-ds="true" />
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </CardContent>
+    </Card>
+</template>

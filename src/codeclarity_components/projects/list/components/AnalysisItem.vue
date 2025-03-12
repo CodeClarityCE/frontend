@@ -1,152 +1,3 @@
-<template>
-    <div v-if="props.analysis != null">
-        <div class="flex gap-2 w-full">
-            <Icon v-if="true" :icon="'devicon:javascript'" class="text-3xl rounded-lg"></Icon>
-            <div :id="'finished-button-' + props.analysis.id" v-if="
-                props.analysis.status == AnalysisStatus.COMPLETED ||
-                props.analysis.status == AnalysisStatus.FINISHED
-            " class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-severityLow"
-                title="Get details about the analysis execution" @click="finished_modal_ref.toggle()">
-                Finished
-            </div>
-            <div v-else-if="
-                props.analysis.status == AnalysisStatus.STARTED ||
-                props.analysis.status == AnalysisStatus.REQUESTED ||
-                props.analysis.status == AnalysisStatus.ONGOING ||
-                props.analysis.status == AnalysisStatus.UPDATING_DB
-            " :id="'finished-button-' + props.analysis.id"
-                class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-primary"
-                @click="finished_modal_ref.toggle()">
-                Running
-                <Progress :model-value="(getStepsDone(props.analysis.steps) / getTotalSteps(props.analysis.steps)) *
-                    100
-                    " class="w-full"></Progress>
-                <Icon icon="fluent:circle-hint-20-regular" class="animate-spin text-2xl"> </Icon>
-            </div>
-
-            <div v-else :id="'finished-button-' + props.analysis.id"
-                class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-severityHigh"
-                title="Get details about the analysis execution" @click="finished_modal_ref.toggle()">
-                Failed
-            </div>
-            <PositionedModal ref="finished_modal_ref" :tracker="'finished-button-' + props.analysis.id"
-                :position="'top'" :show-title-divider="false" :show-title="false" :show-sub-title="false"
-                :margin-target="15">
-                <template #content>
-                    <div class="flex flex-col gap-4 min-w-96">
-                        <div v-for="(stage, index) in getAllStages(analysis.steps)" :key="index">
-                            <div class="flex flex-row gap-2 items-center justify-between w-full">
-                                <div class="flex flex-row gap-2 items-center">
-                                    <div
-                                        class="flex-shrink-0 bg-gray-300 text-gray-500 rounded-full w-6 h-6 pl-2 pt-[0.2px]">
-                                        {{ index + 1 }}
-                                    </div>
-                                    <div class="uppercase">
-                                        {{ stage.Name }}
-                                    </div>
-                                </div>
-                                <div v-if="stage.Status == AnalysisStatus.STARTED">
-                                    <div class="flex gap-2 items-center">
-                                        <div>running</div>
-                                        <Icon icon="fluent:circle-hint-20-regular"
-                                            class="text-primary animate-spin text-2xl"></Icon>
-                                    </div>
-                                </div>
-                                <div v-else-if="stage.Status == AnalysisStatus.SUCCESS">
-                                    <div class="flex gap-2 items-center">
-                                        took
-                                        {{ getTimeDiff(stage) }}
-                                        <Icon icon="bi:check-circle-fill" class="text-severityLow text-xl" />
-                                    </div>
-                                </div>
-                                <div v-else>
-                                    <div class="flex gap-2 items-center">
-                                        Waiting to start
-                                        <Icon icon="ph:hourglass" class="text-severityLow text-2xl" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </PositionedModal>
-        </div>
-        <!-- Status -->
-        <div class="flex gap-2 pt-2">
-            <span>Start date:</span>
-            <span class="font-semibold text-muted-foreground">
-                {{ moment(props.analysis.created_on).format('LL') }}
-                @
-                {{ moment(props.analysis.created_on).format('HH:mm:ss') }}
-            </span>
-        </div>
-        <!-- BUTONS -->
-        <div class="flex gap-2 items-center justify-center pt-4">
-            <RouterLink v-if="
-                props.analysis.status == AnalysisStatus.FINISHED ||
-                props.analysis.status == AnalysisStatus.COMPLETED ||
-                (props.analysis.status == AnalysisStatus.STARTED &&
-                    props.analysis.steps.length > 0)
-            " :to="{
-                    name: 'results',
-                    query: { analysis_id: props.analysis.id, project_id: props.projectID }
-                }">
-                <Button>
-                    <div class="whitespace-nowrap">
-                        {{
-                            props.analysis.status == AnalysisStatus.FINISHED ||
-                                props.analysis.status == AnalysisStatus.COMPLETED
-                                ? 'View Report'
-                                : 'View Partial Report'
-                        }}
-                    </div>
-                </Button>
-            </RouterLink>
-            <Button :variant="'destructive'" @click="analysis_delete_modal_ref.toggle()">
-                <Icon icon="oi:trash" class="mr-2" /> Delete
-            </Button>
-        </div>
-
-        <!-- <div class="w-full flex flex-col items-center">
-            <HeatMapChart
-                :chart-data="chartData"
-                :chart-options="chartOptions"
-                :id="'heatmap-chart-' + props.analysis.id"
-                :hideAxis="true"
-            ></HeatMapChart>
-        </div> -->
-    </div>
-    <CenteredModal ref="analysis_delete_modal_ref">
-        <template #title>
-            <div class="flex items-center gap-2 justify-between">
-                <div>Delete analysis?</div>
-            </div>
-        </template>
-        <template #content>
-            <div class="flex flex-col gap-6 max-w-96 w-screen">
-                <div>Are you sure you want to delete the analysis?</div>
-                <Alert variant="destructive">
-                    <Icon icon="ic:twotone-warning" scale="1.25" />
-                    <AlertDescription>
-                        This action is permanent and cannot be reverted.
-                    </AlertDescription>
-                </Alert>
-            </div>
-        </template>
-        <template #buttons>
-            <Button variant="destructive" @click="
-                deleteAnalysis();
-            analysis_delete_modal_ref.toggle();
-            ">
-
-                <Icon icon="oi:trash" />Delete
-            </Button>
-            <Button variant="outline" @click="analysis_delete_modal_ref.toggle()">
-                Cancel
-            </Button>
-        </template>
-    </CenteredModal>
-</template>
 <script lang="ts" setup>
 import { RouterLink } from 'vue-router';
 import moment from 'moment';
@@ -303,3 +154,152 @@ async function getChart(projectID: string, analysisID: string) {
 }
 getChart(props.projectID, props.analysis.id);
 </script>
+<template>
+    <div v-if="props.analysis != null">
+        <div class="flex gap-2 w-full">
+            <Icon v-if="true" :icon="'devicon:javascript'" class="text-3xl rounded-lg"></Icon>
+            <div :id="'finished-button-' + props.analysis.id" v-if="
+                props.analysis.status == AnalysisStatus.COMPLETED ||
+                props.analysis.status == AnalysisStatus.FINISHED
+            " class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-severityLow"
+                title="Get details about the analysis execution" @click="finished_modal_ref.toggle()">
+                Finished
+            </div>
+            <div v-else-if="
+                props.analysis.status == AnalysisStatus.STARTED ||
+                props.analysis.status == AnalysisStatus.REQUESTED ||
+                props.analysis.status == AnalysisStatus.ONGOING ||
+                props.analysis.status == AnalysisStatus.UPDATING_DB
+            " :id="'finished-button-' + props.analysis.id"
+                class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-primary"
+                @click="finished_modal_ref.toggle()">
+                Running
+                <Progress :model-value="(getStepsDone(props.analysis.steps) / getTotalSteps(props.analysis.steps)) *
+                    100
+                    " class="w-full"></Progress>
+                <Icon icon="fluent:circle-hint-20-regular" class="animate-spin text-2xl"> </Icon>
+            </div>
+
+            <div v-else :id="'finished-button-' + props.analysis.id"
+                class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-severityHigh"
+                title="Get details about the analysis execution" @click="finished_modal_ref.toggle()">
+                Failed
+            </div>
+            <PositionedModal ref="finished_modal_ref" :tracker="'finished-button-' + props.analysis.id"
+                :position="'top'" :show-title-divider="false" :show-title="false" :show-sub-title="false"
+                :margin-target="15">
+                <template #content>
+                    <div class="flex flex-col gap-4 min-w-96">
+                        <div v-for="(stage, index) in getAllStages(analysis.steps)" :key="index">
+                            <div class="flex flex-row gap-2 items-center justify-between w-full">
+                                <div class="flex flex-row gap-2 items-center">
+                                    <div
+                                        class="flex-shrink-0 bg-gray-300 text-gray-500 rounded-full w-6 h-6 pl-2 pt-[0.2px]">
+                                        {{ index + 1 }}
+                                    </div>
+                                    <div class="uppercase">
+                                        {{ stage.Name }}
+                                    </div>
+                                </div>
+                                <div v-if="stage.Status == AnalysisStatus.STARTED">
+                                    <div class="flex gap-2 items-center">
+                                        <div>running</div>
+                                        <Icon icon="fluent:circle-hint-20-regular"
+                                            class="text-primary animate-spin text-2xl"></Icon>
+                                    </div>
+                                </div>
+                                <div v-else-if="stage.Status == AnalysisStatus.SUCCESS">
+                                    <div class="flex gap-2 items-center">
+                                        took
+                                        {{ getTimeDiff(stage) }}
+                                        <Icon icon="bi:check-circle-fill" class="text-severityLow text-xl" />
+                                    </div>
+                                </div>
+                                <div v-else>
+                                    <div class="flex gap-2 items-center">
+                                        Waiting to start
+                                        <Icon icon="ph:hourglass" class="text-severityLow text-2xl" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </PositionedModal>
+        </div>
+        <!-- Status -->
+        <div class="flex gap-2 pt-2">
+            <span>Start date:</span>
+            <span class="font-semibold text-muted-foreground">
+                {{ moment(props.analysis.created_on).format('LL') }}
+                @
+                {{ moment(props.analysis.created_on).format('HH:mm:ss') }}
+            </span>
+        </div>
+        <!-- BUTONS -->
+        <div class="flex gap-2 items-center justify-center pt-4">
+            <RouterLink v-if="
+                props.analysis.status == AnalysisStatus.FINISHED ||
+                props.analysis.status == AnalysisStatus.COMPLETED ||
+                (props.analysis.status == AnalysisStatus.STARTED &&
+                    props.analysis.steps.length > 0)
+            " :to="{
+                name: 'results',
+                query: { analysis_id: props.analysis.id, project_id: props.projectID }
+            }">
+                <Button>
+                    <div class="whitespace-nowrap">
+                        {{
+                            props.analysis.status == AnalysisStatus.FINISHED ||
+                                props.analysis.status == AnalysisStatus.COMPLETED
+                                ? 'View Report'
+                                : 'View Partial Report'
+                        }}
+                    </div>
+                </Button>
+            </RouterLink>
+            <Button :variant="'destructive'" @click="analysis_delete_modal_ref.toggle()">
+                <Icon icon="oi:trash" class="mr-2" /> Delete
+            </Button>
+        </div>
+
+        <!-- <div class="w-full flex flex-col items-center">
+            <HeatMapChart
+                :chart-data="chartData"
+                :chart-options="chartOptions"
+                :id="'heatmap-chart-' + props.analysis.id"
+                :hideAxis="true"
+            ></HeatMapChart>
+        </div> -->
+    </div>
+    <CenteredModal ref="analysis_delete_modal_ref">
+        <template #title>
+            <div class="flex items-center gap-2 justify-between">
+                <div>Delete analysis?</div>
+            </div>
+        </template>
+        <template #content>
+            <div class="flex flex-col gap-6 max-w-96 w-screen">
+                <div>Are you sure you want to delete the analysis?</div>
+                <Alert variant="destructive">
+                    <Icon icon="ic:twotone-warning" scale="1.25" />
+                    <AlertDescription>
+                        This action is permanent and cannot be reverted.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        </template>
+        <template #buttons>
+            <Button variant="destructive" @click="
+                deleteAnalysis();
+            analysis_delete_modal_ref.toggle();
+            ">
+
+                <Icon icon="oi:trash" />Delete
+            </Button>
+            <Button variant="outline" @click="analysis_delete_modal_ref.toggle()">
+                Cancel
+            </Button>
+        </template>
+    </CenteredModal>
+</template>

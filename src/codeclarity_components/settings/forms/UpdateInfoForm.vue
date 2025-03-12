@@ -1,26 +1,3 @@
-<template>
-    <form @submit="onSubmit">
-        <FormField v-slot="{ componentField }" name="first_name">
-            <FormItem v-auto-animate>
-                <FormLabel>First Name: {{ user?.first_name }}</FormLabel>
-                <FormControl>
-                    <Input type="text" placeholder="Enter your first name" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-        </FormField>
-        <FormField v-slot="{ componentField }" name="last_name">
-            <FormItem v-auto-animate>
-                <FormLabel>Last Name: {{ user?.last_name }}</FormLabel>
-                <FormControl>
-                    <Input type="text" placeholder="Enter your last name" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-        </FormField>
-        <Button type="submit" class="mt-4"> Update </Button>
-    </form>
-</template>
 <script lang="ts" setup>
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 
@@ -77,7 +54,7 @@ const onSubmit = form.handleSubmit((values) => {
 /**
  * Update personal information
  */
-async function updatePersonalInformation(first_name: string, last_name: string) {    
+async function updatePersonalInformation(first_name: string, last_name: string) {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await userRepository.patchPersonalInfo({
@@ -99,3 +76,27 @@ async function updatePersonalInformation(first_name: string, last_name: string) 
     }
 }
 </script>
+
+<template>
+    <form @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="first_name">
+            <FormItem v-auto-animate>
+                <FormLabel>First Name: {{ user?.first_name }}</FormLabel>
+                <FormControl>
+                    <Input type="text" placeholder="Enter your first name" v-bind="componentField" />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="last_name">
+            <FormItem v-auto-animate>
+                <FormLabel>Last Name: {{ user?.last_name }}</FormLabel>
+                <FormControl>
+                    <Input type="text" placeholder="Enter your last name" v-bind="componentField" />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+        </FormField>
+        <Button type="submit" class="mt-4"> Update </Button>
+    </form>
+</template>

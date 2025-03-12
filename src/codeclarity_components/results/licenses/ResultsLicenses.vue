@@ -1,3 +1,26 @@
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { Card, CardContent, CardHeader } from '@/shadcn/ui/card';
+import Licenses from './LicensesComponent.vue';
+// Import stores
+import { Project } from '@/codeclarity_components/projects/project.entity';
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { Icon } from '@iconify/vue';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
+import { Badge } from '@/shadcn/ui/badge';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import { AlertDescription } from '@/shadcn/ui/alert';
+
+defineProps<{
+    analysis: Analysis;
+    project: Project;
+}>();
+
+let no_deps = false;
+const licenses_ref = ref(null);
+</script>
+
 <template>
     <div class="w-full flex flex-col gap-14">
         <TitleAndSubtitle class="pt-8">
@@ -84,26 +107,3 @@
         </div>
     </div>
 </template>
-
-<script lang="ts" setup>
-import { ref } from 'vue';
-import { Card, CardContent, CardHeader } from '@/shadcn/ui/card';
-import Licenses from './LicensesComponent.vue';
-// Import stores
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Icon } from '@iconify/vue';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import { Badge } from '@/shadcn/ui/badge';
-import Alert from '@/shadcn/ui/alert/Alert.vue';
-import { AlertDescription } from '@/shadcn/ui/alert';
-
-defineProps<{
-    analysis: Analysis;
-    project: Project;
-}>();
-
-let no_deps = false;
-const licenses_ref = ref(null);
-</script>

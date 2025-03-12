@@ -1,62 +1,3 @@
-<template>
-    <div class="flex flex-col gap-y-2">
-        <div class="flex gap-4">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
-        </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                           Active Filters list                         -->
-        <!--------------------------------------------------------------------------->
-
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
-
-        <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortByOptions"
-            :showing="nmbEntriesShowing"
-            :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
-        >
-        </UtilitiesSort>
-        <div v-if="render" class="flex flex-col gap-y-8">
-            <div v-for="(license, index) in licensesUsed" :key="index">
-                <LicenseComponent
-                    :key="license.id"
-                    :license="license"
-                    :last="false"
-                    :analysisID="analysisID"
-                    :projectID="projectID"
-                />
-            </div>
-        </div>
-        <div v-if="matchingItemsCount == 0 && filterApplied && render" style="">
-            <div style="text-align: center">No licenses match the filter</div>
-        </div>
-        <div v-if="matchingItemsCount == 0 && !filterApplied && render" style="">
-            <div style="text-align: center">No licenses</div>
-        </div>
-        <div v-if="!render" style="display: flex; flex-direction: column; row-gap: 10px">
-            <BoxLoader
-                v-for="index in 4"
-                :key="index"
-                :dimensions="{ width: '100%', height: '100px' }"
-            />
-        </div>
-        <div class="text-[#484848] font-normal flex justify-between mt-7">
-            <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
-            <PaginationComponent
-                v-model:page="pageNumber"
-                v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal"
-                v-model:totalPages="totalPages"
-            />
-        </div>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { ref, type Ref, watch } from 'vue';
 import SearchBar from '@/base_components/SearchBar.vue';
@@ -179,3 +120,43 @@ async function init() {
 
 init();
 </script>
+
+<template>
+    <div class="flex flex-col gap-y-2">
+        <div class="flex gap-4">
+            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+        </div>
+
+        <!--------------------------------------------------------------------------->
+        <!--                           Active Filters list                         -->
+        <!--------------------------------------------------------------------------->
+
+        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+
+        <UtilitiesSort :selectionPageLimit="selectionPageLimit" :sortOptions="sortByOptions"
+            :showing="nmbEntriesShowing" :total="nmbEntriesTotal" v-model:pageLimitSelected="pageLimitSelected"
+            v-model:sortKey="sortKey" v-model:sortDirection="sortDirection">
+        </UtilitiesSort>
+        <div v-if="render" class="flex flex-col gap-y-8">
+            <div v-for="(license, index) in licensesUsed" :key="index">
+                <LicenseComponent :key="license.id" :license="license" :last="false" :analysisID="analysisID"
+                    :projectID="projectID" />
+            </div>
+        </div>
+        <div v-if="matchingItemsCount == 0 && filterApplied && render" style="">
+            <div style="text-align: center">No licenses match the filter</div>
+        </div>
+        <div v-if="matchingItemsCount == 0 && !filterApplied && render" style="">
+            <div style="text-align: center">No licenses</div>
+        </div>
+        <div v-if="!render" style="display: flex; flex-direction: column; row-gap: 10px">
+            <BoxLoader v-for="index in 4" :key="index" :dimensions="{ width: '100%', height: '100px' }" />
+        </div>
+        <div class="text-[#484848] font-normal flex justify-between mt-7">
+            <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
+            <PaginationComponent v-model:page="pageNumber" v-model:nmbEntriesShowing="pageLimitSelected"
+                v-model:nmbEntriesTotal="nmbEntriesTotal" v-model:totalPages="totalPages" />
+        </div>
+    </div>
+</template>

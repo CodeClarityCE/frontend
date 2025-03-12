@@ -1,3 +1,53 @@
+<script lang="ts" setup>
+import { onUpdated, ref, watch } from 'vue';
+import type { Ref } from 'vue';
+import SbomContent from './SbomContent.vue';
+import { Icon } from '@iconify/vue';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+
+// Import stores
+import { Project } from '@/codeclarity_components/projects/project.entity';
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
+import { Badge } from '@/shadcn/ui/badge';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+
+defineProps<{
+    analysis: Analysis;
+    project: Project;
+}>();
+
+const bill_of_materials = ref([]);
+const details = ref(false);
+let y_position = 0;
+let reference_click_element: Ref<string> = ref('');
+const is_loading = ref(true);
+const only_details = ref(false);
+
+// DATA FOR THE FILTER COMPONENT
+const activeTab = ref('SBOM');
+
+onUpdated(() => {
+    const mainContainer = document.getElementById('main-container');
+    if (mainContainer) {
+        mainContainer.scrollTop = 0;
+    }
+    setTimeout(() => {
+        if (y_position != 0 && details.value == false)
+            if (mainContainer) {
+                mainContainer.scrollTop = y_position;
+            }
+    }, 50);
+});
+
+watch(activeTab, async (newTab, oldTab) => {
+    if (newTab != oldTab) {
+        y_position = 0;
+        reference_click_element.value = '';
+    }
+});
+</script>
+
 <template>
     <div v-show="!details" v-if="!only_details" class="w-full flex flex-col gap-14" id="main-container">
         <TitleAndSubtitle class="pt-8">
@@ -90,53 +140,3 @@
         <SbomContent :analysisID="analysis.id" :projectID="project.id"></SbomContent>
     </div>
 </template>
-
-<script lang="ts" setup>
-import { onUpdated, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import SbomContent from './SbomContent.vue';
-import { Icon } from '@iconify/vue';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-
-// Import stores
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import { Badge } from '@/shadcn/ui/badge';
-import { Alert, AlertDescription } from '@/shadcn/ui/alert';
-
-defineProps<{
-    analysis: Analysis;
-    project: Project;
-}>();
-
-const bill_of_materials = ref([]);
-const details = ref(false);
-let y_position = 0;
-let reference_click_element: Ref<string> = ref('');
-const is_loading = ref(true);
-const only_details = ref(false);
-
-// DATA FOR THE FILTER COMPONENT
-const activeTab = ref('SBOM');
-
-onUpdated(() => {
-    const mainContainer = document.getElementById('main-container');
-    if (mainContainer) {
-        mainContainer.scrollTop = 0;
-    }
-    setTimeout(() => {
-        if (y_position != 0 && details.value == false)
-            if (mainContainer) {
-                mainContainer.scrollTop = y_position;
-            }
-    }, 50);
-});
-
-watch(activeTab, async (newTab, oldTab) => {
-    if (newTab != oldTab) {
-        y_position = 0;
-        reference_click_element.value = '';
-    }
-});
-</script>

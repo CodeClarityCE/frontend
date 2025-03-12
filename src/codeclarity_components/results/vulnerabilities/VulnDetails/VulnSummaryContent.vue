@@ -1,3 +1,32 @@
+<script setup lang="ts">
+import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
+import moment from 'moment';
+import { Icon } from '@iconify/vue';
+import type CenteredModalVue from '@/base_components/CenteredModal.vue';
+import { ref, type Ref } from 'vue';
+import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+
+const props = defineProps<{
+    finding: VulnerabilityDetails;
+    read_me_modal_ref: typeof CenteredModalVue;
+    // nodes_array: TreeNode[];
+    readme: string;
+    active_view: string;
+}>();
+
+const active_view_ref: Ref<string> = ref(props.active_view);
+
+function getPatchingUrl() {
+    let paths = location.pathname.split('/');
+    let url = `${paths[1]}/patching/${paths[2]}`;
+    return `/${url}`;
+}
+// const readme = defineModel<string>('readme', { required: true })
+// const active_view = defineModel<string>('active_view', { required: true })
+</script>
+
 <template>
     <!--------------------------------------------------------------------------->
     <!--                      Vulnerability summary content                    -->
@@ -241,7 +270,7 @@
                             <div class="text-xl font-bold">
                                 <span>{{ finding.dependency_info?.name }}@{{
                                     finding.dependency_info?.version
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="text-[#6c6b6b]">
                                 (published on
@@ -386,34 +415,6 @@
     </section>
 </template>
 
-<script setup lang="ts">
-import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
-import moment from 'moment';
-import { Icon } from '@iconify/vue';
-import type CenteredModalVue from '@/base_components/CenteredModal.vue';
-import { ref, type Ref } from 'vue';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
-
-const props = defineProps<{
-    finding: VulnerabilityDetails;
-    read_me_modal_ref: typeof CenteredModalVue;
-    // nodes_array: TreeNode[];
-    readme: string;
-    active_view: string;
-}>();
-
-const active_view_ref: Ref<string> = ref(props.active_view);
-
-function getPatchingUrl() {
-    let paths = location.pathname.split('/');
-    let url = `${paths[1]}/patching/${paths[2]}`;
-    return `/${url}`;
-}
-// const readme = defineModel<string>('readme', { required: true })
-// const active_view = defineModel<string>('active_view', { required: true })
-</script>
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
 @use '@/assets/common/details.scss';

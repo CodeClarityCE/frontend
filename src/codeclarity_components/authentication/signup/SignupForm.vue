@@ -1,3 +1,135 @@
+<script lang="ts" setup>
+import { RouterLink } from 'vue-router';
+import { ref, type Ref } from 'vue';
+import router from '@/router';
+import { Icon } from '@iconify/vue';
+import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { cn } from '@/shadcn/lib/utils';
+import { Button, buttonVariants } from '@/shadcn/ui/button';
+import { useAuthStore } from '@/stores/auth';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
+import { vAutoAnimate } from '@formkit/auto-animate/vue';
+
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
+} from '@/shadcn/ui/form';
+import { Input } from '@/shadcn/ui/input';
+import { Checkbox } from '@/shadcn/ui/checkbox';
+import { toast } from '@/shadcn/ui/toast';
+
+import ErrorComponent from '@/base_components/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import { defineAsyncComponent } from 'vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+
+const SSOAuth = defineAsyncComponent({
+    loader: () => import('@/enterprise_components/sso/SSOAuth.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
+    delay: 200,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
+// Stores
+const authStore = useAuthStore();
+
+// Repositories
+const authRepository: AuthRepository = new AuthRepository();
+
+// State
+const loading: Ref<boolean> = ref(false);
+const errorCode: Ref<string | undefined> = ref();
+const error: Ref<boolean> = ref(false);
+const validationError: Ref<ValidationError | undefined> = ref();
+
+// Form Validation
+const formSchema = toTypedSchema(
+    z.object({
+        email: z.string().email(),
+        first_name: z.string().min(2).max(25),
+        last_name: z.string().min(2).max(25),
+        handle: z.string().min(5).max(50),
+        plainPassword: z.string().min(10).max(75),
+        plainPasswordConfirm: z.string().min(10).max(75),
+        agreeTerms: z.boolean().default(false)
+    })
+);
+let { handleSubmit } = useForm({
+    validationSchema: formSchema
+});
+
+const onSubmit = handleSubmit((values) => {
+    if (values.agreeTerms == false) {
+        toast({
+            title: 'You must agree to our terms and conditions to continue',
+            description: 'Please check the box to continue'
+        });
+        return;
+    }
+    // toast({
+    //     title: 'You submitted the following values:',
+    //     description: h('pre', { class: 'mt-2 w-[340px] rounded-md bg-slate-950 p-4' }, h('code', { class: 'text-white' }, JSON.stringify(values, null, 2))),
+    // })
+    submit(values);
+});
+
+// Sanity Checks
+// In case the user is logged in and visits this page, redirect them
+if (authStore.getAuthenticated == true) {
+    router.push('/');
+}
+
+// Methods
+async function submit(values: any) {
+    loading.value = true;
+    errorCode.value = undefined;
+    validationError.value = undefined;
+    error.value = false;
+
+    try {
+        await authRepository.register({
+            data: {
+                first_name: values.first_name,
+                last_name: values.last_name,
+                email: values.email,
+                handle: values.handle,
+                password: values.plainPassword,
+                password_confirmation: values.plainPasswordConfirm
+            },
+            handleBusinessErrors: true
+        });
+        toast({
+            title: 'Account successfully created',
+            description: 'Please check your email to verify your account'
+        });
+        router.push({ name: 'login' });
+    } catch (_err) {
+        error.value = true;
+
+        if (_err instanceof ValidationError) {
+            errorCode.value = _err.error_code;
+            validationError.value = _err;
+        } else if (_err instanceof BusinessLogicError) {
+            errorCode.value = _err.error_code;
+        }
+    } finally {
+        loading.value = false;
+    }
+}
+</script>
 <template>
     <div>
         <RouterLink :to="{ name: 'login' }" :class="cn(
@@ -165,136 +297,3 @@
         </div>
     </div>
 </template>
-
-<script lang="ts" setup>
-import { RouterLink } from 'vue-router';
-import { ref, type Ref } from 'vue';
-import router from '@/router';
-import { Icon } from '@iconify/vue';
-import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { cn } from '@/shadcn/lib/utils';
-import { Button, buttonVariants } from '@/shadcn/ui/button';
-import { useAuthStore } from '@/stores/auth';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
-import { vAutoAnimate } from '@formkit/auto-animate/vue';
-
-import {
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/shadcn/ui/form';
-import { Input } from '@/shadcn/ui/input';
-import { Checkbox } from '@/shadcn/ui/checkbox';
-import { toast } from '@/shadcn/ui/toast';
-
-import ErrorComponent from '@/base_components/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
-import { defineAsyncComponent } from 'vue';
-import Alert from '@/shadcn/ui/alert/Alert.vue';
-import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
-
-const SSOAuth = defineAsyncComponent({
-    loader: () => import('@/enterprise_components/sso/SSOAuth.vue'),
-    loadingComponent: LoadingComponent,
-    // Delay before showing the loading component. Default: 200ms.
-    delay: 200,
-    errorComponent: ErrorComponent,
-    // The error component will be displayed if a timeout is
-    // provided and exceeded. Default: Infinity.
-    timeout: 3000
-});
-
-// Stores
-const authStore = useAuthStore();
-
-// Repositories
-const authRepository: AuthRepository = new AuthRepository();
-
-// State
-const loading: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref();
-const error: Ref<boolean> = ref(false);
-const validationError: Ref<ValidationError | undefined> = ref();
-
-// Form Validation
-const formSchema = toTypedSchema(
-    z.object({
-        email: z.string().email(),
-        first_name: z.string().min(2).max(25),
-        last_name: z.string().min(2).max(25),
-        handle: z.string().min(5).max(50),
-        plainPassword: z.string().min(10).max(75),
-        plainPasswordConfirm: z.string().min(10).max(75),
-        agreeTerms: z.boolean().default(false)
-    })
-);
-let { handleSubmit } = useForm({
-    validationSchema: formSchema
-});
-
-const onSubmit = handleSubmit((values) => {
-    if (values.agreeTerms == false) {
-        toast({
-            title: 'You must agree to our terms and conditions to continue',
-            description: 'Please check the box to continue'
-        });
-        return;
-    }
-    // toast({
-    //     title: 'You submitted the following values:',
-    //     description: h('pre', { class: 'mt-2 w-[340px] rounded-md bg-slate-950 p-4' }, h('code', { class: 'text-white' }, JSON.stringify(values, null, 2))),
-    // })
-    submit(values);
-});
-
-// Sanity Checks
-// In case the user is logged in and visits this page, redirect them
-if (authStore.getAuthenticated == true) {
-    router.push('/');
-}
-
-// Methods
-async function submit(values: any) {
-    loading.value = true;
-    errorCode.value = undefined;
-    validationError.value = undefined;
-    error.value = false;
-
-    try {
-        await authRepository.register({
-            data: {
-                first_name: values.first_name,
-                last_name: values.last_name,
-                email: values.email,
-                handle: values.handle,
-                password: values.plainPassword,
-                password_confirmation: values.plainPasswordConfirm
-            },
-            handleBusinessErrors: true
-        });
-        toast({
-            title: 'Account successfully created',
-            description: 'Please check your email to verify your account'
-        });
-        router.push({ name: 'login' });
-    } catch (_err) {
-        error.value = true;
-
-        if (_err instanceof ValidationError) {
-            errorCode.value = _err.error_code;
-            validationError.value = _err;
-        } else if (_err instanceof BusinessLogicError) {
-            errorCode.value = _err.error_code;
-        }
-    } finally {
-        loading.value = false;
-    }
-}
-</script>

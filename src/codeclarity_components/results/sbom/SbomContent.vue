@@ -1,330 +1,3 @@
-<template>
-    <div value="sbom" class="space-y-4">
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-            <!-- <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> NodeJS Supported Version </CardTitle>
-                    <Icon :icon="'akar-icons:node-fill'" class="text-gray-400"></Icon>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.node_min_supported_version }} >
-                        {{ stats.node_max_supported_version }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">last month</p>
-                </CardContent>
-            </Card> -->
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Direct Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_non_dev_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_direct_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Direct Dev Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_dev_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_dev_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <!-- <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Transitive Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_transitive_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_transitive_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Optional Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                        <path d="M2 10h20" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_optional_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_optional_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Peer Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_peer_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_peer_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Bundled Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                        <path d="M2 10h20" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_bundled_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_bundled_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Average Age </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ formatAgo(stats.average_dependency_age).replace('ago', '') ?? 'N/A' }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{
-                            formatAgo(stats.average_dependency_age_diff).replace('ago', '') ?? 'N/A'
-                        }}
-                    </p>
-                </CardContent>
-            </Card> -->
-        </div>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div class="grid gap-4 col-span-3">
-                <Card class="col-span-2 flex flex-col">
-                    <CardHeader>
-                        <CardTitle>Composition</CardTitle>
-                        <CardDescription
-                            >{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription
-                        >
-                    </CardHeader>
-                    <CardContent class="flex items-center justify-center flex-grow">
-                        <div class="flex gap-2 items-center justify-center">
-                            <div class="flex flex-col">
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Direct</div>
-                                        <div class="text-[#146c94]">
-                                            {{ stats?.number_of_direct_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Transitive</div>
-                                        <div class="text-[#19a7ce]">
-                                            {{ stats?.number_of_transitive_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                            </div>
-
-                            <div v-if="render">
-                                <Doughnut :data="donut_data" :options="donut_config" />
-                            </div>
-                            <div>
-                                <DonutLoader v-if="!render" :dimensions="donutDimensions" />
-                            </div>
-                            <div class="stats-divider hide-on-collpase"></div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card class="col-span-2 flex flex-col">
-                    <CardHeader>
-                        <CardTitle>Overview</CardTitle>
-                        <CardDescription>
-                            {{
-                                (stats?.number_of_unlicensed_dependencies ?? 0) +
-                                (stats?.number_of_outdated_dependencies ?? 0) +
-                                (stats?.number_of_deprecated_dependencies ?? 0)
-                            }}
-                            Issues
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="flex items-center justify-center flex-grow">
-                        <div class="flex gap-2 items-center justify-center">
-                            <div class="flex flex-col items-center justify-center">
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Deprecated</div>
-                                        <div class="side-stats-text-value" style="color: #146c94">
-                                            {{ stats?.number_of_deprecated_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Unlicensed</div>
-                                        <div class="side-stats-text-value" style="color: #19a7ce">
-                                            {{ stats?.number_of_unlicensed_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#afd3e2]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Outdated</div>
-                                        <div class="side-stats-text-value" style="color: #afd3e2">
-                                            {{ stats?.number_of_outdated_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                            </div>
-
-                            <div v-if="render">
-                                <Bar :data="bar_data" :options="bar_config" />
-                            </div>
-                            <div v-if="!render" class="w-1/2">
-                                <div
-                                    style="
-                                        display: flex;
-                                        flex-direction: row;
-                                        column-gap: 1em;
-                                        align-items: end;
-                                    "
-                                >
-                                    <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
-                                    <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
-                                    <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
-                                </div>
-                            </div>
-                            <div class="stats-divider hide-on-collpase"></div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <Card class="col-span-4">
-                <CardHeader>
-                    <CardTitle>Table</CardTitle>
-                </CardHeader>
-                <CardContent class="pl-2">
-                    <SbomTable />
-                </CardContent>
-            </Card>
-        </div>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Icon } from '@iconify/vue/dist/iconify.js';
@@ -542,3 +215,312 @@ function createDepTypeChart() {
     };
 }
 </script>
+
+<template>
+    <div value="sbom" class="space-y-4">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
+            <!-- <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> NodeJS Supported Version </CardTitle>
+                    <Icon :icon="'akar-icons:node-fill'" class="text-gray-400"></Icon>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.node_min_supported_version }} >
+                        {{ stats.node_max_supported_version }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">last month</p>
+                </CardContent>
+            </Card> -->
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Direct Dependencies </CardTitle>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.number_of_non_dev_dependencies ?? 0 }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{ stats.number_of_direct_dependencies_diff ?? 0 }}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Direct Dev Dependencies </CardTitle>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.number_of_dev_dependencies ?? 0 }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{ stats.number_of_dev_dependencies_diff ?? 0 }}
+                    </p>
+                </CardContent>
+            </Card>
+            <!-- <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Transitive Dependencies </CardTitle>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground"
+                    >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.number_of_transitive_dependencies ?? 0 }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{ stats.number_of_transitive_dependencies_diff ?? 0 }}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Optional Dependencies </CardTitle>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground"
+                    >
+                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <path d="M2 10h20" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.number_of_optional_dependencies ?? 0 }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{ stats.number_of_optional_dependencies_diff ?? 0 }}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Peer Dependencies </CardTitle>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground"
+                    >
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.number_of_peer_dependencies ?? 0 }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{ stats.number_of_peer_dependencies_diff ?? 0 }}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Bundled Dependencies </CardTitle>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground"
+                    >
+                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <path d="M2 10h20" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ stats.number_of_bundled_dependencies ?? 0 }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{ stats.number_of_bundled_dependencies_diff ?? 0 }}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium"> Average Age </CardTitle>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        class="h-4 w-4 text-muted-foreground"
+                    >
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">
+                        {{ formatAgo(stats.average_dependency_age).replace('ago', '') ?? 'N/A' }}
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{
+                            formatAgo(stats.average_dependency_age_diff).replace('ago', '') ?? 'N/A'
+                        }}
+                    </p>
+                </CardContent>
+            </Card> -->
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div class="grid gap-4 col-span-3">
+                <Card class="col-span-2 flex flex-col">
+                    <CardHeader>
+                        <CardTitle>Composition</CardTitle>
+                        <CardDescription>{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription>
+                    </CardHeader>
+                    <CardContent class="flex items-center justify-center flex-grow">
+                        <div class="flex gap-2 items-center justify-center">
+                            <div class="flex flex-col">
+                                <TextLoader v-if="!render" />
+                                <div v-if="render" class="flex items-center gap-1">
+                                    <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
+                                    <div class="flex items-center gap-1">
+                                        <div>Direct</div>
+                                        <div class="text-[#146c94]">
+                                            {{ stats?.number_of_direct_dependencies }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <TextLoader v-if="!render" />
+                                <div v-if="render" class="flex items-center gap-1">
+                                    <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
+                                    <div class="flex items-center gap-1">
+                                        <div>Transitive</div>
+                                        <div class="text-[#19a7ce]">
+                                            {{ stats?.number_of_transitive_dependencies }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <TextLoader v-if="!render" />
+                            </div>
+
+                            <div v-if="render">
+                                <Doughnut :data="donut_data" :options="donut_config" />
+                            </div>
+                            <div>
+                                <DonutLoader v-if="!render" :dimensions="donutDimensions" />
+                            </div>
+                            <div class="stats-divider hide-on-collpase"></div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card class="col-span-2 flex flex-col">
+                    <CardHeader>
+                        <CardTitle>Overview</CardTitle>
+                        <CardDescription>
+                            {{
+                                (stats?.number_of_unlicensed_dependencies ?? 0) +
+                                (stats?.number_of_outdated_dependencies ?? 0) +
+                                (stats?.number_of_deprecated_dependencies ?? 0)
+                            }}
+                            Issues
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent class="flex items-center justify-center flex-grow">
+                        <div class="flex gap-2 items-center justify-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <TextLoader v-if="!render" />
+                                <div v-if="render" class="flex items-center gap-1">
+                                    <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
+                                    <div class="flex items-center gap-1">
+                                        <div>Deprecated</div>
+                                        <div class="side-stats-text-value" style="color: #146c94">
+                                            {{ stats?.number_of_deprecated_dependencies }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <TextLoader v-if="!render" />
+                                <div v-if="render" class="flex items-center gap-1">
+                                    <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
+                                    <div class="flex items-center gap-1">
+                                        <div>Unlicensed</div>
+                                        <div class="side-stats-text-value" style="color: #19a7ce">
+                                            {{ stats?.number_of_unlicensed_dependencies }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <TextLoader v-if="!render" />
+                                <div v-if="render" class="flex items-center gap-1">
+                                    <Icon :icon="'ph:circle-fill'" class="text-[#afd3e2]"></Icon>
+                                    <div class="flex items-center gap-1">
+                                        <div>Outdated</div>
+                                        <div class="side-stats-text-value" style="color: #afd3e2">
+                                            {{ stats?.number_of_outdated_dependencies }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <TextLoader v-if="!render" />
+                            </div>
+
+                            <div v-if="render">
+                                <Bar :data="bar_data" :options="bar_config" />
+                            </div>
+                            <div v-if="!render" class="w-1/2">
+                                <div style="
+                                        display: flex;
+                                        flex-direction: row;
+                                        column-gap: 1em;
+                                        align-items: end;
+                                    ">
+                                    <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
+                                    <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
+                                    <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
+                                </div>
+                            </div>
+                            <div class="stats-divider hide-on-collpase"></div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            <Card class="col-span-4">
+                <CardHeader>
+                    <CardTitle>Table</CardTitle>
+                </CardHeader>
+                <CardContent class="pl-2">
+                    <SbomTable />
+                </CardContent>
+            </Card>
+        </div>
+    </div>
+</template>

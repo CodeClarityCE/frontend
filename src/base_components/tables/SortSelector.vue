@@ -37,33 +37,18 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
 <template>
     <div class="flex flex-row gap-2 items-center w-fit whitespace-nowrap">
         {{ sortByLabel || 'Sort by' }}
-        <select
-            class="drop-down-box no-shadow"
-            style="padding: 5px; height: fit-content; margin: 0px"
-        >
-            <option
-                v-for="(sort_option, index) in sortOptions.filter((option) => option.key != null)"
-                :value="sort_option.key"
-                :key="index"
-                :selected="sortKey == sort_option.key"
-                @click="updateSort(sort_option.key!, props.sortDirection)"
-            >
+        <select class="drop-down-box no-shadow" style="padding: 5px; height: fit-content; margin: 0px">
+            <option v-for="(sort_option, index) in sortOptions.filter((option) => option.key != null)"
+                :value="sort_option.key" :key="index" :selected="sortKey == sort_option.key"
+                @click="updateSort(sort_option.key!, props.sortDirection)">
                 {{ sort_option.label }}
             </option>
         </select>
         <div style="cursor: pointer">
-            <Icon
-                icon="iconoir:sort-down"
-                style="font-size: 2em"
-                v-if="sortDirection == SortDirection.DESC"
-                @click="updateSort(sortKey, SortDirection.ASC)"
-            />
-            <Icon
-                icon="iconoir:sort-up"
-                style="font-size: 2em"
-                v-else
-                @click="updateSort(sortKey, SortDirection.DESC)"
-            />
+            <Icon icon="iconoir:sort-down" style="font-size: 2em" v-if="sortDirection == SortDirection.DESC"
+                @click="updateSort(sortKey, SortDirection.ASC)" />
+            <Icon icon="iconoir:sort-up" style="font-size: 2em" v-else
+                @click="updateSort(sortKey, SortDirection.DESC)" />
         </div>
     </div>
 </template>

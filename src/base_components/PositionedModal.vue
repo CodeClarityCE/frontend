@@ -1,43 +1,3 @@
-<template>
-    <Transition>
-        <div
-            v-if="show_modal"
-            :id="id"
-            ref="compRef"
-            class="bg-white z-50 rounded-md shadow-2xl p-0 w-fit"
-            :style="{
-                position: 'absolute',
-                top: top + 'px',
-                left: left + 'px',
-                right: right + 'px'
-            }"
-        >
-            <!-- <div class="positioned-modal-tip" v-bind:style="{ 'top': tip_top+'px' }" style="position: absolute; left: -15px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 15px solid #ddd;"></div> -->
-            <div
-                v-if="$slots.title && showTitle"
-                class="centered-modal-title rounded p-5 pb-0 font-semibold text-grayTitle text-lg"
-            >
-                <slot name="title"></slot>
-            </div>
-            <div
-                v-if="$slots.subtitle && showSubTitle"
-                class="centered-modal-subtitle py-2 px-5 font-normal text-gray-500"
-            >
-                <slot name="subtitle"></slot>
-            </div>
-            <div
-                v-if="showTitleDivider"
-                class="centered-modal-title-content-divider mx-5 h-px bg-slate-200 mt-2"
-            ></div>
-            <div v-if="padding" class="p-5">
-                <slot name="content"></slot>
-            </div>
-            <div v-else class="centered-modal-content p-0">
-                <slot name="content"></slot>
-            </div>
-        </div>
-    </Transition>
-</template>
 <script lang="ts" setup>
 import { ref, nextTick, type Ref } from 'vue';
 
@@ -248,3 +208,30 @@ defineExpose({
     hide
 });
 </script>
+<template>
+    <Transition>
+        <div v-if="show_modal" :id="id" ref="compRef" class="bg-white z-50 rounded-md shadow-2xl p-0 w-fit" :style="{
+            position: 'absolute',
+            top: top + 'px',
+            left: left + 'px',
+            right: right + 'px'
+        }">
+            <!-- <div class="positioned-modal-tip" v-bind:style="{ 'top': tip_top+'px' }" style="position: absolute; left: -15px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 15px solid #ddd;"></div> -->
+            <div v-if="$slots.title && showTitle"
+                class="centered-modal-title rounded p-5 pb-0 font-semibold text-grayTitle text-lg">
+                <slot name="title"></slot>
+            </div>
+            <div v-if="$slots.subtitle && showSubTitle"
+                class="centered-modal-subtitle py-2 px-5 font-normal text-gray-500">
+                <slot name="subtitle"></slot>
+            </div>
+            <div v-if="showTitleDivider" class="centered-modal-title-content-divider mx-5 h-px bg-slate-200 mt-2"></div>
+            <div v-if="padding" class="p-5">
+                <slot name="content"></slot>
+            </div>
+            <div v-else class="centered-modal-content p-0">
+                <slot name="content"></slot>
+            </div>
+        </div>
+    </Transition>
+</template>

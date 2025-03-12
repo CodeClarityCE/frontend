@@ -1,120 +1,3 @@
-<template>
-    <div class="flex flex-col justify-center items-center my-20">
-        <div class="max-w-lg w-full flex flex-col">
-            <div class="flex flex-row gap-8">
-                <div v-if="props.provider == SocialProvider.GITLAB">
-                    <Icon class="text-7xl" icon="devicon:gitlab" />
-                </div>
-                <div v-if="props.provider == SocialProvider.GITHUB">
-                    <span class="text-black">
-                        <Icon class="text-7xl" icon="simple-icons:github" />
-                    </span>
-                </div>
-                <div class="pt-2 text-5xl font-extrabold text-grayTitle">Account setup</div>
-            </div>
-
-            <div v-if="errorNonRecoverable" class="flex flex-col gap-7">
-                <div style="font-size: 1.5em">
-                    <div>Whoops</div>
-                    <div style="font-size: 0.8em">
-                        Error code:
-                        <span style="font-family: 'Courier New', Courier, monospace">{{
-                            errorCode
-                        }}</span>
-                    </div>
-                </div>
-                <div style="font-size: 1.2em">
-                    We encountered some non-recoverable issue during the authentication. Please
-                    click on the button below and try again. If this error persists, then please
-                    contact the webmaster and provide them with the error code listed above.
-                </div>
-                <div>
-                    <Button @click="nonRecoverableErrorRedirect">
-                        Okay
-                    </Button>
-                </div>
-            </div>
-
-            <div v-if="!errorNonRecoverable" class="text-gray-600 font-medium mb-3">
-                Before being able to use our platform, fill out the details below.
-            </div>
-
-            <div
-                v-if="!errorNonRecoverable"
-                style="display: flex; flex-direction: column; row-gap: 2rem"
-            >
-                <Alert v-if="errorCode">
-                    <AlertDescription class="flex flex-row gap-2 items-center">
-                        <Icon icon="material-symbols:error-outline" />
-                            <div>
-                                <div v-if="errorCode == APIErrors.HandleAlreadyExists">
-                                    A user with that handle already exists, choose a different
-                                    handle.
-                                </div>
-                                <div
-                                    v-else-if="errorCode == APIErrors.ValidationFailed"
-                                    style="white-space: break-spaces"
-                                >
-                                    <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                                    {{ validationError!.toMessage('Invalid form:') }}
-                                </div>
-                                <div v-else>
-                                    An error occured during the processing of the request.
-                                </div>
-                            </div>
-                    </AlertDescription>
-                </Alert>
-
-                <Form
-                    class="flex flex-col gap-4"
-                    name="social_form"
-                    :validation-schema="formValidationSchema"
-                    @submit="submit"
-                >
-                    <div class="flex flex-row gap-4">
-                        <FormTextField
-                            class="w-full"
-                            v-model="formFirstName"
-                            :placeholder="'Enter your first name'"
-                            :type="'text'"
-                            :name="'social_form[firstName]'"
-                        >
-                            <template #name>First Name</template>
-                        </FormTextField>
-
-                        <FormTextField
-                            class="w-full"
-                            v-model="formLastName"
-                            :placeholder="'Enter your last name'"
-                            :type="'text'"
-                            :name="'social_form[lastName]'"
-                        >
-                            <template #name>Last Name</template>
-                        </FormTextField>
-                    </div>
-
-                    <FormTextField
-                        v-model="formHandle"
-                        :placeholder="'Enter your handle'"
-                        :type="'text'"
-                        :name="'social_form[handle]'"
-                    >
-                        <template #name>Handle</template>
-                    </FormTextField>
-
-                    <!-- Terms -->
-                    <FormInlineCheckboxField :name="'social_form[agreeTerms]'">
-                        <template #name>I agree to the terms and conditions</template>
-                    </FormInlineCheckboxField>
-
-                    <LoadingSubmitButton ref="loadingButtonRef"
-                        >Complete account setup</LoadingSubmitButton
-                    >
-                </Form>
-            </div>
-        </div>
-    </div>
-</template>
 <script lang="ts" setup>
 import { ref, type Ref } from 'vue';
 import router from '@/router';
@@ -266,3 +149,94 @@ function nonRecoverableErrorRedirect() {
     router.push('/login');
 }
 </script>
+<template>
+    <div class="flex flex-col justify-center items-center my-20">
+        <div class="max-w-lg w-full flex flex-col">
+            <div class="flex flex-row gap-8">
+                <div v-if="props.provider == SocialProvider.GITLAB">
+                    <Icon class="text-7xl" icon="devicon:gitlab" />
+                </div>
+                <div v-if="props.provider == SocialProvider.GITHUB">
+                    <span class="text-black">
+                        <Icon class="text-7xl" icon="simple-icons:github" />
+                    </span>
+                </div>
+                <div class="pt-2 text-5xl font-extrabold text-grayTitle">Account setup</div>
+            </div>
+
+            <div v-if="errorNonRecoverable" class="flex flex-col gap-7">
+                <div style="font-size: 1.5em">
+                    <div>Whoops</div>
+                    <div style="font-size: 0.8em">
+                        Error code:
+                        <span style="font-family: 'Courier New', Courier, monospace">{{
+                            errorCode
+                            }}</span>
+                    </div>
+                </div>
+                <div style="font-size: 1.2em">
+                    We encountered some non-recoverable issue during the authentication. Please
+                    click on the button below and try again. If this error persists, then please
+                    contact the webmaster and provide them with the error code listed above.
+                </div>
+                <div>
+                    <Button @click="nonRecoverableErrorRedirect">
+                        Okay
+                    </Button>
+                </div>
+            </div>
+
+            <div v-if="!errorNonRecoverable" class="text-gray-600 font-medium mb-3">
+                Before being able to use our platform, fill out the details below.
+            </div>
+
+            <div v-if="!errorNonRecoverable" style="display: flex; flex-direction: column; row-gap: 2rem">
+                <Alert v-if="errorCode">
+                    <AlertDescription class="flex flex-row gap-2 items-center">
+                        <Icon icon="material-symbols:error-outline" />
+                        <div>
+                            <div v-if="errorCode == APIErrors.HandleAlreadyExists">
+                                A user with that handle already exists, choose a different
+                                handle.
+                            </div>
+                            <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
+                                <!-- Note: this should never happen unless our client and server side validation are out of sync -->
+                                {{ validationError!.toMessage('Invalid form:') }}
+                            </div>
+                            <div v-else>
+                                An error occured during the processing of the request.
+                            </div>
+                        </div>
+                    </AlertDescription>
+                </Alert>
+
+                <Form class="flex flex-col gap-4" name="social_form" :validation-schema="formValidationSchema"
+                    @submit="submit">
+                    <div class="flex flex-row gap-4">
+                        <FormTextField class="w-full" v-model="formFirstName" :placeholder="'Enter your first name'"
+                            :type="'text'" :name="'social_form[firstName]'">
+                            <template #name>First Name</template>
+                        </FormTextField>
+
+                        <FormTextField class="w-full" v-model="formLastName" :placeholder="'Enter your last name'"
+                            :type="'text'" :name="'social_form[lastName]'">
+                            <template #name>Last Name</template>
+                        </FormTextField>
+                    </div>
+
+                    <FormTextField v-model="formHandle" :placeholder="'Enter your handle'" :type="'text'"
+                        :name="'social_form[handle]'">
+                        <template #name>Handle</template>
+                    </FormTextField>
+
+                    <!-- Terms -->
+                    <FormInlineCheckboxField :name="'social_form[agreeTerms]'">
+                        <template #name>I agree to the terms and conditions</template>
+                    </FormInlineCheckboxField>
+
+                    <LoadingSubmitButton ref="loadingButtonRef">Complete account setup</LoadingSubmitButton>
+                </Form>
+            </div>
+        </div>
+    </div>
+</template>

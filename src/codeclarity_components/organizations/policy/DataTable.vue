@@ -67,38 +67,26 @@ const table = useVueTable({
 
 <template>
     <div class="flex items-center py-4">
-        <Input
-            class="max-w-sm"
-            placeholder="Filter licenses..."
+        <Input class="max-w-sm" placeholder="Filter licenses..."
             :model-value="table.getColumn('licenseName')?.getFilterValue() as string"
-            @update:model-value="table.getColumn('licenseName')?.setFilterValue($event)"
-        />
+            @update:model-value="table.getColumn('licenseName')?.setFilterValue($event)" />
     </div>
     <div class="border rounded-md">
         <Table>
             <TableHeader>
                 <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                     <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                        <FlexRender
-                            v-if="!header.isPlaceholder"
-                            :render="header.column.columnDef.header"
-                            :props="header.getContext()"
-                        />
+                        <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
+                            :props="header.getContext()" />
                     </TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 <template v-if="table.getRowModel().rows?.length">
-                    <TableRow
-                        v-for="row in table.getRowModel().rows"
-                        :key="row.id"
-                        :data-state="row.getIsSelected() ? 'selected' : undefined"
-                    >
+                    <TableRow v-for="row in table.getRowModel().rows" :key="row.id"
+                        :data-state="row.getIsSelected() ? 'selected' : undefined">
                         <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                            <FlexRender
-                                :render="cell.column.columnDef.cell"
-                                :props="cell.getContext()"
-                            />
+                            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                         </TableCell>
                     </TableRow>
                 </template>
@@ -117,20 +105,10 @@ const table = useVueTable({
             {{ table.getFilteredSelectedRowModel().rows.length }} of
             {{ table.getFilteredRowModel().rows.length }} row(s) selected.
         </div>
-        <Button
-            variant="outline"
-            size="sm"
-            :disabled="!table.getCanPreviousPage()"
-            @click="table.previousPage()"
-        >
+        <Button variant="outline" size="sm" :disabled="!table.getCanPreviousPage()" @click="table.previousPage()">
             Previous
         </Button>
-        <Button
-            variant="outline"
-            size="sm"
-            :disabled="!table.getCanNextPage()"
-            @click="table.nextPage()"
-        >
+        <Button variant="outline" size="sm" :disabled="!table.getCanNextPage()" @click="table.nextPage()">
             Next
         </Button>
     </div>

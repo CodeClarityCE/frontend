@@ -1,10 +1,3 @@
-<template>
-    <div
-        class="skeleton skeleton-box"
-        :class="{ 'skeleton-static': static == true }"
-        :style="dimensions"
-    ></div>
-</template>
 <script lang="ts" setup>
 export interface Props {
     dimensions: any;
@@ -18,6 +11,9 @@ withDefaults(defineProps<Props>(), {
     }
 });
 </script>
+<template>
+    <div class="skeleton skeleton-box" :class="{ 'skeleton-static': static == true }" :style="dimensions"></div>
+</template>
 
 <style scoped lang="scss">
 .skeleton {

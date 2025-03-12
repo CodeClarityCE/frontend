@@ -163,27 +163,17 @@ fetch();
             <div v-if="loading || noData" class="flex flex-row gap-1" style="position: relative">
                 <div v-for="outIndex in 5" :key="outIndex">
                     <div class="flex flex-col gap-1">
-                        <Skeleton
-                            v-for="index in 4"
-                            :key="index"
-                            class="h-[50px] w-[50px] rounded-xl"
-                        />
+                        <Skeleton v-for="index in 4" :key="index" class="h-[50px] w-[50px] rounded-xl" />
                     </div>
                 </div>
-                <div
-                    v-if="noData"
-                    class="flex flex-row justify-center items-center absolute font-black w-full h-full"
-                >
+                <div v-if="noData" class="flex flex-row justify-center items-center absolute font-black w-full h-full">
                     <div class="font-black text-xl">No Data</div>
                 </div>
             </div>
             <div v-else class="flex flex-col items-center w-full">
                 <template v-if="error">
                     <div class="flex flex-row gap-2">
-                        <Icon
-                            class="text-5xl h-fit user-icon"
-                            icon="solar:confounded-square-outline"
-                        ></Icon>
+                        <Icon class="text-5xl h-fit user-icon" icon="solar:confounded-square-outline"></Icon>
                         <div>
                             <div class="flex flex-row gap-2">
                                 <div class="flex flex-row gap-2">
@@ -200,24 +190,13 @@ fetch();
                 </template>
                 <template v-else>
                     <div class="flex flex-col gap-4">
-                        <SortSelector
-                            class="self-end"
-                            :sort-options="headers"
-                            :sort-key="sortKey"
-                            :sort-direction="sortDirection"
-                        />
-                        <HeatMapChart
-                            :chart-data="chartData"
-                            :chart-options="chartOptions"
-                            :id="'project-problems-chart'"
-                        >
+                        <SortSelector class="self-end" :sort-options="headers" :sort-key="sortKey"
+                            :sort-direction="sortDirection" />
+                        <HeatMapChart :chart-data="chartData" :chart-options="chartOptions"
+                            :id="'project-problems-chart'">
                         </HeatMapChart>
-                        <Pagination
-                            v-model:page="page"
-                            v-model:nmbEntriesShowing="entriesPerPage"
-                            v-model:nmbEntriesTotal="totalEntries"
-                            v-model:totalPages="totalPages"
-                        />
+                        <Pagination v-model:page="page" v-model:nmbEntriesShowing="entriesPerPage"
+                            v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages" />
                     </div>
                 </template>
             </div>

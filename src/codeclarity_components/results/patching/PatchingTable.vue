@@ -1,89 +1,3 @@
-<template>
-    <div class="flex flex-col gap-7">
-        <!--------------------------------------------------------------------------->
-        <!--                            Search and Filters                         -->
-        <!--------------------------------------------------------------------------->
-
-        <div style="display: flex; column-gap: 1em">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
-        </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                           Active Filters list                         -->
-        <!--------------------------------------------------------------------------->
-
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
-
-        <!--------------------------------------------------------------------------->
-        <!--                        Pagination info and controls                   -->
-        <!--------------------------------------------------------------------------->
-        <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortOptions"
-            :showing="nmbEntriesShowing"
-            :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
-        >
-        </UtilitiesSort>
-
-        <!--------------------------------------------------------------------------->
-        <!--                                Patch List                             -->
-        <!--------------------------------------------------------------------------->
-
-        <div v-if="render" style="margin-bottom: 5rem">
-            <div style="display: flex; flex-direction: column; row-gap: 2em">
-                <div v-for="(patch, index) in patches.patches" :key="index">
-                    <Patch :patch="patch" :name="index" :type="'prod'" />
-                </div>
-                <div v-for="(patch, index) in patches.dev_patches" :key="index">
-                    <Patch :patch="patch" :name="index" :type="'dev'" />
-                </div>
-            </div>
-
-            <!--------------------------------------------------------------------------->
-            <!--                          Pagination buttons                           -->
-            <!--------------------------------------------------------------------------->
-
-            <div
-                style="
-                    color: #484848;
-                    font-weight: 400;
-                    display: flex;
-                    justify-content: space-between;
-                    margin-top: 30px;
-                "
-            >
-                <div style="">
-                    Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries
-                </div>
-                <PaginationComponent
-                    v-model:page="pageNumber"
-                    v-model:nmbEntriesShowing="pageLimitSelected"
-                    v-model:nmbEntriesTotal="nmbEntriesTotal"
-                    v-model:totalPages="totalPages"
-                />
-            </div>
-        </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                            Loading skeleton                           -->
-        <!--------------------------------------------------------------------------->
-
-        <div v-if="!render">
-            <div style="display: flex; flex-direction: column; row-gap: 10px">
-                <BoxLoader
-                    v-for="index in 3"
-                    :key="index"
-                    :dimensions="{ width: '100%', height: '150px' }"
-                />
-            </div>
-        </div>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import SearchBar from '@/base_components/SearchBar.vue';
 import BoxLoader from '@/base_components/BoxLoader.vue';
@@ -218,6 +132,77 @@ async function init() {
 
 init();
 </script>
+
+<template>
+    <div class="flex flex-col gap-7">
+        <!--------------------------------------------------------------------------->
+        <!--                            Search and Filters                         -->
+        <!--------------------------------------------------------------------------->
+
+        <div style="display: flex; column-gap: 1em">
+            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+        </div>
+
+        <!--------------------------------------------------------------------------->
+        <!--                           Active Filters list                         -->
+        <!--------------------------------------------------------------------------->
+
+        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+
+        <!--------------------------------------------------------------------------->
+        <!--                        Pagination info and controls                   -->
+        <!--------------------------------------------------------------------------->
+        <UtilitiesSort :selectionPageLimit="selectionPageLimit" :sortOptions="sortOptions" :showing="nmbEntriesShowing"
+            :total="nmbEntriesTotal" v-model:pageLimitSelected="pageLimitSelected" v-model:sortKey="sortKey"
+            v-model:sortDirection="sortDirection">
+        </UtilitiesSort>
+
+        <!--------------------------------------------------------------------------->
+        <!--                                Patch List                             -->
+        <!--------------------------------------------------------------------------->
+
+        <div v-if="render" style="margin-bottom: 5rem">
+            <div style="display: flex; flex-direction: column; row-gap: 2em">
+                <div v-for="(patch, index) in patches.patches" :key="index">
+                    <Patch :patch="patch" :name="index" :type="'prod'" />
+                </div>
+                <div v-for="(patch, index) in patches.dev_patches" :key="index">
+                    <Patch :patch="patch" :name="index" :type="'dev'" />
+                </div>
+            </div>
+
+            <!--------------------------------------------------------------------------->
+            <!--                          Pagination buttons                           -->
+            <!--------------------------------------------------------------------------->
+
+            <div style="
+                    color: #484848;
+                    font-weight: 400;
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 30px;
+                ">
+                <div style="">
+                    Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries
+                </div>
+                <PaginationComponent v-model:page="pageNumber" v-model:nmbEntriesShowing="pageLimitSelected"
+                    v-model:nmbEntriesTotal="nmbEntriesTotal" v-model:totalPages="totalPages" />
+            </div>
+        </div>
+
+        <!--------------------------------------------------------------------------->
+        <!--                            Loading skeleton                           -->
+        <!--------------------------------------------------------------------------->
+
+        <div v-if="!render">
+            <div style="display: flex; flex-direction: column; row-gap: 10px">
+                <BoxLoader v-for="index in 3" :key="index" :dimensions="{ width: '100%', height: '150px' }" />
+            </div>
+        </div>
+    </div>
+</template>
+
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
 

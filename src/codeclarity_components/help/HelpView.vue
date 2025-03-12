@@ -43,19 +43,15 @@ state.publicPage = false;
                         </template>
                     </FaqBox>
                     <FaqBox>
-                        <template #question
-                            >Can I upload/import projects that are not stored in a Versions Control
-                            System?</template
-                        >
+                        <template #question>Can I upload/import projects that are not stored in a Versions Control
+                            System?</template>
                         <template #answer>
                             No, you cannot. We only support the upload/import of source code
                             projects via Github or Gitlab.
                         </template>
                     </FaqBox>
                     <FaqBox>
-                        <template #question
-                            >What can I do, if a vulnerable component is not patchable?</template
-                        >
+                        <template #question>What can I do, if a vulnerable component is not patchable?</template>
                         <template #answer>
                             If the vulnerability poses a great risk to your application and/or
                             infrastructure then remove the dependency from your project. You may
@@ -65,9 +61,7 @@ state.publicPage = false;
                         </template>
                     </FaqBox>
                     <FaqBox>
-                        <template #question
-                            >I found an error in a vulnerability description.</template
-                        >
+                        <template #question>I found an error in a vulnerability description.</template>
                         <template #answer>
                             Our apologies for the inconvenience. If you wish to have this error
                             rectified then please contact us via the form below, and make sure to
@@ -77,10 +71,8 @@ state.publicPage = false;
                         </template>
                     </FaqBox>
                     <FaqBox>
-                        <template #question
-                            >A vulnerability was reported which does not affect my
-                            project.</template
-                        >
+                        <template #question>A vulnerability was reported which does not affect my
+                            project.</template>
                         <template #answer>
                             Our apologies for the inconvenience. If you wish to have this error
                             rectified then please contact us via the form below, and make sure to
@@ -92,19 +84,11 @@ state.publicPage = false;
                         </template>
                     </FaqBox>
                     <FaqBox>
-                        <template #question
-                            >Where do you source vulnerability information?</template
-                        >
+                        <template #question>Where do you source vulnerability information?</template>
                         <template #answer>
-                            We integrate with both the National Vulnerability Database (<a
-                                href="https://nvd.nist.gov/"
-                                target="_blank"
-                                >NVD</a
-                            >) and the Open Source Vulnerabilities Database (<a
-                                href="https://osv.dev/"
-                                target="_blank"
-                                >OSV</a
-                            >).
+                            We integrate with both the National Vulnerability Database (<a href="https://nvd.nist.gov/"
+                                target="_blank">NVD</a>) and the Open Source Vulnerabilities Database (<a
+                                href="https://osv.dev/" target="_blank">OSV</a>).
                         </template>
                     </FaqBox>
                 </div>

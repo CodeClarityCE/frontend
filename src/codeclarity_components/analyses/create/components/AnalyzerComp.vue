@@ -1,3 +1,15 @@
+<script lang="ts" setup>
+import { Icon } from '@iconify/vue/dist/iconify.js';
+
+export interface Props {
+    analyzerData: any;
+}
+
+withDefaults(defineProps<Props>(), {
+    analyzerData: null
+});
+</script>
+
 <template>
     <div class="flex flex-row items-center text-sm">
         <div class="analyzer-outer-icon">
@@ -15,14 +27,3 @@
         </div>
     </div>
 </template>
-<script lang="ts" setup>
-import { Icon } from '@iconify/vue/dist/iconify.js';
-
-export interface Props {
-    analyzerData: any;
-}
-
-withDefaults(defineProps<Props>(), {
-    analyzerData: null
-});
-</script>

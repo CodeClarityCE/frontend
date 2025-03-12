@@ -231,16 +231,14 @@ defineExpose({
                     <div class="flex flex-col gap-2">
                         <div>Failed to fetch repositories from the integration</div>
                         <div class="text-sm" v-if="errorCode">
-                            <div
-                                v-if="
-                                    errorCode == APIErrors.IntegrationInvalidToken ||
-                                    errorCode == APIErrors.FailedToRetrieveReposFromProvider ||
-                                    errorCode ==
-                                        APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                                    errorCode == APIErrors.IntegrationTokenExpired ||
-                                    errorCode == APIErrors.IntegrationTokenRetrievalFailed
-                                "
-                            >
+                            <div v-if="
+                                errorCode == APIErrors.IntegrationInvalidToken ||
+                                errorCode == APIErrors.FailedToRetrieveReposFromProvider ||
+                                errorCode ==
+                                APIErrors.IntegrationIntegrationTokenMissingPermissions ||
+                                errorCode == APIErrors.IntegrationTokenExpired ||
+                                errorCode == APIErrors.IntegrationTokenRetrievalFailed
+                            ">
                                 The integration is not valid. Please update the integration in the
                                 organization page.
                             </div>
@@ -272,10 +270,7 @@ defineExpose({
             <div class="flex flex-row gap-2 items-center w-full">
                 <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
 
-                <FilterBox
-                    :filterState="filterState"
-                    @onFilterStateChange="setActiveFilters($event)"
-                />
+                <FilterBox :filterState="filterState" @onFilterStateChange="setActiveFilters($event)" />
             </div>
 
             <ActiveFilterBar :filterState="filterState"> </ActiveFilterBar>
@@ -284,43 +279,24 @@ defineExpose({
         <!--------------------------------------------------------------------------->
         <!--                              Paginated Repos                          -->
         <!--------------------------------------------------------------------------->
-        <Pagination
-            v-model:page="page"
-            v-model:nmbEntriesShowing="entriesPerPage"
-            v-model:nmbEntriesTotal="totalEntries"
-            v-model:totalPages="totalPages"
-        >
+        <Pagination v-model:page="page" v-model:nmbEntriesShowing="entriesPerPage"
+            v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages">
             <template #content>
-                <div
-                    v-if="totalEntries == 0 && searchKey != ''"
-                    class="flex flex-row gap-4 justify-center"
-                    style="margin-top: 10px"
-                >
+                <div v-if="totalEntries == 0 && searchKey != ''" class="flex flex-row gap-4 justify-center"
+                    style="margin-top: 10px">
                     No repositories logs match your search
                 </div>
-                <div
-                    v-else-if="totalEntries == 0 && searchKey == ''"
-                    class="flex flex-row gap-4 justify-center"
-                    style="margin-top: 10px"
-                >
+                <div v-else-if="totalEntries == 0 && searchKey == ''" class="flex flex-row gap-4 justify-center"
+                    style="margin-top: 10px">
                     No repositories
                 </div>
-                <SortableTable
-                    v-else-if="totalEntries > 0"
-                    :headers="headers"
-                    :sort-key="sortKey"
-                    :sort-direction="sortDirection"
-                    @on-sort-change="updateSort"
-                    class="w-full"
-                >
+                <SortableTable v-else-if="totalEntries > 0" :headers="headers" :sort-key="sortKey"
+                    :sort-direction="sortDirection" @on-sort-change="updateSort" class="w-full">
                     <template #data>
                         <tr v-for="repo in repos" :key="repo.id">
                             <td>
-                                <input
-                                    type="checkbox"
-                                    :checked="selectedRepos.map((x) => x.id).includes(repo.id)"
-                                    @click="selectRepo(repo)"
-                                />
+                                <input type="checkbox" :checked="selectedRepos.map((x) => x.id).includes(repo.id)"
+                                    @click="selectRepo(repo)" />
                             </td>
                             <td>
                                 <div>
@@ -336,16 +312,12 @@ defineExpose({
                                 > -->
                             <td>
                                 <div>
-                                    <div
-                                        class="general-bubble general-bubble-slim general-bubble-teal"
-                                        v-if="repo.imported_already"
-                                    >
+                                    <div class="general-bubble general-bubble-slim general-bubble-teal"
+                                        v-if="repo.imported_already">
                                         Imported
                                     </div>
-                                    <div
-                                        class="general-bubble general-bubble-slim general-bubble-darker"
-                                        v-if="!repo.imported_already"
-                                    >
+                                    <div class="general-bubble general-bubble-slim general-bubble-darker"
+                                        v-if="!repo.imported_already">
                                         Not imported
                                     </div>
                                 </div>

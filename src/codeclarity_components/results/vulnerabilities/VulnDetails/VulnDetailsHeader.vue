@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import PositionedModalVue from '@/base_components/PositionedModal.vue';
+import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
+import { Icon } from '@iconify/vue';
+defineProps<{
+    finding: VulnerabilityDetails;
+    versions_modal_ref: typeof PositionedModalVue;
+}>();
+</script>
+
 <template>
     <div class="header flex flex-col gap-5">
         <!--------------------------------------------------------------------------->
@@ -15,7 +26,7 @@
             in
             <span style="font-family: lato; font-weight: 900; color: teal">{{
                 finding.dependency_info?.name + '@' + finding.dependency_info?.version
-            }}</span>
+                }}</span>
         </div>
 
         <!--------------------------------------------------------------------------->
@@ -51,28 +62,14 @@
                 No patched versions exist
             </div>
 
-            <Badge
-                variant="secondary"
-                @click="versions_modal_ref.show()"
-                id="show-all-versions"
-                class="w-fit cursor-pointer"
-            >
+            <Badge variant="secondary" @click="versions_modal_ref.show()" id="show-all-versions"
+                class="w-fit cursor-pointer">
                 Show all versions <Icon :icon="'heroicons:chevron-right-20-solid'"></Icon>
             </Badge>
         </div>
     </div>
 </template>
 
-<script setup lang="ts">
-import PositionedModalVue from '@/base_components/PositionedModal.vue';
-import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue';
-defineProps<{
-    finding: VulnerabilityDetails;
-    versions_modal_ref: typeof PositionedModalVue;
-}>();
-</script>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

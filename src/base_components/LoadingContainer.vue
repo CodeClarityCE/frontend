@@ -1,28 +1,3 @@
-<template>
-    <div v-if="loading">
-        <div class="loading-wrapper-local">
-            <div class="loader">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
-        </div>
-    </div>
-
-    <slot v-if="content" name="content"></slot>
-
-    <Alert v-if="error" variant="destructive">
-        <AlertDescription>
-            <div>
-                <Icon class="text-xl" icon="ic:twotone-warning" />
-            </div>
-            <div>
-                <slot name="error"></slot>
-            </div>
-        </AlertDescription>
-    </Alert>
-</template>
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
@@ -55,6 +30,31 @@ defineExpose({
     showLoading
 });
 </script>
+<template>
+    <div v-if="loading">
+        <div class="loading-wrapper-local">
+            <div class="loader">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+    </div>
+
+    <slot v-if="content" name="content"></slot>
+
+    <Alert v-if="error" variant="destructive">
+        <AlertDescription>
+            <div>
+                <Icon class="text-xl" icon="ic:twotone-warning" />
+            </div>
+            <div>
+                <slot name="error"></slot>
+            </div>
+        </AlertDescription>
+    </Alert>
+</template>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

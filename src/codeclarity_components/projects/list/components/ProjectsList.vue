@@ -98,11 +98,8 @@ fetchProjects();
     <template v-if="error">
         <div class="flex flex-row justify-center" style="margin-top: 5vh">
             <div class="flex flex-row gap-2 w-fit" style="font-size: 1.5em">
-                <Icon
-                    class="icon user-icon h-fit"
-                    icon="solar:confounded-square-outline"
-                    style="font-size: 2.5em"
-                ></Icon>
+                <Icon class="icon user-icon h-fit" icon="solar:confounded-square-outline" style="font-size: 2.5em">
+                </Icon>
                 <div>
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-1">
@@ -115,10 +112,7 @@ fetchProjects();
                             </div>
                         </div>
                         <div class="flex flex-row gap-1 items-center flex-wrap">
-                            <Button
-                                v-if="errorCode != APIErrors.NotAuthorized"
-                                @click="fetchProjects(true)"
-                            >
+                            <Button v-if="errorCode != APIErrors.NotAuthorized" @click="fetchProjects(true)">
                                 Try again
                             </Button>
                             <Button @click="router.back()">
@@ -132,19 +126,11 @@ fetchProjects();
     </template>
 
     <template v-else>
-        <ProjectsListHeader
-            v-model:searchKey="searchKey"
-            v-model:pageLimitSelected="entriesPerPage"
-            v-model:sortDirection="sortDirection"
-            v-model:sortKey="sortKey"
-        />
+        <ProjectsListHeader v-model:searchKey="searchKey" v-model:pageLimitSelected="entriesPerPage"
+            v-model:sortDirection="sortDirection" v-model:sortKey="sortKey" />
 
         <div class="flex flex-col gap-8" v-if="loading">
-            <BoxLoader
-                v-for="index in 4"
-                :key="index"
-                :dimensions="{ width: '100%', height: '150px' }"
-            />
+            <BoxLoader v-for="index in 4" :key="index" :dimensions="{ width: '100%', height: '150px' }" />
         </div>
 
         <div v-else>
@@ -154,23 +140,15 @@ fetchProjects();
 
             <!-- <div v-else class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4"> -->
             <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <ProjectItem
-                    @on-refresh="fetchProjects(true)"
-                    :project="project"
-                    v-for="project in projects"
-                    :key="project.id"
-                />
+                <ProjectItem @on-refresh="fetchProjects(true)" :project="project" v-for="project in projects"
+                    :key="project.id" />
             </div>
         </div>
 
         <div class="flex flex-row justify-between">
             <div style="">Showing {{ projects.length }} out of {{ totalEntries }} entries</div>
-            <Pagination
-                v-model:page="page"
-                v-model:nmbEntriesShowing="entriesPerPage"
-                v-model:nmbEntriesTotal="totalEntries"
-                v-model:totalPages="totalPages"
-            />
+            <Pagination v-model:page="page" v-model:nmbEntriesShowing="entriesPerPage"
+                v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages" />
         </div>
     </template>
 </template>

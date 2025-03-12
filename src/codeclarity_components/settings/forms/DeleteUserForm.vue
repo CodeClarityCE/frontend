@@ -1,21 +1,3 @@
-<template>
-    <form @submit="onSubmit">
-        <FormField v-slot="{ componentField }" name="password_deletion">
-            <FormItem v-auto-animate>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="Enter your password" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-        </FormField>
-        <DialogFooter class="mt-4">
-            <Button variant="destructive" type="submit">
-                Delete my account
-            </Button>
-        </DialogFooter>
-    </form>
-</template>
 <script lang="ts" setup>
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 
@@ -92,3 +74,22 @@ async function deleteAccount(password: string) {
     }
 }
 </script>
+
+<template>
+    <form @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="password_deletion">
+            <FormItem v-auto-animate>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                    <Input type="password" placeholder="Enter your password" v-bind="componentField" />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+        </FormField>
+        <DialogFooter class="mt-4">
+            <Button variant="destructive" type="submit">
+                Delete my account
+            </Button>
+        </DialogFooter>
+    </form>
+</template>

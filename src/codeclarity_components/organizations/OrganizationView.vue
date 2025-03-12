@@ -119,43 +119,15 @@ const props = defineProps<{
     <main class="p-12">
         <CreateOrg v-if="props.action == 'add' && !props.orgId" />
         <OrgsList v-else-if="props.action == 'list' && !props.orgId" />
-        <OrgPolicies
-            v-if="(props.page == 'policies' || props.page == 'policy') && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-            :action="props.action"
-        />
-        <OrgManageAuditLogs
-            v-else-if="props.page == 'logs' && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-        />
-        <OrgManageMembers
-            v-else-if="props.page == 'members' && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-        />
-        <OrgManageInvites
-            v-else-if="props.page == 'invites' && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-        />
-        <OrgManageIntegrations
-            v-else-if="props.page == 'integrations' && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-            :action="props.action"
-        />
-        <OrgAnalyzers
-            v-else-if="props.page == 'analyzers' && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-            :action="props.action"
-        />
-        <OrgManageOverview
-            v-else-if="props.page && props.orgId"
-            :page="props.page"
-            :orgId="props.orgId"
-        />
+        <OrgPolicies v-if="(props.page == 'policies' || props.page == 'policy') && props.orgId" :page="props.page"
+            :orgId="props.orgId" :action="props.action" />
+        <OrgManageAuditLogs v-else-if="props.page == 'logs' && props.orgId" :page="props.page" :orgId="props.orgId" />
+        <OrgManageMembers v-else-if="props.page == 'members' && props.orgId" :page="props.page" :orgId="props.orgId" />
+        <OrgManageInvites v-else-if="props.page == 'invites' && props.orgId" :page="props.page" :orgId="props.orgId" />
+        <OrgManageIntegrations v-else-if="props.page == 'integrations' && props.orgId" :page="props.page"
+            :orgId="props.orgId" :action="props.action" />
+        <OrgAnalyzers v-else-if="props.page == 'analyzers' && props.orgId" :page="props.page" :orgId="props.orgId"
+            :action="props.action" />
+        <OrgManageOverview v-else-if="props.page && props.orgId" :page="props.page" :orgId="props.orgId" />
     </main>
 </template>

@@ -1,407 +1,3 @@
-<template>
-    <div class="summary-wrapper findings-summary-wrapper" style="font-size: 1rem; flex-wrap: wrap">
-        <div class="summary-container summary-container-chart">
-            <div class="summary-container-chart-text-wrapper">
-                <div class="summary-container-chart-inner-text-wrapper">
-                    <div
-                        v-if="render"
-                        class="summary-container-chart-text-header-wrapper align-center"
-                    >
-                        <span
-                            class="summary-container-chart-text-header-title flex flex-row gap-2 items-center"
-                        >
-                            Severities
-                            <span
-                                class="flex flex-row items-center"
-                                style="font-size: 0.9em; color: #b5b5b5"
-                                >(before
-                                <Icon :icon="'ic:twotone-chevron-right'"></Icon>
-                                after)</span
-                            ></span
-                        >
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="
-                            render &&
-                            (stats.after_patch_number_of_critical != 0 ||
-                                stats.before_patch_number_of_critical != 0)
-                        "
-                        class="side-stats"
-                    >
-                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
-                        <div class="side-stats-text-wrapper flex flex-row justify-between">
-                            <div>Critical</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style="color: #7400b8"
-                            >
-                                {{ stats.before_patch_number_of_critical }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_number_of_critical }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="
-                            render &&
-                            (stats.after_patch_number_of_high != 0 ||
-                                stats.before_patch_number_of_high != 0)
-                        "
-                        class="side-stats"
-                    >
-                        <div class="side-stats-circle" style="background-color: #6930c3"></div>
-                        <div
-                            class="side-stats-text-wrapper flex flex-row justify-between items-center"
-                        >
-                            <div>High</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style="color: #6930c3"
-                            >
-                                {{ stats.before_patch_number_of_high }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_number_of_high }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="
-                            render &&
-                            (stats.after_patch_number_of_medium != 0 ||
-                                stats.before_patch_number_of_medium != 0)
-                        "
-                        class="side-stats"
-                    >
-                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
-                        <div
-                            class="side-stats-text-wrapper flex flex-row justify-between items-center"
-                        >
-                            <div>Medium</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style="color: #5e60ce"
-                            >
-                                {{ stats.before_patch_number_of_medium }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_number_of_medium }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="
-                            render &&
-                            (stats.after_patch_number_of_low != 0 ||
-                                stats.before_patch_number_of_low != 0)
-                        "
-                        class="side-stats"
-                    >
-                        <div class="side-stats-circle" style="background-color: #5390d9"></div>
-                        <div
-                            class="side-stats-text-wrapper flex flex-row justify-between items-center"
-                        >
-                            <div>Low</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style="color: #5390d9"
-                            >
-                                {{ stats.before_patch_number_of_low }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_number_of_low }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="
-                            render &&
-                            (stats.after_patch_number_of_none != 0 ||
-                                stats.before_patch_number_of_none != 0)
-                        "
-                        class="side-stats"
-                    >
-                        <div class="side-stats-circle" style="background-color: #19a7ce"></div>
-                        <div
-                            class="side-stats-text-wrapper flex flex-row justify-between items-center"
-                        >
-                            <div>None</div>
-                            <div class="side-stats-text-value flex flex-row items-center w-fit">
-                                {{ stats.before_patch_number_of_none }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_number_of_none }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div v-if="render" class="chart-wrapper">
-                    <Bar
-                        :data="severity_data"
-                        :options="severity_conf"
-                        style="height: 200px; width: 200px"
-                    />
-                </div>
-                <div v-if="!render" style="max-height: 200px; max-width: 200px">
-                    <div
-                        style="
-                            display: flex;
-                            flex-direction: row;
-                            column-gap: 1em;
-                            align-items: flex-end;
-                        "
-                    >
-                        <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
-                        <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
-                        <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
-                    </div>
-                </div>
-            </div>
-            <div class="stats-divider hide-on-collpase"></div>
-        </div>
-        <div class="summary-container summary-container-chart">
-            <div class="summary-container-chart-text-wrapper">
-                <div class="summary-container-chart-inner-text-wrapper">
-                    <div v-if="render" class="summary-container-chart-text-header-wrapper">
-                        <span class="summary-container-chart-text-header-title flex flex-row gap-2"
-                            >Security Impact
-                            <span
-                                class="flex flex-row items-center"
-                                style="font-size: 0.9em; color: #b5b5b5"
-                                >(before
-                                <Icon :icon="'ic:twotone-chevron-right'"></Icon>
-                                after)</span
-                            ></span
-                        >
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: gray"></div>
-                        <div class="side-stats-text-wrapper flex flex-row justify-between">
-                            <div>Confidentiality</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style=""
-                            >
-                                {{
-                                    stats.before_patch_overall_confidentiality_impact?.toFixed(1) ??
-                                    0
-                                }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{
-                                    stats.after_patch_overall_confidentiality_impact?.toFixed(1) ??
-                                    0
-                                }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: gray"></div>
-                        <div class="side-stats-text-wrapper flex flex-row justify-between">
-                            <div>Availability</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style=""
-                            >
-                                {{
-                                    stats.before_patch_overall_availability_impact?.toFixed(1) ?? 0
-                                }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_overall_availability_impact?.toFixed(1) ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: gray"></div>
-                        <div class="side-stats-text-wrapper flex flex-row justify-between">
-                            <div>Integrity</div>
-                            <div
-                                class="side-stats-text-value flex flex-row items-center w-fit"
-                                style=""
-                            >
-                                {{ stats.before_patch_overall_integrity_impact?.toFixed(1) ?? 0 }}
-                                <Icon
-                                    :icon="'ic:twotone-chevron-right'"
-                                    style="color: #b5b5b5"
-                                ></Icon>
-                                {{ stats.after_patch_overall_integrity_impact?.toFixed(1) ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                </div>
-            </div>
-            <div>
-                <div style="position: relative; width: 200px; height: 200px; margin-right: 10px">
-                    <div style="position: absolute">
-                        <svg height="200" width="200">
-                            <line
-                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                x1="100"
-                                x2="200"
-                                y1="130"
-                                y2="185"
-                            />
-                            <line
-                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                x1="100"
-                                x2="0"
-                                y2="185"
-                                y1="130"
-                            />
-                            <line
-                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                x1="100"
-                                x2="100"
-                                y1="30"
-                                y2="130"
-                            />
-                        </svg>
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            left: 10px;
-                            top: 45px;
-                            transform: rotate(-60deg);
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                        "
-                    >
-                        Confidentiality
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            bottom: 44px;
-                            right: -15px;
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                            font-family: roboto;
-                            transform: rotate(60deg);
-                        "
-                    >
-                        Integrity
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            bottom: 0px;
-                            left: 10px;
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                        "
-                    >
-                        Availability
-                    </div>
-                    <div
-                        v-if="render"
-                        style="
-                            position: absolute;
-                            height: 212px !important;
-                            width: 212px !important;
-                            margin-top: 20px;
-                            margin-left: -6px;
-                        "
-                    >
-                        <Radar
-                            :data="cia_data"
-                            :options="cia_conf"
-                            style="height: 212px !important; width: 212px !important"
-                        />
-                    </div>
-                </div>
-            </div>
-            <div class="stats-divider hide-on-collpase"></div>
-        </div>
-        <div class="summary-container summary-container-quick-stats">
-            <div class="summary-stacked-container-wrapper">
-                <div v-if="stats != null" class="summary-container">
-                    <div class="title">Number of issues</div>
-                    <div
-                        class="single-value-summary single-value-summary-column-gap-20"
-                        style="height: fit-content"
-                    >
-                        <div v-if="render" class="flex flex-row gap-2 items-center w-fit">
-                            <span>{{ stats.before_patch_number_of_issues }} </span>
-                            <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
-                            <span>{{ stats.after_patch_number_of_issues }}</span>
-                        </div>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-                <div v-if="stats != null" class="summary-container">
-                    <div class="title">Number of vulnerabilities</div>
-                    <div
-                        class="single-value-summary single-value-summary-column-gap-20"
-                        style="height: fit-content"
-                    >
-                        <div v-if="render" class="flex flex-row gap-2 items-center w-fit">
-                            <span>{{ stats.before_patch_number_of_vulnerabilities ?? 0 }} </span>
-                            <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
-                            <span>{{ stats.after_patch_number_of_vulnerabilities }}</span>
-                        </div>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-            </div>
-            <div class="summary-stacked-container-wrapper">
-                <div v-if="stats != null" class="summary-container">
-                    <div class="title">Number of vulnerable dependencies</div>
-                    <div
-                        class="single-value-summary single-value-summary-column-gap-20"
-                        style="height: fit-content"
-                    >
-                        <div v-if="render" class="flex flex-row gap-2 items-center w-fit">
-                            <span
-                                >{{ stats.before_patch_number_of_vulnerable_dependencies ?? 0 }}
-                            </span>
-                            <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
-                            <span>{{
-                                stats.after_patch_number_of_vulnerable_dependencies ?? 0
-                            }}</span>
-                        </div>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <Alert v-if="error" variant="destructive">
-            <Icon :icon="'ic:twotone-warning'"></Icon>
-            <AlertDescription>
-                Encountered Error during the rendering of the stats.
-            </AlertDescription>
-        </Alert>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { ref, type Ref, watch } from 'vue';
 import TextLoader from '../../../base_components/TextLoader.vue';
@@ -790,6 +386,285 @@ function createSeverityDistChart() {
     };
 }
 </script>
+
+<template>
+    <div class="summary-wrapper findings-summary-wrapper" style="font-size: 1rem; flex-wrap: wrap">
+        <div class="summary-container summary-container-chart">
+            <div class="summary-container-chart-text-wrapper">
+                <div class="summary-container-chart-inner-text-wrapper">
+                    <div v-if="render" class="summary-container-chart-text-header-wrapper align-center">
+                        <span class="summary-container-chart-text-header-title flex flex-row gap-2 items-center">
+                            Severities
+                            <span class="flex flex-row items-center" style="font-size: 0.9em; color: #b5b5b5">(before
+                                <Icon :icon="'ic:twotone-chevron-right'"></Icon>
+                                after)
+                            </span></span>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="
+                        render &&
+                        (stats.after_patch_number_of_critical != 0 ||
+                            stats.before_patch_number_of_critical != 0)
+                    " class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between">
+                            <div>Critical</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="color: #7400b8">
+                                {{ stats.before_patch_number_of_critical }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_number_of_critical }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="
+                        render &&
+                        (stats.after_patch_number_of_high != 0 ||
+                            stats.before_patch_number_of_high != 0)
+                    " class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #6930c3"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between items-center">
+                            <div>High</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="color: #6930c3">
+                                {{ stats.before_patch_number_of_high }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_number_of_high }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="
+                        render &&
+                        (stats.after_patch_number_of_medium != 0 ||
+                            stats.before_patch_number_of_medium != 0)
+                    " class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between items-center">
+                            <div>Medium</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="color: #5e60ce">
+                                {{ stats.before_patch_number_of_medium }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_number_of_medium }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="
+                        render &&
+                        (stats.after_patch_number_of_low != 0 ||
+                            stats.before_patch_number_of_low != 0)
+                    " class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #5390d9"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between items-center">
+                            <div>Low</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="color: #5390d9">
+                                {{ stats.before_patch_number_of_low }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_number_of_low }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="
+                        render &&
+                        (stats.after_patch_number_of_none != 0 ||
+                            stats.before_patch_number_of_none != 0)
+                    " class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #19a7ce"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between items-center">
+                            <div>None</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit">
+                                {{ stats.before_patch_number_of_none }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_number_of_none }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div v-if="render" class="chart-wrapper">
+                    <Bar :data="severity_data" :options="severity_conf" style="height: 200px; width: 200px" />
+                </div>
+                <div v-if="!render" style="max-height: 200px; max-width: 200px">
+                    <div style="
+                            display: flex;
+                            flex-direction: row;
+                            column-gap: 1em;
+                            align-items: flex-end;
+                        ">
+                        <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
+                        <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
+                        <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
+                    </div>
+                </div>
+            </div>
+            <div class="stats-divider hide-on-collpase"></div>
+        </div>
+        <div class="summary-container summary-container-chart">
+            <div class="summary-container-chart-text-wrapper">
+                <div class="summary-container-chart-inner-text-wrapper">
+                    <div v-if="render" class="summary-container-chart-text-header-wrapper">
+                        <span class="summary-container-chart-text-header-title flex flex-row gap-2">Security Impact
+                            <span class="flex flex-row items-center" style="font-size: 0.9em; color: #b5b5b5">(before
+                                <Icon :icon="'ic:twotone-chevron-right'"></Icon>
+                                after)
+                            </span></span>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: gray"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between">
+                            <div>Confidentiality</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="">
+                                {{
+                                    stats.before_patch_overall_confidentiality_impact?.toFixed(1) ??
+                                    0
+                                }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{
+                                    stats.after_patch_overall_confidentiality_impact?.toFixed(1) ??
+                                    0
+                                }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: gray"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between">
+                            <div>Availability</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="">
+                                {{
+                                    stats.before_patch_overall_availability_impact?.toFixed(1) ?? 0
+                                }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_overall_availability_impact?.toFixed(1) ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: gray"></div>
+                        <div class="side-stats-text-wrapper flex flex-row justify-between">
+                            <div>Integrity</div>
+                            <div class="side-stats-text-value flex flex-row items-center w-fit" style="">
+                                {{ stats.before_patch_overall_integrity_impact?.toFixed(1) ?? 0 }}
+                                <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                                {{ stats.after_patch_overall_integrity_impact?.toFixed(1) ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                </div>
+            </div>
+            <div>
+                <div style="position: relative; width: 200px; height: 200px; margin-right: 10px">
+                    <div style="position: absolute">
+                        <svg height="200" width="200">
+                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="200" y1="130"
+                                y2="185" />
+                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="0" y2="185"
+                                y1="130" />
+                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="100" y1="30"
+                                y2="130" />
+                        </svg>
+                    </div>
+                    <div style="
+                            position: absolute;
+                            left: 10px;
+                            top: 45px;
+                            transform: rotate(-60deg);
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                        ">
+                        Confidentiality
+                    </div>
+                    <div style="
+                            position: absolute;
+                            bottom: 44px;
+                            right: -15px;
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                            font-family: roboto;
+                            transform: rotate(60deg);
+                        ">
+                        Integrity
+                    </div>
+                    <div style="
+                            position: absolute;
+                            bottom: 0px;
+                            left: 10px;
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                        ">
+                        Availability
+                    </div>
+                    <div v-if="render" style="
+                            position: absolute;
+                            height: 212px !important;
+                            width: 212px !important;
+                            margin-top: 20px;
+                            margin-left: -6px;
+                        ">
+                        <Radar :data="cia_data" :options="cia_conf"
+                            style="height: 212px !important; width: 212px !important" />
+                    </div>
+                </div>
+            </div>
+            <div class="stats-divider hide-on-collpase"></div>
+        </div>
+        <div class="summary-container summary-container-quick-stats">
+            <div class="summary-stacked-container-wrapper">
+                <div v-if="stats != null" class="summary-container">
+                    <div class="title">Number of issues</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20" style="height: fit-content">
+                        <div v-if="render" class="flex flex-row gap-2 items-center w-fit">
+                            <span>{{ stats.before_patch_number_of_issues }} </span>
+                            <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                            <span>{{ stats.after_patch_number_of_issues }}</span>
+                        </div>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+                <div v-if="stats != null" class="summary-container">
+                    <div class="title">Number of vulnerabilities</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20" style="height: fit-content">
+                        <div v-if="render" class="flex flex-row gap-2 items-center w-fit">
+                            <span>{{ stats.before_patch_number_of_vulnerabilities ?? 0 }} </span>
+                            <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                            <span>{{ stats.after_patch_number_of_vulnerabilities }}</span>
+                        </div>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+            </div>
+            <div class="summary-stacked-container-wrapper">
+                <div v-if="stats != null" class="summary-container">
+                    <div class="title">Number of vulnerable dependencies</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20" style="height: fit-content">
+                        <div v-if="render" class="flex flex-row gap-2 items-center w-fit">
+                            <span>{{ stats.before_patch_number_of_vulnerable_dependencies ?? 0 }}
+                            </span>
+                            <Icon :icon="'ic:twotone-chevron-right'" style="color: #b5b5b5"></Icon>
+                            <span>{{
+                                stats.after_patch_number_of_vulnerable_dependencies ?? 0
+                                }}</span>
+                        </div>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <Alert v-if="error" variant="destructive">
+            <Icon :icon="'ic:twotone-warning'"></Icon>
+            <AlertDescription>
+                Encountered Error during the rendering of the stats.
+            </AlertDescription>
+        </Alert>
+    </div>
+</template>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

@@ -1,10 +1,3 @@
-<template>
-    <div class="dependency-tree">
-        <div v-for="tree_node in nodes" :key="tree_node.key">
-            <Node :node="tree_node" :show-vuln-i-ds="showVulnIDs" />
-        </div>
-    </div>
-</template>
 <script setup lang="ts">
 import type { TreeNode } from '@/utils/tree/patching/TreeNode';
 import Node from './PatchingNode.vue';
@@ -19,6 +12,14 @@ withDefaults(defineProps<Props>(), {
     showVulnIDs: false
 });
 </script>
+
+<template>
+    <div class="dependency-tree">
+        <div v-for="tree_node in nodes" :key="tree_node.key">
+            <Node :node="tree_node" :show-vuln-i-ds="showVulnIDs" />
+        </div>
+    </div>
+</template>
 
 <style lang="scss" scoped>
 @use '@/assets/colors.scss';

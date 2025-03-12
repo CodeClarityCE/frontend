@@ -37,29 +37,18 @@ function changePage(_page: number) {
 }
 </script>
 <template>
-    <Pagination
-        v-model:page="page"
-        v-model:nmbEntriesShowing="entriesPerPage"
-        v-model:nmbEntriesTotal="totalEntries"
-        v-model:totalPages="totalPages"
-    >
+    <Pagination v-model:page="page" v-model:nmbEntriesShowing="entriesPerPage" v-model:nmbEntriesTotal="totalEntries"
+        v-model:totalPages="totalPages">
         <template #content>
-            <SortableTable
-                class="w-full border-collapse"
-                :headers="headersImportFails"
-                :sortKey="''"
-                :sortDirection="sortDirection"
-            >
+            <SortableTable class="w-full border-collapse" :headers="headersImportFails" :sortKey="''"
+                :sortDirection="sortDirection">
                 <template #data>
                     <!-- <tr v-for="(failedImport, index) in Object.values(reposFailedToImport)" :key="index" style="background-color: #ff00000d"
                         v-if="index >= page * entriesPerPage &&
                             index < (page + 1) * entriesPerPage
                             "> -->
-                    <tr
-                        v-for="(failedImport, index) in Object.values(reposFailedToImport)"
-                        :key="index"
-                        style="background-color: #ff00000d"
-                    >
+                    <tr v-for="(failedImport, index) in Object.values(reposFailedToImport)" :key="index"
+                        style="background-color: #ff00000d">
                         <td></td>
                         <td>
                             <div class="py-1">
@@ -68,18 +57,10 @@ function changePage(_page: number) {
                         </td>
                         <td>
                             <div>
-                                <div
-                                    class="py-1 flex flex-row gap-1 items-center"
-                                    style="color: red"
-                                >
-                                    <Icon
-                                        class="text-xl text-destructive"
-                                        icon="solar:danger-triangle-bold"
-                                    ></Icon>
-                                    <span
-                                        ><span class="font-black">Error:</span>
-                                        {{ failedImport.reason }}</span
-                                    >
+                                <div class="py-1 flex flex-row gap-1 items-center" style="color: red">
+                                    <Icon class="text-xl text-destructive" icon="solar:danger-triangle-bold"></Icon>
+                                    <span><span class="font-black">Error:</span>
+                                        {{ failedImport.reason }}</span>
                                 </div>
                             </div>
                         </td>

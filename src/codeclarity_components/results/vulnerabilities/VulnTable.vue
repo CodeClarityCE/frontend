@@ -1,278 +1,3 @@
-<template>
-    <div class="flex flex-col gap-7">
-        <div class="flex gap-4">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
-        </div>
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
-        <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortByOptions"
-            :showing="nmbEntriesShowing"
-            :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
-        >
-        </UtilitiesSort>
-        <div class="overflow-x-auto">
-            <SortableTable
-                :headers="headers"
-                :sortKey="sortKey"
-                :sortDirection="sortDirection"
-                :on-sort-change="updateSort"
-            >
-                <template #data>
-                    <tr v-for="report in findings" :key="report.Id">
-                        <td>
-                            <BubbleComponent :slim="true">
-                                <template #content>
-                                    <div class="text-nowrap whitespace-nowrap">
-                                        {{ report.Vulnerability }}
-                                    </div>
-                                </template>
-                            </BubbleComponent>
-                        </td>
-                        <td>
-                            <SeverityBubble
-                                :critical="isCriticalSeverity(report.Severity.Severity)"
-                                :high="isHighSeverity(report.Severity.Severity)"
-                                :medium="isMediumSeverity(report.Severity.Severity)"
-                                :low="isLowSeverity(report.Severity.Severity)"
-                                :none="isNoneSeverity(report.Severity.Severity)"
-                            >
-                                <template #content>{{ report.Severity.Severity }}</template>
-                            </SeverityBubble>
-                        </td>
-                        <td>
-                            <div
-                                class="flex flex-row gap-2"
-                                v-for="affected in report.Affected"
-                                :key="affected.AffectedDependency"
-                            >
-                                <BubbleComponent
-                                    v-if="affected.PatchType == 'NONE'"
-                                    :not-patchable="true"
-                                    :slim="true"
-                                >
-                                    <template #content>
-                                        <Icon :icon="'material-symbols:crisis-alert'"></Icon> Not
-                                        patchable : {{ affected.AffectedDependency }}
-                                    </template>
-                                </BubbleComponent>
-                                <BubbleComponent
-                                    v-else-if="affected.PatchType == 'PARTIAL'"
-                                    :partially-patchable="true"
-                                    :slim="true"
-                                >
-                                    <template #content>
-                                        <div
-                                            class="flex flex-row gap-1 items-center whitespace-nowrap"
-                                        >
-                                            <Icon :icon="'material-symbols:crisis-alert'"></Icon>
-                                            Partially patchable : {{ affected.AffectedDependency }}
-                                        </div>
-                                    </template>
-                                </BubbleComponent>
-                                <span v-else>{{ affected.AffectedDependency }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div v-if="report.Weaknesses">
-                                <BubbleComponent
-                                    v-for="weakness in report.Weaknesses"
-                                    :key="weakness.WeaknessId"
-                                    :slim="true"
-                                >
-                                    <template #content>
-                                        {{ weakness.WeaknessId }}
-                                    </template>
-                                </BubbleComponent>
-                            </div>
-                        </td>
-                        <td>
-                            <div
-                                v-if="
-                                    report.Weaknesses &&
-                                    report.Weaknesses.some(
-                                        (weakness) => weakness.OWASPTop10Id != ''
-                                    )
-                                "
-                            >
-                                <div
-                                    v-for="weakness in report.Weaknesses"
-                                    :key="weakness.WeaknessId"
-                                    class="flex flex-row gap-2 items-center text-[#5e5e5e] w-fit"
-                                >
-                                    <div>
-                                        <Icon :icon="'simple-icons:owasp'"></Icon>
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-if="weakness.OWASPTop10Id == '1345'"
-                                    >
-                                        A01: Broken Access Control
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1346'"
-                                    >
-                                        A02: Cryptographic Failures
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1347'"
-                                    >
-                                        A03: Injection
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1348'"
-                                    >
-                                        A04: Insecure Design
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1349'"
-                                    >
-                                        A05: Security Misconfiguration
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1352'"
-                                    >
-                                        A06: Vulnerable and Outdated Components
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1353'"
-                                    >
-                                        A07: Identification and Authentication Failures
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1354'"
-                                    >
-                                        A08: Software and Data Integrity Failures
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1355'"
-                                    >
-                                        A09: Security Logging and Monitoring Failures
-                                    </div>
-                                    <div
-                                        class="whitespace-nowrap"
-                                        v-else-if="weakness.OWASPTop10Id == '1356'"
-                                    >
-                                        A10: Server-Side Request Forgery
-                                    </div>
-                                    <div class="whitespace-nowrap" v-else>Other</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="hide-1300">
-                            <div>
-                                {{ report.Severity.Exploitability.toFixed(2) ?? 'N/A' }}
-                            </div>
-                        </td>
-                        <td class="hide-1450">
-                            <div class="flex flex-col gap-1 text-sm text-[#444444]">
-                                <BubbleComponent
-                                    v-if="
-                                        report.Severity &&
-                                        report.Severity.ConfidentialityImpact != 'NONE' &&
-                                        report.Severity.AvailabilityImpact != ''
-                                    "
-                                    title="Impacts Confidentiality"
-                                    :slim="true"
-                                    class="flex flex-row items-center gap-2"
-                                >
-                                    <template #content>
-                                        <Icon :icon="'prime:angle-double-down'"></Icon>
-                                        <div>Confidentiality</div>
-                                    </template>
-                                </BubbleComponent>
-                                <BubbleComponent
-                                    v-if="
-                                        report.Severity &&
-                                        report.Severity.AvailabilityImpact != 'NONE' &&
-                                        report.Severity.AvailabilityImpact != ''
-                                    "
-                                    title="Impacts Availability"
-                                    :slim="true"
-                                    class="flex flex-row items-center gap-2"
-                                >
-                                    <template #content>
-                                        <Icon :icon="'prime:angle-double-down'"></Icon>
-                                        <div>Availability</div>
-                                    </template>
-                                </BubbleComponent>
-                                <BubbleComponent
-                                    v-if="
-                                        report.Severity &&
-                                        report.Severity.IntegrityImpact != 'NONE' &&
-                                        report.Severity.AvailabilityImpact != ''
-                                    "
-                                    title="Impacts Integrity"
-                                    :slim="true"
-                                    class="flex flex-row items-center gap-2"
-                                >
-                                    <template #content>
-                                        <Icon :icon="'prime:angle-double-down'"></Icon>
-                                        <div>Integrity</div>
-                                    </template>
-                                </BubbleComponent>
-                            </div>
-                        </td>
-                        <td>
-                            <div>
-                                <RouterLink
-                                    class="open-details flex flex-row items-center gap-1"
-                                    :to="{
-                                        name: 'results',
-                                        query: {
-                                            analysis_id: props.analysisID,
-                                            project_id: props.projectID,
-                                            finding_id: report.Id
-                                        },
-                                        params: { page: 'vulnerabilities_details' }
-                                    }"
-                                >
-                                    <Icon :icon="'ic:outline-open-in-new'"></Icon> details
-                                </RouterLink>
-                            </div>
-                        </td>
-                    </tr>
-                </template>
-            </SortableTable>
-            <div v-if="matchingItemsCount == 0 && filterApplied" style="margin-top: 20px">
-                <div style="text-align: center">No findings match the filter</div>
-            </div>
-            <div v-if="matchingItemsCount == 0 && !filterApplied" style="margin-top: 20px">
-                <div style="text-align: center">No findings</div>
-            </div>
-        </div>
-        <div
-            style="color: #484848; font-weight: 400; display: flex; justify-content: space-between"
-        >
-            <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
-            <PaginationComponent
-                v-model:page="pageNumber"
-                v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal"
-                v-model:totalPages="totalPages"
-            />
-        </div>
-    </div>
-    <Alert v-if="error" variant="destructive">
-        <Icon :icon="'ant-design:warning-twotone'"></Icon>
-        <AlertDescription>
-            Failed to fetch vulnerabilities data
-        </AlertDescription>
-    </Alert>
-</template>
-
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
@@ -575,6 +300,197 @@ async function init() {
 
 init();
 </script>
+
+<template>
+    <div class="flex flex-col gap-7">
+        <div class="flex gap-4">
+            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+        </div>
+        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+        <UtilitiesSort :selectionPageLimit="selectionPageLimit" :sortOptions="sortByOptions"
+            :showing="nmbEntriesShowing" :total="nmbEntriesTotal" v-model:pageLimitSelected="pageLimitSelected"
+            v-model:sortKey="sortKey" v-model:sortDirection="sortDirection">
+        </UtilitiesSort>
+        <div class="overflow-x-auto">
+            <SortableTable :headers="headers" :sortKey="sortKey" :sortDirection="sortDirection"
+                :on-sort-change="updateSort">
+                <template #data>
+                    <tr v-for="report in findings" :key="report.Id">
+                        <td>
+                            <BubbleComponent :slim="true">
+                                <template #content>
+                                    <div class="text-nowrap whitespace-nowrap">
+                                        {{ report.Vulnerability }}
+                                    </div>
+                                </template>
+                            </BubbleComponent>
+                        </td>
+                        <td>
+                            <SeverityBubble :critical="isCriticalSeverity(report.Severity.Severity)"
+                                :high="isHighSeverity(report.Severity.Severity)"
+                                :medium="isMediumSeverity(report.Severity.Severity)"
+                                :low="isLowSeverity(report.Severity.Severity)"
+                                :none="isNoneSeverity(report.Severity.Severity)">
+                                <template #content>{{ report.Severity.Severity }}</template>
+                            </SeverityBubble>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-2" v-for="affected in report.Affected"
+                                :key="affected.AffectedDependency">
+                                <BubbleComponent v-if="affected.PatchType == 'NONE'" :not-patchable="true" :slim="true">
+                                    <template #content>
+                                        <Icon :icon="'material-symbols:crisis-alert'"></Icon> Not
+                                        patchable : {{ affected.AffectedDependency }}
+                                    </template>
+                                </BubbleComponent>
+                                <BubbleComponent v-else-if="affected.PatchType == 'PARTIAL'" :partially-patchable="true"
+                                    :slim="true">
+                                    <template #content>
+                                        <div class="flex flex-row gap-1 items-center whitespace-nowrap">
+                                            <Icon :icon="'material-symbols:crisis-alert'"></Icon>
+                                            Partially patchable : {{ affected.AffectedDependency }}
+                                        </div>
+                                    </template>
+                                </BubbleComponent>
+                                <span v-else>{{ affected.AffectedDependency }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div v-if="report.Weaknesses">
+                                <BubbleComponent v-for="weakness in report.Weaknesses" :key="weakness.WeaknessId"
+                                    :slim="true">
+                                    <template #content>
+                                        {{ weakness.WeaknessId }}
+                                    </template>
+                                </BubbleComponent>
+                            </div>
+                        </td>
+                        <td>
+                            <div v-if="
+                                report.Weaknesses &&
+                                report.Weaknesses.some(
+                                    (weakness) => weakness.OWASPTop10Id != ''
+                                )
+                            ">
+                                <div v-for="weakness in report.Weaknesses" :key="weakness.WeaknessId"
+                                    class="flex flex-row gap-2 items-center text-[#5e5e5e] w-fit">
+                                    <div>
+                                        <Icon :icon="'simple-icons:owasp'"></Icon>
+                                    </div>
+                                    <div class="whitespace-nowrap" v-if="weakness.OWASPTop10Id == '1345'">
+                                        A01: Broken Access Control
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1346'">
+                                        A02: Cryptographic Failures
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1347'">
+                                        A03: Injection
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1348'">
+                                        A04: Insecure Design
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1349'">
+                                        A05: Security Misconfiguration
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1352'">
+                                        A06: Vulnerable and Outdated Components
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1353'">
+                                        A07: Identification and Authentication Failures
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1354'">
+                                        A08: Software and Data Integrity Failures
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1355'">
+                                        A09: Security Logging and Monitoring Failures
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else-if="weakness.OWASPTop10Id == '1356'">
+                                        A10: Server-Side Request Forgery
+                                    </div>
+                                    <div class="whitespace-nowrap" v-else>Other</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="hide-1300">
+                            <div>
+                                {{ report.Severity.Exploitability.toFixed(2) ?? 'N/A' }}
+                            </div>
+                        </td>
+                        <td class="hide-1450">
+                            <div class="flex flex-col gap-1 text-sm text-[#444444]">
+                                <BubbleComponent v-if="
+                                    report.Severity &&
+                                    report.Severity.ConfidentialityImpact != 'NONE' &&
+                                    report.Severity.AvailabilityImpact != ''
+                                " title="Impacts Confidentiality" :slim="true"
+                                    class="flex flex-row items-center gap-2">
+                                    <template #content>
+                                        <Icon :icon="'prime:angle-double-down'"></Icon>
+                                        <div>Confidentiality</div>
+                                    </template>
+                                </BubbleComponent>
+                                <BubbleComponent v-if="
+                                    report.Severity &&
+                                    report.Severity.AvailabilityImpact != 'NONE' &&
+                                    report.Severity.AvailabilityImpact != ''
+                                " title="Impacts Availability" :slim="true"
+                                    class="flex flex-row items-center gap-2">
+                                    <template #content>
+                                        <Icon :icon="'prime:angle-double-down'"></Icon>
+                                        <div>Availability</div>
+                                    </template>
+                                </BubbleComponent>
+                                <BubbleComponent v-if="
+                                    report.Severity &&
+                                    report.Severity.IntegrityImpact != 'NONE' &&
+                                    report.Severity.AvailabilityImpact != ''
+                                " title="Impacts Integrity" :slim="true" class="flex flex-row items-center gap-2">
+                                    <template #content>
+                                        <Icon :icon="'prime:angle-double-down'"></Icon>
+                                        <div>Integrity</div>
+                                    </template>
+                                </BubbleComponent>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <RouterLink class="open-details flex flex-row items-center gap-1" :to="{
+                                    name: 'results',
+                                    query: {
+                                        analysis_id: props.analysisID,
+                                        project_id: props.projectID,
+                                        finding_id: report.Id
+                                    },
+                                    params: { page: 'vulnerabilities_details' }
+                                }">
+                                    <Icon :icon="'ic:outline-open-in-new'"></Icon> details
+                                </RouterLink>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+            </SortableTable>
+            <div v-if="matchingItemsCount == 0 && filterApplied" style="margin-top: 20px">
+                <div style="text-align: center">No findings match the filter</div>
+            </div>
+            <div v-if="matchingItemsCount == 0 && !filterApplied" style="margin-top: 20px">
+                <div style="text-align: center">No findings</div>
+            </div>
+        </div>
+        <div style="color: #484848; font-weight: 400; display: flex; justify-content: space-between">
+            <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
+            <PaginationComponent v-model:page="pageNumber" v-model:nmbEntriesShowing="pageLimitSelected"
+                v-model:nmbEntriesTotal="nmbEntriesTotal" v-model:totalPages="totalPages" />
+        </div>
+    </div>
+    <Alert v-if="error" variant="destructive">
+        <Icon :icon="'ant-design:warning-twotone'"></Icon>
+        <AlertDescription>
+            Failed to fetch vulnerabilities data
+        </AlertDescription>
+    </Alert>
+</template>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

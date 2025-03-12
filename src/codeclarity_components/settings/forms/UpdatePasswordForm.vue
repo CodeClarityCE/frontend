@@ -1,36 +1,3 @@
-<template>
-    <form @submit="onSubmit">
-        <FormField v-slot="{ componentField }" name="old_password">
-            <FormItem v-auto-animate>
-                <FormLabel>Old password</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="Enter your old password" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-        </FormField>
-        <FormField v-slot="{ componentField }" name="password">
-            <FormItem v-auto-animate>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="Enter your new password" v-bind="componentField" />
-                </FormControl>
-                <FormDescription> Please use a strong password. </FormDescription>
-                <FormMessage />
-            </FormItem>
-        </FormField>
-        <FormField v-slot="{ componentField }" name="password_confirmation">
-            <FormItem v-auto-animate>
-                <FormLabel>Password confirmation</FormLabel>
-                <FormControl>
-                    <Input type="password" placeholder="Confirm your new password" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-        </FormField>
-        <Button type="submit" class="mt-4"> Update Password </Button>
-    </form>
-</template>
 <script lang="ts" setup>
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 
@@ -106,7 +73,41 @@ async function updatePassword(
             if (err instanceof BusinessLogicError) {
                 console.error(err)
             }
-        } 
+        }
     }
 }
 </script>
+
+<template>
+    <form @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="old_password">
+            <FormItem v-auto-animate>
+                <FormLabel>Old password</FormLabel>
+                <FormControl>
+                    <Input type="password" placeholder="Enter your old password" v-bind="componentField" />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="password">
+            <FormItem v-auto-animate>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                    <Input type="password" placeholder="Enter your new password" v-bind="componentField" />
+                </FormControl>
+                <FormDescription> Please use a strong password. </FormDescription>
+                <FormMessage />
+            </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="password_confirmation">
+            <FormItem v-auto-animate>
+                <FormLabel>Password confirmation</FormLabel>
+                <FormControl>
+                    <Input type="password" placeholder="Confirm your new password" v-bind="componentField" />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+        </FormField>
+        <Button type="submit" class="mt-4"> Update Password </Button>
+    </form>
+</template>

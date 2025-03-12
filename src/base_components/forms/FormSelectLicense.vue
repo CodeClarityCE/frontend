@@ -1,26 +1,3 @@
-<template>
-    <div class="flex flex-col gap-2">
-        <label class="text-gray-500 mb-1" :for="props.name">
-            <slot name="name"></slot>
-        </label>
-        <SearchBar v-model:searchKey="search" :placeholder="'Search for a license'"></SearchBar>
-        <div
-            class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5 h-72 overflow-y-scroll"
-        >
-            <div
-                v-for="license in licenseList"
-                :key="license.id"
-                @click="select(license)"
-                class="py-2 px-4 cursor-pointer hover:bg-primaryHovered hover:text-white"
-                :class="data.has(license._key) ? 'bg-primary text-white' : ''"
-            >
-                {{ license.name }}
-            </div>
-        </div>
-        <!-- <ErrorMessage class="text-destructive mt-1 block" :name="props.name" /> -->
-    </div>
-</template>
-
 <script setup lang="ts">
 import type { License } from '@/codeclarity_components/results/licenses/License';
 import SearchBar from '../SearchBar.vue';
@@ -62,3 +39,19 @@ function select(license: License) {
     }
 }
 </script>
+<template>
+    <div class="flex flex-col gap-2">
+        <label class="text-gray-500 mb-1" :for="props.name">
+            <slot name="name"></slot>
+        </label>
+        <SearchBar v-model:searchKey="search" :placeholder="'Search for a license'"></SearchBar>
+        <div class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5 h-72 overflow-y-scroll">
+            <div v-for="license in licenseList" :key="license.id" @click="select(license)"
+                class="py-2 px-4 cursor-pointer hover:bg-primaryHovered hover:text-white"
+                :class="data.has(license._key) ? 'bg-primary text-white' : ''">
+                {{ license.name }}
+            </div>
+        </div>
+        <!-- <ErrorMessage class="text-destructive mt-1 block" :name="props.name" /> -->
+    </div>
+</template>

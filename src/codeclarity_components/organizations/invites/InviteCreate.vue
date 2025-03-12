@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { BusinessLogicError, ValidationError } from '@/repositories/BaseRepository';
-import { OrgRepository } from '@/repositories/OrganizationRepository';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { OrgRepository } from '../organization.repository';
 import {
     MemberRole,
     type Organization,
     isMemberRoleGreaterThan
-} from '@/repositories/types/entities/Organization';
+} from '../organization.entity';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { ref, type Ref } from 'vue';
 import OrgHeaderItem from '@/views/org/subcomponents/OrgHeaderItem.vue';
-import { APIErrors } from '@/repositories/types/errors/ApiErrors';
+import { APIErrors } from '@/utils/api/ApiErrors';
 import { Icon } from '@iconify/vue';
 import FaqBox from '@/base_components/FaqBox.vue';
 import { errorToast, successToast } from '@/utils/toasts';
@@ -109,19 +109,13 @@ const form = useForm({
 </script>
 <template>
     <div class="flex flex-col items-center gap-8">
-        <OrgHeaderItem
-            v-if="orgId"
-            :org-id="orgId"
-            @on-org-info="setOrgInfo($event)"
-        ></OrgHeaderItem>
+        <OrgHeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></OrgHeaderItem>
         <div v-if="orgInfo" class="flex flex-col gap-8">
-            <div
-                v-if="
-                    (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                    orgInfo.role == MemberRole.ADMIN ||
-                    orgInfo.role == MemberRole.MODERATOR
-                "
-            >
+            <div v-if="
+                (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
+                orgInfo.role == MemberRole.ADMIN ||
+                orgInfo.role == MemberRole.MODERATOR
+            ">
                 <h2 class="text-xl">Related Actions</h2>
                 <div class="flex flex-row gap-4 flex-wrap items-stretch org-manage-items">
                     <RouterLink :to="{ name: 'orgs', params: { orgId: orgId, page: 'members' } }">
@@ -148,23 +142,15 @@ const form = useForm({
                             Encountered an error while creating the invite. Please refresh the page
                             and try again, and if the error persists contact our webmaster.
                         </span>
-                        <span
-                            v-if="
-                                errorCodeSendInvite == APIErrors.ValidationFailed && validationError
-                            "
-                            style="white-space: break-spaces"
-                        >
+                        <span v-if="
+                            errorCodeSendInvite == APIErrors.ValidationFailed && validationError
+                        " style="white-space: break-spaces">
                             <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                             {{ validationError.toMessage('Invalid form:') }}
                         </span>
                     </AlertDescription>
                 </Alert>
-                <AutoForm
-                    class="flex flex-col gap-2"
-                    :form="form"
-                    :schema="formSchema"
-                    @submit="submit"
-                >
+                <AutoForm class="flex flex-col gap-2" :form="form" :schema="formSchema" @submit="submit">
                     <Button type="submit"> Send Invite </Button>
                 </AutoForm>
             </div>
@@ -210,9 +196,7 @@ const form = useForm({
                 </template>
             </FaqBox>
             <FaqBox>
-                <template #question
-                    >I accidentally invited someone, can I revoke the invite?</template
-                >
+                <template #question>I accidentally invited someone, can I revoke the invite?</template>
                 <template #answer>
                     Yes, you can revoke an invite, simply go to 'Manage Invites' and click the
                     'Revoke invite' button on invite that you wish to revoke. In case the user has
@@ -221,11 +205,8 @@ const form = useForm({
                 </template>
             </FaqBox>
             <FaqBox>
-                <template #question
-                    >Why can I not invite users of role Moderator or Admin?</template
-                >
-                <template #answer
-                    >Depending on your own role, you are only allowed to create an invite for
+                <template #question>Why can I not invite users of role Moderator or Admin?</template>
+                <template #answer>Depending on your own role, you are only allowed to create an invite for
                     certain other roles.
                     <ul class="list-disc list-inside">
                         <li>As a Moderator you can only create invites for the role User.</li>

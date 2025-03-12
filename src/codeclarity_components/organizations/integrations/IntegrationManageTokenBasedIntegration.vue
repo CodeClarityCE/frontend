@@ -308,7 +308,7 @@ const emit = defineEmits<{
                     <Alert variant="destructive">
                         <AlertDescription>
                             This might cause currently running analyses to fail. And other side
-                                effects are also expected!
+                            effects are also expected!
                         </AlertDescription>
                     </Alert>
                     <div>You can always add a new integration.</div>

@@ -148,95 +148,59 @@ fetch();
     <Dialog v-model:open="showNewTeamDialog">
         <Popover v-model:open="open">
             <PopoverTrigger as-child>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded="open"
-                    aria-label="Select an organization"
-                    :class="cn('w-[200px] justify-between', $attrs.class ?? '')"
-                >
+                <Button variant="outline" role="combobox" aria-expanded="open" aria-label="Select an organization"
+                    :class="cn('w-[200px] justify-between', $attrs.class ?? '')">
                     <Avatar class="mr-2 h-5 w-5">
-                        <AvatarImage
-                            :src="`https://avatar.vercel.sh/${selectedTeam.value}.png`"
-                            :alt="selectedTeam.label"
-                        />
+                        <AvatarImage :src="`https://avatar.vercel.sh/${selectedTeam.value}.png`"
+                            :alt="selectedTeam.label" />
                         <AvatarFallback>SC</AvatarFallback>
                     </Avatar>
                     {{ selectedTeam.label }}
-                    <Icon
-                        icon="radix-icons:caret-sort"
-                        class="ml-auto h-4 w-4 shrink-0 opacity-50"
-                    ></Icon>
+                    <Icon icon="radix-icons:caret-sort" class="ml-auto h-4 w-4 shrink-0 opacity-50"></Icon>
                 </Button>
             </PopoverTrigger>
             <PopoverContent class="w-[200px] p-0">
-                <Command
-                    :filter-function="
-                        (list, term) => list.filter((i) => i.label?.toLowerCase()?.includes(term))
-                    "
-                >
+                <Command :filter-function="(list, term) => list.filter((i) => i.label?.toLowerCase()?.includes(term))
+                    ">
                     <CommandList>
                         <CommandInput placeholder="Search organization..." />
                         <CommandEmpty>No organization found.</CommandEmpty>
-                        <CommandGroup
-                            v-for="group in groups"
-                            :key="group.label"
-                            :heading="group.label"
-                        >
-                            <CommandItem
-                                v-for="team in group.teams"
-                                :key="team.value"
-                                :value="team"
-                                class="text-sm"
+                        <CommandGroup v-for="group in groups" :key="group.label" :heading="group.label">
+                            <CommandItem v-for="team in group.teams" :key="team.value" :value="team" class="text-sm"
                                 @select="
                                     () => {
                                         switchOrg(team);
                                         selectedTeam = team;
                                         open = false;
                                     }
-                                "
-                            >
+                                ">
                                 <Avatar class="mr-2 h-5 w-5">
-                                    <AvatarImage
-                                        :src="`https://avatar.vercel.sh/${team.value}.png`"
-                                        :alt="team.label"
-                                        class="grayscale"
-                                    />
+                                    <AvatarImage :src="`https://avatar.vercel.sh/${team.value}.png`" :alt="team.label"
+                                        class="grayscale" />
                                     <AvatarFallback>SC</AvatarFallback>
                                 </Avatar>
                                 {{ team.label }}
-                                <CheckIcon
-                                    :class="
-                                        cn(
-                                            'ml-auto h-4 w-4',
-                                            selectedTeam.value === team.value
-                                                ? 'opacity-100'
-                                                : 'opacity-0'
-                                        )
-                                    "
-                                />
+                                <CheckIcon :class="cn(
+                                    'ml-auto h-4 w-4',
+                                    selectedTeam.value === team.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                )
+                                    " />
                             </CommandItem>
                         </CommandGroup>
                     </CommandList>
                     <CommandSeparator />
                     <CommandList>
-                        <CommandGroup
-                            @click="router.push({ name: 'orgs', params: { action: 'add' } })"
-                        >
+                        <CommandGroup @click="router.push({ name: 'orgs', params: { action: 'add' } })">
                             <DialogTrigger as-child>
-                                <CommandItem
-                                    value="create-team"
-                                    @select="
-                                        () => {
-                                            open = false;
-                                            showNewTeamDialog = true;
-                                        }
-                                    "
-                                >
-                                    <Icon
-                                        icon="radix-icons:plus-circled"
-                                        class="mr-2 h-5 w-5"
-                                    ></Icon>
+                                <CommandItem value="create-team" @select="
+                                    () => {
+                                        open = false;
+                                        showNewTeamDialog = true;
+                                    }
+                                ">
+                                    <Icon icon="radix-icons:plus-circled" class="mr-2 h-5 w-5"></Icon>
                                     Create Organization
                                 </CommandItem>
                             </DialogTrigger>

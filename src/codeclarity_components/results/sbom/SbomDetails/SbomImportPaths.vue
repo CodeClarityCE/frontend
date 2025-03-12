@@ -1,13 +1,3 @@
-<template>
-    <div>
-        <div class="flex flex-col gap-2 mb-2">
-            <h2 class="font-black"><span class="text-primary text-3xl">I</span>mport Paths</h2>
-            <span>Dependencies with a gray background are dev dependencies</span>
-        </div>
-        <Tree :nodes="treeNodes" :root-name="projectName" />
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Tree from '@/codeclarity_components/results/sbom/tree/UtilitiesSbomTree.vue';
@@ -122,3 +112,13 @@ function buildTree() {
 }
 init();
 </script>
+
+<template>
+    <div>
+        <div class="flex flex-col gap-2 mb-2">
+            <h2 class="font-black"><span class="text-primary text-3xl">I</span>mport Paths</h2>
+            <span>Dependencies with a gray background are dev dependencies</span>
+        </div>
+        <Tree :nodes="treeNodes" :root-name="projectName" />
+    </div>
+</template>

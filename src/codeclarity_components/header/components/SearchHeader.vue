@@ -80,8 +80,7 @@ function handleOpenChange() {
         <p class="text-sm text-muted-foreground">
             Commands
             <kbd
-                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
-            >
+                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
                 <span class="text-xs">⌘</span>K
             </kbd>
         </p>
@@ -112,10 +111,7 @@ function handleOpenChange() {
             </CommandList>
         </CommandDialog>
         <Button variant="link">
-            <a
-                href="https://doli.codeclarity.io/public/ticket/index.php?entity=1"
-                class="flex gap-1 items-center"
-            >
+            <a href="https://doli.codeclarity.io/public/ticket/index.php?entity=1" class="flex gap-1 items-center">
                 <Icon icon="ion:ticket-outline"></Icon>Report a problem / Ask a question
             </a>
         </Button>

@@ -135,11 +135,7 @@ onBeforeMount(async () => {
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">
-        <HeaderItem
-            v-if="orgId"
-            :org-id="orgId"
-            @on-org-info="setOrgInfo($event)"
-        ></HeaderItem>
+        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="p-12">
             <form class="grid grid-cols-4 gap-2" @submit="onSubmit">
                 <FormField name="name" v-slot="{ componentField }">
@@ -154,19 +150,12 @@ onBeforeMount(async () => {
                     </FormItem>
                 </FormField>
 
-                <FormField
-                    class="col-start-3 col-end-4"
-                    name="description"
-                    v-slot="{ componentField }"
-                >
+                <FormField class="col-start-3 col-end-4" name="description" v-slot="{ componentField }">
                     <FormItem>
                         <FormLabel>Enter a description</FormLabel>
                         <FormControl>
                             <!-- any Form Input component or native input elements -->
-                            <Input
-                                placeholder="Enter a description"
-                                v-bind="componentField"
-                            ></Input>
+                            <Input placeholder="Enter a description" v-bind="componentField"></Input>
                         </FormControl>
                         <FormDescription />
                         <FormMessage />
@@ -200,8 +189,7 @@ onBeforeMount(async () => {
 
                 <FormField v-slot="{ value, handleChange }" type="checkbox" name="isDefault">
                     <FormItem
-                        class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4 col-start-2 col-end-4"
-                    >
+                        class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4 col-start-2 col-end-4">
                         <FormControl>
                             <Checkbox :checked="value" @update:checked="handleChange" />
                         </FormControl>
@@ -217,11 +205,7 @@ onBeforeMount(async () => {
                     <FormItem class="col-start-2 col-end-4">
                         <FormLabel>Select licenses</FormLabel>
                         <FormControl>
-                            <DataTable
-                                :columns="columns"
-                                :data="choices"
-                                @update:rowSelection="setValue"
-                            />
+                            <DataTable :columns="columns" :data="choices" @update:rowSelection="setValue" />
                         </FormControl>
                     </FormItem>
                 </FormField>

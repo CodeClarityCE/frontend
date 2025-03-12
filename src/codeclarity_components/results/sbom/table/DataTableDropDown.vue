@@ -1,4 +1,3 @@
-// DataTableDropDown.vue
 <script setup lang="ts">
 import { MoreHorizontal } from 'lucide-vue-next';
 import {
@@ -53,18 +52,15 @@ function copy(vulnerabilities?: string[]) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-                <RouterLink
-                    title="View dependency details"
-                    :to="{
-                        name: 'results',
-                        query: {
-                            analysis_id: analysis_id,
-                            project_id: project_id,
-                            package_id: dependency.name + '@' + dependency.version
-                        },
-                        params: { page: 'sbom_details' }
-                    }"
-                >
+                <RouterLink title="View dependency details" :to="{
+                    name: 'results',
+                    query: {
+                        analysis_id: analysis_id,
+                        project_id: project_id,
+                        package_id: dependency.name + '@' + dependency.version
+                    },
+                    params: { page: 'sbom_details' }
+                }">
                     View dependency details
                 </RouterLink>
             </DropdownMenuItem>

@@ -243,7 +243,7 @@ init();
                     <div>GitLab instance</div>
                     <div class="flex flex-row gap-4" style="text-align: center">
                         <div class="gitlab-host-selection-container" @click="setSelfHosted(false)">
-                            
+
                             <Button class="w-full h-16" variant="outline">GitLab.com</Button>
                             <div class="active" v-if="selfHosted == false">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
@@ -252,9 +252,9 @@ init();
                         <div class="gitlab-host-selection-container" @click="setSelfHosted(true)">
                             <Button class="w-full h-16 flex flex-col gap-2" variant="outline">
                                 <div>Self hosted</div>
-                                    <div v-if="selfHosted == true">
-                                        {{ formGitlabInstanceUrl }}
-                                    </div>
+                                <div v-if="selfHosted == true">
+                                    {{ formGitlabInstanceUrl }}
+                                </div>
                             </Button>
                             <div class="active" v-if="selfHosted == true">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>

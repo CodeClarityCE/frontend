@@ -100,11 +100,8 @@ fetchVcsIntegrations();
         <!-- VCS Fetch Error -->
         <div v-if="error">
             <div class="flex flex-row gap-2">
-                <Icon
-                    class="text-xl"
-                    icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"
-                ></Icon>
+                <Icon class="text-xl" icon="solar:confounded-square-outline"
+                    style="font-size: 3rem; height: fit-content"></Icon>
                 <div>
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
@@ -137,10 +134,7 @@ fetchVcsIntegrations();
             </div>
 
             <div v-else-if="vcsIntegrations.length > 0">
-                <Integrations
-                    :vcs-integrations="vcsIntegrations"
-                    @on-selected-v-c-s="onSelectedVCS"
-                >
+                <Integrations :vcs-integrations="vcsIntegrations" @on-selected-v-c-s="onSelectedVCS">
                 </Integrations>
             </div>
         </template>
@@ -152,15 +146,11 @@ fetchVcsIntegrations();
                     <template #title>Import repositories</template>
                     <template #description> Select the repositories you wish to import. </template>
                 </TitleAndSubtitle>
-                <GithubImportComponent
-                    v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
-                    :integration="selectedVCS.id"
-                >
+                <GithubImportComponent v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
+                    :integration="selectedVCS.id">
                 </GithubImportComponent>
-                <GitlabImportComponent
-                    v-if="selectedVCS.integration_provider == IntegrationProvider.GITLAB"
-                    :integration="selectedVCS.id"
-                >
+                <GitlabImportComponent v-if="selectedVCS.integration_provider == IntegrationProvider.GITLAB"
+                    :integration="selectedVCS.id">
                 </GitlabImportComponent>
             </div>
         </div>

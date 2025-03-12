@@ -1,86 +1,3 @@
-<template>
-    <div class="oauth-status-wrapper flex flex-col items-center justify-center h-screen">
-        <div class="oauth-status-inner-wrapper -translate-y-3/4 flex flex-col items-center">
-            <div class="header">
-                <div v-if="props.provider == SocialProvider.GITLAB">
-                    <Icon class="icon" icon="devicon:gitlab" />
-                </div>
-                <div v-if="props.provider == SocialProvider.GITHUB">
-                    <span style="color: black">
-                        <Icon class="icon" icon="simple-icons:github" />
-                    </span>
-                </div>
-                <div class="provider">Authentication</div>
-            </div>
-
-            <!-- <div v-if="loading" class="spinner"></div> -->
-            <Icon icon="tabler:loader-2" v-if="loading" class="h-10 w-10 animate-spin" />
-
-            <template v-else-if="error">
-                <div v-if="errorCode == undefined || errorNonRecoverable">
-                    <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
-                        <div style="font-size: 1.5em">
-                            <div>Whoops</div>
-                            <div style="font-size: 0.8em" v-if="errorCode">
-                                Error code:
-                                <span style="font-family: 'Courier New', Courier, monospace">{{
-                                    errorCode
-                                }}</span>
-                            </div>
-                        </div>
-                        <div style="font-size: 1.2em" v-if="errorCode">
-                            We encountered some non-recoverable issue during the authentication.
-                            Please click on the button below and try again. If this error persists,
-                            then please contact the webmaster and provide them with the error code
-                            listed above.
-                        </div>
-                        <div style="font-size: 1.2em" v-else>
-                            We encountered some non-recoverable issue during the authentication.
-                            Please click on the button below and try again. If this error persists,
-                            then please contact the webmaster and provide them with the events
-                            leading up to this problem.
-                        </div>
-                        <div>
-                            <Button @click="nonRecoverableErrorRedirect()">
-                                Okay
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else>
-                    <div style="display: flex; flex-direction: column; row-gap: 1rem">
-                        <div style="font-size: 1.5em">
-                            <div>Error</div>
-                        </div>
-
-                        <div v-if="errorCode" style="font-size: 1.2em">
-                            <div v-if="errorCode == APIErrors.AlreadyExists">
-                                A user with that email already exists.
-                            </div>
-                            <div v-else>An error occured during the processing of the request.</div>
-                        </div>
-
-                        <div v-else style="font-size: 1.2em">
-                            An error occured during the processing of the request.
-                        </div>
-
-                        <div>
-                            <Button @click="nonRecoverableErrorRedirect">
-                                Back to login
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </div>
-</template>
-
-<style scoped lang="scss">
-@use '@/assets/common/oauth.scss';
-</style>
-
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
@@ -225,3 +142,85 @@ onMounted(async () => {
     await finalizeAutentication();
 });
 </script>
+<template>
+    <div class="oauth-status-wrapper flex flex-col items-center justify-center h-screen">
+        <div class="oauth-status-inner-wrapper -translate-y-3/4 flex flex-col items-center">
+            <div class="header">
+                <div v-if="props.provider == SocialProvider.GITLAB">
+                    <Icon class="icon" icon="devicon:gitlab" />
+                </div>
+                <div v-if="props.provider == SocialProvider.GITHUB">
+                    <span style="color: black">
+                        <Icon class="icon" icon="simple-icons:github" />
+                    </span>
+                </div>
+                <div class="provider">Authentication</div>
+            </div>
+
+            <!-- <div v-if="loading" class="spinner"></div> -->
+            <Icon icon="tabler:loader-2" v-if="loading" class="h-10 w-10 animate-spin" />
+
+            <template v-else-if="error">
+                <div v-if="errorCode == undefined || errorNonRecoverable">
+                    <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
+                        <div style="font-size: 1.5em">
+                            <div>Whoops</div>
+                            <div style="font-size: 0.8em" v-if="errorCode">
+                                Error code:
+                                <span style="font-family: 'Courier New', Courier, monospace">{{
+                                    errorCode
+                                }}</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 1.2em" v-if="errorCode">
+                            We encountered some non-recoverable issue during the authentication.
+                            Please click on the button below and try again. If this error persists,
+                            then please contact the webmaster and provide them with the error code
+                            listed above.
+                        </div>
+                        <div style="font-size: 1.2em" v-else>
+                            We encountered some non-recoverable issue during the authentication.
+                            Please click on the button below and try again. If this error persists,
+                            then please contact the webmaster and provide them with the events
+                            leading up to this problem.
+                        </div>
+                        <div>
+                            <Button @click="nonRecoverableErrorRedirect()">
+                                Okay
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else>
+                    <div style="display: flex; flex-direction: column; row-gap: 1rem">
+                        <div style="font-size: 1.5em">
+                            <div>Error</div>
+                        </div>
+
+                        <div v-if="errorCode" style="font-size: 1.2em">
+                            <div v-if="errorCode == APIErrors.AlreadyExists">
+                                A user with that email already exists.
+                            </div>
+                            <div v-else>An error occured during the processing of the request.</div>
+                        </div>
+
+                        <div v-else style="font-size: 1.2em">
+                            An error occured during the processing of the request.
+                        </div>
+
+                        <div>
+                            <Button @click="nonRecoverableErrorRedirect">
+                                Back to login
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>
+
+<style scoped lang="scss">
+@use '@/assets/common/oauth.scss';
+</style>

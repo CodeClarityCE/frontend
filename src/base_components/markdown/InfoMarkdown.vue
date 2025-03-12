@@ -1,11 +1,3 @@
-<template>
-    <vue-markdown
-        class="short_listing_description"
-        :source="markdown"
-        :options="{ linkify: false }"
-    />
-</template>
-
 <script lang="ts" setup>
 import VueMarkdown from 'vue-markdown-render';
 
@@ -33,3 +25,6 @@ defineProps<{
     overflow-x: scroll;
 }
 </style>
+<template>
+    <vue-markdown class="short_listing_description" :source="markdown" :options="{ linkify: false }" />
+</template>

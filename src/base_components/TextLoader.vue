@@ -1,12 +1,12 @@
-<template>
-    <div class="skeleton skeleton-text" :class="{ 'skeleton-static': props.static == true }"></div>
-</template>
 <script lang="ts" setup>
 // Props
 const props = defineProps<{
     static?: boolean;
 }>();
 </script>
+<template>
+    <div class="skeleton skeleton-text" :class="{ 'skeleton-static': props.static == true }"></div>
+</template>
 
 <style scoped lang="scss">
 .skeleton {

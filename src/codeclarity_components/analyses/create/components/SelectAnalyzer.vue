@@ -1,57 +1,3 @@
-<template>
-    <Transition>
-        <div v-if="true" class="w-fit">
-            <div class="text-2xl font-medium mb-8">
-                Select the analyzers to run on the project.
-                <div class="text-sm text-gray-500 mt-1">
-                    Select one or more of our analyzers to run on the project.
-                </div>
-            </div>
-
-            <div id="error_analyzers_selection" class="input_error_box mb-5"></div>
-            <LoadingContainer ref="analyzers_list_loading_ref">
-                <template #content>
-                    <div>
-                        <template v-for="analyzer in analyzers_list" :key="analyzer">
-                            <div class="flex flex-row gap-5 cursor-pointer" @click="click">
-                                <input
-                                    v-model="selected_analyzers"
-                                    type="checkbox"
-                                    :value="analyzer.id"
-                                    class="checkboxInput cursor-pointer"
-                                />
-                                <AnalyzerComp :analyzer-data="analyzer" />
-                            </div>
-                        </template>
-                        <div v-if="analyzers_list.length == 0">
-                            You need to create an analyzer before you can select it.
-                        </div>
-                        <RouterLink
-                            :to="{
-                                name: 'orgs',
-                                params: {
-                                    action: 'add',
-                                    page: 'analyzers',
-                                    orgId: user.defaultOrg?.id
-                                }
-                            }"
-                        >
-                            <div class="mt-10">
-                                You can create a new analyzer
-                                <Button variant="link" class="px-0">here</Button> !
-                            </div>
-                        </RouterLink>
-                    </div>
-                </template>
-
-                <template #error>
-                    {{ analyzers_list_loading_error }}
-                </template>
-            </LoadingContainer>
-        </div>
-    </Transition>
-</template>
-
 <script setup lang="ts">
 import { ref, type Ref } from 'vue';
 import LoadingContainer from '@/base_components/LoadingContainer.vue';
@@ -131,6 +77,54 @@ async function fetchAnalyzers() {
 
 fetchAnalyzers();
 </script>
+<template>
+    <Transition>
+        <div v-if="true" class="w-fit">
+            <div class="text-2xl font-medium mb-8">
+                Select the analyzers to run on the project.
+                <div class="text-sm text-gray-500 mt-1">
+                    Select one or more of our analyzers to run on the project.
+                </div>
+            </div>
+
+            <div id="error_analyzers_selection" class="input_error_box mb-5"></div>
+            <LoadingContainer ref="analyzers_list_loading_ref">
+                <template #content>
+                    <div>
+                        <template v-for="analyzer in analyzers_list" :key="analyzer">
+                            <div class="flex flex-row gap-5 cursor-pointer" @click="click">
+                                <input v-model="selected_analyzers" type="checkbox" :value="analyzer.id"
+                                    class="checkboxInput cursor-pointer" />
+                                <AnalyzerComp :analyzer-data="analyzer" />
+                            </div>
+                        </template>
+                        <div v-if="analyzers_list.length == 0">
+                            You need to create an analyzer before you can select it.
+                        </div>
+                        <RouterLink :to="{
+                            name: 'orgs',
+                            params: {
+                                action: 'add',
+                                page: 'analyzers',
+                                orgId: user.defaultOrg?.id
+                            }
+                        }">
+                            <div class="mt-10">
+                                You can create a new analyzer
+                                <Button variant="link" class="px-0">here</Button> !
+                            </div>
+                        </RouterLink>
+                    </div>
+                </template>
+
+                <template #error>
+                    {{ analyzers_list_loading_error }}
+                </template>
+            </LoadingContainer>
+        </div>
+    </Transition>
+</template>
+
 
 <style scoped>
 div:has(> input) {
@@ -141,6 +135,7 @@ div:has(> input) {
     border-radius: 5px;
     padding: 8px;
 }
+
 div:has(> input:checked) {
     border-color: #008491;
 }

@@ -33,38 +33,26 @@ async function updateSort(key: string | null) {
 </script>
 <template>
     <table class="stylized_table stylized_table_with_dividers w-full border-collapse">
-        <th
-            v-for="(header, key, index) in props.headers"
-            :key="index"
-            class="header header-clickable"
-            :class="{
-                'header-sortable-active': props.headers[key].key == sortKey
-            }"
-            @click="updateSort(props.headers[key].key)"
-        >
+        <th v-for="(header, key, index) in props.headers" :key="index" class="header header-clickable" :class="{
+            'header-sortable-active': props.headers[key].key == sortKey
+        }" @click="updateSort(props.headers[key].key)">
             <div class="header-sortable">
                 <div>
                     {{ header.label }}
                 </div>
                 <div v-if="headers[key].key != null">
-                    <span
-                        :class="
-                            headers[key].key != sortKey ||
+                    <span :class="headers[key].key != sortKey ||
                             (headers[key].key == sortKey && sortDirection == SortDirection.ASC)
-                                ? 'w-full'
-                                : 'w-10'
-                        "
-                    >
+                            ? 'w-full'
+                            : 'w-10'
+                        ">
                         <Icon class="text-2xl" icon="tabler:caret-up-filled"></Icon>
                     </span>
-                    <span
-                        :class="
-                            headers[key].key != sortKey ||
+                    <span :class="headers[key].key != sortKey ||
                             (headers[key].key == sortKey && sortDirection == SortDirection.DESC)
-                                ? 'w-full'
-                                : 'w-10'
-                        "
-                    >
+                            ? 'w-full'
+                            : 'w-10'
+                        ">
                         <Icon class="text-2xl" icon="tabler:caret-down-filled"></Icon>
                     </span>
                 </div>
@@ -80,7 +68,7 @@ async function updateSort(key: string | null) {
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
 
-.stylized_table :deep(tbody) > tr > td > div {
+.stylized_table :deep(tbody)>tr>td>div {
     padding-top: 5px;
     padding-bottom: 5px;
 }
@@ -117,7 +105,7 @@ async function updateSort(key: string | null) {
     height: 40px;
 }
 
-.stylized_table .header-sortable > div:nth-child(2) {
+.stylized_table .header-sortable>div:nth-child(2) {
     display: flex;
     flex-direction: column;
     color: #b9b9b9;
@@ -125,7 +113,7 @@ async function updateSort(key: string | null) {
     justify-content: stretch;
 }
 
-.stylized_table .header-sortable > div:nth-child(2) > *:nth-child(1) {
+.stylized_table .header-sortable>div:nth-child(2)>*:nth-child(1) {
     margin-bottom: -8px;
 }
 
@@ -141,13 +129,13 @@ async function updateSort(key: string | null) {
     border-bottom: 1px solid colors.$base-color;
 }
 
-.stylized_table_with_dividers th > div {
+.stylized_table_with_dividers th>div {
     padding-top: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #bdbdbd;
 }
 
-.stylized_table_with_dividers .header-sortable-active > div {
+.stylized_table_with_dividers .header-sortable-active>div {
     padding-top: 10px;
     padding-bottom: 10px;
     border-bottom: 0px;
@@ -157,22 +145,22 @@ async function updateSort(key: string | null) {
     border-bottom: 1px solid #bdbdbd;
 }
 
-.stylized_table :deep(tbody:not(:first-child)) td > div {
+.stylized_table :deep(tbody:not(:first-child)) td>div {
     padding-right: 10px;
     padding-left: 10px;
 }
 
-.stylized_table :deep(tbody:first-child) th > div {
+.stylized_table :deep(tbody:first-child) th>div {
     padding-right: 10px;
     padding-left: 10px;
 }
 
-.stylized_table :deep(tr:not(:first-child)) td > div {
+.stylized_table :deep(tr:not(:first-child)) td>div {
     padding-right: 10px;
     padding-left: 10px;
 }
 
-.stylized_table tr:first-child th > div {
+.stylized_table tr:first-child th>div {
     padding-right: 10px;
     padding-left: 10px;
 }
@@ -181,13 +169,13 @@ async function updateSort(key: string | null) {
     background-color: #ff00000a;
 }
 
-.stylized_table_with_dividers th > div {
+.stylized_table_with_dividers th>div {
     padding-top: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #bdbdbd;
 }
 
-.stylized_table_with_dividers .header-sortable-active > div {
+.stylized_table_with_dividers .header-sortable-active>div {
     padding-top: 10px;
     padding-bottom: 10px;
     border-bottom: 0px;

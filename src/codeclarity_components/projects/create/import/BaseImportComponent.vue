@@ -160,25 +160,16 @@ async function onSelectedReposChange(repos: Repository[]) {
             <div style="font-size: 2rem; font-weight: 700">
                 <slot name="integration_provider_name"></slot>
             </div>
-            <Button
-                class="w-fit cursor-pointer gap-1"
-                variant="outline"
-                @click="forceRefreshRepos()"
-                title="Force refresh repositories"
-            >
+            <Button class="w-fit cursor-pointer gap-1" variant="outline" @click="forceRefreshRepos()"
+                title="Force refresh repositories">
                 <Icon class="icon" icon="solar:refresh-bold"></Icon>
                 <div>Force refresh</div>
             </Button>
         </div>
 
         <div class="flex flex-col gap-8">
-            <RepoTable
-                ref="repoTableRef"
-                v-if="Object.keys(reposFailedToImport).length == 0"
-                :integration="integration"
-                :getRepos="getRepos"
-                @onSelectedReposChange="onSelectedReposChange($event)"
-            >
+            <RepoTable ref="repoTableRef" v-if="Object.keys(reposFailedToImport).length == 0" :integration="integration"
+                :getRepos="getRepos" @onSelectedReposChange="onSelectedReposChange($event)">
             </RepoTable>
 
             <!--------------------------------------------------------------------------->
@@ -201,17 +192,11 @@ async function onSelectedReposChange(repos: Repository[]) {
             </template>
 
             <div class="flex flex-col gap-2">
-                <Button
-                    class="cursor-pointer m-0 w-fit"
-                    v-if="Object.keys(reposFailedToImport).length > 0"
-                    @click="clearImportErrors()"
-                    >Clear errors</Button
-                >
+                <Button class="cursor-pointer m-0 w-fit" v-if="Object.keys(reposFailedToImport).length > 0"
+                    @click="clearImportErrors()">Clear errors</Button>
                 <template v-else>
-                    <Button
-                        @click="importProjectsBulk()"
-                        class="rounded bg-primary text-white py-3 px-5 cursor-pointer m-0 w-fit"
-                    >
+                    <Button @click="importProjectsBulk()"
+                        class="rounded bg-primary text-white py-3 px-5 cursor-pointer m-0 w-fit">
                         Import projects
                     </Button>
                     <div style="margin-bottom: 5px">

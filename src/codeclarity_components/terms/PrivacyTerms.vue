@@ -13,8 +13,7 @@ import Button from '@/shadcn/ui/button/Button.vue';
                 <!-- dont le siège est situé à CONFIANCE (96 000), Rue la Transparence,  -->
                 dispose d'un site internet proposant un service d'aide aux développeurs. Ce site
                 permet de recevoir les inscriptions de nos clients et les données collectées à cette
-                occasion sont enregistrées et traitées dans un fichier clients. </span
-            ><br /><br />
+                occasion sont enregistrées et traitées dans un fichier clients. </span><br /><br />
             <span>
                 Ce fichier permet de :
                 <ul class="list list-inside list-disc pl-4">
@@ -142,8 +141,7 @@ import Button from '@/shadcn/ui/button/Button.vue';
                 (exercice du droit d'opposition ou retrait d'un consentement déjà donné),
                 contactez-nous (prévoir ici un lien vers un formulaire d'exercice des droits
                 informatique et libertés, faisant apparaître les différentes hypothèses détaillées
-                ci-dessus). </span
-            ><br />
+                ci-dessus). </span><br />
             <!-- <span>
                 Si, après avoir consenti à ce que vos données soient transmises à nos partenaires commerciaux, vous souhaitez revenir sur ce choix et ne plus recevoir publicité de leur part, contactez-nous (prévoir ici un lien vers le formulaire d'exercice des droits informatique et libertés).
 
@@ -153,8 +151,7 @@ import Button from '@/shadcn/ui/button/Button.vue';
                 Vous pouvez accéder aux données vous concernant, les rectifier ou les faire effacer.
                 Vous disposez également d'un droit à la portabilité et d'un droit à la limitation du
                 traitement de vos données (Consultez le site cnil.fr pour plus d'informations sur
-                vos droits). </span
-            ><br />
+                vos droits). </span><br />
             <span>
                 Pour exercer ces droits ou pour toute question sur le traitement de vos données dans
                 ce dispositif, vous pouvez contacter notre DPO.

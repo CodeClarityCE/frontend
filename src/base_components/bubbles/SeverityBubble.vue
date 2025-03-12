@@ -1,3 +1,31 @@
+<script setup lang="ts">
+defineProps({
+    critical: {
+        type: Boolean,
+        required: false
+    },
+    high: {
+        type: Boolean,
+        required: false
+    },
+    medium: {
+        type: Boolean,
+        required: false
+    },
+    low: {
+        type: Boolean,
+        required: false
+    },
+    none: {
+        type: Boolean,
+        required: false
+    },
+    deactivated: {
+        type: Boolean,
+        required: false
+    }
+});
+</script>
 <template>
     <div class="severity-bar severity-bar-slim">
         <div class="severity-box" v-if="critical">
@@ -38,34 +66,6 @@
     </div>
 </template>
 
-<script setup lang="ts">
-defineProps({
-    critical: {
-        type: Boolean,
-        required: false
-    },
-    high: {
-        type: Boolean,
-        required: false
-    },
-    medium: {
-        type: Boolean,
-        required: false
-    },
-    low: {
-        type: Boolean,
-        required: false
-    },
-    none: {
-        type: Boolean,
-        required: false
-    },
-    deactivated: {
-        type: Boolean,
-        required: false
-    }
-});
-</script>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
@@ -75,6 +75,7 @@ defineProps({
     flex-direction: row;
     column-gap: 3px;
 }
+
 .severity-box {
     display: flex;
     flex-direction: row;

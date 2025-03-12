@@ -1,10 +1,3 @@
-<template>
-    <div class="flex flex-col justify-center items-center my-20">
-        <h1>
-            {{ text }} <span v-if="counter > 0">({{ counter }})</span>
-        </h1>
-    </div>
-</template>
 <script lang="ts" setup>
 import { ref } from 'vue';
 import router from '@/router';
@@ -55,3 +48,10 @@ async function init() {
 
 init();
 </script>
+<template>
+    <div class="flex flex-col justify-center items-center my-20">
+        <h1>
+            {{ text }} <span v-if="counter > 0">({{ counter }})</span>
+        </h1>
+    </div>
+</template>

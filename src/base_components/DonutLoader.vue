@@ -1,6 +1,3 @@
-<template>
-    <div class="skeleton-donut" :style="dimensions"></div>
-</template>
 <script lang="ts" setup>
 export interface Props {
     dimensions: any;
@@ -14,6 +11,9 @@ withDefaults(defineProps<Props>(), {
 });
 </script>
 
+<template>
+    <div class="skeleton-donut" :style="dimensions"></div>
+</template>
 <style scoped lang="scss">
 .skeleton-donut {
     animation: skeleton-loading-donut 1s linear infinite alternate;

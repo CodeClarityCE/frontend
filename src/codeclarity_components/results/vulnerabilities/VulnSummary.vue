@@ -1,676 +1,3 @@
-<template>
-    <div class="summary-wrapper findings-summary-wrapper" style="font-size: 1rem; flex-wrap: wrap">
-        <div class="summary-container summary-container-chart">
-            <div class="summary-container-chart-text-wrapper">
-                <div class="summary-container-chart-inner-text-wrapper">
-                    <div v-if="render" class="summary-container-chart-text-header-wrapper">
-                        <span class="summary-container-chart-text-header-data">
-                            {{ stats.number_of_vulnerabilities ?? 0 }}
-                        </span>
-                        <span class="summary-container-chart-text-header-title">
-                            Vulnerabilities
-                            <!-- <span class="text-gray-400">({{ stats.number_of_issues ?? 0 }} issues)</span> -->
-                        </span>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>Critical</div>
-                            <div class="side-stats-text-value" style="color: #7400b8">
-                                {{ stats.number_of_critical }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>High</div>
-                            <div class="side-stats-text-value" style="color: #5e60ce">
-                                {{ stats.number_of_high }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #4ea8de"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>Medium</div>
-                            <div class="side-stats-text-value" style="color: #4ea8de">
-                                {{ stats.number_of_medium }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #56cfe1"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>Low</div>
-                            <div class="side-stats-text-value" style="color: #56cfe1">
-                                {{ stats.number_of_low }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #80ffdb"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>None</div>
-                            <div class="side-stats-text-value" style="color: #80ffdb">
-                                {{ stats.number_of_none }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                </div>
-            </div>
-            <div>
-                <div v-if="render" class="chart-wrapper">
-                    <Doughnut
-                        :data="severity_data"
-                        :options="severity_conf"
-                        style="height: 200px; width: 200px"
-                    />
-                </div>
-                <div>
-                    <DonutLoader v-if="!render" :dimensions="donutDimensions" />
-                </div>
-            </div>
-            <div class="stats-divider hide-on-collpase"></div>
-        </div>
-        <div class="summary-container summary-container-chart">
-            <div class="summary-container-chart-text-wrapper">
-                <div class="summary-container-chart-inner-text-wrapper">
-                    <div
-                        v-if="render"
-                        class="flex flex-row gap-2 items-center font-semibold text-lg"
-                    >
-                        <span><Icon :icon="'simple-icons:owasp'"></Icon></span>
-                        <span class="summary-container-chart-text-header-title">Owasp Top 10</span>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a1 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">A01: Broken Access Control</div>
-                            <div class="text-sm" style="color: #7400b8">
-                                {{ stats.number_of_owasp_top_10_2021_a1 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a2 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #6930c3"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">A02: Cryptographic Failures</div>
-                            <div class="text-sm" style="color: #6930c3">
-                                {{ stats.number_of_owasp_top_10_2021_a2 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a3 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">A03: Injection</div>
-                            <div class="text-sm" style="color: #5e60ce">
-                                {{ stats.number_of_owasp_top_10_2021_a3 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a4 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #5390d9"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">A04: Insecure Design</div>
-                            <div class="text-sm" style="color: #5390d9">
-                                {{ stats.number_of_owasp_top_10_2021_a4 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a5 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #19a7ce"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">
-                                A05: Security Misconfiguration
-                            </div>
-                            <div class="text-sm">
-                                {{ stats.number_of_owasp_top_10_2021_a5 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a6 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #4ea8de"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">
-                                A06: Vulnerable and Outdated Components
-                            </div>
-                            <div class="text-sm" style="color: #4ea8de">
-                                {{ stats.number_of_owasp_top_10_2021_a6 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a7 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #56cfe1"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">
-                                A07: Identification and Authentication Failures
-                            </div>
-                            <div class="text-sm" style="color: #56cfe1">
-                                {{ stats.number_of_owasp_top_10_2021_a7 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a8 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #64dfdf"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">
-                                A08: Software and Data Integrity Failures
-                            </div>
-                            <div class="text-sm" style="color: #64dfdf">
-                                {{ stats.number_of_owasp_top_10_2021_a8 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a9 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #72efdd"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">
-                                A09: Security Logging and Monitoring Failures
-                            </div>
-                            <div class="text-sm" style="color: #72efdd">
-                                {{ stats.number_of_owasp_top_10_2021_a9 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && stats.number_of_owasp_top_10_2021_a10 > 0"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #80ffdb"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">
-                                A10: Server-Side Request Forgery
-                            </div>
-                            <div class="text-sm" style="color: #80ffdb">
-                                {{ stats.number_of_owasp_top_10_2021_a10 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div
-                        v-if="render && owaspTopTotalCount < stats.number_of_vulnerabilities"
-                        class="flex flex-row gap-2 justify-between items-center"
-                    >
-                        <div class="side-stats-circle" style="background-color: #afd3e2"></div>
-                        <div class="flex flex-row gap-2 justify-between max-h-52">
-                            <div class="whitespace-nowrap text-sm">Uncategorized</div>
-                            <div class="text-sm" style="color: #afd3e2">
-                                {{ stats.number_of_vulnerabilities - owaspTopTotalCount }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                </div>
-            </div>
-            <div>
-                <div v-if="render" class="chart-wrapper">
-                    <Bar
-                        :data="owasp_data"
-                        :options="owasp_conf"
-                        style="height: 200px; width: 200px"
-                    />
-                </div>
-                <div v-if="!render" style="max-height: 200px; max-width: 200px">
-                    <div
-                        style="
-                            display: flex;
-                            flex-direction: row;
-                            column-gap: 1em;
-                            align-items: flex-end;
-                        "
-                    >
-                        <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
-                        <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
-                        <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
-                    </div>
-                </div>
-            </div>
-            <div class="stats-divider hide-on-collpase"></div>
-        </div>
-        <div class="summary-container summary-container-chart">
-            <div class="summary-container-chart-text-wrapper">
-                <div class="summary-container-chart-inner-text-wrapper">
-                    <div v-if="render" class="summary-container-chart-text-header-wrapper">
-                        <span class="summary-container-chart-text-header-title"
-                            >Security Impact</span
-                        >
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>Confidentiality</div>
-                            <div class="side-stats-text-value" style="color: #7400b8">
-                                {{ stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #6930c3"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>Availability</div>
-                            <div class="side-stats-text-value" style="color: #6930c3">
-                                {{ stats.mean_availability_impact?.toFixed(2) ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                    <div v-if="render" class="side-stats">
-                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
-                        <div class="side-stats-text-wrapper justified-space-between">
-                            <div>Integrity</div>
-                            <div class="side-stats-text-value" style="color: #5e60ce">
-                                {{ stats.mean_integrity_impact?.toFixed(2) ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                    <TextLoader v-if="!render" />
-                </div>
-            </div>
-            <div>
-                <div style="position: relative; width: 200px; height: 200px; margin-right: 10px">
-                    <div style="position: absolute">
-                        <svg height="200" width="200">
-                            <line
-                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                x1="100"
-                                x2="200"
-                                y1="130"
-                                y2="185"
-                            />
-                            <line
-                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                x1="100"
-                                x2="0"
-                                y2="185"
-                                y1="130"
-                            />
-                            <line
-                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                x1="100"
-                                x2="100"
-                                y1="30"
-                                y2="130"
-                            />
-                        </svg>
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            left: 100px;
-                            top: 10px;
-                            transform: translate(-50%, -50%);
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                            background-color: rgb(255, 255, 255);
-                        "
-                    >
-                        <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
-                            stats.mean_confidentiality_impact?.toFixed(2) ?? 0
-                        }}</span>
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            bottom: 0px;
-                            right: 0px;
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                            background-color: rgb(255, 255, 255);
-                        "
-                    >
-                        <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
-                            stats.mean_integrity_impact?.toFixed(2) ?? 0
-                        }}</span>
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            bottom: 0px;
-                            left: 0px;
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                            background-color: rgb(255, 255, 255);
-                        "
-                    >
-                        <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
-                            stats.mean_availability_impact?.toFixed(2) ?? 0
-                        }}</span>
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            left: 0px;
-                            top: 65px;
-                            transform: rotate(-60deg);
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                        "
-                    >
-                        Confidentiality
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            bottom: 54px;
-                            right: -15px;
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                            font-family: roboto;
-                            transform: rotate(60deg);
-                        "
-                    >
-                        Integrity
-                    </div>
-                    <div
-                        style="
-                            position: absolute;
-                            bottom: 0px;
-                            left: 35px;
-                            font-weight: 500;
-                            color: rgb(70, 70, 70);
-                        "
-                    >
-                        Availability
-                    </div>
-                    <div
-                        v-if="render"
-                        style="
-                            position: absolute;
-                            height: 212px !important;
-                            width: 212px !important;
-                            margin-top: 20px;
-                            margin-left: -6px;
-                        "
-                    >
-                        <Radar
-                            :data="cia_data"
-                            :options="cia_conf"
-                            style="height: 212px !important; width: 212px !important"
-                        />
-                    </div>
-                </div>
-            </div>
-            <div class="stats-divider hide-on-collpase"></div>
-        </div>
-        <div class="summary-container summary-container-quick-stats">
-            <div class="summary-stacked-container-wrapper">
-                <div
-                    v-if="stats != null"
-                    class="summary-container single-value-summary-column-gap-20"
-                >
-                    <div class="title">Vulnerable Libraries</div>
-                    <div class="text-gray-400">
-                        Libraries can be present multiple times. Check the patching tab to view
-                        them.
-                    </div>
-                    <div class="single-value-summary single-value-summary-column-gap-20">
-                        <div v-if="render">
-                            {{ stats.number_of_vulnerable_dependencies ?? 0 }}
-                        </div>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_vulnerable_dependencies > 0"
-                            :slim="true"
-                            :bad="true"
-                        >
-                            <template #content>
-                                {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-up'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_vulnerable_dependencies < 0"
-                            :slim="true"
-                            :positive="true"
-                        >
-                            <template #content>
-                                {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-down'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_vulnerable_dependencies == 0"
-                            :slim="true"
-                            :neutral="true"
-                        >
-                            <template #content>
-                                {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
-                                <span style="font-weight: 900">-</span>
-                            </template>
-                        </BubbleComponent>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-            </div>
-            <div class="summary-stacked-container-wrapper hide-before-collapse-2320">
-                <div v-if="stats != null" class="summary-container">
-                    <div class="title">Mean Severity</div>
-                    <div class="single-value-summary single-value-summary-column-gap-20">
-                        <div v-if="render">
-                            {{ stats.mean_severity?.toFixed(2) ?? 0 }}
-                        </div>
-                        <BubbleComponent
-                            v-if="render && stats.mean_severity_diff > 0"
-                            :slim="true"
-                            :bad="true"
-                        >
-                            <template #content>
-                                {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-up'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.mean_severity_diff < 0"
-                            :slim="true"
-                            :positive="true"
-                        >
-                            <template #content>
-                                {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-down'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.mean_severity_diff == 0"
-                            :slim="true"
-                            :neutral="true"
-                        >
-                            <template #content>
-                                {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
-                                <span style="font-weight: 900">-</span>
-                            </template>
-                        </BubbleComponent>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-                <div
-                    v-if="stats != null"
-                    class="summary-container single-value-summary-column-gap-20"
-                >
-                    <div class="title">Max Severity</div>
-                    <div class="single-value-summary single-value-summary-column-gap-20">
-                        <div v-if="render">
-                            {{ stats.max_severity ?? 0 }}
-                        </div>
-                        <BubbleComponent
-                            v-if="render && stats.max_severity_diff > 0"
-                            :slim="true"
-                            :bad="true"
-                        >
-                            <template #content>
-                                {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-up'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.max_severity_diff < 0"
-                            :slim="true"
-                            :positive="true"
-                        >
-                            <template #content>
-                                {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-down'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.max_severity_diff == 0"
-                            :slim="true"
-                            :neutral="true"
-                        >
-                            <template #content>
-                                {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
-                                <span style="font-weight: 900">-</span>
-                            </template>
-                        </BubbleComponent>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-            </div>
-            <div class="summary-stacked-container-wrapper hide-before-collapse-2570">
-                <div v-if="stats != null" class="summary-container">
-                    <div class="title">Direct Dependencies Impacted</div>
-                    <div class="single-value-summary single-value-summary-column-gap-20">
-                        <div v-if="render">
-                            {{ stats.number_of_direct_vulnerabilities ?? 0 }}
-                        </div>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_direct_vulnerabilities_diff > 0"
-                            :slim="true"
-                            :bad="true"
-                        >
-                            <template #content>
-                                {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-up'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_direct_vulnerabilities_diff < 0"
-                            :slim="true"
-                            :positive="true"
-                        >
-                            <template #content>
-                                {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
-                                <Icon :icon="'material-symbols:trending-down'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_direct_vulnerabilities_diff == 0"
-                            :slim="true"
-                            :neutral="true"
-                        >
-                            <template #content>
-                                {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
-                                <span style="font-weight: 900">-</span>
-                            </template>
-                        </BubbleComponent>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-                <div
-                    v-if="stats != null"
-                    class="summary-container single-value-summary-column-gap-20"
-                >
-                    <div class="title">Transitive Dependencies Impacted</div>
-                    <div class="single-value-summary single-value-summary-column-gap-20">
-                        <div v-if="render">
-                            {{ stats.number_of_transitive_vulnerabilities ?? 0 }}
-                        </div>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_transitive_vulnerabilities_diff > 0"
-                            :slim="true"
-                            :bad="true"
-                        >
-                            <template #content>
-                                {{
-                                    stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
-                                }}
-                                <Icon :icon="'material-symbols:trending-up'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_transitive_vulnerabilities_diff < 0"
-                            :slim="true"
-                            :positive="true"
-                        >
-                            <template #content>
-                                {{
-                                    stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
-                                }}
-                                <Icon :icon="'material-symbols:trending-down'"></Icon>
-                            </template>
-                        </BubbleComponent>
-                        <BubbleComponent
-                            v-if="render && stats.number_of_transitive_vulnerabilities_diff == 0"
-                            :slim="true"
-                            :neutral="true"
-                        >
-                            <template #content>
-                                {{
-                                    stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
-                                }}
-                                <span style="font-weight: 900">-</span>
-                            </template>
-                        </BubbleComponent>
-                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <Alert v-if="error" variant="destructive">
-            <Icon :icon="'ic:twotone-warning'"></Icon>
-            <AlertDescription>
-                Encountered Error during the rendering of the stats.
-            </AlertDescription>
-        </Alert>
-    </div>
-</template>
-
 <script lang="ts" setup>
 import { ref, type Ref } from 'vue';
 import TextLoader from '../../../base_components/TextLoader.vue';
@@ -1151,6 +478,551 @@ function createRadarChart() {
     cia_conf.value = getRadarChartConfig();
 }
 </script>
+
+<template>
+    <div class="summary-wrapper findings-summary-wrapper" style="font-size: 1rem; flex-wrap: wrap">
+        <div class="summary-container summary-container-chart">
+            <div class="summary-container-chart-text-wrapper">
+                <div class="summary-container-chart-inner-text-wrapper">
+                    <div v-if="render" class="summary-container-chart-text-header-wrapper">
+                        <span class="summary-container-chart-text-header-data">
+                            {{ stats.number_of_vulnerabilities ?? 0 }}
+                        </span>
+                        <span class="summary-container-chart-text-header-title">
+                            Vulnerabilities
+                            <!-- <span class="text-gray-400">({{ stats.number_of_issues ?? 0 }} issues)</span> -->
+                        </span>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>Critical</div>
+                            <div class="side-stats-text-value" style="color: #7400b8">
+                                {{ stats.number_of_critical }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>High</div>
+                            <div class="side-stats-text-value" style="color: #5e60ce">
+                                {{ stats.number_of_high }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #4ea8de"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>Medium</div>
+                            <div class="side-stats-text-value" style="color: #4ea8de">
+                                {{ stats.number_of_medium }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #56cfe1"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>Low</div>
+                            <div class="side-stats-text-value" style="color: #56cfe1">
+                                {{ stats.number_of_low }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #80ffdb"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>None</div>
+                            <div class="side-stats-text-value" style="color: #80ffdb">
+                                {{ stats.number_of_none }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                </div>
+            </div>
+            <div>
+                <div v-if="render" class="chart-wrapper">
+                    <Doughnut :data="severity_data" :options="severity_conf" style="height: 200px; width: 200px" />
+                </div>
+                <div>
+                    <DonutLoader v-if="!render" :dimensions="donutDimensions" />
+                </div>
+            </div>
+            <div class="stats-divider hide-on-collpase"></div>
+        </div>
+        <div class="summary-container summary-container-chart">
+            <div class="summary-container-chart-text-wrapper">
+                <div class="summary-container-chart-inner-text-wrapper">
+                    <div v-if="render" class="flex flex-row gap-2 items-center font-semibold text-lg">
+                        <span>
+                            <Icon :icon="'simple-icons:owasp'"></Icon>
+                        </span>
+                        <span class="summary-container-chart-text-header-title">Owasp Top 10</span>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a1 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">A01: Broken Access Control</div>
+                            <div class="text-sm" style="color: #7400b8">
+                                {{ stats.number_of_owasp_top_10_2021_a1 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a2 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #6930c3"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">A02: Cryptographic Failures</div>
+                            <div class="text-sm" style="color: #6930c3">
+                                {{ stats.number_of_owasp_top_10_2021_a2 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a3 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">A03: Injection</div>
+                            <div class="text-sm" style="color: #5e60ce">
+                                {{ stats.number_of_owasp_top_10_2021_a3 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a4 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #5390d9"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">A04: Insecure Design</div>
+                            <div class="text-sm" style="color: #5390d9">
+                                {{ stats.number_of_owasp_top_10_2021_a4 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a5 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #19a7ce"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">
+                                A05: Security Misconfiguration
+                            </div>
+                            <div class="text-sm">
+                                {{ stats.number_of_owasp_top_10_2021_a5 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a6 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #4ea8de"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">
+                                A06: Vulnerable and Outdated Components
+                            </div>
+                            <div class="text-sm" style="color: #4ea8de">
+                                {{ stats.number_of_owasp_top_10_2021_a6 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a7 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #56cfe1"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">
+                                A07: Identification and Authentication Failures
+                            </div>
+                            <div class="text-sm" style="color: #56cfe1">
+                                {{ stats.number_of_owasp_top_10_2021_a7 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a8 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #64dfdf"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">
+                                A08: Software and Data Integrity Failures
+                            </div>
+                            <div class="text-sm" style="color: #64dfdf">
+                                {{ stats.number_of_owasp_top_10_2021_a8 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a9 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #72efdd"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">
+                                A09: Security Logging and Monitoring Failures
+                            </div>
+                            <div class="text-sm" style="color: #72efdd">
+                                {{ stats.number_of_owasp_top_10_2021_a9 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && stats.number_of_owasp_top_10_2021_a10 > 0"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #80ffdb"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">
+                                A10: Server-Side Request Forgery
+                            </div>
+                            <div class="text-sm" style="color: #80ffdb">
+                                {{ stats.number_of_owasp_top_10_2021_a10 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render && owaspTopTotalCount < stats.number_of_vulnerabilities"
+                        class="flex flex-row gap-2 justify-between items-center">
+                        <div class="side-stats-circle" style="background-color: #afd3e2"></div>
+                        <div class="flex flex-row gap-2 justify-between max-h-52">
+                            <div class="whitespace-nowrap text-sm">Uncategorized</div>
+                            <div class="text-sm" style="color: #afd3e2">
+                                {{ stats.number_of_vulnerabilities - owaspTopTotalCount }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                </div>
+            </div>
+            <div>
+                <div v-if="render" class="chart-wrapper">
+                    <Bar :data="owasp_data" :options="owasp_conf" style="height: 200px; width: 200px" />
+                </div>
+                <div v-if="!render" style="max-height: 200px; max-width: 200px">
+                    <div style="
+                            display: flex;
+                            flex-direction: row;
+                            column-gap: 1em;
+                            align-items: flex-end;
+                        ">
+                        <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
+                        <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
+                        <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
+                    </div>
+                </div>
+            </div>
+            <div class="stats-divider hide-on-collpase"></div>
+        </div>
+        <div class="summary-container summary-container-chart">
+            <div class="summary-container-chart-text-wrapper">
+                <div class="summary-container-chart-inner-text-wrapper">
+                    <div v-if="render" class="summary-container-chart-text-header-wrapper">
+                        <span class="summary-container-chart-text-header-title">Security Impact</span>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #7400b8"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>Confidentiality</div>
+                            <div class="side-stats-text-value" style="color: #7400b8">
+                                {{ stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #6930c3"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>Availability</div>
+                            <div class="side-stats-text-value" style="color: #6930c3">
+                                {{ stats.mean_availability_impact?.toFixed(2) ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                    <div v-if="render" class="side-stats">
+                        <div class="side-stats-circle" style="background-color: #5e60ce"></div>
+                        <div class="side-stats-text-wrapper justified-space-between">
+                            <div>Integrity</div>
+                            <div class="side-stats-text-value" style="color: #5e60ce">
+                                {{ stats.mean_integrity_impact?.toFixed(2) ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <TextLoader v-if="!render" />
+                </div>
+            </div>
+            <div>
+                <div style="position: relative; width: 200px; height: 200px; margin-right: 10px">
+                    <div style="position: absolute">
+                        <svg height="200" width="200">
+                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="200" y1="130"
+                                y2="185" />
+                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="0" y2="185"
+                                y1="130" />
+                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="100" y1="30"
+                                y2="130" />
+                        </svg>
+                    </div>
+                    <div style="
+                            position: absolute;
+                            left: 100px;
+                            top: 10px;
+                            transform: translate(-50%, -50%);
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                            background-color: rgb(255, 255, 255);
+                        ">
+                        <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
+                            stats.mean_confidentiality_impact?.toFixed(2) ?? 0
+                            }}</span>
+                    </div>
+                    <div style="
+                            position: absolute;
+                            bottom: 0px;
+                            right: 0px;
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                            background-color: rgb(255, 255, 255);
+                        ">
+                        <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
+                            stats.mean_integrity_impact?.toFixed(2) ?? 0
+                            }}</span>
+                    </div>
+                    <div style="
+                            position: absolute;
+                            bottom: 0px;
+                            left: 0px;
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                            background-color: rgb(255, 255, 255);
+                        ">
+                        <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
+                            stats.mean_availability_impact?.toFixed(2) ?? 0
+                            }}</span>
+                    </div>
+                    <div style="
+                            position: absolute;
+                            left: 0px;
+                            top: 65px;
+                            transform: rotate(-60deg);
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                        ">
+                        Confidentiality
+                    </div>
+                    <div style="
+                            position: absolute;
+                            bottom: 54px;
+                            right: -15px;
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                            font-family: roboto;
+                            transform: rotate(60deg);
+                        ">
+                        Integrity
+                    </div>
+                    <div style="
+                            position: absolute;
+                            bottom: 0px;
+                            left: 35px;
+                            font-weight: 500;
+                            color: rgb(70, 70, 70);
+                        ">
+                        Availability
+                    </div>
+                    <div v-if="render" style="
+                            position: absolute;
+                            height: 212px !important;
+                            width: 212px !important;
+                            margin-top: 20px;
+                            margin-left: -6px;
+                        ">
+                        <Radar :data="cia_data" :options="cia_conf"
+                            style="height: 212px !important; width: 212px !important" />
+                    </div>
+                </div>
+            </div>
+            <div class="stats-divider hide-on-collpase"></div>
+        </div>
+        <div class="summary-container summary-container-quick-stats">
+            <div class="summary-stacked-container-wrapper">
+                <div v-if="stats != null" class="summary-container single-value-summary-column-gap-20">
+                    <div class="title">Vulnerable Libraries</div>
+                    <div class="text-gray-400">
+                        Libraries can be present multiple times. Check the patching tab to view
+                        them.
+                    </div>
+                    <div class="single-value-summary single-value-summary-column-gap-20">
+                        <div v-if="render">
+                            {{ stats.number_of_vulnerable_dependencies ?? 0 }}
+                        </div>
+                        <BubbleComponent v-if="render && stats.number_of_vulnerable_dependencies > 0" :slim="true"
+                            :bad="true">
+                            <template #content>
+                                {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-up'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.number_of_vulnerable_dependencies < 0" :slim="true"
+                            :positive="true">
+                            <template #content>
+                                {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-down'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.number_of_vulnerable_dependencies == 0" :slim="true"
+                            :neutral="true">
+                            <template #content>
+                                {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
+                                <span style="font-weight: 900">-</span>
+                            </template>
+                        </BubbleComponent>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+            </div>
+            <div class="summary-stacked-container-wrapper hide-before-collapse-2320">
+                <div v-if="stats != null" class="summary-container">
+                    <div class="title">Mean Severity</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20">
+                        <div v-if="render">
+                            {{ stats.mean_severity?.toFixed(2) ?? 0 }}
+                        </div>
+                        <BubbleComponent v-if="render && stats.mean_severity_diff > 0" :slim="true" :bad="true">
+                            <template #content>
+                                {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-up'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.mean_severity_diff < 0" :slim="true" :positive="true">
+                            <template #content>
+                                {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-down'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.mean_severity_diff == 0" :slim="true" :neutral="true">
+                            <template #content>
+                                {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
+                                <span style="font-weight: 900">-</span>
+                            </template>
+                        </BubbleComponent>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+                <div v-if="stats != null" class="summary-container single-value-summary-column-gap-20">
+                    <div class="title">Max Severity</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20">
+                        <div v-if="render">
+                            {{ stats.max_severity ?? 0 }}
+                        </div>
+                        <BubbleComponent v-if="render && stats.max_severity_diff > 0" :slim="true" :bad="true">
+                            <template #content>
+                                {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-up'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.max_severity_diff < 0" :slim="true" :positive="true">
+                            <template #content>
+                                {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-down'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.max_severity_diff == 0" :slim="true" :neutral="true">
+                            <template #content>
+                                {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
+                                <span style="font-weight: 900">-</span>
+                            </template>
+                        </BubbleComponent>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+            </div>
+            <div class="summary-stacked-container-wrapper hide-before-collapse-2570">
+                <div v-if="stats != null" class="summary-container">
+                    <div class="title">Direct Dependencies Impacted</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20">
+                        <div v-if="render">
+                            {{ stats.number_of_direct_vulnerabilities ?? 0 }}
+                        </div>
+                        <BubbleComponent v-if="render && stats.number_of_direct_vulnerabilities_diff > 0" :slim="true"
+                            :bad="true">
+                            <template #content>
+                                {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-up'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.number_of_direct_vulnerabilities_diff < 0" :slim="true"
+                            :positive="true">
+                            <template #content>
+                                {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
+                                <Icon :icon="'material-symbols:trending-down'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.number_of_direct_vulnerabilities_diff == 0" :slim="true"
+                            :neutral="true">
+                            <template #content>
+                                {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
+                                <span style="font-weight: 900">-</span>
+                            </template>
+                        </BubbleComponent>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+                <div v-if="stats != null" class="summary-container single-value-summary-column-gap-20">
+                    <div class="title">Transitive Dependencies Impacted</div>
+                    <div class="single-value-summary single-value-summary-column-gap-20">
+                        <div v-if="render">
+                            {{ stats.number_of_transitive_vulnerabilities ?? 0 }}
+                        </div>
+                        <BubbleComponent v-if="render && stats.number_of_transitive_vulnerabilities_diff > 0"
+                            :slim="true" :bad="true">
+                            <template #content>
+                                {{
+                                    stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
+                                }}
+                                <Icon :icon="'material-symbols:trending-up'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.number_of_transitive_vulnerabilities_diff < 0"
+                            :slim="true" :positive="true">
+                            <template #content>
+                                {{
+                                    stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
+                                }}
+                                <Icon :icon="'material-symbols:trending-down'"></Icon>
+                            </template>
+                        </BubbleComponent>
+                        <BubbleComponent v-if="render && stats.number_of_transitive_vulnerabilities_diff == 0"
+                            :slim="true" :neutral="true">
+                            <template #content>
+                                {{
+                                    stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
+                                }}
+                                <span style="font-weight: 900">-</span>
+                            </template>
+                        </BubbleComponent>
+                        <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <Alert v-if="error" variant="destructive">
+            <Icon :icon="'ic:twotone-warning'"></Icon>
+            <AlertDescription>
+                Encountered Error during the rendering of the stats.
+            </AlertDescription>
+        </Alert>
+    </div>
+</template>
 
 <style scoped lang="scss">
 @use '@/assets/common/chart.scss';

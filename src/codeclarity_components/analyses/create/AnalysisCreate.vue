@@ -1,106 +1,3 @@
-<template>
-    <div class="h-full">
-        <div class="w-full h-full flex flex-col gap-8 justify-center">
-            <AnalysisCreateHeader />
-            <div class="flex flex-col items-center" v-if="!loading">
-                <SelectAnalyzer v-model:selected_analyzers="selected_analyzers"></SelectAnalyzer>
-                <div v-if="error" class="mt-10 text-2xl w-3/4">
-                    <Alert variant="destructive">
-                        <AlertCircle class="w-4 h-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>
-                            {{ errorCode }}
-                            {{ errorMessage }}
-                        </AlertDescription>
-                    </Alert>
-                </div>
-                <div v-if="selected_analyzers.length > 0" class="mt-10 text-2xl w-3/4">
-                    <div class="text-2xl font-medium mb-8">
-                        Configure you analyzer
-                        <div class="text-sm text-gray-500 mt-1">
-                            Each analyzer requires different configuration depending on what plugin
-                            you activated.
-                        </div>
-                    </div>
-                    <div
-                        v-for="analyzer in selected_analyzers_list"
-                        :key="analyzer.id"
-                        class="flex flex-col gap-4 items-center"
-                    >
-                        <!-- Configuration for : {{ analyzer.name }} -->
-                        <div class="grid grid-cols-3 gap-4">
-                            <div v-for="(step, index) in analyzer.steps" :key="index">
-                                <div v-for="plugin in step" :key="plugin.name">
-                                    <div v-if="Object.keys(plugin.config).length > 0">
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>
-                                                    {{ plugin.name }}
-                                                </CardTitle>
-                                                <CardDescription>
-                                                    {{ plugin.version }}
-                                                </CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <Form
-                                                    @submit="
-                                                        (values) => onSubmit(values, plugin.name)
-                                                    "
-                                                >
-                                                    <FormField
-                                                        v-for="config in plugin.config"
-                                                        :key="config"
-                                                        v-slot="{ componentField }"
-                                                        :name="config.name"
-                                                    >
-                                                        <FormItem>
-                                                            <FormLabel>{{ config.name }}</FormLabel>
-                                                            <FormControl>
-                                                                <SelectLicensePolicy
-                                                                    v-model:selected_license_policy="
-                                                                        selected_license_policy
-                                                                    "
-                                                                    v-if="
-                                                                        config.name ===
-                                                                        'License Policy'
-                                                                    "
-                                                                />
-                                                                <Input
-                                                                    :placeholder="config.name"
-                                                                    v-bind="componentField"
-                                                                    v-else
-                                                                />
-                                                            </FormControl>
-                                                            <FormDescription>{{
-                                                                config.description
-                                                            }}</FormDescription>
-                                                            <FormMessage>Message</FormMessage>
-                                                        </FormItem>
-                                                    </FormField>
-                                                    <Button
-                                                        type="submit"
-                                                        @click="(e) => addIcon(e)"
-                                                    >
-                                                        Validate configuration
-                                                    </Button>
-                                                </Form>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                </div>
-                            </div>
-                            <Button @click="createAnalysisStart">Create Analysis</Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-4xl self-center flex flex-col gap-4 items-center mt-20" v-else>
-                <span>Starting analysis</span>
-                <Icon icon="eos-icons:loading" class="animate-spin"></Icon>
-            </div>
-        </div>
-    </div>
-</template>
 <script lang="ts" setup>
 import { type Ref, ref, h } from 'vue';
 
@@ -272,3 +169,87 @@ async function createAnalysisStart() {
     }
 }
 </script>
+<template>
+    <div class="h-full">
+        <div class="w-full h-full flex flex-col gap-8 justify-center">
+            <AnalysisCreateHeader />
+            <div class="flex flex-col items-center" v-if="!loading">
+                <SelectAnalyzer v-model:selected_analyzers="selected_analyzers"></SelectAnalyzer>
+                <div v-if="error" class="mt-10 text-2xl w-3/4">
+                    <Alert variant="destructive">
+                        <AlertCircle class="w-4 h-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>
+                            {{ errorCode }}
+                            {{ errorMessage }}
+                        </AlertDescription>
+                    </Alert>
+                </div>
+                <div v-if="selected_analyzers.length > 0" class="mt-10 text-2xl w-3/4">
+                    <div class="text-2xl font-medium mb-8">
+                        Configure you analyzer
+                        <div class="text-sm text-gray-500 mt-1">
+                            Each analyzer requires different configuration depending on what plugin
+                            you activated.
+                        </div>
+                    </div>
+                    <div v-for="analyzer in selected_analyzers_list" :key="analyzer.id"
+                        class="flex flex-col gap-4 items-center">
+                        <!-- Configuration for : {{ analyzer.name }} -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div v-for="(step, index) in analyzer.steps" :key="index">
+                                <div v-for="plugin in step" :key="plugin.name">
+                                    <div v-if="Object.keys(plugin.config).length > 0">
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>
+                                                    {{ plugin.name }}
+                                                </CardTitle>
+                                                <CardDescription>
+                                                    {{ plugin.version }}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <Form @submit="
+                                                    (values) => onSubmit(values, plugin.name)
+                                                ">
+                                                    <FormField v-for="config in plugin.config" :key="config"
+                                                        v-slot="{ componentField }" :name="config.name">
+                                                        <FormItem>
+                                                            <FormLabel>{{ config.name }}</FormLabel>
+                                                            <FormControl>
+                                                                <SelectLicensePolicy v-model:selected_license_policy="selected_license_policy
+                                                                    " v-if="
+                                                                        config.name ===
+                                                                        'License Policy'
+                                                                    " />
+                                                                <Input :placeholder="config.name"
+                                                                    v-bind="componentField" v-else />
+                                                            </FormControl>
+                                                            <FormDescription>{{
+                                                                config.description
+                                                                }}</FormDescription>
+                                                            <FormMessage>Message</FormMessage>
+                                                        </FormItem>
+                                                    </FormField>
+                                                    <Button type="submit" @click="(e) => addIcon(e)">
+                                                        Validate configuration
+                                                    </Button>
+                                                </Form>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </div>
+                            </div>
+                            <Button @click="createAnalysisStart">Create Analysis</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-4xl self-center flex flex-col gap-4 items-center mt-20" v-else>
+                <span>Starting analysis</span>
+                <Icon icon="eos-icons:loading" class="animate-spin"></Icon>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,13 +1,3 @@
-<template>
-    <Details
-        class="p-12"
-        :show-back="!only_details"
-        :analysisID="analysisID"
-        :projectID="projectID"
-        @close="resetView()"
-    ></Details>
-</template>
-
 <script lang="ts" setup>
 import { onMounted, onUpdated, ref, type Ref, watch } from 'vue';
 import Details from './SbomDetails.vue';
@@ -154,3 +144,8 @@ async function getAnalysis(projectID: string, analysisID: string) {
 
 init();
 </script>
+
+<template>
+    <Details class="p-12" :show-back="!only_details" :analysisID="analysisID" :projectID="projectID"
+        @close="resetView()"></Details>
+</template>

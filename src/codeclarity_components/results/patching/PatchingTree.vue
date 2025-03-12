@@ -1,82 +1,3 @@
-<template>
-    <!-- <div style="display:flex;column-gap:1em;margin-bottom:20px;">
-        <SearchBar 
-            :search="search"
-            :searchbar_placeholder="placeholder"
-            @search="apply_search($event)"
-            />
-        <Filters
-            :options="options"
-            @options="apply_options($event)"
-        />
-    </div> -->
-    <!-- <div style="color: #484848; font-weight: 400;margin-bottom: 20px;margin-top: 40px;display:flex;flex-direction: row; justify-content:space-between;align-items: center;">
-        <div style="display:flex;flex-direction: row;white-space: nowrap;align-items: center;column-gap: 10px;">
-            Showing 
-            <select class="drop-down-box no-shadow" style="padding: 5px;height: fit-content;margin:0px;" v-model="page_limit_selected" @click="page_number = 1;fetch();">
-                <option v-for="(page_limit_option, index) in selection_page_limit" :value="page_limit_option" :key="index">{{ page_limit_option }}</option>
-            </select> 
-            entries per page
-        </div>
-        <div style="">Showing {{nmb_entries_showing}} out of {{nmb_entries_total}} entries</div>
-    </div>
-	 -->
-    <Tree v-if="render" :nodes="nodes_array" style="font-size: 0.9em" :show-vuln-i-ds="true" />
-
-    <!-- <div style="color: #484848; font-weight: 400;display:flex;justify-content: space-between;margin-top:40px;" >
-        <div style="">Showing {{nmb_entries_showing}} out of {{nmb_entries_total}} entries</div>
-        <div class="pagination">
-            <button @click="page_number = 1;fetch();" class="prev-button" v-bind:disabled="page_number == 1"><v-icon name="bi-chevron-double-left"></v-icon></button>
-            <button @click="page_number = page_number-1;fetch();" v-bind:disabled="page_number == 1"><v-icon name="bi-chevron-left"></v-icon></button>
-            <span v-for="page in [...Array(total_pages+1).keys()].filter((elem) => elem != 0)">
-                <button v-if="showPageButton(page)" @click="page_number = page;fetch();" v-bind:class="{ 'active': page_number==page  }" >
-                    {{page}}
-                </button>
-            </span>
-            <button @click="page_number = page_number+1;fetch();" v-bind:disabled="page_number == total_pages"><v-icon name="bi-chevron-right"></v-icon></button>
-            <button @click="page_number = total_pages;fetch();" class="next-button" v-bind:disabled="page_number == total_pages"><v-icon name="bi-chevron-double-right"></v-icon></button>
-        </div>
-    </div> -->
-    <div v-if="!render && !error">
-        <div style="display: flex; flex-direction: column; row-gap: 10px">
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
-            <BoxLoader
-                :dimensions="{ width: '150px', height: '30px' }"
-                style="margin-left: 100px"
-            />
-            <BoxLoader
-                :dimensions="{ width: '150px', height: '30px' }"
-                style="margin-left: 100px"
-            />
-            <BoxLoader
-                :dimensions="{ width: '150px', height: '30px' }"
-                style="margin-left: 150px"
-            />
-            <BoxLoader
-                :dimensions="{ width: '150px', height: '30px' }"
-                style="margin-left: 100px"
-            />
-            <BoxLoader
-                :dimensions="{ width: '150px', height: '30px' }"
-                style="margin-left: 150px"
-            />
-            <BoxLoader
-                :dimensions="{ width: '150px', height: '30px' }"
-                style="margin-left: 200px"
-            />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
-        </div>
-    </div>
-    <Alert v-if="error" variant="destructive">
-        <Icon icon="ic:twotone-warning" />
-        <AlertDescription>
-            Encountered Error during the rendering of the dependency tree.
-        </AlertDescription>
-    </Alert>
-</template>
 <script lang="ts" setup>
 import { ref, type Ref, watch } from 'vue';
 import BoxLoader from '@/base_components/BoxLoader.vue';
@@ -159,3 +80,65 @@ async function init() {
 
 init();
 </script>
+
+<template>
+    <!-- <div style="display:flex;column-gap:1em;margin-bottom:20px;">
+        <SearchBar 
+            :search="search"
+            :searchbar_placeholder="placeholder"
+            @search="apply_search($event)"
+            />
+        <Filters
+            :options="options"
+            @options="apply_options($event)"
+        />
+    </div> -->
+    <!-- <div style="color: #484848; font-weight: 400;margin-bottom: 20px;margin-top: 40px;display:flex;flex-direction: row; justify-content:space-between;align-items: center;">
+        <div style="display:flex;flex-direction: row;white-space: nowrap;align-items: center;column-gap: 10px;">
+            Showing 
+            <select class="drop-down-box no-shadow" style="padding: 5px;height: fit-content;margin:0px;" v-model="page_limit_selected" @click="page_number = 1;fetch();">
+                <option v-for="(page_limit_option, index) in selection_page_limit" :value="page_limit_option" :key="index">{{ page_limit_option }}</option>
+            </select> 
+            entries per page
+        </div>
+        <div style="">Showing {{nmb_entries_showing}} out of {{nmb_entries_total}} entries</div>
+    </div>
+	 -->
+    <Tree v-if="render" :nodes="nodes_array" style="font-size: 0.9em" :show-vuln-i-ds="true" />
+
+    <!-- <div style="color: #484848; font-weight: 400;display:flex;justify-content: space-between;margin-top:40px;" >
+        <div style="">Showing {{nmb_entries_showing}} out of {{nmb_entries_total}} entries</div>
+        <div class="pagination">
+            <button @click="page_number = 1;fetch();" class="prev-button" v-bind:disabled="page_number == 1"><v-icon name="bi-chevron-double-left"></v-icon></button>
+            <button @click="page_number = page_number-1;fetch();" v-bind:disabled="page_number == 1"><v-icon name="bi-chevron-left"></v-icon></button>
+            <span v-for="page in [...Array(total_pages+1).keys()].filter((elem) => elem != 0)">
+                <button v-if="showPageButton(page)" @click="page_number = page;fetch();" v-bind:class="{ 'active': page_number==page  }" >
+                    {{page}}
+                </button>
+            </span>
+            <button @click="page_number = page_number+1;fetch();" v-bind:disabled="page_number == total_pages"><v-icon name="bi-chevron-right"></v-icon></button>
+            <button @click="page_number = total_pages;fetch();" class="next-button" v-bind:disabled="page_number == total_pages"><v-icon name="bi-chevron-double-right"></v-icon></button>
+        </div>
+    </div> -->
+    <div v-if="!render && !error">
+        <div style="display: flex; flex-direction: column; row-gap: 10px">
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 100px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 100px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 150px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 100px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 150px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 200px" />
+            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
+        </div>
+    </div>
+    <Alert v-if="error" variant="destructive">
+        <Icon icon="ic:twotone-warning" />
+        <AlertDescription>
+            Encountered Error during the rendering of the dependency tree.
+        </AlertDescription>
+    </Alert>
+</template>

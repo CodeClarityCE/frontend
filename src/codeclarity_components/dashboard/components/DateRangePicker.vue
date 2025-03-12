@@ -18,16 +18,11 @@ const date = ref({
     <div :class="cn('grid gap-2', $attrs.class ?? '')">
         <Popover>
             <PopoverTrigger as-child>
-                <Button
-                    id="date"
-                    :variant="'outline'"
-                    :class="
-                        cn(
-                            'w-[260px] justify-start text-left font-normal',
-                            !date && 'text-muted-foreground'
-                        )
-                    "
-                >
+                <Button id="date" :variant="'outline'" :class="cn(
+                    'w-[260px] justify-start text-left font-normal',
+                    !date && 'text-muted-foreground'
+                )
+                    ">
                     <CalendarIcon class="mr-2 h-4 w-4" />
 
                     <span>

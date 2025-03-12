@@ -1,3 +1,17 @@
+<script lang="ts" setup>
+import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
+import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
+import type { PropType } from 'vue';
+
+defineProps({
+    dependency: {
+        type: Object as PropType<DependencyDetails>,
+        required: true
+    }
+});
+</script>
+
 <template>
     <section>
         <h2 class="font-black"><span class="text-primary text-3xl">D</span>ependency Health</h2>
@@ -44,42 +58,28 @@
                     <template #content>
                         {{ dependency.severity_dist.critical }}
                     </template>
-                </SeverityBubble>
-                <SeverityBubble :high="true" :deactivated="dependency.severity_dist.high == 0">
-                    <template #content>
+</SeverityBubble>
+<SeverityBubble :high="true" :deactivated="dependency.severity_dist.high == 0">
+    <template #content>
                         {{ dependency.severity_dist.high }}
                     </template>
-                </SeverityBubble>
-                <SeverityBubble :medium="true" :deactivated="dependency.severity_dist.medium == 0">
-                    <template #content>
+</SeverityBubble>
+<SeverityBubble :medium="true" :deactivated="dependency.severity_dist.medium == 0">
+    <template #content>
                         {{ dependency.severity_dist.medium }}
                     </template>
-                </SeverityBubble>
-                <SeverityBubble :low="true" :deactivated="dependency.severity_dist.low == 0">
-                    <template #content>
+</SeverityBubble>
+<SeverityBubble :low="true" :deactivated="dependency.severity_dist.low == 0">
+    <template #content>
                         {{ dependency.severity_dist.low }}
                     </template>
-                </SeverityBubble>
-                <SeverityBubble :none="true" :deactivated="dependency.severity_dist.none == 0">
-                    <template #content>
+</SeverityBubble>
+<SeverityBubble :none="true" :deactivated="dependency.severity_dist.none == 0">
+    <template #content>
                         {{ dependency.severity_dist.none }}
                     </template>
-                </SeverityBubble>
-            </div>
-        </div> -->
+</SeverityBubble>
+</div>
+</div> -->
     </section>
 </template>
-
-<script lang="ts" setup>
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import type { PropType } from 'vue';
-
-defineProps({
-    dependency: {
-        type: Object as PropType<DependencyDetails>,
-        required: true
-    }
-});
-</script>

@@ -257,9 +257,10 @@ const emit = defineEmits<{
             </div>
         </template>
         <template #buttons>
-            <Button v-if="centeredModalAction == ModalAction.REVOKE" variant="destructive" @click="performModalAction()">
-                    <Icon icon="mdi:email-remove"></Icon>
-                    Revoke invitation
+            <Button v-if="centeredModalAction == ModalAction.REVOKE" variant="destructive"
+                @click="performModalAction()">
+                <Icon icon="mdi:email-remove"></Icon>
+                Revoke invitation
             </Button>
             <Button variant="outline" @click="centeredModalRef.toggle()">
                 <template #text> Cancel </template>

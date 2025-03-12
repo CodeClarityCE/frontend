@@ -1,3 +1,63 @@
+<script lang="ts" setup>
+import { onMounted, onUpdated, ref, watch } from 'vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
+import { Card, CardContent, CardHeader } from '@/shadcn/ui/card';
+import List from './VulnList.vue';
+import Table from './VulnTable.vue';
+import VulnContent from './VulnContent.vue';
+// Import stores
+import { Project } from '@/codeclarity_components/projects/project.entity';
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { Icon } from '@iconify/vue';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
+import { Badge } from '@/shadcn/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/shadcn/ui/alert';
+
+defineProps<{
+    analysis: Analysis;
+    project: Project;
+}>();
+
+let no_deps = false;
+
+const active_tab = ref('List');
+const list_ref: any = ref(null);
+const table_ref: any = ref(null);
+
+// VIEW DATA
+const details = ref(false);
+let y_position = 0;
+let reference_click_element = ref('');
+
+onMounted(() => {
+    let loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+});
+
+onUpdated(() => {
+    const mainContainer = document.getElementById('main-container');
+    if (mainContainer) {
+        mainContainer.scrollTop = 0;
+    }
+    setTimeout(() => {
+        if (y_position != 0 && details.value == false)
+            if (mainContainer) {
+                mainContainer.scrollTop = y_position;
+            }
+    }, 50);
+});
+
+watch(active_tab, async (newTab, oldTab) => {
+    if (newTab != oldTab) {
+        y_position = 0;
+        reference_click_element.value = '';
+    }
+});
+</script>
+
 <template>
     <div v-show="!details" class="w-full flex flex-col gap-14" id="main-container">
         <TitleAndSubtitle class="pt-8">
@@ -100,63 +160,3 @@
         </Card>
     </div>
 </template>
-
-<script lang="ts" setup>
-import { onMounted, onUpdated, ref, watch } from 'vue';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import { Card, CardContent, CardHeader } from '@/shadcn/ui/card';
-import List from './VulnList.vue';
-import Table from './VulnTable.vue';
-import VulnContent from './VulnContent.vue';
-// Import stores
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Icon } from '@iconify/vue';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import { Badge } from '@/shadcn/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/shadcn/ui/alert';
-
-defineProps<{
-    analysis: Analysis;
-    project: Project;
-}>();
-
-let no_deps = false;
-
-const active_tab = ref('List');
-const list_ref: any = ref(null);
-const table_ref: any = ref(null);
-
-// VIEW DATA
-const details = ref(false);
-let y_position = 0;
-let reference_click_element = ref('');
-
-onMounted(() => {
-    let loader = document.getElementById('loader');
-    if (loader) {
-        loader.style.display = 'none';
-    }
-});
-
-onUpdated(() => {
-    const mainContainer = document.getElementById('main-container');
-    if (mainContainer) {
-        mainContainer.scrollTop = 0;
-    }
-    setTimeout(() => {
-        if (y_position != 0 && details.value == false)
-            if (mainContainer) {
-                mainContainer.scrollTop = y_position;
-            }
-    }, 50);
-});
-
-watch(active_tab, async (newTab, oldTab) => {
-    if (newTab != oldTab) {
-        y_position = 0;
-        reference_click_element.value = '';
-    }
-});
-</script>

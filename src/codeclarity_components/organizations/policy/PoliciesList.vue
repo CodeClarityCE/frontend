@@ -121,15 +121,15 @@ fetchPolicies();
                                 },
                                 query: { policyId: licensePolicy.id }
                             }">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle class="flex gap-4 items-center">
-                                        {{ licensePolicy.name }}
-                                        <Icon class="text-3xl" icon="solar:settings-bold"></Icon>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>{{ licensePolicy.description }}</CardContent>
-                            </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle class="flex gap-4 items-center">
+                                            {{ licensePolicy.name }}
+                                            <Icon class="text-3xl" icon="solar:settings-bold"></Icon>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>{{ licensePolicy.description }}</CardContent>
+                                </Card>
                             </RouterLink>
                         </template>
                         <RouterLink class="integration-box-wrapper-item" :to="{

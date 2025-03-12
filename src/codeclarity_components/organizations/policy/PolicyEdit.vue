@@ -108,50 +108,25 @@ init();
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">
-        <HeaderItem
-            v-if="orgId"
-            :org-id="orgId"
-            @on-org-info="setOrgInfo($event)"
-        ></HeaderItem>
+        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="p-12">
-            <Form
-                class="flex flex-col gap-6"
-                :validation-schema="formValidationSchema"
-                @submit="submit"
-            >
-                <FormTextField
-                    v-model="name"
-                    :placeholder="'Enter a name'"
-                    :type="'text'"
-                    :name="'name'"
-                >
+            <Form class="flex flex-col gap-6" :validation-schema="formValidationSchema" @submit="submit">
+                <FormTextField v-model="name" :placeholder="'Enter a name'" :type="'text'" :name="'name'">
                     <template #name>Name</template>
                 </FormTextField>
 
-                <FormTextField
-                    v-model="description"
-                    :placeholder="'Enter a description'"
-                    :type="'text'"
-                    :name="'description'"
-                >
+                <FormTextField v-model="description" :placeholder="'Enter a description'" :type="'text'"
+                    :name="'description'">
                     <template #name>Description</template>
                 </FormTextField>
 
-                <FormSelectField
-                    v-model:data="type"
-                    :placeholder="'Select at type'"
-                    :name="'type'"
-                    :choices="[LicensePolicyType.WHITELIST, LicensePolicyType.BLACKLIST]"
-                >
+                <FormSelectField v-model:data="type" :placeholder="'Select at type'" :name="'type'"
+                    :choices="[LicensePolicyType.WHITELIST, LicensePolicyType.BLACKLIST]">
                     <template #name>Type</template>
                 </FormSelectField>
 
-                <FormSelectField
-                    v-model:data="licenses"
-                    :placeholder="'Select at least one license'"
-                    :name="'licenses'"
-                    :choices="['MIT', 'GPL', 'Apache', 'BSD']"
-                >
+                <FormSelectField v-model:data="licenses" :placeholder="'Select at least one license'" :name="'licenses'"
+                    :choices="['MIT', 'GPL', 'Apache', 'BSD']">
                     <template #name>Licenses</template>
                 </FormSelectField>
 

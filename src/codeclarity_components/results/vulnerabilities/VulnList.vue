@@ -1,3 +1,151 @@
+<script lang="ts" setup>
+import { type Ref, ref, watch } from 'vue';
+import SearchBar from '@/base_components/SearchBar.vue';
+import BoxLoader from '@/base_components/BoxLoader.vue';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import type { VulnerabilityMerged, WeaknessInfo } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import { Icon } from '@iconify/vue';
+// Import stores
+import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
+import PaginationComponent from '@/base_components/PaginationComponent.vue';
+import {
+    isNoneSeverity,
+    isCriticalSeverity,
+    isHighSeverity,
+    isLowSeverity,
+    isMediumSeverity
+} from '@/utils/severity';
+import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
+import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import UtilitiesFilters, {
+    createNewFilterState,
+    FilterType,
+    type FilterState
+} from '@/base_components/UtilitiesFilters.vue';
+import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
+import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import { Badge } from '@/shadcn/ui/badge';
+
+export interface Props {
+    [key: string]: any;
+    highlightElem: string;
+    forceOpenNewTab: boolean;
+    analysisID: string;
+    projectID: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    forceOpenNewTab: false,
+    analysisID: '',
+    projectID: ''
+});
+
+// Store setup
+const userStore = useUserStore();
+const authStore = useAuthStore();
+
+const selectionPageLimit = [5, 10, 20, 30, 40, 50, 75, 100];
+const placeholder = 'Search by dependency, dependency version, or cve';
+
+const render: Ref<boolean> = ref(false);
+const pageLimitSelected: Ref<number> = ref(10);
+const nmbEntriesShowing: Ref<number> = ref(pageLimitSelected.value);
+const matchingItemsCount: Ref<number> = ref(0);
+const nmbEntriesTotal: Ref<number> = ref(0);
+const pageNumber: Ref<number> = ref(0);
+const totalPages: Ref<number> = ref(0);
+const filterApplied: Ref<boolean> = ref(false);
+const searchKey: Ref<string> = ref<string>('');
+const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
+const sortKey: Ref<string> = ref(ProjectsSortInterface.SEVERITY);
+const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
+
+const sortByOptions = [
+    { label: 'CVE', key: 'cve' },
+    { label: 'Severity', key: 'severity' },
+    { label: 'Dependency Name', key: 'dep_name' },
+    { label: 'Dependency Version', key: 'dep_version' },
+    { label: 'Weakness', key: 'weakness' },
+    { label: 'Owasp Top 10', key: 'owasp_top_10' }
+];
+
+const resultsRepository: ResultsRepository = new ResultsRepository();
+
+watch([pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber], () => {
+    init();
+});
+
+function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
+    const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
+    const uniqueOwaspIds = Array.from(new Set(owaspIds));
+
+    return uniqueOwaspIds;
+}
+
+// Filters
+const filterState: Ref<FilterState> = ref(
+    createNewFilterState({
+        ImportState: {
+            name: 'Language',
+            type: FilterType.RADIO,
+            data: {
+                js: {
+                    title: 'JavaScript',
+                    value: true
+                }
+            }
+        }
+    })
+);
+
+async function init() {
+    if (!userStore.getDefaultOrg) {
+        throw new Error('No default org selected');
+    }
+    if (!authStore.getToken) {
+        throw new Error('No default org selected');
+    }
+    if (props.projectID == '' || props.analysisID == '') {
+        return;
+    }
+    try {
+        const res = await resultsRepository.getVulnerabilities({
+            orgId: userStore.getDefaultOrg.id,
+            projectId: props.projectID,
+            analysisId: props.analysisID,
+            workspace: '.',
+            bearerToken: authStore.getToken,
+            pagination: {
+                page: pageNumber.value,
+                entries_per_page: pageLimitSelected.value
+            },
+            sort: {
+                sortKey: sortKey.value,
+                sortDirection: sortDirection.value
+            },
+            active_filters: '',
+            search_key: searchKey.value
+        });
+        findings.value = res.data;
+        render.value = true;
+        pageNumber.value = res.page;
+        pageLimitSelected.value = res.entries_per_page;
+        nmbEntriesShowing.value = res.entry_count;
+        matchingItemsCount.value = res.matching_count;
+        nmbEntriesTotal.value = res.total_entries;
+        totalPages.value = res.total_pages;
+    } catch (error) {
+        render.value = false;
+    }
+}
+
+init();
+</script>
+
 <template>
     <div style="display: flex; flex-direction: column; row-gap: 30px">
         <!--------------------------------------------------------------------------->
@@ -108,7 +256,7 @@
                                                 :none="isNoneSeverity(report.Severity.Severity)">
                                                 <template #content>{{
                                                     report.Severity.Severity
-                                                    }}</template>
+                                                }}</template>
                                             </SeverityBubble>
 
                                             <!--------------------------------------------------------------------------->
@@ -266,154 +414,6 @@
         </div>
     </div>
 </template>
-
-<script lang="ts" setup>
-import { type Ref, ref, watch } from 'vue';
-import SearchBar from '@/base_components/SearchBar.vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type { VulnerabilityMerged, WeaknessInfo } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import { Icon } from '@iconify/vue';
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import PaginationComponent from '@/base_components/PaginationComponent.vue';
-import {
-    isNoneSeverity,
-    isCriticalSeverity,
-    isHighSeverity,
-    isLowSeverity,
-    isMediumSeverity
-} from '@/utils/severity';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
-import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
-import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import UtilitiesFilters, {
-    createNewFilterState,
-    FilterType,
-    type FilterState
-} from '@/base_components/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
-import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
-import { Badge } from '@/shadcn/ui/badge';
-
-export interface Props {
-    [key: string]: any;
-    highlightElem: string;
-    forceOpenNewTab: boolean;
-    analysisID: string;
-    projectID: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-    forceOpenNewTab: false,
-    analysisID: '',
-    projectID: ''
-});
-
-// Store setup
-const userStore = useUserStore();
-const authStore = useAuthStore();
-
-const selectionPageLimit = [5, 10, 20, 30, 40, 50, 75, 100];
-const placeholder = 'Search by dependency, dependency version, or cve';
-
-const render: Ref<boolean> = ref(false);
-const pageLimitSelected: Ref<number> = ref(10);
-const nmbEntriesShowing: Ref<number> = ref(pageLimitSelected.value);
-const matchingItemsCount: Ref<number> = ref(0);
-const nmbEntriesTotal: Ref<number> = ref(0);
-const pageNumber: Ref<number> = ref(0);
-const totalPages: Ref<number> = ref(0);
-const filterApplied: Ref<boolean> = ref(false);
-const searchKey: Ref<string> = ref<string>('');
-const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
-const sortKey: Ref<string> = ref(ProjectsSortInterface.SEVERITY);
-const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
-
-const sortByOptions = [
-    { label: 'CVE', key: 'cve' },
-    { label: 'Severity', key: 'severity' },
-    { label: 'Dependency Name', key: 'dep_name' },
-    { label: 'Dependency Version', key: 'dep_version' },
-    { label: 'Weakness', key: 'weakness' },
-    { label: 'Owasp Top 10', key: 'owasp_top_10' }
-];
-
-const resultsRepository: ResultsRepository = new ResultsRepository();
-
-watch([pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber], () => {
-    init();
-});
-
-function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
-    const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
-    const uniqueOwaspIds = Array.from(new Set(owaspIds));
-
-    return uniqueOwaspIds;
-}
-
-// Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        }
-    })
-);
-
-async function init() {
-    if (!userStore.getDefaultOrg) {
-        throw new Error('No default org selected');
-    }
-    if (!authStore.getToken) {
-        throw new Error('No default org selected');
-    }
-    if (props.projectID == '' || props.analysisID == '') {
-        return;
-    }
-    try {
-        const res = await resultsRepository.getVulnerabilities({
-            orgId: userStore.getDefaultOrg.id,
-            projectId: props.projectID,
-            analysisId: props.analysisID,
-            workspace: '.',
-            bearerToken: authStore.getToken,
-            pagination: {
-                page: pageNumber.value,
-                entries_per_page: pageLimitSelected.value
-            },
-            sort: {
-                sortKey: sortKey.value,
-                sortDirection: sortDirection.value
-            },
-            active_filters: '',
-            search_key: searchKey.value
-        });
-        findings.value = res.data;
-        render.value = true;
-        pageNumber.value = res.page;
-        pageLimitSelected.value = res.entries_per_page;
-        nmbEntriesShowing.value = res.entry_count;
-        matchingItemsCount.value = res.matching_count;
-        nmbEntriesTotal.value = res.total_entries;
-        totalPages.value = res.total_pages;
-    } catch (error) {
-        render.value = false;
-    }
-}
-
-init();
-</script>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

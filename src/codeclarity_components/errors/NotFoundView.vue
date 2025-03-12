@@ -73,7 +73,7 @@ import { Button } from '@/shadcn/ui/button';
     color: acacac;
 }
 
-.notfound-wrapper > .text-wrapper > .header {
+.notfound-wrapper>.text-wrapper>.header {
     margin-bottom: -4.5rem;
 }
 

@@ -107,20 +107,13 @@ init();
 </script>
 <template>
     <main class="p-12">
-        <OrgIntegrationManageTokenBasedIntegration
-            v-if="!loading && integration != undefined && integration != null"
-            :error="error"
-            :error-code="errorCode"
-            :integration="integration"
-            :provider="IntegrationProvider.GITHUB"
+        <OrgIntegrationManageTokenBasedIntegration v-if="!loading && integration != undefined && integration != null"
+            :error="error" :error-code="errorCode" :integration="integration" :provider="IntegrationProvider.GITHUB"
             :update-route="{
                 name: 'orgs',
                 params: { action: 'manage', page: 'integrations', orgId: orgId },
                 query: { update: integrationId, provider: IntegrationProvider.GITHUB }
-            }"
-            @refresh="fetchIntegration()"
-            @delete="deleteIntegration()"
-        >
+            }" @refresh="fetchIntegration()" @delete="deleteIntegration()">
             <template #header-integration-icon>
                 <Icon icon="devicon:github" class="icon integration-icon"></Icon>
             </template>

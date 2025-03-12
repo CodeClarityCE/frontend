@@ -1,3 +1,27 @@
+<script lang="ts" setup>
+import { useStateStore } from '@/stores/state';
+import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
+import { useUserStore } from '@/stores/user';
+import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
+import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
+import DialogHeader from '@/shadcn/ui/dialog/DialogHeader.vue';
+import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
+import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
+import UpdateInfoForm from './UpdateInfoForm.vue';
+import UpdatePasswordForm from './UpdatePasswordForm.vue';
+import DeleteUserForm from './DeleteUserForm.vue';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+
+const state = useStateStore();
+const userStore = useUserStore();
+state.menu = 'settingsAccount';
+
+const user = userStore.user
+
+</script>
+
 <template>
     <!-- Header -->
     <TitleAndSubtitle>
@@ -54,26 +78,3 @@
         </div>
     </div>
 </template>
-<script lang="ts" setup>
-import { useStateStore } from '@/stores/state';
-import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import { useUserStore } from '@/stores/user';
-import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
-import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
-import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
-import DialogHeader from '@/shadcn/ui/dialog/DialogHeader.vue';
-import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
-import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
-import UpdateInfoForm from './UpdateInfoForm.vue';
-import UpdatePasswordForm from './UpdatePasswordForm.vue';
-import DeleteUserForm from './DeleteUserForm.vue';
-import { Alert, AlertDescription } from '@/shadcn/ui/alert';
-
-const state = useStateStore();
-const userStore = useUserStore();
-state.menu = 'settingsAccount';
-
-const user = userStore.user
-
-</script>

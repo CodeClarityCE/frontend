@@ -16,7 +16,7 @@ import { storeToRefs } from 'pinia';
 import NoIntegration from './integrations/NoIntegration.vue';
 import Integrations from './integrations/IntegrationsComponent.vue';
 import TitleAndSubtitle from '@/base_components/headers/TitleAndSubtitle.vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Repositories
 const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
@@ -117,12 +117,12 @@ fetchVcsIntegrations();
                             </div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <BlueButton @click="fetchVcsIntegrations()">
-                                <template #text>Try again</template>
-                            </BlueButton>
-                            <BlueButton @click="router.back()">
-                                <template #text>Go back</template>
-                            </BlueButton>
+                            <Button @click="fetchVcsIntegrations()">
+                                Try again
+                            </Button>
+                            <Button @click="router.back()">
+                                Go back
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -14,8 +14,8 @@ import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import BoxLoader from '@/base_components/BoxLoader.vue';
 import moment from 'moment';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Constants
 const EXPIRES_IN_DAYS_RISK = 14;
@@ -129,12 +129,12 @@ init();
                                     </div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <BlueButton @click="fetchVcsIntegrations">
-                                        <template #text> Try again </template>
-                                    </BlueButton>
-                                    <BlueButton @click="router.back">
-                                        <template #text> Go back </template>
-                                    </BlueButton>
+                                    <Button @click="fetchVcsIntegrations">
+                                        Try again
+                                    </Button>
+                                    <Button @click="router.back">
+                                        Go back
+                                    </Button>
                                 </div>
                             </div>
                         </div>

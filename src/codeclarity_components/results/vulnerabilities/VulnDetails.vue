@@ -136,9 +136,9 @@
                 </div>
             </template>
             <template #buttons>
-                <BlueButton @click="read_me_modal_ref.toggle()">
-                    <template #text>Close</template>
-                </BlueButton>
+                <Button @click="read_me_modal_ref.toggle()">
+                    Close
+                </Button>
             </template>
         </CenteredModal>
 
@@ -282,9 +282,9 @@
                 </div>
             </template>
             <template #buttons>
-                <NormalButton @click="versions_modal_ref.toggle()">
-                    <template #text>Close</template>
-                </NormalButton>
+                <Button variant="outline" @click="versions_modal_ref.toggle()">
+                    Close
+                </Button>
             </template>
         </PositionedModal>
 
@@ -322,9 +322,9 @@
                 </div>
             </template>
             <template #buttons>
-                <NormalButton @click="cvss_field_info_modal_ref.toggle()">
-                    <template #text>Close</template>
-                </NormalButton>
+                <Button variant="outline" @click="cvss_field_info_modal_ref.toggle()">
+                    Close
+                </Button>
             </template>
         </CenteredModal>
 
@@ -368,10 +368,9 @@ import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabi
 import router from '@/router';
 import { getRadarChartData as getCVSSRadarChartData } from './cvssChart';
 import { getRadarChartData as getImpactChartData } from './impactChart';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
-import NormalButton from '@/base_components/buttons/NormalButton.vue';
 import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 Chart.register(...registerables);
 

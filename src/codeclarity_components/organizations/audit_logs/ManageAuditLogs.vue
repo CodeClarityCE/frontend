@@ -18,7 +18,6 @@ import { Icon } from '@iconify/vue';
 
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import BoxLoader from '@/base_components/BoxLoader.vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
 import type { TableHeader } from '@/base_components/tables/SortableTable.vue';
 import AuditLogsTable from '@/enterprise_components/activity_logs/AuditLogsTable.vue';
@@ -236,15 +235,15 @@ init();
                                         </div>
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                                        <BlueButton
+                                        <Button
                                             v-if="errorCode != APIErrors.NotAuthorized"
                                             @click="fetchOrgAuditLogs()"
                                         >
-                                            <template #text> Try again </template>
-                                        </BlueButton>
-                                        <BlueButton @click="router.push({ name: 'orgs' })">
-                                            <template #text> Go to orgs </template>
-                                        </BlueButton>
+                                            Try again
+                                        </Button>
+                                        <Button @click="router.push({ name: 'orgs' })">
+                                            Go to orgs
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

@@ -10,8 +10,6 @@ import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { errorToast, successToast } from '@/utils/toasts';
-import AlertButton from '@/base_components/buttons/AlertButton.vue';
-import NormalButton from '@/base_components/buttons/NormalButton.vue';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
 
 enum OrgAction {

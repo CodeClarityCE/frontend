@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { RouterLink } from 'vue-router';
 </script>
 <template>
@@ -11,9 +11,9 @@ import { RouterLink } from 'vue-router';
             <div style="font-weight: 900; color: gray; font-size: 1.3rem">No Projects yet</div>
             <div>
                 <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-                    <BlueButton>
-                        <template #text>Add a project</template>
-                    </BlueButton>
+                    <Button>
+                        Add a project
+                    </Button>
                 </RouterLink>
             </div>
         </div>

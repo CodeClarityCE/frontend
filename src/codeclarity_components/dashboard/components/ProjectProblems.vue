@@ -20,10 +20,10 @@ import {
     isLowSeverity,
     isMediumSeverity
 } from '@/utils/severity';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
 import { Badge } from '@/shadcn/ui/badge';
 import { Skeleton } from '@/shadcn/ui/skeleton';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
 const props = defineProps<{
@@ -189,9 +189,9 @@ fetch();
                             <div>Failed to load the dashboard component</div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <BlueButton @click="fetch">
-                                <template #text> Try again </template>
-                            </BlueButton>
+                            <Button @click="fetch">
+                                Try again
+                            </Button>
                         </div>
                     </div>
                 </div>

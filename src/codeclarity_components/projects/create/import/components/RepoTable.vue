@@ -26,8 +26,8 @@ import {
 } from '@/base_components/UtilitiesFilters.vue';
 import { ref, watch, type Ref } from 'vue';
 import moment from 'moment';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Types
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
@@ -251,12 +251,12 @@ defineExpose({
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 flex-wrap items-center">
-                        <BlueButton @click="fetchRepos(false, true)">
-                            <template #text>Try again</template>
-                        </BlueButton>
-                        <BlueButton @click="router.back()">
-                            <template #text>Go back</template>
-                        </BlueButton>
+                        <Button @click="fetchRepos(false, true)">
+                            Try again
+                        </Button>
+                        <Button @click="router.back()">
+                            Go back
+                        </Button>
                     </div>
                 </div>
             </div>

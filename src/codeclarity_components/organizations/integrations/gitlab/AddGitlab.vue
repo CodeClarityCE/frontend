@@ -15,10 +15,10 @@ import CenteredModal from '@/base_components/CenteredModal.vue';
 import { ValidationError as YupValidationError } from 'yup';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
 import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 import InfoBoxGray from '@/base_components/info_box/InfoBoxGray.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 enum FormMode {
     UPDATE = 'UPDATE',
@@ -195,21 +195,17 @@ init();
                     <div class="flex flex-row gap-2 items-center">
                         <Icon icon="material-symbols:error-outline" />
                         <div v-if="errorCode">
-                            <div
-                                v-if="
-                                    errorCode == APIErrors.IntegrationTokenExpired ||
-                                    errorCode == APIErrors.IntegrationInvalidToken ||
-                                    errorCode == APIErrors.IntegrationWrongTokenType
-                                "
-                            >
+                            <div v-if="
+                                errorCode == APIErrors.IntegrationTokenExpired ||
+                                errorCode == APIErrors.IntegrationInvalidToken ||
+                                errorCode == APIErrors.IntegrationWrongTokenType
+                            ">
                                 Your token appears invalid or expired.
                             </div>
-                            <div
-                                v-else-if="
-                                    errorCode ==
-                                    APIErrors.IntegrationIntegrationTokenMissingPermissions
-                                "
-                            >
+                            <div v-else-if="
+                                errorCode ==
+                                APIErrors.IntegrationIntegrationTokenMissingPermissions
+                            ">
                                 Your token does not have the required permissions. Please select
                                 both <span class="code-bubble">api</span> and
                                 <span class="code-bubble">read_user</span> scopes.
@@ -226,10 +222,7 @@ init();
                                     The integration you are trying to update does not exist.
                                 </div>
                             </div>
-                            <div
-                                v-else-if="errorCode == APIErrors.ValidationFailed"
-                                style="white-space: break-spaces"
-                            >
+                            <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                                 {{ validationError!.toMessage('Invalid form:') }}
                             </div>
@@ -243,18 +236,9 @@ init();
                 </template>
             </InfoBoxRed>
 
-            <Form
-                class="normal-form"
-                :validation-schema="formValidationSchema"
-                style="row-gap: 20px"
-                @submit="submit"
-            >
-                <FormTextField
-                    v-model="formPersonalAccessToken"
-                    :placeholder="'Enter a Gitlab personal access token'"
-                    :type="'text'"
-                    :name="'token'"
-                >
+            <Form class="normal-form" :validation-schema="formValidationSchema" style="row-gap: 20px" @submit="submit">
+                <FormTextField v-model="formPersonalAccessToken" :placeholder="'Enter a Gitlab personal access token'"
+                    :type="'text'" :name="'token'">
                     <template #name>Personal access token</template>
                 </FormTextField>
 
@@ -305,23 +289,13 @@ init();
                                 To save you some time we have prefilled a token with the correct
                                 permissions:
                             </div>
-                            <a
-                                target="_blank"
-                                class="clear-button flex flex-row gap-1 w-fit items-center"
-                                :href="
-                                    formGitlabInstanceUrl +
-                                    '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
-                                "
-                            >
-                                <BlueButton>
-                                    <template #icon
-                                        ><Icon
-                                            icon="devicon:gitlab"
-                                            class="icon integration-icon"
-                                        ></Icon
-                                    ></template>
-                                    <template #text>Prefilled access token</template>
-                                </BlueButton>
+                            <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl +
+                                '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
+                                ">
+                                <Button>
+                                    <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
+                                    Prefilled access token
+                                </Button>
                             </a>
 
                             <div>
@@ -343,22 +317,12 @@ init();
                             <div class="flex flex-col gap-2">
                                 <div>Alternatively, create a token manually:</div>
 
-                                <a
-                                    target="_blank"
-                                    class="clear-button flex flex-row gap-1 w-fit items-center"
-                                    :href="
-                                        formGitlabInstanceUrl + '/-/profile/personal_access_tokens'
-                                    "
-                                >
-                                    <BlueButton>
-                                        <template #icon
-                                            ><Icon
-                                                icon="devicon:gitlab"
-                                                class="icon integration-icon"
-                                            ></Icon
-                                        ></template>
-                                        <template #text>Manually create an access token</template>
-                                    </BlueButton>
+                                <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl + '/-/profile/personal_access_tokens'
+                                    ">
+                                    <Button>
+                                        <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
+                                        Manually create an access token
+                                    </Button>
                                 </a>
 
                                 <div>
@@ -386,33 +350,28 @@ init();
             <div>Enter the url of your self-hosted GitLab instance.</div>
         </template>
         <template #content>
-            <div
-                style="
+            <div style="
                     display: flex;
                     flex-direction: column;
                     row-gap: 1.5em;
                     max-width: 400px;
                     width: 100vw;
-                "
-            >
-                <input
-                    type="text"
-                    v-model="formGitlabInstanceUrl"
-                    @input="validateGitlabInstanceUrl"
-                />
+                ">
+                <input type="text" v-model="formGitlabInstanceUrl" @input="validateGitlabInstanceUrl" />
                 <div style="color: red">{{ formGitlabInstanceUrlError }}</div>
             </div>
         </template>
         <template #buttons>
-            <BlueButton @click="selfHostedModalRef.toggle()">
-                <template #text>Done</template>
-            </BlueButton>
+            <Button @click="selfHostedModalRef.toggle()">
+                Done
+            </Button>
         </template>
     </CenteredModal>
 </template>
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
 @use '@/assets/common/form.scss';
+
 .gitlab-host-selection-container {
     position: relative;
     width: 100%;

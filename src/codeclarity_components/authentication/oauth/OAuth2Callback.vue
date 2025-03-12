@@ -41,9 +41,9 @@
                             leading up to this problem.
                         </div>
                         <div>
-                            <BlueButton @click="nonRecoverableErrorRedirect()">
-                                <template #text> Okay </template>
-                            </BlueButton>
+                            <Button @click="nonRecoverableErrorRedirect()">
+                                Okay
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -66,9 +66,9 @@
                         </div>
 
                         <div>
-                            <BlueButton @click="nonRecoverableErrorRedirect">
-                                <template #text> Back to login </template>
-                            </BlueButton>
+                            <Button @click="nonRecoverableErrorRedirect">
+                                Back to login
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { Icon } from '@iconify/vue';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
 const props = defineProps<{

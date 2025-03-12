@@ -8,13 +8,13 @@ import router from '@/router';
 import { ref, type Ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/LicensePolicyRepository';
 import { Icon } from '@iconify/vue';
 import type { LicensePolicy } from '@/codeclarity_components/organizations/policy/LicensePolicy';
 import BoxLoader from '@/base_components/BoxLoader.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 const orgInfo: Ref<Organization | undefined> = ref();
 
 const props = defineProps<{
@@ -110,12 +110,12 @@ fetchPolicies();
                                     </div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <BlueButton @click="fetchPolicies">
-                                        <template #text> Try again </template>
-                                    </BlueButton>
-                                    <BlueButton @click="router.back">
-                                        <template #text> Go back </template>
-                                    </BlueButton>
+                                    <Button @click="fetchPolicies">
+                                        Try again
+                                    </Button>
+                                    <Button @click="router.back">
+                                        Go back
+                                    </Button>
                                 </div>
                             </div>
                         </div>

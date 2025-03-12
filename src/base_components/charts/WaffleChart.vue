@@ -3,8 +3,7 @@ import * as d3 from 'd3';
 import { interpolateColors } from '@/base_components/charts/colors-waffle';
 import CenteredModal from '../CenteredModal.vue';
 import { Icon } from '@iconify/vue';
-import NormalButton from '../buttons/NormalButton.vue';
-import BlueButton from '../buttons/BlueButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 export interface WaffleChartEntry {
     label: string;
@@ -269,9 +268,9 @@ createData();
         </div>
 
         <div v-if="truncatedOthers" class="flex flex-row" style="justify-content: start">
-            <NormalButton @click="allLicensesModalRef.toggle()">
-                <template #text> See others </template>
-            </NormalButton>
+            <Button variant="outline" @click="allLicensesModalRef.toggle()">
+                See others
+            </Button>
         </div>
     </div>
     <!-- Modal that shows licenses grouped under 'others' if any -->
@@ -343,9 +342,9 @@ createData();
             </div>
         </template>
         <template #buttons>
-            <BlueButton @click="allLicensesModalRef.toggle()">
-                <template #text> Close </template>
-            </BlueButton>
+            <Button @click="allLicensesModalRef.toggle()">
+                Close
+            </Button>
         </template>
     </CenteredModal>
 </template>

@@ -16,8 +16,7 @@ import CenteredModal from '@/base_components/CenteredModal.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import LoadingButton from '@/base_components/LoadingButton.vue';
 import { errorToast, successToast } from '@/utils/toasts';
-import AlertButton from '@/base_components/buttons/AlertButton.vue';
-import NormalButton from '@/base_components/buttons/NormalButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 enum ModalAction {
     REVOKE = 'REVOKE',
@@ -152,10 +151,7 @@ const emit = defineEmits<{
             <div class="org-membership membership-admin" v-if="invitation.role == MemberRole.ADMIN">
                 Admin
             </div>
-            <div
-                class="org-membership membership-moderator"
-                v-if="invitation.role == MemberRole.MODERATOR"
-            >
+            <div class="org-membership membership-moderator" v-if="invitation.role == MemberRole.MODERATOR">
                 Moderator
             </div>
             <div class="org-membership membership-user" v-if="invitation.role == MemberRole.USER">
@@ -175,28 +171,20 @@ const emit = defineEmits<{
                 <div v-else></div>
                 <div class="flex flex-col gap-0.5">
                     <div v-if="invitation.created_by">
-                        <div
-                            class="org-membership membership-owner"
-                            v-if="invitation.created_by.role == MemberRole.OWNER"
-                        >
+                        <div class="org-membership membership-owner"
+                            v-if="invitation.created_by.role == MemberRole.OWNER">
                             Owner
                         </div>
-                        <div
-                            class="org-membership membership-admin"
-                            v-if="invitation.created_by.role == MemberRole.ADMIN"
-                        >
+                        <div class="org-membership membership-admin"
+                            v-if="invitation.created_by.role == MemberRole.ADMIN">
                             Admin
                         </div>
-                        <div
-                            class="org-membership membership-moderator"
-                            v-if="invitation.created_by.role == MemberRole.MODERATOR"
-                        >
+                        <div class="org-membership membership-moderator"
+                            v-if="invitation.created_by.role == MemberRole.MODERATOR">
                             Moderator
                         </div>
-                        <div
-                            class="org-membership membership-user"
-                            v-if="invitation.created_by.role == MemberRole.USER"
-                        >
+                        <div class="org-membership membership-user"
+                            v-if="invitation.created_by.role == MemberRole.USER">
                             User
                         </div>
                     </div>
@@ -221,58 +209,45 @@ const emit = defineEmits<{
         </td>
         <td>
             <div class="flex flex-row gap-2 org-member-list-actions">
-                <LoadingButton
-                    ref="resendInvitationLoadingButtonRef"
-                    @click="resendInvitation()"
-                    class="clear-button"
-                    title="Resend invitation"
-                    style="min-width: 150px; width: fit-content"
-                >
+                <LoadingButton ref="resendInvitationLoadingButtonRef" @click="resendInvitation()" class="clear-button"
+                    title="Resend invitation" style="min-width: 150px; width: fit-content">
                     <div class="flex flex-row gap-1 items-center">
                         <Icon class="icon" icon="mdi:email-sync" style="font-size: 1.2em"></Icon>
                         <div>Resend invitation</div>
                     </div>
                 </LoadingButton>
-                <AlertButton
-                    @click="openModalAction(ModalAction.REVOKE)"
-                    v-if="
-                        !invitation.created_by ||
-                        invitation.created_by.id == userStore.getUser!.id ||
-                        isMemberRoleGreaterThan(orgInfo.role, invitation.created_by.role)
-                    "
-                >
-                    <template #icon>
-                        <Icon icon="mdi:email-remove"></Icon>
-                    </template>
-                    <template #text> Revoke invitation </template>
-                </AlertButton>
+                <Button variant="destructive" @click="openModalAction(ModalAction.REVOKE)" v-if="
+                    !invitation.created_by ||
+                    invitation.created_by.id == userStore.getUser!.id ||
+                    isMemberRoleGreaterThan(orgInfo.role, invitation.created_by.role)
+                ">
+
+                    <Icon icon="mdi:email-remove"></Icon>
+                    Revoke invitation
+                </Button>
             </div>
         </td>
     </tr>
     <CenteredModal ref="centeredModalRef">
         <template #title>
-            <div
-                style="
+            <div style="
                     display: flex;
                     flex-direction: row;
                     align-items: center;
                     column-gap: 7px;
                     justify-content: space-between;
-                "
-            >
+                ">
                 <div v-if="centeredModalAction == ModalAction.REVOKE">Revoke the invitation?</div>
             </div>
         </template>
         <template #content>
-            <div
-                style="
+            <div style="
                     display: flex;
                     flex-direction: column;
                     row-gap: 1.5em;
                     max-width: 400px;
                     width: 100vw;
-                "
-            >
+                ">
                 <div v-if="centeredModalAction == ModalAction.REVOKE">
                     <div>
                         Are you sure you want to revoke the invitation to join the organization?
@@ -282,17 +257,13 @@ const emit = defineEmits<{
             </div>
         </template>
         <template #buttons>
-            <AlertButton @click="performModalAction()">
-                <template #icon v-if="centeredModalAction == ModalAction.REVOKE">
+            <Button v-if="centeredModalAction == ModalAction.REVOKE" variant="destructive" @click="performModalAction()">
                     <Icon icon="mdi:email-remove"></Icon>
-                </template>
-                <template #text v-if="centeredModalAction == ModalAction.REVOKE">
                     Revoke invitation
-                </template>
-            </AlertButton>
-            <NormalButton @click="centeredModalRef.toggle()">
+            </Button>
+            <Button variant="outline" @click="centeredModalRef.toggle()">
                 <template #text> Cancel </template>
-            </NormalButton>
+            </Button>
         </template>
     </CenteredModal>
 </template>

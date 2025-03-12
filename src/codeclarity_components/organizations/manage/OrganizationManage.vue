@@ -11,9 +11,8 @@ import HeaderItem from '@/codeclarity_components/organizations/subcomponents/Hea
 import CenteredModal from '@/base_components/CenteredModal.vue';
 import FaqBox from '@/base_components/FaqBox.vue';
 import { errorToast, successToast } from '@/utils/toasts';
-import AlertButton from '@/base_components/buttons/AlertButton.vue';
-import NormalButton from '@/base_components/buttons/NormalButton.vue';
 import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 const authStore = useAuthStore();
 
@@ -346,30 +345,28 @@ function setOrgInfo(_orgInfo: Organization) {
             </div>
         </template>
         <template #buttons>
-            <AlertButton
+            <Button
+                variant="destructive"
                 @click="
                     performOrgAction();
                     orgActionModalRef.toggle();
                 "
             >
-                <template v-if="orgAction == OrgAction.DELETE" #icon>
-                    <Icon class="icon" icon="solar:trash-bin-trash-bold"></Icon>
-                </template>
-                <template v-else-if="orgAction == OrgAction.LEAVE" #icon>
-                    <Icon class="icon" icon="mingcute:exit-door-line"></Icon>
-                </template>
+                <Icon  v-if="orgAction == OrgAction.DELETE" class="icon" icon="solar:trash-bin-trash-bold"></Icon>
+                <Icon v-else-if="orgAction == OrgAction.LEAVE" class="icon" icon="mingcute:exit-door-line"></Icon>
 
-                <template v-if="orgAction == OrgAction.DELETE" #text> Delete </template>
-                <template v-else-if="orgAction == OrgAction.LEAVE" #text> Leave </template>
-            </AlertButton>
-            <NormalButton
+                <span v-if="orgAction == OrgAction.DELETE">Delete</span>
+                <span v-else-if="orgAction == OrgAction.LEAVE">Leave</span>
+            </Button>
+            <Button
+                variant="outline"
                 @click="
                     orgActionId = '';
                     orgActionModalRef.toggle();
                 "
             >
-                <template #text> Cancel </template>
-            </NormalButton>
+                Cancel
+            </Button>
         </template>
     </CenteredModal>
 </template>

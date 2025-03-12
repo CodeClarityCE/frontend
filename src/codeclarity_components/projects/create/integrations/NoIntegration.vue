@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import {
     MemberRole,
     type Organization,
     isMemberRoleGreaterOrEqualTo
 } from '@/codeclarity_components/organizations/organization.entity';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { Icon } from '@iconify/vue';
 
 defineProps<{
@@ -45,15 +45,15 @@ const emit = defineEmits<{
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                        <BlueButton
+                        <Button
                             @click="emit('onRefresh')"
                             v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
                         >
-                            <template #text>Refresh</template>
-                        </BlueButton>
-                        <BlueButton @click="$router.back()">
-                            <template #text>Go back</template>
-                        </BlueButton>
+                            Refresh
+                        </Button>
+                        <Button @click="$router.back()">
+                            Go back
+                        </Button>
                     </div>
                 </div>
             </div>

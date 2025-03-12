@@ -130,9 +130,9 @@
 
             <!-- CLOSE BUTTON -->
             <div title="Open settings" class="flex flex-row justify-end gap-2 p-2 -mt-5">
-                <NormalButton @click="showFilterModal = false">
-                    <template #text>Close</template>
-                </NormalButton>
+                <Button variant="outline" @click="showFilterModal = false">
+                    Close
+                </Button>
             </div>
         </div>
     </div>
@@ -140,7 +140,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import NormalButton from '@/base_components/buttons/NormalButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
 defineProps<{

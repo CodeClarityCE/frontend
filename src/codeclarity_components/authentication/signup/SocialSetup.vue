@@ -29,9 +29,9 @@
                     contact the webmaster and provide them with the error code listed above.
                 </div>
                 <div>
-                    <BlueButton @click="nonRecoverableErrorRedirect">
-                        <template #text> Okay </template>
-                    </BlueButton>
+                    <Button @click="nonRecoverableErrorRedirect">
+                        Okay
+                    </Button>
                 </div>
             </div>
 
@@ -135,8 +135,8 @@ import type { RefreshToken } from '@/codeclarity_components/authentication/refre
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 import FormInlineCheckboxField from '@/base_components/forms/FormInlineCheckboxField.vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
 const props = defineProps<{

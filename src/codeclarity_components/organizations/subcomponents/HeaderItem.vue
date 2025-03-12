@@ -10,8 +10,8 @@ import BoxLoader from '@/base_components/BoxLoader.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 const loading: Ref<boolean> = ref(false);
 const orgInfo: Ref<Organization | undefined> = ref();
@@ -107,15 +107,15 @@ init();
                             </div>
                         </div>
                         <div class="flex flex-row gap2 items-center flex-wrap">
-                            <BlueButton
+                            <Button
                                 v-if="errorCode != APIErrors.NotAuthorized"
                                 @click="fetchOrgInfo()"
                             >
-                                <template #text> Try again </template>
-                            </BlueButton>
-                            <BlueButton @click="router.back()">
-                                <template #text> Go back </template>
-                            </BlueButton>
+                                Try again
+                            </Button>
+                            <Button @click="router.back()">
+                                Go back
+                            </Button>
                         </div>
                     </div>
                 </div>

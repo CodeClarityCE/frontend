@@ -10,7 +10,6 @@ import { Icon } from '@iconify/vue';
 import FaqBox from '@/base_components/FaqBox.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { successToast } from '@/utils/toasts';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 const inviteToken: Ref<string | undefined> = ref();
@@ -130,18 +129,18 @@ async function joinOrg() {
                                 </div>
                             </div>
                             <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <BlueButton
+                                <Button
                                     v-if="
                                         joinErrorCode != APIErrors.NotAuthorized &&
                                         joinErrorCode != APIErrors.EntityNotFound
                                     "
                                     @click="joinOrg"
                                 >
-                                    <template #text> Try again </template>
-                                </BlueButton>
-                                <BlueButton @click="router.back">
-                                    <template #text> Go back </template>
-                                </BlueButton>
+                                    Try again
+                                </Button>
+                                <Button @click="router.back">
+                                    Go back
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -180,18 +179,18 @@ async function joinOrg() {
                                         </div>
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                                        <BlueButton
+                                        <Button
                                             v-if="
                                                 joinErrorCode != APIErrors.NotAuthorized &&
                                                 joinErrorCode != APIErrors.EntityNotFound
                                             "
                                             @click="fetchOrgInfo"
                                         >
-                                            <template #text> Try again </template>
-                                        </BlueButton>
-                                        <BlueButton @click="router.back">
-                                            <template #text> Go back </template>
-                                        </BlueButton>
+                                            Try again
+                                        </Button>
+                                        <Button @click="router.back">
+                                            Go back
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

@@ -8,8 +8,8 @@ import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboar
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import type { LicenseDist } from '@/codeclarity_components/dashboard/dashboard.entity';
 import { Icon } from '@iconify/vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import { Skeleton } from '@/shadcn/ui/skeleton';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
 const props = defineProps<{
@@ -107,9 +107,9 @@ fetch();
                                 <div>Failed to load the dashboard component</div>
                             </div>
                             <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <BlueButton @click="fetch()">
-                                    <template #text> Try again </template>
-                                </BlueButton>
+                                <Button @click="fetch()">
+                                    Try again
+                                </Button>
                             </div>
                         </div>
                     </div>

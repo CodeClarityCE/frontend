@@ -15,7 +15,7 @@ import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import Pagination from '@/base_components/PaginationComponent.vue';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Stores
 const authStore = useAuthStore();
@@ -115,15 +115,15 @@ fetchProjects();
                             </div>
                         </div>
                         <div class="flex flex-row gap-1 items-center flex-wrap">
-                            <BlueButton
+                            <Button
                                 v-if="errorCode != APIErrors.NotAuthorized"
                                 @click="fetchProjects(true)"
                             >
-                                <template #text>Try again</template>
-                            </BlueButton>
-                            <BlueButton @click="router.back()">
-                                <template #text>Go back</template>
-                            </BlueButton>
+                                Try again
+                            </Button>
+                            <Button @click="router.back()">
+                                Go back
+                            </Button>
                         </div>
                     </div>
                 </div>

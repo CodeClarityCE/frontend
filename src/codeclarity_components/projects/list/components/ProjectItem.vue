@@ -12,7 +12,6 @@ import { errorToast, successToast } from '@/utils/toasts';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { useProjectsMainStore } from '@/stores/StateStore';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Button } from '@/shadcn/ui/button';
 import { Separator } from '@/shadcn/ui/separator';
@@ -186,9 +185,9 @@ async function deleteProject() {
                 <Icon icon="oi:trash" />
                 <div>Delete</div>
             </Button>
-            <BlueButton @click="projectDeleteModalRef.toggle()">
-                <template #text>Cancel</template>
-            </BlueButton>
+            <Button @click="projectDeleteModalRef.toggle()">
+                Cancel
+            </Button>
         </template>
     </CenteredModal>
 </template>

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import PositionedModal from '@/base_components/PositionedModal.vue';
-import { nextTick, ref, type Ref } from 'vue';
+import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import { License } from '@/codeclarity_components/results/licenses/License';
 import Popover from '@/shadcn/ui/popover/Popover.vue';
@@ -9,11 +8,8 @@ import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import { Card, CardContent } from '@/shadcn/ui/card';
 
-const properties_modal_ref: Ref<typeof PositionedModal> = ref(PositionedModal);
-
 const property_title = ref('');
 const property_content = ref('');
-const property_tracker = ref('');
 
 type Props = {
     license: License;
@@ -37,8 +33,7 @@ function referenceDomain(url: string) {
     }
 }
 
-async function fillModal(title: string, type: string, tracker: string) {
-    property_tracker.value = tracker;
+async function fillModal(title: string, type: string) {
     property_title.value = title;
 
     // Limitations
@@ -94,9 +89,6 @@ async function fillModal(title: string, type: string, tracker: string) {
     } else {
         property_content.value = 'No information available.';
     }
-    await nextTick();
-
-    properties_modal_ref.value.toggle();
 }
 </script>
 
@@ -294,19 +286,23 @@ async function fillModal(title: string, type: string, tracker: string) {
                             <span class="font-semibold">Permissions:</span>
                         </div>
                         <div v-for="permission in props.license.license_properties.permissions" :key="permission">
-                            <Badge variant="secondary" :id="'properties_modal_ref' + props.license.id + permission"
-                                @click="
+                            <Popover>
+                                <PopoverTrigger>
+                                    <Badge variant="secondary" class="flex gap-1 items-center cursor-pointer" @click="
                                     fillModal(
                                         permission,
-                                        'permission',
-                                        'properties_modal_ref' + props.license.id + permission
+                                        'permission'
                                     )
                                     ">
-                                <div class="flex flex-row gap-1 items-center cursor-pointer">
-                                    {{ permission }}
+                                        {{ permission }}
                                     <Icon :icon="'material-symbols:help-outline'"></Icon>
-                                </div>
-                            </Badge>
+                                    </Badge>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                    <div class="font-semibold">{{ property_title }}</div>
+                                    {{ property_content }}
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                     <div class="flex flex-col gap-y-2" v-if="props.license.license_properties.conditions">
@@ -315,19 +311,23 @@ async function fillModal(title: string, type: string, tracker: string) {
                             <span class="font-semibold">Conditions:</span>
                         </div>
                         <div v-for="condition in props.license.license_properties.conditions" :key="condition">
-                            <Badge variant="secondary" :id="'properties_modal_ref' + props.license.id + condition"
-                                @click="
+                            <Popover>
+                                <PopoverTrigger>
+                                    <Badge variant="secondary" class="flex gap-1 items-center cursor-pointer" @click="
                                     fillModal(
                                         condition,
-                                        'condition',
-                                        'properties_modal_ref' + props.license.id + condition
+                                        'permission',
                                     )
                                     ">
-                                <div class="flex flex-row gap-1 items-center cursor-pointer">
-                                    {{ condition }}
+                                        {{ condition }}
                                     <Icon :icon="'material-symbols:help-outline'"></Icon>
-                                </div>
-                            </Badge>
+                                    </Badge>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                    <div class="font-semibold">{{ property_title }}</div>
+                                    {{ property_content }}
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                     <div class="flex flex-col gap-y-2" v-if="props.license.license_properties.limitations">
@@ -336,19 +336,23 @@ async function fillModal(title: string, type: string, tracker: string) {
                             <span class="font-semibold">Limitations:</span>
                         </div>
                         <div v-for="limitation in props.license.license_properties.limitations" :key="limitation">
-                            <Badge variant="secondary" :id="'properties_modal_ref' + props.license.id + limitation"
-                                @click="
+                            <Popover>
+                                <PopoverTrigger>
+                                    <Badge variant="secondary" class="flex gap-1 items-center cursor-pointer" @click="
                                     fillModal(
                                         limitation,
-                                        'limitation',
-                                        'properties_modal_ref' + props.license.id + limitation
+                                        'permission',
                                     )
                                     ">
-                                <div class="flex flex-row gap-1 items-center cursor-pointer">
-                                    {{ limitation }}
+                                        {{ limitation }}
                                     <Icon :icon="'material-symbols:help-outline'"></Icon>
-                                </div>
-                            </Badge>
+                                    </Badge>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                    <div class="font-semibold">{{ property_title }}</div>
+                                    {{ property_content }}
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                 </div>
@@ -366,19 +370,6 @@ async function fillModal(title: string, type: string, tracker: string) {
                             BY 3.0</a>
                     </div>
                 </div>
-                <PositionedModal ref="properties_modal_ref" :tracker="property_tracker" :position="'top'"
-                    :show-title-divider="false" class="w-1/4">
-                    <template #title>
-                        <div class="flex flex-row gap-4 justify-between items-center">
-                            <div>{{ property_title }}</div>
-                            <Icon :icon="'ic:round-close'" class="cursor-pointer" title="Close modal"
-                                @click="properties_modal_ref.toggle()">Close</Icon>
-                        </div>
-                    </template>
-                    <template #content>
-                        {{ property_content }}
-                    </template>
-                </PositionedModal>
             </div>
         </CardContent>
     </Card>

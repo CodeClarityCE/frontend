@@ -130,10 +130,9 @@ fetch();
                     </div>
                 </div>
 
-                <Collapsible class="flex flex-col">
-                    <div class="flex flex-col gap-2 items-center xl:items-start"
-                        v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id">
-                        <div v-if="index < 5" class="font-bold flex flex-row gap-2 pb-2 items-center">
+                <Collapsible class="flex flex-col items-center">
+                    <div class="w-1/2" v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id">
+                        <div v-if="index < 5" class="font-bold flex justify-between pb-2">
                             <div style="font-size: 0.8em">
                                 <div class="severity-indicator critical" v-if="vuln.severity_class == 'CRITICAL'">
                                     CRITICAL
@@ -154,13 +153,12 @@ fetch();
                             <div>{{ cwe_id }}</div>
                         </div>
                     </div>
-                    <CollapsibleTrigger class="flex gap-2 items-center">Show more vulnerabilities <Icon
-                            icon="tabler:chevron-down"></Icon>
+                    <CollapsibleTrigger class="flex gap-2 items-center pb-2">
+                        Show more vulnerabilities <Icon icon="lucide:chevrons-up-down"></Icon>
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <div class="flex flex-col items-center xl:items-start"
-                            v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id">
-                            <div v-if="index >= 5" class="font-bold flex flex-row gap-2 pb-2 items-center">
+                    <CollapsibleContent class="w-1/2">
+                        <div v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id">
+                            <div v-if="index >= 5" class="font-bold flex justify-between pb-2">
                                 <div style="font-size: 0.8em">
                                     <div class="severity-indicator critical" v-if="vuln.severity_class == 'CRITICAL'">
                                         CRITICAL

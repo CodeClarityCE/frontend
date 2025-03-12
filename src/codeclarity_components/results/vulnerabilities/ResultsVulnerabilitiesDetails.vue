@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import { onMounted, onUpdated, ref, type Ref, watch } from 'vue';
-import Details from '@/views/results/vulnerabilities/VulnDetails.vue';
+import Details from './VulnDetails.vue';
 // Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';

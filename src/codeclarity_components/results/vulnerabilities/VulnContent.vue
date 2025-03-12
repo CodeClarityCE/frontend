@@ -100,85 +100,34 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
 
 <template>
     <div value="sbom" class="space-y-4">
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
             <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Vulnerable library </CardTitle>
-                    <Icon :icon="'akar-icons:node-fill'" class="text-gray-400"></Icon>
+                <CardHeader class="flex flex-col items-center">
+                    <CardTitle>{{ stats.number_of_vulnerable_dependencies }}</CardTitle>
+                    <CardDescription>{{ stats.number_of_vulnerable_dependencies }}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <CardDescription class="text-xs text-muted-foreground">
-                        Libraries can be present multiple times. Check the patching tab to view
-                        them.
-                    </CardDescription>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_vulnerable_dependencies }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_vulnerable_dependencies }}
-                    </p>
-
-                    <!-- <p class="text-xs text-muted-foreground">last month</p> -->
+                <CardContent class="flex flex-col items-center">
+                    Vulnerable libraries
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Mean Severity </CardTitle>
-                    <Icon :icon="'bx:bx-transfer-alt'" class="text-gray-400"></Icon>
+                <CardHeader class="flex flex-col items-center">
+                    <CardTitle>{{ stats.mean_severity?.toFixed(2) }}</CardTitle>
+                    <CardDescription>{{ stats.mean_severity_diff?.toFixed(2) }}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.mean_severity?.toFixed(2) }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.mean_severity_diff?.toFixed(2) }}
-                    </p>
+                <CardContent class="flex flex-col items-center">
+                    Mean Severity
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Max Severity </CardTitle>
-                    <Icon :icon="'bx:bx-transfer-alt'" class="text-gray-400"></Icon>
+                <CardHeader class="flex flex-col items-center">
+                    <CardTitle>{{ stats.max_severity?.toFixed(2) }}</CardTitle>
+                    <CardDescription>{{ stats.max_severity_diff?.toFixed(2) }}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.max_severity?.toFixed(2) }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.max_severity_diff?.toFixed(2) }}
-                    </p>
+                <CardContent class="flex flex-col items-center">
+                    Max Severity
                 </CardContent>
             </Card>
-            <!-- <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Direct Dependencies </CardTitle>
-                    <Icon :icon="'bx:bx-transfer-alt'" class="text-gray-400"></Icon>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_direct_vulnerabilities }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_direct_vulnerabilities_diff }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium">
-                        Transitive Dependencies Impacted
-                    </CardTitle>
-                    <Icon :icon="'bx:bx-transfer-alt'" class="text-gray-400"></Icon>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_transitive_vulnerabilities }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_transitive_vulnerabilities_diff }}
-                    </p>
-                </CardContent>
-            </Card> -->
         </div>
 
         <VulnsGraph v-if="render" :analysisID="analysisID" :projectID="projectID" :stats="stats" />

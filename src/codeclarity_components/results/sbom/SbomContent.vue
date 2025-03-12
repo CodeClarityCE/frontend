@@ -219,188 +219,24 @@ function createDepTypeChart() {
 <template>
     <div value="sbom" class="space-y-4">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-            <!-- <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> NodeJS Supported Version </CardTitle>
-                    <Icon :icon="'akar-icons:node-fill'" class="text-gray-400"></Icon>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.node_min_supported_version }} >
-                        {{ stats.node_max_supported_version }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">last month</p>
-                </CardContent>
-            </Card> -->
             <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Direct Dependencies </CardTitle>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
+                <CardHeader class="flex flex-col items-center">
+                    <CardTitle> {{ stats.number_of_non_dev_dependencies ?? 0 }}</CardTitle>
+                    <CardDescription>{{ stats.number_of_direct_dependencies_diff ?? 0 }}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_non_dev_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_direct_dependencies_diff ?? 0 }}
-                    </p>
+                <CardContent class="flex flex-col items-center text-center">
+                    Direct Dependencies
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Direct Dev Dependencies </CardTitle>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
+                <CardHeader class="flex flex-col items-center">
+                    <CardTitle> {{ stats.number_of_dev_dependencies ?? 0 }}</CardTitle>
+                    <CardDescription>{{ stats.number_of_dev_dependencies_diff ?? 0 }}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_dev_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_dev_dependencies_diff ?? 0 }}
-                    </p>
+                <CardContent class="flex flex-col items-center text-center">
+                    Direct Dev Dependencies
                 </CardContent>
             </Card>
-            <!-- <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Transitive Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_transitive_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_transitive_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Optional Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                        <path d="M2 10h20" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_optional_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_optional_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Peer Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_peer_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_peer_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Bundled Dependencies </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                        <path d="M2 10h20" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ stats.number_of_bundled_dependencies ?? 0 }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{ stats.number_of_bundled_dependencies_diff ?? 0 }}
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium"> Average Age </CardTitle>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        class="h-4 w-4 text-muted-foreground"
-                    >
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                </CardHeader>
-                <CardContent>
-                    <div class="text-2xl font-bold">
-                        {{ formatAgo(stats.average_dependency_age).replace('ago', '') ?? 'N/A' }}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{
-                            formatAgo(stats.average_dependency_age_diff).replace('ago', '') ?? 'N/A'
-                        }}
-                    </p>
-                </CardContent>
-            </Card> -->
         </div>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <div class="grid gap-4 col-span-3">

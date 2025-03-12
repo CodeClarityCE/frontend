@@ -12,21 +12,22 @@
 
     <slot v-if="content" name="content"></slot>
 
-    <InfoBoxRed v-if="error">
-        <template #content>
+    <Alert v-if="error" variant="destructive">
+        <AlertDescription>
             <div>
                 <Icon class="text-xl" icon="ic:twotone-warning" />
             </div>
             <div>
                 <slot name="error"></slot>
             </div>
-        </template>
-    </InfoBoxRed>
+        </AlertDescription>
+    </Alert>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import InfoBoxRed from './info_box/InfoBoxRed.vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 const loading = ref(true);
 const content = ref(false);

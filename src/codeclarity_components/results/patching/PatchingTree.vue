@@ -70,19 +70,15 @@
             <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
         </div>
     </div>
-    <InfoBoxRed v-if="error">
-        <template #content>
-            <div>
-                <Icon icon="ic:twotone-warning" />
-            </div>
-            <div>Encountered Error during the rendering of the dependency tree.</div>
-        </template>
-    </InfoBoxRed>
+    <Alert v-if="error" variant="destructive">
+        <Icon icon="ic:twotone-warning" />
+        <AlertDescription>
+            Encountered Error during the rendering of the dependency tree.
+        </AlertDescription>
+    </Alert>
 </template>
 <script lang="ts" setup>
 import { ref, type Ref, watch } from 'vue';
-// import Filters from "../../../base_components/Filters.vue";
-// import SearchBar from "../../../base_components/SearchBar.vue";
 import BoxLoader from '@/base_components/BoxLoader.vue';
 import { Icon } from '@iconify/vue';
 
@@ -90,6 +86,7 @@ import Tree from './location_subtree/PatchingTree.vue';
 import { TreeGenerator } from '@/utils/tree/patching/TreeGenerator';
 import type { TreeNode } from '@/utils/tree/patching/TreeNode';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 export interface Props {
     analysisID: string;
@@ -109,7 +106,6 @@ const nodes_array: Ref<Array<TreeNode>> = ref([]);
 // Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 
 watch(
     () => props.projectID,

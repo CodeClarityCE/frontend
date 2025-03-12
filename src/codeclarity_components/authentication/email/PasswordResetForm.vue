@@ -8,50 +8,33 @@
             </div>
 
             <div style="display: flex; flex-direction: column; row-gap: 2rem">
-                <InfoBoxRed v-if="error">
-                    <template #content>
-                        <div class="flex-row flex-row-05rem">
-                            <Icon icon="material-symbols:error-outline" />
-                            <div v-if="errorCode">
-                                <div
-                                    v-if="errorCode == APIErrors.ValidationFailed"
-                                    style="white-space: break-spaces"
-                                >
-                                    <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                                    {{ validationError!.toMessage('Invalid form:') }}
-                                </div>
-                                <div v-else-if="errorCode == APIErrors.PasswordsDoNotMatch">
-                                    Passwords do not match.
-                                </div>
-                                <div v-else>
-                                    An error occured during the processing of the request.
-                                </div>
+                <Alert v-if="error" variant="destructive">
+                    <AlertDescription class="flex-row flex-row-05rem">
+                        <Icon icon="material-symbols:error-outline" />
+                        <div v-if="errorCode">
+                            <div v-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
+                                <!-- Note: this should never happen unless our client and server side validation are out of sync -->
+                                {{ validationError!.toMessage('Invalid form:') }}
                             </div>
-                            <div v-else>An error occured during the processing of the request.</div>
+                            <div v-else-if="errorCode == APIErrors.PasswordsDoNotMatch">
+                                Passwords do not match.
+                            </div>
+                            <div v-else>
+                                An error occured during the processing of the request.
+                            </div>
                         </div>
-                    </template>
-                </InfoBoxRed>
+                        <div v-else>An error occured during the processing of the request.</div>
+                    </AlertDescription>
+                </Alert>
 
-                <Form
-                    style="display: flex; flex-direction: column; row-gap: 1.5rem"
-                    name="password_reset_form"
-                    :validation-schema="formValidationSchema"
-                    @submit="submit"
-                >
-                    <FormTextField
-                        v-model="formPassword"
-                        :placeholder="'Enter your new password'"
-                        :type="'password'"
-                        :name="'new_password'"
-                    >
+                <Form style="display: flex; flex-direction: column; row-gap: 1.5rem" name="password_reset_form"
+                    :validation-schema="formValidationSchema" @submit="submit">
+                    <FormTextField v-model="formPassword" :placeholder="'Enter your new password'" :type="'password'"
+                        :name="'new_password'">
                         <template #name>New password</template>
                     </FormTextField>
-                    <FormTextField
-                        v-model="formPasswordConfirmation"
-                        :placeholder="'Confirm your new password'"
-                        :type="'password'"
-                        :name="'new_password_comfirmation'"
-                    >
+                    <FormTextField v-model="formPasswordConfirmation" :placeholder="'Confirm your new password'"
+                        :type="'password'" :name="'new_password_comfirmation'">
                         <template #name>Confirm the new password</template>
                     </FormTextField>
 
@@ -67,10 +50,7 @@
             <div class="flex-column flex-column-20">
                 <div>
                     <div class="title">Failed</div>
-                    <div
-                        class="subtitle"
-                        v-if="errorCode == APIErrors.PasswordResetTokenInvalidOrExpired"
-                    >
+                    <div class="subtitle" v-if="errorCode == APIErrors.PasswordResetTokenInvalidOrExpired">
                         Your password was
                         <span style="font-weight: 900; text-decoration: underline">not</span> reset
                         because the password reset has expired. Please request a new password reset
@@ -81,26 +61,17 @@
                         An error occured during the processing of the request.
                     </div>
                 </div>
-                <div
-                    style="
+                <div style="
                         display: flex;
                         flex-direction: row;
                         justify-content: space-between;
                         column-gap: 1rem;
-                    "
-                >
-                    <RouterLink
-                        class="filled-button router-link-button"
-                        :to="{ name: 'recoveryRequest' }"
-                        style="width: 100%"
-                    >
+                    ">
+                    <RouterLink class="filled-button router-link-button" :to="{ name: 'recoveryRequest' }"
+                        style="width: 100%">
                         Request a new password reset
                     </RouterLink>
-                    <RouterLink
-                        class="bordered-button router-link-button"
-                        :to="{ name: 'login' }"
-                        style="width: 100%"
-                    >
+                    <RouterLink class="bordered-button router-link-button" :to="{ name: 'login' }" style="width: 100%">
                         Back to login
                     </RouterLink>
                 </div>
@@ -113,19 +84,13 @@
                 <div class="title">Success</div>
                 <div class="subtitle">Your password has been succesfully updated.</div>
             </div>
-            <div
-                style="
+            <div style="
                     display: flex;
                     flex-direction: row;
                     justify-content: space-between;
                     column-gap: 1rem;
-                "
-            >
-                <RouterLink
-                    class="filled-button router-link-button"
-                    :to="{ name: 'login' }"
-                    style="width: 100%"
-                >
+                ">
+                <RouterLink class="filled-button router-link-button" :to="{ name: 'login' }" style="width: 100%">
                     Back to login
                 </RouterLink>
             </div>
@@ -143,7 +108,8 @@ import { AuthRepository } from '@/codeclarity_components/authentication/auth.rep
 import router from '@/router';
 import { Icon } from '@iconify/vue';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();

@@ -43,10 +43,9 @@
                 v-if="!errorNonRecoverable"
                 style="display: flex; flex-direction: column; row-gap: 2rem"
             >
-                <InfoBoxRed v-if="errorCode">
-                    <template #content>
-                        <div class="flex flex-row gap-2 items-center">
-                            <Icon icon="material-symbols:error-outline" />
+                <Alert v-if="errorCode">
+                    <AlertDescription class="flex flex-row gap-2 items-center">
+                        <Icon icon="material-symbols:error-outline" />
                             <div>
                                 <div v-if="errorCode == APIErrors.HandleAlreadyExists">
                                     A user with that handle already exists, choose a different
@@ -63,9 +62,8 @@
                                     An error occured during the processing of the request.
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                </InfoBoxRed>
+                    </AlertDescription>
+                </Alert>
 
                 <Form
                     class="flex flex-col gap-4"
@@ -135,8 +133,8 @@ import type { RefreshToken } from '@/codeclarity_components/authentication/refre
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 import FormInlineCheckboxField from '@/base_components/forms/FormInlineCheckboxField.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 // Props
 const props = defineProps<{

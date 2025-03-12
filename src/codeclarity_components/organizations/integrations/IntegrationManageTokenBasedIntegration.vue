@@ -12,8 +12,8 @@ import type { RouteLocationRaw } from 'vue-router';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
 import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 // Props
 const props = defineProps<{
@@ -127,15 +127,15 @@ const emit = defineEmits<{
         <div class="flex flex-row gap-8">
             <div class="flex flex-column gap-5">
                 <div v-if="isAtRisk()" class="mb-5">
-                    <InfoBoxRed>
-                        <template #content>
+                    <Alert variant="destructive">
+                        <AlertDescription>
                             <span class="font-semibold"> Expiry : </span>
                             <span>
                                 Your integration token is about to expire. Please use the action
                                 'Update/Replace integration token' before the token expires.
                             </span>
-                        </template>
-                    </InfoBoxRed>
+                        </AlertDescription>
+                    </Alert>
                 </div>
                 <div class="flex flex-col gap-1">
                     <div class="flex flex-row gap-2 items-center" style="font-size: 2em">
@@ -305,14 +305,12 @@ const emit = defineEmits<{
             <div class="flex flex-col gap-4" style="max-width: 400px; width: 100vw">
                 <template v-if="centeredModalAction == ModalAction.DELETE">
                     <div>Are you sure you want to delete the integration?</div>
-                    <InfoBoxRed>
-                        <template #content>
-                            <div>
-                                This might cause currently running analyses to fail. And other side
+                    <Alert variant="destructive">
+                        <AlertDescription>
+                            This might cause currently running analyses to fail. And other side
                                 effects are also expected!
-                            </div>
-                        </template>
-                    </InfoBoxRed>
+                        </AlertDescription>
+                    </Alert>
                     <div>You can always add a new integration.</div>
                 </template>
             </div>

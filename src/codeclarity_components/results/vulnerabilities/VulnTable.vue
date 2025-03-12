@@ -265,14 +265,12 @@
             />
         </div>
     </div>
-    <InfoBoxRed v-if="error">
-        <template #content>
-            <div>
-                <Icon :icon="'ant-design:warning-twotone'"></Icon>
-            </div>
-            <div>Failed to fetch vulnerabilities data</div>
-        </template>
-    </InfoBoxRed>
+    <Alert v-if="error" variant="destructive">
+        <Icon :icon="'ant-design:warning-twotone'"></Icon>
+        <AlertDescription>
+            Failed to fetch vulnerabilities data
+        </AlertDescription>
+    </Alert>
 </template>
 
 <script lang="ts" setup>
@@ -289,7 +287,6 @@ import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulne
 import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
 import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
 import UtilitiesFilters, {
     createNewFilterState,
@@ -298,6 +295,7 @@ import UtilitiesFilters, {
 } from '@/base_components/UtilitiesFilters.vue';
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 export interface Props {
     [key: string]: any;

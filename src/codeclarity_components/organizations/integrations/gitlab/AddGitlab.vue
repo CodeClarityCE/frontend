@@ -16,9 +16,9 @@ import { ValidationError as YupValidationError } from 'yup';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
-import InfoBoxGray from '@/base_components/info_box/InfoBoxGray.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 enum FormMode {
     UPDATE = 'UPDATE',
@@ -190,51 +190,49 @@ init();
                 </div>
             </div>
 
-            <InfoBoxRed v-if="error">
-                <template #content>
-                    <div class="flex flex-row gap-2 items-center">
-                        <Icon icon="material-symbols:error-outline" />
-                        <div v-if="errorCode">
-                            <div v-if="
-                                errorCode == APIErrors.IntegrationTokenExpired ||
-                                errorCode == APIErrors.IntegrationInvalidToken ||
-                                errorCode == APIErrors.IntegrationWrongTokenType
-                            ">
-                                Your token appears invalid or expired.
+            <Alert v-if="error" variant="destructive">
+                <AlertDescription class="flex flex-row gap-2 items-center">
+                    <Icon icon="material-symbols:error-outline" />
+                    <div v-if="errorCode">
+                        <div v-if="
+                            errorCode == APIErrors.IntegrationTokenExpired ||
+                            errorCode == APIErrors.IntegrationInvalidToken ||
+                            errorCode == APIErrors.IntegrationWrongTokenType
+                        ">
+                            Your token appears invalid or expired.
+                        </div>
+                        <div v-else-if="
+                            errorCode ==
+                            APIErrors.IntegrationIntegrationTokenMissingPermissions
+                        ">
+                            Your token does not have the required permissions. Please select
+                            both <span class="code-bubble">api</span> and
+                            <span class="code-bubble">read_user</span> scopes.
+                        </div>
+                        <div v-else-if="errorCode == APIErrors.DuplicateIntegration">
+                            You already have an integration with GitLab for the same host.
+                        </div>
+                        <div v-else-if="errorCode == APIErrors.EntityNotFound">
+                            <div v-if="mode == FormMode.CREATE">
+                                This should not have happened. Please try again.
+                                <!-- Race condition -->
                             </div>
-                            <div v-else-if="
-                                errorCode ==
-                                APIErrors.IntegrationIntegrationTokenMissingPermissions
-                            ">
-                                Your token does not have the required permissions. Please select
-                                both <span class="code-bubble">api</span> and
-                                <span class="code-bubble">read_user</span> scopes.
+                            <div v-if="mode == FormMode.UPDATE">
+                                The integration you are trying to update does not exist.
                             </div>
-                            <div v-else-if="errorCode == APIErrors.DuplicateIntegration">
-                                You already have an integration with GitLab for the same host.
-                            </div>
-                            <div v-else-if="errorCode == APIErrors.EntityNotFound">
-                                <div v-if="mode == FormMode.CREATE">
-                                    This should not have happened. Please try again.
-                                    <!-- Race condition -->
-                                </div>
-                                <div v-if="mode == FormMode.UPDATE">
-                                    The integration you are trying to update does not exist.
-                                </div>
-                            </div>
-                            <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
-                                <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                                {{ validationError!.toMessage('Invalid form:') }}
-                            </div>
-                            <div v-else-if="errorCode == APIErrors.NotAuthorized">
-                                You are not authorized to perform this action.
-                            </div>
-                            <div v-else>An error occured during the processing of the request.</div>
+                        </div>
+                        <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
+                            <!-- Note: this should never happen unless our client and server side validation are out of sync -->
+                            {{ validationError!.toMessage('Invalid form:') }}
+                        </div>
+                        <div v-else-if="errorCode == APIErrors.NotAuthorized">
+                            You are not authorized to perform this action.
                         </div>
                         <div v-else>An error occured during the processing of the request.</div>
                     </div>
-                </template>
-            </InfoBoxRed>
+                    <div v-else>An error occured during the processing of the request.</div>
+                </AlertDescription>
+            </Alert>
 
             <Form class="normal-form" :validation-schema="formValidationSchema" style="row-gap: 20px" @submit="submit">
                 <FormTextField v-model="formPersonalAccessToken" :placeholder="'Enter a Gitlab personal access token'"
@@ -282,26 +280,53 @@ init();
                 </div>
             </div>
             <div class="flex flex-col gap-4 flex-column-15rem">
-                <InfoBoxGray>
-                    <template #content>
-                        <div class="flex flex-col gap-2 p-4">
-                            <div>
-                                To save you some time we have prefilled a token with the correct
-                                permissions:
-                            </div>
-                            <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl +
-                                '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
+                <Alert>
+                    <AlertDescription class="flex flex-col gap-2 p-4">
+                        <div>
+                            To save you some time we have prefilled a token with the correct
+                            permissions:
+                        </div>
+                        <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl +
+                            '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
+                            ">
+                            <Button>
+                                <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
+                                Prefilled access token
+                            </Button>
+                        </a>
+
+                        <div>
+                            (1) Click on "Add new token" on the top right.<br />
+                            (2) Select an expiration time that fits your security policy.<br />
+                            (3) Click "Create personal access token".<br />
+                        </div>
+
+                        <div>
+                            Copy and paste the newly created token in the field labeled
+                            "Personal access token" within this page.
+                        </div>
+                    </AlertDescription>
+                </Alert>
+                <Alert>
+                    <AlertDescription class="flex flex-col gap-5 p-4">
+                        <div class="flex flex-col gap-2">
+                            <div>Alternatively, create a token manually:</div>
+
+                            <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl + '/-/profile/personal_access_tokens'
                                 ">
                                 <Button>
                                     <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
-                                    Prefilled access token
+                                    Manually create an access token
                                 </Button>
                             </a>
 
                             <div>
                                 (1) Click on "Add new token" on the top right.<br />
-                                (2) Select an expiration time that fits your security policy.<br />
-                                (3) Click "Create personal access token".<br />
+                                (2) Enter a name, such as "CodeClarity".<br />
+                                (3) Select both <span class="code-bubble">api</span> and
+                                <span class="code-bubble">read_user</span> scopes.<br />
+                                (4) Select an expiration time that fits your security policy.<br />
+                                (5) Click "Create personal access token".<br />
                             </div>
 
                             <div>
@@ -309,39 +334,8 @@ init();
                                 "Personal access token" within this page.
                             </div>
                         </div>
-                    </template>
-                </InfoBoxGray>
-                <InfoBoxGray>
-                    <template #content>
-                        <div class="flex flex-col gap-5 p-4">
-                            <div class="flex flex-col gap-2">
-                                <div>Alternatively, create a token manually:</div>
-
-                                <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl + '/-/profile/personal_access_tokens'
-                                    ">
-                                    <Button>
-                                        <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
-                                        Manually create an access token
-                                    </Button>
-                                </a>
-
-                                <div>
-                                    (1) Click on "Add new token" on the top right.<br />
-                                    (2) Enter a name, such as "CodeClarity".<br />
-                                    (3) Select both <span class="code-bubble">api</span> and
-                                    <span class="code-bubble">read_user</span> scopes.<br />
-                                    (4) Select an expiration time that fits your security policy.<br />
-                                    (5) Click "Create personal access token".<br />
-                                </div>
-
-                                <div>
-                                    Copy and paste the newly created token in the field labeled
-                                    "Personal access token" within this page.
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </InfoBoxGray>
+                    </AlertDescription>
+                </Alert>
             </div>
         </div>
     </div>

@@ -662,14 +662,12 @@
             </div>
         </div>
 
-        <InfoBoxRed v-if="error">
-            <template #content>
-                <div>
-                    <Icon :icon="'ic:twotone-warning'"></Icon>
-                </div>
-                <div>Encountered Error during the rendering of the stats.</div>
-            </template>
-        </InfoBoxRed>
+        <Alert v-if="error" variant="destructive">
+            <Icon :icon="'ic:twotone-warning'"></Icon>
+            <AlertDescription>
+                Encountered Error during the rendering of the stats.
+            </AlertDescription>
+        </Alert>
     </div>
 </template>
 
@@ -692,7 +690,7 @@ import { Icon } from '@iconify/vue';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 Chart.register(...registerables);
 

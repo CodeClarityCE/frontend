@@ -13,9 +13,9 @@ import * as yup from 'yup';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
-import InfoBoxGray from '@/base_components/info_box/InfoBoxGray.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 enum FormMode {
     UPDATE = 'UPDATE',
@@ -146,8 +146,8 @@ init();
                 </div>
             </div>
 
-            <InfoBoxRed v-if="error">
-                <template #content>
+            <Alert v-if="error" variant="destructive">
+                <AlertDescription>
                     <div class="flex flex-row gap-2 items-center">
                         <Icon icon="material-symbols:error-outline" />
                         <div v-if="errorCode">
@@ -189,8 +189,8 @@ init();
                         </div>
                         <div v-else>An error occured during the processing of the request.</div>
                     </div>
-                </template>
-            </InfoBoxRed>
+                </AlertDescription>
+            </Alert>
 
             <Form class="normal-form" :validation-schema="formValidationSchema" style="row-gap: 20px" @submit="submit">
                 <FormTextField v-model="formPersonalClassicToken" :placeholder="'Enter a Github classic token'"
@@ -212,64 +212,60 @@ init();
                 </div>
             </div>
             <div class="flex flex-col gap-4">
-                <InfoBoxGray>
-                    <template #content>
-                        <div class="flex flex-col gap-2 p-4">
-                            <div>
-                                To save you some time we have prefilled a token with the correct
-                                permissions:
-                            </div>
+                <Alert>
+                    <AlertDescription class="flex flex-col gap-2 p-4">
+                        <div>
+                            To save you some time we have prefilled a token with the correct
+                            permissions:
+                        </div>
+
+                        <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center"
+                            href="https://github.com/settings/tokens/new?description=CodeClarity&scopes=public_repo">
+                            <Button>
+                                <Icon icon="devicon:github" class="icon integration-icon"></Icon>
+                                Prefilled classic token
+                            </Button>
+                        </a>
+
+                        <div>
+                            (1) Select an expiration time that fits your security policy.<br />
+                            (2) Click "Generate token".<br />
+                        </div>
+
+                        <div>
+                            Copy and paste the newly created token in the field labeled "Classic
+                            token" within this page.
+                        </div>
+                    </AlertDescription>
+                </Alert>
+                <Alert>
+                    <AlertDescription class="flex flex-col gap-5 p-4">
+                        <div class="flex flex-col gap-2">
+                            <div>Alternatively, create a token manually:</div>
 
                             <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center"
-                                href="https://github.com/settings/tokens/new?description=CodeClarity&scopes=public_repo">
+                                href="https://github.com/settings/tokens/new">
                                 <Button>
                                     <Icon icon="devicon:github" class="icon integration-icon"></Icon>
-                                    Prefilled classic token
+                                    Manually create an access token
                                 </Button>
                             </a>
 
                             <div>
-                                (1) Select an expiration time that fits your security policy.<br />
-                                (2) Click "Generate token".<br />
+                                (1) Enter a name, such as "CodeClarity".<br />
+                                (2) Select both <span class="code-bubble">repo</span> and
+                                <span class="code-bubble">write:org</span> scopes.<br />
+                                (3) Select an expiration time that fits your security policy.<br />
+                                (4) Click "Generate Token".<br />
                             </div>
 
                             <div>
-                                Copy and paste the newly created token in the field labeled "Classic
-                                token" within this page.
+                                Copy and paste the newly created token in the field labeled
+                                "Classic token" within this page.
                             </div>
                         </div>
-                    </template>
-                </InfoBoxGray>
-                <InfoBoxGray>
-                    <template #content>
-                        <div class="flex flex-col gap-5 p-4">
-                            <div class="flex flex-col gap-2">
-                                <div>Alternatively, create a token manually:</div>
-
-                                <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center"
-                                    href="https://github.com/settings/tokens/new">
-                                    <Button>
-                                        <Icon icon="devicon:github" class="icon integration-icon"></Icon>
-                                        Manually create an access token
-                                    </Button>
-                                </a>
-
-                                <div>
-                                    (1) Enter a name, such as "CodeClarity".<br />
-                                    (2) Select both <span class="code-bubble">repo</span> and
-                                    <span class="code-bubble">write:org</span> scopes.<br />
-                                    (3) Select an expiration time that fits your security policy.<br />
-                                    (4) Click "Generate Token".<br />
-                                </div>
-
-                                <div>
-                                    Copy and paste the newly created token in the field labeled
-                                    "Classic token" within this page.
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </InfoBoxGray>
+                    </AlertDescription>
+                </Alert>
             </div>
         </div>
     </div>

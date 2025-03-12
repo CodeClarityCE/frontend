@@ -393,16 +393,12 @@
             </div>
         </div>
 
-        <div v-if="error">
-            <InfoBoxRed>
-                <template #content>
-                    <div>
-                        <Icon :icon="'ic:twotone-warning'"></Icon>
-                    </div>
-                    <div>Encountered Error during the rendering of the stats.</div>
-                </template>
-            </InfoBoxRed>
-        </div>
+        <Alert v-if="error" variant="destructive">
+            <Icon :icon="'ic:twotone-warning'"></Icon>
+            <AlertDescription>
+                Encountered Error during the rendering of the stats.
+            </AlertDescription>
+        </Alert>
     </div>
 </template>
 
@@ -410,7 +406,6 @@
 import { ref, type Ref, watch } from 'vue';
 import TextLoader from '../../../base_components/TextLoader.vue';
 import BoxLoader from '../../../base_components/BoxLoader.vue';
-// import moment, { max } from 'moment';
 
 import { Radar, Bar } from 'vue-chartjs';
 import { Icon } from '@iconify/vue';
@@ -420,7 +415,7 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 Chart.register(...registerables);
 
 type Props = {

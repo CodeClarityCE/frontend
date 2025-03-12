@@ -125,16 +125,12 @@
         <template #content>
             <div class="flex flex-col gap-6 max-w-96 w-screen">
                 <div>Are you sure you want to delete the analysis?</div>
-                <InfoBoxRed>
-                    <template #content>
-                        <div class="content flex gap-2 items-center">
-                            <div>
-                                <Icon icon="ic:twotone-warning" scale="1.25" />
-                            </div>
-                            <div>This action is permanent and cannot be reverted.</div>
-                        </div>
-                    </template>
-                </InfoBoxRed>
+                <Alert variant="destructive">
+                    <Icon icon="ic:twotone-warning" scale="1.25" />
+                    <AlertDescription>
+                        This action is permanent and cannot be reverted.
+                    </AlertDescription>
+                </Alert>
             </div>
         </template>
         <template #buttons>
@@ -159,7 +155,6 @@ import { ref, type Ref } from 'vue';
 import { Analysis, AnalysisStage, AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { Icon } from '@iconify/vue';
 import CenteredModal from '@/base_components/CenteredModal.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
 import { errorToast, successToast } from '@/utils/toasts';
 import router from '@/router';
@@ -170,6 +165,7 @@ import { useUserStore } from '@/stores/user';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { Progress } from '@/shadcn/ui/progress';
 import { Button } from '@/shadcn/ui/button';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 const analysis_delete_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const finished_modal_ref: Ref<typeof PositionedModal> = ref(PositionedModal);

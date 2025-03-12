@@ -11,8 +11,8 @@ import HeaderItem from '@/codeclarity_components/organizations/subcomponents/Hea
 import CenteredModal from '@/base_components/CenteredModal.vue';
 import FaqBox from '@/base_components/FaqBox.vue';
 import { errorToast, successToast } from '@/utils/toasts';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 const authStore = useAuthStore();
 
@@ -332,16 +332,12 @@ function setOrgInfo(_orgInfo: Organization) {
                 <div v-if="orgAction == OrgAction.LEAVE">
                     Are you sure you want to leave the organization?
                 </div>
-                <InfoBoxRed>
-                    <template #content>
-                        <div class="flex flex-row gap-2 justify-between items-center">
-                            <div>
-                                <Icon class="icon" icon="solar:danger-triangle-bold-duotone"></Icon>
-                            </div>
-                            <div>This action is permanent and cannot be reverted.</div>
-                        </div>
-                    </template>
-                </InfoBoxRed>
+                <Alert variant="destructive">
+                    <Icon class="icon" icon="solar:danger-triangle-bold-duotone"></Icon>
+                    <AlertDescription>
+                        This action is permanent and cannot be reverted.
+                    </AlertDescription>
+                </Alert>
             </div>
         </template>
         <template #buttons>

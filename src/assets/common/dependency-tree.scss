@@ -1,3 +1,5 @@
+@use '../colors.scss';
+
 /*****************************************************************************/
 /*                             Dependency Tree                               */
 /*****************************************************************************/
@@ -202,12 +204,12 @@
 }
 
 .dependency-tree .vulnerable-dep {
-    border-left: 3px solid $patch-type-none;
+    border-left: 3px solid colors.$patch-type-none;
     font-weight: 700;
 }
 
 .dependency-tree .highlight-dep {
-    border-left: 3px solid $accent-light;
+    border-left: 3px solid colors.$accent-light;
     font-weight: 700;
 }
 

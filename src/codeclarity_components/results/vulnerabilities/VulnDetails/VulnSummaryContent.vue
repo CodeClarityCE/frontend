@@ -1,0 +1,421 @@
+<template>
+    <!--------------------------------------------------------------------------->
+    <!--                      Vulnerability summary content                    -->
+    <!--------------------------------------------------------------------------->
+    <section class="summary-content">
+        <div class="vuln-details-wrapper">
+            <!--------------------------------------------------------------------------->
+            <!--                         Vulnerability description                     -->
+            <!--------------------------------------------------------------------------->
+            <div>
+                <div class="flex flex-col gap-5">
+                    <h2 class="font-black">
+                        <span style="color: teal; font-size: 1.9em">V</span>ulnerability Information
+                    </h2>
+                    <div style="position: relative">
+                        <div class="w-full">
+                            <div class="flex flex-col gap-2 mb-5 max-w-96 w-full">
+                                <div>
+                                    <span class="font-normal">Published:</span>
+                                    {{ moment(finding.vulnerability_info.published).format('LL') }}
+                                </div>
+                                <div>
+                                    <div>
+                                        <span class="font-normal">Last modified:</span>
+                                        {{
+                                            moment(finding.vulnerability_info.last_modified).format(
+                                                'LL'
+                                            )
+                                        }}
+                                    </div>
+                                </div>
+                                <div class="flex flex-row items-center gap-2">
+                                    <div class="font-normal">Aliases:</div>
+                                    <div class="flex gap-2 text-sm">
+                                        <div v-for="alias in finding.vulnerability_info.aliases" :key="alias">
+                                            <BubbleComponent :slim="true">
+                                                <template #content>{{ alias }}</template>
+                                            </BubbleComponent>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row items-center gap-2">
+                                    <div class="font-normal">Sources:</div>
+                                    <div class="flex gap-2 text-sm">
+                                        <div v-for="source in finding.vulnerability_info.sources" :key="source.name">
+                                            <div v-if="source.name == 'NVD'">
+                                                <BubbleComponent :slim="true">
+                                                    <template #content>
+                                                        <a :href="source.vuln_url" target="_blank">NVD</a>
+                                                    </template>
+                                                </BubbleComponent>
+                                            </div>
+                                            <div v-if="source.name == 'OSV'">
+                                                <BubbleComponent :slim="true">
+                                                    <template #content>
+                                                        <a :href="source.vuln_url" target="_blank">OSV</a>
+                                                    </template>
+                                                </BubbleComponent>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row items-center gap-2">
+                                    <div class="font-normal">Status:</div>
+                                    <div class="flex gap-2 text-sm">
+                                        <div>
+                                            <!-- <BubbleComponent
+                                                v-if="
+                                                    finding.patch &&
+                                                    finding.patch.patch_type == 'NONE'
+                                                "
+                                                :not-patchable="true"
+                                            >
+                                                <template #content>
+                                                    <Icon
+                                                        :icon="'material-symbols:crisis-alert'"
+                                                    ></Icon>
+                                                    Not patchable
+                                                </template>
+                                            </BubbleComponent>
+                                            <BubbleComponent
+                                                v-if="
+                                                    finding.patch &&
+                                                    finding.patch.patch_type == 'PARTIAL'
+                                                "
+                                                :partially-patchable="true"
+                                            >
+                                                <template #content>
+                                                    <Icon
+                                                        :icon="'material-symbols:crisis-alert'"
+                                                    ></Icon>
+                                                    Partially patchable
+                                                </template>
+                                            </BubbleComponent>
+                                            <BubbleComponent
+                                                v-if="
+                                                    finding.patch &&
+                                                    finding.patch.patch_type == 'FULL'
+                                                "
+                                                :patchable="true"
+                                            >
+                                                <template #content> Patchable </template>
+                                            </BubbleComponent> -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-sm font-normal">Description</div>
+                            <div class="overflow-y-auto">
+                                <InfoMarkdown class="w-full" :markdown="finding.vulnerability_info.description">
+                                </InfoMarkdown>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="self-stretch bg-[#e8e8e8]"></div>
+
+            <!--------------------------------------------------------------------------->
+            <!--                        Vulnerability weakness info                    -->
+            <!--------------------------------------------------------------------------->
+
+            <div>
+                <div v-if="
+                    (!finding.weaknesses || finding.weaknesses.length == 0) &&
+                    !finding.owasp_top_10
+                ">
+                    <div class="flex flex-col gap-5">
+                        <h2 style="font-family: lato; font-weight: 900">
+                            <span class="text-primary text-3xl">W</span>eakness information
+                        </h2>
+                        <div>
+                            No information on weaknesess. If the vulnerability has only recently
+                            been published, then information on weaknesses may follow soon.
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="flex">
+                    <div class="flex flex-col gap-5">
+                        <h2 class="font-black">
+                            <span class="text-primary text-3xl">W</span>eakness information
+                        </h2>
+                        <div class="relative w-full">
+                            <div class="mb-4">
+                                The following aims to provide details on the type of flaw within the
+                                dependency that enables the exploitation.
+                            </div>
+                            <div class="flex flex-col gap-8">
+                                <div v-if="finding.owasp_top_10">
+                                    <div class="flex flex-col gap-y-2">
+                                        <div class="flex gap-2 items-center font-black">
+                                            <Icon :icon="'simple-icons:owasp'"></Icon>
+                                            <div class="flex items-center gap-1">
+                                                Owasp Top 10 2021
+                                                <Icon :icon="'material-symbols:help-outline'"></Icon>
+                                            </div>
+                                        </div>
+                                        <div class="font-normal">
+                                            {{ finding.owasp_top_10.name }}
+                                        </div>
+                                        <div>
+                                            {{ finding.owasp_top_10.description }}
+                                        </div>
+                                        <div class="mt-2">
+                                            <a class="flex items-center gap-1 text-primary"
+                                                title="View owasp top 10 details (opens a owasp.org page)" :href="`https://owasp.org/Top10/${finding.owasp_top_10.name
+                                                    .replace(': ', '_2021-')
+                                                    .replace(' ', '_')}`" target="_blank">
+                                                <Icon :icon="'ic:outline-open-in-new'"></Icon>
+                                                Owasp Top 10 Category Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="finding.weaknesses.length > 0">
+                                    <div class="flex flex-col gap-4">
+                                        <div class="flex flex-row items-center gap-2 font-black">
+                                            Common Weakness Enumeration (CWE)
+                                            <Icon :icon="'material-symbols:help-outline'"></Icon>
+                                        </div>
+                                        <div v-for="weakness in finding.weaknesses" :key="weakness.id"
+                                            class="flex flex-col gap-2">
+                                            <div class="flex flex-col gap-y-2">
+                                                <div class="font-normal">
+                                                    {{ weakness.id }} -
+                                                    {{ weakness.name }}
+                                                </div>
+                                                <div>
+                                                    {{ weakness.description }}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div v-if="
+                                                    weakness.id in
+                                                    finding.common_consequences &&
+                                                    finding.common_consequences[weakness.id]
+                                                        .length > 0
+                                                " class="mt-4">
+                                                    <span>Potential Consequences: </span>
+                                                    <span>{{
+                                                        finding.common_consequences[weakness.id]
+                                                            .map((conseq) =>
+                                                                conseq.impact.join(', ')
+                                                            )
+                                                            .join('; ')
+                                                    }}.</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-2">
+                                                <a class="flex flex-row items-center gap-2 text-primary"
+                                                    title="View cwe details (opens a mitre.org page)" :href="`https://cwe.mitre.org/data/definitions/${weakness.id.replace(
+                                                        'CWE-',
+                                                        ''
+                                                    )}`" target="_blank">
+                                                    <Icon :icon="'ic:outline-open-in-new'"></Icon>
+                                                    CWE Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--------------------------------------------------------------------------->
+            <!--                             Vulnerability Info                        -->
+            <!--------------------------------------------------------------------------->
+            <div class="flex flex-col gap-5">
+                <h2 class="font-black"><span class="text-primary text-3xl">D</span>ependency</h2>
+                <div class="relative">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-end gap-1">
+                            <div class="text-xl font-bold">
+                                <span>{{ finding.dependency_info?.name }}@{{
+                                    finding.dependency_info?.version
+                                }}</span>
+                            </div>
+                            <div class="text-[#6c6b6b]">
+                                (published on
+                                {{ moment(finding.dependency_info?.published).format('LL') }})
+                            </div>
+                        </div>
+                        <div>
+                            {{ finding.dependency_info?.description }}
+                        </div>
+                        <div v-if="
+                            finding.other.package_manager == 'NPM' ||
+                            finding.other.package_manager == 'YARN'
+                        " class="flex gap-6">
+                            <div>
+                                <a :href="`https://www.npmjs.com/package/${finding.dependency_info?.name}`"
+                                    title="opens the npm package page (in a new tab)" target="_blank">
+                                    <Icon :icon="'iconoir:npm'" class="text-5xl"></Icon>
+                                </a>
+                            </div>
+                            <div>
+                                <a :href="`https://www.yarnpkg.com/package/${finding.dependency_info?.name}`"
+                                    title="opens the yarn package page (in a new tab)" target="_blank">
+                                    <Icon :icon="'devicon:yarn-wordmark'" class="text-5xl"></Icon>
+                                </a>
+                            </div>
+                            <div v-if="finding.dependency_info?.github_link">
+                                <a :href="'https://' +
+                                    finding.dependency_info?.github_link.repo_full_path
+                                    " title="opens the github repo of the dependency (in a new tab)" target="_blank">
+                                    <Icon :icon="'devicon:github-wordmark'" class="text-5xl"></Icon>
+                                </a>
+                            </div>
+                            <div v-if="finding.dependency_info?.issues_link">
+                                <a :href="'https://' + finding.dependency_info?.issues_link"
+                                    title="opens the github issues of the dependency (in a new tab)" target="_blank"
+                                    class="flex gap-1">
+                                    <Icon :icon="'devicon:github-wordmark'" class="text-5xl"></Icon>
+                                    Issues
+                                </a>
+                            </div>
+                            <div v-if="finding.dependency_info?.homepage">
+                                <a :href="finding.dependency_info?.homepage"
+                                    title="opens the website of the dependency (in a new tab)" target="_blank"
+                                    class="flex gap-1">
+                                    <Icon :icon="'ph:link'" class="text-5xl"></Icon> Website
+                                </a>
+                            </div>
+                        </div>
+                        <div v-if="finding.dependency_info">
+                            <div v-if="finding.dependency_info.keywords.length > 0" class="flex gap-2 items-center">
+                                <div>Tags</div>
+                                <div class="flex flex-wrap gap-1">
+                                    <div v-for="keyword in finding.dependency_info?.keywords" :key="keyword">
+                                        <div v-if="
+                                            finding.other.package_manager == 'NPM' ||
+                                            finding.other.package_manager == 'YARN'
+                                        ">
+                                            <BubbleComponent :slim="true">
+                                                <template #content>
+                                                    <a title="opens npm with applied keyword search (in a new tab)"
+                                                        :href="'https://www.npmjs.com/search?q=keywords:' +
+                                                            keyword
+                                                            " target="_blank">#{{ keyword }}</a>
+                                                </template>
+                                            </BubbleComponent>
+                                        </div>
+                                        <BubbleComponent v-else>
+                                            <template #content>#{{ keyword }}</template>
+                                        </BubbleComponent>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <Card v-if="readme != ''">
+                            <CardHeader>
+                                <CardTitle class="flex gap-2 items-center">
+                                    <Icon :icon="'tabler:markdown'"></Icon>
+                                    <div>Readme</div>
+                                </CardTitle>
+                                <CardDescription>
+                                    <Icon :icon="'bi:box-arrow-up-right'" class="cursor-pointer"
+                                        @click="read_me_modal_ref.toggle()"></Icon>
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent class="content max-h-60 overflow-y-auto relative">
+                                <InfoMarkdown class="w-full" :markdown="readme"></InfoMarkdown>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+
+            <div style="align-self: stretch; background-color: #e8e8e8"></div>
+
+            <!--------------------------------------------------------------------------->
+            <!--                         Vulnerability patch summary                   -->
+            <!--------------------------------------------------------------------------->
+            <div>
+                <div class="patching-summary flex flex-col gap-5">
+                    <div class="title">
+                        <h2 class="font-black">
+                            <span class="text-primary text-3xl">P</span>atching
+                        </h2>
+                        <!-- <span
+                            v-if="
+                                finding.patch &&
+                                finding.patch.patch_type &&
+                                finding.patch.patch_type == 'FULL'
+                            "
+                            class="findings-patch-type-indicator-full"
+                        >
+                            <Icon :icon="'bi:shield-check'"></Icon>
+                            Full patch available
+                        </span> -->
+                        <!-- <span
+                            v-if="
+                                finding.patch &&
+                                finding.patch.patch_type &&
+                                finding.patch.patch_type == 'PARTIAL'
+                            "
+                            class="findings-patch-type-indicator-partial"
+                        >
+                            <Icon :icon="'bi:shield-minus'"></Icon>
+                            Partial patch available
+                        </span> -->
+                        <!-- <span
+                            v-if="!finding.patch || finding.patch.patch_type == 'NONE'"
+                            class="findings-patch-type-indicator-none"
+                        >
+                            <Icon :icon="'bi:shield-exclamation'"></Icon>
+                            No patch available
+                        </span> -->
+                    </div>
+
+                    <div style="position: relative">
+                        <div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</template>
+
+<script setup lang="ts">
+import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
+import moment from 'moment';
+import { Icon } from '@iconify/vue';
+import type CenteredModalVue from '@/base_components/CenteredModal.vue';
+import { ref, type Ref } from 'vue';
+import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+
+const props = defineProps<{
+    finding: VulnerabilityDetails;
+    read_me_modal_ref: typeof CenteredModalVue;
+    // nodes_array: TreeNode[];
+    readme: string;
+    active_view: string;
+}>();
+
+const active_view_ref: Ref<string> = ref(props.active_view);
+
+function getPatchingUrl() {
+    let paths = location.pathname.split('/');
+    let url = `${paths[1]}/patching/${paths[2]}`;
+    return `/${url}`;
+}
+// const readme = defineModel<string>('readme', { required: true })
+// const active_view = defineModel<string>('active_view', { required: true })
+</script>
+<style scoped lang="scss">
+@use '@/assets/colors.scss';
+@use '@/assets/common/details.scss';
+@use '@/assets/common/finding-patch.scss';
+</style>

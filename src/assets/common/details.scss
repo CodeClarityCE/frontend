@@ -1,3 +1,5 @@
+@use '../colors.scss';
+
 /*****************************************************************************/
 /*                                   Details                                 */
 /*****************************************************************************/
@@ -154,9 +156,9 @@
 }
 
 .details-container .references-inner-wrapper .reference-tag {
-    background-color: $base-color;
+    background-color: colors.$base-color;
     padding: 6px;
-    border: 1px solid $base-color;
+    border: 1px solid colors.$base-color;
     border-radius: 5px;
     color: white;
     font-size: 0.8em;

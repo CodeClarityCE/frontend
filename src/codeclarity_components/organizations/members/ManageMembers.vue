@@ -20,7 +20,6 @@ import Pagination from '@/base_components/PaginationComponent.vue';
 import { debounce } from '@/utils/searchUtils';
 import OrgMemberItem from './members/OrgMemberItem.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import SortableTable from '@/base_components/tables/SortableTable.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
@@ -145,32 +144,24 @@ async function onRefetch() {
 </script>
 <template>
     <div class="flex flex-col gap-8 org-members-manage-wrapper">
-        <HeaderItem
-            v-if="orgId"
-            :org-id="orgId"
-            @on-org-info="setOrgInfo($event)"
-        ></HeaderItem>
+        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div v-if="orgInfo" class="flex flex-col gap-8 p-12">
-            <div
-                v-if="
-                    (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                    orgInfo.role == MemberRole.ADMIN ||
-                    orgInfo.role == MemberRole.MODERATOR
-                "
-            >
+            <div v-if="
+                (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
+                orgInfo.role == MemberRole.ADMIN ||
+                orgInfo.role == MemberRole.MODERATOR
+            ">
                 <h2 class="text-2xl font-semibold mb-4">Related Actions</h2>
                 <div class="flex flex-row gap-4 flex-wrap items-stretch org-manage-items">
                     <RouterLink :to="{ name: 'orgAddInvite', params: { orgId: orgId } }">
-                        <BorderCard :hover="true" :slim="true">
-                            <template #title> Invite another User </template>
-                        </BorderCard>
+                        <Button class="w-full flex flex-col gap-2" variant="outline">
+                            Invite another User
+                        </Button>
                     </RouterLink>
-                    <RouterLink
-                        :to="{ name: 'orgManage', params: { orgId: orgId, page: 'invites' } }"
-                    >
-                        <BorderCard :hover="true" :slim="true">
-                            <template #title> Manage organization invites </template>
-                        </BorderCard>
+                    <RouterLink :to="{ name: 'orgManage', params: { orgId: orgId, page: 'invites' } }">
+                        <Button class="w-full flex flex-col gap-2" variant="outline">
+                            Manage organization invites
+                        </Button>
                     </RouterLink>
                 </div>
             </div>
@@ -178,52 +169,29 @@ async function onRefetch() {
                 <h2 class="text-2xl font-semibold mb-4">Member Management</h2>
                 <div v-if="loadingMembers">
                     <div class="flex flex-col gap-2 justify-between" style="padding: 5px">
-                        <BoxLoader
-                            :dimensions="{ width: '100%', height: '50px' }"
-                            v-for="i in 10"
-                            :key="i"
-                        />
+                        <BoxLoader :dimensions="{ width: '100%', height: '50px' }" v-for="i in 10" :key="i" />
                     </div>
                 </div>
                 <div v-else>
                     <div class="flex flex-col gap-5 org-members-list-wrapper" v-if="!errorMembers">
                         <SearchBar v-model:searchKey="search" :placeholder="placeholder" />
 
-                        <Pagination
-                            v-model:page="currentPage"
-                            v-model:nmbEntriesShowing="entriesPerPage"
-                            v-model:nmbEntriesTotal="totalEntries"
-                            v-model:totalPages="totalPages"
-                        >
+                        <Pagination v-model:page="currentPage" v-model:nmbEntriesShowing="entriesPerPage"
+                            v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages">
                             <template #content>
-                                <div
-                                    v-if="totalEntries == 0 && search != ''"
-                                    class="flex flex-row gap-4 justify-center"
-                                    style="margin-top: 10px"
-                                >
+                                <div v-if="totalEntries == 0 && search != ''" class="flex flex-row gap-4 justify-center"
+                                    style="margin-top: 10px">
                                     No members match your search
                                 </div>
-                                <div
-                                    v-if="totalEntries == 0 && search == ''"
-                                    class="flex flex-row gap-4 justify-center"
-                                    style="margin-top: 10px"
-                                >
+                                <div v-if="totalEntries == 0 && search == ''" class="flex flex-row gap-4 justify-center"
+                                    style="margin-top: 10px">
                                     No members
                                 </div>
-                                <SortableTable
-                                    :headers="headers"
-                                    :sort-key="sortKey"
-                                    :sort-direction="sortDirection"
-                                    @on-sort-change="updateSort"
-                                >
+                                <SortableTable :headers="headers" :sort-key="sortKey" :sort-direction="sortDirection"
+                                    @on-sort-change="updateSort">
                                     <template #data>
-                                        <OrgMemberItem
-                                            v-for="member in orgMembers"
-                                            :key="member.id"
-                                            :member="member"
-                                            :org-info="orgInfo"
-                                            @refetch="onRefetch()"
-                                        >
+                                        <OrgMemberItem v-for="member in orgMembers" :key="member.id" :member="member"
+                                            :org-info="orgInfo" @refetch="onRefetch()">
                                         </OrgMemberItem>
                                     </template>
                                 </SortableTable>
@@ -232,19 +200,14 @@ async function onRefetch() {
                     </div>
                     <div v-else>
                         <div class="flex flex-row gap-2" style="font-size: 1.2em">
-                            <Icon
-                                class="icon user-icon"
-                                icon="solar:confounded-square-outline"
-                                style="font-size: 2.5rem; height: fit-content"
-                            ></Icon>
+                            <Icon class="icon user-icon" icon="solar:confounded-square-outline"
+                                style="font-size: 2.5rem; height: fit-content"></Icon>
                             <div>
                                 <div class="flex flex-col gap-5">
                                     <div class="flex flex-col gap-2">
                                         <div>We failed to retrieve the organization's members</div>
                                         <div style="font-size: 0.7em">
-                                            <div
-                                                v-if="errorCodeMembers == APIErrors.EntityNotFound"
-                                            >
+                                            <div v-if="errorCodeMembers == APIErrors.EntityNotFound">
                                                 This organization does not exist.
                                             </div>
                                             <div v-if="errorCodeMembers == APIErrors.NotAuthorized">
@@ -258,10 +221,8 @@ async function onRefetch() {
                                         </div>
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                                        <Button
-                                            v-if="errorCodeMembers != APIErrors.NotAuthorized"
-                                            @click="fetchOrganizationMembers"
-                                        >
+                                        <Button v-if="errorCodeMembers != APIErrors.NotAuthorized"
+                                            @click="fetchOrganizationMembers">
                                             Try again
                                         </Button>
                                         <Button @click="router.push({ name: 'orgs' })">

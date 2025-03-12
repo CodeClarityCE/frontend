@@ -18,9 +18,9 @@ import { Icon } from '@iconify/vue';
 
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import BoxLoader from '@/base_components/BoxLoader.vue';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import type { TableHeader } from '@/base_components/tables/SortableTable.vue';
 import AuditLogsTable from '@/enterprise_components/activity_logs/AuditLogsTable.vue';
+import { Card, CardContent } from '@/shadcn/ui/card';
 
 const orgRepo = new OrgRepository();
 const authStore = useAuthStore();
@@ -172,9 +172,9 @@ init();
                     <RouterLink
                         :to="{ name: 'orgManage', params: { orgId: orgId, page: 'members' } }"
                     >
-                        <BorderCard :hover="true" :slim="true">
-                            <template #title> Manage organization members </template>
-                        </BorderCard>
+                        <Card>
+                            <CardContent>Manage organization members</CardContent>
+                        </Card>
                     </RouterLink>
                 </div>
             </div>

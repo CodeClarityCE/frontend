@@ -8,13 +8,13 @@ import router from '@/router';
 import { ref, type Ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/LicensePolicyRepository';
 import { Icon } from '@iconify/vue';
 import type { LicensePolicy } from '@/codeclarity_components/organizations/policy/LicensePolicy';
 import BoxLoader from '@/base_components/BoxLoader.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 const orgInfo: Ref<Organization | undefined> = ref();
 
 const props = defineProps<{
@@ -70,32 +70,21 @@ fetchPolicies();
 </script>
 <template>
     <div class="flex flex-col gap-8 org-members-manage-wrapper">
-        <HeaderItem
-            v-if="orgId"
-            :org-id="orgId"
-            @on-org-info="setOrgInfo($event)"
-        ></HeaderItem>
+        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="org-integrations-wrapper">
             <div class="flex flex-col gap-4 p-12">
                 <div class="text-[#4f4e4e] text-3xl font-semibold">License Policies</div>
 
                 <div v-if="loading">
                     <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
-                        <BoxLoader
-                            :dimensions="{ width: '150px', height: '150px' }"
-                            v-for="i in 4"
-                            v-bind:key="i"
-                        />
+                        <BoxLoader :dimensions="{ width: '150px', height: '150px' }" v-for="i in 4" v-bind:key="i" />
                     </div>
                 </div>
 
                 <div v-if="!loading">
                     <div class="flex flex-row gap-2" v-if="error">
-                        <Icon
-                            class="icon user-icon"
-                            icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"
-                        ></Icon>
+                        <Icon class="icon user-icon" icon="solar:confounded-square-outline"
+                            style="font-size: 3rem; height: fit-content"></Icon>
                         <div>
                             <div class="flex flex-col gap-5">
                                 <div class="flex flex-col gap-2">
@@ -121,66 +110,44 @@ fetchPolicies();
                         </div>
                     </div>
 
-                    <div
-                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
-                        v-if="!error"
-                    >
-                        <template
-                            v-for="licensePolicy in licensePolicies"
-                            v-bind:key="licensePolicy.id"
-                        >
-                            <RouterLink
-                                class="integration-box-wrapper-iteme"
-                                :to="{
-                                    name: 'orgs',
-                                    params: {
-                                        page: 'policy',
-                                        orgId: orgId,
-                                        action: 'edit'
-                                    },
-                                    query: { policyId: licensePolicy.id }
-                                }"
-                            >
-                                <BorderCard :hover="true" :integration="true">
-                                    <template #title>
-                                        <div class="text-2xl font-semibold text-[#606060]">
-                                            {{ licensePolicy.name }}
-                                        </div>
-                                    </template>
-                                    <template #icon>
-                                        <Icon class="text-3xl" icon="solar:settings-bold"></Icon>
-                                    </template>
-                                    <template #content>
-                                        <div class="flex flex-col gap-1 items-center">
-                                            <div class="text-[#606060]">
-                                                {{ licensePolicy.description }}
-                                            </div>
-                                        </div>
-                                    </template>
-                                </BorderCard>
-                            </RouterLink>
-                        </template>
-                        <RouterLink
-                            class="integration-box-wrapper-item"
-                            :to="{
+                    <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap" v-if="!error">
+                        <template v-for="licensePolicy in licensePolicies" v-bind:key="licensePolicy.id">
+                            <RouterLink class="integration-box-wrapper-iteme" :to="{
                                 name: 'orgs',
                                 params: {
                                     page: 'policy',
                                     orgId: orgId,
-                                    action: 'add'
-                                }
-                            }"
-                        >
-                            <BorderCard :hover="true" :integration="true">
-                                <template #title>
-                                    <div class="text-2xl font-semibold text-[#606060]">
+                                    action: 'edit'
+                                },
+                                query: { policyId: licensePolicy.id }
+                            }">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle class="flex gap-4 items-center">
+                                        {{ licensePolicy.name }}
+                                        <Icon class="text-3xl" icon="solar:settings-bold"></Icon>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>{{ licensePolicy.description }}</CardContent>
+                            </Card>
+                            </RouterLink>
+                        </template>
+                        <RouterLink class="integration-box-wrapper-item" :to="{
+                            name: 'orgs',
+                            params: {
+                                page: 'policy',
+                                orgId: orgId,
+                                action: 'add'
+                            }
+                        }">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle class="flex gap-4 items-center">
                                         Add a license policy
-                                    </div>
-                                </template>
-                                <template #icon>
-                                    <Icon class="text-3xl" icon="solar:add-circle-bold"></Icon>
-                                </template>
-                            </BorderCard>
+                                        <Icon class="text-3xl" icon="solar:add-circle-bold"></Icon>
+                                    </CardTitle>
+                                </CardHeader>
+                            </Card>
                         </RouterLink>
                     </div>
                 </div>

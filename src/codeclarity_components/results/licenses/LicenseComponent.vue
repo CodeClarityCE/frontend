@@ -1,6 +1,6 @@
 <template>
-    <BorderCard>
-        <template #content>
+    <Card>
+        <CardContent>
             <div class="flex flex-col gap-4 relative">
                 <div v-if="props.license.name" class="font-semibold text-lg flex gap-1">
                     <div>{{ props.license.name }} ({{ props.license.id }})</div>
@@ -366,20 +366,19 @@
                     </template>
                 </PositionedModal>
             </div>
-        </template>
-    </BorderCard>
+        </CardContent>
+    </Card>
 </template>
 <script lang="ts" setup>
 import PositionedModal from '@/base_components/PositionedModal.vue';
 import { nextTick, ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import { License } from '@/codeclarity_components/results/licenses/License';
-// import moment from 'moment';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import Popover from '@/shadcn/ui/popover/Popover.vue';
 import PopoverTrigger from '@/shadcn/ui/popover/PopoverTrigger.vue';
 import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import { Card, CardContent } from '@/shadcn/ui/card';
 
 const properties_modal_ref: Ref<typeof PositionedModal> = ref(PositionedModal);
 

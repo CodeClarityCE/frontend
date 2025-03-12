@@ -15,7 +15,6 @@ import CenteredModal from '@/base_components/CenteredModal.vue';
 import { ValidationError as YupValidationError } from 'yup';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
@@ -244,22 +243,19 @@ init();
                     <div>GitLab instance</div>
                     <div class="flex flex-row gap-4" style="text-align: center">
                         <div class="gitlab-host-selection-container" @click="setSelfHosted(false)">
-                            <BorderCard class="host-selection" :hover="true" :slim="true">
-                                <template #title> GitLab.com </template>
-                            </BorderCard>
+                            
+                            <Button class="w-full h-16" variant="outline">GitLab.com</Button>
                             <div class="active" v-if="selfHosted == false">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
                             </div>
                         </div>
                         <div class="gitlab-host-selection-container" @click="setSelfHosted(true)">
-                            <BorderCard class="host-selection" :hover="true" :slim="true">
-                                <template #title>
-                                    <div>Self hosted</div>
+                            <Button class="w-full h-16 flex flex-col gap-2" variant="outline">
+                                <div>Self hosted</div>
                                     <div v-if="selfHosted == true">
                                         {{ formGitlabInstanceUrl }}
                                     </div>
-                                </template>
-                            </BorderCard>
+                            </Button>
                             <div class="active" v-if="selfHosted == true">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
                             </div>
@@ -369,19 +365,6 @@ init();
 .gitlab-host-selection-container {
     position: relative;
     width: 100%;
-
-    .host-selection {
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        row-gap: 0px;
-        justify-content: center;
-
-        div:nth-child(2) {
-            font-size: 0.9em;
-            color: gray;
-        }
-    }
 
     .active {
         position: absolute;

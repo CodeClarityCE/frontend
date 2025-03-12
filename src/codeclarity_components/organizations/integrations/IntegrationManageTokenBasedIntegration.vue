@@ -9,11 +9,11 @@ import CenteredModal from '@/base_components/CenteredModal.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import type { RouteLocationRaw } from 'vue-router';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import { Card, CardContent } from '@/shadcn/ui/card';
 
 // Props
 const props = defineProps<{
@@ -203,15 +203,15 @@ const emit = defineEmits<{
             <h2 class="text-2xl font-semibold mb-2">Actions</h2>
             <div class="flex flex-row gap-5 flex-wrap faq-wrapper">
                 <div title="Delete the integration">
-                    <BorderCard :slim="true" :hover="true" @click="openModalAction(ModalAction.DELETE)">
-                        <template #title>Delete integration</template>
-                    </BorderCard>
+                    <Card>
+                        <CardContent>Delete integration</CardContent>
+                    </Card>
                 </div>
 
                 <RouterLink title="Update/Replace the integration token" :to="props.updateRoute">
-                    <BorderCard :hover="true" :slim="true">
-                        <template #title> Update/Replace integration token </template>
-                    </BorderCard>
+                    <Card>
+                        <CardContent>Update/Replace integration token</CardContent>
+                    </Card>
                 </RouterLink>
                 <slot name="extra-action"></slot>
             </div>

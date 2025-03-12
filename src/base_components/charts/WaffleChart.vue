@@ -247,7 +247,7 @@ createData();
             </div>
         </div>
 
-        <div v-if="truncatedOthers" class="flex flex-row" style="justify-content: start">
+        <div v-if="truncatedOthers.length > 0" class="flex flex-row" style="justify-content: start">
             <Button variant="outline" @click="allLicensesModalRef.toggle()">
                 See others
             </Button>

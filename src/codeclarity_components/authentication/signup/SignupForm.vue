@@ -1,14 +1,10 @@
 <template>
     <div>
-        <RouterLink
-            :to="{ name: 'login' }"
-            :class="
-                cn(
-                    buttonVariants({ variant: 'ghost' }),
-                    'absolute right-4 top-4 md:right-8 md:top-8'
-                )
-            "
-        >
+        <RouterLink :to="{ name: 'login' }" :class="cn(
+            buttonVariants({ variant: 'ghost' }),
+            'absolute right-4 top-4 md:right-8 md:top-8'
+        )
+            ">
             <img src="@/imgs/logos/logo.svg" class="w-8" />
             Sign In
         </RouterLink>
@@ -22,9 +18,9 @@
                     </p>
                 </div>
                 <!-- Errors -->
-                <ErrorCard v-if="error">
-                    <template #content>
-                        <Icon icon="material-symbols:error-outline" />
+                <Alert v-if="error" variant="destructive">
+                    <Icon icon="material-symbols:error-outline" />
+                    <AlertDescription>
                         <div v-if="errorCode">
                             <div v-if="errorCode == APIErrors.InternalError">
                                 An error occured during the processing of the request.
@@ -38,35 +34,26 @@
                             <div v-else-if="errorCode == APIErrors.HandleAlreadyExists">
                                 A user with that handle already exists, choose a different handle.
                             </div>
-                            <div
-                                v-else-if="errorCode == APIErrors.ValidationFailed"
-                                style="white-space: break-spaces"
-                            >
+                            <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                                 {{ validationError!.toMessage('Invalid form:') }}
                             </div>
                             <div v-else>An error occured during the processing of the request.</div>
                         </div>
                         <div v-else>An error occured during the processing of the request.</div>
-                    </template>
-                </ErrorCard>
+
+                    </AlertDescription>
+                </Alert>
+
                 <div :class="cn('grid gap-6', $attrs.class ?? '')">
                     <!-- Content -->
-                    <Form
-                        class="flex flex-col gap-4"
-                        :validation-schema="formSchema"
-                        @submit="onSubmit"
-                        v-if="!loading"
-                    >
+                    <Form class="flex flex-col gap-4" :validation-schema="formSchema" @submit="onSubmit"
+                        v-if="!loading">
                         <FormField v-slot="{ componentField }" name="email">
                             <FormItem v-auto-animate>
                                 <FormLabel>Email*:</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="text"
-                                        placeholder="Enter your email"
-                                        v-bind="componentField"
-                                    />
+                                    <Input type="text" placeholder="Enter your email" v-bind="componentField" />
                                 </FormControl>
                                 <!-- <FormDescription>
                                 This is your public display name.
@@ -79,11 +66,8 @@
                                 <FormItem v-auto-animate>
                                     <FormLabel>First Name*:</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your first name"
-                                            v-bind="componentField"
-                                        />
+                                        <Input type="text" placeholder="Enter your first name"
+                                            v-bind="componentField" />
                                     </FormControl>
                                     <!-- <FormDescription>
                                     This is your public display name.
@@ -95,11 +79,7 @@
                                 <FormItem v-auto-animate>
                                     <FormLabel>Last Name*:</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your last name"
-                                            v-bind="componentField"
-                                        />
+                                        <Input type="text" placeholder="Enter your last name" v-bind="componentField" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -109,11 +89,8 @@
                             <FormItem v-auto-animate>
                                 <FormLabel>Handle:</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="text"
-                                        placeholder="Enter your handle (username)"
-                                        v-bind="componentField"
-                                    />
+                                    <Input type="text" placeholder="Enter your handle (username)"
+                                        v-bind="componentField" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -122,11 +99,7 @@
                             <FormItem v-auto-animate>
                                 <FormLabel>Password:</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="password"
-                                        placeholder="Enter your password"
-                                        v-bind="componentField"
-                                    />
+                                    <Input type="password" placeholder="Enter your password" v-bind="componentField" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -135,23 +108,14 @@
                             <FormItem v-auto-animate>
                                 <FormLabel>Password Confirmation:</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="password"
-                                        placeholder="Confirm your password"
-                                        v-bind="componentField"
-                                    />
+                                    <Input type="password" placeholder="Confirm your password"
+                                        v-bind="componentField" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         </FormField>
-                        <FormField
-                            v-slot="{ value, handleChange }"
-                            type="checkbox"
-                            name="agreeTerms"
-                        >
-                            <FormItem
-                                class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4"
-                            >
+                        <FormField v-slot="{ value, handleChange }" type="checkbox" name="agreeTerms">
+                            <FormItem class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4">
                                 <FormControl>
                                     <Checkbox :checked="value" @update:checked="handleChange" />
                                 </FormControl>
@@ -210,7 +174,6 @@ import { Icon } from '@iconify/vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
-import ErrorCard from '@/base_components/errors/ErrorCard.vue';
 import { cn } from '@/shadcn/lib/utils';
 import { Button, buttonVariants } from '@/shadcn/ui/button';
 import { useAuthStore } from '@/stores/auth';
@@ -234,6 +197,8 @@ import { toast } from '@/shadcn/ui/toast';
 import ErrorComponent from '@/base_components/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 const SSOAuth = defineAsyncComponent({
     loader: () => import('@/enterprise_components/sso/SSOAuth.vue'),

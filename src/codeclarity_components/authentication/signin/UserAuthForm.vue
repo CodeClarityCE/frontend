@@ -12,7 +12,6 @@ import type { AuthenticatedUser } from '@/codeclarity_components/authentication/
 import router from '@/router';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
-import ErrorCard from '@/base_components/errors/ErrorCard.vue';
 
 import { Button } from '@/shadcn/ui/button';
 
@@ -26,6 +25,8 @@ import { Input } from '@/shadcn/ui/input';
 import ErrorComponent from '@/base_components/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 const SSOAuth = defineAsyncComponent({
     loader: () => import('@/enterprise_components/sso/SSOAuth.vue'),
@@ -118,9 +119,9 @@ async function submit(values: any) {
 
 <template>
     <!-- Errors -->
-    <ErrorCard v-if="error">
-        <template #content>
-            <Icon icon="material-symbols:error-outline" />
+    <Alert v-if="error" variant="destructive">
+        <Icon icon="material-symbols:error-outline" />
+        <AlertDescription>
             <div v-if="errorCode">
                 <div v-if="errorCode == APIErrors.InternalError">
                     An error occured during the processing of the request.
@@ -138,25 +139,18 @@ async function submit(values: any) {
                     This should not have happened. Please try again.
                     <!-- Race condition -->
                 </div>
-                <div
-                    v-else-if="errorCode == APIErrors.ValidationFailed"
-                    class="whitespace-break-spaces"
-                >
+                <div v-else-if="errorCode == APIErrors.ValidationFailed" class="whitespace-break-spaces">
                     <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                     {{ validationError!.toMessage('Invalid form:') }}
                 </div>
                 <div v-else>An error occured during the processing of the request.</div>
             </div>
             <div v-else>An error occured during the processing of the request.</div>
-        </template>
-    </ErrorCard>
+        </AlertDescription>
+    </Alert>
+
     <div :class="cn('grid gap-6', $attrs.class ?? '')">
-        <form
-            class="flex flex-col gap-4"
-            :validation-schema="formSchema"
-            @submit="onSubmit"
-            v-if="!loading"
-        >
+        <form class="flex flex-col gap-4" :validation-schema="formSchema" @submit="onSubmit" v-if="!loading">
             <FormField v-slot="{ componentField }" name="email">
                 <FormItem v-auto-animate>
                     <FormLabel>Email*:</FormLabel>
@@ -170,11 +164,7 @@ async function submit(values: any) {
                 <FormItem v-auto-animate>
                     <FormLabel>Password:</FormLabel>
                     <FormControl>
-                        <Input
-                            type="password"
-                            placeholder="Enter your password"
-                            v-bind="componentField"
-                        />
+                        <Input type="password" placeholder="Enter your password" v-bind="componentField" />
                     </FormControl>
                     <FormMessage />
                 </FormItem>

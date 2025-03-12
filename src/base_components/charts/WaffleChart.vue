@@ -51,15 +51,7 @@ function createData() {
 
     let colorScale = props.colorScale;
     if (!colorScale)
-        colorScale = d3.interpolateDiscrete([
-            '#008491',
-            '#023f47',
-            '#175181',
-            '#0b9749',
-            '#35cb36',
-            '#c3f166',
-            '#c2f79a'
-        ]);
+        colorScale = d3.interpolateDiscrete(['#003532', '#1A4876','#008491', '#40E0D0', '#D3D3D3']);
     if (props.data.length == 0) return;
 
     const colorsDefinedInData = props.data.every((entry) => entry.color != undefined);

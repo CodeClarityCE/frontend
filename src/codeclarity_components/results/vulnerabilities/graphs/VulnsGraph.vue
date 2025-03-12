@@ -26,7 +26,7 @@ const initChartData = {
             spacing: 3,
             borderRadius: 3,
             data: [0],
-            backgroundColor: ['#146C94']
+            backgroundColor: ['#008491']
         }
     ]
 };
@@ -87,18 +87,7 @@ function createOwaspTop10DistChart() {
 
     owaspTopTotalCount.value = count;
 
-    let possible_colors = [
-        '#7400B8',
-        '#6930C3',
-        '#5E60CE',
-        '#5390D9',
-        '#4EA8DE',
-        '#48BFE3',
-        '#56CFE1',
-        '#64DFDF',
-        '#72EFDD',
-        '#80FFDB'
-    ];
+    let possible_colors = ['#008491', '#023f47', '#175181', '#0b9749', '#35cb36', '#c3f166', '#c2f79a']
 
     let data: Array<any> = [];
     let colors: Array<any> = [];
@@ -117,7 +106,7 @@ function createOwaspTop10DistChart() {
     if (count < props.stats.number_of_vulnerabilities) {
         data.push(props.stats.number_of_vulnerabilities - count);
         labels.push('Uncategorized');
-        colors.push('#AFD3E2');
+        colors.push('#D3D3D3');
     }
 
     let dependency_dist_data = {
@@ -173,7 +162,7 @@ function createSeverityDistChart() {
         props.stats.number_of_low,
         props.stats.number_of_none
     ];
-    let colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
+    let colors = ['#003532', '#1A4876','#008491', '#40E0D0', '#D3D3D3']
 
     let dependency_dist_data = {
         labels: labels,
@@ -220,7 +209,7 @@ function createRadarChart() {
                 {
                     data: data,
                     fill: true,
-                    backgroundColor: 'rgb(116, 0, 184, 0.4)',
+                    backgroundColor: 'rgba(0, 132, 145, 0.4)',
                     borderColor: 'rgb(116, 0, 184)',
                     pointBackgroundColor: 'rgb(0116, 0, 184, 0.4)',
                     pointBorderColor: '#fff',
@@ -282,37 +271,37 @@ function createRadarChart() {
                 <div class="flex items-center justify-evenly">
                     <div class="flex flex-col">
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#7400b8]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#003532]"></Icon>
                             <div>Critical</div>
-                            <div class="side-stats-text-value" style="color: #7400b8">
+                            <div class="side-stats-text-value" style="color: #003532">
                                 {{ stats.number_of_critical }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#5e60ce]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876]"></Icon>
                             <div>High</div>
-                            <div class="side-stats-text-value" style="color: #5e60ce">
+                            <div class="side-stats-text-value" style="color: #1A4876">
                                 {{ stats.number_of_high }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#4ea8de]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
                             <div>Medium</div>
-                            <div class="side-stats-text-value" style="color: #4ea8de">
+                            <div class="side-stats-text-value" style="color: #008491">
                                 {{ stats.number_of_medium }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#56cfe1]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0]"></Icon>
                             <div>Low</div>
-                            <div class="side-stats-text-value" style="color: #56cfe1">
+                            <div class="side-stats-text-value" style="color: #40E0D0">
                                 {{ stats.number_of_low }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#80ffdb]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#D3D3D3]"></Icon>
                             <div>None</div>
-                            <div class="side-stats-text-value" style="color: #80ffdb">
+                            <div class="side-stats-text-value" style="color: #D3D3D3">
                                 {{ stats.number_of_none }}
                             </div>
                         </div>
@@ -430,9 +419,9 @@ function createRadarChart() {
                         </div>
                         <div v-if="owaspTopTotalCount < stats.number_of_vulnerabilities"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#afd3e2] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#D3D3D3] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">Uncategorized</div>
-                            <div class="text-sm" style="color: #afd3e2">
+                            <div class="text-sm" style="color: #D3D3D3">
                                 {{ stats.number_of_vulnerabilities - owaspTopTotalCount }}
                             </div>
                         </div>
@@ -452,25 +441,25 @@ function createRadarChart() {
                 <div class="flex items-center justify-evenly">
                     <div class="flex flex-col">
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#7400b8]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#003532]"></Icon>
                             <div>Confidentiality</div>
-                            <div class="side-stats-text-value" style="color: #7400b8">
+                            <div class="side-stats-text-value text-[#003532]">
                                 {{ stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#6930c3]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876]"></Icon>
 
                             <div>Availability</div>
-                            <div class="side-stats-text-value" style="color: #6930c3">
+                            <div class="side-stats-text-value text-[#1A4876]">
                                 {{ stats.mean_availability_impact?.toFixed(2) ?? 0 }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#5e60ce]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
 
                             <div>Integrity</div>
-                            <div class="side-stats-text-value" style="color: #5e60ce">
+                            <div class="side-stats-text-value text-[#008491]">
                                 {{ stats.mean_integrity_impact?.toFixed(2) ?? 0 }}
                             </div>
                         </div>

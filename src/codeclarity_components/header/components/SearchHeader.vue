@@ -104,15 +104,14 @@ function handleOpenChange() {
                     <CommandItem value="import_project" class="cursor-pointer">
                         Import Project
                     </CommandItem>
-                    <CommandItem value="start_analysis" class="cursor-pointer">
-                        Start Analysis
-                    </CommandItem>
                 </CommandGroup>
             </CommandList>
         </CommandDialog>
         <Button variant="link">
-            <a href="https://doli.codeclarity.io/public/ticket/index.php?entity=1" class="flex gap-1 items-center">
-                <Icon icon="ion:ticket-outline"></Icon>Report a problem / Ask a question
+            <a class="flex gap-2 items-center"
+                href="https://github.com/CodeClarityCE/codeclarity-dev/issues/new?template=BLANK_ISSUE" target="_blank"
+                rel="noopener noreferrer">
+                <Icon icon="ion:ticket-outline"></Icon>Report a problem
             </a>
         </Button>
     </div>

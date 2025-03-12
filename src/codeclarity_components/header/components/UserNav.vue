@@ -138,7 +138,7 @@ fetchNotifications();
                 </RouterLink>
                 <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </DropdownMenuItem> -->
-                <RouterLink title="Manage Organizations" :to="{ name: 'orgs', params: { page: 'list' } }">
+                <RouterLink title="Manage Organizations" :to="{ name: 'orgs', params: { action: 'list' } }">
                     <DropdownMenuItem class="cursor-pointer">
                         Manage Organizations
                     </DropdownMenuItem>

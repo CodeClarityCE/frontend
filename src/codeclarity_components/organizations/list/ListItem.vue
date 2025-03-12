@@ -3,7 +3,6 @@ import CenteredModal from '@/base_components/CenteredModal.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { Icon } from '@iconify/vue';
 import moment from 'moment';
-import PositionedModal from '@/base_components/PositionedModal.vue';
 import { ref, type Ref } from 'vue';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import { useAuthStore } from '@/stores/auth';
@@ -11,6 +10,8 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { errorToast, successToast } from '@/utils/toasts';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
+import { Button } from '@/shadcn/ui/button';
 
 enum OrgAction {
     DELETE = 'delete',
@@ -212,11 +213,6 @@ function performOrgAction() {
                 </div>
             </div>
             <div class="flex flex-row gap-2 items-center w-full">
-                <!-- <template v-if="org.role == MemberRole.USER">
-                    <RouterLink :to="{ name: 'orgs' }" class="clear-button" style="flex-grow: 1;text-align: center;">
-                        View members
-                    </RouterLink>
-                </template> -->
                 <RouterLink
                     :to="{
                         name: 'orgs',
@@ -226,29 +222,18 @@ function performOrgAction() {
                             orgId: membership.organization.id
                         }
                     }"
-                    class="flex-grow text-center border-0 bg-gray-200 cursor-pointer -ml-0.5 px-3 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-300 hover:text-gray-900"
                 >
-                    Manage organization
+                <Button>Manage organization</Button>
                 </RouterLink>
                 <div v-if="!membership.organization.personal">
-                    <div
-                        :id="'dot-menu-' + membership.organization.id"
-                        class="no-underline border-0 bg-gray-200 cursor-pointer -ml-0.5 p-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-300 hover:text-gray-900"
-                        @click="optionsModalRef.toggle()"
-                    >
-                        <Icon icon="bi:three-dots-vertical" />
-                    </div>
-                    <PositionedModal
-                        ref="optionsModalRef"
-                        :tracker="'dot-menu-' + membership.organization.id"
-                        :position="'top-left'"
-                        :show-title-divider="false"
-                        :show-title="false"
-                        :show-sub-title="false"
-                        :padding="false"
-                        :margin-target="5"
-                    >
-                        <template #content>
+                    <Popover>
+                        <PopoverTrigger as-child>
+                            <Button>
+                                <Icon icon="bi:three-dots-vertical" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+
                             <div
                                 class="max-h-96 overflow-y-auto flex flex-col text-sm font- whitespace-nowrap p-1"
                             >
@@ -279,8 +264,8 @@ function performOrgAction() {
                                     Delete org
                                 </div>
                             </div>
-                        </template>
-                    </PositionedModal>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
         </div>

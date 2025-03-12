@@ -17,7 +17,6 @@ import * as yup from 'yup';
 import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-// import FormCodeFieldVue from '@/base_components/forms/FormCodeField.vue';
 import * as lite from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';

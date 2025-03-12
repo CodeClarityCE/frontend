@@ -3,7 +3,7 @@ import { addDays, format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 
 import { ref } from 'vue';
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils';
 import { Button } from '@/shadcn/ui/button';
 import { Calendar } from '@/shadcn/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';

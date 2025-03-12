@@ -1,29 +1,27 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch, type Ref } from 'vue';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { useRoute } from 'vue-router';
+import OrgHeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import router from '@/router';
-import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
-import { isMemberRoleGreaterThan, MemberRole } from '@/codeclarity_components/organizations/organization.entity';
-import type { Invitation } from '@/codeclarity_components/organizations/invites/Invitation';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import type { Organization } from '../organization.entity';
+import { isMemberRoleGreaterThan, MemberRole } from '../organization.entity';
+import type { Invitation } from './invitation.entity';
+import { OrgRepository } from '../organization.repository';
 import { useAuthStore } from '@/stores/auth';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import Pagination from '@/base_components/PaginationComponent.vue';
 import SearchBar from '@/base_components/SearchBar.vue';
 import { debounce } from '@/utils/searchUtils';
-import OrgInviteItem from '@/views/org/invites/invite/OrgInviteItem.vue';
+import OrgInviteItem from './invite/InviteItem.vue';
 import BoxLoader from '@/base_components/BoxLoader.vue';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
 import SortableTable from '@/base_components/tables/SortableTable.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 const placeholder = 'Search by invitee email, inviter email, or inviter handle';
 const orgRepository = new OrgRepository();
 const authStore = useAuthStore();
 
 const search: Ref<string> = ref('');
-const orgId: Ref<string | undefined> = ref();
 const orgInfo: Ref<Organization | undefined> = ref();
 const invitations: Ref<Invitation[]> = ref([]);
 
@@ -36,6 +34,11 @@ const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.ASC);
 const sortKey: Ref<string> = ref('invited_on');
+
+const props = defineProps<{
+    page?: string;
+    orgId: string;
+}>();
 
 const headers = [
     { label: 'Invitee', key: 'invitee_email' },
@@ -51,7 +54,6 @@ watch([currentPage, entriesPerPage], async () => {
 });
 
 async function fetchInvitations(refresh: boolean = false) {
-    if (!orgId.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -60,7 +62,7 @@ async function fetchInvitations(refresh: boolean = false) {
 
     try {
         const resp = await orgRepository.getInvitations({
-            orgId: orgId.value,
+            orgId: props.orgId,
             bearerToken: authStore.getToken,
             pagination: {
                 page: currentPage.value,
@@ -87,26 +89,10 @@ async function fetchInvitations(refresh: boolean = false) {
     }
 }
 
-function init() {
-    const route = useRoute();
-    const _orgId = route.params.orgId;
-
-    if (!_orgId) {
-        router.back();
-    }
-
-    if (typeof _orgId == 'string') {
-        orgId.value = _orgId;
-        fetchInvitations();
-    } else {
-        router.back();
-    }
-}
-
 function setOrgInfo(_orgInfo: Organization) {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -136,16 +122,16 @@ async function onRefetch() {
 }
 
 onMounted(() => {
-    init();
+    fetchInvitations();
 });
 </script>
 <template>
     <div class="flex flex-col gap-8 org-member-invitation-wrapper">
-        <HeaderItem
+        <OrgHeaderItem
             v-if="orgId"
             :org-id="orgId"
             @on-org-info="setOrgInfo($event)"
-        ></HeaderItem>
+        ></OrgHeaderItem>
         <div v-if="orgInfo && orgId" class="flex flex-col gap-8 p-12">
             <div>
                 <h2 class="text-2xl font-semibold">Related Actions</h2>
@@ -159,20 +145,16 @@ onMounted(() => {
                     >
                         <RouterLink
                             :to="{
-                                name: 'orgAddInvite',
+                                name: 'orgs',
                                 params: { action: 'add', page: 'invites', orgId: orgId }
                             }"
                         >
-                            <BorderCard :hover="true" :slim="true">
-                                <template #title> Invite another User </template>
-                            </BorderCard>
+                            <Button variant="outline">Invite another User</Button>
                         </RouterLink>
                         <RouterLink
-                            :to="{ name: 'orgManage', params: { orgId: orgId, page: 'members' } }"
+                            :to="{ name: 'orgs', params: { orgId: orgId, page: 'members' } }"
                         >
-                            <BorderCard :hover="true" :slim="true">
-                                <template #title> Manage organization members </template>
-                            </BorderCard>
+                            <Button variant="outline">Manage organization members</Button>
                         </RouterLink>
                     </template>
                 </div>

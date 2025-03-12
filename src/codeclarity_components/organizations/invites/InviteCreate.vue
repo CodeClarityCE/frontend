@@ -1,28 +1,28 @@
 <script lang="ts" setup>
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import { BusinessLogicError, ValidationError } from '@/repositories/BaseRepository';
+import { OrgRepository } from '@/repositories/OrganizationRepository';
 import {
     MemberRole,
     type Organization,
     isMemberRoleGreaterThan
-} from '@/codeclarity_components/organizations/organization.entity';
+} from '@/repositories/types/entities/Organization';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
-import { onMounted, ref, type Ref } from 'vue';
-import { useRoute } from 'vue-router';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import { ref, type Ref } from 'vue';
+import OrgHeaderItem from '@/views/org/subcomponents/OrgHeaderItem.vue';
+import { APIErrors } from '@/repositories/types/errors/ApiErrors';
 import { Icon } from '@iconify/vue';
-import { Form } from 'vee-validate';
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
-import * as yup from 'yup';
-import isEmail from 'validator/lib/isEmail';
 import FaqBox from '@/base_components/FaqBox.vue';
 import { errorToast, successToast } from '@/utils/toasts';
-import { isMemberRoleGreaterOrEqualTo } from '@/codeclarity_components/organizations/organization.entity';
-import FormTextField from '@/base_components/forms/FormTextField.vue';
-import BorderCard from '@/base_components/cards/BorderCard.vue';
-import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { z } from 'zod';
+import AutoForm from '@/shadcn/ui/auto-form/AutoForm.vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import { Terminal } from 'lucide-vue-next';
+import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 
 const orgRepo: OrgRepository = new OrgRepository();
 const authStore = useAuthStore();
@@ -31,34 +31,42 @@ const orgInfo: Ref<Organization | undefined> = ref();
 const errorCodeSendInvite: Ref<string> = ref('');
 const errorSendInvite: Ref<boolean> = ref(false);
 const validationError: Ref<ValidationError | undefined> = ref();
-const orgId: Ref<string> = ref('');
-const formEmail: Ref<string> = ref('');
-const formRole: Ref<MemberRole> = ref(MemberRole.USER);
-const loadingButtonRef: any = ref(null);
 
-async function submit() {
+const props = defineProps<{
+    page?: string;
+    orgId: string;
+}>();
+
+async function submit(values: Record<string, any>) {
     if (!(authStore.getToken && authStore.getAuthenticated)) return;
 
-    loadingButtonRef.value.setLoading(true);
-    loadingButtonRef.value.setDisabled(true);
+    let role = MemberRole.USER;
+    switch (values['role']) {
+        case 'Admin':
+            role = MemberRole.ADMIN;
+            break;
+        case 'Moderator':
+            role = MemberRole.MODERATOR;
+            break;
+        default:
+            role = MemberRole.USER;
+    }
+
     errorSendInvite.value = false;
     validationError.value = undefined;
 
     try {
         await orgRepo.inviteUser({
-            orgId: orgId.value,
+            orgId: props.orgId,
             bearerToken: authStore.getToken!,
             data: {
-                user_email: formEmail.value,
-                role: formRole.value
+                user_email: values['email'],
+                role: role
             },
             handleBusinessErrors: true
         });
 
         successToast('Successfully invited the user');
-
-        formEmail.value = '';
-        formRole.value = MemberRole.USER;
     } catch (error) {
         errorSendInvite.value = true;
 
@@ -72,63 +80,41 @@ async function submit() {
                 errorToast('This user is already a member of the organization.');
             } else if (error.error_code == APIErrors.InvitationOrgAlreadyExists) {
                 errorToast('This user already has an open invitation.');
+            } else if (error.error_code == APIErrors.UserDoesNotExist) {
+                errorToast('This user does not exist.');
             } else {
                 errorToast('We encountered a problem while processing your request.');
             }
         } else {
             errorToast('We encountered a problem while processing your request.');
         }
-    } finally {
-        loadingButtonRef.value.setLoading(false);
-        loadingButtonRef.value.setDisabled(false);
-    }
-}
-
-onMounted(() => {
-    init();
-});
-
-function init() {
-    const route = useRoute();
-    const _orgId = route.params.orgId;
-
-    if (!_orgId) {
-        router.back();
-    }
-
-    if (typeof _orgId == 'string') {
-        orgId.value = _orgId;
-    } else {
-        router.back();
     }
 }
 
 function setOrgInfo(_orgInfo: Organization) {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        router.push({ name: 'orgs', params: { page: 'invites', orgId: _orgInfo.id } });
     }
 }
 
-const formValidationSchema = yup.object({
-    email: yup
-        .string()
-        .required('An email is required')
-        .test(
-            'is-valid',
-            (message) => `${message.path} is invalid`,
-            (value) => (value ? isEmail(value) : new yup.ValidationError('must be a valid email'))
-        )
+const formSchema = z.object({
+    email: z.string().email().describe('Email'),
+    role: z.enum(['User', 'Moderator', 'Admin']).describe('Member will join as')
+});
+
+const form = useForm({
+    validationSchema: toTypedSchema(formSchema)
 });
 </script>
 <template>
-    <div class="flex flex-col gap-8 org-member-invitation-wrapper">
-        <HeaderItem
+    <div class="flex flex-col items-center gap-8">
+        <OrgHeaderItem
             v-if="orgId"
             :org-id="orgId"
             @on-org-info="setOrgInfo($event)"
-        ></HeaderItem>
-        <div v-if="orgInfo" class="flex flex-col gap-8 p-12">
+        ></OrgHeaderItem>
+        <div v-if="orgInfo" class="flex flex-col gap-8">
             <div
                 v-if="
                     (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
@@ -136,194 +122,123 @@ const formValidationSchema = yup.object({
                     orgInfo.role == MemberRole.MODERATOR
                 "
             >
-                <h2>Related Actions</h2>
+                <h2 class="text-xl">Related Actions</h2>
                 <div class="flex flex-row gap-4 flex-wrap items-stretch org-manage-items">
-                    <RouterLink
-                        :to="{ name: 'orgManage', params: { orgId: orgId, page: 'members' } }"
-                    >
-                        <BorderCard :hover="true" :slim="true">
-                            <template #title> Manage organization members </template>
-                        </BorderCard>
+                    <RouterLink :to="{ name: 'orgs', params: { orgId: orgId, page: 'members' } }">
+                        <Button variant="outline">Manage organization members</Button>
                     </RouterLink>
                 </div>
             </div>
             <div class="flex flex-col gap-5">
-                <div class="flex flex-col gap-1">
-                    <h2 style="margin-bottom: 0px">Invite a user to join your org</h2>
-                    <div>
-                        Invite users to join your org by entering their email below and selecting
-                        their role.
-                    </div>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <InfoBoxRed v-if="errorCodeSendInvite">
-                        <div
-                            style="
-                                display: flex;
-                                flex-direction: row;
-                                align-items: center;
-                                column-gap: 0.5rem;
+                <Alert>
+                    <Terminal class="h-4 w-4" />
+                    <AlertTitle>Invite a user to join your org</AlertTitle>
+                    <AlertDescription>
+                        <span>
+                            Invite users to join your org by entering their email below and
+                            selecting their role.
+                        </span>
+                    </AlertDescription>
+                </Alert>
+                <Alert variant="destructive" v-if="errorCodeSendInvite">
+                    <Icon icon="material-symbols:error-outline" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>
+                        <span v-if="errorCodeSendInvite == APIErrors.InternalError">
+                            Encountered an error while creating the invite. Please refresh the page
+                            and try again, and if the error persists contact our webmaster.
+                        </span>
+                        <span
+                            v-if="
+                                errorCodeSendInvite == APIErrors.ValidationFailed && validationError
                             "
+                            style="white-space: break-spaces"
                         >
-                            <Icon icon="material-symbols:error-outline" />
-                            <div>
-                                <div v-if="errorCodeSendInvite == APIErrors.InternalError">
-                                    Encountered an error while creating the invite. Please refresh
-                                    the page and try again, and if the error persists contact our
-                                    webmaster.
-                                </div>
-                                <div
-                                    v-if="
-                                        errorCodeSendInvite == APIErrors.ValidationFailed &&
-                                        validationError
-                                    "
-                                    style="white-space: break-spaces"
-                                >
-                                    <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                                    {{ validationError.toMessage('Invalid form:') }}
-                                </div>
-                            </div>
-                        </div>
-                    </InfoBoxRed>
-
-                    <Form
-                        class="normal-form user-invite-form"
-                        :validation-schema="formValidationSchema"
-                        @submit="submit"
-                    >
-                        <FormTextField
-                            v-model="formEmail"
-                            :placeholder="'Enter the user\'s email'"
-                            :type="'email'"
-                            :name="'email'"
-                        >
-                            <template #name>Email</template>
-                        </FormTextField>
-
-                        <div class="flex flex-col gap-2 role-select-wrapper">
-                            <label>Member will join as</label>
-                            <select v-model="formRole">
-                                <option selected :value="MemberRole.USER">User</option>
-                                <option
-                                    v-if="
-                                        isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)
-                                    "
-                                    :value="MemberRole.MODERATOR"
-                                >
-                                    Moderator
-                                </option>
-                                <option
-                                    v-if="
-                                        isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.OWNER)
-                                    "
-                                    :value="MemberRole.ADMIN"
-                                >
-                                    Admin
-                                </option>
-                            </select>
-                        </div>
-
-                        <LoadingSubmitButton ref="loadingButtonRef" style="width: fit-content">
-                            <span>Send Invite</span>
-                        </LoadingSubmitButton>
-                    </Form>
-                </div>
+                            <!-- Note: this should never happen unless our client and server side validation are out of sync -->
+                            {{ validationError.toMessage('Invalid form:') }}
+                        </span>
+                    </AlertDescription>
+                </Alert>
+                <AutoForm
+                    class="flex flex-col gap-2"
+                    :form="form"
+                    :schema="formSchema"
+                    @submit="submit"
+                >
+                    <Button type="submit"> Send Invite </Button>
+                </AutoForm>
             </div>
         </div>
 
-        <div class="p-12">
-            <h2>Faq</h2>
-            <div class="flex flex-row gap-5 flex-wrap faq-wrapper">
-                <FaqBox>
-                    <template #question
-                        >What roles are there, and what are their differences?</template
-                    >
-                    <template #answer>
-                        The following roles are available:
-                        <ul>
-                            <li>
-                                <div>User</div>
-                                <div>
-                                    Users cannot manage any part of an organization. They may
-                                    however import projects, start analyses and view the analyses
-                                    results.
-                                </div>
-                            </li>
-                            <li>
-                                <div>Moderators</div>
-                                <div>
-                                    In addition to the permissions of the User role, Moderators can
-                                    manage certain parts of an organization, such as managing
-                                    invites, and members.
-                                </div>
-                            </li>
-                            <li>
-                                <div>Admin</div>
-                                <div>
-                                    In addition to the permissions of the Moderators role, Admins
-                                    can also add integrations with external services.
-                                </div>
-                            </li>
-                            <li>
-                                <div>Owner</div>
-                                <div>
-                                    The role 'Owner' is reserverd for people that created the
-                                    organization. They can manage all parts of an organization.
-                                </div>
-                            </li>
-                        </ul>
-                    </template>
-                </FaqBox>
-                <FaqBox>
-                    <template #question
-                        >I accidentally invited someone, can I revoke the invite?</template
-                    >
-                    <template #answer>
-                        Yes, you can revoke an invite, simply go to 'Manage Invites' and click the
-                        'Revoke invite' button on invite that you wish to revoke. In case the user
-                        has already accepted the invite, you can go to 'Manage Members' and click on
-                        'Revoke access' button to 'kick' the user from the org.
-                    </template>
-                </FaqBox>
-                <FaqBox>
-                    <template #question
-                        >Why can I not invite users of role Moderator or Admin?</template
-                    >
-                    <template #answer
-                        >Depending on your own role, you are only allowed to create an invite for
-                        certain other roles.
-                        <ul>
-                            <li>As a Moderator you can only create invites for the role User.</li>
-                            <li>
-                                As an Admin you can create invites for the roles Moderator and User.
-                            </li>
-                            <li>
-                                As an owner you can create invites for the roles Moderator, User and
-                                Admin, but not Owner. (Owner is a reserved role)
-                            </li>
-                        </ul>
-                    </template>
-                </FaqBox>
-            </div>
+        <h2 class="text-xl">Faq</h2>
+        <div class="flex flex-row gap-5 flex-wrap">
+            <FaqBox>
+                <template #question>What roles are there, and what are their differences?</template>
+                <template #answer>
+                    The following roles are available:
+                    <ul class="list-disc list-inside">
+                        <li>
+                            <div>User</div>
+                            <div>
+                                Users cannot manage any part of an organization. They may however
+                                import projects, start analyses and view the analyses results.
+                            </div>
+                        </li>
+                        <li>
+                            <div>Moderators</div>
+                            <div>
+                                In addition to the permissions of the User role, Moderators can
+                                manage certain parts of an organization, such as managing invites,
+                                and members.
+                            </div>
+                        </li>
+                        <li>
+                            <div>Admin</div>
+                            <div>
+                                In addition to the permissions of the Moderators role, Admins can
+                                also add integrations with external services.
+                            </div>
+                        </li>
+                        <li>
+                            <div>Owner</div>
+                            <div>
+                                The role 'Owner' is reserverd for people that created the
+                                organization. They can manage all parts of an organization.
+                            </div>
+                        </li>
+                    </ul>
+                </template>
+            </FaqBox>
+            <FaqBox>
+                <template #question
+                    >I accidentally invited someone, can I revoke the invite?</template
+                >
+                <template #answer>
+                    Yes, you can revoke an invite, simply go to 'Manage Invites' and click the
+                    'Revoke invite' button on invite that you wish to revoke. In case the user has
+                    already accepted the invite, you can go to 'Manage Members' and click on 'Revoke
+                    access' button to 'kick' the user from the org.
+                </template>
+            </FaqBox>
+            <FaqBox>
+                <template #question
+                    >Why can I not invite users of role Moderator or Admin?</template
+                >
+                <template #answer
+                    >Depending on your own role, you are only allowed to create an invite for
+                    certain other roles.
+                    <ul class="list-disc list-inside">
+                        <li>As a Moderator you can only create invites for the role User.</li>
+                        <li>
+                            As an Admin you can create invites for the roles Moderator and User.
+                        </li>
+                        <li>
+                            As an owner you can create invites for the roles Moderator, User and
+                            Admin, but not Owner. (Owner is a reserved role)
+                        </li>
+                    </ul>
+                </template>
+            </FaqBox>
         </div>
     </div>
 </template>
-
-<style lang="scss" scoped>
-.org-member-invitation-wrapper {
-    .user-invite-form {
-        max-width: calc(50% - 10px);
-    }
-
-    @media only screen and (max-width: 1300px) {
-        .user-invite-form {
-            max-width: 100%;
-        }
-    }
-
-    .org-manage-items {
-        font-weight: 400;
-        text-decoration: none;
-    }
-}
-</style>

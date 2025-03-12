@@ -2,7 +2,7 @@
 import { type HTMLAttributes, computed } from 'vue'
 import TableRow from './TableRow.vue'
 import TableCell from './TableCell.vue'
-import { cn } from '@/utils/shadcn'
+import { cn } from '@/shadcn/lib/utils'
 
 const props = withDefaults(defineProps<{
   class?: HTMLAttributes['class']

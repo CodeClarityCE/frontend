@@ -3,7 +3,7 @@ import { ref, type Ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils';
 
 import { Icon } from '@iconify/vue';
 import type { Token } from '@/codeclarity_components/authentication/token.entity';

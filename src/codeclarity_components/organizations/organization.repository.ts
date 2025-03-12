@@ -22,7 +22,7 @@ import type { CreateOrg } from './create/create_org.http';
 import { CreatedResponse } from '../../utils/api/responses/CreatedResponse';
 import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
 import type { CreateInvite } from './invites/create_invite.http';
-import { Invitation } from './invites/Invitation';
+import { Invitation } from './invites/invitation.entity';
 import type { JoinOrg } from './invites/join_org.http';
 import { AuditLog } from './audit_logs/AuditLog';
 import { OrganizationMembership } from './organization_membership.entity';

@@ -9,13 +9,11 @@ import CenteredModal from '@/base_components/CenteredModal.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import type { RouteLocationRaw } from 'vue-router';
-import BlueButton from '@/base_components/buttons/BlueButton.vue';
-import AlertButton from '@/base_components/buttons/AlertButton.vue';
-import NormalButton from '@/base_components/buttons/NormalButton.vue';
 import BorderCard from '@/base_components/cards/BorderCard.vue';
 import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import InfoBoxRed from '@/base_components/info_box/InfoBoxRed.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
 const props = defineProps<{
@@ -86,11 +84,8 @@ const emit = defineEmits<{
     <div v-if="error">
         <div class="flex flex-col gap-5 w-fit" style="font-size: 1.5em">
             <div class="flex flex-row gap-2">
-                <Icon
-                    class="icon user-icon"
-                    icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"
-                ></Icon>
+                <Icon class="icon user-icon" icon="solar:confounded-square-outline"
+                    style="font-size: 3rem; height: fit-content"></Icon>
                 <div>
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
@@ -115,15 +110,12 @@ const emit = defineEmits<{
                             </div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <BlueButton
-                                v-if="errorCode != APIErrors.NotAuthorized"
-                                @click="emit('refresh')"
-                            >
-                                <template #text> Try again </template>
-                            </BlueButton>
-                            <BlueButton @click="router.back()">
-                                <template #text> Go back </template>
-                            </BlueButton>
+                            <Button v-if="errorCode != APIErrors.NotAuthorized" @click="emit('refresh')">
+                                Try again
+                            </Button>
+                            <Button @click="router.back()">
+                                Go back
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -151,25 +143,24 @@ const emit = defineEmits<{
                         <slot name="header-integration-name"></slot>
                     </div>
                     <div class="flex flex-col gap-1">
-                        <div><slot name="header-integration-description"></slot></div>
+                        <div>
+                            <slot name="header-integration-description"></slot>
+                        </div>
                         <div>Added on: {{ moment(integration.added_on).format('LL') }}</div>
                         <div>
                             Expiry date:
                             <span v-if="integration.expiry_date">
                                 {{ moment(integration.expiry_date).format('LL') }}
-                                <span
-                                    v-if="
-                                        moment
-                                            .duration(
-                                                moment(integration.expiry_date).diff(new Date())
-                                            )
-                                            .asDays() > 0
-                                    "
-                                    :style="{
-                                        color: isAtRisk() ? 'red' : 'unset',
-                                        'font-weight': isAtRisk() ? 900 : 'unset'
-                                    }"
-                                >
+                                <span v-if="
+                                    moment
+                                        .duration(
+                                            moment(integration.expiry_date).diff(new Date())
+                                        )
+                                        .asDays() > 0
+                                " :style="{
+                                    color: isAtRisk() ? 'red' : 'unset',
+                                    'font-weight': isAtRisk() ? 900 : 'unset'
+                                }">
                                     (expires {{ moment(integration.expiry_date).fromNow() }})
                                 </span>
                                 <span v-else style="color: red; font-weight: 900">(Expired)</span>
@@ -185,25 +176,19 @@ const emit = defineEmits<{
                         </div>
                         <div class="flex flex-row gap-1 items-center">
                             <div>Status:</div>
-                            <div
-                                v-if="integration.invalid == false && isAtRisk()"
+                            <div v-if="integration.invalid == false && isAtRisk()"
                                 class="general-bubble general-bubble-slim general-bubble-orange"
-                                title="Integration token is about to expire. Please use the action 'Update/Replace integration token'."
-                            >
+                                title="Integration token is about to expire. Please use the action 'Update/Replace integration token'.">
                                 At Risk
                             </div>
-                            <div
-                                v-else-if="integration.invalid == true"
+                            <div v-else-if="integration.invalid == true"
                                 class="general-bubble general-bubble-slim general-bubble-red"
-                                title="Integration token expired or permissions have been modified."
-                            >
+                                title="Integration token expired or permissions have been modified.">
                                 Unhealthy
                             </div>
-                            <div
-                                v-else-if="integration.invalid == false"
+                            <div v-else-if="integration.invalid == false"
                                 class="general-bubble general-bubble-slim general-bubble-green"
-                                title="Integration token is healthy."
-                            >
+                                title="Integration token is healthy.">
                                 Healthy
                             </div>
                         </div>
@@ -218,11 +203,7 @@ const emit = defineEmits<{
             <h2 class="text-2xl font-semibold mb-2">Actions</h2>
             <div class="flex flex-row gap-5 flex-wrap faq-wrapper">
                 <div title="Delete the integration">
-                    <BorderCard
-                        :slim="true"
-                        :hover="true"
-                        @click="openModalAction(ModalAction.DELETE)"
-                    >
+                    <BorderCard :slim="true" :hover="true" @click="openModalAction(ModalAction.DELETE)">
                         <template #title>Delete integration</template>
                     </BorderCard>
                 </div>
@@ -262,12 +243,8 @@ const emit = defineEmits<{
                         What to do when an integration status is unhealty?
                     </template>
                     <template #answer>
-                        <SortableTable
-                            class="w-full"
-                            :headers="headers"
-                            :sortKey="sortKey"
-                            :sortDirection="sortDirection"
-                        >
+                        <SortableTable class="w-full" :headers="headers" :sortKey="sortKey"
+                            :sortDirection="sortDirection">
                             <template #data>
                                 <tr>
                                     <td>
@@ -341,15 +318,13 @@ const emit = defineEmits<{
             </div>
         </template>
         <template #buttons>
-            <AlertButton @click="performModalAction()">
-                <template v-if="centeredModalAction == ModalAction.DELETE" #icon>
-                    <Icon icon="solar:trash-bin-trash-bold"></Icon>
-                </template>
-                <template v-if="centeredModalAction == ModalAction.DELETE" #text> Delete </template>
-            </AlertButton>
-            <NormalButton @click="centeredModalRef.toggle()">
-                <template #text> Cancel </template>
-            </NormalButton>
+            <Button v-if="centeredModalAction == ModalAction.DELETE" variant="destructive"
+                @click="performModalAction()">
+                <Icon icon="solar:trash-bin-trash-bold"></Icon>
+            </Button>
+            <Button variant="outline" @click="centeredModalRef.toggle()">
+                Cancel
+            </Button>
         </template>
     </CenteredModal>
 </template>

@@ -211,7 +211,7 @@ import { AuthRepository } from '@/codeclarity_components/authentication/auth.rep
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import ErrorCard from '@/base_components/errors/ErrorCard.vue';
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils';
 import { Button, buttonVariants } from '@/shadcn/ui/button';
 import { useAuthStore } from '@/stores/auth';
 import { useForm } from 'vee-validate';

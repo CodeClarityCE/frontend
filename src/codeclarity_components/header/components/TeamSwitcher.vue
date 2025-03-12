@@ -3,7 +3,7 @@ import { useUserStore } from '@/stores/user';
 import router from '@/router';
 import { ref, watch } from 'vue';
 
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shadcn/ui/avatar';
 import { Button } from '@/shadcn/ui/button';
 
@@ -221,7 +221,7 @@ fetch();
                     <CommandSeparator />
                     <CommandList>
                         <CommandGroup
-                            @click="router.push({ name: 'orgs', params: { page: 'add' } })"
+                            @click="router.push({ name: 'orgs', params: { action: 'add' } })"
                         >
                             <DialogTrigger as-child>
                                 <CommandItem

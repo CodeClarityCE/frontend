@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils';
 import { useStateStore } from '@/stores/state';
 const state = useStateStore();
 </script>

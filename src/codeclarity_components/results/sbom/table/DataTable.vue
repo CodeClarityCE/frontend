@@ -6,7 +6,7 @@ import type {
     VisibilityState
 } from '@tanstack/vue-table';
 
-import { valueUpdater } from '@/utils/shadcn';
+import { valueUpdater } from '@/shadcn/lib/utils';
 
 import {
     FlexRender,

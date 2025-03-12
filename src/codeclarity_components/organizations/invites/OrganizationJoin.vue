@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { OrganizationInfoForInvitee, MemberRole } from '@/codeclarity_components/organizations/organization.entity';
+import { OrgRepository } from '../organization.repository';
+import { OrganizationInfoForInvitee, MemberRole } from '../organization.entity';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted, ref, type Ref } from 'vue';

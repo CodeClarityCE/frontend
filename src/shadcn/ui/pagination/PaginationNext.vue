@@ -1,30 +1,29 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue';
-import { PaginationNext, type PaginationNextProps } from 'radix-vue';
-import { ChevronRight } from 'lucide-vue-next';
-import { Button } from '@/shadcn/ui/button';
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils'
+import {
+  Button,
+} from '@/shadcn/ui/button'
+import { ChevronRight } from 'lucide-vue-next'
+import { PaginationNext, type PaginationNextProps } from 'reka-ui'
+import { computed, type HTMLAttributes } from 'vue'
 
-const props = withDefaults(
-    defineProps<PaginationNextProps & { class?: HTMLAttributes['class'] }>(),
-    {
-        asChild: true
-    }
-);
+const props = withDefaults(defineProps<PaginationNextProps & { class?: HTMLAttributes['class'] }>(), {
+  asChild: true,
+})
 
 const delegatedProps = computed(() => {
-    const { class: _, ...delegated } = props;
+  const { class: _, ...delegated } = props
 
-    return delegated;
-});
+  return delegated
+})
 </script>
 
 <template>
-    <PaginationNext v-bind="delegatedProps">
-        <Button :class="cn('w-10 h-10 p-0', props.class)" variant="outline">
-            <slot>
-                <ChevronRight class="h-4 w-4" />
-            </slot>
-        </Button>
-    </PaginationNext>
+  <PaginationNext v-bind="delegatedProps">
+    <Button :class="cn('w-9 h-9 p-0', props.class)" variant="outline">
+      <slot>
+        <ChevronRight />
+      </slot>
+    </Button>
+  </PaginationNext>
 </template>

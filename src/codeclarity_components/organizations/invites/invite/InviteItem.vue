@@ -4,9 +4,9 @@ import {
     isMemberRoleGreaterThan,
     MemberRole,
     Organization
-} from '@/codeclarity_components/organizations/organization.entity';
-import type { Invitation } from '@/codeclarity_components/organizations/invites/Invitation';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+} from '../../organization.entity';
+import type { Invitation } from '../invitation.entity';
+import { OrgRepository } from '../../organization.repository';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import moment from 'moment';
@@ -298,7 +298,7 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
+@import '@/assets/colors.scss';
 
 .org-membership {
     border-radius: 15px;
@@ -321,7 +321,7 @@ const emit = defineEmits<{
 }
 
 .membership-moderator {
-    background-color: colors.$accent;
+    background-color: $accent;
 }
 
 .membership-user {

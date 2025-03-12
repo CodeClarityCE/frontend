@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCarousel } from './useCarousel';
 import type { WithClassAsProps } from './interface';
-import { cn } from '@/utils/shadcn';
+import { cn } from '@/shadcn/lib/utils';
 
 const props = defineProps<WithClassAsProps>();
 

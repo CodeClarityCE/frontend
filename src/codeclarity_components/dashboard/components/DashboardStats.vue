@@ -308,8 +308,8 @@ fetchVcsIntegrations();
     <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-9" v-else>
         <Card class="xl:col-span-5 xl:col-start-3">
             <CardHeader>
-                <CardTitle>Overall Exposure</CardTitle>
-                <CardDescription> Overall exposure of your projects. </CardDescription>
+                <CardTitle>Vulnerability Exposure Overview</CardTitle>
+                <CardDescription> This chart displays the total severity of vulnerabilities across all your projects. </CardDescription>
             </CardHeader>
             <CardContent>
                 <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
@@ -317,7 +317,7 @@ fetchVcsIntegrations();
         </Card>
         <Card class="xl:col-start-1 xl:col-span-3">
             <CardHeader>
-                <CardTitle>Current vulnerabilities</CardTitle>
+                <CardTitle>Vulnerabilities summary</CardTitle>
                 <CardDescription>
                     Current vulnerabilities affecting your projects.
                 </CardDescription>
@@ -330,7 +330,7 @@ fetchVcsIntegrations();
             <CardHeader>
                 <CardTitle>Open source license distribution</CardTitle>
                 <CardDescription>
-                    Overview of the open source licenses within your dependencies.
+                    Comprehensive overview of open source licenses used by your project's dependencies.
                 </CardDescription>
             </CardHeader>
             <CardContent>

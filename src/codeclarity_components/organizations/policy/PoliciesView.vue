@@ -4,7 +4,7 @@ import LoadingComponent from '@/base_components/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const OrgPoliciesList = defineAsyncComponent({
-    loader: () => import('./PoliciesList.vue'),
+    loader: () => import('./list/PoliciesList.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
@@ -15,7 +15,7 @@ const OrgPoliciesList = defineAsyncComponent({
 });
 
 const OrgPoliciesCreate = defineAsyncComponent({
-    loader: () => import('./PolicyCreate.vue'),
+    loader: () => import('./create/PolicyCreate.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
@@ -26,7 +26,7 @@ const OrgPoliciesCreate = defineAsyncComponent({
 });
 
 const OrgPoliciesEdit = defineAsyncComponent({
-    loader: () => import('./PolicyEdit.vue'),
+    loader: () => import('./edit/PolicyEdit.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,

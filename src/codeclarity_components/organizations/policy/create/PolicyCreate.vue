@@ -12,9 +12,9 @@ import { useAuthStore } from '@/stores/auth';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { useForm } from 'vee-validate';
 import { storeToRefs } from 'pinia';
-import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/LicensePolicyRepository';
+import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
 import { LicenseRepository } from '@/codeclarity_components/results/licenses/LicenseRepository';
-import { LicensePolicyType } from '@/codeclarity_components/organizations/policy/LicensePolicy';
+import { LicensePolicyType } from '@/codeclarity_components/organizations/policy/license_policy.entity';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import type { License } from '@/codeclarity_components/results/licenses/License';
 import FormItem from '@/shadcn/ui/form/FormItem.vue';
@@ -59,9 +59,9 @@ const errorCode: Ref<string> = ref('');
 const formSchema = toTypedSchema(
     z.object({
         name: z.string().min(5).max(200),
+        description: z.string().max(200).optional().default(""),
         type: z.string(),
-        description: z.string().min(10).max(200),
-        isDefault: z.boolean(),
+        isDefault: z.boolean().default(false),
         licenses: z.string().array()
     })
 );
@@ -78,14 +78,22 @@ const form = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = form.handleSubmit(async (values) => {
-    console.log('Form submitted!', values);
+const { handleSubmit } = useForm({
+    validationSchema: formSchema,
+    initialValues: {
+        isDefault: false,
+    },
+})
+
+const onSubmit = handleSubmit(async (values) => {
+    console.log(values);
+    
     try {
         await licensePolicyRepository.createPolicy({
             orgId: defaultOrg!.value!.id,
             data: {
                 name: values.name,
-                description: values.description,
+                description: values.description ?? '',
                 type: values.type as LicensePolicyType,
                 licenses: values.licenses,
                 default: values.isDefault
@@ -152,7 +160,7 @@ onBeforeMount(async () => {
 
                 <FormField class="col-start-3 col-end-4" name="description" v-slot="{ componentField }">
                     <FormItem>
-                        <FormLabel>Enter a description</FormLabel>
+                        <FormLabel>Enter a description (optional)</FormLabel>
                         <FormControl>
                             <!-- any Form Input component or native input elements -->
                             <Input placeholder="Enter a description" v-bind="componentField"></Input>
@@ -191,7 +199,7 @@ onBeforeMount(async () => {
                     <FormItem
                         class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4 col-start-2 col-end-4">
                         <FormControl>
-                            <Checkbox :checked="value" @update:checked="handleChange" />
+                            <Checkbox :model-value="value" @update:model-value="handleChange" />
                         </FormControl>
                         <div class="space-y-1 leading-none">
                             <FormLabel>Make this the default policy</FormLabel>
@@ -200,7 +208,6 @@ onBeforeMount(async () => {
                     </FormItem>
                 </FormField>
 
-                <!-- <FormField v-slot="{ value, handleChange }" type="checkbox" name="isDefault"> -->
                 <FormField v-slot="{ setValue }" type="checkbox" name="licenses">
                     <FormItem class="col-start-2 col-end-4">
                         <FormLabel>Select licenses</FormLabel>

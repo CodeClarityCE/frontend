@@ -1,5 +1,5 @@
 import { Entity } from '../../../utils/api/BaseEntity';
-import { LicensePolicy } from './LicensePolicy';
+import { LicensePolicy } from './license_policy.entity';
 import { PaginatedResponse } from '../../../utils/api/responses/PaginatedResponse';
 import {
     BaseRepository,
@@ -7,7 +7,8 @@ import {
     type AuthRepoMethodPostRequestOptions,
     type AuthRepoMethodPatchRequestOptions
 } from '../../../utils/api/BaseRepository';
-import type { CreatePolicy, PolicyUpdate } from './create_policy.http';
+import type { CreatePolicy } from './create/create_policy.http';
+import type { PolicyUpdate } from './edit/update_policy.http';
 import { CreatedResponse } from '../../../utils/api/responses/CreatedResponse';
 import { NoDataResponse } from '../../../utils/api/responses/NoDataResponse';
 

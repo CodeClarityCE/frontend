@@ -219,7 +219,7 @@ function createDepTypeChart() {
 <template>
     <div value="sbom" class="space-y-4">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-            <Card>
+            <Card class="lg:col-start-3">
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle> {{ stats.number_of_non_dev_dependencies ?? 0 }}</CardTitle>
                     <CardDescription>{{ stats.number_of_direct_dependencies_diff ?? 0 }}</CardDescription>
@@ -228,7 +228,48 @@ function createDepTypeChart() {
                     Direct Dependencies
                 </CardContent>
             </Card>
-            <Card>
+            <Card class="col-span-3 row-span-2 flex flex-col">
+                <CardHeader>
+                    <CardTitle>Composition</CardTitle>
+                    <CardDescription>{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription>
+                </CardHeader>
+                <CardContent class="flex items-center justify-center flex-grow">
+                    <div class="flex gap-2 flex-wrap items-center justify-center">
+                        <div class="flex flex-col">
+                            <TextLoader v-if="!render" />
+                            <div v-if="render" class="flex items-center gap-1">
+                                <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
+                                <div class="flex items-center gap-1">
+                                    <div>Direct</div>
+                                    <div class="text-[#146c94]">
+                                        {{ stats?.number_of_direct_dependencies }}
+                                    </div>
+                                </div>
+                            </div>
+                            <TextLoader v-if="!render" />
+                            <div v-if="render" class="flex items-center gap-1">
+                                <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
+                                <div class="flex items-center gap-1">
+                                    <div>Transitive</div>
+                                    <div class="text-[#19a7ce]">
+                                        {{ stats?.number_of_transitive_dependencies }}
+                                    </div>
+                                </div>
+                            </div>
+                            <TextLoader v-if="!render" />
+                        </div>
+
+                        <div v-if="render">
+                            <Doughnut :data="donut_data" :options="donut_config" />
+                        </div>
+                        <div>
+                            <DonutLoader v-if="!render" :dimensions="donutDimensions" />
+                        </div>
+                        <div class="stats-divider hide-on-collpase"></div>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card class="lg:col-start-3">
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle> {{ stats.number_of_dev_dependencies ?? 0 }}</CardTitle>
                     <CardDescription>{{ stats.number_of_dev_dependencies_diff ?? 0 }}</CardDescription>
@@ -238,118 +279,8 @@ function createDepTypeChart() {
                 </CardContent>
             </Card>
         </div>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div class="grid gap-4 col-span-3">
-                <Card class="col-span-2 flex flex-col">
-                    <CardHeader>
-                        <CardTitle>Composition</CardTitle>
-                        <CardDescription>{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription>
-                    </CardHeader>
-                    <CardContent class="flex items-center justify-center flex-grow">
-                        <div class="flex gap-2 items-center justify-center">
-                            <div class="flex flex-col">
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Direct</div>
-                                        <div class="text-[#146c94]">
-                                            {{ stats?.number_of_direct_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Transitive</div>
-                                        <div class="text-[#19a7ce]">
-                                            {{ stats?.number_of_transitive_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                            </div>
-
-                            <div v-if="render">
-                                <Doughnut :data="donut_data" :options="donut_config" />
-                            </div>
-                            <div>
-                                <DonutLoader v-if="!render" :dimensions="donutDimensions" />
-                            </div>
-                            <div class="stats-divider hide-on-collpase"></div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card class="col-span-2 flex flex-col">
-                    <CardHeader>
-                        <CardTitle>Overview</CardTitle>
-                        <CardDescription>
-                            {{
-                                (stats?.number_of_unlicensed_dependencies ?? 0) +
-                                (stats?.number_of_outdated_dependencies ?? 0) +
-                                (stats?.number_of_deprecated_dependencies ?? 0)
-                            }}
-                            Issues
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="flex items-center justify-center flex-grow">
-                        <div class="flex gap-2 items-center justify-center">
-                            <div class="flex flex-col items-center justify-center">
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Deprecated</div>
-                                        <div class="side-stats-text-value" style="color: #146c94">
-                                            {{ stats?.number_of_deprecated_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Unlicensed</div>
-                                        <div class="side-stats-text-value" style="color: #19a7ce">
-                                            {{ stats?.number_of_unlicensed_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                                <div v-if="render" class="flex items-center gap-1">
-                                    <Icon :icon="'ph:circle-fill'" class="text-[#afd3e2]"></Icon>
-                                    <div class="flex items-center gap-1">
-                                        <div>Outdated</div>
-                                        <div class="side-stats-text-value" style="color: #afd3e2">
-                                            {{ stats?.number_of_outdated_dependencies }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <TextLoader v-if="!render" />
-                            </div>
-
-                            <div v-if="render">
-                                <Bar :data="bar_data" :options="bar_config" />
-                            </div>
-                            <div v-if="!render" class="w-1/2">
-                                <div style="
-                                        display: flex;
-                                        flex-direction: row;
-                                        column-gap: 1em;
-                                        align-items: end;
-                                    ">
-                                    <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
-                                    <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
-                                    <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
-                                </div>
-                            </div>
-                            <div class="stats-divider hide-on-collpase"></div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <Card class="col-span-4">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+            <Card class="col-span-4 lg:col-start-2">
                 <CardHeader>
                     <CardTitle>Table</CardTitle>
                 </CardHeader>

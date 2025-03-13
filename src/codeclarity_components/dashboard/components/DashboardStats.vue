@@ -35,16 +35,16 @@ const LicenseDist = defineAsyncComponent({
     timeout: 3000
 });
 
-const ProjectProblemsHeatmap = defineAsyncComponent({
-    loader: () => import('./ProjectProblemsHeatmap.vue'),
-    loadingComponent: LoadingComponent,
-    // Delay before showing the loading component. Default: 200ms.
-    delay: 200,
-    errorComponent: ErrorComponent,
-    // The error component will be displayed if a timeout is
-    // provided and exceeded. Default: Infinity.
-    timeout: 3000
-});
+// const ProjectProblemsHeatmap = defineAsyncComponent({
+//     loader: () => import('./ProjectProblemsHeatmap.vue'),
+//     loadingComponent: LoadingComponent,
+//     // Delay before showing the loading component. Default: 200ms.
+//     delay: 200,
+//     errorComponent: ErrorComponent,
+//     // The error component will be displayed if a timeout is
+//     // provided and exceeded. Default: Infinity.
+//     timeout: 3000
+// });
 
 const ExposureOverview = defineAsyncComponent({
     loader: () => import('./ExposureOverview.vue'),
@@ -79,38 +79,38 @@ const CurrentVulns = defineAsyncComponent({
     timeout: 3000
 });
 
-const QuickStats = defineAsyncComponent({
-    loader: () => import('./QuickStats.vue'),
-    loadingComponent: LoadingComponent,
-    // Delay before showing the loading component. Default: 200ms.
-    delay: 200,
-    errorComponent: ErrorComponent,
-    // The error component will be displayed if a timeout is
-    // provided and exceeded. Default: Infinity.
-    timeout: 3000
-});
+// const QuickStats = defineAsyncComponent({
+//     loader: () => import('./QuickStats.vue'),
+//     loadingComponent: LoadingComponent,
+//     // Delay before showing the loading component. Default: 200ms.
+//     delay: 200,
+//     errorComponent: ErrorComponent,
+//     // The error component will be displayed if a timeout is
+//     // provided and exceeded. Default: Infinity.
+//     timeout: 3000
+// });
 
-const ProjectProblems = defineAsyncComponent({
-    loader: () => import('./ProjectProblems.vue'),
-    loadingComponent: LoadingComponent,
-    // Delay before showing the loading component. Default: 200ms.
-    delay: 200,
-    errorComponent: ErrorComponent,
-    // The error component will be displayed if a timeout is
-    // provided and exceeded. Default: Infinity.
-    timeout: 3000
-});
+// const ProjectProblems = defineAsyncComponent({
+//     loader: () => import('./ProjectProblems.vue'),
+//     loadingComponent: LoadingComponent,
+//     // Delay before showing the loading component. Default: 200ms.
+//     delay: 200,
+//     errorComponent: ErrorComponent,
+//     // The error component will be displayed if a timeout is
+//     // provided and exceeded. Default: Infinity.
+//     timeout: 3000
+// });
 
-const AttackVectorDist = defineAsyncComponent({
-    loader: () => import('./AttackVectorsDist.vue'),
-    loadingComponent: LoadingComponent,
-    // Delay before showing the loading component. Default: 200ms.
-    delay: 200,
-    errorComponent: ErrorComponent,
-    // The error component will be displayed if a timeout is
-    // provided and exceeded. Default: Infinity.
-    timeout: 3000
-});
+// const AttackVectorDist = defineAsyncComponent({
+//     loader: () => import('./AttackVectorsDist.vue'),
+//     loadingComponent: LoadingComponent,
+//     // Delay before showing the loading component. Default: 200ms.
+//     delay: 200,
+//     errorComponent: ErrorComponent,
+//     // The error component will be displayed if a timeout is
+//     // provided and exceeded. Default: Infinity.
+//     timeout: 3000
+// });
 
 const state = useStateStore();
 state.$reset();
@@ -305,51 +305,46 @@ fetchVcsIntegrations();
             </template>
         </div>
     </div>
-    <div class="space-y-4" v-else>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
-            <Card class="col-span-4 col-start-3 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Overall Exposure</CardTitle>
-                    <CardDescription> Overall exposure of your projects. </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
-                </CardContent>
-            </Card>
-        </div>
-        <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-            <QuickStats class="col-span-2" :integration-ids="activeIntegrationIds" />
-            <Card class="col-span-2 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Current vulnerabilities</CardTitle>
-                    <CardDescription>
-                        Current vulnerabilities affecting your projects.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <CurrentVulns :integration-ids="activeIntegrationIds"></CurrentVulns>
-                </CardContent>
-            </Card>
-            <Card class="col-span-2 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Open source license distribution</CardTitle>
-                    <CardDescription>
-                        Overview of the open source licenses within your dependencies.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <LicenseDist :integration-ids="activeIntegrationIds"></LicenseDist>
-                </CardContent>
-            </Card>
-            <Card class="col-span-2 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Potential CIA Impact</CardTitle>
-                    <CardDescription> Potential CIA Impact on your projects. </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <CIAImpact :integration-ids="activeIntegrationIds"></CIAImpact>
-                </CardContent>
-            </Card>
-        </div>
+    <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-9" v-else>
+        <Card class="xl:col-span-5 xl:col-start-3">
+            <CardHeader>
+                <CardTitle>Overall Exposure</CardTitle>
+                <CardDescription> Overall exposure of your projects. </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
+            </CardContent>
+        </Card>
+        <Card class="xl:col-start-1 xl:col-span-3">
+            <CardHeader>
+                <CardTitle>Current vulnerabilities</CardTitle>
+                <CardDescription>
+                    Current vulnerabilities affecting your projects.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <CurrentVulns :integration-ids="activeIntegrationIds"></CurrentVulns>
+            </CardContent>
+        </Card>
+        <Card class="xl:col-span-3">
+            <CardHeader>
+                <CardTitle>Open source license distribution</CardTitle>
+                <CardDescription>
+                    Overview of the open source licenses within your dependencies.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <LicenseDist :integration-ids="activeIntegrationIds"></LicenseDist>
+            </CardContent>
+        </Card>
+        <Card class="xl:col-span-3">
+            <CardHeader>
+                <CardTitle>Potential CIA Impact</CardTitle>
+                <CardDescription> Potential CIA Impact on your projects. </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <CIAImpact :integration-ids="activeIntegrationIds"></CIAImpact>
+            </CardContent>
+        </Card>
     </div>
 </template>

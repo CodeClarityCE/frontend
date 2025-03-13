@@ -108,8 +108,8 @@ function generateChart(stats: SeverityInfoByWeek[]) {
 }
 </script>
 <template>
-    <div class="p-6 pt-0 flex flex-wrap items-center gap-1 justify-center xl:justify-between">
-        <div class="w-full xl:w-7/12">
+    <div class="flex flex-col xl:flex-row xl:flex-none items-center">
+        <div>
             <div v-if="loading || noData" class="flex flex-col gap-2 relative">
                 <Skeleton class="h-[200px] w-[300px] rounded-xl" />
                 <div v-if="noData" class="flex flex-row justify-center items-center absolute w-full h-full">
@@ -125,7 +125,7 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                 </div>
             </div>
         </div>
-        <div class="w-full xl:w-3/12">
+        <div>
             <div v-if="loading || noData" class="flex flex-col gap-2">
                 <Skeleton v-for="index in 4" :key="index" class="h-[30px] w-[100px] rounded-xl" />
             </div>
@@ -162,7 +162,7 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                                             )
                                         }}
                                     </div>
-                                    <div class="flex items-center gap-1 flex-wrap">
+                                    <div class="flex items-center gap-1">
                                         <SeverityBubble v-if="exposure.nmb_critical > 0" :critical="true">
                                             <template #content>
                                                 {{ exposure.nmb_critical }}

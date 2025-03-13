@@ -218,7 +218,7 @@ function createDepTypeChart() {
 
 <template>
     <div value="sbom" class="space-y-4">
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
             <Card class="lg:col-start-3">
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle> {{ stats.number_of_non_dev_dependencies ?? 0 }}</CardTitle>
@@ -226,6 +226,15 @@ function createDepTypeChart() {
                 </CardHeader>
                 <CardContent class="flex flex-col items-center text-center">
                     Direct Dependencies
+                </CardContent>
+            </Card>
+            <Card class="lg:col-start-3 lg:row-start-2 row-start-1 row-span-1">
+                <CardHeader class="flex flex-col items-center">
+                    <CardTitle> {{ stats.number_of_dev_dependencies ?? 0 }}</CardTitle>
+                    <CardDescription>{{ stats.number_of_dev_dependencies_diff ?? 0 }}</CardDescription>
+                </CardHeader>
+                <CardContent class="flex flex-col items-center text-center">
+                    Direct Dev Dependencies
                 </CardContent>
             </Card>
             <Card class="col-span-3 row-span-2 flex flex-col">
@@ -267,15 +276,6 @@ function createDepTypeChart() {
                         </div>
                         <div class="stats-divider hide-on-collpase"></div>
                     </div>
-                </CardContent>
-            </Card>
-            <Card class="lg:col-start-3">
-                <CardHeader class="flex flex-col items-center">
-                    <CardTitle> {{ stats.number_of_dev_dependencies ?? 0 }}</CardTitle>
-                    <CardDescription>{{ stats.number_of_dev_dependencies_diff ?? 0 }}</CardDescription>
-                </CardHeader>
-                <CardContent class="flex flex-col items-center text-center">
-                    Direct Dev Dependencies
                 </CardContent>
             </Card>
         </div>

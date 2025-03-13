@@ -87,7 +87,7 @@ function createOwaspTop10DistChart() {
 
     owaspTopTotalCount.value = count;
 
-    let possible_colors = ['#008491', '#023f47', '#175181', '#0b9749', '#35cb36', '#c3f166', '#c2f79a']
+    let possible_colors = ['#003532', '#1A4876','#008491', '#40E0D0']
 
     let data: Array<any> = [];
     let colors: Array<any> = [];
@@ -323,97 +323,97 @@ function createRadarChart() {
                     <div class="flex flex-col gap-2">
                         <div v-if="stats.number_of_owasp_top_10_2021_a1 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#7400b8] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#003532] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A01: Broken Access Control
                             </div>
-                            <div class="text-sm" style="color: #7400b8">
+                            <div class="text-sm text-[#003532]">
                                 {{ stats.number_of_owasp_top_10_2021_a1 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a2 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#6930c3] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A02: Cryptographic Failures
                             </div>
-                            <div class="text-sm" style="color: #6930c3">
+                            <div class="text-sm text-[#1A4876]">
                                 {{ stats.number_of_owasp_top_10_2021_a2 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a3 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#5e60ce] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#008491] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">A03: Injection</div>
-                            <div class="text-sm" style="color: #5e60ce">
+                            <div class="text-sm" style="color: #008491">
                                 {{ stats.number_of_owasp_top_10_2021_a3 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a4 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#5390d9] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">A04: Insecure Design</div>
-                            <div class="text-sm" style="color: #5390d9">
+                            <div class="text-sm text-[#40E0D0]">
                                 {{ stats.number_of_owasp_top_10_2021_a4 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a5 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#003532] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A05: Security Misconfiguration
                             </div>
-                            <div class="text-sm">
+                            <div class="text-sm text-[#003532]">
                                 {{ stats.number_of_owasp_top_10_2021_a5 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a6 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#4ea8de] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A06: Vulnerable and Outdated Components
                             </div>
-                            <div class="text-sm" style="color: #4ea8de">
+                            <div class="text-sm text-[#1A4876]">
                                 {{ stats.number_of_owasp_top_10_2021_a6 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a7 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#56cfe1] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#008491] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A07: Identification and Authentication Failures
                             </div>
-                            <div class="text-sm" style="color: #56cfe1">
+                            <div class="text-sm" style="color: #008491">
                                 {{ stats.number_of_owasp_top_10_2021_a7 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a8 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#64dfdf] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A08: Software and Data Integrity Failures
                             </div>
-                            <div class="text-sm" style="color: #64dfdf">
+                            <div class="text-sm text-[#40E0D0]">
                                 {{ stats.number_of_owasp_top_10_2021_a8 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a9 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#72efdd] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#003532] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A09: Security Logging and Monitoring Failures
                             </div>
-                            <div class="text-sm" style="color: #72efdd">
+                            <div class="text-sm text-[#003532]">
                                 {{ stats.number_of_owasp_top_10_2021_a9 }}
                             </div>
                         </div>
                         <div v-if="stats.number_of_owasp_top_10_2021_a10 > 0"
                             class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#80ffdb] flex-shrink-0"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A10: Server-Side Request Forgery
                             </div>
-                            <div class="text-sm" style="color: #80ffdb">
+                            <div class="text-sm text-[#40E0D0]">
                                 {{ stats.number_of_owasp_top_10_2021_a10 }}
                             </div>
                         </div>
@@ -421,7 +421,7 @@ function createRadarChart() {
                             class="flex flex-row gap-2 justify-between items-start">
                             <Icon :icon="'ph:circle-fill'" class="text-[#D3D3D3] flex-shrink-0"></Icon>
                             <div class="text-sm self-start flex-grow">Uncategorized</div>
-                            <div class="text-sm" style="color: #D3D3D3">
+                            <div class="text-sm text-[#D3D3D3]">
                                 {{ stats.number_of_vulnerabilities - owaspTopTotalCount }}
                             </div>
                         </div>

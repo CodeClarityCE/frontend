@@ -57,8 +57,8 @@ const ExposureOverview = defineAsyncComponent({
     timeout: 3000
 });
 
-const CIAImpact = defineAsyncComponent({
-    loader: () => import('./CIAImpact.vue'),
+const VulnerabilityImpact = defineAsyncComponent({
+    loader: () => import('./VulnerabilityImpact.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
@@ -339,11 +339,11 @@ fetchVcsIntegrations();
         </Card>
         <Card class="xl:col-span-3">
             <CardHeader>
-                <CardTitle>Potential CIA Impact</CardTitle>
-                <CardDescription> Potential CIA Impact on your projects. </CardDescription>
+                <CardTitle>Vulnerability Impact Analysis</CardTitle>
+                <CardDescription> Average severity of vulnerabilities affecting your projects, providing insight into potential risks. </CardDescription>
             </CardHeader>
             <CardContent>
-                <CIAImpact :integration-ids="activeIntegrationIds"></CIAImpact>
+                <VulnerabilityImpact :integration-ids="activeIntegrationIds"></VulnerabilityImpact>
             </CardContent>
         </Card>
     </div>

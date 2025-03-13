@@ -4,7 +4,7 @@ import { onMounted, ref } from 'vue';
 // Import stores
 import { Project } from '@/codeclarity_components/projects/project.entity';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import PatchingContent from './patching/PatchingContent.vue';
+import PatchingContent from './PatchingContent.vue';
 
 defineProps<{
     analysis: Analysis;

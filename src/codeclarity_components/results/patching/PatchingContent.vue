@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Icon } from '@iconify/vue/dist/iconify.js';
-import Patches from '@/views/results/patching/PatchingPatches.vue';
-import PatchesTable from '@/views/results/patching/PatchingTable.vue';
+import Patches from './PatchingPatches.vue';
+import PatchesTable from './PatchingTable.vue';
 import { ref, type Ref, watch } from 'vue';
 import TextLoader from '../../../base_components/TextLoader.vue';
 import BoxLoader from '../../../base_components/BoxLoader.vue';

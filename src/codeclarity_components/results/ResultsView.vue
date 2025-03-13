@@ -216,6 +216,7 @@ onBeforeMount(() => {
     <div class="flex-1 space-y-4 p-8 pt-6">
         <div class="flex items-center justify-between space-y-2">
             <h2 class="text-3xl font-bold tracking-tight">Results</h2>
+            {{ project.name }}
         </div>
         <ResultsVulnerabilitiesDetails v-if="props.page == 'vulnerabilities_details'" />
         <ResultsSBOMDetails v-else-if="props.page == 'sbom_details'" />

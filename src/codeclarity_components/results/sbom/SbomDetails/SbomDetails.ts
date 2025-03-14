@@ -40,9 +40,9 @@ export class DependencyDetails {
     engines?: { [key: string]: string };
     release_date!: Date;
     lastest_release_date!: Date;
+    vulnerabilities!: string[];
+    severity_dist!: SeverityDist;
     // file_path!: string;
-    // vulnerabilities!: string[];
-    // severity_dist!: SeverityDist;
     // mean_severity!: number;
     // combined_severity!: number;
     // patchable_paths!: string[];

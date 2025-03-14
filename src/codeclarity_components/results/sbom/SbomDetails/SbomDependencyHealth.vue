@@ -31,7 +31,8 @@ defineProps({
                     <!-- {{ dependency.outdated_message }}  -->
                     <span>
                         There is a difference of {{
-                            moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') }} days compared
+                            moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') }} days
+                        compared
                         to the latest release.
                     </span>
                     <span>
@@ -48,9 +49,9 @@ defineProps({
             </div>
         </div>
 
-        <!-- <div class="flex flex-col gap-5 mt-6" v-if="dependency.vulnerable">
-            <div v-if="dependency.unlicensed == true" class="mt-2 border-l-4 border-red pl-5">
-                <div class="text-destructive font-black">Vulnerable</div>
+        <div class="flex flex-col gap-5 mt-6" v-if="dependency.vulnerabilities.length > 0">
+            <div class="mt-2 border-l-4 border-severityHigh pl-5">
+                <div class="text-severityHigh font-black">Vulnerable</div>
                 <div class="mt-2">
                     <div v-for="vulnerability in dependency.vulnerabilities" :key="vulnerability">
                         <Badge variant="secondary">
@@ -60,35 +61,32 @@ defineProps({
                 </div>
             </div>
             <div class="flex items-center gap-1">
-                <SeverityBubble
-                    :critical="true"
-                    :deactivated="dependency.severity_dist.critical == 0"
-                >
+                <SeverityBubble :critical="true" :deactivated="dependency.severity_dist.critical == 0">
                     <template #content>
                         {{ dependency.severity_dist.critical }}
                     </template>
-</SeverityBubble>
-<SeverityBubble :high="true" :deactivated="dependency.severity_dist.high == 0">
-    <template #content>
+                </SeverityBubble>
+                <SeverityBubble :high="true" :deactivated="dependency.severity_dist.high == 0">
+                    <template #content>
                         {{ dependency.severity_dist.high }}
                     </template>
-</SeverityBubble>
-<SeverityBubble :medium="true" :deactivated="dependency.severity_dist.medium == 0">
-    <template #content>
+                </SeverityBubble>
+                <SeverityBubble :medium="true" :deactivated="dependency.severity_dist.medium == 0">
+                    <template #content>
                         {{ dependency.severity_dist.medium }}
                     </template>
-</SeverityBubble>
-<SeverityBubble :low="true" :deactivated="dependency.severity_dist.low == 0">
-    <template #content>
+                </SeverityBubble>
+                <SeverityBubble :low="true" :deactivated="dependency.severity_dist.low == 0">
+                    <template #content>
                         {{ dependency.severity_dist.low }}
                     </template>
-</SeverityBubble>
-<SeverityBubble :none="true" :deactivated="dependency.severity_dist.none == 0">
-    <template #content>
+                </SeverityBubble>
+                <SeverityBubble :none="true" :deactivated="dependency.severity_dist.none == 0">
+                    <template #content>
                         {{ dependency.severity_dist.none }}
                     </template>
-</SeverityBubble>
-</div>
-</div> -->
+                </SeverityBubble>
+            </div>
+        </div>
     </section>
 </template>

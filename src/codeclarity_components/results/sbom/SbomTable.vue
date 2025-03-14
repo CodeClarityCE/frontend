@@ -102,7 +102,7 @@ watch(sorting, () => {
 
 <template>
     <div class="container py-4 mx-auto">
-        <div>
+        <!-- <div>
             Legend:
             <ul class="list list-inside">
                 <li class="list-item text-primary">Dependency requested by you</li>
@@ -113,7 +113,7 @@ watch(sorting, () => {
                     Dependency requested by you and installed by one of your dependencies
                 </li>
             </ul>
-        </div>
+        </div> -->
         <DataTable :columns="columns" :data="data" v-model:pageLimitSelected="pageLimitSelected"
             v-model:searchKey="searchKey" v-model:sorting="sorting" v-model:columnFilters="columnFilters"
             v-model:columnVisibility="columnVisibility" />

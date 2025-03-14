@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import moment from 'moment';
 import type { PropType } from 'vue';
@@ -45,12 +46,14 @@ defineProps({
                 </span>
             </div>
             <div>Version: {{ dependency.version }}</div>
-            <div
-                v-if="moment(dependency.release).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'"
-            >
+            <div v-if="moment(dependency.release).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
                 Release date: {{ moment(dependency.release) }}
             </div>
-            <div v-if="dependency.engines">
+            <div class="pt-4">Latest version: {{ dependency.newest_release }}</div>
+            <div v-if="moment(dependency.release).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
+                Latest release date: {{ moment(dependency.lastes_release) }}
+            </div>
+            <div class="pt-4" v-if="dependency.engines">
                 Engines supported:
                 <div v-for="(value, key) in dependency.engines" :key="key">
                     <div class="flex items-center gap-2 pl-4">
@@ -80,13 +83,19 @@ defineProps({
                     Unlicensed
                 </Badge>
 
-                <!-- <BubbleComponent
-                    v-if="dependency.outdated == true"
-                    :partiallyPatchable="true"
-                    :slim="true"
-                >
-                    <template #content> Outdated </template>
-                </BubbleComponent> -->
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Badge class="rounded-full"
+                                v-if="moment(dependency.lastes_release).diff(moment(dependency.release), 'days') > 182">
+                                Outdated
+                            </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            There is a difference of {{ moment(dependency.lastes_release).diff(moment(dependency.release), 'days') }} days compared to the latest release
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
 
             <div class="flex items-center gap-1" v-if="dependency.license != ''">

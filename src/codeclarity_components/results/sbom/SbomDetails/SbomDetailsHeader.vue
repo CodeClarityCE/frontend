@@ -19,12 +19,6 @@ defineProps({
             <div>{{ dependency.name }}</div>
             <div>@{{ dependency.version }}</div>
         </div>
-        <div class="text-gray-600">
-            <div v-if="!dependency.transitive">
-                This is a direct dependency of the project.
-            </div>
-        </div>
-        <!-- <div v-if="!dependency.is_self_managed" class="flex gap-6"> -->
         <div class="flex gap-6">
             <Badge variant="secondary" class="rounded-full">
                 <a :href="`https://www.npmjs.com/package/${dependency.name}/v/${dependency.version}`" target="_blank"

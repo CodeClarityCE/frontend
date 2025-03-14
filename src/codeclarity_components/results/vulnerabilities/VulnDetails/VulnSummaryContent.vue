@@ -3,43 +3,31 @@ import type { VulnerabilityDetails } from '@/codeclarity_components/results/vuln
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
 import type CenteredModalVue from '@/base_components/CenteredModal.vue';
-import { ref, type Ref } from 'vue';
 import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
 import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 
-const props = defineProps<{
+defineProps<{
     finding: VulnerabilityDetails;
     read_me_modal_ref: typeof CenteredModalVue;
-    // nodes_array: TreeNode[];
     readme: string;
     active_view: string;
 }>();
-
-const active_view_ref: Ref<string> = ref(props.active_view);
-
-function getPatchingUrl() {
-    let paths = location.pathname.split('/');
-    let url = `${paths[1]}/patching/${paths[2]}`;
-    return `/${url}`;
-}
-// const readme = defineModel<string>('readme', { required: true })
-// const active_view = defineModel<string>('active_view', { required: true })
 </script>
 
 <template>
     <!--------------------------------------------------------------------------->
     <!--                      Vulnerability summary content                    -->
     <!--------------------------------------------------------------------------->
-    <section class="summary-content">
-        <div class="vuln-details-wrapper">
+    <section>
+        <div class="grid grid-cols-2">
             <!--------------------------------------------------------------------------->
             <!--                         Vulnerability description                     -->
             <!--------------------------------------------------------------------------->
             <div>
                 <div class="flex flex-col gap-5">
-                    <h2 class="font-black">
-                        <span style="color: teal; font-size: 1.9em">V</span>ulnerability Information
+                    <h2 class="font-black text-xl">
+                        <span class="text-primary text-3xl">V</span>ulnerability Information
                     </h2>
                     <div style="position: relative">
                         <div class="w-full">
@@ -52,9 +40,7 @@ function getPatchingUrl() {
                                     <div>
                                         <span class="font-normal">Last modified:</span>
                                         {{
-                                            moment(finding.vulnerability_info.last_modified).format(
-                                                'LL'
-                                            )
+                                            moment(finding.vulnerability_info.last_modified).format('LL')
                                         }}
                                     </div>
                                 </div>
@@ -89,74 +75,26 @@ function getPatchingUrl() {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex flex-row items-center gap-2">
-                                    <div class="font-normal">Status:</div>
-                                    <div class="flex gap-2 text-sm">
-                                        <div>
-                                            <!-- <BubbleComponent
-                                                v-if="
-                                                    finding.patch &&
-                                                    finding.patch.patch_type == 'NONE'
-                                                "
-                                                :not-patchable="true"
-                                            >
-                                                <template #content>
-                                                    <Icon
-                                                        :icon="'material-symbols:crisis-alert'"
-                                                    ></Icon>
-                                                    Not patchable
-                                                </template>
-                                            </BubbleComponent>
-                                            <BubbleComponent
-                                                v-if="
-                                                    finding.patch &&
-                                                    finding.patch.patch_type == 'PARTIAL'
-                                                "
-                                                :partially-patchable="true"
-                                            >
-                                                <template #content>
-                                                    <Icon
-                                                        :icon="'material-symbols:crisis-alert'"
-                                                    ></Icon>
-                                                    Partially patchable
-                                                </template>
-                                            </BubbleComponent>
-                                            <BubbleComponent
-                                                v-if="
-                                                    finding.patch &&
-                                                    finding.patch.patch_type == 'FULL'
-                                                "
-                                                :patchable="true"
-                                            >
-                                                <template #content> Patchable </template>
-                                            </BubbleComponent> -->
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <div class="text-sm font-normal">Description</div>
                             <div class="overflow-y-auto">
-                                <InfoMarkdown class="w-full" :markdown="finding.vulnerability_info.description">
-                                </InfoMarkdown>
+                                <InfoMarkdown class="w-full" :markdown="finding.vulnerability_info.description" />
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="self-stretch bg-[#e8e8e8]"></div>
-
             <!--------------------------------------------------------------------------->
             <!--                        Vulnerability weakness info                    -->
             <!--------------------------------------------------------------------------->
-
             <div>
                 <div v-if="
                     (!finding.weaknesses || finding.weaknesses.length == 0) &&
                     !finding.owasp_top_10
                 ">
                     <div class="flex flex-col gap-5">
-                        <h2 style="font-family: lato; font-weight: 900">
+                        <h2 class="text-xl">
                             <span class="text-primary text-3xl">W</span>eakness information
                         </h2>
                         <div>
@@ -168,7 +106,7 @@ function getPatchingUrl() {
 
                 <div v-else class="flex">
                     <div class="flex flex-col gap-5">
-                        <h2 class="font-black">
+                        <h2 class="font-black text-xl">
                             <span class="text-primary text-3xl">W</span>eakness information
                         </h2>
                         <div class="relative w-full">
@@ -263,7 +201,7 @@ function getPatchingUrl() {
             <!--                             Vulnerability Info                        -->
             <!--------------------------------------------------------------------------->
             <div class="flex flex-col gap-5">
-                <h2 class="font-black"><span class="text-primary text-3xl">D</span>ependency</h2>
+                <h2 class="font-black text-xl"><span class="text-primary text-3xl">D</span>ependency</h2>
                 <div class="relative">
                     <div class="flex flex-col gap-3">
                         <div class="flex items-end gap-1">
@@ -362,61 +300,11 @@ function getPatchingUrl() {
                     </div>
                 </div>
             </div>
-
-            <div style="align-self: stretch; background-color: #e8e8e8"></div>
-
-            <!--------------------------------------------------------------------------->
-            <!--                         Vulnerability patch summary                   -->
-            <!--------------------------------------------------------------------------->
-            <div>
-                <div class="patching-summary flex flex-col gap-5">
-                    <div class="title">
-                        <h2 class="font-black">
-                            <span class="text-primary text-3xl">P</span>atching
-                        </h2>
-                        <!-- <span
-                            v-if="
-                                finding.patch &&
-                                finding.patch.patch_type &&
-                                finding.patch.patch_type == 'FULL'
-                            "
-                            class="findings-patch-type-indicator-full"
-                        >
-                            <Icon :icon="'bi:shield-check'"></Icon>
-                            Full patch available
-                        </span> -->
-                        <!-- <span
-                            v-if="
-                                finding.patch &&
-                                finding.patch.patch_type &&
-                                finding.patch.patch_type == 'PARTIAL'
-                            "
-                            class="findings-patch-type-indicator-partial"
-                        >
-                            <Icon :icon="'bi:shield-minus'"></Icon>
-                            Partial patch available
-                        </span> -->
-                        <!-- <span
-                            v-if="!finding.patch || finding.patch.patch_type == 'NONE'"
-                            class="findings-patch-type-indicator-none"
-                        >
-                            <Icon :icon="'bi:shield-exclamation'"></Icon>
-                            No patch available
-                        </span> -->
-                    </div>
-
-                    <div style="position: relative">
-                        <div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 </template>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
-@use '@/assets/common/details.scss';
 @use '@/assets/common/finding-patch.scss';
 </style>

@@ -14,32 +14,33 @@ defineProps<{
         <!--------------------------------------------------------------------------->
         <!--                           Vulnerability id                            -->
         <!--------------------------------------------------------------------------->
-        <div class="title">
+        <div class="text-3xl font-black">
             <div>{{ finding.vulnerability_info.vulnerability_id }}</div>
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                      Vulnerability type in library                    -->
         <!--------------------------------------------------------------------------->
-        <div class="text-3xl my-6">
+        <div class="text-3xl my-1">
             <span v-if="finding.weaknesses.length > 0">{{ finding.weaknesses[0].name }}</span>
             in
-            <span style="font-family: lato; font-weight: 900; color: teal">{{
-                finding.dependency_info?.name + '@' + finding.dependency_info?.version
-                }}</span>
+            <span class="font-black text-primary">
+                {{
+                    finding.dependency_info?.name + '@' + finding.dependency_info?.version
+                }}
+            </span>
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                      Affected and patched versions                    -->
         <!--------------------------------------------------------------------------->
-        <div class="affected-versions-wrapper">
+        <div>
             <!--------------------------------------------------------------------------->
             <!--                              Affected versions                        -->
             <!--------------------------------------------------------------------------->
             <div>
-                <span style="font-family: lato; font-weight: 900">
-                    Affected versions of
-                    {{ finding.dependency_info?.name }}:
+                <span class="font-black">
+                    Affected versions of {{ finding.dependency_info?.name }}:
                 </span>
                 {{ finding.vulnerability_info.version_info.affected_versions_string }}
             </div>
@@ -47,31 +48,25 @@ defineProps<{
             <!--------------------------------------------------------------------------->
             <!--                              Patched versions                         -->
             <!--------------------------------------------------------------------------->
-            <div v-if="finding.vulnerability_info.version_info.patched_versions_string.length > 0">
-                <span style="font-family: lato; font-weight: 900">
+            <!-- <div v-if="finding.vulnerability_info.version_info.patched_versions_string.length > 0">
+                <span class="font-black">
                     Patched versions of
                     {{ finding.dependency_info?.name }}:
                 </span>
                 {{ finding.vulnerability_info.version_info.patched_versions_string }}
             </div>
             <div v-if="finding.vulnerability_info.version_info.patched_versions_string.length == 0">
-                <span style="font-family: lato; font-weight: 900">
+                <span class="font-black">
                     Patched versions of
                     {{ finding.dependency_info?.name }}:
                 </span>
                 No patched versions exist
-            </div>
+            </div> -->
 
-            <Badge variant="secondary" @click="versions_modal_ref.show()" id="show-all-versions"
+            <!-- <Badge variant="secondary" @click="versions_modal_ref.show()" id="show-all-versions"
                 class="w-fit cursor-pointer">
                 Show all versions <Icon :icon="'heroicons:chevron-right-20-solid'"></Icon>
-            </Badge>
+            </Badge> -->
         </div>
     </div>
 </template>
-
-
-<style scoped lang="scss">
-@use '@/assets/colors.scss';
-@use '@/assets/common/details.scss';
-</style>

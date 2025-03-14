@@ -47,11 +47,11 @@ defineProps({
             </div>
             <div>Version: {{ dependency.version }}</div>
             <div v-if="moment(dependency.release_date).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
-                Release date: {{ moment(dependency.release_date) }}
+                Release date: {{ moment(dependency.release_date).format('LL') }}
             </div>
             <div class="pt-4">Latest version: {{ dependency.latest_version }}</div>
             <div v-if="moment(dependency.lastest_release_date).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
-                Latest release date: {{ moment(dependency.lastest_release_date) }}
+                Latest release date: {{ moment(dependency.lastest_release_date).format('LL') }}
             </div>
             <div class="pt-4" v-if="dependency.engines">
                 Engines supported:

@@ -30,7 +30,7 @@ export interface SeverityDist {
 export class DependencyDetails {
     name!: string;
     version!: string;
-    newest_release!: string;
+    latest_version!: string;
     dependencies!: { [key: string]: string; };
     dev_dependencies!: { [key: string]: string; };
     transitive!: boolean;
@@ -38,8 +38,8 @@ export class DependencyDetails {
     package_manager!: string;
     license!: string;
     engines?: { [key: string]: string };
-    release!: Date;
-    lastes_release!: Date;
+    release_date!: Date;
+    lastest_release_date!: Date;
     // file_path!: string;
     // vulnerabilities!: string[];
     // severity_dist!: SeverityDist;

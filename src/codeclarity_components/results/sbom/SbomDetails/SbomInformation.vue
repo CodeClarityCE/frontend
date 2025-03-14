@@ -46,12 +46,12 @@ defineProps({
                 </span>
             </div>
             <div>Version: {{ dependency.version }}</div>
-            <div v-if="moment(dependency.release).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
-                Release date: {{ moment(dependency.release) }}
+            <div v-if="moment(dependency.release_date).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
+                Release date: {{ moment(dependency.release_date) }}
             </div>
-            <div class="pt-4">Latest version: {{ dependency.newest_release }}</div>
-            <div v-if="moment(dependency.release).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
-                Latest release date: {{ moment(dependency.lastes_release) }}
+            <div class="pt-4">Latest version: {{ dependency.latest_version }}</div>
+            <div v-if="moment(dependency.lastest_release_date).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'">
+                Latest release date: {{ moment(dependency.lastest_release_date) }}
             </div>
             <div class="pt-4" v-if="dependency.engines">
                 Engines supported:
@@ -74,13 +74,13 @@ defineProps({
                     <Tooltip>
                         <TooltipTrigger>
                             <Badge class="rounded-full"
-                                v-if="moment(dependency.lastes_release).diff(moment(dependency.release), 'days') > 182">
+                                v-if="moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') > 182">
                                 Outdated
                             </Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                             There is a difference of {{
-                                moment(dependency.lastes_release).diff(moment(dependency.release), 'days') }} days compared
+                                moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') }} days compared
                             to the latest release
                         </TooltipContent>
                     </Tooltip>

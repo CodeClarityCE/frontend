@@ -24,14 +24,14 @@ defineProps({
                     <b>Author message</b>: {{ dependency.deprecated_message }}
                 </div>
             </div> -->
-            <div v-if="moment(dependency.lastes_release).diff(moment(dependency.release), 'days') > 182"
+            <div v-if="moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') > 182"
                 class="mt-2 border-l-4 border-severityMedium pl-5">
                 <div class="text-severityMedium font-black">Outdated</div>
                 <div class="flex flex-col">
                     <!-- {{ dependency.outdated_message }}  -->
                     <span>
                         There is a difference of {{
-                            moment(dependency.lastes_release).diff(moment(dependency.release), 'days') }} days compared
+                            moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') }} days compared
                         to the latest release.
                     </span>
                     <span>

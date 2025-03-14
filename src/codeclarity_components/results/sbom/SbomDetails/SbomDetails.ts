@@ -38,6 +38,7 @@ export class DependencyDetails {
     package_manager!: string;
     license!: string;
     engines?: { [key: string]: string };
+    release!: Date;
     // key!: string;
     // parents!: string[];
     // dependencies!: string[];
@@ -79,7 +80,6 @@ export class DependencyDetails {
     // unlicensed!: boolean;
     // deprecated_message!: string;
     // outdated_message!: string;
-    // release!: Date;
     // version_age!: number;
     // newest_release!: string;
     // last_published!: Date;

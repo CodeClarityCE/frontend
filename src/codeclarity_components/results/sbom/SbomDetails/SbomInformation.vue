@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { Badge } from '@/shadcn/ui/badge';
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import moment from 'moment';
 import type { PropType } from 'vue';
@@ -16,7 +16,7 @@ defineProps({
 
 <template>
     <div>
-        <h2 class="font-black"><span class="text-primary text-3xl">I</span>nformation</h2>
+        <h2 class="font-black text-xl"><span class="text-primary text-3xl">I</span>nformation</h2>
         <div class="flex flex-col gap-2 pl-5 pt-5">
             <div v-if="dependency.package_manager == 'NPM'" class="flex gap-2 items-center">
                 Integrated through:
@@ -45,21 +45,21 @@ defineProps({
                 </span>
             </div>
             <div>Version: {{ dependency.version }}</div>
-            <!-- <div
+            <div
                 v-if="moment(dependency.release).toString() !== 'Mon Jan 01 0001 00:17:30 GMT+0017'"
             >
                 Release date: {{ moment(dependency.release) }}
-            </div> -->
+            </div>
             <div v-if="dependency.engines">
                 Engines supported:
-                <ul class="list-disc pl-8">
-                    <li v-for="(value, key) in dependency.engines as Object" :key="key">
-                        <div class="flex items-center gap-2">
-                            <Icon class="min-w-4" v-if="dependency.engines.hasOwnProperty('node')"
-                                :icon="'akar-icons:node-fill'"></Icon>{{ value }}
-                        </div>
-                    </li>
-                </ul>
+                <div v-for="(value, key) in dependency.engines" :key="key">
+                    <div class="flex items-center gap-2 pl-4">
+                        •
+                        <Icon class="min-w-4" v-if="dependency.engines.hasOwnProperty('node')"
+                            :icon="'akar-icons:node-fill'"></Icon>
+                        {{ value }}
+                    </div>
+                </div>
             </div>
             <!-- <BubbleComponent :slim="true">
                 <template #content>
@@ -76,9 +76,9 @@ defineProps({
                     <template #content> Deprecated </template>
                 </BubbleComponent> -->
 
-                <BubbleComponent v-if="dependency.license == ''" :blue="true" :slim="true">
-                    <template #content> Unlicensed </template>
-                </BubbleComponent>
+                <Badge v-if="dependency.license == ''" class="rounded-full">
+                    Unlicensed
+                </Badge>
 
                 <!-- <BubbleComponent
                     v-if="dependency.outdated == true"
@@ -91,11 +91,9 @@ defineProps({
 
             <div class="flex items-center gap-1" v-if="dependency.license != ''">
                 <div>Licenses:</div>
-                <BubbleComponent :slim="true">
-                    <template #content>
-                        {{ dependency.license }}
-                    </template>
-                </BubbleComponent>
+                <Badge variant="secondary" class="rounded-full">
+                    {{ dependency.license }}
+                </Badge>
             </div>
         </div>
     </div>

@@ -64,21 +64,8 @@ defineProps({
                     </div>
                 </div>
             </div>
-            <!-- <BubbleComponent :slim="true">
-                <template #content>
-                    {{ dependency.file_path }}
-                </template>
-</BubbleComponent> -->
 
             <div class="flex gap-2">
-                <!-- <BubbleComponent v-if="dependency.vulnerable == true" :bad="true" :slim="true">
-                    <template #content> Vulnerable </template>
-                </BubbleComponent> -->
-
-                <!-- <BubbleComponent v-if="dependency.deprecated == true" :bad="true" :slim="true">
-                    <template #content> Deprecated </template>
-                </BubbleComponent> -->
-
                 <Badge v-if="dependency.license == ''" class="rounded-full">
                     Unlicensed
                 </Badge>
@@ -92,7 +79,9 @@ defineProps({
                             </Badge>
                         </TooltipTrigger>
                         <TooltipContent>
-                            There is a difference of {{ moment(dependency.lastes_release).diff(moment(dependency.release), 'days') }} days compared to the latest release
+                            There is a difference of {{
+                                moment(dependency.lastes_release).diff(moment(dependency.release), 'days') }} days compared
+                            to the latest release
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

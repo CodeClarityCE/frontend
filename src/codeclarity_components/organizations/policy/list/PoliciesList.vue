@@ -117,10 +117,7 @@ fetchPolicies();
                         v-if="!error"
                         class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
                     >
-                        <template
-                            v-for="licensePolicy in licensePolicies"
-                            :key="licensePolicy.id"
-                        >
+                        <template v-for="licensePolicy in licensePolicies" :key="licensePolicy.id">
                             <RouterLink
                                 class="integration-box-wrapper-iteme"
                                 :to="{

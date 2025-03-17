@@ -712,7 +712,11 @@ function createSeverityDistChart() {
                     <CardTitle>Patches</CardTitle>
                 </CardHeader>
                 <CardContent class="pl-2">
-                    <Patches ref="patches_ref" :analysis-i-d="analysisID" :project-i-d="projectID" />
+                    <Patches
+                        ref="patches_ref"
+                        :analysis-i-d="analysisID"
+                        :project-i-d="projectID"
+                    />
                 </CardContent>
             </Card>
         </div>

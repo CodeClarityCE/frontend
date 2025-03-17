@@ -138,7 +138,6 @@ const orgMetaDataError: Ref<boolean> = ref(false);
 const orgMetaDataErrorCode: Ref<string | undefined> = ref();
 const orgMetaData: Ref<OrganizationMetaData | undefined> = ref();
 
- 
 const integrationsCategory: FilterCategory = {
     name: 'Integration',
     type: FilterType.CHECKBOX,

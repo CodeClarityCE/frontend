@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url';
 import EnvironmentPlugin from 'vite-plugin-environment';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 import tailwind from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
@@ -18,7 +19,7 @@ export default defineConfig({
             plugins: [tailwind(), autoprefixer()]
         }
     },
-    plugins: [vue(), EnvironmentPlugin('all')],
+    plugins: [vue(), vueDevTools(), EnvironmentPlugin('all')],
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url))

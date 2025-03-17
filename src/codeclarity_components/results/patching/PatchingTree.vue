@@ -10,8 +10,8 @@ import { ResultsRepository } from '@/codeclarity_components/results/results.repo
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',

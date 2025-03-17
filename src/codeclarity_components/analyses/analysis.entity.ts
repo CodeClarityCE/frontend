@@ -1,6 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
-import { TeamMember } from '../organizations/organization.entity';
+import { IsDate, IsDefined, IsEnum, IsNotEmpty } from 'class-validator';
 import { Analyzer } from '../organizations/analyzers/Analyzer';
 
 export enum AnalysisStatus {

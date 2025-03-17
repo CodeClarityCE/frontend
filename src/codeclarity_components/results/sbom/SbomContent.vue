@@ -5,11 +5,9 @@ import { Icon } from '@iconify/vue/dist/iconify.js';
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import TextLoader from '../../../base_components/TextLoader.vue';
-import BoxLoader from '../../../base_components/BoxLoader.vue';
 import DonutLoader from '../../../base_components/DonutLoader.vue';
 import { SbomStats } from '@/codeclarity_components/results/stats.entity';
-import moment from 'moment';
-import { Doughnut, Bar } from 'vue-chartjs';
+import { Doughnut } from 'vue-chartjs';
 
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
@@ -22,8 +20,8 @@ import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import SbomTable from './SbomTable.vue';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
@@ -82,9 +80,6 @@ const donutDimensions = {
 };
 
 // Methods
-function formatAgo(dateString: number) {
-    return moment(dateString).fromNow();
-}
 getSbomStats();
 async function getSbomStats(refresh: boolean = false) {
     if (!userStore.getDefaultOrg) return;
@@ -109,6 +104,8 @@ async function getSbomStats(refresh: boolean = false) {
         stats.value = res.data;
         render.value = true;
     } catch (_err) {
+        console.error(_err);
+        
         error.value = true;
         render.value = false;
         // if (_err instanceof BusinessLogicError) {

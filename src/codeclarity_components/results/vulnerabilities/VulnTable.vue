@@ -25,9 +25,9 @@ import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 export interface Props {
     [key: string]: any;
     highlightElem: string;
-    forceOpenNewTab: boolean;
-    analysisID: string;
-    projectID: string;
+    forceOpenNewTab?: boolean;
+    analysisID?: string;
+    projectID?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {

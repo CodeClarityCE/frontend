@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import { onBeforeUnmount, ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import TextLoader from '@/base_components/TextLoader.vue';
 import BoxLoader from '@/base_components/BoxLoader.vue';
-// import { useStateStore } from '@/stores/state';
 import ProjectsList from './components/ProjectsList.vue';
 import { useProjectsMainStore } from '@/stores/StateStore';
 import { storeToRefs } from 'pinia';
@@ -19,7 +17,6 @@ import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
 const orgRepo: OrgRepository = new OrgRepository();
 
 // Stores
-// const globalState = useStateStore();
 const viewState = useProjectsMainStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -28,7 +25,6 @@ const authStore = useAuthStore();
 // globalState.page = 'projects';
 
 viewState.setOrgId(userStore.getUser!.default_org.id);
-const { reposLoading, projectsResponse } = storeToRefs(viewState);
 
 // State
 const orgMetaDataLoading: Ref<boolean> = ref(false);

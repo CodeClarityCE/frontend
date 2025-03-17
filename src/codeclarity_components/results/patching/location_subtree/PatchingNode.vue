@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue';
 
 export interface Props {
     node: TreeNode;
-    showVulnIDs: boolean;
+    showVulnIDs?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {

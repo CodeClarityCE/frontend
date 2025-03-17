@@ -4,7 +4,6 @@ import { ref, type Ref } from 'vue';
 import SbomDetailsLoader from './SbomDetails/SbomDetailsLoader.vue';
 import SbomDetailsHeader from './SbomDetails/SbomDetailsHeader.vue';
 import SbomInformation from './SbomDetails/SbomInformation.vue';
-import SbomImportPaths from './SbomDetails/SbomImportPaths.vue';
 import SbomDependencyHealth from './SbomDetails/SbomDependencyHealth.vue';
 
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
@@ -22,7 +21,7 @@ import Badge from '@/shadcn/ui/badge/Badge.vue';
 
 type Props = {
     [key: string]: any;
-    showBack: boolean;
+    showBack?: boolean;
     analysisID: string;
     projectID: string;
 };
@@ -73,6 +72,8 @@ async function getDependency(projectID: string, analysisID: string) {
 
         render.value = true;
     } catch (_err) {
+        console.error(_err);
+        
         // error.value = true;
         // if (_err instanceof BusinessLogicError) {
         //     errorCode.value = _err.error_code;

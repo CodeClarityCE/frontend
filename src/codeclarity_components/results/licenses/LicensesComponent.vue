@@ -22,8 +22,8 @@ import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     analysisID: '',

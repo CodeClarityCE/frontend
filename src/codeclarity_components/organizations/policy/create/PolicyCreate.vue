@@ -74,10 +74,6 @@ function setOrgInfo(_orgInfo: Organization) {
 }
 
 // Methods
-const form = useForm({
-    validationSchema: formSchema
-});
-
 const { handleSubmit } = useForm({
     validationSchema: formSchema,
     initialValues: {

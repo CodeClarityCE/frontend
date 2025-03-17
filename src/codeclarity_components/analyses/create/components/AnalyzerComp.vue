@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue/dist/iconify.js';
 
 export interface Props {
-    analyzerData: any;
+    analyzerData?: any;
 }
 
 withDefaults(defineProps<Props>(), {

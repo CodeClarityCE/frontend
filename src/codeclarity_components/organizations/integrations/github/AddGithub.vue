@@ -96,7 +96,6 @@ async function submit() {
         loadingButtonRef.value.setDisabled(false);
     }
 }
-0;
 // Form Validation
 const formValidationSchema = yup.object({
     token: yup

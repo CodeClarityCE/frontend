@@ -3,19 +3,14 @@ import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDet
 import Tree from '@/codeclarity_components/results/sbom/tree/UtilitiesSbomTree.vue';
 import { ref, type PropType, type Ref } from 'vue';
 import {
-    DependencyTreeManager,
-    type FilterConfig,
     type FlatTreeNode,
-    type PaginationConfig,
-    type Graph
 } from '@/utils/tree/sbom/TreeGenerator';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 
 // Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 
-const props = defineProps({
+defineProps({
     dependency: {
         type: Object as PropType<DependencyDetails>,
         required: true
@@ -32,8 +27,6 @@ const props = defineProps({
 
 const treeNodes: Ref<Array<FlatTreeNode>> = ref([]);
 
-const resultsRepository: ResultsRepository = new ResultsRepository();
-const dependencyTreeManager: Ref<DependencyTreeManager | null> = ref(null);
 // const render: Ref<boolean> = ref(false);
 
 const projectName: Ref<string> = ref('');
@@ -84,32 +77,6 @@ async function init() {
     }
 }
 
-function buildTree() {
-    try {
-        if (!dependencyTreeManager.value) return;
-
-        const paginationConfig: PaginationConfig = {
-            apply: false,
-            entriesPerPage: 50
-        };
-
-        const filterConfig: Partial<FilterConfig> = {};
-
-        const [nodes] = dependencyTreeManager.value.getTree(paginationConfig, filterConfig, {
-            includeDev: true
-        });
-        // nmb_entries_showing.value = paginationInfo.returnedItemCount;
-        // nmb_entries_total.value = paginationInfo.matchingItemCount;
-        // page_number.value = paginationInfo.currentPage;
-        // total_pages.value = paginationInfo.matchingPagesCount;
-
-        treeNodes.value = nodes;
-        // render.value = true;
-    } catch (err) {
-        console.error(`Encountered problem during dependency tree construction: ${err}`);
-        // render.value = false;
-    }
-}
 init();
 </script>
 

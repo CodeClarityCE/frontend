@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import PositionedModalVue from '@/base_components/PositionedModal.vue';
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue';
 defineProps<{
     finding: VulnerabilityDetails;
-    versions_modal_ref: typeof PositionedModalVue;
+    versionsModalRef: typeof PositionedModalVue;
 }>();
 </script>
 

@@ -3,8 +3,8 @@ import type { TreeNode } from '@/utils/tree/patching/TreeNode';
 import Node from './PatchingNode.vue';
 
 export interface Props {
-    nodes: TreeNode[];
-    showVulnIDs: boolean;
+    nodes?: TreeNode[];
+    showVulnIDs?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {

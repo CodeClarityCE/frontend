@@ -179,6 +179,7 @@ router.beforeEach(async (to) => {
                     authStore.token = newToken.token;
                     authStore.tokenExpiry = newToken.token_expiry;
                 } catch (error) {
+                    console.error(error);
                     userStore.$reset();
                     authStore.$reset();
                     return { path: '/login' };
@@ -210,6 +211,7 @@ router.beforeEach(async (to) => {
 
             userStore.setUser(user);
         } catch (error) {
+            console.error(error);
             userStore.$reset();
             authStore.$reset();
         }
@@ -249,6 +251,8 @@ router.beforeEach(async (to) => {
                         });
                         userStore.setDefaultOrg(org);
                     } catch (error) {
+                        console.error(error);
+                        
                         // We cannot recover at this point
                         userStore.$reset();
                         authStore.$reset();

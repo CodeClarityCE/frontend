@@ -132,6 +132,8 @@ async function submit() {
                         authStore.tokenExpiry = token.token_expiry;
                         tokenRefreshedAlready.value = true;
                     } catch (err) {
+                        console.error(err);
+                        
                         errorNonRecoverable.value = true;
                     }
                 }

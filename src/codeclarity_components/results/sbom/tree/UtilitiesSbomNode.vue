@@ -5,7 +5,7 @@ import type { FlatTreeNode } from '@/utils/tree/sbom/TreeGenerator';
 
 type Props = {
     node: FlatTreeNode;
-    rootName: string;
+    rootName?: string;
 };
 
 withDefaults(defineProps<Props>(), {

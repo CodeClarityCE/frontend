@@ -100,6 +100,8 @@ async function getProject(projectID: string) {
         });
         project.value = res.data;
     } catch (_err) {
+        console.error(_err);
+
         // error.value = true;
         // if (_err instanceof BusinessLogicError) {
         //     errorCode.value = _err.error_code;
@@ -131,6 +133,8 @@ async function getAnalysis(projectID: string, analysisID: string) {
         });
         analysis.value = res.data;
     } catch (_err) {
+        console.error(_err);
+
         // error.value = true;
         // if (_err instanceof BusinessLogicError) {
         //     errorCode.value = _err.error_code;
@@ -147,10 +151,6 @@ init();
 
 <template>
     <Details
-        class="p-12"
-        :show-back="!only_details"
-        :analysis-i-d="analysisID"
-        :project-i-d="projectID"
-        @close="resetView()"
-    ></Details>
+class="p-12" :show-back="!only_details" :analysis-i-d="analysisID" :project-i-d="projectID"
+        @close="resetView()"></Details>
 </template>

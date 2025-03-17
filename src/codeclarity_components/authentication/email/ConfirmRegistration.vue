@@ -24,6 +24,8 @@ async function init() {
 
         // success.value = true;
     } catch (_err) {
+        console.error(_err);
+        
         text.value = 'Error confirming registration. Redirecting to login page in';
         counter.value = 5;
         const interval = setInterval(() => {

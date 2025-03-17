@@ -17,8 +17,8 @@ import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
 Chart.register(...registerables);
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
@@ -95,6 +95,8 @@ async function getPatchesStats(refresh: boolean = false) {
         stats.value = res.data;
         render.value = true;
     } catch (_err) {
+        console.error(_err);
+        
         error.value = true;
         render.value = false;
         // if (_err instanceof BusinessLogicError) {

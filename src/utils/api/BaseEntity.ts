@@ -52,6 +52,7 @@ export abstract class Entity {
                 Entity.validate(instance);
                 validItems.push(instance);
             } catch (error) {
+                console.error(error);
                 console.error('Entity failed validation:');
                 console.error(instance);
             }

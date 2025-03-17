@@ -50,10 +50,6 @@ const errorCode: Ref<string | undefined> = ref('');
 const centeredModalRef: any = ref(null);
 const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
 
-function openModalAction(action: ModalAction) {
-    centeredModalAction.value = action;
-    if (centeredModalRef.value) centeredModalRef.value.toggle();
-}
 
 async function performModalAction() {
     try {

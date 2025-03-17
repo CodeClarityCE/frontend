@@ -13,9 +13,9 @@ const property_content = ref('');
 
 type Props = {
     license: License;
-    last: boolean;
-    analysisID: string;
-    projectID: string;
+    last?: boolean;
+    analysisID?: string;
+    projectID?: string;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,6 +29,8 @@ function referenceDomain(url: string) {
         const host = new URL(url).hostname;
         return host;
     } catch (error) {
+        console.error(error);
+        
         return '';
     }
 }

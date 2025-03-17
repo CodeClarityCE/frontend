@@ -36,7 +36,7 @@ Chart.register(...registerables);
 
 type Props = {
     [key: string]: any;
-    showBack: boolean;
+    showBack?: boolean;
     analysisID: string;
     projectID: string;
 };
@@ -107,10 +107,10 @@ const userStore = useUserStore();
 const authStore = useAuthStore();
 
 function openModal(data: any) {
-    (cvss_field.value = data.cvss_field),
-        (cvss_field_value.value = data.cvss_field_value),
-        (cvss_field_version.value = data.cvss_field_version),
-        (cvss_info.value = data.cvss_info);
+    cvss_field.value = data.cvss_field
+    cvss_field_value.value = data.cvss_field_value
+    cvss_field_version.value = data.cvss_field_version
+    cvss_info.value = data.cvss_info
     cvss_field_info_modal_ref.value.show();
 }
 
@@ -182,6 +182,8 @@ async function getFinding(projectID: string, analysisID: string) {
 
         render.value = true;
     } catch (_err) {
+        console.error(_err);
+
         // error.value = true;
         // if (_err instanceof BusinessLogicError) {
         //     errorCode.value = _err.error_code;
@@ -212,26 +214,17 @@ getFinding(props.projectID, props.analysisID);
         <!--                                 Content                               -->
         <!--------------------------------------------------------------------------->
         <div v-if="render" class="details-container flex flex-col gap-10" style="font-size: 1rem">
-            <VulnDetailsHeader :finding="finding" :versions_modal_ref="versions_modal_ref" />
+            <VulnDetailsHeader :finding="finding" :versions-modal-ref="versions_modal_ref" />
 
             <VulnSummaryContent
-                :finding="finding"
-                :read_me_modal_ref="read_me_modal_ref"
-                :nodes_array="nodes_array"
-                :readme="readme"
-                :active_view="active_view"
-            />
+:finding="finding" :read-me-modal-ref="read_me_modal_ref" :nodes_array="nodes_array"
+                :readme="readme" :active-view="active_view" />
 
             <VulnerabilitySeverities
-                :finding="finding"
-                :cvssV3_fields_map="cvssV3_fields_map"
-                :cvssV2_fields_map="cvssV2_fields_map"
-                :chart_version="chart_version"
-                :cvss_chart_data="cvss_chart_data"
-                :impact_chart_data="impact_chart_data"
-                :cvss_field_info_modal_ref="cvss_field_info_modal_ref"
-                @open-modal="openModal"
-            />
+:finding="finding" :cvss-v3-fields-map="cvssV3_fields_map"
+                :cvss-v2-fields-map="cvssV2_fields_map" :chart-version="chart_version"
+                :cvss-chart-data="cvss_chart_data" :impact-chart-data="impact_chart_data"
+                :cvss-field-info-modal-ref="cvss_field_info_modal_ref" @open-modal="openModal" />
 
             <!--------------------------------------------------------------------------->
             <!--                            References section                         -->
@@ -246,19 +239,12 @@ getFinding(props.projectID, props.analysisID);
                         <!--                               Reference                               -->
                         <!--------------------------------------------------------------------------->
                         <div
-                            v-for="reference in getReferences()"
-                            :key="reference.url"
-                            title="View reference (opens in a new tab)"
-                        >
-                            <a
-                                :href="reference.url"
-                                target="_blank"
-                                class="reference p-5 rounded-lg"
-                            >
+v-for="reference in getReferences()" :key="reference.url"
+                            title="View reference (opens in a new tab)">
+                            <a :href="reference.url" target="_blank" class="reference p-5 rounded-lg">
                                 <div class="reference-header">
                                     <div
-                                        class="reference-header-wrapper flex flex-col items-center gap-5 font-medium text-sm"
-                                    >
+                                        class="reference-header-wrapper flex flex-col items-center gap-5 font-medium text-sm">
                                         <img :src="getFavicon(reference.url)" />
                                         <div>{{ getHost(reference.url) }}</div>
                                     </div>
@@ -268,11 +254,7 @@ getFinding(props.projectID, props.analysisID);
                                 </div>
                                 <div>{{ reference.url }}</div>
                                 <div class="vulnerability-references-tags-container">
-                                    <div
-                                        v-for="tag in reference.tags"
-                                        :key="tag"
-                                        class="reference-tag"
-                                    >
+                                    <div v-for="tag in reference.tags" :key="tag" class="reference-tag">
                                         {{ tag }}
                                     </div>
                                 </div>
@@ -284,18 +266,11 @@ getFinding(props.projectID, props.analysisID);
                     <!--                         References load more                          -->
                     <!--------------------------------------------------------------------------->
                     <div
-                        v-if="finding.references && finding.references.length > 8"
-                        class="references-show-more-wrapper"
-                    >
+v-if="finding.references && finding.references.length > 8"
+                        class="references-show-more-wrapper">
                         <div @click="toggleReferences()">
-                            <span v-if="references_limit < finding.references.length" class="button"
-                                >Show more</span
-                            >
-                            <span
-                                v-if="references_limit == finding.references.length"
-                                class="button"
-                                >Show less</span
-                            >
+                            <span v-if="references_limit < finding.references.length" class="button">Show more</span>
+                            <span v-if="references_limit == finding.references.length" class="button">Show less</span>
                         </div>
                     </div>
                 </div>
@@ -309,22 +284,20 @@ getFinding(props.projectID, props.analysisID);
         <CenteredModal ref="read_me_modal_ref">
             <template #title>
                 <div
-                    style="
+style="
                         display: flex;
                         flex-direction: row;
                         align-items: center;
                         column-gap: 7px;
                         justify-content: space-between;
-                    "
-                >
+                    ">
                     <div
-                        style="
+style="
                             display: flex;
                             flex-direction: row;
                             column-gap: 8px;
                             align-items: center;
-                        "
-                    >
+                        ">
                         <Icon :icon="'tabler:markdown'"></Icon>
                         <div>Readme</div>
                     </div>
@@ -347,20 +320,16 @@ getFinding(props.projectID, props.analysisID);
         <PositionedModal ref="versions_modal_ref" :tracker="'show-all-versions'" :position="'top'">
             <template #title>
                 <div
-                    style="
+style="
                         display: flex;
                         flex-direction: row;
                         column-gap: 1em;
                         justify-content: space-between;
-                    "
-                >
+                    ">
                     <div>Dependency Versions</div>
                     <Icon
-                        :icon="'ic:round-close'"
-                        style="cursor: pointer"
-                        title="Close modal"
-                        @click="versions_modal_ref.toggle()"
-                    >
+:icon="'ic:round-close'" style="cursor: pointer" title="Close modal"
+                        @click="versions_modal_ref.toggle()">
                         Close
                     </Icon>
                 </div>
@@ -372,17 +341,16 @@ getFinding(props.projectID, props.analysisID);
             <template #content>
                 <div style="max-width: 1000px; max-height: 40vh; overflow-y: auto">
                     <div
-                        style="
+style="
                             display: flex;
                             flex-direction: row;
                             column-gap: 40px;
                             font-weight: 400;
                             color: #737171;
-                        "
-                    >
+                        ">
                         <div style="width: 50%">
                             <div
-                                style="
+style="
                                     color: #457905;
                                     font-weight: 400;
                                     margin-bottom: 10px;
@@ -391,29 +359,24 @@ getFinding(props.projectID, props.analysisID);
                                     align-items: center;
                                     flex-direction: row;
                                     column-gap: 6px;
-                                "
-                            >
+                                ">
                                 <div>Not Affected</div>
                                 <Icon :icon="'bi:shield-check'"></Icon>
                             </div>
                             <div
-                                v-for="version_obj in finding.vulnerability_info.version_info
-                                    .versions"
-                                :key="version_obj.version"
-                                :class="{
-                                    affected: version_obj.status == 'affected',
-                                    not_affected: version_obj.status == 'not_affected'
-                                }"
-                            >
+v-for="version_obj in finding.vulnerability_info.version_info
+                                .versions" :key="version_obj.version" :class="{
+                                        affected: version_obj.status == 'affected',
+                                        not_affected: version_obj.status == 'not_affected'
+                                    }">
                                 <div v-if="version_obj.status == 'not_affected'">
                                     <div
-                                        style="
+style="
                                             display: flex;
                                             flex-direction: row;
                                             justify-content: space-between;
                                             column-gap: 40px;
-                                        "
-                                    >
+                                        ">
                                         <div>{{ version_obj.version }}</div>
                                         <div>
                                             {{ moment(version_obj.release).format('LL') }}
@@ -424,7 +387,7 @@ getFinding(props.projectID, props.analysisID);
                         </div>
                         <div style="width: 50%">
                             <div
-                                style="
+style="
                                     color: #8c0c0c;
                                     font-weight: 400;
                                     margin-bottom: 10px;
@@ -433,41 +396,35 @@ getFinding(props.projectID, props.analysisID);
                                     align-items: center;
                                     flex-direction: row;
                                     column-gap: 6px;
-                                "
-                            >
+                                ">
                                 <div>Affected</div>
                                 <Icon :icon="'bi:shield-exclamation'"></Icon>
                             </div>
                             <div
-                                v-for="version_obj in finding.vulnerability_info.version_info
-                                    .versions"
-                                :key="version_obj.version"
-                                :class="{
-                                    affected: version_obj.status == 'affected',
-                                    not_affected: version_obj.status == 'not_affected'
-                                }"
-                            >
+v-for="version_obj in finding.vulnerability_info.version_info
+                                .versions" :key="version_obj.version" :class="{
+                                        affected: version_obj.status == 'affected',
+                                        not_affected: version_obj.status == 'not_affected'
+                                    }">
                                 <div v-if="version_obj.status == 'affected'">
                                     <div
-                                        style="
+style="
                                             display: flex;
                                             flex-direction: row;
                                             justify-content: space-between;
                                             column-gap: 40px;
-                                        "
-                                        :style="{
+                                        " :style="{
                                             'font-weight':
                                                 version_obj.version ==
-                                                finding.dependency_info?.version
+                                                    finding.dependency_info?.version
                                                     ? 'black'
                                                     : '400',
                                             color:
                                                 version_obj.version ==
-                                                finding.dependency_info?.version
+                                                    finding.dependency_info?.version
                                                     ? '#8c0c0c'
                                                     : '#737171'
-                                        }"
-                                    >
+                                        }">
                                         <div>{{ version_obj.version }}</div>
                                         <div>
                                             {{ moment(version_obj.release).format('LL') }}
@@ -502,9 +459,8 @@ getFinding(props.projectID, props.analysisID);
                     <div class="cvss-field-value" style="font-weight: 900">
                         <div v-for="field_value in cvss_info[cvss_field].values" :key="field_value">
                             <div
-                                v-if="field_value[0] == cvss_field_value"
-                                :class="cvss_info[cvss_field].class[cvss_field_value]"
-                            >
+v-if="field_value[0] == cvss_field_value"
+                                :class="cvss_info[cvss_field].class[cvss_field_value]">
                                 {{ field_value }}
                             </div>
                             <div v-if="field_value[0] != cvss_field_value">

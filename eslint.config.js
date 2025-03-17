@@ -5,7 +5,7 @@ import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
 export default typescriptEslint.config(
-  { ignores: ['*.d.ts', '**/coverage', '**/dist'] },
+  { ignores: ['*.d.ts', '**/coverage', '**/dist', '**/shadcn', "**/.yarn"] },
   {
     extends: [
       eslint.configs.recommended,
@@ -22,7 +22,9 @@ export default typescriptEslint.config(
       },
     },
     rules: {
-      // your rules
+      "@typescript-eslint/no-explicit-any": ["off"],
+      "@typescript-eslint/no-unsafe-function-type": ["off"],
+      "@typescript-eslint/no-empty-object-type": ["off"]
     },
   },
   eslintConfigPrettier

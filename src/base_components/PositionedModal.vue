@@ -5,10 +5,10 @@ const compRef = ref(null);
 const show_modal: Ref<any> = ref(false);
 
 type Props = {
-    tracker: any;
+    tracker?: any;
     leftOffset?: number;
     topOffset?: number;
-    position: any;
+    position?: any;
     showTitleDivider?: boolean;
     showTitle?: boolean;
     showSubTitle?: boolean;

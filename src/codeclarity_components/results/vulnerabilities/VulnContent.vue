@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
-import { Icon } from '@iconify/vue/dist/iconify.js';
 
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
@@ -14,8 +13,8 @@ import { ResultsRepository } from '@/codeclarity_components/results/results.repo
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
@@ -84,6 +83,8 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
         stats.value = res.data;
         render.value = true;
     } catch (_err) {
+        console.error(_err);
+        
         error.value = true;
         render.value = false;
         // if (_err instanceof BusinessLogicError) {

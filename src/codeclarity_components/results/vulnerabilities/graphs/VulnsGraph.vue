@@ -9,8 +9,8 @@ import { Icon } from '@iconify/vue/dist/iconify.js';
 Chart.register(...registerables);
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
     stats: AnalysisStats;
 }
 const props = withDefaults(defineProps<Props>(), {

@@ -115,9 +115,9 @@ function getStepsDone(steps: AnalysisStage[][]) {
 }
 
 function getTimeDiff(stage: AnalysisStage) {
-    let t1 = moment(stage.Ended_on),
-        t2 = moment(stage.Started_on),
-        time = '';
+    const t1 = moment(stage.Ended_on),
+        t2 = moment(stage.Started_on)
+        let time = '';
 
     if (t1.diff(t2, 'hours') > 0) time += t1.diff(t2, 'hours') + 'h ';
     if (t1.diff(t2, 'minutes') > 0) time += t1.diff(t2, 'minutes') + 'm ';
@@ -146,6 +146,8 @@ async function getChart(projectID: string, analysisID: string) {
         });
         chartData.value.datasets[0].data = res.data;
     } catch (_err) {
+        console.error(_err);
+        
         // error.value = true;
         // if (_err instanceof BusinessLogicError) {
         //     errorCode.value = _err.error_code;

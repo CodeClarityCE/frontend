@@ -14,8 +14,8 @@ import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {

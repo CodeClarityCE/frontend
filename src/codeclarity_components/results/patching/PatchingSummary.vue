@@ -15,8 +15,8 @@ import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 Chart.register(...registerables);
 
 type Props = {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 };
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
@@ -98,6 +98,8 @@ async function getPatchesStats(refresh: boolean = false) {
         stats.value = res.data;
         render.value = true;
     } catch (_err) {
+        console.error(_err);
+        
         error.value = true;
         render.value = false;
         // if (_err instanceof BusinessLogicError) {

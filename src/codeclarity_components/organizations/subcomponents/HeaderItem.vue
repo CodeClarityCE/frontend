@@ -41,7 +41,7 @@ async function fetchOrgInfo() {
         } catch (err) {
             error.value = true;
             if (err instanceof BusinessLogicError) {
-                errorCode.value == err.error_code;
+                errorCode.value = err.error_code;
             }
             console.error(err);
             emit('onOrgInfoError', err);

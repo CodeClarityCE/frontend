@@ -18,7 +18,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shad
 import { Input } from '@/shadcn/ui/input';
 import { useUserStore } from '@/stores/user';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
-import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
 import { toast } from '@/shadcn/ui/toast';
 
@@ -49,7 +48,7 @@ const onSubmit = form.handleSubmit((values) => {
 async function deleteAccount(password: string) {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
-            const res = await userRepository.deleteUser({
+            await userRepository.deleteUser({
                 userId: user?.id ?? '',
                 bearerToken: authStore.getToken,
                 handleBusinessErrors: true,

@@ -3,8 +3,8 @@ import type { FlatTreeNode } from '@/utils/tree/sbom/TreeGenerator';
 import Node from './UtilitiesSbomNode.vue';
 
 type Props = {
-    nodes: FlatTreeNode[];
-    rootName: string;
+    nodes?: FlatTreeNode[];
+    rootName?: string;
 };
 
 withDefaults(defineProps<Props>(), {

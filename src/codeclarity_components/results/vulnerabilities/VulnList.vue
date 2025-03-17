@@ -36,9 +36,9 @@ import { Badge } from '@/shadcn/ui/badge';
 export interface Props {
     [key: string]: any;
     highlightElem: string;
-    forceOpenNewTab: boolean;
-    analysisID: string;
-    projectID: string;
+    forceOpenNewTab?: boolean;
+    analysisID?: string;
+    projectID?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -142,6 +142,7 @@ async function init() {
         nmbEntriesTotal.value = res.total_entries;
         totalPages.value = res.total_pages;
     } catch (error) {
+        console.log(error);
         render.value = false;
     }
 }

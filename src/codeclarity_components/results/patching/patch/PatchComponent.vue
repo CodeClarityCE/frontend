@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import { ref, watch, type Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 import Tree from '../location_subtree/PatchingTree.vue';
-import { TreeGenerator } from '@/utils/tree/patching/TreeGenerator';
 import type { TreeNode } from '@/utils/tree/patching/TreeNode';
-import type { PatchOccurenceInfo } from '@/utils/tree/patching/TreeGenerator';
 import { Icon } from '@iconify/vue';
 import type { PatchInfo } from '@/codeclarity_components/results/patching/Patching';
 import PatchInformation from './PatchInformation.vue';
@@ -24,7 +22,6 @@ export interface Props {
 withDefaults(defineProps<Props>(), {});
 
 const node_array: Ref<TreeNode[]> = ref(new Array<TreeNode>());
-const active_view = ref('patches');
 
 // function computeTree() {
 //     if (props.patch && props.patch.patches) {

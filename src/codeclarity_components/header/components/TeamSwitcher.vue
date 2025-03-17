@@ -56,7 +56,7 @@ type Team = (typeof groups)[number]['teams'][number];
 const open = ref(false);
 const showNewTeamDialog = ref(false);
 const selectedTeam = ref<Team>(groups[0].teams[0]);
-router.isReady;
+
 const orgsRepository: OrgRepository = new OrgRepository();
 const userRepo: UserRepository = new UserRepository();
 
@@ -92,6 +92,8 @@ async function fetch() {
                 teams: teams
             });
         } catch (_error) {
+            console.error(_error);
+            
             // error.value = true;
             // if (_error instanceof BusinessLogicError) {
             //     errorCode.value = _error.error_code;
@@ -128,6 +130,8 @@ async function switchOrg(org: TeamItem) {
 
                 successToast(`Succesfully switched to org ${org.label}`);
             } catch (error) {
+                console.error(error);
+                
                 errorToast('Failed to switch org');
             }
         }

@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 
 defineProps<{
     finding: VulnerabilityDetails;
-    read_me_modal_ref: typeof CenteredModalVue;
+    readMeModalRef: typeof CenteredModalVue;
     readme: string;
-    active_view: string;
+    activeView: string;
 }>();
 </script>
 
@@ -364,7 +364,7 @@ defineProps<{
                                     <Icon
                                         :icon="'bi:box-arrow-up-right'"
                                         class="cursor-pointer"
-                                        @click="read_me_modal_ref.toggle()"
+                                        @click="readMeModalRef.toggle()"
                                     ></Icon>
                                 </CardDescription>
                             </CardHeader>

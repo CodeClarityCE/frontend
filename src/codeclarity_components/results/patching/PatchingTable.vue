@@ -20,11 +20,10 @@ import UtilitiesFilters, {
 } from '@/base_components/UtilitiesFilters.vue';
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
+    analysisID?: string;
+    projectID?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {

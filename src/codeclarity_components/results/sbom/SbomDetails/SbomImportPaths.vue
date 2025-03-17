@@ -2,9 +2,7 @@
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Tree from '@/codeclarity_components/results/sbom/tree/UtilitiesSbomTree.vue';
 import { ref, type PropType, type Ref } from 'vue';
-import {
-    type FlatTreeNode,
-} from '@/utils/tree/sbom/TreeGenerator';
+import { type FlatTreeNode } from '@/utils/tree/sbom/TreeGenerator';
 
 // Import stores
 import { useUserStore } from '@/stores/user';

@@ -133,7 +133,7 @@ async function submit() {
                         tokenRefreshedAlready.value = true;
                     } catch (err) {
                         console.error(err);
-                        
+
                         errorNonRecoverable.value = true;
                     }
                 }

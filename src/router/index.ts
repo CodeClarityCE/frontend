@@ -252,7 +252,7 @@ router.beforeEach(async (to) => {
                         userStore.setDefaultOrg(org);
                     } catch (error) {
                         console.error(error);
-                        
+
                         // We cannot recover at this point
                         userStore.$reset();
                         authStore.$reset();

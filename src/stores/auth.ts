@@ -128,7 +128,7 @@ function getFromLocalStorageOrDefault(): AuthStoreState {
             : Entity.unMarshal<AuthStoreState>(JSON.parse(authState), AuthStoreState);
     } catch (err) {
         console.error(err);
-        
+
         return defaultValues();
     }
 }

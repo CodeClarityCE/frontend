@@ -115,7 +115,7 @@ async function getAnalyzer(analyzer_id: string) {
     try {
         response = await analyzerRepository.getAnalyzer({
             analyzer_id: analyzer_id,
-            orgId: user.defaultOrg?.id ?? "",
+            orgId: user.defaultOrg?.id ?? '',
             bearerToken: auth.getToken!,
             handleBusinessErrors: true
         });

@@ -50,7 +50,6 @@ const errorCode: Ref<string | undefined> = ref('');
 const centeredModalRef: any = ref(null);
 const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
 
-
 async function performModalAction() {
     try {
         if (centeredModalAction.value == ModalAction.DELETE) {

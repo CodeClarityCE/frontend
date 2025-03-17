@@ -105,7 +105,7 @@ async function getSbomStats(refresh: boolean = false) {
         render.value = true;
     } catch (_err) {
         console.error(_err);
-        
+
         error.value = true;
         render.value = false;
         // if (_err instanceof BusinessLogicError) {

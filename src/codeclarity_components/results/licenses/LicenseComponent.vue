@@ -30,7 +30,7 @@ function referenceDomain(url: string) {
         return host;
     } catch (error) {
         console.error(error);
-        
+
         return '';
     }
 }

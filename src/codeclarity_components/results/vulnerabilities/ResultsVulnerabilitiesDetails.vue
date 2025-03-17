@@ -151,6 +151,10 @@ init();
 
 <template>
     <Details
-class="p-12" :show-back="!only_details" :analysis-i-d="analysisID" :project-i-d="projectID"
-        @close="resetView()"></Details>
+        class="p-12"
+        :show-back="!only_details"
+        :analysis-i-d="analysisID"
+        :project-i-d="projectID"
+        @close="resetView()"
+    ></Details>
 </template>

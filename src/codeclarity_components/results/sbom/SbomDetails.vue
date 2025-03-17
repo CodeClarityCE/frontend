@@ -73,7 +73,7 @@ async function getDependency(projectID: string, analysisID: string) {
         render.value = true;
     } catch (_err) {
         console.error(_err);
-        
+
         // error.value = true;
         // if (_err instanceof BusinessLogicError) {
         //     errorCode.value = _err.error_code;

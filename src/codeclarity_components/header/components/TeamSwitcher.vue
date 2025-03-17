@@ -93,7 +93,7 @@ async function fetch() {
             });
         } catch (_error) {
             console.error(_error);
-            
+
             // error.value = true;
             // if (_error instanceof BusinessLogicError) {
             //     errorCode.value = _error.error_code;
@@ -131,7 +131,7 @@ async function switchOrg(org: TeamItem) {
                 successToast(`Succesfully switched to org ${org.label}`);
             } catch (error) {
                 console.error(error);
-                
+
                 errorToast('Failed to switch org');
             }
         }

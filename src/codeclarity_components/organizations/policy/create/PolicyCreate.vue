@@ -146,7 +146,7 @@ onBeforeMount(async () => {
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="p-12">
             <form class="grid grid-cols-4 gap-2" @submit="onSubmit">
-                <FormField name="name" v-slot="{ componentField }">
+                <FormField v-slot="{ componentField }" name="name">
                     <FormItem class="col-start-2 col-end-3">
                         <FormLabel>Enter a name</FormLabel>
                         <FormControl>
@@ -159,9 +159,9 @@ onBeforeMount(async () => {
                 </FormField>
 
                 <FormField
+                    v-slot="{ componentField }"
                     class="col-start-3 col-end-4"
                     name="description"
-                    v-slot="{ componentField }"
                 >
                     <FormItem>
                         <FormLabel>Enter a description (optional)</FormLabel>
@@ -177,7 +177,7 @@ onBeforeMount(async () => {
                     </FormItem>
                 </FormField>
 
-                <FormField name="type" v-slot="{ componentField }">
+                <FormField v-slot="{ componentField }" name="type">
                     <FormItem class="col-start-2 col-end-4">
                         <FormLabel>Select a type</FormLabel>
                         <Select v-bind="componentField">
@@ -223,7 +223,7 @@ onBeforeMount(async () => {
                             <DataTable
                                 :columns="columns"
                                 :data="choices"
-                                @update:rowSelection="setValue"
+                                @update:row-selection="setValue"
                             />
                         </FormControl>
                     </FormItem>

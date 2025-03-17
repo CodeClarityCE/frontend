@@ -124,7 +124,7 @@ function generateChart(stats: ProjectQuickStats[]) {
     ];
     const max = [0, 0, 0, 0];
     projectCount.value = stats.length;
-    for (let entry of stats) {
+    for (const entry of stats) {
         if (entry.nmb_vulnerabilities > max[0]) max[0] = entry.nmb_vulnerabilities;
         if (entry.nmb_deprecated > max[1]) max[1] = entry.nmb_deprecated;
         if (entry.nmb_outdated > max[2]) max[2] = entry.nmb_outdated;
@@ -198,9 +198,9 @@ fetch();
         <template v-else>
             <div class="w-full overflow-x-scroll">
                 <SortableTable
+                    v-model:sort-key="sortKey"
+                    v-model:sort-direction="sortDirection"
                     :headers="headers"
-                    v-model:sortKey="sortKey"
-                    v-model:sortDirection="sortDirection"
                 >
                     <template #data>
                         <tr v-for="(entry, index) in data" :key="index">
@@ -213,17 +213,17 @@ fetch();
                                         title="Open source repository"
                                     >
                                         <Icon
-                                            class="flex-shrink-0"
                                             v-if="
                                                 entry.project.provider == IntegrationProvider.GITHUB
                                             "
+                                            class="flex-shrink-0"
                                             icon="simple-icons:github"
                                         />
                                         <Icon
-                                            class="flex-shrink-0"
                                             v-if="
                                                 entry.project.provider == IntegrationProvider.GITLAB
                                             "
+                                            class="flex-shrink-0"
                                             icon="devicon:gitlab"
                                         />
                                         {{ entry.project.name }}
@@ -232,38 +232,38 @@ fetch();
                             </td>
                             <td class="flex flex-col justify-center items-center">
                                 <div
-                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityCritical"
                                     v-if="
                                         entry.grade.class == ProjectGradeClass.D_PLUS ||
                                         entry.grade.class == ProjectGradeClass.D
                                     "
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityCritical"
                                 >
                                     {{ entry.grade.class }}
                                 </div>
                                 <div
-                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityHigh"
                                     v-if="
                                         entry.grade.class == ProjectGradeClass.C_PLUS ||
                                         entry.grade.class == ProjectGradeClass.C
                                     "
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityHigh"
                                 >
                                     {{ entry.grade.class }}
                                 </div>
                                 <div
-                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityMedium"
                                     v-if="
                                         entry.grade.class == ProjectGradeClass.B_PLUS ||
                                         entry.grade.class == ProjectGradeClass.B
                                     "
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityMedium"
                                 >
                                     {{ entry.grade.class }}
                                 </div>
                                 <div
-                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityLow"
                                     v-if="
                                         entry.grade.class == ProjectGradeClass.A_PLUS ||
                                         entry.grade.class == ProjectGradeClass.A
                                     "
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityLow"
                                 >
                                     {{ entry.grade.class }}
                                 </div>
@@ -308,9 +308,9 @@ fetch();
             <div class="flex flex-row justify-end">
                 <Pagination
                     v-model:page="page"
-                    v-model:nmbEntriesShowing="entriesPerPage"
-                    v-model:nmbEntriesTotal="totalEntries"
-                    v-model:totalPages="totalPages"
+                    v-model:nmb-entries-showing="entriesPerPage"
+                    v-model:nmb-entries-total="totalEntries"
+                    v-model:total-pages="totalPages"
                 />
             </div>
         </template>

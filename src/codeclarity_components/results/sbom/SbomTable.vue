@@ -115,13 +115,13 @@ watch(sorting, () => {
             </ul>
         </div> -->
         <DataTable
+            v-model:page-limit-selected="pageLimitSelected"
+            v-model:search-key="searchKey"
+            v-model:sorting="sorting"
+            v-model:column-filters="columnFilters"
+            v-model:column-visibility="columnVisibility"
             :columns="columns"
             :data="data"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:searchKey="searchKey"
-            v-model:sorting="sorting"
-            v-model:columnFilters="columnFilters"
-            v-model:columnVisibility="columnVisibility"
         />
 
         <div class="flex gap-2 items-center justify-center">
@@ -131,9 +131,9 @@ watch(sorting, () => {
             </div>
             <PaginationComponent
                 v-model:page="pageNumber"
-                v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal"
-                v-model:totalPages="totalPages"
+                v-model:nmb-entries-showing="pageLimitSelected"
+                v-model:nmb-entries-total="nmbEntriesTotal"
+                v-model:total-pages="totalPages"
             />
         </div>
     </div>

@@ -30,15 +30,15 @@ const emit = defineEmits<{
                     <div class="flex flex-col gap-2">
                         <div>No integrations found</div>
                         <div
-                            class="text-xs"
                             v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
+                            class="text-xs"
                         >
                             To be able to import projects you must add an integration with either
                             Github or GitLab. Please visit the link below and add such an
                             integration. You can then reload this page or click on the "Refresh"
                             button.
                         </div>
-                        <div class="text-xs" v-else>
+                        <div v-else class="text-xs">
                             To be able to import projects you must add an integration with either
                             Github or GitLab. Please ask an admin or the owner of the organization
                             to add such an integration.
@@ -46,8 +46,8 @@ const emit = defineEmits<{
                     </div>
                     <div class="flex flex-row gap-2 items-center flex-wrap">
                         <Button
-                            @click="emit('onRefresh')"
                             v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
+                            @click="emit('onRefresh')"
                         >
                             Refresh
                         </Button>

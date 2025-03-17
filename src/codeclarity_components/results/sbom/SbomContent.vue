@@ -76,7 +76,7 @@ const donut_config = ref({});
 const bar_data = ref(initChartData);
 const bar_config = ref({});
 
-let donutDimensions = {
+const donutDimensions = {
     width: '180px',
     height: '180px'
 };
@@ -123,15 +123,15 @@ async function getSbomStats(refresh: boolean = false) {
 
 // Create charts
 function createDepStatusDistChart() {
-    let labels = ['Deprecated', 'Unlicensed', 'Outdated'];
-    let data = [
+    const labels = ['Deprecated', 'Unlicensed', 'Outdated'];
+    const data = [
         stats.value.number_of_deprecated_dependencies,
         stats.value.number_of_unlicensed_dependencies,
         stats.value.number_of_outdated_dependencies
     ];
-    let colors = ['#146C94', '#19A7CE', '#AFD3E2'];
+    const colors = ['#146C94', '#19A7CE', '#AFD3E2'];
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: [
             {
@@ -176,14 +176,14 @@ function createDepStatusDistChart() {
 }
 
 function createDepTypeChart() {
-    let labels = ['Direct', 'Transitive'];
-    let data = [
+    const labels = ['Direct', 'Transitive'];
+    const data = [
         stats.value.number_of_direct_dependencies,
         stats.value.number_of_transitive_dependencies
     ];
-    let colors = ['#146C94', '#19A7CE'];
+    const colors = ['#146C94', '#19A7CE'];
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: [
             {

@@ -13,7 +13,7 @@ const props = defineProps<{
 //////////////////////// Set-Up //////////////////////////////
 //////////////////////////////////////////////////////////////
 
-var margin = { top: 50, right: 80, bottom: 50, left: 80 },
+const margin = { top: 50, right: 80, bottom: 50, left: 80 },
     width = 640,
     height = 450;
 

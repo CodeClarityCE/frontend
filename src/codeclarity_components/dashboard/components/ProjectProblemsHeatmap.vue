@@ -117,7 +117,7 @@ function generateChart(stats: ProjectQuickStats[]) {
     ];
     const max = [0, 0, 0, 0];
     projectCount.value = stats.length;
-    for (let entry of stats) {
+    for (const entry of stats) {
         if (entry.nmb_vulnerabilities > max[0]) max[0] = entry.nmb_vulnerabilities;
         if (entry.nmb_deprecated > max[1]) max[1] = entry.nmb_deprecated;
         if (entry.nmb_outdated > max[2]) max[2] = entry.nmb_outdated;
@@ -205,16 +205,16 @@ fetch();
                             :sort-direction="sortDirection"
                         />
                         <HeatMapChart
+                            :id="'project-problems-chart'"
                             :chart-data="chartData"
                             :chart-options="chartOptions"
-                            :id="'project-problems-chart'"
                         >
                         </HeatMapChart>
                         <Pagination
                             v-model:page="page"
-                            v-model:nmbEntriesShowing="entriesPerPage"
-                            v-model:nmbEntriesTotal="totalEntries"
-                            v-model:totalPages="totalPages"
+                            v-model:nmb-entries-showing="entriesPerPage"
+                            v-model:nmb-entries-total="totalEntries"
+                            v-model:total-pages="totalPages"
                         />
                     </div>
                 </template>

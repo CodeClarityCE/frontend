@@ -12,7 +12,7 @@ import Button from '@/shadcn/ui/button/Button.vue';
 const user = useUserStore();
 const auth = useAuthStore();
 
-const selected_analyzers = defineModel<Array<Number>>('selected_analyzers', { default: [] });
+const selected_analyzers = defineModel<Array<number>>('selected_analyzers', { default: [] });
 const analyzers_list: Ref<Array<Analyzer>> = ref([]);
 const analyzers_list_loading_ref: Ref<typeof LoadingContainer | undefined> = ref();
 const analyzers_list_loading_error: Ref<any> = ref(null);

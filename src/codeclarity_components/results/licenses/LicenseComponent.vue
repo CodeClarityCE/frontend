@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 function referenceDomain(url: string) {
     try {
-        let host = new URL(url).hostname;
+        const host = new URL(url).hostname;
         return host;
     } catch (error) {
         return '';
@@ -325,8 +325,8 @@ async function fillModal(title: string, type: string) {
                 </div>
                 <div v-if="props.license.license_properties" class="flex gap-8">
                     <div
-                        class="flex flex-col gap-y-2"
                         v-if="props.license.license_properties.permissions"
+                        class="flex flex-col gap-y-2"
                     >
                         <div class="flex flex-row gap-2 items-center">
                             <Icon class="text-xl" :icon="'jam:shield-check'"></Icon>
@@ -355,8 +355,8 @@ async function fillModal(title: string, type: string) {
                         </div>
                     </div>
                     <div
-                        class="flex flex-col gap-y-2"
                         v-if="props.license.license_properties.conditions"
+                        class="flex flex-col gap-y-2"
                     >
                         <div class="flex flex-row gap-2 items-center">
                             <Icon class="text-xl" :icon="'jam:shield-close'"></Icon>
@@ -385,8 +385,8 @@ async function fillModal(title: string, type: string) {
                         </div>
                     </div>
                     <div
-                        class="flex flex-col gap-y-2"
                         v-if="props.license.license_properties.limitations"
+                        class="flex flex-col gap-y-2"
                     >
                         <div class="flex flex-row gap-2 items-center">
                             <Icon class="text-xl" :icon="'jam:shield-minus'"></Icon>

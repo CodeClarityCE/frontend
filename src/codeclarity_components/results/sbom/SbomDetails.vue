@@ -93,7 +93,7 @@ getDependency(props.projectID, props.analysisID);
         <!--                               Navigation                              -->
         <!--------------------------------------------------------------------------->
         <div v-if="showBack" class="cursor-pointer">
-            <Badge variant="secondary" @click="goBack()" title="Go back to preview page">
+            <Badge variant="secondary" title="Go back to preview page" @click="goBack()">
                 <Icon :icon="'material-symbols:keyboard-backspace'"></Icon>
                 Go back
             </Badge>

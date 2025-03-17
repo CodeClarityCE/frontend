@@ -120,15 +120,15 @@ init();
                 <div v-if="loading">
                     <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
                         <BoxLoader
-                            :dimensions="{ width: '150px', height: '150px' }"
                             v-for="i in 4"
-                            v-bind:key="i"
+                            :key="i"
+                            :dimensions="{ width: '150px', height: '150px' }"
                         />
                     </div>
                 </div>
 
                 <div v-if="!loading">
-                    <div class="flex flex-row gap-2" v-if="error">
+                    <div v-if="error" class="flex flex-row gap-2">
                         <Icon
                             class="icon user-icon"
                             icon="solar:confounded-square-outline"
@@ -138,10 +138,10 @@ init();
                             <div class="flex flex-col gap-5">
                                 <div class="flex flex-col gap-2">
                                     <div>Failed to fetch VCS integrations</div>
-                                    <div style="font-size: 0.9em" v-if="errorCode">
+                                    <div v-if="errorCode" style="font-size: 0.9em">
                                         We encountered an error while processing the request.
                                     </div>
-                                    <div style="font-size: 0.9eem" v-else>
+                                    <div v-else style="font-size: 0.9eem">
                                         <div>
                                             We encountered an error while processing the request.
                                         </div>
@@ -156,10 +156,10 @@ init();
                     </div>
 
                     <div
-                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
                         v-if="!error"
+                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
                     >
-                        <div v-for="analyzer in analyzers" v-bind:key="analyzer.id">
+                        <div v-for="analyzer in analyzers" :key="analyzer.id">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>{{ analyzer.name }}</CardTitle>

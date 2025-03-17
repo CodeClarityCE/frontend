@@ -28,7 +28,7 @@ defineExpose({
         type="submit"
         class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primaryHovered"
         :class="{ 'submit-button': !props.noStyle }"
-        v-bind:disabled="disabled"
+        :disabled="disabled"
     >
         <div v-if="loading">
             <div class="spinner"></div>

@@ -140,27 +140,27 @@ init();
         <!--------------------------------------------------------------------------->
 
         <div style="display: flex; column-gap: 1em">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+            <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                           Active Filters list                         -->
         <!--------------------------------------------------------------------------->
 
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+        <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
 
         <!--------------------------------------------------------------------------->
         <!--                        Pagination info and controls                   -->
         <!--------------------------------------------------------------------------->
         <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortOptions"
+            v-model:page-limit-selected="pageLimitSelected"
+            v-model:sort-key="sortKey"
+            v-model:sort-direction="sortDirection"
+            :selection-page-limit="selectionPageLimit"
+            :sort-options="sortOptions"
             :showing="nmbEntriesShowing"
             :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
         >
         </UtilitiesSort>
 
@@ -196,9 +196,9 @@ init();
                 </div>
                 <PaginationComponent
                     v-model:page="pageNumber"
-                    v-model:nmbEntriesShowing="pageLimitSelected"
-                    v-model:nmbEntriesTotal="nmbEntriesTotal"
-                    v-model:totalPages="totalPages"
+                    v-model:nmb-entries-showing="pageLimitSelected"
+                    v-model:nmb-entries-total="nmbEntriesTotal"
+                    v-model:total-pages="totalPages"
                 />
             </div>
         </div>

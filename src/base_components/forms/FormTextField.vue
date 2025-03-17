@@ -16,11 +16,11 @@ const props = defineProps<{
             <slot name="name"></slot>
         </label>
         <Field
+            v-model.trim="model"
             class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5"
             :placeholder="props.placeholder"
             :type="props.type"
             :name="props.name"
-            v-model.trim="model"
             :disabled="props.disabled"
             :class="props.disabled ? 'cursor-not-allowed' : ''"
         />

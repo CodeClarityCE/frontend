@@ -101,7 +101,7 @@ async function joinOrg() {
 <template>
     <div class="flex flex-col items-center">
         <div v-if="joinOrgResp">
-            <div class="flex flex-col gap-5 w-fit" v-if="joinError">
+            <div v-if="joinError" class="flex flex-col gap-5 w-fit">
                 <div class="flex flex-row gap-2">
                     <Icon
                         class="icon user-icon"
@@ -112,7 +112,7 @@ async function joinOrg() {
                         <div class="flex flex-col gap-5">
                             <div class="flex flex-col gap-2">
                                 <div>Failed to join the organization</div>
-                                <div style="font-size: 0.7em" v-if="joinErrorCode">
+                                <div v-if="joinErrorCode" style="font-size: 0.7em">
                                     <div
                                         v-if="joinErrorCode == APIErrors.InvitationInvalidOrExpired"
                                     >
@@ -122,7 +122,7 @@ async function joinOrg() {
                                         We encountered an error while processing the join request.
                                     </div>
                                 </div>
-                                <div style="font-size: 0.7em" v-else>
+                                <div v-else style="font-size: 0.7em">
                                     <div>
                                         We encountered an error while processing the join request.
                                     </div>
@@ -155,7 +155,7 @@ async function joinOrg() {
                                 <div class="flex flex-col gap-5">
                                     <div class="flex flex-col gap-2">
                                         <div>We failed to retrieve information on the invite</div>
-                                        <div style="font-size: 0.7em" v-if="fetchErrorCode">
+                                        <div v-if="fetchErrorCode" style="font-size: 0.7em">
                                             <div
                                                 v-if="
                                                     fetchErrorCode == APIErrors.EntityNotFound ||
@@ -169,7 +169,7 @@ async function joinOrg() {
                                                 information.
                                             </div>
                                         </div>
-                                        <div style="font-size: 0.7em" v-else>
+                                        <div v-else style="font-size: 0.7em">
                                             <div>
                                                 We encountered an error while retrieving the invite
                                                 information.
@@ -193,7 +193,7 @@ async function joinOrg() {
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col gap-4 w-1/2 self-center" v-if="orgInfo">
+                <div v-if="orgInfo" class="flex flex-col gap-4 w-1/2 self-center">
                     <div class="text-xl">
                         Join the
                         <span class="text-primary font-semibold">{{ orgInfo.name }}</span>
@@ -211,7 +211,7 @@ async function joinOrg() {
                         </div>
                     </div>
                     <div class="text-secondary-foreground">
-                        <span class="text-primary font-semibold" v-if="orgInfo.invite_created_by">
+                        <span v-if="orgInfo.invite_created_by" class="text-primary font-semibold">
                             {{ orgInfo.invite_created_by.last_name }}
                             {{ orgInfo.invite_created_by.first_name }} ({{
                                 orgInfo.invite_created_by.email
@@ -224,23 +224,23 @@ async function joinOrg() {
                                 >{{ orgInfo.name }}</span
                             >' as a
                             <span
-                                class="font-bold text-severityMedium"
                                 v-if="orgInfo.role == MemberRole.OWNER"
+                                class="font-bold text-severityMedium"
                                 >Owner</span
                             >
                             <span
-                                class="font-bold text-severityHigh"
                                 v-if="orgInfo.role == MemberRole.ADMIN"
+                                class="font-bold text-severityHigh"
                                 >Admin</span
                             >
                             <span
-                                class="font-bold text-severityLow"
                                 v-if="orgInfo.role == MemberRole.MODERATOR"
+                                class="font-bold text-severityLow"
                                 >Moderator</span
                             >
                             <span
-                                class="font-bold text-severityNone"
                                 v-if="orgInfo.role == MemberRole.USER"
+                                class="font-bold text-severityNone"
                                 >User</span
                             >.
                         </span>
@@ -279,7 +279,7 @@ async function joinOrg() {
                         </Button>
                     </div>
                 </div>
-                <div class="w-2/3 self-center" v-if="orgInfo">
+                <div v-if="orgInfo" class="w-2/3 self-center">
                     <h2 class="text-2xl">Faq</h2>
                     <div class="flex flex-row gap-5 flex-wrap">
                         <FaqBox>

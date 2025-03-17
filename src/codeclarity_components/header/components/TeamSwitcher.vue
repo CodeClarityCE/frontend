@@ -39,7 +39,7 @@ interface TeamGroup {
     teams: TeamItem[];
 }
 
-const groups: Array<TeamGroup> = new Array();
+const groups: Array<TeamGroup> = [];
 
 groups.push({
     label: 'Activated',

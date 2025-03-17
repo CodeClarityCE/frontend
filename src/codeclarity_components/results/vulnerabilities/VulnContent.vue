@@ -124,6 +124,6 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
             </Card>
         </div>
 
-        <VulnsGraph v-if="render" :analysisID="analysisID" :projectID="projectID" :stats="stats" />
+        <VulnsGraph v-if="render" :analysis-i-d="analysisID" :project-i-d="projectID" :stats="stats" />
     </div>
 </template>

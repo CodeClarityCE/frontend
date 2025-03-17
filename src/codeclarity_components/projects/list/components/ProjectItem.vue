@@ -89,9 +89,9 @@ async function deleteProject() {
                 </div>
                 <div class="relative">
                     <Button
+                        :id="'dot-menu-' + project.id"
                         variant="secondary"
                         size="icon"
-                        :id="'dot-menu-' + project.id"
                         @click="projectOptionsModalRef.toggle()"
                     >
                         <Icon :id="'dot-menu-' + project.id" icon="bi:three-dots-vertical" />
@@ -145,10 +145,10 @@ async function deleteProject() {
                     </RouterLink>
                 </div>
                 <div class="flex flex-col gap-4 items-center">
-                    <AnalysisList :analyses="project.analyses" :projectID="project.id" />
+                    <AnalysisList :analyses="project.analyses" :project-i-d="project.id" />
                 </div>
             </div>
-            <div class="flex flex-col justify-center items-center" v-else>
+            <div v-else class="flex flex-col justify-center items-center">
                 No analysis found
                 <RouterLink
                     :to="'/analyses/add?id=' + project.id"

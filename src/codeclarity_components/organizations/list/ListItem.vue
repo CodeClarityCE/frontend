@@ -110,26 +110,26 @@ function performOrgAction() {
                             </div>
                             <div>
                                 <div
-                                    class="rounded-2xl px-2 py-1 bg-yellow text-white w-fit font-black text-sm"
                                     v-if="membership.organization.role == MemberRole.OWNER"
+                                    class="rounded-2xl px-2 py-1 bg-yellow text-white w-fit font-black text-sm"
                                 >
                                     Owner
                                 </div>
                                 <div
-                                    class="rounded-2xl px-2 py-1 bg-red text-white w-fit font-black text-sm"
                                     v-if="membership.organization.role == MemberRole.ADMIN"
+                                    class="rounded-2xl px-2 py-1 bg-red text-white w-fit font-black text-sm"
                                 >
                                     Admin
                                 </div>
                                 <div
-                                    class="rounded-2xl px-2 py-1 bg-primary text-white w-fit font-black text-sm"
                                     v-if="membership.organization.role == MemberRole.MODERATOR"
+                                    class="rounded-2xl px-2 py-1 bg-primary text-white w-fit font-black text-sm"
                                 >
                                     Moderator
                                 </div>
                                 <div
-                                    class="rounded-2xl px-2 py-1 bg-green text-white w-fit font-black text-sm"
                                     v-if="membership.organization.role == MemberRole.USER"
+                                    class="rounded-2xl px-2 py-1 bg-green text-white w-fit font-black text-sm"
                                 >
                                     User
                                 </div>
@@ -284,7 +284,7 @@ function performOrgAction() {
                 <div v-if="orgAction == OrgAction.LEAVE">
                     Are you sure you want to leave the organization?
                 </div>
-                <div class="mt-2" v-if="orgAction == OrgAction.DELETE">
+                <div v-if="orgAction == OrgAction.DELETE" class="mt-2">
                     <div class="flex flex-row gap-2 items-center">
                         <div>
                             <Icon class="text-2xl" icon="solar:danger-triangle-bold-duotone"></Icon>

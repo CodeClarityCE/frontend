@@ -14,7 +14,7 @@ const search = ref('');
 const licenseList = ref(new Set<License>());
 const licensesRef = toRef(props, 'licenses');
 
-const data = defineModel<Set<String>>('data', { default: new Set<String>() });
+const data = defineModel<Set<string>>('data', { default: new Set<string>() });
 
 watch([search, licensesRef], () => {
     updateList();
@@ -44,16 +44,16 @@ function select(license: License) {
         <label class="text-gray-500 mb-1" :for="props.name">
             <slot name="name"></slot>
         </label>
-        <SearchBar v-model:searchKey="search" :placeholder="'Search for a license'"></SearchBar>
+        <SearchBar v-model:search-key="search" :placeholder="'Search for a license'"></SearchBar>
         <div
             class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5 h-72 overflow-y-scroll"
         >
             <div
                 v-for="license in licenseList"
                 :key="license.id"
-                @click="select(license)"
                 class="py-2 px-4 cursor-pointer hover:bg-primaryHovered hover:text-white"
                 :class="data.has(license._key) ? 'bg-primary text-white' : ''"
+                @click="select(license)"
             >
                 {{ license.name }}
             </div>

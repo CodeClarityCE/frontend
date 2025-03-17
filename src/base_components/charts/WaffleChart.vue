@@ -64,12 +64,12 @@ function createData() {
 
     // "Normalize" the data
     // Each group has a value from 0.0 to 1.0
-    let normalizedData: WaffleChartEntryNormalized[] = [];
+    const normalizedData: WaffleChartEntryNormalized[] = [];
     if (props.sourcePercentual) {
         // In case the data passed in is percentual we divide it by 100
         let i = 0;
-        for (let entry of props.data) {
-            let color = entry.color;
+        for (const entry of props.data) {
+            const color = entry.color;
             normalizedData.push({
                 label: entry.label,
                 value: entry.value / 100,
@@ -81,12 +81,12 @@ function createData() {
     } else {
         // In case the data passed in is not percentual we make it percentual
         let sum = 0;
-        for (let entry of props.data) {
+        for (const entry of props.data) {
             sum += entry.value;
         }
         let i = 0;
-        for (let entry of props.data) {
-            let color = entry.color;
+        for (const entry of props.data) {
+            const color = entry.color;
             normalizedData.push({
                 label: entry.label,
                 value: entry.value / sum,
@@ -99,7 +99,7 @@ function createData() {
 
     // Sort in descending order, bigger groups should be rendered first
     normalizedData.sort((a, b) => b.value - a.value);
-    let [dataForLegend, othersEntries] = createSquares(normalizedData);
+    const [dataForLegend, othersEntries] = createSquares(normalizedData);
 
     if (!colorsDefinedInData) {
         let colors = interpolateColors(dataForLegend.length, colorScale, {
@@ -119,7 +119,7 @@ function createData() {
             useEndAsStart: false
         });
 
-        let baseIndex = dataForLegend.length - 1;
+        const baseIndex = dataForLegend.length - 1;
         for (let i = baseIndex; i < normalizedData.length; i++) {
             othersEntries[i - baseIndex].color = colors[i - baseIndex];
         }
@@ -138,7 +138,7 @@ function createSquares(
 ): [WaffleChartEntryNormalized[], WaffleChartEntryNormalized[]] {
     // Create the squares
     let nmbSquaresCreated = 0;
-    let othersData: WaffleChartEntryNormalized = {
+    const othersData: WaffleChartEntryNormalized = {
         label: 'Others',
         value: 0.0,
         sourceValue: 0.0,
@@ -148,7 +148,7 @@ function createSquares(
 
     let indicesToRemove: number[] = [];
     let i = 0;
-    for (let entry of normalizedData) {
+    for (const entry of normalizedData) {
         // A value less than 1% is not shown in the waffle chart
         // It is shown in the legend though
         if (entry.value < 0.01) {
@@ -172,7 +172,7 @@ function createSquares(
     if (othersEntries.length == normalizedData.length) {
         indicesToRemove = [];
         othersEntries = [];
-        for (let entry of normalizedData) {
+        for (const entry of normalizedData) {
             for (
                 let i = 0;
                 i < Math.round(Number.parseFloat(entry.value.toPrecision(2)) * nmbOfSquares);
@@ -222,11 +222,11 @@ createData();
     <div class="grid grid-cols-10 gap-0">
         <div
             v-for="(square, index) in squares"
+            :key="index"
             style="width: 25px; height: 25px; padding: 2.5px"
+            :style="{ filter: styleSelected(square.group) }"
             @mouseover="animateGroup(square.group)"
             @mouseleave="stopAnimateGroup()"
-            :style="{ filter: styleSelected(square.group) }"
-            :key="index"
         >
             <div
                 style="background-color: gray; width: 100%; height: 100%; border-radius: 5px"

@@ -123,7 +123,7 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                 <div v-if="error"></div>
                 <div v-else>
                     <div class="dashboard-exposure-graph">
-                        <LineChart :chartData="chartData"></LineChart>
+                        <LineChart :chart-data="chartData"></LineChart>
                     </div>
                 </div>
             </div>

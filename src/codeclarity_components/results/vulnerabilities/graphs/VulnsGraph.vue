@@ -47,7 +47,7 @@ createSeverityDistChart();
 createRadarChart();
 
 function createOwaspTop10DistChart() {
-    let possible_labels = [
+    const possible_labels = [
         'A01: Broken Access Control',
         'A02: Cryptographic Failures',
         'A03: Injection',
@@ -60,7 +60,7 @@ function createOwaspTop10DistChart() {
         'A10: Server-Side Request Forgery'
     ];
 
-    let possible_values = [
+    const possible_values = [
         props.stats.number_of_owasp_top_10_2021_a1,
         props.stats.number_of_owasp_top_10_2021_a2,
         props.stats.number_of_owasp_top_10_2021_a3,
@@ -73,7 +73,7 @@ function createOwaspTop10DistChart() {
         props.stats.number_of_owasp_top_10_2021_a10
     ];
 
-    let count =
+    const count =
         props.stats.number_of_owasp_top_10_2021_a1 +
         props.stats.number_of_owasp_top_10_2021_a2 +
         props.stats.number_of_owasp_top_10_2021_a3 +
@@ -87,14 +87,14 @@ function createOwaspTop10DistChart() {
 
     owaspTopTotalCount.value = count;
 
-    let possible_colors = ['#003532', '#1A4876', '#008491', '#40E0D0'];
+    const possible_colors = ['#003532', '#1A4876', '#008491', '#40E0D0'];
 
-    let data: Array<any> = [];
-    let colors: Array<any> = [];
-    let labels: Array<any> = [];
+    const data: Array<any> = [];
+    const colors: Array<any> = [];
+    const labels: Array<any> = [];
 
     let index = 0;
-    for (let value of possible_values) {
+    for (const value of possible_values) {
         if (value > 0) {
             data.push(value);
             labels.push(possible_labels[index]);
@@ -109,7 +109,7 @@ function createOwaspTop10DistChart() {
         colors.push('#D3D3D3');
     }
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: [
             {
@@ -154,17 +154,17 @@ function createOwaspTop10DistChart() {
 }
 
 function createSeverityDistChart() {
-    let labels = ['Critical', 'High', 'Medium', 'Low', 'None'];
-    let data = [
+    const labels = ['Critical', 'High', 'Medium', 'Low', 'None'];
+    const data = [
         props.stats.number_of_critical,
         props.stats.number_of_high,
         props.stats.number_of_medium,
         props.stats.number_of_low,
         props.stats.number_of_none
     ];
-    let colors = ['#003532', '#1A4876', '#008491', '#40E0D0', '#D3D3D3'];
+    const colors = ['#003532', '#1A4876', '#008491', '#40E0D0', '#D3D3D3'];
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: [
             {

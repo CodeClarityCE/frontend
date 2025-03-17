@@ -151,7 +151,7 @@ function search(_searchKey: string) {
                     </template>
                     <template v-else>
                         <TableRow>
-                            <TableCell :colSpan="columns.length" class="h-24 text-center">
+                            <TableCell :col-span="columns.length" class="h-24 text-center">
                                 No results.
                             </TableCell>
                         </TableRow>

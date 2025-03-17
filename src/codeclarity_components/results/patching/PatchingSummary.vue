@@ -48,7 +48,7 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 
-let colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
+const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 const initChartData = {
     labels: [],
     datasets: [
@@ -67,7 +67,7 @@ const severity_conf: Ref<object> = ref({});
 const cia_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
 const cia_conf: Ref<object> = ref({});
 
-let boxLoaderDimensions = {
+const boxLoaderDimensions = {
     width: '100px',
     height: '40px'
 };
@@ -206,9 +206,9 @@ function createRadarChart() {
 }
 
 function createSeverityDistChart() {
-    let labels = [];
-    let colors: Array<string> = [];
-    let data = [
+    const labels = [];
+    const colors: Array<string> = [];
+    const data = [
         {
             borderColor: 'transparent',
             backgroundColor: colors,
@@ -276,7 +276,7 @@ function createSeverityDistChart() {
         (data[1].data as Array<number>).push(stats.value.after_patch_number_of_none);
     }
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: data
     };

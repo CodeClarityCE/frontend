@@ -95,7 +95,7 @@ function buildTree() {
 
         const filterConfig: Partial<FilterConfig> = {};
 
-        let [nodes] = dependencyTreeManager.value.getTree(paginationConfig, filterConfig, {
+        const [nodes] = dependencyTreeManager.value.getTree(paginationConfig, filterConfig, {
             includeDev: true
         });
         // nmb_entries_showing.value = paginationInfo.returnedItemCount;

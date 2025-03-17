@@ -156,27 +156,27 @@ init();
         <!--------------------------------------------------------------------------->
 
         <div style="display: flex; column-gap: 1em">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+            <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                           Active Filters list                         -->
         <!--------------------------------------------------------------------------->
 
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+        <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
 
         <!--------------------------------------------------------------------------->
         <!--                        Pagination info and controls                   -->
         <!--------------------------------------------------------------------------->
         <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortByOptions"
+            v-model:page-limit-selected="pageLimitSelected"
+            v-model:sort-key="sortKey"
+            v-model:sort-direction="sortDirection"
+            :selection-page-limit="selectionPageLimit"
+            :sort-options="sortByOptions"
             :showing="nmbEntriesShowing"
             :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
         >
         </UtilitiesSort>
 
@@ -187,9 +187,9 @@ init();
         <div v-if="render" class="flex flex-col gap-y-6">
             <div v-for="report in findings" :key="report.Id">
                 <RouterLink
-                    class="flex flex-col gap-2 transition-all hover:scale-105"
                     v-for="affected in report.Affected"
                     :key="affected.AffectedDependency"
+                    class="flex flex-col gap-2 transition-all hover:scale-105"
                     :to="{
                         name: 'results',
                         query: {
@@ -459,9 +459,9 @@ init();
             <!--------------------------------------------------------------------------->
             <PaginationComponent
                 v-model:page="pageNumber"
-                v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal"
-                v-model:totalPages="totalPages"
+                v-model:nmb-entries-showing="pageLimitSelected"
+                v-model:nmb-entries-total="nmbEntriesTotal"
+                v-model:total-pages="totalPages"
             />
         </div>
 

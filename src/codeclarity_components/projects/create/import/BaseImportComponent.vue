@@ -80,7 +80,7 @@ async function importProjectsBulk() {
     const _reposFailedToImport: { [key: string]: FailedProjectImport } = {};
     reposFailedToImport.value = {};
 
-    for (let repo of selectedRepos.value) {
+    for (const repo of selectedRepos.value) {
         try {
             await importProject(userStore.getDefaultOrg.id, authStore.getToken, repo);
         } catch (err) {
@@ -163,8 +163,8 @@ async function onSelectedReposChange(repos: Repository[]) {
             <Button
                 class="w-fit cursor-pointer gap-1"
                 variant="outline"
-                @click="forceRefreshRepos()"
                 title="Force refresh repositories"
+                @click="forceRefreshRepos()"
             >
                 <Icon class="icon" icon="solar:refresh-bold"></Icon>
                 <div>Force refresh</div>
@@ -173,11 +173,11 @@ async function onSelectedReposChange(repos: Repository[]) {
 
         <div class="flex flex-col gap-8">
             <RepoTable
-                ref="repoTableRef"
                 v-if="Object.keys(reposFailedToImport).length == 0"
+                ref="repoTableRef"
                 :integration="integration"
-                :getRepos="getRepos"
-                @onSelectedReposChange="onSelectedReposChange($event)"
+                :get-repos="getRepos"
+                @on-selected-repos-change="onSelectedReposChange($event)"
             >
             </RepoTable>
 
@@ -197,20 +197,20 @@ async function onSelectedReposChange(repos: Repository[]) {
                     </div>
                 </div>
 
-                <ImportErrorTable :reposFailedToImport="reposFailedToImport"> </ImportErrorTable>
+                <ImportErrorTable :repos-failed-to-import="reposFailedToImport"> </ImportErrorTable>
             </template>
 
             <div class="flex flex-col gap-2">
                 <Button
-                    class="cursor-pointer m-0 w-fit"
                     v-if="Object.keys(reposFailedToImport).length > 0"
+                    class="cursor-pointer m-0 w-fit"
                     @click="clearImportErrors()"
                     >Clear errors</Button
                 >
                 <template v-else>
                     <Button
-                        @click="importProjectsBulk()"
                         class="rounded bg-primary text-white py-3 px-5 cursor-pointer m-0 w-fit"
+                        @click="importProjectsBulk()"
                     >
                         Import projects
                     </Button>

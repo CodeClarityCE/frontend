@@ -92,7 +92,7 @@ async function deleteAnalysis() {
 
 function getAllStages(steps: AnalysisStage[][]): AnalysisStage[] {
     let stages: AnalysisStage[] = [];
-    for (let step of steps) {
+    for (const step of steps) {
         stages = stages.concat(step);
     }
     return stages;
@@ -100,7 +100,7 @@ function getAllStages(steps: AnalysisStage[][]): AnalysisStage[] {
 
 function getTotalSteps(steps: AnalysisStage[][]) {
     let count = 0;
-    for (let step of steps) {
+    for (const step of steps) {
         count += step.length;
     }
     return count;
@@ -108,7 +108,7 @@ function getTotalSteps(steps: AnalysisStage[][]) {
 
 function getStepsDone(steps: AnalysisStage[][]) {
     let count = 0;
-    for (let step of steps) {
+    for (const step of steps) {
         count += step.filter((stage) => stage.Status == AnalysisStatus.SUCCESS).length;
     }
     return count;
@@ -163,11 +163,11 @@ getChart(props.projectID, props.analysis.id);
         <div class="flex gap-2 w-full">
             <Icon v-if="true" :icon="'devicon:javascript'" class="text-3xl rounded-lg"></Icon>
             <div
-                :id="'finished-button-' + props.analysis.id"
                 v-if="
                     props.analysis.status == AnalysisStatus.COMPLETED ||
                     props.analysis.status == AnalysisStatus.FINISHED
                 "
+                :id="'finished-button-' + props.analysis.id"
                 class="flex flex-grow gap-2 justify-between items-center cursor-pointer text-severityLow"
                 title="Get details about the analysis execution"
                 @click="finished_modal_ref.toggle()"

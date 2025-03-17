@@ -14,10 +14,10 @@ import {
 
 // Props
 defineProps<{
-    selectionPageLimit: Array<Number>;
+    selectionPageLimit: Array<number>;
     sortOptions: Array<any>;
-    showing: Number;
-    total: Number;
+    showing: number;
+    total: number;
 }>();
 
 // Models
@@ -39,12 +39,12 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
             <div class="flex flex-row gap-2 items-center whitespace-nowrap">
                 Showing
                 <Select
-                    @update:modelValue="
+                    v-bind="pageLimitSelected.toString"
+                    @update:model-value="
                         (e) => {
                             pageLimitSelected = parseInt(e);
                         }
                     "
-                    v-bind="pageLimitSelected.toString"
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Select entries" />
@@ -86,15 +86,15 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                 </Select>
                 <div class="cursor-pointer flex gap-1 items-center">
                     <Icon
+                        v-if="sortDirection == SortDirection.DESC"
                         icon="oi:sort-descending"
                         class="h-5 w-5"
-                        v-if="sortDirection == SortDirection.DESC"
                         @click="changeSort(sortKey, SortDirection.ASC)"
                     />
                     <Icon
+                        v-else
                         icon="oi:sort-ascending"
                         class="h-5 w-5"
-                        v-else
                         @click="changeSort(sortKey, SortDirection.DESC)"
                     />
                     {{ sortDirection }}

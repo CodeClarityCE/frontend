@@ -124,24 +124,24 @@ init();
 <template>
     <div class="flex flex-col gap-y-2">
         <div class="flex gap-4">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+            <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                           Active Filters list                         -->
         <!--------------------------------------------------------------------------->
 
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+        <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
 
         <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortByOptions"
+            v-model:page-limit-selected="pageLimitSelected"
+            v-model:sort-key="sortKey"
+            v-model:sort-direction="sortDirection"
+            :selection-page-limit="selectionPageLimit"
+            :sort-options="sortByOptions"
             :showing="nmbEntriesShowing"
             :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
         >
         </UtilitiesSort>
         <div v-if="render" class="flex flex-col gap-y-8">
@@ -150,8 +150,8 @@ init();
                     :key="license.id"
                     :license="license"
                     :last="false"
-                    :analysisID="analysisID"
-                    :projectID="projectID"
+                    :analysis-i-d="analysisID"
+                    :project-i-d="projectID"
                 />
             </div>
         </div>
@@ -172,9 +172,9 @@ init();
             <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
             <PaginationComponent
                 v-model:page="pageNumber"
-                v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal"
-                v-model:totalPages="totalPages"
+                v-model:nmb-entries-showing="pageLimitSelected"
+                v-model:nmb-entries-total="nmbEntriesTotal"
+                v-model:total-pages="totalPages"
             />
         </div>
     </div>

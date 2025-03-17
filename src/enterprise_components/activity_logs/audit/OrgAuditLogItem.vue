@@ -18,20 +18,20 @@ defineProps<{
             <div>
                 <div class="log-severity-wrapper">
                     <div
-                        class="log-severity-critical"
                         v-if="log.action_severity == ActionSeverity.Critical"
+                        class="log-severity-critical"
                     ></div>
                     <div
-                        class="log-severity-high"
                         v-if="log.action_severity == ActionSeverity.High"
+                        class="log-severity-high"
                     ></div>
                     <div
-                        class="log-severity-medium"
                         v-if="log.action_severity == ActionSeverity.Medium"
+                        class="log-severity-medium"
                     ></div>
                     <div
-                        class="log-severity-low"
                         v-if="log.action_severity == ActionSeverity.Low"
+                        class="log-severity-low"
                     ></div>
                 </div>
             </div>
@@ -55,26 +55,26 @@ defineProps<{
             <div v-if="log.blame_on" class="flex flex-row gap-2 items-center flex-aic">
                 <div>
                     <div
-                        class="org-membership membership-owner"
                         v-if="log.blame_on.role == MemberRole.OWNER"
+                        class="org-membership membership-owner"
                     >
                         Owner
                     </div>
                     <div
-                        class="org-membership membership-admin"
                         v-if="log.blame_on.role == MemberRole.ADMIN"
+                        class="org-membership membership-admin"
                     >
                         Admin
                     </div>
                     <div
-                        class="org-membership membership-moderator"
                         v-if="log.blame_on.role == MemberRole.MODERATOR"
+                        class="org-membership membership-moderator"
                     >
                         Moderator
                     </div>
                     <div
-                        class="org-membership membership-user"
                         v-if="log.blame_on.role == MemberRole.USER"
+                        class="org-membership membership-user"
                     >
                         User
                     </div>

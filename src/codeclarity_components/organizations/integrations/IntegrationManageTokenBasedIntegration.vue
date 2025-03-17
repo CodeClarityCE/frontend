@@ -93,7 +93,7 @@ const emit = defineEmits<{
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
                             <div>We failed to retrieve information on the integration</div>
-                            <div style="font-size: 0.7em" v-if="errorCode">
+                            <div v-if="errorCode" style="font-size: 0.7em">
                                 <div v-if="errorCode == APIErrors.EntityNotFound">
                                     This integration does not exist.
                                 </div>
@@ -105,7 +105,7 @@ const emit = defineEmits<{
                                     information.
                                 </div>
                             </div>
-                            <div style="font-size: 0.7em" v-else>
+                            <div v-else style="font-size: 0.7em">
                                 <div>
                                     We encountered an error while retrieving the integration
                                     information.
@@ -127,7 +127,7 @@ const emit = defineEmits<{
         </div>
     </div>
 
-    <div class="flex-column flex-column-2rem org-manage-integration-wrapper" v-else>
+    <div v-else class="flex-column flex-column-2rem org-manage-integration-wrapper">
         <div class="flex flex-row gap-8">
             <div class="flex flex-column gap-5">
                 <div v-if="isAtRisk()" class="mb-5">
@@ -259,8 +259,8 @@ const emit = defineEmits<{
                         <SortableTable
                             class="w-full"
                             :headers="headers"
-                            :sortKey="sortKey"
-                            :sortDirection="sortDirection"
+                            :sort-key="sortKey"
+                            :sort-direction="sortDirection"
                         >
                             <template #data>
                                 <tr>

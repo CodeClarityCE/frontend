@@ -172,8 +172,8 @@ onMounted(() => {
                 <div>
                     <div class="title">Failed</div>
                     <div
-                        class="subtitle"
                         v-if="errorCode == APIErrors.PasswordResetTokenInvalidOrExpired"
+                        class="subtitle"
                     >
                         Your password was
                         <span style="font-weight: 900; text-decoration: underline">not</span> reset
@@ -181,7 +181,7 @@ onMounted(() => {
                         and click on the link in the email.<br /><br />
                         Note: the link in the email is only valid for 5 minutes.
                     </div>
-                    <div class="subtitle" v-else>
+                    <div v-else class="subtitle">
                         An error occured during the processing of the request.
                     </div>
                 </div>

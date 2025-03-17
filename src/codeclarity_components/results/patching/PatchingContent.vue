@@ -50,7 +50,7 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 
-let colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
+const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 const initChartData = {
     labels: [],
     datasets: [
@@ -203,9 +203,9 @@ function createRadarChart() {
 }
 
 function createSeverityDistChart() {
-    let labels = [];
-    let colors: Array<string> = [];
-    let data = [
+    const labels = [];
+    const colors: Array<string> = [];
+    const data = [
         {
             borderColor: 'transparent',
             backgroundColor: colors,
@@ -273,7 +273,7 @@ function createSeverityDistChart() {
         (data[1].data as Array<number>).push(stats.value.after_patch_number_of_none);
     }
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: data
     };
@@ -702,8 +702,8 @@ function createSeverityDistChart() {
                 <CardContent class="pl-2">
                     <PatchesTable
                         ref="patches_ref"
-                        :analysisID="analysisID"
-                        :projectID="projectID"
+                        :analysis-i-d="analysisID"
+                        :project-i-d="projectID"
                     />
                 </CardContent>
             </Card>
@@ -712,7 +712,7 @@ function createSeverityDistChart() {
                     <CardTitle>Patches</CardTitle>
                 </CardHeader>
                 <CardContent class="pl-2">
-                    <Patches ref="patches_ref" :analysisID="analysisID" :projectID="projectID" />
+                    <Patches ref="patches_ref" :analysis-i-d="analysisID" :project-i-d="projectID" />
                 </CardContent>
             </Card>
         </div>

@@ -141,25 +141,25 @@ const emit = defineEmits<{
             <div>{{ invitation.user_email }}</div>
         </td>
         <td>
-            <div class="org-membership membership-owner" v-if="invitation.role == MemberRole.OWNER">
+            <div v-if="invitation.role == MemberRole.OWNER" class="org-membership membership-owner">
                 Owner
             </div>
-            <div class="org-membership membership-admin" v-if="invitation.role == MemberRole.ADMIN">
+            <div v-if="invitation.role == MemberRole.ADMIN" class="org-membership membership-admin">
                 Admin
             </div>
             <div
-                class="org-membership membership-moderator"
                 v-if="invitation.role == MemberRole.MODERATOR"
+                class="org-membership membership-moderator"
             >
                 Moderator
             </div>
-            <div class="org-membership membership-user" v-if="invitation.role == MemberRole.USER">
+            <div v-if="invitation.role == MemberRole.USER" class="org-membership membership-user">
                 User
             </div>
         </td>
         <td>
             <div class="flex flex-row gap-2 w-fit items-center">
-                <div class="user-avatar-wrapper" v-if="invitation.created_by">
+                <div v-if="invitation.created_by" class="user-avatar-wrapper">
                     <div v-if="invitation.created_by.avatar_url">
                         <img class="user-image w-8" :src="invitation.created_by.avatar_url" />
                     </div>
@@ -171,26 +171,26 @@ const emit = defineEmits<{
                 <div class="flex flex-col gap-0.5">
                     <div v-if="invitation.created_by">
                         <div
-                            class="org-membership membership-owner"
                             v-if="invitation.created_by.role == MemberRole.OWNER"
+                            class="org-membership membership-owner"
                         >
                             Owner
                         </div>
                         <div
-                            class="org-membership membership-admin"
                             v-if="invitation.created_by.role == MemberRole.ADMIN"
+                            class="org-membership membership-admin"
                         >
                             Admin
                         </div>
                         <div
-                            class="org-membership membership-moderator"
                             v-if="invitation.created_by.role == MemberRole.MODERATOR"
+                            class="org-membership membership-moderator"
                         >
                             Moderator
                         </div>
                         <div
-                            class="org-membership membership-user"
                             v-if="invitation.created_by.role == MemberRole.USER"
+                            class="org-membership membership-user"
                         >
                             User
                         </div>
@@ -218,10 +218,10 @@ const emit = defineEmits<{
             <div class="flex flex-row gap-2 org-member-list-actions">
                 <LoadingButton
                     ref="resendInvitationLoadingButtonRef"
-                    @click="resendInvitation()"
                     class="clear-button"
                     title="Resend invitation"
                     style="min-width: 150px; width: fit-content"
+                    @click="resendInvitation()"
                 >
                     <div class="flex flex-row gap-1 items-center">
                         <Icon class="icon" icon="mdi:email-sync" style="font-size: 1.2em"></Icon>
@@ -229,13 +229,13 @@ const emit = defineEmits<{
                     </div>
                 </LoadingButton>
                 <Button
-                    variant="destructive"
-                    @click="openModalAction(ModalAction.REVOKE)"
                     v-if="
                         !invitation.created_by ||
                         invitation.created_by.id == userStore.getUser!.id ||
                         isMemberRoleGreaterThan(orgInfo.role, invitation.created_by.role)
                     "
+                    variant="destructive"
+                    @click="openModalAction(ModalAction.REVOKE)"
                 >
                     <Icon icon="mdi:email-remove"></Icon>
                     Revoke invitation

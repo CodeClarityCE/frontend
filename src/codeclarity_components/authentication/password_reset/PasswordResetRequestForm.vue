@@ -61,7 +61,7 @@ async function submit() {
 </script>
 <template>
     <div class="flex flex-col justify-center items-center my-20">
-        <div class="max-w-lg w-full flex flex-col" v-if="!success">
+        <div v-if="!success" class="max-w-lg w-full flex flex-col">
             <h2 class="text-3xl font-bold tracking-tight">Password Reset</h2>
 
             <div class="flex flex-col gap-8">

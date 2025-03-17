@@ -115,19 +115,19 @@ const emit = defineEmits<{
             <div>{{ member.email }}</div>
         </td>
         <td>
-            <div class="org-membership membership-owner" v-if="member.role == MemberRole.OWNER">
+            <div v-if="member.role == MemberRole.OWNER" class="org-membership membership-owner">
                 Owner
             </div>
-            <div class="org-membership membership-admin" v-if="member.role == MemberRole.ADMIN">
+            <div v-if="member.role == MemberRole.ADMIN" class="org-membership membership-admin">
                 Admin
             </div>
             <div
-                class="org-membership membership-moderator"
                 v-if="member.role == MemberRole.MODERATOR"
+                class="org-membership membership-moderator"
             >
                 Moderator
             </div>
-            <div class="org-membership membership-user" v-if="member.role == MemberRole.USER">
+            <div v-if="member.role == MemberRole.USER" class="org-membership membership-user">
                 User
             </div>
         </td>
@@ -139,6 +139,11 @@ const emit = defineEmits<{
         <td>
             <div class="flex flex-row gap-2 org-member-list-actions">
                 <RouterLink
+                    v-if="
+                        member.id == userStore.getUser!.id ||
+                        isMemberRoleGreaterThan(orgInfo.role, member.role) ||
+                        member.added_by == userStore.getUser!.id
+                    "
                     :to="{
                         name: 'orgManage',
                         params: { orgId: orgInfo.id, page: 'logs' },
@@ -146,11 +151,6 @@ const emit = defineEmits<{
                     }"
                     class="clear-button"
                     title="View the user's audit logs"
-                    v-if="
-                        member.id == userStore.getUser!.id ||
-                        isMemberRoleGreaterThan(orgInfo.role, member.role) ||
-                        member.added_by == userStore.getUser!.id
-                    "
                 >
                     <div class="flex flex-row gap-1 items-center">
                         <Icon
@@ -162,13 +162,13 @@ const emit = defineEmits<{
                     </div>
                 </RouterLink>
                 <Button
-                    variant="destructive"
-                    @click="openModalAction(ModalAction.Kick)"
                     v-if="
                         member.id != userStore.getUser!.id &&
                         (isMemberRoleGreaterThan(orgInfo.role, member.role) ||
                             member.added_by == userStore.getUser!.id)
                     "
+                    variant="destructive"
+                    @click="openModalAction(ModalAction.Kick)"
                 >
                     <Icon icon="mingcute:user-remove-fill"></Icon>
                     Revoke access

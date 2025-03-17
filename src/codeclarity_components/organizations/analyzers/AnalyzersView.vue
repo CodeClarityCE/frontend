@@ -50,7 +50,7 @@ defineProps<{
 }>();
 </script>
 <template>
-    <OrgAnalyzersList v-if="action == 'manage'" :page="page" :orgId="orgId" />
-    <OrgAnalyzerEdit v-else-if="action == 'edit'" :page="page" :orgId="orgId" />
-    <OrgAnalyzerCreate v-else-if="action == 'add'" :page="page" :orgId="orgId" />
+    <OrgAnalyzersList v-if="action == 'manage'" :page="page" :org-id="orgId" />
+    <OrgAnalyzerEdit v-else-if="action == 'edit'" :page="page" :org-id="orgId" />
+    <OrgAnalyzerCreate v-else-if="action == 'add'" :page="page" :org-id="orgId" />
 </template>

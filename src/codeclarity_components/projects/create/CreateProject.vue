@@ -94,7 +94,7 @@ fetchVcsIntegrations();
     <!-- Loading Placeholder -->
     <div v-if="loading">
         <div class="flex flex-row gap-4 flex-wrap">
-            <BoxLoader :dimensions="{ width: '150px', height: '150px' }" v-for="i in 4" :key="i" />
+            <BoxLoader v-for="i in 4" :key="i" :dimensions="{ width: '150px', height: '150px' }" />
         </div>
     </div>
 
@@ -111,10 +111,10 @@ fetchVcsIntegrations();
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
                             <div>Failed to fetch VCS integrations</div>
-                            <div class="text-sm" v-if="errorCode">
+                            <div v-if="errorCode" class="text-sm">
                                 We encountered an error while processing the request.
                             </div>
-                            <div class="text-sm" v-else>
+                            <div v-else class="text-sm">
                                 <div>We encountered an error while processing the request.</div>
                             </div>
                         </div>

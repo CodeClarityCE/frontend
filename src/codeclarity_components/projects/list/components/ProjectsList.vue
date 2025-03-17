@@ -135,13 +135,13 @@ fetchProjects();
 
     <template v-else>
         <ProjectsListHeader
-            v-model:searchKey="searchKey"
-            v-model:pageLimitSelected="entriesPerPage"
-            v-model:sortDirection="sortDirection"
-            v-model:sortKey="sortKey"
+            v-model:search-key="searchKey"
+            v-model:page-limit-selected="entriesPerPage"
+            v-model:sort-direction="sortDirection"
+            v-model:sort-key="sortKey"
         />
 
-        <div class="flex flex-col gap-8" v-if="loading">
+        <div v-if="loading" class="flex flex-col gap-8">
             <BoxLoader
                 v-for="index in 4"
                 :key="index"
@@ -157,10 +157,10 @@ fetchProjects();
             <!-- <div v-else class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4"> -->
             <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <ProjectItem
-                    @on-refresh="fetchProjects(true)"
-                    :project="project"
                     v-for="project in projects"
                     :key="project.id"
+                    :project="project"
+                    @on-refresh="fetchProjects(true)"
                 />
             </div>
         </div>
@@ -169,9 +169,9 @@ fetchProjects();
             <div style="">Showing {{ projects.length }} out of {{ totalEntries }} entries</div>
             <Pagination
                 v-model:page="page"
-                v-model:nmbEntriesShowing="entriesPerPage"
-                v-model:nmbEntriesTotal="totalEntries"
-                v-model:totalPages="totalPages"
+                v-model:nmb-entries-showing="entriesPerPage"
+                v-model:nmb-entries-total="totalEntries"
+                v-model:total-pages="totalPages"
             />
         </div>
     </template>

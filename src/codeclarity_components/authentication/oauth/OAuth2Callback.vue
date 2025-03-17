@@ -158,27 +158,27 @@ onMounted(async () => {
             </div>
 
             <!-- <div v-if="loading" class="spinner"></div> -->
-            <Icon icon="tabler:loader-2" v-if="loading" class="h-10 w-10 animate-spin" />
+            <Icon v-if="loading" icon="tabler:loader-2" class="h-10 w-10 animate-spin" />
 
             <template v-else-if="error">
                 <div v-if="errorCode == undefined || errorNonRecoverable">
                     <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
                         <div style="font-size: 1.5em">
                             <div>Whoops</div>
-                            <div style="font-size: 0.8em" v-if="errorCode">
+                            <div v-if="errorCode" style="font-size: 0.8em">
                                 Error code:
                                 <span style="font-family: 'Courier New', Courier, monospace">{{
                                     errorCode
                                 }}</span>
                             </div>
                         </div>
-                        <div style="font-size: 1.2em" v-if="errorCode">
+                        <div v-if="errorCode" style="font-size: 1.2em">
                             We encountered some non-recoverable issue during the authentication.
                             Please click on the button below and try again. If this error persists,
                             then please contact the webmaster and provide them with the error code
                             listed above.
                         </div>
-                        <div style="font-size: 1.2em" v-else>
+                        <div v-else style="font-size: 1.2em">
                             We encountered some non-recoverable issue during the authentication.
                             Please click on the button below and try again. If this error persists,
                             then please contact the webmaster and provide them with the events

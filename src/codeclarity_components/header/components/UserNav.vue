@@ -150,7 +150,7 @@ fetchNotifications();
                 </RouterLink>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem @click="logout" class="cursor-pointer">
+            <DropdownMenuItem class="cursor-pointer" @click="logout">
                 Log out
                 <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
             </DropdownMenuItem>

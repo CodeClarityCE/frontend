@@ -74,7 +74,7 @@ async function fetch(refresh: boolean = false) {
 }
 
 function generateChart(stats: AttackVectorDist[]) {
-    for (let entry of stats) {
+    for (const entry of stats) {
         if (entry.count === 0) continue;
         chartData.value[0].axes.push({
             axis: entry.attack_vector,
@@ -112,7 +112,7 @@ fetch();
             </div>
             <div v-else class="flex flex-row justify-center items-center">
                 <!-- Chart -->
-                <DoughnutChart :chartData="chartData" :chartOptions="options"></DoughnutChart>
+                <DoughnutChart :chart-data="chartData" :chart-options="options"></DoughnutChart>
             </div>
         </div>
     </div>

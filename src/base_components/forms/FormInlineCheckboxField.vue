@@ -5,7 +5,7 @@ const props = defineProps<{
     name: string;
 }>();
 
-const value = defineModel<Boolean>('value', { default: {} });
+const value = defineModel<boolean>('value', { default: {} });
 </script>
 <template>
     <div class="inline-row">
@@ -14,10 +14,10 @@ const value = defineModel<Boolean>('value', { default: {} });
                 <slot name="name"></slot>
             </label>
             <Field
+                v-model="value"
                 class="w-4 cursor-pointer text-primary"
                 type="checkbox"
                 :name="props.name"
-                v-model="value"
                 :value="true"
                 :unchecked-value="false"
             />

@@ -138,7 +138,7 @@ const orgMetaDataError: Ref<boolean> = ref(false);
 const orgMetaDataErrorCode: Ref<string | undefined> = ref();
 const orgMetaData: Ref<OrganizationMetaData | undefined> = ref();
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const integrationsCategory: FilterCategory = {
     name: 'Integration',
     type: FilterType.CHECKBOX,
@@ -274,7 +274,7 @@ fetchVcsIntegrations();
                 <Skeleton class="h-14 w-10/12" />
                 <Skeleton class="h-14 w-2/12" />
             </div>
-            <Skeleton class="h-[16.6%] w-full min-h-32" v-for="i in 6" :key="i" />
+            <Skeleton v-for="i in 6" :key="i" class="h-[16.6%] w-full min-h-32" />
         </div>
         <div
             class="flex flex-col gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg"
@@ -320,7 +320,7 @@ fetchVcsIntegrations();
             </template>
         </div>
     </div>
-    <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-9" v-else>
+    <div v-else class="grid gap-4 lg:grid-cols-2 xl:grid-cols-9">
         <Card class="xl:col-span-5 xl:col-start-3">
             <CardHeader>
                 <CardTitle>Vulnerability Exposure Overview</CardTitle>

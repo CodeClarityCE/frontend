@@ -55,6 +55,7 @@
     "zod": "3.24.2"
   },
   "devDependencies": {
+    "@eslint/js": "9.22.0",
     "@iconify/vue": "4.3.0",
     "@rushstack/eslint-patch": "1.11.0",
     "@tsconfig/node18": "18.2.4",
@@ -87,6 +88,7 @@
     "vite": "6.2.2",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vitest": "3.0.9",
+    "vue-eslint-parser": "10.1.1",
     "vue-tsc": "2.1.10"
   },
   "packageManager": "yarn@4.7.0"

@@ -16,7 +16,7 @@ defineProps<{
 const bill_of_materials = ref([]);
 const details = ref(false);
 let y_position = 0;
-let reference_click_element: Ref<string> = ref('');
+const reference_click_element: Ref<string> = ref('');
 const is_loading = ref(true);
 const only_details = ref(false);
 
@@ -48,8 +48,8 @@ watch(activeTab, async (newTab, oldTab) => {
     <div
         v-show="!details"
         v-if="!only_details"
-        class="w-full flex flex-col gap-14"
         id="main-container"
+        class="w-full flex flex-col gap-14"
     >
         <template
             v-if="(bill_of_materials == null || bill_of_materials.length == 0) && !is_loading"
@@ -140,6 +140,6 @@ watch(activeTab, async (newTab, oldTab) => {
             </div>
         </template>
 
-        <SbomContent :analysisID="analysis.id" :projectID="project.id"></SbomContent>
+        <SbomContent :analysis-i-d="analysis.id" :project-i-d="project.id"></SbomContent>
     </div>
 </template>

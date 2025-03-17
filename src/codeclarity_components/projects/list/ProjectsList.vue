@@ -106,7 +106,7 @@ fetchOrgMetaData();
                     <Skeleton class="h-14 w-10/12" />
                     <Skeleton class="h-14 w-2/12" />
                 </div>
-                <Skeleton class="h-[16.6%] w-full min-h-32" v-for="i in 6" :key="i" />
+                <Skeleton v-for="i in 6" :key="i" class="h-[16.6%] w-full min-h-32" />
             </div>
             <div
                 class="flex flex-col gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg"

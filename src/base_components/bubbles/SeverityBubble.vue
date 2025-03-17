@@ -28,35 +28,35 @@ defineProps({
 </script>
 <template>
     <div class="severity-bar severity-bar-slim">
-        <div class="severity-box" v-if="critical">
+        <div v-if="critical" class="severity-box">
             <div class="severity-class" :class="{ 'severity-class-critical': !deactivated }">C</div>
             <div class="severity-value" :class="{ 'severity-value-critical': !deactivated }">
                 <slot name="critical"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div class="severity-box" v-if="high">
+        <div v-if="high" class="severity-box">
             <div class="severity-class" :class="{ 'severity-class-high': !deactivated }">H</div>
             <div class="severity-value" :class="{ 'severity-value-high': !deactivated }">
                 <slot name="high"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div class="severity-box" v-if="medium">
+        <div v-if="medium" class="severity-box">
             <div class="severity-class" :class="{ 'severity-class-medium': !deactivated }">M</div>
             <div class="severity-value" :class="{ 'severity-value-medium': !deactivated }">
                 <slot name="medium"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div class="severity-box" v-if="low">
+        <div v-if="low" class="severity-box">
             <div class="severity-class" :class="{ 'severity-class-low': !deactivated }">L</div>
             <div class="severity-value" :class="{ 'severity-value-low': !deactivated }">
                 <slot name="low"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div class="severity-box" v-if="none">
+        <div v-if="none" class="severity-box">
             <div class="severity-class" :class="{ 'severity-class-none': !deactivated }">N</div>
             <div class="severity-value" :class="{ 'severity-value-none': !deactivated }">
                 <slot name="none"></slot>

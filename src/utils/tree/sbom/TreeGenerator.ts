@@ -574,7 +574,7 @@ class DependencyTreeGenerator {
             }
         }
 
-        const dependencies: Array<Dependency> = new Array();
+        const dependencies: Array<Dependency> = [];
 
         for (const dependency of processed) {
             if (!toPurge.has(dependency)) dependencies.push(graph.dependencies[dependency]);

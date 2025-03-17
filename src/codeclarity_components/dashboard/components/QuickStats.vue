@@ -90,10 +90,10 @@ fetch();
                 <!-- <CardDescription> Quickly identify problematic projects. </CardDescription> -->
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                <div class="text-4xl font-bold" v-if="data?.most_affected_cia">
+                <div v-if="data?.most_affected_cia" class="text-4xl font-bold">
                     {{ data!.most_affected_cia }}
                 </div>
-                <div class="text-4xl font-bold" v-else>N/A</div>
+                <div v-else class="text-4xl font-bold">N/A</div>
             </CardContent>
         </Card>
         <Card class="flex flex-col">
@@ -110,7 +110,7 @@ fetch();
                 <CardTitle> Most affected Owasp Top 10 </CardTitle>
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                <div class="flex flex-col items-center" v-if="data?.owasp_top_10">
+                <div v-if="data?.owasp_top_10" class="flex flex-col items-center">
                     <div class="text-2xl font-semibold">
                         {{ data!.owasp_top_10?.split(':')[0] }}
                     </div>
@@ -118,7 +118,7 @@ fetch();
                         {{ data!.owasp_top_10?.split(':')[1] }}
                     </div>
                 </div>
-                <div class="text-4xl font-semibold" v-else>N/A</div>
+                <div v-else class="text-4xl font-semibold">N/A</div>
             </CardContent>
         </Card>
     </div>

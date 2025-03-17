@@ -86,7 +86,7 @@ init();
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
                             <div>We failed to retrieve information on the organization</div>
-                            <div style="font-size: 0.7em" v-if="errorCode">
+                            <div v-if="errorCode" style="font-size: 0.7em">
                                 <div v-if="errorCode == APIErrors.EntityNotFound">
                                     This organization does not exist.
                                 </div>
@@ -99,7 +99,7 @@ init();
                                     information.
                                 </div>
                             </div>
-                            <div style="font-size: 0.7em" v-else>
+                            <div v-else style="font-size: 0.7em">
                                 <div>
                                     We encountered an error while retrieving the organization
                                     information.
@@ -120,7 +120,7 @@ init();
             </div>
         </div>
     </div>
-    <div class="flex flex-col w-full org-header-item-wrapper bg-gray-100 p-12" v-else-if="orgInfo">
+    <div v-else-if="orgInfo" class="flex flex-col w-full org-header-item-wrapper bg-gray-100 p-12">
         <div class="flex flex-row gap-3 items-center w-full" style="margin-bottom: 0.5em">
             <div class="flex flex-col w-full">
                 <div class="flex flex-row gap-1 justify-between w-full">

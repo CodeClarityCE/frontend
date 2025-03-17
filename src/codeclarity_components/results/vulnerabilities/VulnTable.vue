@@ -222,8 +222,8 @@ const options = ref<Options>({
     }
 });
 
-for (let category in options.value) {
-    for (let option in options.value[category]['data']) {
+for (const category in options.value) {
+    for (const option in options.value[category]['data']) {
         options.value[category]['data'][option]['value'] = false;
     }
 }
@@ -304,25 +304,25 @@ init();
 <template>
     <div class="flex flex-col gap-7">
         <div class="flex gap-4">
-            <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filterState="filterState"></UtilitiesFilters>
+            <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
+            <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
         </div>
-        <ActiveFilterBar v-model:filterState="filterState"></ActiveFilterBar>
+        <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
         <UtilitiesSort
-            :selectionPageLimit="selectionPageLimit"
-            :sortOptions="sortByOptions"
+            v-model:page-limit-selected="pageLimitSelected"
+            v-model:sort-key="sortKey"
+            v-model:sort-direction="sortDirection"
+            :selection-page-limit="selectionPageLimit"
+            :sort-options="sortByOptions"
             :showing="nmbEntriesShowing"
             :total="nmbEntriesTotal"
-            v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection"
         >
         </UtilitiesSort>
         <div class="overflow-x-auto">
             <SortableTable
                 :headers="headers"
-                :sortKey="sortKey"
-                :sortDirection="sortDirection"
+                :sort-key="sortKey"
+                :sort-direction="sortDirection"
                 :on-sort-change="updateSort"
             >
                 <template #data>
@@ -349,9 +349,9 @@ init();
                         </td>
                         <td>
                             <div
-                                class="flex flex-row gap-2"
                                 v-for="affected in report.Affected"
                                 :key="affected.AffectedDependency"
+                                class="flex flex-row gap-2"
                             >
                                 <BubbleComponent
                                     v-if="affected.PatchType == 'NONE'"
@@ -411,66 +411,66 @@ init();
                                         <Icon :icon="'simple-icons:owasp'"></Icon>
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-if="weakness.OWASPTop10Id == '1345'"
+                                        class="whitespace-nowrap"
                                     >
                                         A01: Broken Access Control
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1346'"
+                                        class="whitespace-nowrap"
                                     >
                                         A02: Cryptographic Failures
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1347'"
+                                        class="whitespace-nowrap"
                                     >
                                         A03: Injection
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1348'"
+                                        class="whitespace-nowrap"
                                     >
                                         A04: Insecure Design
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1349'"
+                                        class="whitespace-nowrap"
                                     >
                                         A05: Security Misconfiguration
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1352'"
+                                        class="whitespace-nowrap"
                                     >
                                         A06: Vulnerable and Outdated Components
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1353'"
+                                        class="whitespace-nowrap"
                                     >
                                         A07: Identification and Authentication Failures
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1354'"
+                                        class="whitespace-nowrap"
                                     >
                                         A08: Software and Data Integrity Failures
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1355'"
+                                        class="whitespace-nowrap"
                                     >
                                         A09: Security Logging and Monitoring Failures
                                     </div>
                                     <div
-                                        class="whitespace-nowrap"
                                         v-else-if="weakness.OWASPTop10Id == '1356'"
+                                        class="whitespace-nowrap"
                                     >
                                         A10: Server-Side Request Forgery
                                     </div>
-                                    <div class="whitespace-nowrap" v-else>Other</div>
+                                    <div v-else class="whitespace-nowrap">Other</div>
                                 </div>
                             </div>
                         </td>
@@ -562,9 +562,9 @@ init();
             <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
             <PaginationComponent
                 v-model:page="pageNumber"
-                v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal"
-                v-model:totalPages="totalPages"
+                v-model:nmb-entries-showing="pageLimitSelected"
+                v-model:nmb-entries-total="nmbEntriesTotal"
+                v-model:total-pages="totalPages"
             />
         </div>
     </div>

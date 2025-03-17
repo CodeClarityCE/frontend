@@ -10,7 +10,7 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-var margin = { top: 40, right: 40, bottom: 40, left: 40 },
+const margin = { top: 40, right: 40, bottom: 40, left: 40 },
     width = 600,
     height = 450;
 let options: RadarChartOptions = {
@@ -39,7 +39,7 @@ onMounted(() => {
     // The radius of the pieplot is half the width or half the height (smallest one). I subtract a bit of margin.
     const radius = Math.min(options.w, options.h) / 2 - options.margin.top;
 
-    let data = {};
+    const data = {};
 
     for (const axis of props.chartData[0]['axes']) {
         data[axis['axis']] = axis['value'];

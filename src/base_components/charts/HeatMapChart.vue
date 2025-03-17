@@ -48,8 +48,8 @@ onMounted(() => {
 
 function drawChart() {
     // Labels of row and columns
-    let groupsSet: Set<string> = new Set();
-    let varsSet: Set<string> = new Set();
+    const groupsSet: Set<string> = new Set();
+    const varsSet: Set<string> = new Set();
 
     const data = dataCopy.value.datasets[0].data;
     for (const element of data) {

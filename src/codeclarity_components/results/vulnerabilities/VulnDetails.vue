@@ -58,9 +58,9 @@ const active_view: Ref<string> = ref('patches');
 const readme: Ref<string> = ref('');
 const nodes_array: Ref<Array<TreeNode>> = ref([]);
 const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
-const chart_version: Ref<String> = ref('');
+const chart_version: Ref<string> = ref('');
 
-let colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
+const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 const initChartData = {
     labels: [],
     datasets: [
@@ -77,12 +77,12 @@ const cvss_chart_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<
 const impact_chart_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
 
 function getFavicon(url: string) {
-    let host = getHost(url);
+    const host = getHost(url);
     return `https://s2.googleusercontent.com/s2/favicons?sz=64&domain=${host}`;
 }
 
 function getHost(url: string) {
-    let host = new URL(url).hostname;
+    const host = new URL(url).hostname;
     return host;
 }
 
@@ -158,7 +158,7 @@ async function getFinding(projectID: string, analysisID: string) {
         }
 
         if (finding.value) {
-            let cvss_chart_config = getCVSSRadarChartData(finding.value);
+            const cvss_chart_config = getCVSSRadarChartData(finding.value);
             cvss_chart_data.value = cvss_chart_config as unknown as ChartData<'radar'>;
             if (finding.value.severities.cvss_31 != null) {
                 chart_version.value = 'cvss31';
@@ -169,7 +169,7 @@ async function getFinding(projectID: string, analysisID: string) {
             }
         }
         if (finding.value) {
-            let impact_chart_config = getImpactChartData(finding.value);
+            const impact_chart_config = getImpactChartData(finding.value);
             impact_chart_data.value = impact_chart_config as unknown as ChartData<'radar'>;
             if (finding.value.severities.cvss_31 != null) {
                 chart_version.value = 'cvss31';
@@ -202,7 +202,7 @@ getFinding(props.projectID, props.analysisID);
         <!--                               Navigation                              -->
         <!--------------------------------------------------------------------------->
         <div v-if="showBack" class="content-header cursor-pointer">
-            <Badge variant="secondary" @click="goBack()" title="Go back to preview page">
+            <Badge variant="secondary" title="Go back to preview page" @click="goBack()">
                 <Icon :icon="'material-symbols:keyboard-backspace'"></Icon>
                 Go back
             </Badge>
@@ -230,7 +230,7 @@ getFinding(props.projectID, props.analysisID);
                 :cvss_chart_data="cvss_chart_data"
                 :impact_chart_data="impact_chart_data"
                 :cvss_field_info_modal_ref="cvss_field_info_modal_ref"
-                @openModal="openModal"
+                @open-modal="openModal"
             />
 
             <!--------------------------------------------------------------------------->

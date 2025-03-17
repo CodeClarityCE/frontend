@@ -67,7 +67,7 @@ const formSchema = toTypedSchema(
         agreeTerms: z.boolean().default(false)
     })
 );
-let { handleSubmit } = useForm({
+const { handleSubmit } = useForm({
     validationSchema: formSchema
 });
 
@@ -186,10 +186,10 @@ async function submit(values: any) {
                 <div :class="cn('grid gap-6', $attrs.class ?? '')">
                     <!-- Content -->
                     <Form
+                        v-if="!loading"
                         class="flex flex-col gap-4"
                         :validation-schema="formSchema"
                         @submit="onSubmit"
-                        v-if="!loading"
                     >
                         <FormField v-slot="{ componentField }" name="email">
                             <FormItem v-auto-animate>
@@ -312,7 +312,7 @@ async function submit(values: any) {
                         </FormField>
                         <Button type="submit" class="w-full"> Register </Button>
                     </Form>
-                    <div class="flex flex-col items-center" v-else>
+                    <div v-else class="flex flex-col items-center">
                         Creating your account
                         <Icon icon="line-md:loading-twotone-loop" class="animate-spin"></Icon>
                     </div>

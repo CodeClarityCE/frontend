@@ -60,7 +60,7 @@ defineProps({
             </div>
         </div>
 
-        <div class="flex flex-col gap-5 mt-6" v-if="dependency.vulnerabilities.length > 0">
+        <div v-if="dependency.vulnerabilities.length > 0" class="flex flex-col gap-5 mt-6">
             <div class="mt-2 border-l-4 border-severityHigh pl-5">
                 <div class="text-severityHigh font-black">Vulnerable</div>
                 <div class="mt-2">

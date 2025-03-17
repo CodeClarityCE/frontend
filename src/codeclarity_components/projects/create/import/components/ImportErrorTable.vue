@@ -39,16 +39,16 @@ function changePage(_page: number) {
 <template>
     <Pagination
         v-model:page="page"
-        v-model:nmbEntriesShowing="entriesPerPage"
-        v-model:nmbEntriesTotal="totalEntries"
-        v-model:totalPages="totalPages"
+        v-model:nmb-entries-showing="entriesPerPage"
+        v-model:nmb-entries-total="totalEntries"
+        v-model:total-pages="totalPages"
     >
         <template #content>
             <SortableTable
                 class="w-full border-collapse"
                 :headers="headersImportFails"
-                :sortKey="''"
-                :sortDirection="sortDirection"
+                :sort-key="''"
+                :sort-direction="sortDirection"
             >
                 <template #data>
                     <!-- <tr v-for="(failedImport, index) in Object.values(reposFailedToImport)" :key="index" style="background-color: #ff00000d"

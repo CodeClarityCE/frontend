@@ -14,5 +14,5 @@ defineProps({
         {{ semver.Major }}.{{ semver.Minor }}.{{ semver.Patch
         }}<span v-if="semver.PreReleaseTag != ''">-</span>{{ semver.PreReleaseTag }}
     </Badge>
-    <Badge variant="destructive" v-else>unpatchable</Badge>
+    <Badge v-else variant="destructive">unpatchable</Badge>
 </template>

@@ -12,8 +12,8 @@ import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.r
 
 const project: Ref<Project> = ref(new Project());
 const analysis: Ref<Analysis> = ref(new Analysis());
-let projectID: Ref<string> = ref('');
-let analysisID: Ref<string> = ref('');
+const projectID: Ref<string> = ref('');
+const analysisID: Ref<string> = ref('');
 
 // Store setup
 const userStore = useUserStore();
@@ -37,7 +37,7 @@ const finding: any = ref({});
 // VIEW DATA
 const details = ref(false);
 let y_position = 0;
-let reference_click_element = ref('');
+const reference_click_element = ref('');
 
 function resetView() {
     finding.value = {};
@@ -45,7 +45,7 @@ function resetView() {
 }
 
 onMounted(() => {
-    let loader = document.getElementById('loader');
+    const loader = document.getElementById('loader');
     if (loader) {
         loader.style.display = 'none';
     }
@@ -149,8 +149,8 @@ init();
     <Details
         class="p-12"
         :show-back="!only_details"
-        :analysisID="analysisID"
-        :projectID="projectID"
+        :analysis-i-d="analysisID"
+        :project-i-d="projectID"
         @close="resetView()"
     ></Details>
 </template>

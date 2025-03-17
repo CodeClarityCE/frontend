@@ -57,7 +57,7 @@ const selected_analyzers: Ref<Array<number>> = ref([]);
 const selected_license_policy: Ref<Array<string>> = ref(['']);
 const selected_analyzers_list: Ref<Array<Analyzer>> = ref([]);
 
-const configuration: Ref<Object> = ref({});
+const configuration: Ref<object> = ref({});
 
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
@@ -173,7 +173,7 @@ async function createAnalysisStart() {
     <div class="h-full">
         <div class="w-full h-full flex flex-col gap-8 justify-center">
             <AnalysisCreateHeader />
-            <div class="flex flex-col items-center" v-if="!loading">
+            <div v-if="!loading" class="flex flex-col items-center">
                 <SelectAnalyzer v-model:selected_analyzers="selected_analyzers"></SelectAnalyzer>
                 <div v-if="error" class="mt-10 text-2xl w-3/4">
                     <Alert variant="destructive">
@@ -228,18 +228,18 @@ async function createAnalysisStart() {
                                                             <FormLabel>{{ config.name }}</FormLabel>
                                                             <FormControl>
                                                                 <SelectLicensePolicy
-                                                                    v-model:selected_license_policy="
-                                                                        selected_license_policy
-                                                                    "
                                                                     v-if="
                                                                         config.name ===
                                                                         'License Policy'
                                                                     "
+                                                                    v-model:selected_license_policy="
+                                                                        selected_license_policy
+                                                                    "
                                                                 />
                                                                 <Input
+                                                                    v-else
                                                                     :placeholder="config.name"
                                                                     v-bind="componentField"
-                                                                    v-else
                                                                 />
                                                             </FormControl>
                                                             <FormDescription>{{
@@ -265,7 +265,7 @@ async function createAnalysisStart() {
                     </div>
                 </div>
             </div>
-            <div class="text-4xl self-center flex flex-col gap-4 items-center mt-20" v-else>
+            <div v-else class="text-4xl self-center flex flex-col gap-4 items-center mt-20">
                 <span>Starting analysis</span>
                 <Icon icon="eos-icons:loading" class="animate-spin"></Icon>
             </div>

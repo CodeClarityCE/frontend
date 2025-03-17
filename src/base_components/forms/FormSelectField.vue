@@ -8,7 +8,7 @@ const props = defineProps<{
     disabled?: boolean;
 }>();
 
-const data = defineModel<Array<String>>('data', { default: {} });
+const data = defineModel<Array<string>>('data', { default: {} });
 </script>
 <template>
     <div>
@@ -17,10 +17,10 @@ const data = defineModel<Array<String>>('data', { default: {} });
         </label>
         <Field
             v-slot="{ value }"
+            v-model="data"
             :name="props.name"
             :class="props.disabled ? 'cursor-not-allowed' : ''"
             class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5"
-            v-model="data"
             as="select"
             multiple
         >

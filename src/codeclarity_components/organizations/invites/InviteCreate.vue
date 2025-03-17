@@ -136,7 +136,7 @@ const form = useForm({
                         </span>
                     </AlertDescription>
                 </Alert>
-                <Alert variant="destructive" v-if="errorCodeSendInvite">
+                <Alert v-if="errorCodeSendInvite" variant="destructive">
                     <Icon icon="material-symbols:error-outline" />
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>

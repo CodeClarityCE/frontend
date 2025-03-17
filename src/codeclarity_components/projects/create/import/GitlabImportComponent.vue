@@ -32,7 +32,7 @@ function getRepos(options: GetReposOptions): Promise<PaginatedResponse<Repositor
 }
 </script>
 <template>
-    <BaseImportComponent :getRepos="getRepos" :integration="IntegrationProvider.GITLAB">
+    <BaseImportComponent :get-repos="getRepos" :integration="IntegrationProvider.GITLAB">
         <template #icon>
             <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
         </template>

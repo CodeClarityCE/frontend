@@ -12,7 +12,7 @@ const isOpen = ref(false);
 defineProps({
     analyses: {
         type: Array<Analysis>,
-        default: new Array()
+        default: []
     },
     projectID: {
         type: String,
@@ -21,12 +21,12 @@ defineProps({
 });
 </script>
 <template>
-    <Collapsible class="flex flex-col gap-4 items-center" v-model:open="isOpen">
+    <Collapsible v-model:open="isOpen" class="flex flex-col gap-4 items-center">
         <AnalysisItem
             v-for="analysis in analyses.slice(0, 1)"
             :key="analysis.id"
             :analysis="analysis"
-            :projectID="projectID"
+            :project-i-d="projectID"
         ></AnalysisItem>
         <CollapsibleTrigger v-if="analyses.length > 1" class="flex gap-2 items-center"
             >Show older analyses <Icon icon="tabler:chevron-down"></Icon>
@@ -36,7 +36,7 @@ defineProps({
                 v-for="analysis in analyses.slice(1, analyses.length)"
                 :key="analysis.id"
                 :analysis="analysis"
-                :projectID="projectID"
+                :project-i-d="projectID"
             ></AnalysisItem>
         </CollapsibleContent>
     </Collapsible>

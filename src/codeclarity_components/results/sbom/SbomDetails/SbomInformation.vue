@@ -74,14 +74,14 @@ defineProps({
             >
                 Latest release date: {{ moment(dependency.lastest_release_date).format('LL') }}
             </div>
-            <div class="pt-4" v-if="dependency.engines">
+            <div v-if="dependency.engines" class="pt-4">
                 Engines supported:
                 <div v-for="(value, key) in dependency.engines" :key="key">
                     <div class="flex items-center gap-2 pl-4">
                         •
                         <Icon
-                            class="min-w-4"
                             v-if="dependency.engines.hasOwnProperty('node')"
+                            class="min-w-4"
                             :icon="'akar-icons:node-fill'"
                         ></Icon>
                         {{ value }}
@@ -96,13 +96,13 @@ defineProps({
                     <Tooltip>
                         <TooltipTrigger>
                             <Badge
-                                class="rounded-full"
                                 v-if="
                                     moment(dependency.lastest_release_date).diff(
                                         moment(dependency.release_date),
                                         'days'
                                     ) > 182
                                 "
+                                class="rounded-full"
                             >
                                 Outdated
                             </Badge>
@@ -121,7 +121,7 @@ defineProps({
                 </TooltipProvider>
             </div>
 
-            <div class="flex items-center gap-1" v-if="dependency.license != ''">
+            <div v-if="dependency.license != ''" class="flex items-center gap-1">
                 <div>Licenses:</div>
                 <Badge variant="secondary" class="rounded-full">
                     {{ dependency.license }}

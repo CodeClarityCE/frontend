@@ -12,7 +12,7 @@ import Badge from '@/shadcn/ui/badge/Badge.vue';
 const user = useUserStore();
 const auth = useAuthStore();
 
-const selected_license_policy = defineModel<Array<String>>('selected_license_policy', {
+const selected_license_policy = defineModel<Array<string>>('selected_license_policy', {
     default: ['']
 });
 
@@ -87,8 +87,8 @@ fetchLicensePolicies();
                                     {{ selected_license_policy_object.name }}
                                     <Badge class="ml-2">Selected</Badge>
                                     <Badge
-                                        class="ml-2"
                                         v-if="selected_license_policy_object.default == true"
+                                        class="ml-2"
                                         >Default
                                     </Badge>
                                 </div>
@@ -113,14 +113,14 @@ fetchLicensePolicies();
                         "
                     >
                         <div
-                            class="license-policy cursor-pointer"
                             v-if="license_policy.id != selected_license_policy_object?.id"
+                            class="license-policy cursor-pointer"
                         >
                             <div class="license-policy-header">
                                 <div>
                                     <div>
                                         {{ license_policy.name }}
-                                        <Badge class="ml-2" v-if="license_policy.default == true"
+                                        <Badge v-if="license_policy.default == true" class="ml-2"
                                             >Default</Badge
                                         >
                                     </div>
@@ -138,9 +138,9 @@ fetchLicensePolicies();
                     <div class="text-grayTitle font-normal flex justify-between mt-10">
                         <PaginationComponent
                             v-model:page="currentPage"
-                            v-model:nmbEntriesShowing="defaultEntriesPerPage"
-                            v-model:nmbEntriesTotal="license_policies_list.length"
-                            v-model:totalPages="totalPages"
+                            v-model:nmb-entries-showing="defaultEntriesPerPage"
+                            v-model:nmb-entries-total="license_policies_list.length"
+                            v-model:total-pages="totalPages"
                         />
                     </div>
                 </div>

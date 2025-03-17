@@ -219,8 +219,8 @@ function nonRecoverableErrorRedirect() {
                 >
                     <div class="flex flex-row gap-4">
                         <FormTextField
-                            class="w-full"
                             v-model="formFirstName"
+                            class="w-full"
                             :placeholder="'Enter your first name'"
                             :type="'text'"
                             :name="'social_form[firstName]'"
@@ -229,8 +229,8 @@ function nonRecoverableErrorRedirect() {
                         </FormTextField>
 
                         <FormTextField
-                            class="w-full"
                             v-model="formLastName"
+                            class="w-full"
                             :placeholder="'Enter your last name'"
                             :type="'text'"
                             :name="'social_form[lastName]'"

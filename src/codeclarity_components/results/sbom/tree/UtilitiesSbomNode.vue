@@ -45,8 +45,8 @@ withDefaults(defineProps<Props>(), {
                 {{ rootName }}
             </div>
             <BubbleComponent
-                title="dependencies appearing multiple times in the tree are pruned for easier visualization"
                 v-if="node.pruned"
+                title="dependencies appearing multiple times in the tree are pruned for easier visualization"
                 :blue="true"
                 :slim="true"
             >

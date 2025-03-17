@@ -14,7 +14,7 @@ defineProps<{
 const details = ref(false);
 
 onMounted(() => {
-    let loader = document.getElementById('loader');
+    const loader = document.getElementById('loader');
     if (loader) {
         loader.style.display = 'none';
     }
@@ -23,6 +23,6 @@ onMounted(() => {
 
 <template>
     <div v-show="!details" class="flex flex-col gap-14">
-        <PatchingContent :analysisID="analysis.id" :projectID="project.id"></PatchingContent>
+        <PatchingContent :analysis-i-d="analysis.id" :project-i-d="project.id"></PatchingContent>
     </div>
 </template>

@@ -179,28 +179,28 @@ init();
                 <div v-if="loading">
                     <div class="flex flex-col gap-2 justify-center" style="padding: 5px">
                         <BoxLoader
-                            :dimensions="{ width: '100%', height: '50px' }"
-                            :key="i"
                             v-for="i in 10"
+                            :key="i"
+                            :dimensions="{ width: '100%', height: '50px' }"
                         />
                     </div>
                 </div>
                 <div v-else>
-                    <div class="flex flex-col gap-5 org-members-list-wrapper" v-if="!error">
+                    <div v-if="!error" class="flex flex-col gap-5 org-members-list-wrapper">
                         <AuditLogsTable
-                            :placeholder="placeholder"
-                            :headers="headers"
-                            :sortKey="sortKey"
-                            :sortDirection="sortDirection"
-                            :updateSort="updateSort"
-                            :orgAuditLogs="orgAuditLogs"
-                            :orgInfo="orgInfo"
-                            :onRefetch="onRefetch"
                             v-model:search="search"
-                            v-model:totalEntries="totalEntries"
-                            v-model:currentPage="currentPage"
-                            v-model:entriesPerPage="entriesPerPage"
-                            v-model:totalPages="totalPages"
+                            v-model:total-entries="totalEntries"
+                            :placeholder="placeholder"
+                            v-model:current-page="currentPage"
+                            :headers="headers"
+                            v-model:entries-per-page="entriesPerPage"
+                            :sort-key="sortKey"
+                            v-model:total-pages="totalPages"
+                            :sort-direction="sortDirection"
+                            :update-sort="updateSort"
+                            :org-audit-logs="orgAuditLogs"
+                            :org-info="orgInfo"
+                            :on-refetch="onRefetch"
                         />
                     </div>
                     <div v-else>

@@ -39,7 +39,7 @@ defineProps({
                     <Icon :icon="'akar-icons:yarn-fill'"></Icon> Yarn
                 </a>
             </Badge>
-            <Badge variant="secondary" class="rounded-full" v-if="dependency.source">
+            <Badge v-if="dependency.source" variant="secondary" class="rounded-full">
                 <a
                     v-if="dependency.source.Type == 'git'"
                     :href="`${dependency.source.Url.replace('git+', '')}`"

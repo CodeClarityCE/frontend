@@ -43,8 +43,8 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
         >
             <option
                 v-for="(sort_option, index) in sortOptions.filter((option) => option.key != null)"
-                :value="sort_option.key"
                 :key="index"
+                :value="sort_option.key"
                 :selected="sortKey == sort_option.key"
                 @click="updateSort(sort_option.key!, props.sortDirection)"
             >
@@ -53,15 +53,15 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
         </select>
         <div style="cursor: pointer">
             <Icon
+                v-if="sortDirection == SortDirection.DESC"
                 icon="iconoir:sort-down"
                 style="font-size: 2em"
-                v-if="sortDirection == SortDirection.DESC"
                 @click="updateSort(sortKey, SortDirection.ASC)"
             />
             <Icon
+                v-else
                 icon="iconoir:sort-up"
                 style="font-size: 2em"
-                v-else
                 @click="updateSort(sortKey, SortDirection.DESC)"
             />
         </div>

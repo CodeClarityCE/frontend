@@ -79,14 +79,14 @@ fetch();
             </div>
         </div>
 
-        <SearchBar v-model:searchKey="search" :placeholder="placeholder" />
+        <SearchBar v-model:search-key="search" :placeholder="placeholder" />
 
         <div v-if="!loading">
             <Pagination
                 v-model:page="currentPage"
-                v-model:nmbEntriesShowing="entriesPerPage"
-                v-model:nmbEntriesTotal="totalEntries"
-                v-model:totalPages="totalPages"
+                v-model:nmb-entries-showing="entriesPerPage"
+                v-model:nmb-entries-total="totalEntries"
+                v-model:total-pages="totalPages"
             >
                 <template #content>
                     <div class="flex flex-row flex-wrap gap-4 text-grayTitle">

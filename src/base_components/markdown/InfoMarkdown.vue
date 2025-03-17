@@ -6,6 +6,13 @@ defineProps<{
 }>();
 </script>
 
+<template>
+    <vue-markdown
+        class="short_listing_description"
+        :source="markdown"
+        :options="{ linkify: false }"
+    />
+</template>
 <style scoped lang="scss">
 .short_listing_description :deep(h1),
 .short_listing_description :deep(h2),
@@ -25,10 +32,3 @@ defineProps<{
     overflow-x: scroll;
 }
 </style>
-<template>
-    <vue-markdown
-        class="short_listing_description"
-        :source="markdown"
-        :options="{ linkify: false }"
-    />
-</template>

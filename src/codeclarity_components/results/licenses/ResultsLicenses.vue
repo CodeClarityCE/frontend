@@ -13,7 +13,7 @@ defineProps<{
     project: Project;
 }>();
 
-let no_deps = false;
+const no_deps = false;
 const licenses_ref = ref(null);
 </script>
 
@@ -100,8 +100,8 @@ const licenses_ref = ref(null);
                 <CardContent>
                     <Licenses
                         ref="licenses_ref"
-                        :analysisID="analysis.id"
-                        :projectID="project.id"
+                        :analysis-i-d="analysis.id"
+                        :project-i-d="project.id"
                     />
                 </CardContent>
             </Card>

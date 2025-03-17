@@ -15,7 +15,7 @@ defineProps<{
     project: Project;
 }>();
 
-let no_deps = false;
+const no_deps = false;
 
 const active_tab = ref('List');
 const list_ref: any = ref(null);
@@ -24,10 +24,10 @@ const table_ref: any = ref(null);
 // VIEW DATA
 const details = ref(false);
 let y_position = 0;
-let reference_click_element = ref('');
+const reference_click_element = ref('');
 
 onMounted(() => {
-    let loader = document.getElementById('loader');
+    const loader = document.getElementById('loader');
     if (loader) {
         loader.style.display = 'none';
     }
@@ -55,7 +55,7 @@ watch(active_tab, async (newTab, oldTab) => {
 </script>
 
 <template>
-    <div v-show="!details" class="w-full flex flex-col gap-14" id="main-container">
+    <div v-show="!details" id="main-container" class="w-full flex flex-col gap-14">
         <template v-if="no_deps">
             <div style="margin-bottom: 100px">
                 <Alert>
@@ -135,7 +135,7 @@ watch(active_tab, async (newTab, oldTab) => {
             </div>
         </template>
 
-        <VulnContent :analysisID="analysis.id" :projectID="project.id"></VulnContent>
+        <VulnContent :analysis-i-d="analysis.id" :project-i-d="project.id"></VulnContent>
         <Card>
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             </CardHeader>
@@ -151,8 +151,8 @@ watch(active_tab, async (newTab, oldTab) => {
                             :highlight-elem="reference_click_element"
                             :page-limit="20"
                             :force-open-new-tab="false"
-                            :analysisID="analysis.id"
-                            :projectID="project.id"
+                            :analysis-i-d="analysis.id"
+                            :project-i-d="project.id"
                         />
                     </TabsContent>
                     <TabsContent value="table" class="space-y-4">
@@ -160,8 +160,8 @@ watch(active_tab, async (newTab, oldTab) => {
                             ref="table_ref"
                             :highlight-elem="reference_click_element"
                             :force-open-new-tab="false"
-                            :analysisID="analysis.id"
-                            :projectID="project.id"
+                            :analysis-i-d="analysis.id"
+                            :project-i-d="project.id"
                         ></Table>
                     </TabsContent>
                 </Tabs>

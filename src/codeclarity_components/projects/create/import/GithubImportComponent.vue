@@ -32,7 +32,7 @@ function getRepos(options: GetReposOptions): Promise<PaginatedResponse<Repositor
 }
 </script>
 <template>
-    <BaseImportComponent :getRepos="getRepos" :integration="IntegrationProvider.GITHUB">
+    <BaseImportComponent :get-repos="getRepos" :integration="IntegrationProvider.GITHUB">
         <template #icon>
             <Icon icon="devicon:github" class="w-8 h-8"></Icon>
         </template>

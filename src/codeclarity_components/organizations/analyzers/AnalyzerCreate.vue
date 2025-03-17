@@ -244,8 +244,8 @@ onMounted(() => {
                 </Alert>
                 <div class="flex justify-center">
                     <canvas
-                        class="rounded-lg"
                         id="mycanvas"
+                        class="rounded-lg"
                         :width="getWidth()"
                         :height="getWidth() / 2"
                     ></canvas>

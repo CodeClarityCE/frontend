@@ -21,18 +21,18 @@ const state = useStateStore();
             Projects
         </RouterLink>
         <RouterLink
+            v-if="state.page == 'results'"
             :to="{ name: 'results', params: {}, query: {} }"
             class="text-sm font-medium transition-colors hover:text-primary"
             :class="{ 'text-muted-foreground': state.page != 'results' }"
-            v-if="state.page == 'results'"
         >
             Results
         </RouterLink>
         <RouterLink
+            v-if="state.page == 'settings'"
             :to="{ name: 'settings', params: {}, query: {} }"
             class="text-sm font-medium transition-colors hover:text-primary"
             :class="{ 'text-muted-foreground': state.page != 'settings' }"
-            v-if="state.page == 'settings'"
         >
             Settings
         </RouterLink>

@@ -26,13 +26,13 @@ const totalPages = defineModel<number>('totalPages', { required: true });
 </script>
 
 <template>
-    <SearchBar v-model:searchKey="search" :placeholder="placeholder" />
+    <SearchBar v-model:search-key="search" :placeholder="placeholder" />
 
     <Pagination
         v-model:page="currentPage"
-        v-model:nmbEntriesShowing="entriesPerPage"
-        v-model:nmbEntriesTotal="totalEntries"
-        v-model:totalPages="totalPages"
+        v-model:nmb-entries-showing="entriesPerPage"
+        v-model:nmb-entries-total="totalEntries"
+        v-model:total-pages="totalPages"
     >
         <template #content>
             <div
@@ -59,10 +59,10 @@ const totalPages = defineModel<number>('totalPages', { required: true });
                 <template #data>
                     <OrgAuditLogItem
                         v-for="log in orgAuditLogs"
+                        :key="log.id"
                         :log="log"
                         :org-info="orgInfo"
                         @refetch="onRefetch()"
-                        :key="log.id"
                     >
                     </OrgAuditLogItem>
                 </template>

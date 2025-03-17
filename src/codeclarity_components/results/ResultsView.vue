@@ -91,8 +91,8 @@ const props = defineProps<{
 
 const project: Ref<Project> = ref(new Project());
 const analysis: Ref<Analysis> = ref(new Analysis());
-let projectID: Ref<string> = ref('');
-let analysisID: Ref<string> = ref('');
+const projectID: Ref<string> = ref('');
+const analysisID: Ref<string> = ref('');
 
 // Store setup
 const userStore = useUserStore();

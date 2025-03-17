@@ -107,10 +107,10 @@ const active_view = ref('patches');
                     </TabsList>
                     <TabsContent value="patches">
                         <div v-for="(unpatchable, index) in patch.Unpatchable" :key="index">
-                            <PatchInformation :patch="unpatchable" :patchInfo="patch" />
+                            <PatchInformation :patch="unpatchable" :patch-info="patch" />
                         </div>
                         <div v-for="(patchable, index) in patch.Patchable" :key="index">
-                            <PatchInformation :patch="patchable" :patchInfo="patch" />
+                            <PatchInformation :patch="patchable" :patch-info="patch" />
                         </div>
                     </TabsContent>
                     <TabsContent value="tree">

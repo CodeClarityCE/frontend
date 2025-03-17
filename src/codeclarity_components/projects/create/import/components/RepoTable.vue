@@ -216,7 +216,7 @@ defineExpose({
     <!--------------------------------------------------------------------------->
     <div v-if="loading">
         <div class="flex flex-col gap-4">
-            <BoxLoader :dimensions="{ width: '100%', height: '50px' }" v-for="i in 4" :key="i" />
+            <BoxLoader v-for="i in 4" :key="i" :dimensions="{ width: '100%', height: '50px' }" />
         </div>
     </div>
 
@@ -230,7 +230,7 @@ defineExpose({
                 <div class="flex flex-col gap-5">
                     <div class="flex flex-col gap-2">
                         <div>Failed to fetch repositories from the integration</div>
-                        <div class="text-sm" v-if="errorCode">
+                        <div v-if="errorCode" class="text-sm">
                             <div
                                 v-if="
                                     errorCode == APIErrors.IntegrationInvalidToken ||
@@ -246,7 +246,7 @@ defineExpose({
                             </div>
                             <div v-else>We encountered an error while processing the request.</div>
                         </div>
-                        <div class="text-sm" v-else>
+                        <div v-else class="text-sm">
                             <div>We encountered an error while processing the request.</div>
                         </div>
                     </div>
@@ -266,15 +266,15 @@ defineExpose({
 
         <div class="flex flex-col gap-2 w-full">
             <div class="flex flex-row gap-2 items-center w-full">
-                <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
+                <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
 
                 <FilterBox
-                    :filterState="filterState"
-                    @onFilterStateChange="setActiveFilters($event)"
+                    :filter-state="filterState"
+                    @on-filter-state-change="setActiveFilters($event)"
                 />
             </div>
 
-            <ActiveFilterBar :filterState="filterState"> </ActiveFilterBar>
+            <ActiveFilterBar :filter-state="filterState"> </ActiveFilterBar>
         </div>
 
         <!--------------------------------------------------------------------------->
@@ -282,9 +282,9 @@ defineExpose({
         <!--------------------------------------------------------------------------->
         <Pagination
             v-model:page="page"
-            v-model:nmbEntriesShowing="entriesPerPage"
-            v-model:nmbEntriesTotal="totalEntries"
-            v-model:totalPages="totalPages"
+            v-model:nmb-entries-showing="entriesPerPage"
+            v-model:nmb-entries-total="totalEntries"
+            v-model:total-pages="totalPages"
         >
             <template #content>
                 <div
@@ -306,8 +306,8 @@ defineExpose({
                     :headers="headers"
                     :sort-key="sortKey"
                     :sort-direction="sortDirection"
-                    @on-sort-change="updateSort"
                     class="w-full"
+                    @on-sort-change="updateSort"
                 >
                     <template #data>
                         <tr v-for="repo in repos" :key="repo.id">
@@ -333,14 +333,14 @@ defineExpose({
                             <td>
                                 <div>
                                     <div
-                                        class="general-bubble general-bubble-slim general-bubble-teal"
                                         v-if="repo.imported_already"
+                                        class="general-bubble general-bubble-slim general-bubble-teal"
                                     >
                                         Imported
                                     </div>
                                     <div
-                                        class="general-bubble general-bubble-slim general-bubble-darker"
                                         v-if="!repo.imported_already"
+                                        class="general-bubble general-bubble-slim general-bubble-darker"
                                     >
                                         Not imported
                                     </div>

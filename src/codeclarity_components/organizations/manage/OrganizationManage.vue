@@ -110,14 +110,14 @@ function setOrgInfo(_orgInfo: Organization) {
                     <h2 class="text-2xl mb-2">Actions</h2>
                     <div class="flex flex-row gap-4 flex-wrap font-normal justify-center">
                         <RouterLink
+                            v-if="
+                                orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
+                            "
                             :to="{
                                 name: 'orgs',
                                 params: { action: 'manage', orgId: orgId, page: 'integrations' }
                             }"
                             class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                            v-if="
-                                orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
-                            "
                             title="Manage organization integrations."
                         >
                             Manage organization integrations
@@ -134,31 +134,31 @@ function setOrgInfo(_orgInfo: Organization) {
                         </RouterLink>
                         <template v-if="!orgInfo.personal">
                             <RouterLink
+                                v-if="
+                                    orgInfo.role == MemberRole.OWNER ||
+                                    orgInfo.role == MemberRole.ADMIN ||
+                                    orgInfo.role == MemberRole.MODERATOR
+                                "
                                 :to="{
                                     name: 'orgs',
                                     params: { action: 'manage', orgId: orgId, page: 'members' }
                                 }"
                                 class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                                v-if="
-                                    orgInfo.role == MemberRole.OWNER ||
-                                    orgInfo.role == MemberRole.ADMIN ||
-                                    orgInfo.role == MemberRole.MODERATOR
-                                "
                                 title="Manage organization member."
                             >
                                 Manage organization members
                             </RouterLink>
                             <RouterLink
-                                :to="{
-                                    name: 'orgs',
-                                    params: { action: 'manage', orgId: orgId, page: 'invites' }
-                                }"
-                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
                                 v-if="
                                     orgInfo.role == MemberRole.OWNER ||
                                     orgInfo.role == MemberRole.ADMIN ||
                                     orgInfo.role == MemberRole.MODERATOR
                                 "
+                                :to="{
+                                    name: 'orgs',
+                                    params: { action: 'manage', orgId: orgId, page: 'invites' }
+                                }"
+                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
                                 title="Manage organization invites."
                             >
                                 Manage organization invites
@@ -187,8 +187,8 @@ function setOrgInfo(_orgInfo: Organization) {
                                 Leave the organization
                             </div>
                             <div
-                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal border-redBorder bg-redLight text-destructive"
                                 v-if="orgInfo.role == MemberRole.OWNER"
+                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal border-redBorder bg-redLight text-destructive"
                                 title="Delete the organization."
                                 @click="
                                     orgActionId = orgId;
@@ -200,14 +200,14 @@ function setOrgInfo(_orgInfo: Organization) {
                             </div>
                         </template>
                         <RouterLink
+                            v-if="
+                                orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
+                            "
                             :to="{
                                 name: 'orgs',
                                 params: { action: 'manage', orgId: orgId, page: 'analyzers' }
                             }"
                             class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                            v-if="
-                                orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
-                            "
                             title="Manage analyzers."
                         >
                             Manage analyzers

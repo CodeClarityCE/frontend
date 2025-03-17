@@ -12,11 +12,6 @@ withDefaults(defineProps<Props>(), {
 });
 </script>
 
-<style scoped lang="scss">
-@use '@/assets/colors.scss';
-@use '@/assets/common/dependency-tree.scss';
-</style>
-
 <template>
     <div v-if="node">
         <div class="h-14 flex">
@@ -66,3 +61,8 @@ withDefaults(defineProps<Props>(), {
         </div>
     </div>
 </template>
+
+<style scoped lang="scss">
+@use '@/assets/colors.scss';
+@use '@/assets/common/dependency-tree.scss';
+</style>

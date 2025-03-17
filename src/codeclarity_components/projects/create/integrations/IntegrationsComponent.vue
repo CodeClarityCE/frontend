@@ -26,13 +26,13 @@ const emit = defineEmits<{
             <div class="grid grid-cols-4 gap-2">
                 <template v-for="vcs in vcsIntegrations">
                     <div
-                        class="integration-box-wrapper-item a-no-style"
                         v-if="
                             vcs.integration_provider == IntegrationProvider.GITLAB &&
                             vcs.invalid == false
                         "
-                        @click="emit('onSelectedVCS', vcs)"
                         :key="vcs.id"
+                        class="integration-box-wrapper-item a-no-style"
+                        @click="emit('onSelectedVCS', vcs)"
                     >
                         <Card class="cursor-pointer">
                             <CardHeader>
@@ -45,13 +45,13 @@ const emit = defineEmits<{
                         </Card>
                     </div>
                     <div
-                        class="integration-box-wrapper-item a-no-style"
                         v-if="
                             vcs.integration_provider == IntegrationProvider.GITHUB &&
                             vcs.invalid == false
                         "
-                        @click="emit('onSelectedVCS', vcs)"
                         :key="vcs.id"
+                        class="integration-box-wrapper-item a-no-style"
+                        @click="emit('onSelectedVCS', vcs)"
                     >
                         <Card class="cursor-pointer">
                             <CardHeader>

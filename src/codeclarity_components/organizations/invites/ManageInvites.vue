@@ -164,21 +164,21 @@ onMounted(() => {
                 <div v-if="loading">
                     <div class="flex flex-col gap-2 justify-between" style="padding: 5px">
                         <BoxLoader
-                            :dimensions="{ width: '100%', height: '50px' }"
                             v-for="i in 10"
                             :key="i"
+                            :dimensions="{ width: '100%', height: '50px' }"
                         />
                     </div>
                 </div>
                 <div v-else>
-                    <div class="flex flex-col gap-5 org-members-list-wrapper" v-if="!error">
-                        <SearchBar v-model:searchKey="search" :placeholder="placeholder" />
+                    <div v-if="!error" class="flex flex-col gap-5 org-members-list-wrapper">
+                        <SearchBar v-model:search-key="search" :placeholder="placeholder" />
 
                         <Pagination
                             v-model:page="currentPage"
-                            v-model:nmbEntriesShowing="entriesPerPage"
-                            v-model:nmbEntriesTotal="totalEntries"
-                            v-model:totalPages="totalPages"
+                            v-model:nmb-entries-showing="entriesPerPage"
+                            v-model:nmb-entries-total="totalEntries"
+                            v-model:total-pages="totalPages"
                         >
                             <template #content>
                                 <div

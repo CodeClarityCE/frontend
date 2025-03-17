@@ -87,7 +87,7 @@ fetch();
 </script>
 <template>
     <div class="w-full">
-        <div class="flex flex-col gap-8" v-if="loading || noData" style="position: relative">
+        <div v-if="loading || noData" class="flex flex-col gap-8" style="position: relative">
             <div class="flex flex-row gap-4 justify-center items-center">
                 <Skeleton v-for="index in 3" :key="index" class="h-[50px] w-[150px] rounded-xl" />
             </div>
@@ -124,9 +124,9 @@ fetch();
             <div v-else class="dashboard-current-vulns">
                 <div class="flex flex-row gap-4 justify-evenly">
                     <div
-                        class="flex flex-col items-center"
                         v-for="(value, key, index) in severityCountsShort"
                         :key="index"
+                        class="flex flex-col items-center"
                     >
                         <div class="font-black text-5xl">
                             {{ value }}
@@ -138,36 +138,36 @@ fetch();
                 </div>
 
                 <Collapsible class="flex flex-col items-center">
-                    <div class="w-1/2" v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id">
+                    <div v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id" class="w-1/2">
                         <div v-if="index < 5" class="font-bold flex justify-between pb-2">
                             <div style="font-size: 0.8em">
                                 <div
-                                    class="severity-indicator critical"
                                     v-if="vuln.severity_class == 'CRITICAL'"
+                                    class="severity-indicator critical"
                                 >
                                     CRITICAL
                                 </div>
                                 <div
-                                    class="severity-indicator high"
                                     v-else-if="vuln.severity_class == 'HIGH'"
+                                    class="severity-indicator high"
                                 >
                                     HIGH
                                 </div>
                                 <div
-                                    class="severity-indicator medium"
                                     v-else-if="vuln.severity_class == 'MEDIUM'"
+                                    class="severity-indicator medium"
                                 >
                                     MEDIUM
                                 </div>
                                 <div
-                                    class="severity-indicator low"
                                     v-else-if="vuln.severity_class == 'LOW'"
+                                    class="severity-indicator low"
                                 >
                                     LOW
                                 </div>
                                 <div
-                                    class="severity-indicator none"
                                     v-else-if="vuln.severity_class == 'NONE'"
+                                    class="severity-indicator none"
                                 >
                                     NONE
                                 </div>
@@ -183,32 +183,32 @@ fetch();
                             <div v-if="index >= 5" class="font-bold flex justify-between pb-2">
                                 <div style="font-size: 0.8em">
                                     <div
-                                        class="severity-indicator critical"
                                         v-if="vuln.severity_class == 'CRITICAL'"
+                                        class="severity-indicator critical"
                                     >
                                         CRITICAL
                                     </div>
                                     <div
-                                        class="severity-indicator high"
                                         v-else-if="vuln.severity_class == 'HIGH'"
+                                        class="severity-indicator high"
                                     >
                                         HIGH
                                     </div>
                                     <div
-                                        class="severity-indicator medium"
                                         v-else-if="vuln.severity_class == 'MEDIUM'"
+                                        class="severity-indicator medium"
                                     >
                                         MEDIUM
                                     </div>
                                     <div
-                                        class="severity-indicator low"
                                         v-else-if="vuln.severity_class == 'LOW'"
+                                        class="severity-indicator low"
                                     >
                                         LOW
                                     </div>
                                     <div
-                                        class="severity-indicator none"
                                         v-else-if="vuln.severity_class == 'NONE'"
+                                        class="severity-indicator none"
                                     >
                                         NONE
                                     </div>

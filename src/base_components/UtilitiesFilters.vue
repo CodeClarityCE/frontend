@@ -45,8 +45,8 @@ function optionClick(filter: FilterCategory, category_name: string, option_name:
 }
 
 function isActive() {
-    for (let category in filterState.value.filterConfig) {
-        for (let option in filterState.value.filterConfig[category].data) {
+    for (const category in filterState.value.filterConfig) {
+        for (const option in filterState.value.filterConfig[category].data) {
             if (filterState.value.filterConfig[category].data[option].value == true) {
                 return true;
             }
@@ -135,9 +135,9 @@ export function createNewFilterState(filterConfig: FilterConfig): FilterState {
 function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
     const activeFilters: ActiveFilter[] = [];
     // Set the active filters state
-    for (let category in filterConfig) {
-        let categoryObj = filterConfig[category];
-        for (let option in categoryObj.data) {
+    for (const category in filterConfig) {
+        const categoryObj = filterConfig[category];
+        for (const option in categoryObj.data) {
             if (categoryObj.data[option].value == true) {
                 activeFilters.push({
                     label: `${categoryObj.name}: ${categoryObj.data[option].title}`,

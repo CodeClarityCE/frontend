@@ -48,7 +48,7 @@ const render = ref(false);
 const stats: Ref<AnalysisStats> = ref(new AnalysisStats());
 const owaspTopTotalCount = ref(0);
 
-let colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
+const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 const initChartData = {
     labels: [],
     datasets: [
@@ -70,12 +70,12 @@ const severity_data: Ref<ChartData<'doughnut'>> = ref(
 );
 const severity_conf: Ref<object> = ref({});
 
-let boxLoaderDimensions = {
+const boxLoaderDimensions = {
     width: '100px',
     height: '40px'
 };
 
-let donutDimensions = {
+const donutDimensions = {
     width: '180px',
     height: '180px'
 };
@@ -120,7 +120,7 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
 }
 
 function createOwaspTop10DistChart() {
-    let possible_labels = [
+    const possible_labels = [
         'A01: Broken Access Control',
         'A02: Cryptographic Failures',
         'A03: Injection',
@@ -133,7 +133,7 @@ function createOwaspTop10DistChart() {
         'A10: Server-Side Request Forgery'
     ];
 
-    let possible_values = [
+    const possible_values = [
         stats.value.number_of_owasp_top_10_2021_a1,
         stats.value.number_of_owasp_top_10_2021_a2,
         stats.value.number_of_owasp_top_10_2021_a3,
@@ -146,7 +146,7 @@ function createOwaspTop10DistChart() {
         stats.value.number_of_owasp_top_10_2021_a10
     ];
 
-    let count =
+    const count =
         stats.value.number_of_owasp_top_10_2021_a1 +
         stats.value.number_of_owasp_top_10_2021_a2 +
         stats.value.number_of_owasp_top_10_2021_a3 +
@@ -160,7 +160,7 @@ function createOwaspTop10DistChart() {
 
     owaspTopTotalCount.value = count;
 
-    let possible_colors = [
+    const possible_colors = [
         '#7400B8',
         '#6930C3',
         '#5E60CE',
@@ -173,12 +173,12 @@ function createOwaspTop10DistChart() {
         '#80FFDB'
     ];
 
-    let data: Array<any> = [];
-    let colors: Array<any> = [];
-    let labels: Array<any> = [];
+    const data: Array<any> = [];
+    const colors: Array<any> = [];
+    const labels: Array<any> = [];
 
     let index = 0;
-    for (let value of possible_values) {
+    for (const value of possible_values) {
         if (value > 0) {
             data.push(value);
             labels.push(possible_labels[index]);
@@ -193,7 +193,7 @@ function createOwaspTop10DistChart() {
         colors.push('#AFD3E2');
     }
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: [
             {
@@ -268,7 +268,7 @@ function createOwaspTop10DistChart() {
                     innerHTML += '<div class="chart-tool-tip-title-divider"></div>';
                     innerHTML += '<div class="chart-tool-tip-data">';
                     let index = 0;
-                    for (let dataPoint of data) {
+                    for (const dataPoint of data) {
                         innerHTML += `<div class="chart-tool-tip-data-row">
 							<div>
 								<div><div class="chart-tool-tip-color-bubble" style="background-color:${colors[index]}"></div></div>
@@ -305,17 +305,17 @@ function createOwaspTop10DistChart() {
 }
 
 function createSeverityDistChart() {
-    let labels = ['Critical', 'High', 'Medium', 'Low', 'None'];
-    let data = [
+    const labels = ['Critical', 'High', 'Medium', 'Low', 'None'];
+    const data = [
         stats.value.number_of_critical,
         stats.value.number_of_high,
         stats.value.number_of_medium,
         stats.value.number_of_low,
         stats.value.number_of_none
     ];
-    let colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
+    const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 
-    let dependency_dist_data = {
+    const dependency_dist_data = {
         labels: labels,
         datasets: [
             {
@@ -374,7 +374,7 @@ function createSeverityDistChart() {
                     innerHTML += '<div class="chart-tool-tip-title-divider"></div>';
                     innerHTML += '<div class="chart-tool-tip-data">';
                     let index = 0;
-                    for (let dataPoint of data) {
+                    for (const dataPoint of data) {
                         innerHTML += `<div class="chart-tool-tip-data-row">
 							<div>
 								<div><div class="chart-tool-tip-color-bubble" style="background-color:${colors[index]}"></div></div>

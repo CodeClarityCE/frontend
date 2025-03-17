@@ -30,18 +30,18 @@ const sort_options = [
 <template>
     <!-- Search Bar -->
     <div class="flex gap-4 mt-4">
-        <SearchBar v-model:searchKey="searchKey" :placeholder="placeholder" />
+        <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
     </div>
 
     <!-- Sort Bar -->
     <UtilitiesSort
-        :selectionPageLimit="selectionPageLimit"
-        :sortOptions="sort_options"
+        v-model:page-limit-selected="pageLimitSelected"
+        v-model:sort-key="sortKey"
+        v-model:sort-direction="sortDirection"
+        :selection-page-limit="selectionPageLimit"
+        :sort-options="sort_options"
         :showing="projectsResponse?.entries_per_page || 0"
         :total="projectsResponse?.total_entries || 0"
-        v-model:pageLimitSelected="pageLimitSelected"
-        v-model:sortKey="sortKey"
-        v-model:sortDirection="sortDirection"
     >
     </UtilitiesSort>
 </template>

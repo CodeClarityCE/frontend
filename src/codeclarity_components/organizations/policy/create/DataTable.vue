@@ -47,7 +47,7 @@ const table = useVueTable({
     onRowSelectionChange: (updaterOrValue) => {
         valueUpdater(updaterOrValue, rowSelection);
 
-        let selectedRows: Array<string> = [];
+        const selectedRows: Array<string> = [];
         table.getFilteredSelectedRowModel().rows.forEach((row) => {
             selectedRows.push((row.original as License).licenseId);
         });

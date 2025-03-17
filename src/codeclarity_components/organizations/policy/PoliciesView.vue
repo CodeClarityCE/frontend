@@ -43,7 +43,7 @@ defineProps<{
 }>();
 </script>
 <template>
-    <OrgPoliciesList v-if="action == 'manage'" :page="page" :orgId="orgId" />
-    <OrgPoliciesCreate v-else-if="action == 'add'" :page="page" :orgId="orgId" />
-    <OrgPoliciesEdit v-else-if="action == 'edit'" :page="page" :orgId="orgId" />
+    <OrgPoliciesList v-if="action == 'manage'" :page="page" :org-id="orgId" />
+    <OrgPoliciesCreate v-else-if="action == 'add'" :page="page" :org-id="orgId" />
+    <OrgPoliciesEdit v-else-if="action == 'edit'" :page="page" :org-id="orgId" />
 </template>

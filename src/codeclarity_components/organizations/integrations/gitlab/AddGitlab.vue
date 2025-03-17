@@ -259,7 +259,7 @@ init();
                     <div class="flex flex-row gap-4" style="text-align: center">
                         <div class="gitlab-host-selection-container" @click="setSelfHosted(false)">
                             <Button class="w-full h-16" variant="outline">GitLab.com</Button>
-                            <div class="active" v-if="selfHosted == false">
+                            <div v-if="selfHosted == false" class="active">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
                             </div>
                         </div>
@@ -270,7 +270,7 @@ init();
                                     {{ formGitlabInstanceUrl }}
                                 </div>
                             </Button>
-                            <div class="active" v-if="selfHosted == true">
+                            <div v-if="selfHosted == true" class="active">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
                             </div>
                         </div>
@@ -375,8 +375,8 @@ init();
                 "
             >
                 <input
-                    type="text"
                     v-model="formGitlabInstanceUrl"
+                    type="text"
                     @input="validateGitlabInstanceUrl"
                 />
                 <div style="color: red">{{ formGitlabInstanceUrlError }}</div>

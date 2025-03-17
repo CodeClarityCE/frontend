@@ -51,9 +51,9 @@ function toggle() {
 
 function show() {
     tip_top.value = 10;
-    let trackedDom = document.getElementById(props.tracker);
+    const trackedDom = document.getElementById(props.tracker);
     if (trackedDom) {
-        let offset = getOffset(trackedDom, props.position);
+        const offset = getOffset(trackedDom, props.position);
         // console.log(offset);
         if (offset) {
             top.value = offset.top + props.topOffset;
@@ -89,7 +89,7 @@ function reposition() {
     const modalWidth = modal.clientWidth;
 
     if (trackedDom) {
-        let offset = getOffset(trackedDom, props.position);
+        const offset = getOffset(trackedDom, props.position);
         if (offset) {
             // console.log(offset);
             top.value = offset.top + props.topOffset;
@@ -126,7 +126,7 @@ function reposition() {
         console.log('bottom');
 
         let subtract = modalHeight;
-        let subtitle = document.querySelector(`#${id} > .centered-modal-subtitle`);
+        const subtitle = document.querySelector(`#${id} > .centered-modal-subtitle`);
         if (subtitle) subtract += subtitle.clientHeight;
         if (props.showTitle)
             subtract += document.querySelector(`#${id} > .centered-modal-title`)!.clientHeight;
@@ -142,7 +142,7 @@ function reposition() {
     }
     if (props.position == 'middle') {
         let subtract = modalHeight / 2;
-        let subtitle = document.querySelector(`#${id} > .centered-modal-subtitle`);
+        const subtitle = document.querySelector(`#${id} > .centered-modal-subtitle`);
         if (subtitle) subtract += subtitle.clientHeight;
         if (props.showTitle)
             subtract += document.querySelector(`#${id} > .centered-modal-title`)!.clientHeight;

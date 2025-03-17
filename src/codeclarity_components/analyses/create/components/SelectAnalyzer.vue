@@ -93,22 +93,28 @@ fetchAnalyzers();
                     <div>
                         <template v-for="analyzer in analyzers_list" :key="analyzer">
                             <div class="flex flex-row gap-5 cursor-pointer" @click="click">
-                                <input v-model="selected_analyzers" type="checkbox" :value="analyzer.id"
-                                    class="checkboxInput cursor-pointer" />
+                                <input
+                                    v-model="selected_analyzers"
+                                    type="checkbox"
+                                    :value="analyzer.id"
+                                    class="checkboxInput cursor-pointer"
+                                />
                                 <AnalyzerComp :analyzer-data="analyzer" />
                             </div>
                         </template>
                         <div v-if="analyzers_list.length == 0">
                             You need to create an analyzer before you can select it.
                         </div>
-                        <RouterLink :to="{
-                            name: 'orgs',
-                            params: {
-                                action: 'add',
-                                page: 'analyzers',
-                                orgId: user.defaultOrg?.id
-                            }
-                        }">
+                        <RouterLink
+                            :to="{
+                                name: 'orgs',
+                                params: {
+                                    action: 'add',
+                                    page: 'analyzers',
+                                    orgId: user.defaultOrg?.id
+                                }
+                            }"
+                        >
                             <div class="mt-10">
                                 You can create a new analyzer
                                 <Button variant="link" class="px-0">here</Button> !
@@ -124,7 +130,6 @@ fetchAnalyzers();
         </div>
     </Transition>
 </template>
-
 
 <style scoped>
 div:has(> input) {

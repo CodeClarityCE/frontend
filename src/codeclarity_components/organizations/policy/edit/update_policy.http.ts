@@ -1,4 +1,4 @@
-import type { LicensePolicyType } from "../license_policy.entity";
+import type { LicensePolicyType } from '../license_policy.entity';
 
 export interface PolicyUpdate {
     name: string;

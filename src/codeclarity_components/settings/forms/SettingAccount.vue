@@ -14,7 +14,6 @@ import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 const state = useStateStore();
 state.menu = 'settingsAccount';
-
 </script>
 
 <template>

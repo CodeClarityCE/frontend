@@ -89,8 +89,12 @@ function search(_searchKey: string) {
 <template>
     <div>
         <div class="flex items-center py-4">
-            <Input class="max-w-sm" placeholder="Filter dependencies..."
-                :model-value="table.getColumn('name')?.getFilterValue() as string" @update:model-value="search" />
+            <Input
+                class="max-w-sm"
+                placeholder="Filter dependencies..."
+                :model-value="table.getColumn('name')?.getFilterValue() as string"
+                @update:model-value="search"
+            />
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                     <Button variant="outline" class="ml-auto">
@@ -99,14 +103,19 @@ function search(_searchKey: string) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuCheckboxItem v-for="column in table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())" :key="column.id" class="capitalize"
-                        :checked="column.getIsVisible()" @update:checked="
+                    <DropdownMenuCheckboxItem
+                        v-for="column in table
+                            .getAllColumns()
+                            .filter((column) => column.getCanHide())"
+                        :key="column.id"
+                        class="capitalize"
+                        :checked="column.getIsVisible()"
+                        @update:checked="
                             (value) => {
                                 column.toggleVisibility(!!value);
                             }
-                        ">
+                        "
+                    >
                         {{ column.id }}
                     </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
@@ -117,17 +126,26 @@ function search(_searchKey: string) {
                 <TableHeader>
                     <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                         <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
-                                :props="header.getContext()" />
+                            <FlexRender
+                                v-if="!header.isPlaceholder"
+                                :render="header.column.columnDef.header"
+                                :props="header.getContext()"
+                            />
                         </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     <template v-if="table.getRowModel().rows?.length">
-                        <TableRow v-for="row in table.getRowModel().rows" :key="row.id"
-                            :data-state="row.getIsSelected() ? 'selected' : undefined">
+                        <TableRow
+                            v-for="row in table.getRowModel().rows"
+                            :key="row.id"
+                            :data-state="row.getIsSelected() ? 'selected' : undefined"
+                        >
                             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                                <FlexRender
+                                    :render="cell.column.columnDef.cell"
+                                    :props="cell.getContext()"
+                                />
                             </TableCell>
                         </TableRow>
                     </template>
@@ -145,13 +163,19 @@ function search(_searchKey: string) {
             <div class="flex items-center space-x-6 lg:space-x-8">
                 <div class="flex items-center space-x-2">
                     <p class="text-sm font-medium">Rows per page</p>
-                    <Select :model-value="`${table.getState().pagination.pageSize}`" @update:model-value="setPageSize">
+                    <Select
+                        :model-value="`${table.getState().pagination.pageSize}`"
+                        @update:model-value="setPageSize"
+                    >
                         <SelectTrigger class="h-8 w-[70px]">
                             <SelectValue :placeholder="`${pageLimitSelected}`" />
                         </SelectTrigger>
                         <SelectContent side="top">
-                            <SelectItem v-for="pageSize in [10, 15, 20, 30, 40, 50]" :key="pageSize"
-                                :value="`${pageSize}`">
+                            <SelectItem
+                                v-for="pageSize in [10, 15, 20, 30, 40, 50]"
+                                :key="pageSize"
+                                :value="`${pageSize}`"
+                            >
                                 {{ pageSize }}
                             </SelectItem>
                         </SelectContent>

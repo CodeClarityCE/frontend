@@ -98,23 +98,38 @@ async function fillModal(title: string, type: string) {
             <div class="flex flex-col gap-4 relative">
                 <div v-if="props.license.name" class="font-semibold text-lg flex gap-1">
                     <div>{{ props.license.name }} ({{ props.license.id }})</div>
-                    <span v-if="props.license.license_compliance_violation"
-                        class="flex gap-1 items-center text-sm text-destructive">
+                    <span
+                        v-if="props.license.license_compliance_violation"
+                        class="flex gap-1 items-center text-sm text-destructive"
+                    >
                         <Icon :icon="'ic:round-warning'"></Icon> License Compliance Violation
                     </span>
                 </div>
                 <div v-else class="font-semibold text-lg flex gap-1">
                     <div>{{ props.license.id }}</div>
-                    <span v-if="props.license.unable_to_infer" class="flex gap-1 items-center text-sm text-destructive">
+                    <span
+                        v-if="props.license.unable_to_infer"
+                        class="flex gap-1 items-center text-sm text-destructive"
+                    >
                         <Icon :icon="'ic:round-warning'"></Icon> Unknown license reference
                     </span>
                 </div>
-                <div v-if="props.license.references && props.license.references.length > 0" class="flex gap-4">
-                    <div v-for="reference in props.license.references" :key="reference" class="license-reference">
+                <div
+                    v-if="props.license.references && props.license.references.length > 0"
+                    class="flex gap-4"
+                >
+                    <div
+                        v-for="reference in props.license.references"
+                        :key="reference"
+                        class="license-reference"
+                    >
                         <span style="cursor: pointer">
-                            <a class="text-primary hover:text-primaryHovered cursor-pointer"
-                                :title="'Opens reference ' + reference + ' in a new tab.'" target="_blank"
-                                :href="reference">
+                            <a
+                                class="text-primary hover:text-primaryHovered cursor-pointer"
+                                :title="'Opens reference ' + reference + ' in a new tab.'"
+                                target="_blank"
+                                :href="reference"
+                            >
                                 {{ referenceDomain(reference) }}
                                 <Icon :icon="'ic:attach-file-round'"></Icon>
                             </a>
@@ -137,17 +152,24 @@ async function fillModal(title: string, type: string) {
 
                             <div class="max-w-3xl max-h-96 overflow-y-auto -mx-5">
                                 <div style="display: flex; flex-direction: column">
-                                    <div v-for="dep in props.license.deps_using_license" :key="dep"
-                                        class="licenses-deps-using-row">
-                                        <RouterLink title="View dependency details" :to="{
-                                            name: 'results',
-                                            query: {
-                                                analysis_id: props.analysisID,
-                                                project_id: props.projectID,
-                                                package_id: dep
-                                            },
-                                            params: { page: 'sbom_details' }
-                                        }" class="flex flex-row gap-2 items-center cursor-pointer">
+                                    <div
+                                        v-for="dep in props.license.deps_using_license"
+                                        :key="dep"
+                                        class="licenses-deps-using-row"
+                                    >
+                                        <RouterLink
+                                            title="View dependency details"
+                                            :to="{
+                                                name: 'results',
+                                                query: {
+                                                    analysis_id: props.analysisID,
+                                                    project_id: props.projectID,
+                                                    package_id: dep
+                                                },
+                                                params: { page: 'sbom_details' }
+                                            }"
+                                            class="flex flex-row gap-2 items-center cursor-pointer"
+                                        >
                                             {{ dep }} <Icon :icon="'ic:outline-open-in-new'"></Icon>
                                         </RouterLink>
                                     </div>
@@ -156,7 +178,10 @@ async function fillModal(title: string, type: string) {
                         </PopoverContent>
                     </Popover>
                 </div>
-                <div v-if="props.license.license_category" class="flex gap-2 items-center cursor-pointer">
+                <div
+                    v-if="props.license.license_category"
+                    class="flex gap-2 items-center cursor-pointer"
+                >
                     Category:
                     <Popover>
                         <PopoverTrigger>
@@ -190,10 +215,17 @@ async function fillModal(title: string, type: string) {
                                         licenses include the MIT license, BSD license, and Apache
                                         license.
                                     </div>
-                                    <div style="display: flex; flex-direction: column; row-gap: 1em">
+                                    <div
+                                        style="display: flex; flex-direction: column; row-gap: 1em"
+                                    >
                                         <div>
-                                            <span class="flex flex-row gap-2" style="font-weight: 600">
-                                                <Icon :icon="'heroicons:shield-exclamation-solid'"></Icon>
+                                            <span
+                                                class="flex flex-row gap-2"
+                                                style="font-weight: 600"
+                                            >
+                                                <Icon
+                                                    :icon="'heroicons:shield-exclamation-solid'"
+                                                ></Icon>
                                                 Copyleft Licenses
                                             </span>
                                             are open-source licenses that aim to ensure that
@@ -201,13 +233,17 @@ async function fillModal(title: string, type: string) {
                                             software also remain open source. There are two flavors
                                             of copyleft licenses: strong and weak.
                                         </div>
-                                        <div style="
+                                        <div
+                                            style="
                                                 display: flex;
                                                 flex-direction: column;
                                                 row-gap: 1em;
-                                            ">
+                                            "
+                                        >
                                             <div>
-                                                <span style="font-weight: 600">Strong copyleft licenses</span>
+                                                <span style="font-weight: 600"
+                                                    >Strong copyleft licenses</span
+                                                >
                                                 have stricter requirements compared to other
                                                 copyleft licenses. They mandate that if software
                                                 includes code licensed under a strong copyleft
@@ -221,7 +257,9 @@ async function fillModal(title: string, type: string) {
                                                 License (AGPL)
                                             </div>
                                             <div>
-                                                <span style="font-weight: 600">Weak copyleft licenses</span>
+                                                <span style="font-weight: 600"
+                                                    >Weak copyleft licenses</span
+                                                >
                                                 have more flexible requirements compared to strong
                                                 copyleft licenses. They usually apply copyleft
                                                 restrictions only to the specific components that
@@ -251,20 +289,24 @@ async function fillModal(title: string, type: string) {
                 <div v-if="props.license.description && props.license.description.length > 0">
                     {{ props.license.description }}
                 </div>
-                <div v-if="
-                    props.license.unable_to_infer == false &&
-                    !(props.license.description && props.license.description.length > 0) &&
-                    props.license.references != null &&
-                    props.license.references.length > 0
-                ">
+                <div
+                    v-if="
+                        props.license.unable_to_infer == false &&
+                        !(props.license.description && props.license.description.length > 0) &&
+                        props.license.references != null &&
+                        props.license.references.length > 0
+                    "
+                >
                     We do not have any more information on this license, you may however consult the
                     references above or your legal team to learn more.
                 </div>
-                <div v-if="
-                    props.license.unable_to_infer == false &&
-                    !(props.license.description && props.license.description.length > 0) &&
-                    !(props.license.references != null && props.license.references.length > 0)
-                ">
+                <div
+                    v-if="
+                        props.license.unable_to_infer == false &&
+                        !(props.license.description && props.license.description.length > 0) &&
+                        !(props.license.references != null && props.license.references.length > 0)
+                    "
+                >
                     We do not have any more information on this license, you may however consult
                     your legal team to learn more.
                 </div>
@@ -275,27 +317,34 @@ async function fillModal(title: string, type: string) {
                     the license terms no longer align with the "original" license. No license file
                     or license information found in the source code that allows us to collaborate
                     the license defined by the developer.
-                    <b>We strongly suggest, a manual review of those dependencies using the
+                    <b
+                        >We strongly suggest, a manual review of those dependencies using the
                         "unrecognized" license to make sure your application does not infringe on
-                        any licenses imposed by those dependencies.</b>
+                        any licenses imposed by those dependencies.</b
+                    >
                 </div>
                 <div v-if="props.license.license_properties" class="flex gap-8">
-                    <div class="flex flex-col gap-y-2" v-if="props.license.license_properties.permissions">
+                    <div
+                        class="flex flex-col gap-y-2"
+                        v-if="props.license.license_properties.permissions"
+                    >
                         <div class="flex flex-row gap-2 items-center">
                             <Icon class="text-xl" :icon="'jam:shield-check'"></Icon>
                             <span class="font-semibold">Permissions:</span>
                         </div>
-                        <div v-for="permission in props.license.license_properties.permissions" :key="permission">
+                        <div
+                            v-for="permission in props.license.license_properties.permissions"
+                            :key="permission"
+                        >
                             <Popover>
                                 <PopoverTrigger>
-                                    <Badge variant="secondary" class="flex gap-1 items-center cursor-pointer" @click="
-                                    fillModal(
-                                        permission,
-                                        'permission'
-                                    )
-                                    ">
+                                    <Badge
+                                        variant="secondary"
+                                        class="flex gap-1 items-center cursor-pointer"
+                                        @click="fillModal(permission, 'permission')"
+                                    >
                                         {{ permission }}
-                                    <Icon :icon="'material-symbols:help-outline'"></Icon>
+                                        <Icon :icon="'material-symbols:help-outline'"></Icon>
                                     </Badge>
                                 </PopoverTrigger>
                                 <PopoverContent>
@@ -305,22 +354,27 @@ async function fillModal(title: string, type: string) {
                             </Popover>
                         </div>
                     </div>
-                    <div class="flex flex-col gap-y-2" v-if="props.license.license_properties.conditions">
+                    <div
+                        class="flex flex-col gap-y-2"
+                        v-if="props.license.license_properties.conditions"
+                    >
                         <div class="flex flex-row gap-2 items-center">
                             <Icon class="text-xl" :icon="'jam:shield-close'"></Icon>
                             <span class="font-semibold">Conditions:</span>
                         </div>
-                        <div v-for="condition in props.license.license_properties.conditions" :key="condition">
+                        <div
+                            v-for="condition in props.license.license_properties.conditions"
+                            :key="condition"
+                        >
                             <Popover>
                                 <PopoverTrigger>
-                                    <Badge variant="secondary" class="flex gap-1 items-center cursor-pointer" @click="
-                                    fillModal(
-                                        condition,
-                                        'permission',
-                                    )
-                                    ">
+                                    <Badge
+                                        variant="secondary"
+                                        class="flex gap-1 items-center cursor-pointer"
+                                        @click="fillModal(condition, 'permission')"
+                                    >
                                         {{ condition }}
-                                    <Icon :icon="'material-symbols:help-outline'"></Icon>
+                                        <Icon :icon="'material-symbols:help-outline'"></Icon>
                                     </Badge>
                                 </PopoverTrigger>
                                 <PopoverContent>
@@ -330,22 +384,27 @@ async function fillModal(title: string, type: string) {
                             </Popover>
                         </div>
                     </div>
-                    <div class="flex flex-col gap-y-2" v-if="props.license.license_properties.limitations">
+                    <div
+                        class="flex flex-col gap-y-2"
+                        v-if="props.license.license_properties.limitations"
+                    >
                         <div class="flex flex-row gap-2 items-center">
                             <Icon class="text-xl" :icon="'jam:shield-minus'"></Icon>
                             <span class="font-semibold">Limitations:</span>
                         </div>
-                        <div v-for="limitation in props.license.license_properties.limitations" :key="limitation">
+                        <div
+                            v-for="limitation in props.license.license_properties.limitations"
+                            :key="limitation"
+                        >
                             <Popover>
                                 <PopoverTrigger>
-                                    <Badge variant="secondary" class="flex gap-1 items-center cursor-pointer" @click="
-                                    fillModal(
-                                        limitation,
-                                        'permission',
-                                    )
-                                    ">
+                                    <Badge
+                                        variant="secondary"
+                                        class="flex gap-1 items-center cursor-pointer"
+                                        @click="fillModal(limitation, 'permission')"
+                                    >
                                         {{ limitation }}
-                                    <Icon :icon="'material-symbols:help-outline'"></Icon>
+                                        <Icon :icon="'material-symbols:help-outline'"></Icon>
                                     </Badge>
                                 </PopoverTrigger>
                                 <PopoverContent>
@@ -357,17 +416,24 @@ async function fillModal(title: string, type: string) {
                     </div>
                 </div>
                 <div v-if="props.license.license_properties">
-                    <div v-if="
-                        props.license.license_properties.conditions ||
-                        props.license.license_properties.permissions ||
-                        props.license.license_properties.limitations
-                    ">
+                    <div
+                        v-if="
+                            props.license.license_properties.conditions ||
+                            props.license.license_properties.permissions ||
+                            props.license.license_properties.limitations
+                        "
+                    >
                         License properties from
-                        <a class="text-primary" target="_blank"
-                            href="https://choosealicense.com/">choosealicense.com</a>
+                        <a class="text-primary" target="_blank" href="https://choosealicense.com/"
+                            >choosealicense.com</a
+                        >
                         licensed under
-                        <a class="text-primary" target="_blank" href="https://creativecommons.org/licenses/by/3.0/">CC
-                            BY 3.0</a>
+                        <a
+                            class="text-primary"
+                            target="_blank"
+                            href="https://creativecommons.org/licenses/by/3.0/"
+                            >CC BY 3.0</a
+                        >
                     </div>
                 </div>
             </div>

@@ -126,12 +126,30 @@ init();
             <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
             <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
             <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 100px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 100px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 150px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 100px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 150px" />
-            <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 200px" />
+            <BoxLoader
+                :dimensions="{ width: '150px', height: '30px' }"
+                style="margin-left: 100px"
+            />
+            <BoxLoader
+                :dimensions="{ width: '150px', height: '30px' }"
+                style="margin-left: 100px"
+            />
+            <BoxLoader
+                :dimensions="{ width: '150px', height: '30px' }"
+                style="margin-left: 150px"
+            />
+            <BoxLoader
+                :dimensions="{ width: '150px', height: '30px' }"
+                style="margin-left: 100px"
+            />
+            <BoxLoader
+                :dimensions="{ width: '150px', height: '30px' }"
+                style="margin-left: 150px"
+            />
+            <BoxLoader
+                :dimensions="{ width: '150px', height: '30px' }"
+                style="margin-left: 200px"
+            />
             <BoxLoader :dimensions="{ width: '150px', height: '30px' }" style="margin-left: 50px" />
         </div>
     </div>

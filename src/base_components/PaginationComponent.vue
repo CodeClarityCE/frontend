@@ -30,16 +30,30 @@ function changePage(_page: number) {
         </div>
 
         <div class="flex flex-row gap-2" v-if="totalPages != 1">
-            <Pagination v-slot="{ page }" :total="nmbEntriesTotal" :items-per-page="nmbEntriesShowing"
-                :sibling-count="1" show-edges :default-page="pageModel + 1">
+            <Pagination
+                v-slot="{ page }"
+                :total="nmbEntriesTotal"
+                :items-per-page="nmbEntriesShowing"
+                :sibling-count="1"
+                show-edges
+                :default-page="pageModel + 1"
+            >
                 <PaginationList v-slot="{ items }" class="flex items-center gap-1">
                     <PaginationFirst @click="changePage(0)" />
                     <PaginationPrev @click="pageModel -= 1" />
 
                     <template v-for="(item, index) in items">
-                        <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
-                            <Button class="w-10 h-10 p-0" :variant="item.value === page ? 'default' : 'outline'"
-                                @click="changePage(item.value - 1)">
+                        <PaginationListItem
+                            v-if="item.type === 'page'"
+                            :key="index"
+                            :value="item.value"
+                            as-child
+                        >
+                            <Button
+                                class="w-10 h-10 p-0"
+                                :variant="item.value === page ? 'default' : 'outline'"
+                                @click="changePage(item.value - 1)"
+                            >
                                 {{ item.value }}
                             </Button>
                         </PaginationListItem>

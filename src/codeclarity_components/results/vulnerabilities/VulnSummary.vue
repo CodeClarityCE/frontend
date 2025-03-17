@@ -548,7 +548,11 @@ function createRadarChart() {
             </div>
             <div>
                 <div v-if="render" class="chart-wrapper">
-                    <Doughnut :data="severity_data" :options="severity_conf" style="height: 200px; width: 200px" />
+                    <Doughnut
+                        :data="severity_data"
+                        :options="severity_conf"
+                        style="height: 200px; width: 200px"
+                    />
                 </div>
                 <div>
                     <DonutLoader v-if="!render" :dimensions="donutDimensions" />
@@ -559,15 +563,20 @@ function createRadarChart() {
         <div class="summary-container summary-container-chart">
             <div class="summary-container-chart-text-wrapper">
                 <div class="summary-container-chart-inner-text-wrapper">
-                    <div v-if="render" class="flex flex-row gap-2 items-center font-semibold text-lg">
+                    <div
+                        v-if="render"
+                        class="flex flex-row gap-2 items-center font-semibold text-lg"
+                    >
                         <span>
                             <Icon :icon="'simple-icons:owasp'"></Icon>
                         </span>
                         <span class="summary-container-chart-text-header-title">Owasp Top 10</span>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a1 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a1 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #7400b8"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">A01: Broken Access Control</div>
@@ -577,8 +586,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a2 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a2 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #6930c3"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">A02: Cryptographic Failures</div>
@@ -588,8 +599,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a3 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a3 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #5e60ce"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">A03: Injection</div>
@@ -599,8 +612,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a4 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a4 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #5390d9"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">A04: Insecure Design</div>
@@ -610,8 +625,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a5 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a5 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #19a7ce"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">
@@ -623,8 +640,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a6 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a6 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #4ea8de"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">
@@ -636,8 +655,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a7 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a7 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #56cfe1"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">
@@ -649,8 +670,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a8 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a8 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #64dfdf"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">
@@ -662,8 +685,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a9 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a9 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #72efdd"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">
@@ -675,8 +700,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && stats.number_of_owasp_top_10_2021_a10 > 0"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && stats.number_of_owasp_top_10_2021_a10 > 0"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #80ffdb"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">
@@ -688,8 +715,10 @@ function createRadarChart() {
                         </div>
                     </div>
                     <TextLoader v-if="!render" />
-                    <div v-if="render && owaspTopTotalCount < stats.number_of_vulnerabilities"
-                        class="flex flex-row gap-2 justify-between items-center">
+                    <div
+                        v-if="render && owaspTopTotalCount < stats.number_of_vulnerabilities"
+                        class="flex flex-row gap-2 justify-between items-center"
+                    >
                         <div class="side-stats-circle" style="background-color: #afd3e2"></div>
                         <div class="flex flex-row gap-2 justify-between max-h-52">
                             <div class="whitespace-nowrap text-sm">Uncategorized</div>
@@ -703,15 +732,21 @@ function createRadarChart() {
             </div>
             <div>
                 <div v-if="render" class="chart-wrapper">
-                    <Bar :data="owasp_data" :options="owasp_conf" style="height: 200px; width: 200px" />
+                    <Bar
+                        :data="owasp_data"
+                        :options="owasp_conf"
+                        style="height: 200px; width: 200px"
+                    />
                 </div>
                 <div v-if="!render" style="max-height: 200px; max-width: 200px">
-                    <div style="
+                    <div
+                        style="
                             display: flex;
                             flex-direction: row;
                             column-gap: 1em;
                             align-items: flex-end;
-                        ">
+                        "
+                    >
                         <BoxLoader :dimensions="{ height: '30px', width: '40px' }" />
                         <BoxLoader :dimensions="{ height: '60px', width: '40px' }" />
                         <BoxLoader :dimensions="{ height: '150px', width: '40px' }" />
@@ -724,7 +759,9 @@ function createRadarChart() {
             <div class="summary-container-chart-text-wrapper">
                 <div class="summary-container-chart-inner-text-wrapper">
                     <div v-if="render" class="summary-container-chart-text-header-wrapper">
-                        <span class="summary-container-chart-text-header-title">Security Impact</span>
+                        <span class="summary-container-chart-text-header-title"
+                            >Security Impact</span
+                        >
                     </div>
                     <TextLoader v-if="!render" />
                     <div v-if="render" class="side-stats">
@@ -763,15 +800,31 @@ function createRadarChart() {
                 <div style="position: relative; width: 200px; height: 200px; margin-right: 10px">
                     <div style="position: absolute">
                         <svg height="200" width="200">
-                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="200" y1="130"
-                                y2="185" />
-                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="0" y2="185"
-                                y1="130" />
-                            <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="100" y1="30"
-                                y2="130" />
+                            <line
+                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
+                                x1="100"
+                                x2="200"
+                                y1="130"
+                                y2="185"
+                            />
+                            <line
+                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
+                                x1="100"
+                                x2="0"
+                                y2="185"
+                                y1="130"
+                            />
+                            <line
+                                style="stroke: rgb(206, 206, 206); stroke-width: 2px"
+                                x1="100"
+                                x2="100"
+                                y1="30"
+                                y2="130"
+                            />
                         </svg>
                     </div>
-                    <div style="
+                    <div
+                        style="
                             position: absolute;
                             left: 100px;
                             top: 10px;
@@ -779,46 +832,54 @@ function createRadarChart() {
                             font-weight: 500;
                             color: rgb(70, 70, 70);
                             background-color: rgb(255, 255, 255);
-                        ">
+                        "
+                    >
                         <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
                             stats.mean_confidentiality_impact?.toFixed(2) ?? 0
-                            }}</span>
+                        }}</span>
                     </div>
-                    <div style="
+                    <div
+                        style="
                             position: absolute;
                             bottom: 0px;
                             right: 0px;
                             font-weight: 500;
                             color: rgb(70, 70, 70);
                             background-color: rgb(255, 255, 255);
-                        ">
+                        "
+                    >
                         <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
                             stats.mean_integrity_impact?.toFixed(2) ?? 0
-                            }}</span>
+                        }}</span>
                     </div>
-                    <div style="
+                    <div
+                        style="
                             position: absolute;
                             bottom: 0px;
                             left: 0px;
                             font-weight: 500;
                             color: rgb(70, 70, 70);
                             background-color: rgb(255, 255, 255);
-                        ">
+                        "
+                    >
                         <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
                             stats.mean_availability_impact?.toFixed(2) ?? 0
-                            }}</span>
+                        }}</span>
                     </div>
-                    <div style="
+                    <div
+                        style="
                             position: absolute;
                             left: 0px;
                             top: 65px;
                             transform: rotate(-60deg);
                             font-weight: 500;
                             color: rgb(70, 70, 70);
-                        ">
+                        "
+                    >
                         Confidentiality
                     </div>
-                    <div style="
+                    <div
+                        style="
                             position: absolute;
                             bottom: 54px;
                             right: -15px;
@@ -826,27 +887,36 @@ function createRadarChart() {
                             color: rgb(70, 70, 70);
                             font-family: roboto;
                             transform: rotate(60deg);
-                        ">
+                        "
+                    >
                         Integrity
                     </div>
-                    <div style="
+                    <div
+                        style="
                             position: absolute;
                             bottom: 0px;
                             left: 35px;
                             font-weight: 500;
                             color: rgb(70, 70, 70);
-                        ">
+                        "
+                    >
                         Availability
                     </div>
-                    <div v-if="render" style="
+                    <div
+                        v-if="render"
+                        style="
                             position: absolute;
                             height: 212px !important;
                             width: 212px !important;
                             margin-top: 20px;
                             margin-left: -6px;
-                        ">
-                        <Radar :data="cia_data" :options="cia_conf"
-                            style="height: 212px !important; width: 212px !important" />
+                        "
+                    >
+                        <Radar
+                            :data="cia_data"
+                            :options="cia_conf"
+                            style="height: 212px !important; width: 212px !important"
+                        />
                     </div>
                 </div>
             </div>
@@ -854,7 +924,10 @@ function createRadarChart() {
         </div>
         <div class="summary-container summary-container-quick-stats">
             <div class="summary-stacked-container-wrapper">
-                <div v-if="stats != null" class="summary-container single-value-summary-column-gap-20">
+                <div
+                    v-if="stats != null"
+                    class="summary-container single-value-summary-column-gap-20"
+                >
                     <div class="title">Vulnerable Libraries</div>
                     <div class="text-gray-400">
                         Libraries can be present multiple times. Check the patching tab to view
@@ -864,22 +937,31 @@ function createRadarChart() {
                         <div v-if="render">
                             {{ stats.number_of_vulnerable_dependencies ?? 0 }}
                         </div>
-                        <BubbleComponent v-if="render && stats.number_of_vulnerable_dependencies > 0" :slim="true"
-                            :bad="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_vulnerable_dependencies > 0"
+                            :slim="true"
+                            :bad="true"
+                        >
                             <template #content>
                                 {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-up'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.number_of_vulnerable_dependencies < 0" :slim="true"
-                            :positive="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_vulnerable_dependencies < 0"
+                            :slim="true"
+                            :positive="true"
+                        >
                             <template #content>
                                 {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-down'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.number_of_vulnerable_dependencies == 0" :slim="true"
-                            :neutral="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_vulnerable_dependencies == 0"
+                            :slim="true"
+                            :neutral="true"
+                        >
                             <template #content>
                                 {{ stats.number_of_vulnerable_dependencies?.toFixed(2) ?? 0 }}
                                 <span style="font-weight: 900">-</span>
@@ -896,19 +978,31 @@ function createRadarChart() {
                         <div v-if="render">
                             {{ stats.mean_severity?.toFixed(2) ?? 0 }}
                         </div>
-                        <BubbleComponent v-if="render && stats.mean_severity_diff > 0" :slim="true" :bad="true">
+                        <BubbleComponent
+                            v-if="render && stats.mean_severity_diff > 0"
+                            :slim="true"
+                            :bad="true"
+                        >
                             <template #content>
                                 {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-up'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.mean_severity_diff < 0" :slim="true" :positive="true">
+                        <BubbleComponent
+                            v-if="render && stats.mean_severity_diff < 0"
+                            :slim="true"
+                            :positive="true"
+                        >
                             <template #content>
                                 {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-down'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.mean_severity_diff == 0" :slim="true" :neutral="true">
+                        <BubbleComponent
+                            v-if="render && stats.mean_severity_diff == 0"
+                            :slim="true"
+                            :neutral="true"
+                        >
                             <template #content>
                                 {{ stats.mean_severity_diff?.toFixed(2) ?? 0 }}
                                 <span style="font-weight: 900">-</span>
@@ -917,25 +1011,40 @@ function createRadarChart() {
                         <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
                     </div>
                 </div>
-                <div v-if="stats != null" class="summary-container single-value-summary-column-gap-20">
+                <div
+                    v-if="stats != null"
+                    class="summary-container single-value-summary-column-gap-20"
+                >
                     <div class="title">Max Severity</div>
                     <div class="single-value-summary single-value-summary-column-gap-20">
                         <div v-if="render">
                             {{ stats.max_severity ?? 0 }}
                         </div>
-                        <BubbleComponent v-if="render && stats.max_severity_diff > 0" :slim="true" :bad="true">
+                        <BubbleComponent
+                            v-if="render && stats.max_severity_diff > 0"
+                            :slim="true"
+                            :bad="true"
+                        >
                             <template #content>
                                 {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-up'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.max_severity_diff < 0" :slim="true" :positive="true">
+                        <BubbleComponent
+                            v-if="render && stats.max_severity_diff < 0"
+                            :slim="true"
+                            :positive="true"
+                        >
                             <template #content>
                                 {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-down'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.max_severity_diff == 0" :slim="true" :neutral="true">
+                        <BubbleComponent
+                            v-if="render && stats.max_severity_diff == 0"
+                            :slim="true"
+                            :neutral="true"
+                        >
                             <template #content>
                                 {{ stats.max_severity_diff?.toFixed(2) ?? 0 }}
                                 <span style="font-weight: 900">-</span>
@@ -952,22 +1061,31 @@ function createRadarChart() {
                         <div v-if="render">
                             {{ stats.number_of_direct_vulnerabilities ?? 0 }}
                         </div>
-                        <BubbleComponent v-if="render && stats.number_of_direct_vulnerabilities_diff > 0" :slim="true"
-                            :bad="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_direct_vulnerabilities_diff > 0"
+                            :slim="true"
+                            :bad="true"
+                        >
                             <template #content>
                                 {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-up'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.number_of_direct_vulnerabilities_diff < 0" :slim="true"
-                            :positive="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_direct_vulnerabilities_diff < 0"
+                            :slim="true"
+                            :positive="true"
+                        >
                             <template #content>
                                 {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
                                 <Icon :icon="'material-symbols:trending-down'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.number_of_direct_vulnerabilities_diff == 0" :slim="true"
-                            :neutral="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_direct_vulnerabilities_diff == 0"
+                            :slim="true"
+                            :neutral="true"
+                        >
                             <template #content>
                                 {{ stats.number_of_direct_vulnerabilities_diff?.toFixed(2) ?? 0 }}
                                 <span style="font-weight: 900">-</span>
@@ -976,14 +1094,20 @@ function createRadarChart() {
                         <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
                     </div>
                 </div>
-                <div v-if="stats != null" class="summary-container single-value-summary-column-gap-20">
+                <div
+                    v-if="stats != null"
+                    class="summary-container single-value-summary-column-gap-20"
+                >
                     <div class="title">Transitive Dependencies Impacted</div>
                     <div class="single-value-summary single-value-summary-column-gap-20">
                         <div v-if="render">
                             {{ stats.number_of_transitive_vulnerabilities ?? 0 }}
                         </div>
-                        <BubbleComponent v-if="render && stats.number_of_transitive_vulnerabilities_diff > 0"
-                            :slim="true" :bad="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_transitive_vulnerabilities_diff > 0"
+                            :slim="true"
+                            :bad="true"
+                        >
                             <template #content>
                                 {{
                                     stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
@@ -991,8 +1115,11 @@ function createRadarChart() {
                                 <Icon :icon="'material-symbols:trending-up'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.number_of_transitive_vulnerabilities_diff < 0"
-                            :slim="true" :positive="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_transitive_vulnerabilities_diff < 0"
+                            :slim="true"
+                            :positive="true"
+                        >
                             <template #content>
                                 {{
                                     stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0
@@ -1000,8 +1127,11 @@ function createRadarChart() {
                                 <Icon :icon="'material-symbols:trending-down'"></Icon>
                             </template>
                         </BubbleComponent>
-                        <BubbleComponent v-if="render && stats.number_of_transitive_vulnerabilities_diff == 0"
-                            :slim="true" :neutral="true">
+                        <BubbleComponent
+                            v-if="render && stats.number_of_transitive_vulnerabilities_diff == 0"
+                            :slim="true"
+                            :neutral="true"
+                        >
                             <template #content>
                                 {{
                                     stats.number_of_transitive_vulnerabilities_diff?.toFixed(2) ?? 0

@@ -37,8 +37,12 @@ if (providerQuery) {
     <div class="flex flex-col gap-8 org-manage-integration-create">
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="org-integrations-create-wrapper">
-            <OrgIntegrationAddGithub v-if="provider == IntegrationProvider.GITHUB"></OrgIntegrationAddGithub>
-            <OrgIntegrationAddGitlab v-if="provider == IntegrationProvider.GITLAB"></OrgIntegrationAddGitlab>
+            <OrgIntegrationAddGithub
+                v-if="provider == IntegrationProvider.GITHUB"
+            ></OrgIntegrationAddGithub>
+            <OrgIntegrationAddGitlab
+                v-if="provider == IntegrationProvider.GITLAB"
+            ></OrgIntegrationAddGitlab>
         </div>
     </div>
 </template>

@@ -193,19 +193,22 @@ init();
                 <AlertDescription class="flex flex-row gap-2 items-center">
                     <Icon icon="material-symbols:error-outline" />
                     <div v-if="errorCode">
-                        <div v-if="
-                            errorCode == APIErrors.IntegrationTokenExpired ||
-                            errorCode == APIErrors.IntegrationInvalidToken ||
-                            errorCode == APIErrors.IntegrationWrongTokenType
-                        ">
+                        <div
+                            v-if="
+                                errorCode == APIErrors.IntegrationTokenExpired ||
+                                errorCode == APIErrors.IntegrationInvalidToken ||
+                                errorCode == APIErrors.IntegrationWrongTokenType
+                            "
+                        >
                             Your token appears invalid or expired.
                         </div>
-                        <div v-else-if="
-                            errorCode ==
-                            APIErrors.IntegrationIntegrationTokenMissingPermissions
-                        ">
-                            Your token does not have the required permissions. Please select
-                            both <span class="code-bubble">api</span> and
+                        <div
+                            v-else-if="
+                                errorCode == APIErrors.IntegrationIntegrationTokenMissingPermissions
+                            "
+                        >
+                            Your token does not have the required permissions. Please select both
+                            <span class="code-bubble">api</span> and
                             <span class="code-bubble">read_user</span> scopes.
                         </div>
                         <div v-else-if="errorCode == APIErrors.DuplicateIntegration">
@@ -220,7 +223,10 @@ init();
                                 The integration you are trying to update does not exist.
                             </div>
                         </div>
-                        <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
+                        <div
+                            v-else-if="errorCode == APIErrors.ValidationFailed"
+                            style="white-space: break-spaces"
+                        >
                             <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                             {{ validationError!.toMessage('Invalid form:') }}
                         </div>
@@ -233,9 +239,18 @@ init();
                 </AlertDescription>
             </Alert>
 
-            <Form class="normal-form" :validation-schema="formValidationSchema" style="row-gap: 20px" @submit="submit">
-                <FormTextField v-model="formPersonalAccessToken" :placeholder="'Enter a Gitlab personal access token'"
-                    :type="'text'" :name="'token'">
+            <Form
+                class="normal-form"
+                :validation-schema="formValidationSchema"
+                style="row-gap: 20px"
+                @submit="submit"
+            >
+                <FormTextField
+                    v-model="formPersonalAccessToken"
+                    :placeholder="'Enter a Gitlab personal access token'"
+                    :type="'text'"
+                    :name="'token'"
+                >
                     <template #name>Personal access token</template>
                 </FormTextField>
 
@@ -243,7 +258,6 @@ init();
                     <div>GitLab instance</div>
                     <div class="flex flex-row gap-4" style="text-align: center">
                         <div class="gitlab-host-selection-container" @click="setSelfHosted(false)">
-
                             <Button class="w-full h-16" variant="outline">GitLab.com</Button>
                             <div class="active" v-if="selfHosted == false">
                                 <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
@@ -282,9 +296,14 @@ init();
                             To save you some time we have prefilled a token with the correct
                             permissions:
                         </div>
-                        <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl +
-                            '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
-                            ">
+                        <a
+                            target="_blank"
+                            class="clear-button flex flex-row gap-1 w-fit items-center"
+                            :href="
+                                formGitlabInstanceUrl +
+                                '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
+                            "
+                        >
                             <Button>
                                 <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
                                 Prefilled access token
@@ -298,8 +317,8 @@ init();
                         </div>
 
                         <div>
-                            Copy and paste the newly created token in the field labeled
-                            "Personal access token" within this page.
+                            Copy and paste the newly created token in the field labeled "Personal
+                            access token" within this page.
                         </div>
                     </AlertDescription>
                 </Alert>
@@ -308,10 +327,16 @@ init();
                         <div class="flex flex-col gap-2">
                             <div>Alternatively, create a token manually:</div>
 
-                            <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center" :href="formGitlabInstanceUrl + '/-/profile/personal_access_tokens'
-                                ">
+                            <a
+                                target="_blank"
+                                class="clear-button flex flex-row gap-1 w-fit items-center"
+                                :href="formGitlabInstanceUrl + '/-/profile/personal_access_tokens'"
+                            >
                                 <Button>
-                                    <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
+                                    <Icon
+                                        icon="devicon:gitlab"
+                                        class="icon integration-icon"
+                                    ></Icon>
                                     Manually create an access token
                                 </Button>
                             </a>
@@ -340,21 +365,25 @@ init();
             <div>Enter the url of your self-hosted GitLab instance.</div>
         </template>
         <template #content>
-            <div style="
+            <div
+                style="
                     display: flex;
                     flex-direction: column;
                     row-gap: 1.5em;
                     max-width: 400px;
                     width: 100vw;
-                ">
-                <input type="text" v-model="formGitlabInstanceUrl" @input="validateGitlabInstanceUrl" />
+                "
+            >
+                <input
+                    type="text"
+                    v-model="formGitlabInstanceUrl"
+                    @input="validateGitlabInstanceUrl"
+                />
                 <div style="color: red">{{ formGitlabInstanceUrlError }}</div>
             </div>
         </template>
         <template #buttons>
-            <Button @click="selfHostedModalRef.toggle()">
-                Done
-            </Button>
+            <Button @click="selfHostedModalRef.toggle()"> Done </Button>
         </template>
     </CenteredModal>
 </template>

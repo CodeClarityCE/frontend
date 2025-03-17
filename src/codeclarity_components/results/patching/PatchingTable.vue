@@ -153,9 +153,15 @@ init();
         <!--------------------------------------------------------------------------->
         <!--                        Pagination info and controls                   -->
         <!--------------------------------------------------------------------------->
-        <UtilitiesSort :selectionPageLimit="selectionPageLimit" :sortOptions="sortOptions" :showing="nmbEntriesShowing"
-            :total="nmbEntriesTotal" v-model:pageLimitSelected="pageLimitSelected" v-model:sortKey="sortKey"
-            v-model:sortDirection="sortDirection">
+        <UtilitiesSort
+            :selectionPageLimit="selectionPageLimit"
+            :sortOptions="sortOptions"
+            :showing="nmbEntriesShowing"
+            :total="nmbEntriesTotal"
+            v-model:pageLimitSelected="pageLimitSelected"
+            v-model:sortKey="sortKey"
+            v-model:sortDirection="sortDirection"
+        >
         </UtilitiesSort>
 
         <!--------------------------------------------------------------------------->
@@ -176,18 +182,24 @@ init();
             <!--                          Pagination buttons                           -->
             <!--------------------------------------------------------------------------->
 
-            <div style="
+            <div
+                style="
                     color: #484848;
                     font-weight: 400;
                     display: flex;
                     justify-content: space-between;
                     margin-top: 30px;
-                ">
+                "
+            >
                 <div style="">
                     Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries
                 </div>
-                <PaginationComponent v-model:page="pageNumber" v-model:nmbEntriesShowing="pageLimitSelected"
-                    v-model:nmbEntriesTotal="nmbEntriesTotal" v-model:totalPages="totalPages" />
+                <PaginationComponent
+                    v-model:page="pageNumber"
+                    v-model:nmbEntriesShowing="pageLimitSelected"
+                    v-model:nmbEntriesTotal="nmbEntriesTotal"
+                    v-model:totalPages="totalPages"
+                />
             </div>
         </div>
 
@@ -197,7 +209,11 @@ init();
 
         <div v-if="!render">
             <div style="display: flex; flex-direction: column; row-gap: 10px">
-                <BoxLoader v-for="index in 3" :key="index" :dimensions="{ width: '100%', height: '150px' }" />
+                <BoxLoader
+                    v-for="index in 3"
+                    :key="index"
+                    :dimensions="{ width: '100%', height: '150px' }"
+                />
             </div>
         </div>
     </div>

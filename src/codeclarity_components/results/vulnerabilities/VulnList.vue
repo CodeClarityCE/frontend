@@ -3,7 +3,10 @@ import { type Ref, ref, watch } from 'vue';
 import SearchBar from '@/base_components/SearchBar.vue';
 import BoxLoader from '@/base_components/BoxLoader.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type { VulnerabilityMerged, WeaknessInfo } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import type {
+    VulnerabilityMerged,
+    WeaknessInfo
+} from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import { Icon } from '@iconify/vue';
 // Import stores
 import { useUserStore } from '@/stores/user';
@@ -166,9 +169,15 @@ init();
         <!--------------------------------------------------------------------------->
         <!--                        Pagination info and controls                   -->
         <!--------------------------------------------------------------------------->
-        <UtilitiesSort :selectionPageLimit="selectionPageLimit" :sortOptions="sortByOptions"
-            :showing="nmbEntriesShowing" :total="nmbEntriesTotal" v-model:pageLimitSelected="pageLimitSelected"
-            v-model:sortKey="sortKey" v-model:sortDirection="sortDirection">
+        <UtilitiesSort
+            :selectionPageLimit="selectionPageLimit"
+            :sortOptions="sortByOptions"
+            :showing="nmbEntriesShowing"
+            :total="nmbEntriesTotal"
+            v-model:pageLimitSelected="pageLimitSelected"
+            v-model:sortKey="sortKey"
+            v-model:sortDirection="sortDirection"
+        >
         </UtilitiesSort>
 
         <!--------------------------------------------------------------------------->
@@ -177,8 +186,11 @@ init();
 
         <div v-if="render" class="flex flex-col gap-y-6">
             <div v-for="report in findings" :key="report.Id">
-                <RouterLink class="flex flex-col gap-2 transition-all hover:scale-105"
-                    v-for="affected in report.Affected" :key="affected.AffectedDependency" :to="{
+                <RouterLink
+                    class="flex flex-col gap-2 transition-all hover:scale-105"
+                    v-for="affected in report.Affected"
+                    :key="affected.AffectedDependency"
+                    :to="{
                         name: 'results',
                         query: {
                             analysis_id: props.analysisID,
@@ -186,7 +198,8 @@ init();
                             finding_id: report.Vulnerability
                         },
                         params: { page: 'vulnerabilities_details' }
-                    }">
+                    }"
+                >
                     <div title="View vulnerability details" style="font-size: 1.05rem">
                         <div class="relative">
                             <div class="short_listing_vulnerability mb-4 flex gap-x-4 p-2">
@@ -195,25 +208,37 @@ init();
                                 <!--------------------------------------------------------------------------->
 
                                 <div class="flex w-12 flex-shrink-0">
-                                    <div class="[writing-mode:vertical-lr] flex items-center self-start">
-                                        <div v-if="isCriticalSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityCritical">
+                                    <div
+                                        class="[writing-mode:vertical-lr] flex items-center self-start"
+                                    >
+                                        <div
+                                            v-if="isCriticalSeverity(report.Severity.Severity)"
+                                            class="px-1 py-5 font-semibold text-white bg-severityCritical"
+                                        >
                                             CRITICAL
                                         </div>
-                                        <div v-if="isHighSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityHigh">
+                                        <div
+                                            v-if="isHighSeverity(report.Severity.Severity)"
+                                            class="px-1 py-5 font-semibold text-white bg-severityHigh"
+                                        >
                                             HIGH
                                         </div>
-                                        <div v-if="isMediumSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityMedium">
+                                        <div
+                                            v-if="isMediumSeverity(report.Severity.Severity)"
+                                            class="px-1 py-5 font-semibold text-white bg-severityMedium"
+                                        >
                                             MODERATE
                                         </div>
-                                        <div v-if="isLowSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityLow">
+                                        <div
+                                            v-if="isLowSeverity(report.Severity.Severity)"
+                                            class="px-1 py-5 font-semibold text-white bg-severityLow"
+                                        >
                                             LOW
                                         </div>
-                                        <div v-if="isNoneSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityNone">
+                                        <div
+                                            v-if="isNoneSeverity(report.Severity.Severity)"
+                                            class="px-1 py-5 font-semibold text-white bg-severityNone"
+                                        >
                                             NONE
                                         </div>
                                     </div>
@@ -226,11 +251,13 @@ init();
                                 <div class="flex flex-col gap-4 py-1 pr-16 w-full shrink-0">
                                     <div class="flex gap-2 justify-between">
                                         <div v-if="report.Weaknesses.length > 0">
-                                            <div style="
+                                            <div
+                                                style="
                                                     margin-bottom: -10px;
                                                     font-size: 1.25em;
                                                     font-weight: 400;
-                                                ">
+                                                "
+                                            >
                                                 {{ report.Weaknesses[0].WeaknessName || '' }}
                                             </div>
                                         </div>
@@ -249,11 +276,15 @@ init();
                                             <!--------------------------------------------------------------------------->
                                             <!--                              Severity indicator                       -->
                                             <!--------------------------------------------------------------------------->
-                                            <SeverityBubble :critical="isCriticalSeverity(report.Severity.Severity)
-                                                " :high="isHighSeverity(report.Severity.Severity)"
+                                            <SeverityBubble
+                                                :critical="
+                                                    isCriticalSeverity(report.Severity.Severity)
+                                                "
+                                                :high="isHighSeverity(report.Severity.Severity)"
                                                 :medium="isMediumSeverity(report.Severity.Severity)"
                                                 :low="isLowSeverity(report.Severity.Severity)"
-                                                :none="isNoneSeverity(report.Severity.Severity)">
+                                                :none="isNoneSeverity(report.Severity.Severity)"
+                                            >
                                                 <template #content>{{
                                                     report.Severity.Severity
                                                 }}</template>
@@ -263,10 +294,15 @@ init();
                                             <!--                                CWE Info                               -->
                                             <!--------------------------------------------------------------------------->
 
-                                            <div v-if="report.Weaknesses"
-                                                class="flex gap-1 justify-between items-center">
-                                                <Badge v-for="weakness in report.Weaknesses" :key="weakness.WeaknessId"
-                                                    :cwe="true">
+                                            <div
+                                                v-if="report.Weaknesses"
+                                                class="flex gap-1 justify-between items-center"
+                                            >
+                                                <Badge
+                                                    v-for="weakness in report.Weaknesses"
+                                                    :key="weakness.WeaknessId"
+                                                    :cwe="true"
+                                                >
                                                     {{ weakness.WeaknessId }}
                                                 </Badge>
                                             </div>
@@ -274,19 +310,25 @@ init();
                                             <!--------------------------------------------------------------------------->
                                             <!--                            Owasp Top 10 Info                          -->
                                             <!--------------------------------------------------------------------------->
-                                            <div v-if="
-                                                report.Weaknesses &&
-                                                report.Weaknesses.some(
-                                                    (weakness) => weakness.OWASPTop10Id != ''
-                                                )
-                                            " class="flex gap-1 justify-between items-center">
+                                            <div
+                                                v-if="
+                                                    report.Weaknesses &&
+                                                    report.Weaknesses.some(
+                                                        (weakness) => weakness.OWASPTop10Id != ''
+                                                    )
+                                                "
+                                                class="flex gap-1 justify-between items-center"
+                                            >
                                                 <div>
                                                     <Icon :icon="'simple-icons:owasp'"></Icon>
                                                 </div>
-                                                <div v-for="owaspID in getUniqueOWASP(
-                                                    report.Weaknesses
-                                                )" :key="owaspID"
-                                                    class="flex gap-2 items-center font-bold text-[#5e5e5e]">
+                                                <div
+                                                    v-for="owaspID in getUniqueOWASP(
+                                                        report.Weaknesses
+                                                    )"
+                                                    :key="owaspID"
+                                                    class="flex gap-2 items-center font-bold text-[#5e5e5e]"
+                                                >
                                                     <div v-if="owaspID == '1345'">
                                                         A01: Broken Access Control
                                                     </div>
@@ -327,35 +369,46 @@ init();
                                         <!--                              Impact info                              -->
                                         <!--------------------------------------------------------------------------->
 
-                                        <div class="flex gap-5 gap-y-5 gap-x-1 flex-wrap text-[#444] text-sm">
-                                            <BubbleComponent v-if="
-                                                report.Severity &&
-                                                report.Severity.ConfidentialityImpact !=
-                                                'NONE' &&
-                                                report.Severity.AvailabilityImpact != ''
-                                            " title="Impacts Confidentiality">
+                                        <div
+                                            class="flex gap-5 gap-y-5 gap-x-1 flex-wrap text-[#444] text-sm"
+                                        >
+                                            <BubbleComponent
+                                                v-if="
+                                                    report.Severity &&
+                                                    report.Severity.ConfidentialityImpact !=
+                                                        'NONE' &&
+                                                    report.Severity.AvailabilityImpact != ''
+                                                "
+                                                title="Impacts Confidentiality"
+                                            >
                                                 <template #content>
                                                     <Icon :icon="'prime:angle-double-down'"></Icon>
                                                     <div>Confidentiality</div>
                                                 </template>
                                             </BubbleComponent>
 
-                                            <BubbleComponent v-if="
-                                                report.Severity &&
-                                                report.Severity.AvailabilityImpact != 'NONE' &&
-                                                report.Severity.AvailabilityImpact != ''
-                                            " title="Impacts Availability">
+                                            <BubbleComponent
+                                                v-if="
+                                                    report.Severity &&
+                                                    report.Severity.AvailabilityImpact != 'NONE' &&
+                                                    report.Severity.AvailabilityImpact != ''
+                                                "
+                                                title="Impacts Availability"
+                                            >
                                                 <template #content>
                                                     <Icon :icon="'prime:angle-double-down'"></Icon>
                                                     <div>Availability</div>
                                                 </template>
                                             </BubbleComponent>
 
-                                            <BubbleComponent v-if="
-                                                report.Severity &&
-                                                report.Severity.IntegrityImpact != 'NONE' &&
-                                                report.Severity.AvailabilityImpact != ''
-                                            " title="Impacts Integrity">
+                                            <BubbleComponent
+                                                v-if="
+                                                    report.Severity &&
+                                                    report.Severity.IntegrityImpact != 'NONE' &&
+                                                    report.Severity.AvailabilityImpact != ''
+                                                "
+                                                title="Impacts Integrity"
+                                            >
                                                 <template #content>
                                                     <Icon :icon="'prime:angle-double-down'"></Icon>
                                                     <div>Integrity</div>
@@ -377,7 +430,9 @@ init();
                                     <!--                       Vulnerability description                       -->
                                     <!--------------------------------------------------------------------------->
 
-                                    <InfoMarkdown :markdown="report.Description.trim()"></InfoMarkdown>
+                                    <InfoMarkdown
+                                        :markdown="report.Description.trim()"
+                                    ></InfoMarkdown>
                                 </div>
                             </div>
                         </div>
@@ -392,15 +447,22 @@ init();
             <div v-if="matchingItemsCount == 0 && filterApplied && render" style="margin-top: 20px">
                 <div style="text-align: center">No findings match the filter</div>
             </div>
-            <div v-if="matchingItemsCount == 0 && !filterApplied && render" style="margin-top: 20px">
+            <div
+                v-if="matchingItemsCount == 0 && !filterApplied && render"
+                style="margin-top: 20px"
+            >
                 <div style="text-align: center">No findings</div>
             </div>
 
             <!--------------------------------------------------------------------------->
             <!--                          Pagination buttons                           -->
             <!--------------------------------------------------------------------------->
-            <PaginationComponent v-model:page="pageNumber" v-model:nmbEntriesShowing="pageLimitSelected"
-                v-model:nmbEntriesTotal="nmbEntriesTotal" v-model:totalPages="totalPages" />
+            <PaginationComponent
+                v-model:page="pageNumber"
+                v-model:nmbEntriesShowing="pageLimitSelected"
+                v-model:nmbEntriesTotal="nmbEntriesTotal"
+                v-model:totalPages="totalPages"
+            />
         </div>
 
         <!--------------------------------------------------------------------------->
@@ -409,7 +471,11 @@ init();
 
         <div v-else>
             <div style="display: flex; flex-direction: column; row-gap: 10px">
-                <BoxLoader v-for="i in 2" :key="i" :dimensions="{ width: '100%', height: '300px' }" />
+                <BoxLoader
+                    v-for="i in 2"
+                    :key="i"
+                    :dimensions="{ width: '100%', height: '300px' }"
+                />
             </div>
         </div>
     </div>

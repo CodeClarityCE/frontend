@@ -22,14 +22,22 @@ defineProps({
 </script>
 <template>
     <Collapsible class="flex flex-col gap-4 items-center" v-model:open="isOpen">
-        <AnalysisItem v-for="analysis in analyses.slice(0, 1)" :key="analysis.id" :analysis="analysis"
-            :projectID="projectID"></AnalysisItem>
-        <CollapsibleTrigger v-if="analyses.length > 1" class="flex gap-2 items-center">Show older analyses <Icon
-                icon="tabler:chevron-down"></Icon>
+        <AnalysisItem
+            v-for="analysis in analyses.slice(0, 1)"
+            :key="analysis.id"
+            :analysis="analysis"
+            :projectID="projectID"
+        ></AnalysisItem>
+        <CollapsibleTrigger v-if="analyses.length > 1" class="flex gap-2 items-center"
+            >Show older analyses <Icon icon="tabler:chevron-down"></Icon>
         </CollapsibleTrigger>
         <CollapsibleContent v-if="analyses.length > 1">
-            <AnalysisItem v-for="analysis in analyses.slice(1, analyses.length)" :key="analysis.id" :analysis="analysis"
-                :projectID="projectID"></AnalysisItem>
+            <AnalysisItem
+                v-for="analysis in analyses.slice(1, analyses.length)"
+                :key="analysis.id"
+                :analysis="analysis"
+                :projectID="projectID"
+            ></AnalysisItem>
         </CollapsibleContent>
     </Collapsible>
 </template>

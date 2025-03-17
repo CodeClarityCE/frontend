@@ -26,5 +26,9 @@ defineProps<{
 }
 </style>
 <template>
-    <vue-markdown class="short_listing_description" :source="markdown" :options="{ linkify: false }" />
+    <vue-markdown
+        class="short_listing_description"
+        :source="markdown"
+        :options="{ linkify: false }"
+    />
 </template>

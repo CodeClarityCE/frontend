@@ -260,12 +260,15 @@ fetchOrgMetaData();
 fetchVcsIntegrations();
 </script>
 <template>
-    <div v-if="
-        orgMetaDataLoading ||
-        orgMetaDataError ||
-        (orgMetaData &&
-            (orgMetaData.integrations.length == 0 || orgMetaData.projects.length == 0))
-    " class="h-full relative">
+    <div
+        v-if="
+            orgMetaDataLoading ||
+            orgMetaDataError ||
+            (orgMetaData &&
+                (orgMetaData.integrations.length == 0 || orgMetaData.projects.length == 0))
+        "
+        class="h-full relative"
+    >
         <div class="flex flex-col gap-4 h-full">
             <div class="flex flex-row gap-5">
                 <Skeleton class="h-14 w-10/12" />
@@ -274,13 +277,22 @@ fetchVcsIntegrations();
             <Skeleton class="h-[16.6%] w-full min-h-32" v-for="i in 6" :key="i" />
         </div>
         <div
-            class="flex flex-col gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg">
+            class="flex flex-col gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg"
+        >
             <template v-if="orgMetaDataError">
-                <Icon class="icon" icon="solar:confounded-square-linear" style="font-size: 5rem"></Icon>
+                <Icon
+                    class="icon"
+                    icon="solar:confounded-square-linear"
+                    style="font-size: 5rem"
+                ></Icon>
                 <div style="font-size: 1.25rem">Unable to fetch the state of your organizaiton</div>
             </template>
             <template v-else-if="orgMetaData">
-                <Icon class="icon" icon="solar:sleeping-square-linear" style="font-size: 5rem"></Icon>
+                <Icon
+                    class="icon"
+                    icon="solar:sleeping-square-linear"
+                    style="font-size: 5rem"
+                ></Icon>
                 <div style="font-size: 1.25rem">
                     <div v-if="orgMetaData.integrations.length == 0">
                         You have no integration with a VCS system yet
@@ -290,17 +302,20 @@ fetchVcsIntegrations();
                     </div>
                 </div>
 
-                <RouterLink v-if="orgMetaData.integrations.length == 0" :to="{
-                    name: 'orgs',
-                    params: { orgId: defaultOrg!.id, page: 'integrations', action: 'add' }
-                }">
+                <RouterLink
+                    v-if="orgMetaData.integrations.length == 0"
+                    :to="{
+                        name: 'orgs',
+                        params: { orgId: defaultOrg!.id, page: 'integrations', action: 'add' }
+                    }"
+                >
                     <Button> Link to Github or Gitlab </Button>
                 </RouterLink>
-                <RouterLink v-else-if="orgMetaData.projects.length == 0"
-                    :to="{ name: 'projects', params: { page: 'add' } }">
-                    <Button>
-                        <Icon icon="ion:add-sharp" /> Add a project
-                    </Button>
+                <RouterLink
+                    v-else-if="orgMetaData.projects.length == 0"
+                    :to="{ name: 'projects', params: { page: 'add' } }"
+                >
+                    <Button> <Icon icon="ion:add-sharp" /> Add a project </Button>
                 </RouterLink>
             </template>
         </div>
@@ -309,7 +324,10 @@ fetchVcsIntegrations();
         <Card class="xl:col-span-5 xl:col-start-3">
             <CardHeader>
                 <CardTitle>Vulnerability Exposure Overview</CardTitle>
-                <CardDescription> This chart displays the total severity of vulnerabilities across all your projects. </CardDescription>
+                <CardDescription>
+                    This chart displays the total severity of vulnerabilities across all your
+                    projects.
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
@@ -330,7 +348,8 @@ fetchVcsIntegrations();
             <CardHeader>
                 <CardTitle>Open source license distribution</CardTitle>
                 <CardDescription>
-                    Comprehensive overview of open source licenses used by your project's dependencies.
+                    Comprehensive overview of open source licenses used by your project's
+                    dependencies.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -340,7 +359,10 @@ fetchVcsIntegrations();
         <Card class="xl:col-span-3">
             <CardHeader>
                 <CardTitle>Vulnerability Impact Analysis</CardTitle>
-                <CardDescription> Average severity of vulnerabilities affecting your projects, providing insight into potential risks. </CardDescription>
+                <CardDescription>
+                    Average severity of vulnerabilities affecting your projects, providing insight
+                    into potential risks.
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <VulnerabilityImpact :integration-ids="activeIntegrationIds"></VulnerabilityImpact>

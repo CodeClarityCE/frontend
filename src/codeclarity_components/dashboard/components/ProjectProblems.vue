@@ -169,23 +169,27 @@ fetch();
         <div class="flex flex-col gap-2">
             <Skeleton v-for="index in 4" :key="index" class="h-[45px] w-[400px] rounded-xl" />
         </div>
-        <div v-if="noData" class="flex flex-row justify-center items-center absolute font-black w-full h-full">
+        <div
+            v-if="noData"
+            class="flex flex-row justify-center items-center absolute font-black w-full h-full"
+        >
             <div class="font-black text-xl">No Data</div>
         </div>
     </div>
     <div v-else class="flex flex-col items-center w-full">
         <template v-if="error">
             <div class="flex flex-row gap-2">
-                <Icon class="text-5xl h-fit user-icon" icon="solar:confounded-square-outline"></Icon>
+                <Icon
+                    class="text-5xl h-fit user-icon"
+                    icon="solar:confounded-square-outline"
+                ></Icon>
                 <div>
                     <div class="flex flex-row gap-2">
                         <div class="flex flex-row gap-2">
                             <div>Failed to load the dashboard component</div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <Button @click="fetch">
-                                Try again
-                            </Button>
+                            <Button @click="fetch"> Try again </Button>
                         </div>
                     </div>
                 </div>
@@ -193,46 +197,74 @@ fetch();
         </template>
         <template v-else>
             <div class="w-full overflow-x-scroll">
-                <SortableTable :headers="headers" v-model:sortKey="sortKey" v-model:sortDirection="sortDirection">
+                <SortableTable
+                    :headers="headers"
+                    v-model:sortKey="sortKey"
+                    v-model:sortDirection="sortDirection"
+                >
                     <template #data>
                         <tr v-for="(entry, index) in data" :key="index">
                             <td>
                                 <Badge>
-                                    <a class="flex flew-wrap gap-2 items-center" :href="entry.project.url"
-                                        target="_blank" title="Open source repository">
-                                        <Icon class="flex-shrink-0" v-if="
-                                            entry.project.provider == IntegrationProvider.GITHUB
-                                        " icon="simple-icons:github" />
-                                        <Icon class="flex-shrink-0" v-if="
-                                            entry.project.provider == IntegrationProvider.GITLAB
-                                        " icon="devicon:gitlab" />
+                                    <a
+                                        class="flex flew-wrap gap-2 items-center"
+                                        :href="entry.project.url"
+                                        target="_blank"
+                                        title="Open source repository"
+                                    >
+                                        <Icon
+                                            class="flex-shrink-0"
+                                            v-if="
+                                                entry.project.provider == IntegrationProvider.GITHUB
+                                            "
+                                            icon="simple-icons:github"
+                                        />
+                                        <Icon
+                                            class="flex-shrink-0"
+                                            v-if="
+                                                entry.project.provider == IntegrationProvider.GITLAB
+                                            "
+                                            icon="devicon:gitlab"
+                                        />
                                         {{ entry.project.name }}
                                     </a>
                                 </Badge>
                             </td>
                             <td class="flex flex-col justify-center items-center">
-                                <div class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityCritical" v-if="
-                                    entry.grade.class == ProjectGradeClass.D_PLUS ||
-                                    entry.grade.class == ProjectGradeClass.D
-                                ">
+                                <div
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityCritical"
+                                    v-if="
+                                        entry.grade.class == ProjectGradeClass.D_PLUS ||
+                                        entry.grade.class == ProjectGradeClass.D
+                                    "
+                                >
                                     {{ entry.grade.class }}
                                 </div>
-                                <div class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityHigh" v-if="
-                                    entry.grade.class == ProjectGradeClass.C_PLUS ||
-                                    entry.grade.class == ProjectGradeClass.C
-                                ">
+                                <div
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityHigh"
+                                    v-if="
+                                        entry.grade.class == ProjectGradeClass.C_PLUS ||
+                                        entry.grade.class == ProjectGradeClass.C
+                                    "
+                                >
                                     {{ entry.grade.class }}
                                 </div>
-                                <div class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityMedium" v-if="
-                                    entry.grade.class == ProjectGradeClass.B_PLUS ||
-                                    entry.grade.class == ProjectGradeClass.B
-                                ">
+                                <div
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityMedium"
+                                    v-if="
+                                        entry.grade.class == ProjectGradeClass.B_PLUS ||
+                                        entry.grade.class == ProjectGradeClass.B
+                                    "
+                                >
                                     {{ entry.grade.class }}
                                 </div>
-                                <div class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityLow" v-if="
-                                    entry.grade.class == ProjectGradeClass.A_PLUS ||
-                                    entry.grade.class == ProjectGradeClass.A
-                                ">
+                                <div
+                                    class="font-black text-white rounded-sm w-fit py-1 px-2 bg-severityLow"
+                                    v-if="
+                                        entry.grade.class == ProjectGradeClass.A_PLUS ||
+                                        entry.grade.class == ProjectGradeClass.A
+                                    "
+                                >
                                     {{ entry.grade.class }}
                                 </div>
                             </td>
@@ -242,13 +274,16 @@ fetch();
                                 </div>
                             </td>
                             <td class="flex flex-col justify-center items-center">
-                                <SeverityBubble :critical="isCriticalSeverity(entry.avg_severity)"
+                                <SeverityBubble
+                                    :critical="isCriticalSeverity(entry.avg_severity)"
                                     :high="isHighSeverity(entry.avg_severity)"
                                     :medium="isMediumSeverity(entry.avg_severity)"
-                                    :low="isLowSeverity(entry.avg_severity)" :none="isNoneSeverity(entry.avg_severity)">
+                                    :low="isLowSeverity(entry.avg_severity)"
+                                    :none="isNoneSeverity(entry.avg_severity)"
+                                >
                                     <template #content>{{
                                         entry.avg_severity.toFixed(1)
-                                        }}</template>
+                                    }}</template>
                                 </SeverityBubble>
                             </td>
                             <td>
@@ -271,8 +306,12 @@ fetch();
                 </SortableTable>
             </div>
             <div class="flex flex-row justify-end">
-                <Pagination v-model:page="page" v-model:nmbEntriesShowing="entriesPerPage"
-                    v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages" />
+                <Pagination
+                    v-model:page="page"
+                    v-model:nmbEntriesShowing="entriesPerPage"
+                    v-model:nmbEntriesTotal="totalEntries"
+                    v-model:totalPages="totalPages"
+                />
             </div>
         </template>
     </div>

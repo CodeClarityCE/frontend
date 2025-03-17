@@ -185,9 +185,7 @@ onMounted(async () => {
                             leading up to this problem.
                         </div>
                         <div>
-                            <Button @click="nonRecoverableErrorRedirect()">
-                                Okay
-                            </Button>
+                            <Button @click="nonRecoverableErrorRedirect()"> Okay </Button>
                         </div>
                     </div>
                 </div>
@@ -210,9 +208,7 @@ onMounted(async () => {
                         </div>
 
                         <div>
-                            <Button @click="nonRecoverableErrorRedirect">
-                                Back to login
-                            </Button>
+                            <Button @click="nonRecoverableErrorRedirect"> Back to login </Button>
                         </div>
                     </div>
                 </div>

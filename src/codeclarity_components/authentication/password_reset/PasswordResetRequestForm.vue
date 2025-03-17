@@ -71,8 +71,10 @@ async function submit() {
                             <div class="flex flex-row items-center gap-2">
                                 <Icon icon="material-symbols:error-outline" />
                                 <div v-if="errorCode">
-                                    <div v-if="errorCode == APIErrors.ValidationFailed"
-                                        style="white-space: break-spaces">
+                                    <div
+                                        v-if="errorCode == APIErrors.ValidationFailed"
+                                        style="white-space: break-spaces"
+                                    >
                                         <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                                         {{ validationError!.toMessage('Invalid form:') }}
                                     </div>
@@ -88,14 +90,24 @@ async function submit() {
                     </div>
                 </div>
 
-                <Form class="flex flex-col gap-4" name="pasword_reset_request_form"
-                    :validation-schema="formValidationSchema" @submit="submit">
-                    <FormTextField v-model.trim="formEmail" :placeholder="'Enter your email'" :type="'email'"
-                        :name="'email'">
+                <Form
+                    class="flex flex-col gap-4"
+                    name="pasword_reset_request_form"
+                    :validation-schema="formValidationSchema"
+                    @submit="submit"
+                >
+                    <FormTextField
+                        v-model.trim="formEmail"
+                        :placeholder="'Enter your email'"
+                        :type="'email'"
+                        :name="'email'"
+                    >
                         <template #name>Email</template>
                     </FormTextField>
 
-                    <LoadingSubmitButton ref="loadingButtonRef">Request password reset</LoadingSubmitButton>
+                    <LoadingSubmitButton ref="loadingButtonRef"
+                        >Request password reset</LoadingSubmitButton
+                    >
                 </Form>
             </div>
         </div>
@@ -111,8 +123,11 @@ async function submit() {
                 </div>
             </div>
             <div class="flex flex-col justify-between gap-4">
-                <RouterLink class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primaryHovered"
-                    :to="{ name: 'login' }" style="width: 100%">
+                <RouterLink
+                    class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primaryHovered"
+                    :to="{ name: 'login' }"
+                    style="width: 100%"
+                >
                     Back to login
                 </RouterLink>
             </div>

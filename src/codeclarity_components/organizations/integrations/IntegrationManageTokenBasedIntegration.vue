@@ -84,8 +84,11 @@ const emit = defineEmits<{
     <div v-if="error">
         <div class="flex flex-col gap-5 w-fit" style="font-size: 1.5em">
             <div class="flex flex-row gap-2">
-                <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"></Icon>
+                <Icon
+                    class="icon user-icon"
+                    icon="solar:confounded-square-outline"
+                    style="font-size: 3rem; height: fit-content"
+                ></Icon>
                 <div>
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
@@ -110,12 +113,13 @@ const emit = defineEmits<{
                             </div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <Button v-if="errorCode != APIErrors.NotAuthorized" @click="emit('refresh')">
+                            <Button
+                                v-if="errorCode != APIErrors.NotAuthorized"
+                                @click="emit('refresh')"
+                            >
                                 Try again
                             </Button>
-                            <Button @click="router.back()">
-                                Go back
-                            </Button>
+                            <Button @click="router.back()"> Go back </Button>
                         </div>
                     </div>
                 </div>
@@ -151,16 +155,19 @@ const emit = defineEmits<{
                             Expiry date:
                             <span v-if="integration.expiry_date">
                                 {{ moment(integration.expiry_date).format('LL') }}
-                                <span v-if="
-                                    moment
-                                        .duration(
-                                            moment(integration.expiry_date).diff(new Date())
-                                        )
-                                        .asDays() > 0
-                                " :style="{
-                                    color: isAtRisk() ? 'red' : 'unset',
-                                    'font-weight': isAtRisk() ? 900 : 'unset'
-                                }">
+                                <span
+                                    v-if="
+                                        moment
+                                            .duration(
+                                                moment(integration.expiry_date).diff(new Date())
+                                            )
+                                            .asDays() > 0
+                                    "
+                                    :style="{
+                                        color: isAtRisk() ? 'red' : 'unset',
+                                        'font-weight': isAtRisk() ? 900 : 'unset'
+                                    }"
+                                >
                                     (expires {{ moment(integration.expiry_date).fromNow() }})
                                 </span>
                                 <span v-else style="color: red; font-weight: 900">(Expired)</span>
@@ -176,19 +183,25 @@ const emit = defineEmits<{
                         </div>
                         <div class="flex flex-row gap-1 items-center">
                             <div>Status:</div>
-                            <div v-if="integration.invalid == false && isAtRisk()"
+                            <div
+                                v-if="integration.invalid == false && isAtRisk()"
                                 class="general-bubble general-bubble-slim general-bubble-orange"
-                                title="Integration token is about to expire. Please use the action 'Update/Replace integration token'.">
+                                title="Integration token is about to expire. Please use the action 'Update/Replace integration token'."
+                            >
                                 At Risk
                             </div>
-                            <div v-else-if="integration.invalid == true"
+                            <div
+                                v-else-if="integration.invalid == true"
                                 class="general-bubble general-bubble-slim general-bubble-red"
-                                title="Integration token expired or permissions have been modified.">
+                                title="Integration token expired or permissions have been modified."
+                            >
                                 Unhealthy
                             </div>
-                            <div v-else-if="integration.invalid == false"
+                            <div
+                                v-else-if="integration.invalid == false"
                                 class="general-bubble general-bubble-slim general-bubble-green"
-                                title="Integration token is healthy.">
+                                title="Integration token is healthy."
+                            >
                                 Healthy
                             </div>
                         </div>
@@ -243,8 +256,12 @@ const emit = defineEmits<{
                         What to do when an integration status is unhealty?
                     </template>
                     <template #answer>
-                        <SortableTable class="w-full" :headers="headers" :sortKey="sortKey"
-                            :sortDirection="sortDirection">
+                        <SortableTable
+                            class="w-full"
+                            :headers="headers"
+                            :sortKey="sortKey"
+                            :sortDirection="sortDirection"
+                        >
                             <template #data>
                                 <tr>
                                     <td>
@@ -316,13 +333,14 @@ const emit = defineEmits<{
             </div>
         </template>
         <template #buttons>
-            <Button v-if="centeredModalAction == ModalAction.DELETE" variant="destructive"
-                @click="performModalAction()">
+            <Button
+                v-if="centeredModalAction == ModalAction.DELETE"
+                variant="destructive"
+                @click="performModalAction()"
+            >
                 <Icon icon="solar:trash-bin-trash-bold"></Icon>
             </Button>
-            <Button variant="outline" @click="centeredModalRef.toggle()">
-                Cancel
-            </Button>
+            <Button variant="outline" @click="centeredModalRef.toggle()"> Cancel </Button>
         </template>
     </CenteredModal>
 </template>

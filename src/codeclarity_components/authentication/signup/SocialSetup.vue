@@ -171,7 +171,7 @@ function nonRecoverableErrorRedirect() {
                         Error code:
                         <span style="font-family: 'Courier New', Courier, monospace">{{
                             errorCode
-                            }}</span>
+                        }}</span>
                     </div>
                 </div>
                 <div style="font-size: 1.2em">
@@ -180,9 +180,7 @@ function nonRecoverableErrorRedirect() {
                     contact the webmaster and provide them with the error code listed above.
                 </div>
                 <div>
-                    <Button @click="nonRecoverableErrorRedirect">
-                        Okay
-                    </Button>
+                    <Button @click="nonRecoverableErrorRedirect"> Okay </Button>
                 </div>
             </div>
 
@@ -190,42 +188,63 @@ function nonRecoverableErrorRedirect() {
                 Before being able to use our platform, fill out the details below.
             </div>
 
-            <div v-if="!errorNonRecoverable" style="display: flex; flex-direction: column; row-gap: 2rem">
+            <div
+                v-if="!errorNonRecoverable"
+                style="display: flex; flex-direction: column; row-gap: 2rem"
+            >
                 <Alert v-if="errorCode">
                     <AlertDescription class="flex flex-row gap-2 items-center">
                         <Icon icon="material-symbols:error-outline" />
                         <div>
                             <div v-if="errorCode == APIErrors.HandleAlreadyExists">
-                                A user with that handle already exists, choose a different
-                                handle.
+                                A user with that handle already exists, choose a different handle.
                             </div>
-                            <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
+                            <div
+                                v-else-if="errorCode == APIErrors.ValidationFailed"
+                                style="white-space: break-spaces"
+                            >
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                                 {{ validationError!.toMessage('Invalid form:') }}
                             </div>
-                            <div v-else>
-                                An error occured during the processing of the request.
-                            </div>
+                            <div v-else>An error occured during the processing of the request.</div>
                         </div>
                     </AlertDescription>
                 </Alert>
 
-                <Form class="flex flex-col gap-4" name="social_form" :validation-schema="formValidationSchema"
-                    @submit="submit">
+                <Form
+                    class="flex flex-col gap-4"
+                    name="social_form"
+                    :validation-schema="formValidationSchema"
+                    @submit="submit"
+                >
                     <div class="flex flex-row gap-4">
-                        <FormTextField class="w-full" v-model="formFirstName" :placeholder="'Enter your first name'"
-                            :type="'text'" :name="'social_form[firstName]'">
+                        <FormTextField
+                            class="w-full"
+                            v-model="formFirstName"
+                            :placeholder="'Enter your first name'"
+                            :type="'text'"
+                            :name="'social_form[firstName]'"
+                        >
                             <template #name>First Name</template>
                         </FormTextField>
 
-                        <FormTextField class="w-full" v-model="formLastName" :placeholder="'Enter your last name'"
-                            :type="'text'" :name="'social_form[lastName]'">
+                        <FormTextField
+                            class="w-full"
+                            v-model="formLastName"
+                            :placeholder="'Enter your last name'"
+                            :type="'text'"
+                            :name="'social_form[lastName]'"
+                        >
                             <template #name>Last Name</template>
                         </FormTextField>
                     </div>
 
-                    <FormTextField v-model="formHandle" :placeholder="'Enter your handle'" :type="'text'"
-                        :name="'social_form[handle]'">
+                    <FormTextField
+                        v-model="formHandle"
+                        :placeholder="'Enter your handle'"
+                        :type="'text'"
+                        :name="'social_form[handle]'"
+                    >
                         <template #name>Handle</template>
                     </FormTextField>
 
@@ -234,7 +253,9 @@ function nonRecoverableErrorRedirect() {
                         <template #name>I agree to the terms and conditions</template>
                     </FormInlineCheckboxField>
 
-                    <LoadingSubmitButton ref="loadingButtonRef">Complete account setup</LoadingSubmitButton>
+                    <LoadingSubmitButton ref="loadingButtonRef"
+                        >Complete account setup</LoadingSubmitButton
+                    >
                 </Form>
             </div>
         </div>

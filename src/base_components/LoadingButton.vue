@@ -29,8 +29,12 @@ defineExpose({
 });
 </script>
 <template>
-    <button type="button" class="cursor-pointer flex flex-row items-center justify-center"
-        :class="{ 'submit-button': !props.noStyle }" v-bind:disabled="disabled">
+    <button
+        type="button"
+        class="cursor-pointer flex flex-row items-center justify-center"
+        :class="{ 'submit-button': !props.noStyle }"
+        v-bind:disabled="disabled"
+    >
         <div v-if="loading">
             <div class="-my-1 aspect-square rounded spinner"></div>
         </div>

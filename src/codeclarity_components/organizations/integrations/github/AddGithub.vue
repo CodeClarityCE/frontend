@@ -151,17 +151,21 @@ init();
                     <div class="flex flex-row gap-2 items-center">
                         <Icon icon="material-symbols:error-outline" />
                         <div v-if="errorCode">
-                            <div v-if="
-                                errorCode == APIErrors.IntegrationTokenExpired ||
-                                errorCode == APIErrors.IntegrationInvalidToken ||
-                                errorCode == APIErrors.IntegrationWrongTokenType
-                            ">
+                            <div
+                                v-if="
+                                    errorCode == APIErrors.IntegrationTokenExpired ||
+                                    errorCode == APIErrors.IntegrationInvalidToken ||
+                                    errorCode == APIErrors.IntegrationWrongTokenType
+                                "
+                            >
                                 Your token appears invalid or expired.
                             </div>
-                            <div v-else-if="
-                                errorCode ==
-                                APIErrors.IntegrationIntegrationTokenMissingPermissions
-                            ">
+                            <div
+                                v-else-if="
+                                    errorCode ==
+                                    APIErrors.IntegrationIntegrationTokenMissingPermissions
+                                "
+                            >
                                 Your token does not have the required permissions. Please select
                                 both <span class="code-bubble">repo</span> and
                                 <span class="code-bubble">write:org</span> scopes.
@@ -178,7 +182,10 @@ init();
                                     The integration you are trying to update does not exist.
                                 </div>
                             </div>
-                            <div v-else-if="errorCode == APIErrors.ValidationFailed" style="white-space: break-spaces">
+                            <div
+                                v-else-if="errorCode == APIErrors.ValidationFailed"
+                                style="white-space: break-spaces"
+                            >
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                                 {{ validationError!.toMessage('Invalid form:') }}
                             </div>
@@ -192,9 +199,18 @@ init();
                 </AlertDescription>
             </Alert>
 
-            <Form class="normal-form" :validation-schema="formValidationSchema" style="row-gap: 20px" @submit="submit">
-                <FormTextField v-model="formPersonalClassicToken" :placeholder="'Enter a Github classic token'"
-                    :type="'text'" :name="'token'">
+            <Form
+                class="normal-form"
+                :validation-schema="formValidationSchema"
+                style="row-gap: 20px"
+                @submit="submit"
+            >
+                <FormTextField
+                    v-model="formPersonalClassicToken"
+                    :placeholder="'Enter a Github classic token'"
+                    :type="'text'"
+                    :name="'token'"
+                >
                     <template #name>Classic token</template>
                 </FormTextField>
 
@@ -219,8 +235,11 @@ init();
                             permissions:
                         </div>
 
-                        <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center"
-                            href="https://github.com/settings/tokens/new?description=CodeClarity&scopes=public_repo">
+                        <a
+                            target="_blank"
+                            class="clear-button flex flex-row gap-1 w-fit items-center"
+                            href="https://github.com/settings/tokens/new?description=CodeClarity&scopes=public_repo"
+                        >
                             <Button>
                                 <Icon icon="devicon:github" class="icon integration-icon"></Icon>
                                 Prefilled classic token
@@ -243,10 +262,16 @@ init();
                         <div class="flex flex-col gap-2">
                             <div>Alternatively, create a token manually:</div>
 
-                            <a target="_blank" class="clear-button flex flex-row gap-1 w-fit items-center"
-                                href="https://github.com/settings/tokens/new">
+                            <a
+                                target="_blank"
+                                class="clear-button flex flex-row gap-1 w-fit items-center"
+                                href="https://github.com/settings/tokens/new"
+                            >
                                 <Button>
-                                    <Icon icon="devicon:github" class="icon integration-icon"></Icon>
+                                    <Icon
+                                        icon="devicon:github"
+                                        class="icon integration-icon"
+                                    ></Icon>
                                     Manually create an access token
                                 </Button>
                             </a>
@@ -260,8 +285,8 @@ init();
                             </div>
 
                             <div>
-                                Copy and paste the newly created token in the field labeled
-                                "Classic token" within this page.
+                                Copy and paste the newly created token in the field labeled "Classic
+                                token" within this page.
                             </div>
                         </div>
                     </AlertDescription>

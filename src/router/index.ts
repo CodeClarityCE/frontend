@@ -212,7 +212,6 @@ router.beforeEach(async (to) => {
         } catch (error) {
             userStore.$reset();
             authStore.$reset();
-            
         }
     }
 

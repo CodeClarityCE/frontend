@@ -193,8 +193,11 @@ async function createAnalysisStart() {
                             you activated.
                         </div>
                     </div>
-                    <div v-for="analyzer in selected_analyzers_list" :key="analyzer.id"
-                        class="flex flex-col gap-4 items-center">
+                    <div
+                        v-for="analyzer in selected_analyzers_list"
+                        :key="analyzer.id"
+                        class="flex flex-col gap-4 items-center"
+                    >
                         <!-- Configuration for : {{ analyzer.name }} -->
                         <div class="grid grid-cols-3 gap-4">
                             <div v-for="(step, index) in analyzer.steps" :key="index">
@@ -210,29 +213,45 @@ async function createAnalysisStart() {
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent>
-                                                <Form @submit="
-                                                    (values) => onSubmit(values, plugin.name)
-                                                ">
-                                                    <FormField v-for="config in plugin.config" :key="config"
-                                                        v-slot="{ componentField }" :name="config.name">
+                                                <Form
+                                                    @submit="
+                                                        (values) => onSubmit(values, plugin.name)
+                                                    "
+                                                >
+                                                    <FormField
+                                                        v-for="config in plugin.config"
+                                                        :key="config"
+                                                        v-slot="{ componentField }"
+                                                        :name="config.name"
+                                                    >
                                                         <FormItem>
                                                             <FormLabel>{{ config.name }}</FormLabel>
                                                             <FormControl>
-                                                                <SelectLicensePolicy v-model:selected_license_policy="selected_license_policy
-                                                                    " v-if="
+                                                                <SelectLicensePolicy
+                                                                    v-model:selected_license_policy="
+                                                                        selected_license_policy
+                                                                    "
+                                                                    v-if="
                                                                         config.name ===
                                                                         'License Policy'
-                                                                    " />
-                                                                <Input :placeholder="config.name"
-                                                                    v-bind="componentField" v-else />
+                                                                    "
+                                                                />
+                                                                <Input
+                                                                    :placeholder="config.name"
+                                                                    v-bind="componentField"
+                                                                    v-else
+                                                                />
                                                             </FormControl>
                                                             <FormDescription>{{
                                                                 config.description
-                                                                }}</FormDescription>
+                                                            }}</FormDescription>
                                                             <FormMessage>Message</FormMessage>
                                                         </FormItem>
                                                     </FormField>
-                                                    <Button type="submit" @click="(e) => addIcon(e)">
+                                                    <Button
+                                                        type="submit"
+                                                        @click="(e) => addIcon(e)"
+                                                    >
                                                         Validate configuration
                                                     </Button>
                                                 </Form>

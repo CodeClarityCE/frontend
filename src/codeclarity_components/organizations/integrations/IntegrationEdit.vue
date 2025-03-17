@@ -39,8 +39,14 @@ provider.value = route.query.provider as IntegrationProvider;
     <div class="flex flex-col gap-8 org-manage-integration-create">
         <HeaderItem v-if="orgId" :orgId="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="org-integrations-create-wrapper">
-            <OrgIntegrationManageGithub v-if="provider == IntegrationProvider.GITHUB" :orgId="orgId" />
-            <OrgIntegrationManageGitlab v-else-if="provider == IntegrationProvider.GITLAB" :orgId="orgId" />
+            <OrgIntegrationManageGithub
+                v-if="provider == IntegrationProvider.GITHUB"
+                :orgId="orgId"
+            />
+            <OrgIntegrationManageGitlab
+                v-else-if="provider == IntegrationProvider.GITLAB"
+                :orgId="orgId"
+            />
         </div>
     </div>
 </template>

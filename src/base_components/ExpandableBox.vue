@@ -43,7 +43,11 @@ function expandBox() {
         </div>
         <div class="collapsible-show-more collapse-selector" @click="expandBox()">
             <div class="collapsible-show-more-inner">
-                <Icon :icon="'ion:chevron-down-outline'" class="collapse-icon" title="Show more details" />
+                <Icon
+                    :icon="'ion:chevron-down-outline'"
+                    class="collapse-icon"
+                    title="Show more details"
+                />
                 <div v-if="!expand" class="collapse-text">Show more</div>
                 <div v-if="expand" class="collapse-text">Show less</div>
             </div>

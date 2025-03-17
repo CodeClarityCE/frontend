@@ -59,7 +59,7 @@ const errorCode: Ref<string> = ref('');
 const formSchema = toTypedSchema(
     z.object({
         name: z.string().min(5).max(200),
-        description: z.string().max(200).optional().default(""),
+        description: z.string().max(200).optional().default(''),
         type: z.string(),
         isDefault: z.boolean().default(false),
         licenses: z.string().array()
@@ -81,13 +81,13 @@ const form = useForm({
 const { handleSubmit } = useForm({
     validationSchema: formSchema,
     initialValues: {
-        isDefault: false,
-    },
-})
+        isDefault: false
+    }
+});
 
 const onSubmit = handleSubmit(async (values) => {
     console.log(values);
-    
+
     try {
         await licensePolicyRepository.createPolicy({
             orgId: defaultOrg!.value!.id,
@@ -158,12 +158,19 @@ onBeforeMount(async () => {
                     </FormItem>
                 </FormField>
 
-                <FormField class="col-start-3 col-end-4" name="description" v-slot="{ componentField }">
+                <FormField
+                    class="col-start-3 col-end-4"
+                    name="description"
+                    v-slot="{ componentField }"
+                >
                     <FormItem>
                         <FormLabel>Enter a description (optional)</FormLabel>
                         <FormControl>
                             <!-- any Form Input component or native input elements -->
-                            <Input placeholder="Enter a description" v-bind="componentField"></Input>
+                            <Input
+                                placeholder="Enter a description"
+                                v-bind="componentField"
+                            ></Input>
                         </FormControl>
                         <FormDescription />
                         <FormMessage />
@@ -197,7 +204,8 @@ onBeforeMount(async () => {
 
                 <FormField v-slot="{ value, handleChange }" type="checkbox" name="isDefault">
                     <FormItem
-                        class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4 col-start-2 col-end-4">
+                        class="flex flex-row items-start gap-x-3 space-y-0 rounded-md border p-4 col-start-2 col-end-4"
+                    >
                         <FormControl>
                             <Checkbox :model-value="value" @update:model-value="handleChange" />
                         </FormControl>
@@ -212,7 +220,11 @@ onBeforeMount(async () => {
                     <FormItem class="col-start-2 col-end-4">
                         <FormLabel>Select licenses</FormLabel>
                         <FormControl>
-                            <DataTable :columns="columns" :data="choices" @update:rowSelection="setValue" />
+                            <DataTable
+                                :columns="columns"
+                                :data="choices"
+                                @update:rowSelection="setValue"
+                            />
                         </FormControl>
                     </FormItem>
                 </FormField>

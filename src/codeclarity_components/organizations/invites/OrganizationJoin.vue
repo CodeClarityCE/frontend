@@ -103,14 +103,19 @@ async function joinOrg() {
         <div v-if="joinOrgResp">
             <div class="flex flex-col gap-5 w-fit" v-if="joinError">
                 <div class="flex flex-row gap-2">
-                    <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                        style="font-size: 3rem; height: fit-content"></Icon>
+                    <Icon
+                        class="icon user-icon"
+                        icon="solar:confounded-square-outline"
+                        style="font-size: 3rem; height: fit-content"
+                    ></Icon>
                     <div>
                         <div class="flex flex-col gap-5">
                             <div class="flex flex-col gap-2">
                                 <div>Failed to join the organization</div>
                                 <div style="font-size: 0.7em" v-if="joinErrorCode">
-                                    <div v-if="joinErrorCode == APIErrors.InvitationInvalidOrExpired">
+                                    <div
+                                        v-if="joinErrorCode == APIErrors.InvitationInvalidOrExpired"
+                                    >
                                         This invite link does not exist or has expired.
                                     </div>
                                     <div v-else>
@@ -124,15 +129,16 @@ async function joinOrg() {
                                 </div>
                             </div>
                             <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <Button v-if="
-                                    joinErrorCode != APIErrors.NotAuthorized &&
-                                    joinErrorCode != APIErrors.EntityNotFound
-                                " @click="joinOrg">
+                                <Button
+                                    v-if="
+                                        joinErrorCode != APIErrors.NotAuthorized &&
+                                        joinErrorCode != APIErrors.EntityNotFound
+                                    "
+                                    @click="joinOrg"
+                                >
                                     Try again
                                 </Button>
-                                <Button @click="router.back">
-                                    Go back
-                                </Button>
+                                <Button @click="router.back"> Go back </Button>
                             </div>
                         </div>
                     </div>
@@ -150,10 +156,12 @@ async function joinOrg() {
                                     <div class="flex flex-col gap-2">
                                         <div>We failed to retrieve information on the invite</div>
                                         <div style="font-size: 0.7em" v-if="fetchErrorCode">
-                                            <div v-if="
-                                                fetchErrorCode == APIErrors.EntityNotFound ||
-                                                fetchErrorCode == APIErrors.NotAuthorized
-                                            ">
+                                            <div
+                                                v-if="
+                                                    fetchErrorCode == APIErrors.EntityNotFound ||
+                                                    fetchErrorCode == APIErrors.NotAuthorized
+                                                "
+                                            >
                                                 This invite link does not exist or has expired.
                                             </div>
                                             <div v-else>
@@ -169,15 +177,16 @@ async function joinOrg() {
                                         </div>
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                                        <Button v-if="
-                                            joinErrorCode != APIErrors.NotAuthorized &&
-                                            joinErrorCode != APIErrors.EntityNotFound
-                                        " @click="fetchOrgInfo">
+                                        <Button
+                                            v-if="
+                                                joinErrorCode != APIErrors.NotAuthorized &&
+                                                joinErrorCode != APIErrors.EntityNotFound
+                                            "
+                                            @click="fetchOrgInfo"
+                                        >
                                             Try again
                                         </Button>
-                                        <Button @click="router.back">
-                                            Go back
-                                        </Button>
+                                        <Button @click="router.back"> Go back </Button>
                                     </div>
                                 </div>
                             </div>
@@ -210,16 +219,30 @@ async function joinOrg() {
                         </span>
                         <span v-else> Deleted User </span>
                         <span>
-                            has invited you to join the Organization '<span class="text-primary font-semibold">{{
-                                orgInfo.name }}</span>' as a
-                            <span class="font-bold text-severityMedium"
-                                v-if="orgInfo.role == MemberRole.OWNER">Owner</span>
-                            <span class="font-bold text-severityHigh"
-                                v-if="orgInfo.role == MemberRole.ADMIN">Admin</span>
-                            <span class="font-bold text-severityLow"
-                                v-if="orgInfo.role == MemberRole.MODERATOR">Moderator</span>
-                            <span class="font-bold text-severityNone"
-                                v-if="orgInfo.role == MemberRole.USER">User</span>.
+                            has invited you to join the Organization '<span
+                                class="text-primary font-semibold"
+                                >{{ orgInfo.name }}</span
+                            >' as a
+                            <span
+                                class="font-bold text-severityMedium"
+                                v-if="orgInfo.role == MemberRole.OWNER"
+                                >Owner</span
+                            >
+                            <span
+                                class="font-bold text-severityHigh"
+                                v-if="orgInfo.role == MemberRole.ADMIN"
+                                >Admin</span
+                            >
+                            <span
+                                class="font-bold text-severityLow"
+                                v-if="orgInfo.role == MemberRole.MODERATOR"
+                                >Moderator</span
+                            >
+                            <span
+                                class="font-bold text-severityNone"
+                                v-if="orgInfo.role == MemberRole.USER"
+                                >User</span
+                            >.
                         </span>
                         <span>This organization is owned by </span>
                         <span v-if="orgInfo.created_by">
@@ -261,24 +284,36 @@ async function joinOrg() {
                     <div class="flex flex-row gap-5 flex-wrap">
                         <FaqBox>
                             <template #question>What happens when I join an organization?</template>
-                            <template #answer>When you accept an organization you will be able to collaborate
-                                with people in that organization.</template>
+                            <template #answer
+                                >When you accept an organization you will be able to collaborate
+                                with people in that organization.</template
+                            >
                         </FaqBox>
                         <FaqBox>
-                            <template #question>Can I leave an organization I did not intend to join?</template>
-                            <template #answer>Yes, you can always leave an organization. Go the Organizations >
+                            <template #question
+                                >Can I leave an organization I did not intend to join?</template
+                            >
+                            <template #answer
+                                >Yes, you can always leave an organization. Go the Organizations >
                                 View, and then click on 'Manage Organization'. Lastly click on
-                                'Leave the organization'.</template>
+                                'Leave the organization'.</template
+                            >
                         </FaqBox>
                         <FaqBox>
-                            <template #question>I do not wish to receive these invitations and emails
-                                anymore.</template>
-                            <template #answer>Simply click on the links above the FAQ. The first allows you to
+                            <template #question
+                                >I do not wish to receive these invitations and emails
+                                anymore.</template
+                            >
+                            <template #answer
+                                >Simply click on the links above the FAQ. The first allows you to
                                 block invites from this particular organization. The second allows
-                                you to block all invites from all organizations.</template>
+                                you to block all invites from all organizations.</template
+                            >
                         </FaqBox>
                         <FaqBox>
-                            <template #question>What roles are there, and what are their differences?</template>
+                            <template #question
+                                >What roles are there, and what are their differences?</template
+                            >
                             <template #answer>
                                 The following roles are available:
                                 <ul>
@@ -317,13 +352,17 @@ async function joinOrg() {
                             </template>
                         </FaqBox>
                         <FaqBox>
-                            <template #question>The inviter or owner of the org shows as 'Deleted User', what
-                                now?</template>
-                            <template #answer>We recommend not joining an organization where the person that
+                            <template #question
+                                >The inviter or owner of the org shows as 'Deleted User', what
+                                now?</template
+                            >
+                            <template #answer
+                                >We recommend not joining an organization where the person that
                                 invited you shows as 'Deleted user'. The same applies if the owner
                                 of the organization shows as 'Deleted user'. This is usually an
                                 indicator that this organization was created for spam
-                                purposes.</template>
+                                purposes.</template
+                            >
                         </FaqBox>
                     </div>
                 </div>

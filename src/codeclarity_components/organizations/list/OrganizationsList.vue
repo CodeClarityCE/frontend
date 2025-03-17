@@ -71,7 +71,8 @@ fetch();
             <div class="text-sm">
                 <RouterLink
                     class="py-2 px-2 rounded-md text-white cursor-pointer border-2 border-primary bg-primary flex flex-row gap-1.5 items-center justify-center"
-                    :to="{ name: 'orgs', params: { action: 'add', page: 'main' } }">
+                    :to="{ name: 'orgs', params: { action: 'add', page: 'main' } }"
+                >
                     <Icon icon="ion:add-sharp" />
                     <div>Create an org</div>
                 </RouterLink>
@@ -81,12 +82,20 @@ fetch();
         <SearchBar v-model:searchKey="search" :placeholder="placeholder" />
 
         <div v-if="!loading">
-            <Pagination v-model:page="currentPage" v-model:nmbEntriesShowing="entriesPerPage"
-                v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages">
+            <Pagination
+                v-model:page="currentPage"
+                v-model:nmbEntriesShowing="entriesPerPage"
+                v-model:nmbEntriesTotal="totalEntries"
+                v-model:totalPages="totalPages"
+            >
                 <template #content>
                     <div class="flex flex-row flex-wrap gap-4 text-grayTitle">
-                        <OrgListItem v-for="membership in memberships" :key="membership.organization.id"
-                            :membership="membership" @refresh="refresh()"></OrgListItem>
+                        <OrgListItem
+                            v-for="membership in memberships"
+                            :key="membership.organization.id"
+                            :membership="membership"
+                            @refresh="refresh()"
+                        ></OrgListItem>
                     </div>
                 </template>
             </Pagination>

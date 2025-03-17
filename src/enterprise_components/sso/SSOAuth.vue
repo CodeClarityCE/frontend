@@ -11,7 +11,8 @@ async function intiateGithubAuthentication() {
     const state = createOAuthState();
     authStore.setSocialAuthState(state);
     const url = new URL(
-        `https://${window.location.hostname}/${import.meta.env.VITE_API_URL
+        `https://${window.location.hostname}/${
+            import.meta.env.VITE_API_URL
         }/auth/github/authenticate`
     );
     url.searchParams.append('state', state);
@@ -22,7 +23,8 @@ async function intiateGitlabAuthentication() {
     const state = createOAuthState();
     authStore.setSocialAuthState(state);
     const url = new URL(
-        `https://${window.location.hostname}/${import.meta.env.VITE_API_URL
+        `https://${window.location.hostname}/${
+            import.meta.env.VITE_API_URL
         }/auth/gitlab/authenticate`
     );
     url.searchParams.append('state', state);

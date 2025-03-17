@@ -31,8 +31,8 @@ export class DependencyDetails {
     name!: string;
     version!: string;
     latest_version!: string;
-    dependencies!: { [key: string]: string; };
-    dev_dependencies!: { [key: string]: string; };
+    dependencies!: { [key: string]: string };
+    dev_dependencies!: { [key: string]: string };
     transitive!: boolean;
     source?: Source;
     package_manager!: string;

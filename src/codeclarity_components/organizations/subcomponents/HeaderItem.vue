@@ -77,8 +77,11 @@ init();
     <div v-else-if="error" class="w-full h-full flex flex-row justify-center mt-20">
         <div class="flex flex-col gap-5 w-fit text-2xl">
             <div class="flex flex-row gap-2">
-                <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"></Icon>
+                <Icon
+                    class="icon user-icon"
+                    icon="solar:confounded-square-outline"
+                    style="font-size: 3rem; height: fit-content"
+                ></Icon>
                 <div>
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
@@ -104,12 +107,13 @@ init();
                             </div>
                         </div>
                         <div class="flex flex-row gap2 items-center flex-wrap">
-                            <Button v-if="errorCode != APIErrors.NotAuthorized" @click="fetchOrgInfo()">
+                            <Button
+                                v-if="errorCode != APIErrors.NotAuthorized"
+                                @click="fetchOrgInfo()"
+                            >
                                 Try again
                             </Button>
-                            <Button @click="router.back()">
-                                Go back
-                            </Button>
+                            <Button @click="router.back()"> Go back </Button>
                         </div>
                     </div>
                 </div>
@@ -129,9 +133,12 @@ init();
                             <Badge v-if="orgInfo.role == MemberRole.ADMIN">Admin</Badge>
                             <Badge v-if="orgInfo.role == MemberRole.MODERATOR">Moderator</Badge>
                             <Badge v-if="orgInfo.role == MemberRole.USER">User</Badge>
-                            <Badge v-if="orgInfo.personal"
-                                title="A personal organization is a private org to which only you have access. Other people cannot be invited to join this type of organziation.">
-                                Personnal Org</Badge>
+                            <Badge
+                                v-if="orgInfo.personal"
+                                title="A personal organization is a private org to which only you have access. Other people cannot be invited to join this type of organziation."
+                            >
+                                Personnal Org</Badge
+                            >
                         </div>
                     </div>
                     <div class="flex flex-row gap-1 w-fit items-center">
@@ -146,16 +153,27 @@ init();
                             <div class="user-avatar-wrapper">
                                 <div v-if="orgInfo.created_by">
                                     <div v-if="orgInfo.created_by.avatar_url">
-                                        <img class="rounded-full w-10 h-10" :src="orgInfo.created_by.avatar_url" />
+                                        <img
+                                            class="rounded-full w-10 h-10"
+                                            :src="orgInfo.created_by.avatar_url"
+                                        />
                                     </div>
-                                    <div v-if="!orgInfo.created_by.avatar_url"
-                                        class="bg-gray-200 rounded-full w-10 h-10 flex flex-row items-center justify-center">
-                                        <Icon class="text-2xl text-black" icon="solar:smile-circle-broken"></Icon>
+                                    <div
+                                        v-if="!orgInfo.created_by.avatar_url"
+                                        class="bg-gray-200 rounded-full w-10 h-10 flex flex-row items-center justify-center"
+                                    >
+                                        <Icon
+                                            class="text-2xl text-black"
+                                            icon="solar:smile-circle-broken"
+                                        ></Icon>
                                     </div>
                                 </div>
                                 <div v-else>
                                     <div class="user-avatar-inner-wrapper">
-                                        <Icon class="text-2xl text-black" icon="solar:confounded-square-outline"></Icon>
+                                        <Icon
+                                            class="text-2xl text-black"
+                                            icon="solar:confounded-square-outline"
+                                        ></Icon>
                                     </div>
                                 </div>
                             </div>
@@ -169,12 +187,15 @@ init();
                 <div>Joined on {{ moment(orgInfo.joined_on).format('LL') }}</div>
                 <div class="flex-row flex-row-10">
                     Number of members:
-                    <span style="
+                    <span
+                        style="
                             padding: 3px 12px;
                             background-color: rgb(222, 222, 222);
                             border-radius: 15px;
                             font-size: 0.8em;
-                        ">{{ orgInfo.number_of_members }}</span>
+                        "
+                        >{{ orgInfo.number_of_members }}</span
+                    >
                 </div>
                 <div>
                     {{ orgInfo.description }}

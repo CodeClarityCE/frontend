@@ -129,10 +129,11 @@ init();
         <Card v-if="render">
             <CardHeader>
                 <CardTitle>Package Manifest</CardTitle>
-                <CardDescription>{{ patchedManifestData.other_info?.relative_package_file }}</CardDescription>
+                <CardDescription>{{
+                    patchedManifestData.other_info?.relative_package_file
+                }}</CardDescription>
             </CardHeader>
             <CardContent v-if="patchedManifestData.patched_manifest">
-
                 <div class="bg-[#f4f8ff] p-4 relative rounded flex gap-y-5 font-code">
                     <!-- <div style="color: #939090;">
                         <div v-for="index in getPatchedManifestLineCount()" style="height:1.39em">
@@ -144,38 +145,51 @@ init();
                             <span style="margin-left: 5px">&#123;</span>
                         </div>
                         <div class="line">
-                            <span style="margin-left: 25px">"name": "{{ patchedManifestData.patched_manifest?.name
-                            }}",</span>
+                            <span style="margin-left: 25px"
+                                >"name": "{{ patchedManifestData.patched_manifest?.name }}",</span
+                            >
                         </div>
                         <div class="line">
-                            <span style="margin-left: 25px">"version": "{{
-                                patchedManifestData.patched_manifest?.version
-                                }}",</span>
+                            <span style="margin-left: 25px"
+                                >"version": "{{
+                                    patchedManifestData.patched_manifest?.version
+                                }}",</span
+                            >
                         </div>
-                        <div v-for="field in [
-                            'dependencies',
-                            'devDependencies',
-                            'peerDependencies',
-                            'bundleDependencies',
-                            'bundledDependencies',
-                            'optionalDependencies'
-                        ]" :key="field">
+                        <div
+                            v-for="field in [
+                                'dependencies',
+                                'devDependencies',
+                                'peerDependencies',
+                                'bundleDependencies',
+                                'bundledDependencies',
+                                'optionalDependencies'
+                            ]"
+                            :key="field"
+                        >
                             <div v-if="patchedManifestData.patched_manifest[field]">
                                 <div class="line">
                                     <span style="margin-left: 25px">{{ field }}": &#123;</span>
                                 </div>
-                                <div v-for="(direct_dep, direct_dep_key) in patchedManifestData
-                                    .patched_manifest[field]" :key="direct_dep_key" class="line">
+                                <div
+                                    v-for="(direct_dep, direct_dep_key) in patchedManifestData
+                                        .patched_manifest[field]"
+                                    :key="direct_dep_key"
+                                    class="line"
+                                >
                                     <span style="margin-left: 45px">
-                                        <div v-if="
-                                            (direct_dep as UpgradeInfo).vulnerable == true &&
-                                            (direct_dep as UpgradeInfo).patch_type == 'FULL'
-                                        " style="
+                                        <div
+                                            v-if="
+                                                (direct_dep as UpgradeInfo).vulnerable == true &&
+                                                (direct_dep as UpgradeInfo).patch_type == 'FULL'
+                                            "
+                                            style="
                                                 display: flex;
                                                 flex-direction: row;
                                                 column-gap: 5px;
                                                 align-items: center;
-                                            ">
+                                            "
+                                        >
                                             <div>
                                                 {{ direct_dep_key }}": "{{
                                                     (direct_dep as UpgradeInfo).original_constraint
@@ -185,10 +199,13 @@ init();
                                                 "{{ (direct_dep as UpgradeInfo).upgrade_to }}"
                                             </span>
                                         </div>
-                                        <div v-if="
-                                            (direct_dep as UpgradeInfo).vulnerable == true &&
-                                            (direct_dep as UpgradeInfo).patch_type == 'PARTIAL'
-                                        " class="flex gap-y-1 items-center">
+                                        <div
+                                            v-if="
+                                                (direct_dep as UpgradeInfo).vulnerable == true &&
+                                                (direct_dep as UpgradeInfo).patch_type == 'PARTIAL'
+                                            "
+                                            class="flex gap-y-1 items-center"
+                                        >
                                             <div>
                                                 {{ direct_dep_key }}": "{{
                                                     (direct_dep as UpgradeInfo).original_constraint
@@ -198,10 +215,13 @@ init();
                                                 "{{ (direct_dep as UpgradeInfo).upgrade_to }}"
                                             </span>
                                         </div>
-                                        <div v-if="
-                                            (direct_dep as UpgradeInfo).vulnerable == true &&
-                                            (direct_dep as UpgradeInfo).patch_type == 'NONE'
-                                        " class="flex gap-y-1 items-center">
+                                        <div
+                                            v-if="
+                                                (direct_dep as UpgradeInfo).vulnerable == true &&
+                                                (direct_dep as UpgradeInfo).patch_type == 'NONE'
+                                            "
+                                            class="flex gap-y-1 items-center"
+                                        >
                                             <div>
                                                 {{ direct_dep_key }}": "{{
                                                     (direct_dep as UpgradeInfo).original_constraint
@@ -212,8 +232,10 @@ init();
                                             </span>
                                             <div class="text-notPatched">Not Patchable</div>
                                         </div>
-                                        <div v-if="(direct_dep as UpgradeInfo).vulnerable == false"
-                                            class="flex gap-y-1 items-center">
+                                        <div
+                                            v-if="(direct_dep as UpgradeInfo).vulnerable == false"
+                                            class="flex gap-y-1 items-center"
+                                        >
                                             <div>
                                                 {{ direct_dep_key }}": "{{
                                                     (direct_dep as UpgradeInfo).original_constraint
@@ -233,9 +255,19 @@ init();
                         </div>
                         <div class="line">&#125;</div>
                         <div
-                            class="absolute top-4 right-4 cursor-pointer bg-white border border-[#d3d3d3] text-[#a4a2a2] p-1 rounded">
-                            <tippy content="Copied!" :trigger="'click'" :placement="'top'" :animation="'scale'">
-                                <Icon class="m-2" icon="ic:round-content-copy" @click="copyPatchedManfiest()" />
+                            class="absolute top-4 right-4 cursor-pointer bg-white border border-[#d3d3d3] text-[#a4a2a2] p-1 rounded"
+                        >
+                            <tippy
+                                content="Copied!"
+                                :trigger="'click'"
+                                :placement="'top'"
+                                :animation="'scale'"
+                            >
+                                <Icon
+                                    class="m-2"
+                                    icon="ic:round-content-copy"
+                                    @click="copyPatchedManfiest()"
+                                />
                             </tippy>
                         </div>
                     </div>
@@ -248,31 +280,44 @@ init();
                         </BubbleComponent>
                         <div>
                             Copy Patched Manifest and replace it in
-                            <span style="background-color: #f4f8ff; padding: 5px; border-radius: 5px">{{
-                                patchedManifestData.other_info.relative_package_file }}</span>
+                            <span
+                                style="background-color: #f4f8ff; padding: 5px; border-radius: 5px"
+                                >{{ patchedManifestData.other_info.relative_package_file }}</span
+                            >
                         </div>
                     </div>
                     <div style="width: fit-content">
-                        <div class="bg-f4f8ff border rounded py-2 px-5 cursor-pointer text-center font-medium flex items-center gap-2"
-                            @click="copyPatchedManfiest()">
+                        <div
+                            class="bg-f4f8ff border rounded py-2 px-5 cursor-pointer text-center font-medium flex items-center gap-2"
+                            @click="copyPatchedManfiest()"
+                        >
                             Copy Patched Manifest
-                            <tippy content="Copied!" :trigger="'click'" :placement="'top'" :animation="'scale'">
+                            <tippy
+                                content="Copied!"
+                                :trigger="'click'"
+                                :placement="'top'"
+                                :animation="'scale'"
+                            >
                                 <Icon class="hover:text-lg" icon="ic:round-content-copy" />
                             </tippy>
                         </div>
                     </div>
-                    <div style="
+                    <div
+                        style="
                             display: flex;
                             flex-direction: row;
                             column-gap: 8px;
                             align-items: center;
-                        ">
+                        "
+                    >
                         <BubbleComponent :slim="true">
                             <template #content> 2 </template>
                         </BubbleComponent>
                         <div>Run the following command</div>
                     </div>
-                    <div v-if="patchedManifestData.other_info.package_manager == 'NPM'" style="
+                    <div
+                        v-if="patchedManifestData.other_info.package_manager == 'NPM'"
+                        style="
                             font-family: 'Courier New', Courier, monospace;
                             display: flex;
                             flex-direction: row;
@@ -282,20 +327,33 @@ init();
                             border-radius: 5px;
                             padding: 10px;
                             width: fit-content;
-                        ">
+                        "
+                    >
                         <Icon :icon="'material-symbols:chevron-right'" />
                         <div style="margin-top: 2px">
                             rm package-lock.json ; npm install . --prefer-online
                         </div>
-                        <tippy content="Copied!" :trigger="'click'" :placement="'top'" :animation="'scale'">
-                            <Icon icon="ic:round-content-copy" class="click-scale" style="cursor: pointer" @click="
-                                copyPatchedText(
-                                    'rm package-lock.json ; npm install . --prefer-online'
-                                )
-                                " />
+                        <tippy
+                            content="Copied!"
+                            :trigger="'click'"
+                            :placement="'top'"
+                            :animation="'scale'"
+                        >
+                            <Icon
+                                icon="ic:round-content-copy"
+                                class="click-scale"
+                                style="cursor: pointer"
+                                @click="
+                                    copyPatchedText(
+                                        'rm package-lock.json ; npm install . --prefer-online'
+                                    )
+                                "
+                            />
                         </tippy>
                     </div>
-                    <div v-if="patchedManifestData.other_info.package_manager == 'YARN'" style="
+                    <div
+                        v-if="patchedManifestData.other_info.package_manager == 'YARN'"
+                        style="
                             font-family: 'Courier New', Courier, monospace;
                             display: flex;
                             flex-direction: row;
@@ -305,15 +363,26 @@ init();
                             border-radius: 5px;
                             padding: 10px;
                             width: fit-content;
-                        ">
+                        "
+                    >
                         <Icon :icon="'material-symbols:chevron-right'" />
                         <div style="margin-top: 2px">
                             rm yarn.lock ; yarn install --prefer-online
                         </div>
-                        <tippy content="Copied!" :trigger="'click'" :placement="'top'" :animation="'scale'">
-                            <Icon icon="ic:round-content-copy" class="cursor-pointer" style="cursor: pointer" @click="
-                                copyPatchedText('rm yarn.lock ; yarn install --prefer-online')
-                                " />
+                        <tippy
+                            content="Copied!"
+                            :trigger="'click'"
+                            :placement="'top'"
+                            :animation="'scale'"
+                        >
+                            <Icon
+                                icon="ic:round-content-copy"
+                                class="cursor-pointer"
+                                style="cursor: pointer"
+                                @click="
+                                    copyPatchedText('rm yarn.lock ; yarn install --prefer-online')
+                                "
+                            />
                         </tippy>
                     </div>
                 </div>
@@ -326,7 +395,11 @@ init();
 
         <div v-if="!render">
             <div style="display: flex; flex-direction: column; row-gap: 10px">
-                <BoxLoader v-for="index in 3" :key="index" :dimensions="{ width: '100%', height: '150px' }" />
+                <BoxLoader
+                    v-for="index in 3"
+                    :key="index"
+                    :dimensions="{ width: '100%', height: '150px' }"
+                />
             </div>
         </div>
     </div>

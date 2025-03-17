@@ -106,27 +106,21 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
                     <CardTitle>{{ stats.number_of_vulnerable_dependencies }}</CardTitle>
                     <CardDescription>{{ stats.number_of_vulnerable_dependencies }}</CardDescription>
                 </CardHeader>
-                <CardContent class="flex flex-col items-center">
-                    Vulnerable libraries
-                </CardContent>
+                <CardContent class="flex flex-col items-center"> Vulnerable libraries </CardContent>
             </Card>
             <Card>
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle>{{ stats.mean_severity?.toFixed(2) }}</CardTitle>
                     <CardDescription>{{ stats.mean_severity_diff?.toFixed(2) }}</CardDescription>
                 </CardHeader>
-                <CardContent class="flex flex-col items-center">
-                    Mean Severity
-                </CardContent>
+                <CardContent class="flex flex-col items-center"> Mean Severity </CardContent>
             </Card>
             <Card>
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle>{{ stats.max_severity?.toFixed(2) }}</CardTitle>
                     <CardDescription>{{ stats.max_severity_diff?.toFixed(2) }}</CardDescription>
                 </CardHeader>
-                <CardContent class="flex flex-col items-center">
-                    Max Severity
-                </CardContent>
+                <CardContent class="flex flex-col items-center"> Max Severity </CardContent>
             </Card>
         </div>
 

@@ -1,5 +1,8 @@
 <script lang="ts" setup>
-import { ActionSeverity, AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
+import {
+    ActionSeverity,
+    AuditLog
+} from '@/codeclarity_components/organizations/audit_logs/AuditLog';
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import moment from 'moment';

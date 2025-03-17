@@ -77,13 +77,19 @@ fetchLicensePolicies();
         <LoadingContainer ref="license_policies_list_loading_ref">
             <template #content>
                 <div v-if="license_policies_list.length > 0" class="license-policies-list-wrapper">
-                    <div v-if="selected_license_policy_object != null" class="license-policy license-policy-selected">
+                    <div
+                        v-if="selected_license_policy_object != null"
+                        class="license-policy license-policy-selected"
+                    >
                         <div class="license-policy-header">
                             <div>
                                 <div>
                                     {{ selected_license_policy_object.name }}
                                     <Badge class="ml-2">Selected</Badge>
-                                    <Badge class="ml-2" v-if="selected_license_policy_object.default == true">Default
+                                    <Badge
+                                        class="ml-2"
+                                        v-if="selected_license_policy_object.default == true"
+                                        >Default
                                     </Badge>
                                 </div>
                                 <div class="text-muted-foreground text-base">
@@ -93,22 +99,30 @@ fetchLicensePolicies();
                                     Disallowed licenses:
                                     <span>{{
                                         selected_license_policy_object.content.join(', ')
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div v-for="license_policy in license_policies_list" :key="license_policy.name" @click="
-                        selected_license_policy = license_policy.content;
-                    selected_license_policy_object = license_policy;
-                    ">
-                        <div class="license-policy cursor-pointer"
-                            v-if="license_policy.id != selected_license_policy_object?.id">
+                    <div
+                        v-for="license_policy in license_policies_list"
+                        :key="license_policy.name"
+                        @click="
+                            selected_license_policy = license_policy.content;
+                            selected_license_policy_object = license_policy;
+                        "
+                    >
+                        <div
+                            class="license-policy cursor-pointer"
+                            v-if="license_policy.id != selected_license_policy_object?.id"
+                        >
                             <div class="license-policy-header">
                                 <div>
                                     <div>
                                         {{ license_policy.name }}
-                                        <Badge class="ml-2" v-if="license_policy.default == true">Default</Badge>
+                                        <Badge class="ml-2" v-if="license_policy.default == true"
+                                            >Default</Badge
+                                        >
                                     </div>
                                     <div class="text-muted-foreground text-base">
                                         {{ license_policy.description }}
@@ -122,19 +136,24 @@ fetchLicensePolicies();
                         </div>
                     </div>
                     <div class="text-grayTitle font-normal flex justify-between mt-10">
-                        <PaginationComponent v-model:page="currentPage"
+                        <PaginationComponent
+                            v-model:page="currentPage"
                             v-model:nmbEntriesShowing="defaultEntriesPerPage"
-                            v-model:nmbEntriesTotal="license_policies_list.length" v-model:totalPages="totalPages" />
+                            v-model:nmbEntriesTotal="license_policies_list.length"
+                            v-model:totalPages="totalPages"
+                        />
                     </div>
                 </div>
                 <div v-else class="font-semibold text-muted-foreground">
                     You have no license policies. You can create one - if you want -
-                    <RouterLink :to="{
-                        name: 'org',
-                        params: { action: 'add', page: 'policy', orgId: user.getDefaultOrg!.id }
-                    }">
-                        <Button variant="link" class="px-0">here</Button>
-                    </RouterLink>. A license policy is however not a requirement.
+                    <RouterLink
+                        :to="{
+                            name: 'org',
+                            params: { action: 'add', page: 'policy', orgId: user.getDefaultOrg!.id }
+                        }"
+                    >
+                        <Button variant="link" class="px-0">here</Button> </RouterLink
+                    >. A license policy is however not a requirement.
                 </div>
             </template>
 
@@ -144,7 +163,6 @@ fetchLicensePolicies();
         </LoadingContainer>
     </div>
 </template>
-
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';

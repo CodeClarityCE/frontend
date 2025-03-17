@@ -191,13 +191,27 @@ onMounted(() => {
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
 
         <div class="p-12">
-            <Form id="form" class="flex flex-col gap-6" :validation-schema="formValidationSchema" @submit="submit">
-                <FormTextField v-model="name" :placeholder="'Enter a name'" :type="'text'" :name="'name'">
+            <Form
+                id="form"
+                class="flex flex-col gap-6"
+                :validation-schema="formValidationSchema"
+                @submit="submit"
+            >
+                <FormTextField
+                    v-model="name"
+                    :placeholder="'Enter a name'"
+                    :type="'text'"
+                    :name="'name'"
+                >
                     <template #name>Name</template>
                 </FormTextField>
 
-                <FormTextField v-model="description" :placeholder="'Enter a description'" :type="'text'"
-                    :name="'description'">
+                <FormTextField
+                    v-model="description"
+                    :placeholder="'Enter a description'"
+                    :type="'text'"
+                    :name="'description'"
+                >
                     <template #name>Description</template>
                 </FormTextField>
 
@@ -229,7 +243,12 @@ onMounted(() => {
                     </AlertDescription>
                 </Alert>
                 <div class="flex justify-center">
-                    <canvas class="rounded-lg" id="mycanvas" :width="getWidth()" :height="getWidth() / 2"></canvas>
+                    <canvas
+                        class="rounded-lg"
+                        id="mycanvas"
+                        :width="getWidth()"
+                        :height="getWidth() / 2"
+                    ></canvas>
                 </div>
 
                 <LoadingSubmitButton ref="loadingButtonRef">

@@ -6,16 +6,18 @@ import { h } from 'vue';
 export const columns: ColumnDef<License>[] = [
     {
         id: 'select',
-        header: ({ table }) => h(Checkbox, {
-            'modelValue': table.getIsAllPageRowsSelected(),
-            'onUpdate:modelValue': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
-            'ariaLabel': 'Select all',
-        }),
-        cell: ({ row }) => h(Checkbox, {
-            'modelValue': row.getIsSelected(),
-            'onUpdate:modelValue': (value: boolean) => row.toggleSelected(!!value),
-            'ariaLabel': 'Select row',
-        }),
+        header: ({ table }) =>
+            h(Checkbox, {
+                modelValue: table.getIsAllPageRowsSelected(),
+                'onUpdate:modelValue': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
+                ariaLabel: 'Select all'
+            }),
+        cell: ({ row }) =>
+            h(Checkbox, {
+                modelValue: row.getIsSelected(),
+                'onUpdate:modelValue': (value: boolean) => row.toggleSelected(!!value),
+                ariaLabel: 'Select row'
+            }),
         enableSorting: false,
         enableHiding: false
     },

@@ -12,8 +12,8 @@ export enum AnalysisStatus {
     FAILED = 'failed',
     FAILURE = 'failure',
     SUCCESS = 'success',
-    UPDATING_DB  = "updating_db",
-    ONGOING      = "ongoing"
+    UPDATING_DB = 'updating_db',
+    ONGOING = 'ongoing'
 }
 
 export class Analysis {

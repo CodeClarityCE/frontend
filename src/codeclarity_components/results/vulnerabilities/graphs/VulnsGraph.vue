@@ -87,7 +87,7 @@ function createOwaspTop10DistChart() {
 
     owaspTopTotalCount.value = count;
 
-    let possible_colors = ['#003532', '#1A4876','#008491', '#40E0D0']
+    let possible_colors = ['#003532', '#1A4876', '#008491', '#40E0D0'];
 
     let data: Array<any> = [];
     let colors: Array<any> = [];
@@ -162,7 +162,7 @@ function createSeverityDistChart() {
         props.stats.number_of_low,
         props.stats.number_of_none
     ];
-    let colors = ['#003532', '#1A4876','#008491', '#40E0D0', '#D3D3D3']
+    let colors = ['#003532', '#1A4876', '#008491', '#40E0D0', '#D3D3D3'];
 
     let dependency_dist_data = {
         labels: labels,
@@ -280,7 +280,7 @@ function createRadarChart() {
                         <div class="flex gap-2 items-center">
                             <Icon :icon="'ph:circle-fill'" class="text-[#1A4876]"></Icon>
                             <div>High</div>
-                            <div class="side-stats-text-value" style="color: #1A4876">
+                            <div class="side-stats-text-value" style="color: #1a4876">
                                 {{ stats.number_of_high }}
                             </div>
                         </div>
@@ -294,14 +294,14 @@ function createRadarChart() {
                         <div class="flex gap-2 items-center">
                             <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0]"></Icon>
                             <div>Low</div>
-                            <div class="side-stats-text-value" style="color: #40E0D0">
+                            <div class="side-stats-text-value" style="color: #40e0d0">
                                 {{ stats.number_of_low }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
                             <Icon :icon="'ph:circle-fill'" class="text-[#D3D3D3]"></Icon>
                             <div>None</div>
-                            <div class="side-stats-text-value" style="color: #D3D3D3">
+                            <div class="side-stats-text-value" style="color: #d3d3d3">
                                 {{ stats.number_of_none }}
                             </div>
                         </div>
@@ -321,9 +321,14 @@ function createRadarChart() {
             <CardContent class="flex items-center justify-center flex-grow">
                 <div class="flex flex-wrap gap-2 items-center justify-center">
                     <div class="flex flex-col gap-2">
-                        <div v-if="stats.number_of_owasp_top_10_2021_a1 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#003532] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a1 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#003532] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A01: Broken Access Control
                             </div>
@@ -331,9 +336,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a1 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a2 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a2 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#1A4876] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A02: Cryptographic Failures
                             </div>
@@ -341,25 +351,40 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a2 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a3 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#008491] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a3 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#008491] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">A03: Injection</div>
                             <div class="text-sm" style="color: #008491">
                                 {{ stats.number_of_owasp_top_10_2021_a3 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a4 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a4 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#40E0D0] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">A04: Insecure Design</div>
                             <div class="text-sm text-[#40E0D0]">
                                 {{ stats.number_of_owasp_top_10_2021_a4 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a5 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#003532] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a5 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#003532] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A05: Security Misconfiguration
                             </div>
@@ -367,9 +392,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a5 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a6 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a6 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#1A4876] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A06: Vulnerable and Outdated Components
                             </div>
@@ -377,9 +407,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a6 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a7 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#008491] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a7 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#008491] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A07: Identification and Authentication Failures
                             </div>
@@ -387,9 +422,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a7 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a8 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a8 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#40E0D0] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A08: Software and Data Integrity Failures
                             </div>
@@ -397,9 +437,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a8 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a9 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#003532] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a9 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#003532] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A09: Security Logging and Monitoring Failures
                             </div>
@@ -407,9 +452,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a9 }}
                             </div>
                         </div>
-                        <div v-if="stats.number_of_owasp_top_10_2021_a10 > 0"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0] flex-shrink-0"></Icon>
+                        <div
+                            v-if="stats.number_of_owasp_top_10_2021_a10 > 0"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#40E0D0] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">
                                 A10: Server-Side Request Forgery
                             </div>
@@ -417,9 +467,14 @@ function createRadarChart() {
                                 {{ stats.number_of_owasp_top_10_2021_a10 }}
                             </div>
                         </div>
-                        <div v-if="owaspTopTotalCount < stats.number_of_vulnerabilities"
-                            class="flex flex-row gap-2 justify-between items-start">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#D3D3D3] flex-shrink-0"></Icon>
+                        <div
+                            v-if="owaspTopTotalCount < stats.number_of_vulnerabilities"
+                            class="flex flex-row gap-2 justify-between items-start"
+                        >
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-[#D3D3D3] flex-shrink-0"
+                            ></Icon>
                             <div class="text-sm self-start flex-grow">Uncategorized</div>
                             <div class="text-sm text-[#D3D3D3]">
                                 {{ stats.number_of_vulnerabilities - owaspTopTotalCount }}
@@ -428,7 +483,11 @@ function createRadarChart() {
                     </div>
 
                     <div>
-                        <Bar :data="owasp_data" :options="owasp_conf" style="height: 200px; width: 200px" />
+                        <Bar
+                            :data="owasp_data"
+                            :options="owasp_conf"
+                            style="height: 200px; width: 200px"
+                        />
                     </div>
                 </div>
             </CardContent>
@@ -466,23 +525,41 @@ function createRadarChart() {
                     </div>
 
                     <div>
-                        <div style="
+                        <div
+                            style="
                                 position: relative;
                                 width: 200px;
                                 height: 200px;
                                 margin-right: 10px;
-                            ">
+                            "
+                        >
                             <div style="position: absolute">
                                 <svg height="200" width="200">
-                                    <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="200"
-                                        y1="130" y2="185" />
-                                    <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="0" y2="185"
-                                        y1="130" />
-                                    <line style="stroke: rgb(206, 206, 206); stroke-width: 2px" x1="100" x2="100"
-                                        y1="30" y2="130" />
+                                    <line
+                                        style="stroke: rgb(206, 206, 206); stroke-width: 2px"
+                                        x1="100"
+                                        x2="200"
+                                        y1="130"
+                                        y2="185"
+                                    />
+                                    <line
+                                        style="stroke: rgb(206, 206, 206); stroke-width: 2px"
+                                        x1="100"
+                                        x2="0"
+                                        y2="185"
+                                        y1="130"
+                                    />
+                                    <line
+                                        style="stroke: rgb(206, 206, 206); stroke-width: 2px"
+                                        x1="100"
+                                        x2="100"
+                                        y1="30"
+                                        y2="130"
+                                    />
                                 </svg>
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     left: 100px;
                                     top: 10px;
@@ -490,43 +567,60 @@ function createRadarChart() {
                                     font-weight: 500;
                                     color: rgb(70, 70, 70);
                                     background-color: rgb(255, 255, 255);
-                                ">
-                                <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
-                                    stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}</span>
+                                "
+                            >
+                                <span
+                                    style="font-weight: 900; color: var(--accent)"
+                                    class="ng-binding"
+                                    >{{ stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}</span
+                                >
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     bottom: 0px;
                                     right: 0px;
                                     font-weight: 500;
                                     color: rgb(70, 70, 70);
                                     background-color: rgb(255, 255, 255);
-                                ">
-                                <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
-                                    stats.mean_integrity_impact?.toFixed(2) ?? 0 }}</span>
+                                "
+                            >
+                                <span
+                                    style="font-weight: 900; color: var(--accent)"
+                                    class="ng-binding"
+                                    >{{ stats.mean_integrity_impact?.toFixed(2) ?? 0 }}</span
+                                >
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     bottom: 0px;
                                     left: 0px;
                                     font-weight: 500;
                                     color: rgb(70, 70, 70);
                                     background-color: rgb(255, 255, 255);
-                                ">
-                                <span style="font-weight: 900; color: var(--accent)" class="ng-binding">{{
-                                    stats.mean_availability_impact?.toFixed(2) ?? 0 }}</span>
+                                "
+                            >
+                                <span
+                                    style="font-weight: 900; color: var(--accent)"
+                                    class="ng-binding"
+                                    >{{ stats.mean_availability_impact?.toFixed(2) ?? 0 }}</span
+                                >
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     left: 0px;
                                     top: 65px;
                                     transform: rotate(-60deg);
                                     font-weight: 500;
                                     color: rgb(70, 70, 70);
-                                ">
+                                "
+                            >
                                 Confidentiality
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     bottom: 54px;
                                     right: -15px;
@@ -534,27 +628,35 @@ function createRadarChart() {
                                     color: rgb(70, 70, 70);
                                     font-family: roboto;
                                     transform: rotate(60deg);
-                                ">
+                                "
+                            >
                                 Integrity
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     bottom: 0px;
                                     left: 35px;
                                     font-weight: 500;
                                     color: rgb(70, 70, 70);
-                                ">
+                                "
+                            >
                                 Availability
                             </div>
-                            <div style="
+                            <div
+                                style="
                                     position: absolute;
                                     height: 212px !important;
                                     width: 212px !important;
                                     margin-top: 20px;
                                     margin-left: -6px;
-                                ">
-                                <Radar :data="cia_data" :options="cia_conf"
-                                    style="height: 212px !important; width: 212px !important" />
+                                "
+                            >
+                                <Radar
+                                    :data="cia_data"
+                                    :options="cia_conf"
+                                    style="height: 212px !important; width: 212px !important"
+                                />
                             </div>
                         </div>
                     </div>

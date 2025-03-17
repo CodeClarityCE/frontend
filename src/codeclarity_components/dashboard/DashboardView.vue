@@ -16,7 +16,6 @@ const DashboardStats = defineAsyncComponent({
     timeout: 3000
 });
 
-
 const state = useStateStore();
 state.$reset();
 state.page = 'dashboard';

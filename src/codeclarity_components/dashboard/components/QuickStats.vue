@@ -67,16 +67,19 @@ fetch();
                 <CardTitle> Grade </CardTitle>
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                <div class="text-4xl font-bold text-white w-fit py-6 rounded" :class="{
-                    'bg-severityCritical px-8': data?.max_grade.class === 'D',
-                    'bg-severityCritical px-6': data?.max_grade.class === 'D+',
-                    'bg-severityHigh px-8': data?.max_grade.class === 'C',
-                    'bg-severityHigh px-6': data?.max_grade.class === 'C+',
-                    'bg-severityMedium px-8': data?.max_grade.class === 'B',
-                    'bg-severityMedium px-6': data?.max_grade.class === 'B+',
-                    'bg-severityLow px-8': data?.max_grade.class === 'A',
-                    'bg-severityLow px-6': data?.max_grade.class === 'A+'
-                }">
+                <div
+                    class="text-4xl font-bold text-white w-fit py-6 rounded"
+                    :class="{
+                        'bg-severityCritical px-8': data?.max_grade.class === 'D',
+                        'bg-severityCritical px-6': data?.max_grade.class === 'D+',
+                        'bg-severityHigh px-8': data?.max_grade.class === 'C',
+                        'bg-severityHigh px-6': data?.max_grade.class === 'C+',
+                        'bg-severityMedium px-8': data?.max_grade.class === 'B',
+                        'bg-severityMedium px-6': data?.max_grade.class === 'B+',
+                        'bg-severityLow px-8': data?.max_grade.class === 'A',
+                        'bg-severityLow px-6': data?.max_grade.class === 'A+'
+                    }"
+                >
                     {{ data!.max_grade.class }}
                 </div>
             </CardContent>

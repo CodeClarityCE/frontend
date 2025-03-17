@@ -61,9 +61,16 @@ getProject();
             <template #content>
                 <div class="flex flex-row gap-5 mt-2">
                     <div
-                        class="flex flex-row justify-center items-center bg-gray-100 rounded-lg text-gray-400 text-4xl h-14 w-14 p-4">
-                        <Icon v-if="project?.type == IntegrationProvider.GITHUB" icon="simple-icons:github" />
-                        <Icon v-else-if="project?.type == IntegrationProvider.GITLAB" icon="simple-icons:gitlab" />
+                        class="flex flex-row justify-center items-center bg-gray-100 rounded-lg text-gray-400 text-4xl h-14 w-14 p-4"
+                    >
+                        <Icon
+                            v-if="project?.type == IntegrationProvider.GITHUB"
+                            icon="simple-icons:github"
+                        />
+                        <Icon
+                            v-else-if="project?.type == IntegrationProvider.GITLAB"
+                            icon="simple-icons:gitlab"
+                        />
                     </div>
                     <div class="flex flex-col gap-1">
                         <div class="font-bold text-gray-600 text-lg">

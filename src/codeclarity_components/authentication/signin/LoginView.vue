@@ -28,11 +28,15 @@ state.publicPage = true;
 
 <template>
     <div>
-        <RouterLink :to="{ name: 'signup' }" :class="cn(
-            buttonVariants({ variant: 'ghost' }),
-            'absolute right-4 top-4 md:right-8 md:top-8'
-        )
-            ">
+        <RouterLink
+            :to="{ name: 'signup' }"
+            :class="
+                cn(
+                    buttonVariants({ variant: 'ghost' }),
+                    'absolute right-4 top-4 md:right-8 md:top-8'
+                )
+            "
+        >
             <img src="@/imgs/logos/logo.svg" class="w-8" />
             Signup
         </RouterLink>

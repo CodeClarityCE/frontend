@@ -156,14 +156,18 @@ init();
     <div class="flex flex-col gap-8 org-audit-log-wrapper">
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div v-if="orgInfo" class="flex flex-col gap-8 p-12">
-            <div v-if="
-                (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                orgInfo.role == MemberRole.ADMIN ||
-                orgInfo.role == MemberRole.MODERATOR
-            ">
+            <div
+                v-if="
+                    (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
+                    orgInfo.role == MemberRole.ADMIN ||
+                    orgInfo.role == MemberRole.MODERATOR
+                "
+            >
                 <h2 class="text-2xl font-semibold">Related Actions</h2>
                 <div class="flex flex-row gap-4 flex-wrap items-stretch org-manage-items">
-                    <RouterLink :to="{ name: 'orgManage', params: { orgId: orgId, page: 'members' } }">
+                    <RouterLink
+                        :to="{ name: 'orgManage', params: { orgId: orgId, page: 'members' } }"
+                    >
                         <Card>
                             <CardContent>Manage organization members</CardContent>
                         </Card>
@@ -174,21 +178,38 @@ init();
                 <h2 class="text-2xl font-semibold">Audit logs</h2>
                 <div v-if="loading">
                     <div class="flex flex-col gap-2 justify-center" style="padding: 5px">
-                        <BoxLoader :dimensions="{ width: '100%', height: '50px' }" :key="i" v-for="i in 10" />
+                        <BoxLoader
+                            :dimensions="{ width: '100%', height: '50px' }"
+                            :key="i"
+                            v-for="i in 10"
+                        />
                     </div>
                 </div>
                 <div v-else>
                     <div class="flex flex-col gap-5 org-members-list-wrapper" v-if="!error">
-                        <AuditLogsTable :placeholder="placeholder" :headers="headers" :sortKey="sortKey"
-                            :sortDirection="sortDirection" :updateSort="updateSort" :orgAuditLogs="orgAuditLogs"
-                            :orgInfo="orgInfo" :onRefetch="onRefetch" v-model:search="search"
-                            v-model:totalEntries="totalEntries" v-model:currentPage="currentPage"
-                            v-model:entriesPerPage="entriesPerPage" v-model:totalPages="totalPages" />
+                        <AuditLogsTable
+                            :placeholder="placeholder"
+                            :headers="headers"
+                            :sortKey="sortKey"
+                            :sortDirection="sortDirection"
+                            :updateSort="updateSort"
+                            :orgAuditLogs="orgAuditLogs"
+                            :orgInfo="orgInfo"
+                            :onRefetch="onRefetch"
+                            v-model:search="search"
+                            v-model:totalEntries="totalEntries"
+                            v-model:currentPage="currentPage"
+                            v-model:entriesPerPage="entriesPerPage"
+                            v-model:totalPages="totalPages"
+                        />
                     </div>
                     <div v-else>
                         <div class="flex flex-row gap-2" style="font-size: 1.2em">
-                            <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                                style="font-size: 2.5rem; height: fit-content"></Icon>
+                            <Icon
+                                class="icon user-icon"
+                                icon="solar:confounded-square-outline"
+                                style="font-size: 2.5rem; height: fit-content"
+                            ></Icon>
                             <div>
                                 <div class="flex flex-col gap-5">
                                     <div class="flex flex-col gap-2">
@@ -210,8 +231,10 @@ init();
                                         </div>
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                                        <Button v-if="errorCode != APIErrors.NotAuthorized"
-                                            @click="fetchOrgAuditLogs()">
+                                        <Button
+                                            v-if="errorCode != APIErrors.NotAuthorized"
+                                            @click="fetchOrgAuditLogs()"
+                                        >
                                             Try again
                                         </Button>
                                         <Button @click="router.push({ name: 'orgs' })">

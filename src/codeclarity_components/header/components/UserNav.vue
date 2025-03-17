@@ -102,8 +102,10 @@ fetchNotifications();
             <Button variant="ghost" class="relative h-8 w-8 rounded-full">
                 <Avatar class="h-8 w-8">
                     <AvatarImage src="/avatars/01.png" alt="@shadcn" />
-                    <AvatarFallback>{{ userStore.getUser?.first_name.charAt(0)
-                    }}{{ userStore.getUser?.last_name.charAt(0) }}</AvatarFallback>
+                    <AvatarFallback
+                        >{{ userStore.getUser?.first_name.charAt(0)
+                        }}{{ userStore.getUser?.last_name.charAt(0) }}</AvatarFallback
+                    >
                 </Avatar>
             </Button>
         </DropdownMenuTrigger>
@@ -138,7 +140,10 @@ fetchNotifications();
                 </RouterLink>
                 <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </DropdownMenuItem> -->
-                <RouterLink title="Manage Organizations" :to="{ name: 'orgs', params: { action: 'list' } }">
+                <RouterLink
+                    title="Manage Organizations"
+                    :to="{ name: 'orgs', params: { action: 'list' } }"
+                >
                     <DropdownMenuItem class="cursor-pointer">
                         Manage Organizations
                     </DropdownMenuItem>
@@ -166,16 +171,23 @@ fetchNotifications();
             </DialogDescription>
             <div>
                 <ul class="flex flex-col gap-8">
-                    <li v-for="notification in notifications" :key="notification.id"
-                        class="grid grid-cols-2 items-center gap-2">
+                    <li
+                        v-for="notification in notifications"
+                        :key="notification.id"
+                        class="grid grid-cols-2 items-center gap-2"
+                    >
                         <div v-if="notification.content_type == 'new_version'">
-                            <span class="font-semibold">{{ notification.content['package'] }} can be upgraded</span>
+                            <span class="font-semibold"
+                                >{{ notification.content['package'] }} can be upgraded</span
+                            >
                             <br />
                             <span>{{ notification.description }}</span>
                             <br />
-                            <span>{{ notification.content['package'] }}@{{
-                                notification.content['version']
-                            }}</span>
+                            <span
+                                >{{ notification.content['package'] }}@{{
+                                    notification.content['version']
+                                }}</span
+                            >
                         </div>
                         <div v-else>
                             <span class="font-semibold">{{ notification.title }}</span>
@@ -185,14 +197,20 @@ fetchNotifications();
                         <div class="grid grid-cols-2 items-center gap-2">
                             <!-- <Button variant="ghost" class="text-sm">View</Button> -->
                             <span></span>
-                            <Button variant="destructive" class="text-sm"
-                                @click="deleteNotification(notification.id)">Dismiss</Button>
+                            <Button
+                                variant="destructive"
+                                class="text-sm"
+                                @click="deleteNotification(notification.id)"
+                                >Dismiss</Button
+                            >
                         </div>
                     </li>
                 </ul>
             </div>
             <DialogFooter>
-                <Button variant="ghost" class="text-sm" @click="deleteAllNotifications">Clear all</Button>
+                <Button variant="ghost" class="text-sm" @click="deleteAllNotifications"
+                    >Clear all</Button
+                >
             </DialogFooter>
         </DialogContent>
     </Dialog>

@@ -1,6 +1,9 @@
 import { Entity } from '../../../utils/api/BaseEntity';
 import { PaginatedResponse } from '../../../utils/api/responses/PaginatedResponse';
-import { BaseRepository, type AuthRepoMethodGetRequestOptions } from '../../../utils/api/BaseRepository';
+import {
+    BaseRepository,
+    type AuthRepoMethodGetRequestOptions
+} from '../../../utils/api/BaseRepository';
 import type { License } from './License';
 
 export interface GetLicenseRequestOptions extends AuthRepoMethodGetRequestOptions {}

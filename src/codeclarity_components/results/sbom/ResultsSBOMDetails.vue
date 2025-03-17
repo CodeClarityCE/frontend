@@ -146,6 +146,11 @@ init();
 </script>
 
 <template>
-    <Details class="p-12" :show-back="!only_details" :analysisID="analysisID" :projectID="projectID"
-        @close="resetView()"></Details>
+    <Details
+        class="p-12"
+        :show-back="!only_details"
+        :analysisID="analysisID"
+        :projectID="projectID"
+        @close="resetView()"
+    ></Details>
 </template>

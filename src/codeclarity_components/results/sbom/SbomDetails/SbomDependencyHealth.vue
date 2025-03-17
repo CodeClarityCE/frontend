@@ -15,7 +15,9 @@ defineProps({
 
 <template>
     <section>
-        <h2 class="font-black text-xl"><span class="text-primary text-3xl">D</span>ependency Health</h2>
+        <h2 class="font-black text-xl">
+            <span class="text-primary text-3xl">D</span>ependency Health
+        </h2>
 
         <div class="flex flex-col gap-5">
             <!-- <div v-if="dependency.deprecated == true" class="mt-2 border-l-4 border-red pl-5">
@@ -24,20 +26,29 @@ defineProps({
                     <b>Author message</b>: {{ dependency.deprecated_message }}
                 </div>
             </div> -->
-            <div v-if="moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') > 182"
-                class="mt-2 border-l-4 border-severityMedium pl-5">
+            <div
+                v-if="
+                    moment(dependency.lastest_release_date).diff(
+                        moment(dependency.release_date),
+                        'days'
+                    ) > 182
+                "
+                class="mt-2 border-l-4 border-severityMedium pl-5"
+            >
                 <div class="text-severityMedium font-black">Outdated</div>
                 <div class="flex flex-col">
                     <!-- {{ dependency.outdated_message }}  -->
                     <span>
-                        There is a difference of {{
-                            moment(dependency.lastest_release_date).diff(moment(dependency.release_date), 'days') }} days
-                        compared
-                        to the latest release.
+                        There is a difference of
+                        {{
+                            moment(dependency.lastest_release_date).diff(
+                                moment(dependency.release_date),
+                                'days'
+                            )
+                        }}
+                        days compared to the latest release.
                     </span>
-                    <span>
-                        We suggest that you upgrade your version of{{ dependency.name }}.
-                    </span>
+                    <span> We suggest that you upgrade your version of{{ dependency.name }}. </span>
                 </div>
             </div>
             <div v-if="dependency.license == ''" class="mt-2 border-l-4 border-blue-500 pl-5">
@@ -61,7 +72,10 @@ defineProps({
                 </div>
             </div>
             <div class="flex items-center gap-1">
-                <SeverityBubble :critical="true" :deactivated="dependency.severity_dist.critical == 0">
+                <SeverityBubble
+                    :critical="true"
+                    :deactivated="dependency.severity_dist.critical == 0"
+                >
                     <template #content>
                         {{ dependency.severity_dist.critical }}
                     </template>

@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository'
-import { OrgRepository } from '../organization.repository'
-import { AutoForm } from '@/shadcn/ui/auto-form'
-import { Button } from '@/shadcn/ui/button'
-import { toast } from '@/shadcn/ui/toast'
-import { useAuthStore } from '@/stores/auth'
-import { ValidationError } from 'yup'
-import * as z from 'zod'
-
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { OrgRepository } from '../organization.repository';
+import { AutoForm } from '@/shadcn/ui/auto-form';
+import { Button } from '@/shadcn/ui/button';
+import { toast } from '@/shadcn/ui/toast';
+import { useAuthStore } from '@/stores/auth';
+import { ValidationError } from 'yup';
+import * as z from 'zod';
 
 const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
@@ -15,20 +14,20 @@ const orgRepo: OrgRepository = new OrgRepository();
 const schema = z.object({
     name: z
         .string({
-            required_error: 'A name is required.',
+            required_error: 'A name is required.'
         })
         .min(2, {
-            message: 'The name must be at least 2 characters.',
+            message: 'The name must be at least 2 characters.'
         }),
 
     description: z
         .string({
-            required_error: 'A description is required.',
+            required_error: 'A description is required.'
         })
         .min(2, {
-            message: 'The description must be at least 2 characters.',
-        }),
-})
+            message: 'The description must be at least 2 characters.'
+        })
+});
 
 async function onSubmit(values: Record<string, any>) {
     try {
@@ -43,18 +42,18 @@ async function onSubmit(values: Record<string, any>) {
         });
         toast({
             title: 'Organization created!'
-        })
+        });
     } catch (error) {
         if (error instanceof ValidationError) {
             toast({
                 title: 'Error during creation',
                 description: error.message
-            })
+            });
         } else if (error instanceof BusinessLogicError) {
             toast({
                 title: 'Error during creation',
                 description: error.error_message
-            })
+            });
         }
     }
 }
@@ -68,9 +67,7 @@ async function onSubmit(values: Record<string, any>) {
                 Creating an organization allows you to collaborate with other people.
             </div>
             <AutoForm class="w-2/3 space-y-6" :schema="schema" @submit="onSubmit">
-                <Button type="submit">
-                    Submit
-                </Button>
+                <Button type="submit"> Submit </Button>
             </AutoForm>
         </div>
     </div>

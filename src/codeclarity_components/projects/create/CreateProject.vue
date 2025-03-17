@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
-import { VCS, IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import {
+    VCS,
+    IntegrationProvider
+} from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
@@ -99,8 +102,11 @@ fetchVcsIntegrations();
         <!-- VCS Fetch Error -->
         <div v-if="error">
             <div class="flex flex-row gap-2">
-                <Icon class="text-xl" icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"></Icon>
+                <Icon
+                    class="text-xl"
+                    icon="solar:confounded-square-outline"
+                    style="font-size: 3rem; height: fit-content"
+                ></Icon>
                 <div>
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2">
@@ -113,12 +119,8 @@ fetchVcsIntegrations();
                             </div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <Button @click="fetchVcsIntegrations()">
-                                Try again
-                            </Button>
-                            <Button @click="router.back()">
-                                Go back
-                            </Button>
+                            <Button @click="fetchVcsIntegrations()"> Try again </Button>
+                            <Button @click="router.back()"> Go back </Button>
                         </div>
                     </div>
                 </div>
@@ -133,7 +135,10 @@ fetchVcsIntegrations();
             </div>
 
             <div v-else-if="vcsIntegrations.length > 0">
-                <Integrations :vcs-integrations="vcsIntegrations" @on-selected-v-c-s="onSelectedVCS">
+                <Integrations
+                    :vcs-integrations="vcsIntegrations"
+                    @on-selected-v-c-s="onSelectedVCS"
+                >
                 </Integrations>
             </div>
         </template>
@@ -142,11 +147,15 @@ fetchVcsIntegrations();
         <div v-else-if="!error && selectedVCS">
             <div class="flex flex-col gap-12">
                 <h2 class="text-3xl font-bold tracking-tight">Projects</h2>
-                <GithubImportComponent v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
-                    :integration="selectedVCS.id">
+                <GithubImportComponent
+                    v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
+                    :integration="selectedVCS.id"
+                >
                 </GithubImportComponent>
-                <GitlabImportComponent v-if="selectedVCS.integration_provider == IntegrationProvider.GITLAB"
-                    :integration="selectedVCS.id">
+                <GitlabImportComponent
+                    v-if="selectedVCS.integration_provider == IntegrationProvider.GITLAB"
+                    :integration="selectedVCS.id"
+                >
                 </GitlabImportComponent>
             </div>
         </div>

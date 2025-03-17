@@ -9,7 +9,10 @@ import { Icon } from '@iconify/vue';
 import { ref, type Ref } from 'vue';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import { IntegrationProvider, type VCS } from '@/codeclarity_components/organizations/integrations/Integrations';
+import {
+    IntegrationProvider,
+    type VCS
+} from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import BoxLoader from '@/base_components/BoxLoader.vue';
@@ -96,14 +99,21 @@ init();
 
                 <div v-if="loading">
                     <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
-                        <BoxLoader :dimensions="{ width: '150px', height: '150px' }" v-for="i in 4" :key="i" />
+                        <BoxLoader
+                            :dimensions="{ width: '150px', height: '150px' }"
+                            v-for="i in 4"
+                            :key="i"
+                        />
                     </div>
                 </div>
 
                 <div v-if="!loading">
                     <div class="flex flex-row gap-2" v-if="error">
-                        <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"></Icon>
+                        <Icon
+                            class="icon user-icon"
+                            icon="solar:confounded-square-outline"
+                            style="font-size: 3rem; height: fit-content"
+                        ></Icon>
                         <div>
                             <div class="flex flex-col gap-5">
                                 <div class="flex flex-col gap-2">
@@ -118,29 +128,33 @@ init();
                                     </div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetchVcsIntegrations">
-                                        Try again
-                                    </Button>
-                                    <Button @click="router.back">
-                                        Go back
-                                    </Button>
+                                    <Button @click="fetchVcsIntegrations"> Try again </Button>
+                                    <Button @click="router.back"> Go back </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap" v-if="!error">
+                    <div
+                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
+                        v-if="!error"
+                    >
                         <template v-for="vcs in vcsIntegrations">
-                            <RouterLink class="integration-box-wrapper-item" :to="{
-                                name: 'orgs',
-                                params: {
-                                    provider: IntegrationProvider.GITLAB,
-                                    integrationId: vcs.id,
-                                    orgId: orgId,
-                                    page: 'integrations',
-                                    action: 'edit'
-                                }
-                            }" :key="vcs.id" v-if="vcs.integration_provider == IntegrationProvider.GITLAB">
+                            <RouterLink
+                                class="integration-box-wrapper-item"
+                                :to="{
+                                    name: 'orgs',
+                                    params: {
+                                        provider: IntegrationProvider.GITLAB,
+                                        integrationId: vcs.id,
+                                        orgId: orgId,
+                                        page: 'integrations',
+                                        action: 'edit'
+                                    }
+                                }"
+                                :key="vcs.id"
+                                v-if="vcs.integration_provider == IntegrationProvider.GITLAB"
+                            >
                                 <Card>
                                     <CardHeader>
                                         <CardTitle class="flex gap-2 items-center">
@@ -150,13 +164,22 @@ init();
                                     </CardHeader>
                                     <CardContent>
                                         <div class="flex flex-col gap-1 items-center">
-                                            <div class="text-[#d50909] font-black" v-if="vcs.invalid == true">
+                                            <div
+                                                class="text-[#d50909] font-black"
+                                                v-if="vcs.invalid == true"
+                                            >
                                                 Invalid
                                             </div>
-                                            <div class="text-[#ebc017] font-black" v-else-if="isAtRisk(vcs)">
+                                            <div
+                                                class="text-[#ebc017] font-black"
+                                                v-else-if="isAtRisk(vcs)"
+                                            >
                                                 At risk
                                             </div>
-                                            <div class="text-[#1d7e2c] font-black" v-else-if="vcs.invalid == false">
+                                            <div
+                                                class="text-[#1d7e2c] font-black"
+                                                v-else-if="vcs.invalid == false"
+                                            >
                                                 Configured
                                             </div>
                                             <div>
@@ -166,15 +189,19 @@ init();
                                     </CardContent>
                                 </Card>
                             </RouterLink>
-                            <RouterLink class="integration-box-wrapper-item" :to="{
-                                name: 'orgs',
-                                params: { action: 'edit', page: 'integrations', orgId: orgId },
-                                query: {
-                                    provider: IntegrationProvider.GITHUB,
-                                    integrationId: vcs.id
-                                }
-                            }" :key="vcs.id" v-if="vcs.integration_provider == IntegrationProvider.GITHUB">
-
+                            <RouterLink
+                                class="integration-box-wrapper-item"
+                                :to="{
+                                    name: 'orgs',
+                                    params: { action: 'edit', page: 'integrations', orgId: orgId },
+                                    query: {
+                                        provider: IntegrationProvider.GITHUB,
+                                        integrationId: vcs.id
+                                    }
+                                }"
+                                :key="vcs.id"
+                                v-if="vcs.integration_provider == IntegrationProvider.GITHUB"
+                            >
                                 <Card>
                                     <CardHeader>
                                         <CardTitle class="flex gap-2 items-center">
@@ -184,13 +211,22 @@ init();
                                     </CardHeader>
                                     <CardContent>
                                         <div class="flex flex-col gap-1 items-center">
-                                            <div class="text-[#d50909] font-black" v-if="vcs.invalid == true">
+                                            <div
+                                                class="text-[#d50909] font-black"
+                                                v-if="vcs.invalid == true"
+                                            >
                                                 Invalid
                                             </div>
-                                            <div class="text-[#ebc017] font-black" v-else-if="isAtRisk(vcs)">
+                                            <div
+                                                class="text-[#ebc017] font-black"
+                                                v-else-if="isAtRisk(vcs)"
+                                            >
                                                 At risk
                                             </div>
-                                            <div class="text-[#1d7e2c] font-black" v-else-if="vcs.invalid == false">
+                                            <div
+                                                class="text-[#1d7e2c] font-black"
+                                                v-else-if="vcs.invalid == false"
+                                            >
                                                 Configured
                                             </div>
                                         </div>
@@ -198,14 +234,18 @@ init();
                                 </Card>
                             </RouterLink>
                         </template>
-                        <RouterLink v-if="
-                            !vcsIntegrations.some(
-                                (v) => v.integration_provider == IntegrationProvider.GITHUB
-                            )
-                        " class="integration-box-wrapper-item" :to="{
-                            name: 'orgAddIntegration',
-                            params: { provider: IntegrationProvider.GITHUB }
-                        }">
+                        <RouterLink
+                            v-if="
+                                !vcsIntegrations.some(
+                                    (v) => v.integration_provider == IntegrationProvider.GITHUB
+                                )
+                            "
+                            class="integration-box-wrapper-item"
+                            :to="{
+                                name: 'orgAddIntegration',
+                                params: { provider: IntegrationProvider.GITHUB }
+                            }"
+                        >
                             <Card>
                                 <CardHeader>
                                     <CardTitle class="flex gap-2 justify-evenly items-center">
@@ -216,15 +256,19 @@ init();
                                 </CardHeader>
                             </Card>
                         </RouterLink>
-                        <RouterLink v-if="
-                            !vcsIntegrations.some(
-                                (v) => v.integration_provider == IntegrationProvider.GITLAB
-                            )
-                        " class="integration-box-wrapper-item" :to="{
-                            name: 'orgs',
-                            params: { action: 'add', page: 'integrations', orgId: orgId },
-                            query: { provider: IntegrationProvider.GITLAB }
-                        }">
+                        <RouterLink
+                            v-if="
+                                !vcsIntegrations.some(
+                                    (v) => v.integration_provider == IntegrationProvider.GITLAB
+                                )
+                            "
+                            class="integration-box-wrapper-item"
+                            :to="{
+                                name: 'orgs',
+                                params: { action: 'add', page: 'integrations', orgId: orgId },
+                                query: { provider: IntegrationProvider.GITLAB }
+                            }"
+                        >
                             <Card>
                                 <CardHeader>
                                     <CardTitle class="flex gap-2 justify-evenly items-center">

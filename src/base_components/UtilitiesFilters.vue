@@ -156,9 +156,11 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
         <!--------------------------------------------------------------------------->
         <!--                             Filters box                               -->
         <!--------------------------------------------------------------------------->
-        <div title="Open filters"
+        <div
+            title="Open filters"
             class="bg-white flex flex-row items-center mt-0 border border-gray-200 rounded text-gray-600 w-fit h-10 whitespace-nowrap z-10 relative cursor-pointer"
-            @click="showFilterModal = !showFilterModal">
+            @click="showFilterModal = !showFilterModal"
+        >
             <div class="px-4 text-base">Filters</div>
             <div>
                 <Icon icon="ion:chevron-down-outline" />
@@ -168,22 +170,31 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
         <!--------------------------------------------------------------------------->
         <!--                       Filters box active bubble                       -->
         <!--------------------------------------------------------------------------->
-        <div v-if="isActive() == true"
-            class="font-bold absolute -top-7 -left-1 bg-primary text-white rounded p-2 pt-1 scale-90 z-0">
+        <div
+            v-if="isActive() == true"
+            class="font-bold absolute -top-7 -left-1 bg-primary text-white rounded p-2 pt-1 scale-90 z-0"
+        >
             Active
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                          Filter box content                           -->
         <!--------------------------------------------------------------------------->
-        <div v-if="showFilterModal"
-            class="absolute top-11 right-0 w-fit z-20 border border-gray-200 bg-white p-2 flex flex-col gap-4 rounded shadow-lg">
+        <div
+            v-if="showFilterModal"
+            class="absolute top-11 right-0 w-fit z-20 border border-gray-200 bg-white p-2 flex flex-col gap-4 rounded shadow-lg"
+        >
             <div class="p-5 pb-0 flex flex-row gap-8 w-full">
                 <!-- SHOW COLUMN FOR EACH OPTION -->
-                <div v-for="[category_name, filter] in Object.entries(filterState.filterConfig)" :key="category_name">
+                <div
+                    v-for="[category_name, filter] in Object.entries(filterState.filterConfig)"
+                    :key="category_name"
+                >
                     <!-- IF TYPE DIVIDER DIPLAY IT -->
-                    <div v-if="filter.type == FilterType.DIVIDER"
-                        class="filter-divider border-l border-gray-600 h-full"></div>
+                    <div
+                        v-if="filter.type == FilterType.DIVIDER"
+                        class="filter-divider border-l border-gray-600 h-full"
+                    ></div>
 
                     <!-- ELSE IF TYPE CHECKBOX/RADIO -->
                     <div v-else class="flex flex-col gap-4 whitespace-nowrap w-full">
@@ -192,49 +203,75 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
                                 <Icon v-if="filter.icon" :icon="filter.icon" />
                                 <div>{{ filter.name }}</div>
                                 <!-- Stupid fix to keep header height the same -->
-                                <Icon v-if="!filter.icon" icon="simple-icons:owasp" class="text-transparent" />
+                                <Icon
+                                    v-if="!filter.icon"
+                                    icon="simple-icons:owasp"
+                                    class="text-transparent"
+                                />
                             </div>
-                            <div v-if="lockedCategories && lockedCategories.includes(category_name)"
-                                class="text-primary">
+                            <div
+                                v-if="lockedCategories && lockedCategories.includes(category_name)"
+                                class="text-primary"
+                            >
                                 <Icon icon="material-symbols:lock" /> locked
                             </div>
                         </div>
 
                         <!-- ADD A LINE FOR EACH ATTRIBUTE IN COLUMN -->
-                        <div :class="[
-                            filter.type == FilterType.CHECKBOX
-                                ? 'checkbox-group flex row gap-2 items-center'
-                                : 'flex flex-col gap-2 text-sm whitespace-nowrap text-gray-600 min-w-36'
-                        ]">
-                            <div v-for="[attribute_name, attribute] in Object.entries(filter.data)"
-                                :key="attribute_name" class="flex flex-row gap-2 items-center" :class="[
+                        <div
+                            :class="[
+                                filter.type == FilterType.CHECKBOX
+                                    ? 'checkbox-group flex row gap-2 items-center'
+                                    : 'flex flex-col gap-2 text-sm whitespace-nowrap text-gray-600 min-w-36'
+                            ]"
+                        >
+                            <div
+                                v-for="[attribute_name, attribute] in Object.entries(filter.data)"
+                                :key="attribute_name"
+                                class="flex flex-row gap-2 items-center"
+                                :class="[
                                     lockedCategories && lockedCategories.includes(category_name)
                                         ? 'cursor-not-allowed'
                                         : ''
-                                ]">
-                                <label class="flex flex-row items-center" :class="[
-                                    filterState.filterConfig[category_name]['data'][
-                                        attribute_name
-                                    ]['value'] == true
-                                        ? 'cursor-pointer text-primary'
-                                        : ''
-                                ]">
-                                    <input :type="filter.type" :value="filterState.filterConfig[category_name]['data'][
-                                        attribute_name
-                                        ]['value']
-                                        " class="hidden" @click="optionClick(filter, category_name, attribute_name)" />
+                                ]"
+                            >
+                                <label
+                                    class="flex flex-row items-center"
+                                    :class="[
+                                        filterState.filterConfig[category_name]['data'][
+                                            attribute_name
+                                        ]['value'] == true
+                                            ? 'cursor-pointer text-primary'
+                                            : ''
+                                    ]"
+                                >
+                                    <input
+                                        :type="filter.type"
+                                        :value="
+                                            filterState.filterConfig[category_name]['data'][
+                                                attribute_name
+                                            ]['value']
+                                        "
+                                        class="hidden"
+                                        @click="optionClick(filter, category_name, attribute_name)"
+                                    />
                                     <Icon :icon="apply_style(filter, attribute_name)" />
                                 </label>
-                                <div :class="[
-                                    filterState.filterConfig[category_name]['data'][
-                                        attribute_name
-                                    ]['value'] == true
-                                        ? 'cursor-pointer text-primary'
-                                        : ''
-                                ]" class="flex flex-row gap-2 items-center w-full">
+                                <div
+                                    :class="[
+                                        filterState.filterConfig[category_name]['data'][
+                                            attribute_name
+                                        ]['value'] == true
+                                            ? 'cursor-pointer text-primary'
+                                            : ''
+                                    ]"
+                                    class="flex flex-row gap-2 items-center w-full"
+                                >
                                     {{ attribute.title }}
-                                    <div v-if="options_count[attribute_name] != undefined"
-                                        class="flex flex-row gap-2 px-3 py-1 border-r-8 w-fit text-gray-400 text-center text-sm bg-gray-200 items-center">
+                                    <div
+                                        v-if="options_count[attribute_name] != undefined"
+                                        class="flex flex-row gap-2 px-3 py-1 border-r-8 w-fit text-gray-400 text-center text-sm bg-gray-200 items-center"
+                                    >
                                         {{ options_count[attribute_name] }}
                                     </div>
                                 </div>
@@ -246,9 +283,7 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
 
             <!-- CLOSE BUTTON -->
             <div title="Open settings" class="flex flex-row justify-end gap-2 p-2 -mt-5">
-                <Button variant="outline" @click="showFilterModal = false">
-                    Close
-                </Button>
+                <Button variant="outline" @click="showFilterModal = false"> Close </Button>
             </div>
         </div>
     </div>

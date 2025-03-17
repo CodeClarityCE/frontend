@@ -51,7 +51,13 @@ function createData() {
 
     let colorScale = props.colorScale;
     if (!colorScale)
-        colorScale = d3.interpolateDiscrete(['#003532', '#1A4876','#008491', '#40E0D0', '#D3D3D3']);
+        colorScale = d3.interpolateDiscrete([
+            '#003532',
+            '#1A4876',
+            '#008491',
+            '#40E0D0',
+            '#D3D3D3'
+        ]);
     if (props.data.length == 0) return;
 
     const colorsDefinedInData = props.data.every((entry) => entry.color != undefined);
@@ -214,11 +220,18 @@ createData();
 <template>
     <!-- Waffle chart -->
     <div class="grid grid-cols-10 gap-0">
-        <div v-for="(square, index) in squares" style="width: 25px; height: 25px; padding: 2.5px"
-            @mouseover="animateGroup(square.group)" @mouseleave="stopAnimateGroup()"
-            :style="{ filter: styleSelected(square.group) }" :key="index">
-            <div style="background-color: gray; width: 100%; height: 100%; border-radius: 5px"
-                :style="{ backgroundColor: square.data.color }"></div>
+        <div
+            v-for="(square, index) in squares"
+            style="width: 25px; height: 25px; padding: 2.5px"
+            @mouseover="animateGroup(square.group)"
+            @mouseleave="stopAnimateGroup()"
+            :style="{ filter: styleSelected(square.group) }"
+            :key="index"
+        >
+            <div
+                style="background-color: gray; width: 100%; height: 100%; border-radius: 5px"
+                :style="{ backgroundColor: square.data.color }"
+            ></div>
         </div>
     </div>
     <!-- Waffle legend -->
@@ -227,12 +240,17 @@ createData();
         <div class="flex-column flex-column-10 overflow-y-auto max-h-80">
             <div v-for="(value, index) in waffleEntries" :key="index">
                 <div class="flex flex-row gap-2 items-center">
-                    <div style="border-radius: 50%; width: 10px; height: 10px; flex-shrink: 0" :style="{
-                        backgroundColor: value.color,
-                        filter: styleSelected(value.label)
-                    }"></div>
-                    <div class="flex flex-row gap-2 justify-between max-w-52"
-                        :style="{ filter: styleSelected(value.label) }">
+                    <div
+                        style="border-radius: 50%; width: 10px; height: 10px; flex-shrink: 0"
+                        :style="{
+                            backgroundColor: value.color,
+                            filter: styleSelected(value.label)
+                        }"
+                    ></div>
+                    <div
+                        class="flex flex-row gap-2 justify-between max-w-52"
+                        :style="{ filter: styleSelected(value.label) }"
+                    >
                         <div class="text-[#3e3e3e]">{{ value.label }}</div>
                         <div class="font-bold" :style="{ color: value.color }">
                             <template v-if="props.outputPercentual">
@@ -248,23 +266,27 @@ createData();
         </div>
 
         <div v-if="truncatedOthers.length > 0" class="flex flex-row" style="justify-content: start">
-            <Button variant="outline" @click="allLicensesModalRef.toggle()">
-                See others
-            </Button>
+            <Button variant="outline" @click="allLicensesModalRef.toggle()"> See others </Button>
         </div>
     </div>
     <!-- Modal that shows licenses grouped under 'others' if any -->
     <CenteredModal ref="allLicensesModalRef">
         <template #title>
-            <div style="
+            <div
+                style="
                     display: flex;
                     flex-direction: row;
                     column-gap: 1em;
                     justify-content: space-between;
-                ">
+                "
+            >
                 <div>Other Licenses</div>
-                <Icon :icon="'ic:round-close'" style="cursor: pointer" title="Close modal"
-                    @click="allLicensesModalRef.toggle()">
+                <Icon
+                    :icon="'ic:round-close'"
+                    style="cursor: pointer"
+                    title="Close modal"
+                    @click="allLicensesModalRef.toggle()"
+                >
                     Close
                 </Icon>
             </div>
@@ -275,29 +297,36 @@ createData();
         <template #content>
             <div style="max-width: 1000px; max-height: 40vh; overflow-y: auto">
                 <div style="font-weight: 400; color: #737171">
-                    <div style="
+                    <div
+                        style="
                             margin-bottom: 10px;
                             font-size: 1em;
                             display: flex;
                             align-items: center;
                             flex-direction: row;
                             column-gap: 6px;
-                        ">
+                        "
+                    >
                         <div>Licenses</div>
                     </div>
                     <div v-for="(value, index) in truncatedOthers" :key="index">
                         <div class="flex flex-row gap-2 justify-start items-center">
-                            <div style="
+                            <div
+                                style="
                                     border-radius: 50%;
                                     width: 10px;
                                     height: 10px;
                                     flex-shrink: 0;
-                                " :style="{
+                                "
+                                :style="{
                                     backgroundColor: value.color,
                                     filter: styleSelected(value.label)
-                                }"></div>
-                            <div class="flex flex-row gap-2 justify-between max-w-80"
-                                :style="{ filter: styleSelected(value.label) }">
+                                }"
+                            ></div>
+                            <div
+                                class="flex flex-row gap-2 justify-between max-w-80"
+                                :style="{ filter: styleSelected(value.label) }"
+                            >
                                 <div style="color: #3e3e3e">{{ value.label }}</div>
                                 <div style="font-weight: 700" :style="{ color: value.color }">
                                     {{ (value.value * 100).toFixed(5) }}% ({{ value.sourceValue }})
@@ -309,9 +338,7 @@ createData();
             </div>
         </template>
         <template #buttons>
-            <Button @click="allLicensesModalRef.toggle()">
-                Close
-            </Button>
+            <Button @click="allLicensesModalRef.toggle()"> Close </Button>
         </template>
     </CenteredModal>
 </template>

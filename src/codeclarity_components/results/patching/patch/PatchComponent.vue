@@ -79,12 +79,17 @@ const active_view = ref('patches');
                         {{ name }}
                     </div>
                     <div>
-                        <span v-if="patch.IsPatchable == 'FULL'" class="flex gap-1 items-center text-severityLow">
+                        <span
+                            v-if="patch.IsPatchable == 'FULL'"
+                            class="flex gap-1 items-center text-severityLow"
+                        >
                             <Icon icon="bi:shield-fill-check" />
                             Full patch available
                         </span>
-                        <span v-else-if="patch.IsPatchable == 'PARTIAL'"
-                            class="flex gap-1 items-center text-severityMedium">
+                        <span
+                            v-else-if="patch.IsPatchable == 'PARTIAL'"
+                            class="flex gap-1 items-center text-severityMedium"
+                        >
                             <Icon icon="bi:shield-fill-minus" />
                             Partial patch available
                         </span>
@@ -97,12 +102,8 @@ const active_view = ref('patches');
 
                 <Tabs default-value="patches" class="w-full">
                     <TabsList class="grid w-full grid-cols-2">
-                        <TabsTrigger value="patches">
-                            <Icon icon="bi:list" /> Patches
-                        </TabsTrigger>
-                        <TabsTrigger value="tree">
-                            <Icon icon="ri:node-tree" /> Tree
-                        </TabsTrigger>
+                        <TabsTrigger value="patches"> <Icon icon="bi:list" /> Patches </TabsTrigger>
+                        <TabsTrigger value="tree"> <Icon icon="ri:node-tree" /> Tree </TabsTrigger>
                     </TabsList>
                     <TabsContent value="patches">
                         <div v-for="(unpatchable, index) in patch.Unpatchable" :key="index">

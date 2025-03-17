@@ -73,32 +73,54 @@ async function deleteProject() {
         <CardHeader>
             <CardTitle class="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div class="flex flex-wrap items-center">
-                    <Icon v-if="project.type == IntegrationProvider.GITLAB" icon="devicon:gitlab"
-                        class="w-8 flex-shrink-0" />
-                    <Icon v-else-if="project.type == IntegrationProvider.GITHUB" icon="devicon:github"
-                        class="w-8 flex-shrink-0" />
+                    <Icon
+                        v-if="project.type == IntegrationProvider.GITLAB"
+                        icon="devicon:gitlab"
+                        class="w-8 flex-shrink-0"
+                    />
+                    <Icon
+                        v-else-if="project.type == IntegrationProvider.GITHUB"
+                        icon="devicon:github"
+                        class="w-8 flex-shrink-0"
+                    />
                     <Icon v-else icon="fluent-mdl2:unknown-solid" class="w-8 flex-shrink-0" />
                     <span>{{ project.name.split('/')[0] }}/</span>
                     <span>{{ project.name.split('/').slice(-1)[0] }}</span>
                 </div>
                 <div class="relative">
-                    <Button variant="secondary" size="icon" :id="'dot-menu-' + project.id"
-                        @click="projectOptionsModalRef.toggle()">
+                    <Button
+                        variant="secondary"
+                        size="icon"
+                        :id="'dot-menu-' + project.id"
+                        @click="projectOptionsModalRef.toggle()"
+                    >
                         <Icon :id="'dot-menu-' + project.id" icon="bi:three-dots-vertical" />
                     </Button>
-                    <PositionedModal ref="projectOptionsModalRef" :tracker="'dot-menu-' + project.id"
-                        :position="'top-left'" :show-title-divider="false" :show-title="false" :show-sub-title="false"
-                        :padding="false" :margin-target="5">
+                    <PositionedModal
+                        ref="projectOptionsModalRef"
+                        :tracker="'dot-menu-' + project.id"
+                        :position="'top-left'"
+                        :show-title-divider="false"
+                        :show-title="false"
+                        :show-sub-title="false"
+                        :padding="false"
+                        :margin-target="5"
+                    >
                         <template #content>
                             <div
-                                class="max-h-96 overflow-y-auto flex flex-col font-normal text-sm whitespace-nowrap p-1">
+                                class="max-h-96 overflow-y-auto flex flex-col font-normal text-sm whitespace-nowrap p-1"
+                            >
                                 <div
-                                    class="flex flex-row gap-2 items-center w-full cursor-pointer p-2 hover:rounded hover:bg-gray-200">
+                                    class="flex flex-row gap-2 items-center w-full cursor-pointer p-2 hover:rounded hover:bg-gray-200"
+                                >
                                     <Icon class="icon" icon="solar:graph-outline"></Icon>
                                     Project Dashboard
                                 </div>
-                                <div class="flex flex-row gap-2 items-center w-full cursor-pointer p-2 hover:rounded hover:bg-gray-200"
-                                    title="Delete the project" @click="projectDeleteModalRef.toggle()">
+                                <div
+                                    class="flex flex-row gap-2 items-center w-full cursor-pointer p-2 hover:rounded hover:bg-gray-200"
+                                    title="Delete the project"
+                                    @click="projectDeleteModalRef.toggle()"
+                                >
                                     <Icon class="icon" icon="solar:trash-bin-trash-linear" />
                                     Delete
                                 </div>
@@ -128,7 +150,10 @@ async function deleteProject() {
             </div>
             <div class="flex flex-col justify-center items-center" v-else>
                 No analysis found
-                <RouterLink :to="'/analyses/add?id=' + project.id" class="flex flex-row items-center">
+                <RouterLink
+                    :to="'/analyses/add?id=' + project.id"
+                    class="flex flex-row items-center"
+                >
                     <Button> Create an analysis </Button>
                 </RouterLink>
             </div>
@@ -154,13 +179,15 @@ async function deleteProject() {
             </div>
         </template>
         <template #buttons>
-            <Button variant="destructive" class="flex flex-row gap-2 items-center" @click="deleteProject()">
+            <Button
+                variant="destructive"
+                class="flex flex-row gap-2 items-center"
+                @click="deleteProject()"
+            >
                 <Icon icon="oi:trash" />
                 <div>Delete</div>
             </Button>
-            <Button @click="projectDeleteModalRef.toggle()">
-                Cancel
-            </Button>
+            <Button @click="projectDeleteModalRef.toggle()"> Cancel </Button>
         </template>
     </CenteredModal>
 </template>

@@ -222,7 +222,9 @@ function createDepTypeChart() {
             <Card class="lg:col-start-3">
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle> {{ stats.number_of_non_dev_dependencies ?? 0 }}</CardTitle>
-                    <CardDescription>{{ stats.number_of_direct_dependencies_diff ?? 0 }}</CardDescription>
+                    <CardDescription>{{
+                        stats.number_of_direct_dependencies_diff ?? 0
+                    }}</CardDescription>
                 </CardHeader>
                 <CardContent class="flex flex-col items-center text-center">
                     Direct Dependencies
@@ -231,7 +233,9 @@ function createDepTypeChart() {
             <Card class="lg:col-start-3 lg:row-start-2 row-start-1 row-span-1">
                 <CardHeader class="flex flex-col items-center">
                     <CardTitle> {{ stats.number_of_dev_dependencies ?? 0 }}</CardTitle>
-                    <CardDescription>{{ stats.number_of_dev_dependencies_diff ?? 0 }}</CardDescription>
+                    <CardDescription>{{
+                        stats.number_of_dev_dependencies_diff ?? 0
+                    }}</CardDescription>
                 </CardHeader>
                 <CardContent class="flex flex-col items-center text-center">
                     Direct Dev Dependencies
@@ -240,7 +244,9 @@ function createDepTypeChart() {
             <Card class="col-span-3 row-span-2 flex flex-col">
                 <CardHeader>
                     <CardTitle>Composition</CardTitle>
-                    <CardDescription>{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription>
+                    <CardDescription
+                        >{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription
+                    >
                 </CardHeader>
                 <CardContent class="flex items-center justify-center flex-grow">
                     <div class="flex gap-2 flex-wrap items-center justify-center">

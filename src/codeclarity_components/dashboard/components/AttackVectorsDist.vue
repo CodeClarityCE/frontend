@@ -93,17 +93,18 @@ fetch();
         <div v-else>
             <div v-if="error">
                 <div class="flex flex-row gap-2">
-                    <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                        style="font-size: 3rem; height: fit-content"></Icon>
+                    <Icon
+                        class="icon user-icon"
+                        icon="solar:confounded-square-outline"
+                        style="font-size: 3rem; height: fit-content"
+                    ></Icon>
                     <div>
                         <div class="flex flex-col gap-2">
                             <div class="flex flex-col gap-2">
                                 <div>Failed to load the dashboard component</div>
                             </div>
                             <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <Button @click="fetch">
-                                    Try again
-                                </Button>
+                                <Button @click="fetch"> Try again </Button>
                             </div>
                         </div>
                     </div>

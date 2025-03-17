@@ -23,8 +23,10 @@ defineExpose({
 </script>
 <template>
     <Transition>
-        <div v-if="show_modal"
-            class="fixed top-0 left-0 z-50 p-8 w-full h-full flex bg-black bg-opacity-5 justify-center items-center">
+        <div
+            v-if="show_modal"
+            class="fixed top-0 left-0 z-50 p-8 w-full h-full flex bg-black bg-opacity-5 justify-center items-center"
+        >
             <div class="w-fit bg-white shadow-md rounded-lg">
                 <div class="rounded p-5 pb-0 font-semibold text-gray-600 text-lg">
                     <slot name="title"></slot>

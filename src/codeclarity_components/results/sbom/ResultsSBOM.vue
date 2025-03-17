@@ -45,8 +45,15 @@ watch(activeTab, async (newTab, oldTab) => {
 </script>
 
 <template>
-    <div v-show="!details" v-if="!only_details" class="w-full flex flex-col gap-14" id="main-container">
-        <template v-if="(bill_of_materials == null || bill_of_materials.length == 0) && !is_loading">
+    <div
+        v-show="!details"
+        v-if="!only_details"
+        class="w-full flex flex-col gap-14"
+        id="main-container"
+    >
+        <template
+            v-if="(bill_of_materials == null || bill_of_materials.length == 0) && !is_loading"
+        >
             <div style="margin-bottom: 100px">
                 <Alert>
                     <AlertDescription>
@@ -64,32 +71,54 @@ watch(activeTab, async (newTab, oldTab) => {
                                 <ul>
                                     <li>
                                         a package manifest:
-                                        <a href="https://docs.npmjs.com/cli/v9/configuring-npm/package-json"
-                                            target="_blank" style="color: var(--accent)">package.json
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                        <a
+                                            href="https://docs.npmjs.com/cli/v9/configuring-npm/package-json"
+                                            target="_blank"
+                                            style="color: var(--accent)"
+                                            >package.json
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i
+                                        ></a>
                                     </li>
                                     <li>
-                                        <div style="
+                                        <div
+                                            style="
                                                 display: flex;
                                                 flex-direction: row;
                                                 align-items: center;
                                                 column-gap: 5px;
-                                            ">
+                                            "
+                                        >
                                             a lockfile:
-                                            <i class="fa-brands fa-yarn"
-                                                style="color: lightblue; width: 25px; height: 25px">
+                                            <i
+                                                class="fa-brands fa-yarn"
+                                                style="color: lightblue; width: 25px; height: 25px"
+                                            >
                                             </i>
-                                            <a href="https://classic.yarnpkg.com/lang/en/docs/yarn-lock/"
-                                                target="_blank" style="color: var(--accent)">yarn.lock
-                                                <i class="fa-solid fa-arrow-up-right-from-square"
-                                                    style="font-size: 0.7em"></i></a>
+                                            <a
+                                                href="https://classic.yarnpkg.com/lang/en/docs/yarn-lock/"
+                                                target="_blank"
+                                                style="color: var(--accent)"
+                                                >yarn.lock
+                                                <i
+                                                    class="fa-solid fa-arrow-up-right-from-square"
+                                                    style="font-size: 0.7em"
+                                                ></i
+                                            ></a>
                                             or
-                                            <i class="fa-brands fa-npm"
-                                                style="color: red; width: 25px; height: 25px"></i>
-                                            <a href="https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json"
-                                                target="_blank" style="color: var(--accent)">package-lock.json
-                                                <i class="fa-solid fa-arrow-up-right-from-square"
-                                                    style="font-size: 0.7em"></i></a>
+                                            <i
+                                                class="fa-brands fa-npm"
+                                                style="color: red; width: 25px; height: 25px"
+                                            ></i>
+                                            <a
+                                                href="https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json"
+                                                target="_blank"
+                                                style="color: var(--accent)"
+                                                >package-lock.json
+                                                <i
+                                                    class="fa-solid fa-arrow-up-right-from-square"
+                                                    style="font-size: 0.7em"
+                                                ></i
+                                            ></a>
                                         </div>
                                     </li>
                                 </ul>
@@ -101,8 +130,9 @@ watch(activeTab, async (newTab, oldTab) => {
                                 analyzed, then please accept our apologies for the inconvenience.
                                 Since our product is still in the beta phase, you can help us iron
                                 out the issues by contacting us under:
-                                <a href="mailto:help@codeclarity.io"
-                                    style="color: var(--accent)">help@codeclarity.io</a>
+                                <a href="mailto:help@codeclarity.io" style="color: var(--accent)"
+                                    >help@codeclarity.io</a
+                                >
                             </div>
                         </div>
                     </AlertDescription>

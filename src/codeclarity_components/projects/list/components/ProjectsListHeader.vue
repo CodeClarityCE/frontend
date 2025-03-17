@@ -34,8 +34,14 @@ const sort_options = [
     </div>
 
     <!-- Sort Bar -->
-    <UtilitiesSort :selectionPageLimit="selectionPageLimit" :sortOptions="sort_options"
-        :showing="projectsResponse?.entries_per_page || 0" :total="projectsResponse?.total_entries || 0"
-        v-model:pageLimitSelected="pageLimitSelected" v-model:sortKey="sortKey" v-model:sortDirection="sortDirection">
+    <UtilitiesSort
+        :selectionPageLimit="selectionPageLimit"
+        :sortOptions="sort_options"
+        :showing="projectsResponse?.entries_per_page || 0"
+        :total="projectsResponse?.total_entries || 0"
+        v-model:pageLimitSelected="pageLimitSelected"
+        v-model:sortKey="sortKey"
+        v-model:sortDirection="sortDirection"
+    >
     </UtilitiesSort>
 </template>

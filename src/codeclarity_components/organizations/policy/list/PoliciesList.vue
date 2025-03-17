@@ -77,14 +77,21 @@ fetchPolicies();
 
                 <div v-if="loading">
                     <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
-                        <BoxLoader :dimensions="{ width: '150px', height: '150px' }" v-for="i in 4" v-bind:key="i" />
+                        <BoxLoader
+                            :dimensions="{ width: '150px', height: '150px' }"
+                            v-for="i in 4"
+                            v-bind:key="i"
+                        />
                     </div>
                 </div>
 
                 <div v-if="!loading">
                     <div class="flex flex-row gap-2" v-if="error">
-                        <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"></Icon>
+                        <Icon
+                            class="icon user-icon"
+                            icon="solar:confounded-square-outline"
+                            style="font-size: 3rem; height: fit-content"
+                        ></Icon>
                         <div>
                             <div class="flex flex-col gap-5">
                                 <div class="flex flex-col gap-2">
@@ -99,47 +106,58 @@ fetchPolicies();
                                     </div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetchPolicies">
-                                        Try again
-                                    </Button>
-                                    <Button @click="router.back">
-                                        Go back
-                                    </Button>
+                                    <Button @click="fetchPolicies"> Try again </Button>
+                                    <Button @click="router.back"> Go back </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap" v-if="!error">
-                        <template v-for="licensePolicy in licensePolicies" v-bind:key="licensePolicy.id">
-                            <RouterLink class="integration-box-wrapper-iteme" :to="{
-                                name: 'orgs',
-                                params: {
-                                    page: 'policy',
-                                    orgId: orgId,
-                                    action: 'edit'
-                                },
-                                query: { policyId: licensePolicy.id }
-                            }">
+                    <div
+                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
+                        v-if="!error"
+                    >
+                        <template
+                            v-for="licensePolicy in licensePolicies"
+                            v-bind:key="licensePolicy.id"
+                        >
+                            <RouterLink
+                                class="integration-box-wrapper-iteme"
+                                :to="{
+                                    name: 'orgs',
+                                    params: {
+                                        page: 'policy',
+                                        orgId: orgId,
+                                        action: 'edit'
+                                    },
+                                    query: { policyId: licensePolicy.id }
+                                }"
+                            >
                                 <Card>
                                     <CardHeader>
                                         <CardTitle class="flex gap-4 items-center">
                                             {{ licensePolicy.name }}
-                                            <Icon class="text-3xl" icon="solar:settings-bold"></Icon>
+                                            <Icon
+                                                class="text-3xl"
+                                                icon="solar:settings-bold"
+                                            ></Icon>
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>{{ licensePolicy.description }}</CardContent>
                                 </Card>
                             </RouterLink>
                         </template>
-                        <RouterLink class="integration-box-wrapper-item" :to="{
-                            name: 'orgs',
-                            params: {
-                                page: 'policy',
-                                orgId: orgId,
-                                action: 'add'
-                            }
-                        }">
+                        <RouterLink
+                            class="integration-box-wrapper-item"
+                            :to="{
+                                name: 'orgs',
+                                params: {
+                                    page: 'policy',
+                                    orgId: orgId,
+                                    action: 'add'
+                                }
+                            }"
+                        >
                             <Card>
                                 <CardHeader>
                                     <CardTitle class="flex gap-4 items-center">

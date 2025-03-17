@@ -33,7 +33,9 @@ defineProps<{
 
         <div>
             Patched version:
-            <SemverToString :semver="patchInfo.Patches[patch.DependencyName + '@' + patch.DependencyVersion]">
+            <SemverToString
+                :semver="patchInfo.Patches[patch.DependencyName + '@' + patch.DependencyVersion]"
+            >
             </SemverToString>
         </div>
     </div>

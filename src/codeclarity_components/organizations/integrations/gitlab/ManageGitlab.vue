@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import { IntegrationProvider, GitlabIntegration } from '@/codeclarity_components/organizations/integrations/Integrations';
+import {
+    IntegrationProvider,
+    GitlabIntegration
+} from '@/codeclarity_components/organizations/integrations/Integrations';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
@@ -102,13 +105,20 @@ async function deleteIntegration() {
 init();
 </script>
 <template>
-    <OrgIntegrationManageTokenBasedIntegration v-if="!loading && integration != undefined && integration != null"
-        :error="error" :error-code="errorCode" :integration="integration" :provider="IntegrationProvider.GITHUB"
+    <OrgIntegrationManageTokenBasedIntegration
+        v-if="!loading && integration != undefined && integration != null"
+        :error="error"
+        :error-code="errorCode"
+        :integration="integration"
+        :provider="IntegrationProvider.GITHUB"
         :update-route="{
             name: 'orgs',
             params: { action: 'manage', page: 'integrations', orgId: orgId },
             query: { update: integrationId, provider: IntegrationProvider.GITHUB }
-        }" @refresh="fetchIntegration()" @delete="deleteIntegration()">
+        }"
+        @refresh="fetchIntegration()"
+        @delete="deleteIntegration()"
+    >
         <template #header-integration-icon>
             <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
         </template>

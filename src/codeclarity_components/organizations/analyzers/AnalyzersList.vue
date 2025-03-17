@@ -119,14 +119,21 @@ init();
 
                 <div v-if="loading">
                     <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
-                        <BoxLoader :dimensions="{ width: '150px', height: '150px' }" v-for="i in 4" v-bind:key="i" />
+                        <BoxLoader
+                            :dimensions="{ width: '150px', height: '150px' }"
+                            v-for="i in 4"
+                            v-bind:key="i"
+                        />
                     </div>
                 </div>
 
                 <div v-if="!loading">
                     <div class="flex flex-row gap-2" v-if="error">
-                        <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"></Icon>
+                        <Icon
+                            class="icon user-icon"
+                            icon="solar:confounded-square-outline"
+                            style="font-size: 3rem; height: fit-content"
+                        ></Icon>
                         <div>
                             <div class="flex flex-col gap-5">
                                 <div class="flex flex-col gap-2">
@@ -141,18 +148,17 @@ init();
                                     </div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetchAnalyzers">
-                                        Try again
-                                    </Button>
-                                    <Button @click="router.back">
-                                        Go back
-                                    </Button>
+                                    <Button @click="fetchAnalyzers"> Try again </Button>
+                                    <Button @click="router.back"> Go back </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap" v-if="!error">
+                    <div
+                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
+                        v-if="!error"
+                    >
                         <div v-for="analyzer in analyzers" v-bind:key="analyzer.id">
                             <Card>
                                 <CardHeader>
@@ -162,17 +168,20 @@ init();
                                 <CardContent>
                                     <div class="grid grid-cols-2 gap-2">
                                         <Button>
-                                            <RouterLink class="integration-box-wrapper-iteme" :to="{
-                                                name: 'orgs',
-                                                params: {
-                                                    action: 'edit',
-                                                    page: 'analyzers',
-                                                    orgId: orgId
-                                                },
-                                                query: {
-                                                    analyzerId: analyzer.id
-                                                }
-                                            }">
+                                            <RouterLink
+                                                class="integration-box-wrapper-iteme"
+                                                :to="{
+                                                    name: 'orgs',
+                                                    params: {
+                                                        action: 'edit',
+                                                        page: 'analyzers',
+                                                        orgId: orgId
+                                                    },
+                                                    query: {
+                                                        analyzerId: analyzer.id
+                                                    }
+                                                }"
+                                            >
                                                 Modify
                                             </RouterLink>
                                         </Button>
@@ -193,7 +202,10 @@ init();
                                                     <DialogClose as-child>
                                                         <Button variant="secondary">Cancel</Button>
                                                     </DialogClose>
-                                                    <Button variant="destructive" @click="deleteAnalyzer(analyzer.id)">
+                                                    <Button
+                                                        variant="destructive"
+                                                        @click="deleteAnalyzer(analyzer.id)"
+                                                    >
                                                         Delete
                                                     </Button>
                                                 </DialogFooter>
@@ -204,14 +216,17 @@ init();
                             </Card>
                         </div>
                         <Button>
-                            <RouterLink class="flex flex-row gap-2 items-center" :to="{
-                                name: 'orgs',
-                                params: {
-                                    action: 'add',
-                                    page: 'analyzers',
-                                    orgId: orgId
-                                }
-                            }">
+                            <RouterLink
+                                class="flex flex-row gap-2 items-center"
+                                :to="{
+                                    name: 'orgs',
+                                    params: {
+                                        action: 'add',
+                                        page: 'analyzers',
+                                        orgId: orgId
+                                    }
+                                }"
+                            >
                                 <Icon class="text-3xl" icon="solar:add-circle-bold"></Icon> Add an
                                 analyzer
                             </RouterLink>

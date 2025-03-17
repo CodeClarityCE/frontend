@@ -29,7 +29,10 @@ const emit = defineEmits<{
                 <div class="flex flex-col gap-5">
                     <div class="flex flex-col gap-2">
                         <div>No integrations found</div>
-                        <div class="text-xs" v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)">
+                        <div
+                            class="text-xs"
+                            v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
+                        >
                             To be able to import projects you must add an integration with either
                             Github or GitLab. Please visit the link below and add such an
                             integration. You can then reload this page or click on the "Refresh"
@@ -42,22 +45,25 @@ const emit = defineEmits<{
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 items-center flex-wrap">
-                        <Button @click="emit('onRefresh')"
-                            v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)">
+                        <Button
+                            @click="emit('onRefresh')"
+                            v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
+                        >
                             Refresh
                         </Button>
-                        <Button @click="$router.back()">
-                            Go back
-                        </Button>
+                        <Button @click="$router.back()"> Go back </Button>
                     </div>
                 </div>
             </div>
         </div>
         <div v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)">
-            <RouterLink :to="{
-                name: 'orgManage',
-                params: { orgId: defaultOrg.id, page: 'integrations' }
-            }" target="_blank">
+            <RouterLink
+                :to="{
+                    name: 'orgManage',
+                    params: { orgId: defaultOrg.id, page: 'integrations' }
+                }"
+                target="_blank"
+            >
                 <div class="flex flex-row gap-1 items-center">
                     <Icon class="text-lg" icon="ion:open-outline"></Icon>
                     <div class="text-xl font-normal">Manage your integrations</div>

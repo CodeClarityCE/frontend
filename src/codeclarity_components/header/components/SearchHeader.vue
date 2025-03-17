@@ -80,7 +80,8 @@ function handleOpenChange() {
         <p class="text-sm text-muted-foreground">
             Commands
             <kbd
-                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+            >
                 <span class="text-xs">⌘</span>K
             </kbd>
         </p>
@@ -108,9 +109,12 @@ function handleOpenChange() {
             </CommandList>
         </CommandDialog>
         <Button variant="link">
-            <a class="flex gap-2 items-center"
-                href="https://github.com/CodeClarityCE/codeclarity-dev/issues/new?template=BLANK_ISSUE" target="_blank"
-                rel="noopener noreferrer">
+            <a
+                class="flex gap-2 items-center"
+                href="https://github.com/CodeClarityCE/codeclarity-dev/issues/new?template=BLANK_ISSUE"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 <Icon icon="ion:ticket-outline"></Icon>Report a problem
             </a>
         </Button>

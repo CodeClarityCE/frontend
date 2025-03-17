@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import type { Organization, TeamMember } from '@/codeclarity_components/organizations/organization.entity';
+import type {
+    Organization,
+    TeamMember
+} from '@/codeclarity_components/organizations/organization.entity';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { isMemberRoleGreaterThan } from '@/codeclarity_components/organizations/organization.entity';
 import { APIErrors } from '@/utils/api/ApiErrors';
@@ -118,7 +121,10 @@ const emit = defineEmits<{
             <div class="org-membership membership-admin" v-if="member.role == MemberRole.ADMIN">
                 Admin
             </div>
-            <div class="org-membership membership-moderator" v-if="member.role == MemberRole.MODERATOR">
+            <div
+                class="org-membership membership-moderator"
+                v-if="member.role == MemberRole.MODERATOR"
+            >
                 Moderator
             </div>
             <div class="org-membership membership-user" v-if="member.role == MemberRole.USER">
@@ -132,25 +138,38 @@ const emit = defineEmits<{
         </td>
         <td>
             <div class="flex flex-row gap-2 org-member-list-actions">
-                <RouterLink :to="{
-                    name: 'orgManage',
-                    params: { orgId: orgInfo.id, page: 'logs' },
-                    query: { search: member.email }
-                }" class="clear-button" title="View the user's audit logs" v-if="
-                    member.id == userStore.getUser!.id ||
-                    isMemberRoleGreaterThan(orgInfo.role, member.role) ||
-                    member.added_by == userStore.getUser!.id
-                ">
+                <RouterLink
+                    :to="{
+                        name: 'orgManage',
+                        params: { orgId: orgInfo.id, page: 'logs' },
+                        query: { search: member.email }
+                    }"
+                    class="clear-button"
+                    title="View the user's audit logs"
+                    v-if="
+                        member.id == userStore.getUser!.id ||
+                        isMemberRoleGreaterThan(orgInfo.role, member.role) ||
+                        member.added_by == userStore.getUser!.id
+                    "
+                >
                     <div class="flex flex-row gap-1 items-center">
-                        <Icon class="icon" icon="ant-design:audit-outlined" style="font-size: 1.2em"></Icon>
+                        <Icon
+                            class="icon"
+                            icon="ant-design:audit-outlined"
+                            style="font-size: 1.2em"
+                        ></Icon>
                         <div>View Audit logs</div>
                     </div>
                 </RouterLink>
-                <Button variant="destructive" @click="openModalAction(ModalAction.Kick)" v-if="
-                    member.id != userStore.getUser!.id &&
-                    (isMemberRoleGreaterThan(orgInfo.role, member.role) ||
-                        member.added_by == userStore.getUser!.id)
-                ">
+                <Button
+                    variant="destructive"
+                    @click="openModalAction(ModalAction.Kick)"
+                    v-if="
+                        member.id != userStore.getUser!.id &&
+                        (isMemberRoleGreaterThan(orgInfo.role, member.role) ||
+                            member.added_by == userStore.getUser!.id)
+                    "
+                >
                     <Icon icon="mingcute:user-remove-fill"></Icon>
                     Revoke access
                 </Button>
@@ -159,24 +178,28 @@ const emit = defineEmits<{
     </tr>
     <CenteredModal ref="centeredModalRef">
         <template #title>
-            <div style="
+            <div
+                style="
                     display: flex;
                     flex-direction: row;
                     align-items: center;
                     column-gap: 7px;
                     justify-content: space-between;
-                ">
+                "
+            >
                 <div v-if="centeredModalAction == ModalAction.Kick">Kick the user?</div>
             </div>
         </template>
         <template #content>
-            <div style="
+            <div
+                style="
                     display: flex;
                     flex-direction: column;
                     row-gap: 1.5em;
                     max-width: 400px;
                     width: 100vw;
-                ">
+                "
+            >
                 <div v-if="centeredModalAction == ModalAction.Kick">
                     <div>Are you sure you want to kick the user from the organization?</div>
                     <div>You can always invite them back to the organization.</div>
@@ -184,13 +207,20 @@ const emit = defineEmits<{
             </div>
         </template>
         <template #buttons>
-            <Button v-if="centeredModalAction == ModalAction.Kick" variant="destructive" @click="performModalAction()">
+            <Button
+                v-if="centeredModalAction == ModalAction.Kick"
+                variant="destructive"
+                @click="performModalAction()"
+            >
                 <Icon icon="mingcute:user-remove-fill"></Icon>Cancel
             </Button>
-            <Button variant="outline" @click="
-                centeredModalActionId = undefined;
-            centeredModalRef.toggle();
-            ">
+            <Button
+                variant="outline"
+                @click="
+                    centeredModalActionId = undefined;
+                    centeredModalRef.toggle();
+                "
+            >
                 Cancel
             </Button>
         </template>

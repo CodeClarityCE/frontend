@@ -25,9 +25,7 @@ defineProps<{
             <span v-if="finding.weaknesses.length > 0">{{ finding.weaknesses[0].name }}</span>
             in
             <span class="font-black text-primary">
-                {{
-                    finding.dependency_info?.name + '@' + finding.dependency_info?.version
-                }}
+                {{ finding.dependency_info?.name + '@' + finding.dependency_info?.version }}
             </span>
         </div>
 

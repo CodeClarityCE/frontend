@@ -45,10 +45,16 @@ function select(license: License) {
             <slot name="name"></slot>
         </label>
         <SearchBar v-model:searchKey="search" :placeholder="'Search for a license'"></SearchBar>
-        <div class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5 h-72 overflow-y-scroll">
-            <div v-for="license in licenseList" :key="license.id" @click="select(license)"
+        <div
+            class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5 h-72 overflow-y-scroll"
+        >
+            <div
+                v-for="license in licenseList"
+                :key="license.id"
+                @click="select(license)"
                 class="py-2 px-4 cursor-pointer hover:bg-primaryHovered hover:text-white"
-                :class="data.has(license._key) ? 'bg-primary text-white' : ''">
+                :class="data.has(license._key) ? 'bg-primary text-white' : ''"
+            >
                 {{ license.name }}
             </div>
         </div>

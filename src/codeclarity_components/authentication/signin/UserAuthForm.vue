@@ -139,7 +139,10 @@ async function submit(values: any) {
                     This should not have happened. Please try again.
                     <!-- Race condition -->
                 </div>
-                <div v-else-if="errorCode == APIErrors.ValidationFailed" class="whitespace-break-spaces">
+                <div
+                    v-else-if="errorCode == APIErrors.ValidationFailed"
+                    class="whitespace-break-spaces"
+                >
                     <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                     {{ validationError!.toMessage('Invalid form:') }}
                 </div>
@@ -150,7 +153,12 @@ async function submit(values: any) {
     </Alert>
 
     <div :class="cn('grid gap-6', $attrs.class ?? '')">
-        <form class="flex flex-col gap-4" :validation-schema="formSchema" @submit="onSubmit" v-if="!loading">
+        <form
+            class="flex flex-col gap-4"
+            :validation-schema="formSchema"
+            @submit="onSubmit"
+            v-if="!loading"
+        >
             <FormField v-slot="{ componentField }" name="email">
                 <FormItem v-auto-animate>
                     <FormLabel>Email*:</FormLabel>
@@ -164,7 +172,11 @@ async function submit(values: any) {
                 <FormItem v-auto-animate>
                     <FormLabel>Password:</FormLabel>
                     <FormControl>
-                        <Input type="password" placeholder="Enter your password" v-bind="componentField" />
+                        <Input
+                            type="password"
+                            placeholder="Enter your password"
+                            v-bind="componentField"
+                        />
                     </FormControl>
                     <FormMessage />
                 </FormItem>

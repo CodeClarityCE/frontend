@@ -112,7 +112,10 @@ function generateChart(stats: SeverityInfoByWeek[]) {
         <div>
             <div v-if="loading || noData" class="flex flex-col gap-2 relative">
                 <Skeleton class="h-[200px] w-[300px] rounded-xl" />
-                <div v-if="noData" class="flex flex-row justify-center items-center absolute w-full h-full">
+                <div
+                    v-if="noData"
+                    class="flex flex-row justify-center items-center absolute w-full h-full"
+                >
                     <div class="font-black text-xl">No Data</div>
                 </div>
             </div>
@@ -132,17 +135,18 @@ function generateChart(stats: SeverityInfoByWeek[]) {
             <div v-else>
                 <div v-if="error">
                     <div class="flex flex-row gap-2">
-                        <Icon class="icon user-icon" icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"></Icon>
+                        <Icon
+                            class="icon user-icon"
+                            icon="solar:confounded-square-outline"
+                            style="font-size: 3rem; height: fit-content"
+                        ></Icon>
                         <div>
                             <div class="flex flex-col gap-2">
                                 <div class="flex flex-col gap-2">
                                     <div>Failed to load the dashboard component</div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetch()">
-                                        Try again
-                                    </Button>
+                                    <Button @click="fetch()"> Try again </Button>
                                 </div>
                             </div>
                         </div>
@@ -152,7 +156,10 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                     <div class="font-bold text-xl">Weekly Exposure</div>
                     <div class="flex flex-row justify-between">
                         <div class="flex flex-col gap-2">
-                            <template v-for="(exposure, index) in data!.slice().reverse()" :key="index">
+                            <template
+                                v-for="(exposure, index) in data!.slice().reverse()"
+                                :key="index"
+                            >
                                 <div class="flex flex-col gap-y-3 justify-between items-center">
                                     <div class="week">
                                         {{
@@ -163,7 +170,10 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                                         }}
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <SeverityBubble v-if="exposure.nmb_critical > 0" :critical="true">
+                                        <SeverityBubble
+                                            v-if="exposure.nmb_critical > 0"
+                                            :critical="true"
+                                        >
                                             <template #content>
                                                 {{ exposure.nmb_critical }}
                                             </template>
@@ -173,7 +183,10 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                                                 {{ exposure.nmb_high }}
                                             </template>
                                         </SeverityBubble>
-                                        <SeverityBubble v-if="exposure.nmb_medium > 0" :medium="true">
+                                        <SeverityBubble
+                                            v-if="exposure.nmb_medium > 0"
+                                            :medium="true"
+                                        >
                                             <template #content>
                                                 {{ exposure.nmb_medium }}
                                             </template>
@@ -188,13 +201,15 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                                                 {{ exposure.nmb_none }}
                                             </template>
                                         </SeverityBubble>
-                                        <Badge v-if="
-                                            exposure.nmb_critical === 0 &&
-                                            exposure.nmb_high === 0 &&
-                                            exposure.nmb_medium === 0 &&
-                                            exposure.nmb_low === 0 &&
-                                            exposure.nmb_none === 0
-                                        ">
+                                        <Badge
+                                            v-if="
+                                                exposure.nmb_critical === 0 &&
+                                                exposure.nmb_high === 0 &&
+                                                exposure.nmb_medium === 0 &&
+                                                exposure.nmb_low === 0 &&
+                                                exposure.nmb_none === 0
+                                            "
+                                        >
                                             N/A
                                         </Badge>
                                     </div>

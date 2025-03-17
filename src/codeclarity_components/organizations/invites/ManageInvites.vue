@@ -127,23 +127,33 @@ onMounted(() => {
 </script>
 <template>
     <div class="flex flex-col gap-8 org-member-invitation-wrapper">
-        <OrgHeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></OrgHeaderItem>
+        <OrgHeaderItem
+            v-if="orgId"
+            :org-id="orgId"
+            @on-org-info="setOrgInfo($event)"
+        ></OrgHeaderItem>
         <div v-if="orgInfo && orgId" class="flex flex-col gap-8 p-12">
             <div>
                 <h2 class="text-2xl font-semibold">Related Actions</h2>
                 <div class="flex flex-row gap-4 flex-wrap items-stretch org-manage-items">
-                    <template v-if="
-                        (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                        orgInfo.role == MemberRole.ADMIN ||
-                        orgInfo.role == MemberRole.MODERATOR
-                    ">
-                        <RouterLink :to="{
-                            name: 'orgs',
-                            params: { action: 'add', page: 'invites', orgId: orgId }
-                        }">
+                    <template
+                        v-if="
+                            (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
+                            orgInfo.role == MemberRole.ADMIN ||
+                            orgInfo.role == MemberRole.MODERATOR
+                        "
+                    >
+                        <RouterLink
+                            :to="{
+                                name: 'orgs',
+                                params: { action: 'add', page: 'invites', orgId: orgId }
+                            }"
+                        >
                             <Button variant="outline">Invite another User</Button>
                         </RouterLink>
-                        <RouterLink :to="{ name: 'orgs', params: { orgId: orgId, page: 'members' } }">
+                        <RouterLink
+                            :to="{ name: 'orgs', params: { orgId: orgId, page: 'members' } }"
+                        >
                             <Button variant="outline">Manage organization members</Button>
                         </RouterLink>
                     </template>
@@ -153,30 +163,54 @@ onMounted(() => {
                 <h2>Open invitations</h2>
                 <div v-if="loading">
                     <div class="flex flex-col gap-2 justify-between" style="padding: 5px">
-                        <BoxLoader :dimensions="{ width: '100%', height: '50px' }" v-for="i in 10" :key="i" />
+                        <BoxLoader
+                            :dimensions="{ width: '100%', height: '50px' }"
+                            v-for="i in 10"
+                            :key="i"
+                        />
                     </div>
                 </div>
                 <div v-else>
                     <div class="flex flex-col gap-5 org-members-list-wrapper" v-if="!error">
                         <SearchBar v-model:searchKey="search" :placeholder="placeholder" />
 
-                        <Pagination v-model:page="currentPage" v-model:nmbEntriesShowing="entriesPerPage"
-                            v-model:nmbEntriesTotal="totalEntries" v-model:totalPages="totalPages">
+                        <Pagination
+                            v-model:page="currentPage"
+                            v-model:nmbEntriesShowing="entriesPerPage"
+                            v-model:nmbEntriesTotal="totalEntries"
+                            v-model:totalPages="totalPages"
+                        >
                             <template #content>
-                                <div v-if="totalEntries == 0 && search != ''" class="flex flex-row gap-4 justify-center"
-                                    style="margin-top: 10px">
+                                <div
+                                    v-if="totalEntries == 0 && search != ''"
+                                    class="flex flex-row gap-4 justify-center"
+                                    style="margin-top: 10px"
+                                >
                                     No invites match your search
                                 </div>
-                                <div v-if="totalEntries == 0 && search == ''" class="flex flex-row gap-4 justify-center"
-                                    style="margin-top: 10px">
+                                <div
+                                    v-if="totalEntries == 0 && search == ''"
+                                    class="flex flex-row gap-4 justify-center"
+                                    style="margin-top: 10px"
+                                >
                                     No open invites
                                 </div>
-                                <SortableTable v-if="totalEntries > 0" :headers="headers" :sort-key="sortKey"
-                                    :sort-direction="sortDirection" @on-sort-change="updateSort">
+                                <SortableTable
+                                    v-if="totalEntries > 0"
+                                    :headers="headers"
+                                    :sort-key="sortKey"
+                                    :sort-direction="sortDirection"
+                                    @on-sort-change="updateSort"
+                                >
                                     <template #data>
-                                        <OrgInviteItem v-for="invitation in invitations" :key="invitation.id"
-                                            :org-id="orgId" :org-info="orgInfo" :invitation="invitation"
-                                            @refetch="onRefetch()"></OrgInviteItem>
+                                        <OrgInviteItem
+                                            v-for="invitation in invitations"
+                                            :key="invitation.id"
+                                            :org-id="orgId"
+                                            :org-info="orgInfo"
+                                            :invitation="invitation"
+                                            @refetch="onRefetch()"
+                                        ></OrgInviteItem>
                                     </template>
                                 </SortableTable>
                             </template>

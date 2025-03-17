@@ -14,13 +14,7 @@ import * as z from 'zod';
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 
 import { Button } from '@/shadcn/ui/button';
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/shadcn/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
 import { useUserStore } from '@/stores/user';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
@@ -31,7 +25,7 @@ import { toast } from '@/shadcn/ui/toast';
 const userRepository: UserRepository = new UserRepository();
 
 const userStore = useUserStore();
-const user = userStore.user
+const user = userStore.user;
 
 // UPDATE INFO FORM
 const formSchema = toTypedSchema(
@@ -41,12 +35,12 @@ const formSchema = toTypedSchema(
 );
 
 const form = useForm({
-    validationSchema: formSchema,
-})
+    validationSchema: formSchema
+});
 
 const onSubmit = form.handleSubmit((values) => {
     deleteAccount(values.password_deletion);
-})
+});
 
 /*****************************************************************************/
 /*                                  API Calls                                */
@@ -65,10 +59,10 @@ async function deleteAccount(password: string) {
             });
             toast({
                 title: 'Password updated'
-            })
+            });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                console.error(err)
+                console.error(err);
             }
         }
     }
@@ -81,15 +75,17 @@ async function deleteAccount(password: string) {
             <FormItem v-auto-animate>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                    <Input type="password" placeholder="Enter your password" v-bind="componentField" />
+                    <Input
+                        type="password"
+                        placeholder="Enter your password"
+                        v-bind="componentField"
+                    />
                 </FormControl>
                 <FormMessage />
             </FormItem>
         </FormField>
         <DialogFooter class="mt-4">
-            <Button variant="destructive" type="submit">
-                Delete my account
-            </Button>
+            <Button variant="destructive" type="submit"> Delete my account </Button>
         </DialogFooter>
     </form>
 </template>

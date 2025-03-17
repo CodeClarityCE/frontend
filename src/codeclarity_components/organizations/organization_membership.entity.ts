@@ -9,5 +9,5 @@ export class OrganizationMembership {
     organization!: Organization;
 
     user!: TeamMember;
-    role!: MemberRole
+    role!: MemberRole;
 }

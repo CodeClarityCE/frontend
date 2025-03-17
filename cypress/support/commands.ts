@@ -36,4 +36,22 @@
 //   }
 // }
 
-export {}
+Cypress.Commands.add('login', () => {
+    cy.fixture('user.json').then((user) => {
+        cy.visit('/login')
+        cy.get('[name=email]').type(user.email)
+        cy.get('[name=password]').type(user.password)
+        cy.get('[type="submit"]').click()
+        cy.wait(1000)
+    });
+})
+
+declare global {
+    namespace Cypress {
+      interface Chainable {
+        login(): Chainable<void>
+      }
+    }
+  }
+
+export { }

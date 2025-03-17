@@ -1,0 +1,19 @@
+{
+  "id": "8de53635-4bfb-4538-86c5-653c6c71fc6a",
+  "first_name": "John",
+  "last_name": "Doe",
+  "handle": "JohnDoe",
+  "email": "john.doe@codeclarity.io",
+  "social": null,
+  "social_register_type": null,
+  "setup_done": 1,
+  "activated": 1,
+  "avatar_url": null,
+  "created_on": "2024-10-18 10:09:52.066+00",
+  "registration_verified": 1,
+  "password": "ThisIs4Str0ngP4ssW0rd?",
+  "setup_temporary_conf": null,
+  "oauth_integration": null,
+  "social_id": "447274a8-fca3-4826-8ebf-d0d3664835ae",
+  "default_org": null
+}

@@ -18,7 +18,7 @@ import SearchBar from '@/base_components/SearchBar.vue';
 import { Icon } from '@iconify/vue';
 import Pagination from '@/base_components/PaginationComponent.vue';
 import { debounce } from '@/utils/searchUtils';
-import OrgMemberItem from './members/OrgMemberItem.vue';
+import OrgMemberItem from './members/MemberItem.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import SortableTable from '@/base_components/tables/SortableTable.vue';
 import Button from '@/shadcn/ui/button/Button.vue';

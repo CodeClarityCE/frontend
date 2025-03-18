@@ -42,7 +42,7 @@ const date = ref({
                 </Button>
             </PopoverTrigger>
             <PopoverContent class="w-auto p-0" :align="'end'">
-                <Calendar v-model.range="date" :columns="2" />
+                <Calendar v-model:range="date" :columns="2" />
             </PopoverContent>
         </Popover>
     </div>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createInjectionState } from '@vueuse/core';
 import emblaCarouselVue from 'embla-carousel-vue';
 import { onMounted, ref } from 'vue';

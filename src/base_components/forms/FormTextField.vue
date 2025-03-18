@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Field, ErrorMessage } from 'vee-validate';
 
-const model = defineModel();
+const model = defineModel<string>();
 
 const props = defineProps<{
     placeholder: string;

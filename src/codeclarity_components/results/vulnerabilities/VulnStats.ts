@@ -120,7 +120,7 @@ export interface VulnerabilityMerged {
 export interface AffectedDeps {
     Affected: { [key: string]: AffectedInfo };
     AffectedDependencyName: string;
-    AffectedDependencyVersion: string;
+    AffectedVersion: string;
     AffectedDependency: string;
     AffectedDependencyFilePath: string;
     AffectedDependencyImportPaths: string[];

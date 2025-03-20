@@ -426,6 +426,9 @@ init();
                                         Vulnerable library:
                                     </div>
                                     <div v-else>Vulnerable libraries:</div>
+                                    <div v-for="info in report.Affected" :key="info.AffectedDependency">
+                                        {{ info.AffectedDependency }}@{{ info.AffectedVersion }}
+                                    </div>
 
                                     <!--------------------------------------------------------------------------->
                                     <!--                       Vulnerability description                       -->

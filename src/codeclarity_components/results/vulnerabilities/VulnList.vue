@@ -188,8 +188,6 @@ init();
         <div v-if="render" class="flex flex-col gap-y-6">
             <div v-for="report in findings" :key="report.Id">
                 <RouterLink
-                    v-for="affected in report.Affected"
-                    :key="affected.AffectedDependency"
                     class="flex flex-col gap-2 transition-all hover:scale-105"
                     :to="{
                         name: 'results',

@@ -5,6 +5,7 @@ services:
       context: ../../frontend
       dockerfile: .cloud/docker/Dockerfile
       target: frontend-dev
+    image: codeclarityce/frontend-dev:latest
     restart: always
     volumes:
       - ../../frontend:/app:rw

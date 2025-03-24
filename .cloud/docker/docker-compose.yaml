@@ -5,6 +5,7 @@ services:
       context: ../../frontend
       dockerfile: .cloud/docker/Dockerfile
       target: frontend-dev
+    image: codeclarityce/frontend-dev:latest
     restart: always
     volumes:
       - ../../frontend:/app:rw
@@ -18,7 +19,7 @@ services:
           memory: 200M
 
   caddy:
-    image: caddy
+    image: caddy:2.9.1-alpine
     env_file:
       - ../../.cloud/env/.env.dev
     command: [ "caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile", "--watch" ]

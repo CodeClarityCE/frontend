@@ -146,12 +146,10 @@ init();
                                 class="integration-box-wrapper-item"
                                 :to="{
                                     name: 'orgs',
-                                    params: {
+                                    params: { action: 'edit', page: 'integrations', orgId: orgId },
+                                    query: {
                                         provider: IntegrationProvider.GITLAB,
-                                        integrationId: vcs.id,
-                                        orgId: orgId,
-                                        page: 'integrations',
-                                        action: 'edit'
+                                        integrationId: vcs.id
                                     }
                                 }"
                             >

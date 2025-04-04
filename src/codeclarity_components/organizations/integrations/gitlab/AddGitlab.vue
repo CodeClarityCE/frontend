@@ -301,7 +301,7 @@ init();
                             class="clear-button flex flex-row gap-1 w-fit items-center"
                             :href="
                                 formGitlabInstanceUrl +
-                                '/-/profile/personal_access_tokens?name=CodeClarity+Access+token&scopes=api,read_user'
+                                '/-/user_settings/personal_access_tokens?name=CodeClarity+Access+token&scopes=read_api,read_user,read_registry,self_rotate'
                             "
                         >
                             <Button>
@@ -330,7 +330,10 @@ init();
                             <a
                                 target="_blank"
                                 class="clear-button flex flex-row gap-1 w-fit items-center"
-                                :href="formGitlabInstanceUrl + '/-/profile/personal_access_tokens'"
+                                :href="
+                                    formGitlabInstanceUrl +
+                                    '/-/user_settings/personal_access_tokens'
+                                "
                             >
                                 <Button>
                                     <Icon
@@ -344,8 +347,10 @@ init();
                             <div>
                                 (1) Click on "Add new token" on the top right.<br />
                                 (2) Enter a name, such as "CodeClarity".<br />
-                                (3) Select both <span class="code-bubble">api</span> and
-                                <span class="code-bubble">read_user</span> scopes.<br />
+                                (3) Select <span class="code-bubble">read_api</span>,
+                                <span class="code-bubble">read_user</span>,
+                                <span class="code-bubble">read_repository</span>, and
+                                <span class="code-bubble">self_rotate</span> scopes.<br />
                                 (4) Select an expiration time that fits your security policy.<br />
                                 (5) Click "Create personal access token".<br />
                             </div>

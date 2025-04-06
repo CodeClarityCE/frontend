@@ -162,7 +162,7 @@ function createSeverityDistChart() {
         props.stats.number_of_low,
         props.stats.number_of_none
     ];
-    const colors = ['#003532', '#1A4876', '#008491', '#40E0D0', '#D3D3D3'];
+    const colors = ['#000000', '#bf1313', '#ffc107', '#5a9d09', '#09889d'];
 
     const dependency_dist_data = {
         labels: labels,
@@ -271,37 +271,37 @@ function createRadarChart() {
                 <div class="flex items-center justify-evenly">
                     <div class="flex flex-col">
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#003532]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#000]"></Icon>
                             <div>Critical</div>
-                            <div class="side-stats-text-value" style="color: #003532">
+                            <div class="side-stats-text-value" style="color: #000">
                                 {{ stats.number_of_critical }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#bf1313]"></Icon>
                             <div>High</div>
-                            <div class="side-stats-text-value" style="color: #1a4876">
+                            <div class="side-stats-text-value" style="color: #bf1313">
                                 {{ stats.number_of_high }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#ffc107]"></Icon>
                             <div>Medium</div>
-                            <div class="side-stats-text-value" style="color: #008491">
+                            <div class="side-stats-text-value" style="color: #ffc107">
                                 {{ stats.number_of_medium }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#40E0D0]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#5a9d09]"></Icon>
                             <div>Low</div>
-                            <div class="side-stats-text-value" style="color: #40e0d0">
+                            <div class="side-stats-text-value" style="color: #5a9d09">
                                 {{ stats.number_of_low }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#D3D3D3]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-[#09889d]"></Icon>
                             <div>None</div>
-                            <div class="side-stats-text-value" style="color: #d3d3d3">
+                            <div class="side-stats-text-value" style="color: #09889d">
                                 {{ stats.number_of_none }}
                             </div>
                         </div>

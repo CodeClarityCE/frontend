@@ -10,11 +10,32 @@ pipeline {
 				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
 			}
 		}
-        stage('Build') {
+        stage('Reset') {
             steps {
                 sh 'docker system prune -af'
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force'
+                sh 'yarn'
+            }
+        }
+        stage('Test lint and format') {
+            steps {
+                sh 'yarn lint'
+                sh 'yarn run prettier src --check'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'docker buildx rm frontend || true'
+                sh 'docker buildx create --name frontend --use --bootstrap'
+                sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag .'
+            }
+        }
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
                 script {
                     def project =readJSON file: 'package.json'
                     env.Version = project.version
@@ -24,18 +45,6 @@ pipeline {
                     sh 'echo $Tag'
                     sh "sh .cloud/jenkins/check_version.sh ${Version}"
                 }
-            }
-        }
-        // stage('Test') {
-        //     steps {
-        //         // Output will be something like "go version go1.19 darwin/arm64"
-        //         sh 'make'
-        //     }
-        // }
-        stage('Deploy') {
-            steps {
-                sh 'docker buildx rm frontend || true'
-                sh 'docker buildx create --name frontend --use --bootstrap'
                 sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'
             }
         }

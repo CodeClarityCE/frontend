@@ -46,9 +46,11 @@ pipeline {
             }
             steps {
                 script {
-                    sh "sh .cloud/jenkins/check_version.sh ${Version}"
+                    def result = sh(script: "sh .cloud/jenkins/check_version.sh ${Version}", returnStatus: true)
+                    if (result == 0) {
+                        sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'
+                    }
                 }
-                sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'
             }
         }
     }

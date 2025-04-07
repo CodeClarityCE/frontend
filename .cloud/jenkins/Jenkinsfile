@@ -15,8 +15,7 @@ pipeline {
                 sh 'docker system prune -af'
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force'
-                sh '. ~/.nvm/nvm.sh'
-                sh 'yarn'
+                sh '. ~/.nvm/nvm.sh && yarn'
             }
         }
         stage('Test lint and format') {

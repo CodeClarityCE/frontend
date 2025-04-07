@@ -8,6 +8,14 @@ pipeline {
         stage('Login') {
 			steps {
 				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                script {
+                    def project =readJSON file: 'package.json'
+                    env.Version = project.version
+                    env.Name = project.name
+                    sh 'echo $Version'
+                    env.Tag = "codeclarityce/${Name}:${Version}"
+                    sh 'echo $Tag'
+                }
 			}
 		}
         stage('Reset') {
@@ -15,7 +23,6 @@ pipeline {
                 sh 'docker system prune -af'
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force'
-                sh 'echo $PATH'
                 sh 'yarn'
             }
         }
@@ -38,12 +45,6 @@ pipeline {
             }
             steps {
                 script {
-                    def project =readJSON file: 'package.json'
-                    env.Version = project.version
-                    env.Name = project.name
-                    sh 'echo $Version'
-                    env.Tag = "codeclarityce/${Name}:${Version}"
-                    sh 'echo $Tag'
                     sh "sh .cloud/jenkins/check_version.sh ${Version}"
                 }
                 sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'

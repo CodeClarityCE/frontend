@@ -15,13 +15,13 @@ pipeline {
                 sh 'docker system prune -af'
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force'
-                sh 'yarn'
+                sh '/home/codeclarity/.nvm/versions/node/v22.14.0/bin/yarn'
             }
         }
         stage('Test lint and format') {
             steps {
-                sh 'yarn lint'
-                sh 'yarn run prettier src --check'
+                sh '/home/codeclarity/.nvm/versions/node/v22.14.0/bin/yarn yarn lint'
+                sh '/home/codeclarity/.nvm/versions/node/v22.14.0/bin/yarn yarn run prettier src --check'
             }
         }
         stage('Build') {

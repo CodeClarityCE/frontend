@@ -280,7 +280,8 @@ getChart(props.projectID, props.analysis.id);
                     props.analysis.status == AnalysisStatus.FINISHED ||
                     props.analysis.status == AnalysisStatus.COMPLETED ||
                     (props.analysis.status == AnalysisStatus.STARTED &&
-                        props.analysis.steps.length > 0)
+                        props.analysis.steps[0][0].Result != null) ||
+                    props.analysis.status == AnalysisStatus.ONGOING
                 "
                 :to="{
                     name: 'results',

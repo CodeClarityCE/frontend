@@ -15,10 +15,7 @@ pipeline {
                 sh 'docker system prune -af'
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force'
-                sh 'whoami'
-                sh 'source ~/.bashrc'
-                sh 'npm install -g corepack'
-                sh 'corepack enable'
+                sh '. ~/.nvm/nvm.sh'
                 sh 'yarn'
             }
         }

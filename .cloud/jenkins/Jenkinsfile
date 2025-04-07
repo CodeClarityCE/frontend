@@ -29,6 +29,7 @@ pipeline {
         stage('Test lint and format') {
             steps {
                 sh 'yarn lint'
+                sh 'yarn run vitest run'
                 sh 'yarn run prettier src --check'
             }
         }

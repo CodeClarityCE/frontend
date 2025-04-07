@@ -162,7 +162,7 @@ function createSeverityDistChart() {
         props.stats.number_of_low,
         props.stats.number_of_none
     ];
-    const colors = ['#000000', '#bf1313', '#ffc107', '#5a9d09', '#09889d'];
+    const colors = ['#4b4242', '#ae5e5e', '#cca067', '#9dae5e', '#397680'];
 
     const dependency_dist_data = {
         labels: labels,
@@ -271,37 +271,40 @@ function createRadarChart() {
                 <div class="flex items-center justify-evenly">
                     <div class="flex flex-col">
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#000]"></Icon>
+                            <Icon
+                                :icon="'ph:circle-fill'"
+                                class="text-severityCriticalLight"
+                            ></Icon>
                             <div>Critical</div>
-                            <div class="side-stats-text-value" style="color: #000">
+                            <div class="side-stats-text-value text-severityCriticalLight">
                                 {{ stats.number_of_critical }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#bf1313]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-severityHighLight"></Icon>
                             <div>High</div>
-                            <div class="side-stats-text-value" style="color: #bf1313">
+                            <div class="side-stats-text-value text-severityHighLight">
                                 {{ stats.number_of_high }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#ffc107]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-severityMediumLight"></Icon>
                             <div>Medium</div>
-                            <div class="side-stats-text-value" style="color: #ffc107">
+                            <div class="side-stats-text-value text-severityMediumLight">
                                 {{ stats.number_of_medium }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#5a9d09]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-severityLowLight"></Icon>
                             <div>Low</div>
-                            <div class="side-stats-text-value" style="color: #5a9d09">
+                            <div class="side-stats-text-value text-severityLowLight">
                                 {{ stats.number_of_low }}
                             </div>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#09889d]"></Icon>
+                            <Icon :icon="'ph:circle-fill'" class="text-severityNoneLight"></Icon>
                             <div>None</div>
-                            <div class="side-stats-text-value" style="color: #09889d">
+                            <div class="side-stats-text-value text-severityNoneLight">
                                 {{ stats.number_of_none }}
                             </div>
                         </div>

@@ -63,12 +63,17 @@ defineProps<{
                                     <div class="font-normal">Sources:</div>
                                     <div class="flex gap-2 text-sm">
                                         <BubbleComponent :slim="true">
-                                                    <template #content>
-                                                        <a :href="'https://vulnerability.circl.lu/vuln/'+ finding.vulnerability_info.vulnerability_id" target="_blank"
-                                                            >Vulnerability Lookup</a
-                                                        >
-                                                    </template>
-                                                </BubbleComponent>
+                                            <template #content>
+                                                <a
+                                                    :href="
+                                                        'https://vulnerability.circl.lu/vuln/' +
+                                                        finding.vulnerability_info.vulnerability_id
+                                                    "
+                                                    target="_blank"
+                                                    >Vulnerability Lookup</a
+                                                >
+                                            </template>
+                                        </BubbleComponent>
                                         <div
                                             v-for="source in finding.vulnerability_info.sources"
                                             :key="source.name"

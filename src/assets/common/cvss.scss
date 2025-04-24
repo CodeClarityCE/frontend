@@ -13,7 +13,13 @@
 }
 
 .cvss-table tr:nth-child(n + 4) {
-    cursor: help;
+    cursor: pointer;
+}
+
+.cvss-table tr:nth-child(n + 4):hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transition: background-color 0.1s
+   
 }
 
 .cvss-table tr > td:nth-child(2)::first-letter {

@@ -148,7 +148,7 @@ fetchLicensePolicies();
                     You have no license policies. You can create one - if you want -
                     <RouterLink
                         :to="{
-                            name: 'org',
+                            name: 'orgs',
                             params: { action: 'add', page: 'policy', orgId: user.getDefaultOrg!.id }
                         }"
                     >

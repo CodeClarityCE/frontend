@@ -80,6 +80,17 @@ const ResultsPatching = defineAsyncComponent({
     timeout: 3000
 });
 
+const ResultsCodeQL = defineAsyncComponent({
+    loader: () => import('./codeql/ResultsCodeQL.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
+    delay: 200,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
 const state = useStateStore();
 state.$reset();
 
@@ -105,8 +116,12 @@ const tab = ref({
     'js-sbom': false,
     'js-vuln-finder': false,
     'js-patching': false,
-    'js-license': false
+    'js-license': false,
+    codeql: false
 });
+
+const default_tab: Ref<string> = ref('sbom');
+const loading: Ref<boolean> = ref(true);
 
 async function init() {
     const url = new URL(window.location.href);
@@ -125,8 +140,6 @@ async function init() {
 
     for (const step of analysis.value.steps) {
         for (const result of step) {
-            console.log(result.Name);
-
             if (result.Status != 'success') {
                 continue;
             }
@@ -138,6 +151,8 @@ async function init() {
                 tab.value['js-patching'] = true;
             } else if (result.Name == 'js-license') {
                 tab.value['js-license'] = true;
+            } else if (result.Name == 'codeql') {
+                tab.value['codeql'] = true;
             }
         }
     }
@@ -198,6 +213,7 @@ async function getAnalysis(projectID: string, analysisID: string) {
             handleBusinessErrors: true
         });
         analysis.value = res.data;
+        default_tab.value = res.data.steps[0][0].Name;
     } catch (_err) {
         console.error(_err);
 
@@ -212,8 +228,9 @@ async function getAnalysis(projectID: string, analysisID: string) {
     }
 }
 
-onBeforeMount(() => {
-    init();
+onBeforeMount(async () => {
+    await init();
+    loading.value = false;
 });
 </script>
 <template>
@@ -224,27 +241,30 @@ onBeforeMount(() => {
         </div>
         <ResultsVulnerabilitiesDetails v-if="props.page == 'vulnerabilities_details'" />
         <ResultsSBOMDetails v-else-if="props.page == 'sbom_details'" />
-        <Tabs v-else default-value="sbom" class="space-y-4">
+        <Tabs v-else-if="!loading" :default-value="default_tab" class="space-y-4">
             <TabsList>
-                <TabsTrigger v-if="tab['js-sbom']" value="sbom"> SBOM </TabsTrigger>
-                <TabsTrigger v-if="tab['js-vuln-finder']" value="vulnerabilities">
+                <TabsTrigger v-if="tab['js-sbom']" value="js-sbom"> SBOM </TabsTrigger>
+                <TabsTrigger v-if="tab['js-vuln-finder']" value="js-vuln-finder">
                     Vulnerabilities
                 </TabsTrigger>
-                <TabsTrigger v-if="tab['js-patching']" value="patches"> Patches </TabsTrigger>
-                <TabsTrigger v-if="tab['js-license']" value="licenses"> Licenses </TabsTrigger>
-                <!-- <TabsTrigger value="licenses" disabled> Licenses </TabsTrigger> -->
+                <TabsTrigger v-if="tab['js-patching']" value="js-patching"> Patches </TabsTrigger>
+                <TabsTrigger v-if="tab['js-license']" value="js-license"> Licenses </TabsTrigger>
+                <TabsTrigger v-if="tab['codeql']" value="codeql"> CodeQL </TabsTrigger>
             </TabsList>
-            <TabsContent value="sbom" class="space-y-4">
+            <TabsContent value="js-sbom" class="space-y-4">
                 <ResultsSBOM :project="project" :analysis="analysis" />
             </TabsContent>
-            <TabsContent value="vulnerabilities" class="space-y-4">
+            <TabsContent value="js-vuln-finder" class="space-y-4">
                 <ResultsVulnerabilities :project="project" :analysis="analysis" />
             </TabsContent>
-            <TabsContent value="patches" class="space-y-4">
+            <TabsContent value="js-patching" class="space-y-4">
                 <ResultsPatching :project="project" :analysis="analysis" />
             </TabsContent>
-            <TabsContent value="licenses" class="space-y-4">
+            <TabsContent value="js-license" class="space-y-4">
                 <ResultsLicenses :project="project" :analysis="analysis" />
+            </TabsContent>
+            <TabsContent value="codeql" class="space-y-4">
+                <ResultsCodeQL :project="project" :analysis="analysis" />
             </TabsContent>
         </Tabs>
     </div>

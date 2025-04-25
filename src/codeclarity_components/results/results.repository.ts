@@ -14,6 +14,7 @@ import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulne
 import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patching/Patching';
 import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
 import { DependencyDetails } from './sbom/SbomDetails/SbomDetails';
+import type { Result } from './result.entity';
 
 export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
@@ -48,6 +49,13 @@ export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOpt
     analysisId: string;
     dependency: string;
     workspace: string;
+}
+
+export interface GetResultByTypeRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    projectId: string;
+    analysisId: string;
+    type: string;
 }
 
 export class ResultsRepository extends BaseRepository {
@@ -332,5 +340,25 @@ export class ResultsRepository extends BaseRepository {
             response,
             DataResponse<Map<string, PatchOccurenceInfo>>
         );
+    }
+
+    async getResultByType(options: GetResultByTypeRequestOptions): Promise<DataResponse<Result>> {
+        const RELATIVE_URL = `/result`;
+
+        const response = await this.getRequest<DataResponse<Result>>({
+            queryParams: {
+                org_id: options.orgId,
+                project_id: options.projectId,
+                analysis_id: options.analysisId,
+                type: options.type
+            },
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<Result>>(response, DataResponse<Result>);
     }
 }

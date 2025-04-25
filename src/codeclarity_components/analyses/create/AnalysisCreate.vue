@@ -82,7 +82,7 @@ function onSubmit(values: any, plugin_name: string) {
         configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
     }
 
-    if (plugin_name === 'js-sbom') {
+    if (plugin_name === 'js-sbom' || plugin_name === 'codeql') {
         configuration.value[plugin_name]['project'] =
             `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
         selected_branch.value = values.branch;

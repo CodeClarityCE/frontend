@@ -246,8 +246,7 @@ async function createAnalysisStart() {
                                                                 />
                                                                 <Select
                                                                     v-else-if="
-                                                                        config.name ===
-                                                                        'language'
+                                                                        config.name === 'language'
                                                                     "
                                                                     v-bind="componentField"
                                                                 >
@@ -263,16 +262,15 @@ async function createAnalysisStart() {
                                                                             <SelectItem
                                                                                 value="javascript-typescript"
                                                                             >
-                                                                                Javascript / Typescript
+                                                                                Javascript /
+                                                                                Typescript
                                                                             </SelectItem>
                                                                             <SelectItem
                                                                                 value="python"
                                                                             >
                                                                                 Python
                                                                             </SelectItem>
-                                                                            <SelectItem
-                                                                                value="go"
-                                                                            >
+                                                                            <SelectItem value="go">
                                                                                 Go
                                                                             </SelectItem>
                                                                         </SelectGroup>

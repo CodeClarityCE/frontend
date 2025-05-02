@@ -37,6 +37,14 @@ import Alert from '@/shadcn/ui/alert/Alert.vue';
 import { AlertCircle } from 'lucide-vue-next';
 import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/shadcn/ui/select';
 const user = useUserStore();
 const auth = useAuthStore();
 
@@ -236,6 +244,40 @@ async function createAnalysisStart() {
                                                                         selected_license_policy
                                                                     "
                                                                 />
+                                                                <Select
+                                                                    v-else-if="
+                                                                        config.name ===
+                                                                        'language'
+                                                                    "
+                                                                    v-bind="componentField"
+                                                                >
+                                                                    <FormControl>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue
+                                                                                placeholder="Select a language to analyze"
+                                                                            />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectGroup>
+                                                                            <SelectItem
+                                                                                value="javascript-typescript"
+                                                                            >
+                                                                                Javascript / Typescript
+                                                                            </SelectItem>
+                                                                            <SelectItem
+                                                                                value="python"
+                                                                            >
+                                                                                Python
+                                                                            </SelectItem>
+                                                                            <SelectItem
+                                                                                value="go"
+                                                                            >
+                                                                                Go
+                                                                            </SelectItem>
+                                                                        </SelectGroup>
+                                                                    </SelectContent>
+                                                                </Select>
                                                                 <Input
                                                                     v-else
                                                                     :placeholder="config.name"

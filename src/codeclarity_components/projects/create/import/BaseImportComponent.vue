@@ -74,7 +74,11 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
     if (!userStore.getDefaultOrg) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
-    await importProject(userStore.getDefaultOrg.id, authStore.getToken, values.repository.replace(".git", ""))
+    await importProject(
+        userStore.getDefaultOrg.id,
+        authStore.getToken,
+        values.repository.replace('.git', '')
+    );
 });
 
 // Methods
@@ -89,7 +93,7 @@ async function importProject(orgId: string, token: string, repo: string) {
         orgId: orgId,
         data: {
             integration_id: props.integration,
-            url: repo,
+            url: repo
         },
         bearerToken: token,
         handleBusinessErrors: true
@@ -200,7 +204,6 @@ async function onSelectedReposChange(repos: Repository[]) {
         </div>
 
         <div class="flex flex-col items-center gap-16">
-
             <div class="flex flex-col gap-8">
                 <RepoTable
                     v-if="Object.keys(reposFailedToImport).length == 0"

@@ -301,7 +301,7 @@ init();
                             class="clear-button flex flex-row gap-1 w-fit items-center"
                             :href="
                                 formGitlabInstanceUrl +
-                                '/-/user_settings/personal_access_tokens?name=CodeClarity+Access+token&scopes=read_api,read_user,read_registry,self_rotate'
+                                '/-/user_settings/personal_access_tokens?name=CodeClarity+Access+token&scopes=read_api,read_user,read_repository,self_rotate'
                             "
                         >
                             <Button>

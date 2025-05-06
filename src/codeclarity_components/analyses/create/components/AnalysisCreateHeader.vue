@@ -14,6 +14,7 @@ import LoadingContainer from '@/base_components/LoadingContainer.vue';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import { Button } from '@/shadcn/ui/button';
 
 const project: Ref<Project | undefined> = ref();
 
@@ -78,7 +79,11 @@ getProject();
                         </div>
                         <div class="font-medium text-gray-500">
                             {{ project?.type }} :
-                            {{ project?.url }}
+                            <Button variant="ghost">
+                                <a target="_blank" :href="project?.url">
+                                    {{ project?.url }}
+                                </a>
+                            </Button>
                         </div>
                     </div>
                 </div>

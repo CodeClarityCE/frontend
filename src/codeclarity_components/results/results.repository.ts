@@ -15,12 +15,19 @@ import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patch
 import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
 import { DependencyDetails } from './sbom/SbomDetails/SbomDetails';
 import type { Result } from './result.entity';
+import type { WorkspacesOutput } from './workspace.entity';
 
 export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
     projectId: string;
     analysisId: string;
     workspace: string;
+}
+
+export interface GetSbomWorkspacesRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    projectId: string;
+    analysisId: string;
 }
 
 export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -74,6 +81,25 @@ export class ResultsRepository extends BaseRepository {
         });
 
         return Entity.unMarshal<DataResponse<SbomStats>>(response, DataResponse<SbomStats>);
+    }
+
+    async getSbomWorkspaces(
+        options: GetSbomWorkspacesRequestOptions
+    ): Promise<DataResponse<WorkspacesOutput>> {
+        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/workspaces`;
+
+        const response = await this.getRequest<DataResponse<WorkspacesOutput>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<WorkspacesOutput>>(
+            response,
+            DataResponse<WorkspacesOutput>
+        );
     }
 
     async getSbomGraph(options: GetSbomStatsRequestOptions): Promise<DataResponse<SbomGraph>> {

@@ -18,6 +18,16 @@ import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import SbomTable from './SbomTable.vue';
+import { WorkspacesOutput } from '../workspace.entity';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue
+} from '@/shadcn/ui/select';
 
 export interface Props {
     analysisID?: string;
@@ -43,19 +53,20 @@ const loading: Ref<boolean> = ref(true);
 watch(
     () => props.projectID,
     () => {
-        getSbomStats();
+        getSbomStats('.');
     }
 );
 watch(
     () => props.analysisID,
     () => {
-        getSbomStats();
+        getSbomStats('.');
     }
 );
 
 const render: Ref<boolean> = ref(false);
 // const error = ref(false);
 const stats: Ref<SbomStats> = ref(new SbomStats());
+const workspaces: Ref<WorkspacesOutput> = ref(new WorkspacesOutput());
 
 const initChartData = {
     labels: ['Label'],
@@ -80,8 +91,8 @@ const donutDimensions = {
 };
 
 // Methods
-getSbomStats();
-async function getSbomStats(refresh: boolean = false) {
+getSbomStats('.');
+async function getSbomStats(workspace: string, refresh: boolean = false) {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -97,7 +108,7 @@ async function getSbomStats(refresh: boolean = false) {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: workspace,
             bearerToken: authStore.getToken,
             handleBusinessErrors: true
         });
@@ -117,6 +128,28 @@ async function getSbomStats(refresh: boolean = false) {
         createDepStatusDistChart();
     }
 }
+
+async function getSbomWorkspaces() {
+    if (!userStore.getDefaultOrg) return;
+    if (!(authStore.getAuthenticated && authStore.getToken)) return;
+    try {
+        const res = await sbomRepo.getSbomWorkspaces({
+            orgId: userStore.getDefaultOrg.id,
+            projectId: props.projectID,
+            analysisId: props.analysisID,
+            bearerToken: authStore.getToken,
+            handleBusinessErrors: true
+        });
+        workspaces.value = res.data;
+    } catch (_err) {
+        console.error(_err);
+        error.value = true;
+        // if (_err instanceof BusinessLogicError) {
+        //     errorCode.value = _err.error_code;
+        // }
+    }
+}
+getSbomWorkspaces();
 
 // Create charts
 function createDepStatusDistChart() {
@@ -215,6 +248,25 @@ function createDepTypeChart() {
 
 <template>
     <div value="sbom" class="space-y-4">
+        <div class="flex flex-col items-center">
+            <Select @update:model-value="(e) => getSbomStats(e as string)">
+                <SelectTrigger class="w-[180px]">
+                    <SelectValue placeholder="Select a workspace" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        <SelectLabel>Workspaces</SelectLabel>
+                        <SelectItem
+                            v-for="workspace of workspaces.workspaces"
+                            :key="workspace"
+                            :value="workspace"
+                        >
+                            {{ workspace }}
+                        </SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
             <Card class="lg:col-start-3">
                 <CardHeader class="flex flex-col items-center">

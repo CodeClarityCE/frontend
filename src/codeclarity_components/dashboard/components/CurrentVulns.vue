@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
-import { LatestVulns } from '@/codeclarity_components/dashboard/dashboard.entity';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import { ref, watch, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Skeleton } from '@/shadcn/ui/skeleton';
-import Collapsible from '@/shadcn/ui/collapsible/Collapsible.vue';
-import CollapsibleTrigger from '@/shadcn/ui/collapsible/CollapsibleTrigger.vue';
-import CollapsibleContent from '@/shadcn/ui/collapsible/CollapsibleContent.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { ScrollArea } from '@/shadcn/ui/scroll-area';
 
 // Props
 const props = defineProps<{
@@ -31,17 +28,23 @@ const authStore = useAuthStore();
 
 const { defaultOrg } = storeToRefs(userStore);
 
+interface Vuln {
+    severity: number;
+    class: string;
+    cve: string;
+}
+
 // State
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const data: Ref<LatestVulns | undefined> = ref();
 const severityCountsShort: Ref<{ [key: string]: number }> = ref({
     CRITICAL: 0,
     HIGH: 0,
     MEDIUM: 0
 });
 const noData: Ref<boolean> = ref(false);
+const vulns: Ref<Array<Vuln>> = ref([]);
 
 async function fetch(refresh: boolean = false) {
     if (!defaultOrg || !defaultOrg.value) return;
@@ -72,7 +75,17 @@ async function fetch(refresh: boolean = false) {
                     severityCountsShort.value[x.severity_class] = x.count;
                 }
             }
-            data.value = resp.data;
+
+            for (const vuln of Object.keys(resp.data.vulns)) {
+                vulns.value.push({
+                    severity: resp.data.vulns[vuln].severity ?? 0,
+                    class: resp.data.vulns[vuln].severity_class ?? '',
+                    cve: resp.data.vulns[vuln].cwe_name
+                });
+            }
+            vulns.value.sort((a, b) => {
+                return b.severity - a.severity;
+            });
         }
     } catch (_err) {
         error.value = true;
@@ -137,87 +150,43 @@ fetch();
                     </div>
                 </div>
 
-                <Collapsible class="flex flex-col items-center">
-                    <div v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id" class="w-1/2">
-                        <div v-if="index < 5" class="font-bold flex justify-between pb-2">
-                            <div style="font-size: 0.8em">
+                <ScrollArea class="h-72 rounded-md border p-4">
+                    <div v-for="vuln in vulns" :key="vuln.cve">
+                        <div class="font-bold flex justify-between pb-2">
+                            <div>{{ vuln.severity }}</div>
+                            <div>
                                 <div
-                                    v-if="vuln.severity_class == 'CRITICAL'"
+                                    v-if="vuln.class == 'CRITICAL'"
                                     class="severity-indicator critical"
                                 >
                                     CRITICAL
                                 </div>
                                 <div
-                                    v-else-if="vuln.severity_class == 'HIGH'"
+                                    v-else-if="vuln.class == 'HIGH'"
                                     class="severity-indicator high"
                                 >
                                     HIGH
                                 </div>
                                 <div
-                                    v-else-if="vuln.severity_class == 'MEDIUM'"
+                                    v-else-if="vuln.class == 'MEDIUM'"
                                     class="severity-indicator medium"
                                 >
                                     MEDIUM
                                 </div>
-                                <div
-                                    v-else-if="vuln.severity_class == 'LOW'"
-                                    class="severity-indicator low"
-                                >
+                                <div v-else-if="vuln.class == 'LOW'" class="severity-indicator low">
                                     LOW
                                 </div>
                                 <div
-                                    v-else-if="vuln.severity_class == 'NONE'"
+                                    v-else-if="vuln.class == 'NONE'"
                                     class="severity-indicator none"
                                 >
                                     NONE
                                 </div>
                             </div>
-                            <div>{{ cwe_id }}</div>
+                            <div>{{ vuln.cve }}</div>
                         </div>
                     </div>
-                    <CollapsibleTrigger class="flex gap-2 items-center pb-2">
-                        Show more vulnerabilities <Icon icon="lucide:chevrons-up-down"></Icon>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent class="w-1/2">
-                        <div v-for="(vuln, cwe_id, index) in data!.vulns" :key="cwe_id">
-                            <div v-if="index >= 5" class="font-bold flex justify-between pb-2">
-                                <div style="font-size: 0.8em">
-                                    <div
-                                        v-if="vuln.severity_class == 'CRITICAL'"
-                                        class="severity-indicator critical"
-                                    >
-                                        CRITICAL
-                                    </div>
-                                    <div
-                                        v-else-if="vuln.severity_class == 'HIGH'"
-                                        class="severity-indicator high"
-                                    >
-                                        HIGH
-                                    </div>
-                                    <div
-                                        v-else-if="vuln.severity_class == 'MEDIUM'"
-                                        class="severity-indicator medium"
-                                    >
-                                        MEDIUM
-                                    </div>
-                                    <div
-                                        v-else-if="vuln.severity_class == 'LOW'"
-                                        class="severity-indicator low"
-                                    >
-                                        LOW
-                                    </div>
-                                    <div
-                                        v-else-if="vuln.severity_class == 'NONE'"
-                                        class="severity-indicator none"
-                                    >
-                                        NONE
-                                    </div>
-                                </div>
-                                <div>{{ cwe_id }}</div>
-                            </div>
-                        </div>
-                    </CollapsibleContent>
-                </Collapsible>
+                </ScrollArea>
             </div>
         </div>
     </div>

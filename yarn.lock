@@ -5323,7 +5323,7 @@ __metadata:
     postcss: "npm:8.5.3"
     prettier: "npm:3.5.3"
     reflect-metadata: "npm:0.2.2"
-    reka-ui: "npm:2.2.0"
+    reka-ui: "npm:2.2.1"
     sass: "npm:1.87.0"
     start-server-and-test: "npm:2.0.11"
     tailwind-merge: "npm:3.2.0"
@@ -7946,9 +7946,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reka-ui@npm:2.2.0":
-  version: 2.2.0
-  resolution: "reka-ui@npm:2.2.0"
+"reka-ui@npm:2.2.1":
+  version: 2.2.1
+  resolution: "reka-ui@npm:2.2.1"
   dependencies:
     "@floating-ui/dom": "npm:^1.6.13"
     "@floating-ui/vue": "npm:^1.1.6"
@@ -7962,7 +7962,7 @@ __metadata:
     ohash: "npm:^2.0.11"
   peerDependencies:
     vue: ">= 3.2.0"
-  checksum: 10/c258c5ada560ae6711e0c4107e7bfe4b6f153cca7796eb6128aac679facc647f5921a0c787bfa8c6aaf8950305a098e9931303cd2fe127aeba7ed5ad23e42051
+  checksum: 10/a54f0b8d1f8245e282eb3e29dfb21a1dd3e1859751f3d0491d8fe61923047b9bc87415f008469286662f2a066d03d9d1fca5010002ffd1ae61eeafc0b70fdb74
   languageName: node
   linkType: hard
 

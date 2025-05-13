@@ -92,13 +92,14 @@ export const columns: ColumnDef<Dependency>[] = [
                 () => ['Dev', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
             );
         },
-        cell: (
-            { row }) => {
-
+        cell: ({ row }) => {
             if (row.getValue('dev') == true) {
-                return h(Icon, { icon: 'line-md:circle-to-confirm-circle-transition', class: 'text-severityLow' })
+                return h(Icon, {
+                    icon: 'line-md:circle-to-confirm-circle-transition',
+                    class: 'text-severityLow'
+                });
             }
-            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' })
+            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' });
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -114,14 +115,15 @@ export const columns: ColumnDef<Dependency>[] = [
                 () => ['Prod', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
             );
         },
-        cell: (
-            { row }) => {
+        cell: ({ row }) => {
             if (row.getValue('prod') == true) {
-                return h(Icon, { icon: 'line-md:circle-to-confirm-circle-transition', class: 'text-severityLow' })
+                return h(Icon, {
+                    icon: 'line-md:circle-to-confirm-circle-transition',
+                    class: 'text-severityLow'
+                });
             }
-            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' })
-        }
-        ,
+            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' });
+        },
         enableSorting: false // Sorting done on the API side
     },
     {
@@ -133,14 +135,32 @@ export const columns: ColumnDef<Dependency>[] = [
                     variant: 'ghost',
                     onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
                 },
-                () => ['Type', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+                () => ['Direct', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
             );
         },
         cell: ({ row }) => {
-            if ((row.getValue('is_direct_count') as number) > 0) {
-                return h('div', { class: 'lowercase' }, 'Direct');
-            }
-            return h('div', { class: 'lowercase' }, 'Transitive');
+            if ((row.getValue('is_direct_count') as number) > 0)
+                return h('div', { class: 'lowercase' }, 'Yes');
+            return h('div', { class: 'lowercase' }, 'No');
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'is_transitive_count',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Transitive', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => {
+            if ((row.getValue('is_transitive_count') as number) > 0)
+                return h('div', { class: 'lowercase' }, 'Yes');
+            return h('div', { class: 'lowercase' }, 'No');
         },
         enableSorting: false // Sorting done on the API side
     },

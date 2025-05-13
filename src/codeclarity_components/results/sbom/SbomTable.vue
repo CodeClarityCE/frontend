@@ -94,8 +94,8 @@ watch([pageNumber, pageLimitSelected, sortDirection, sortKey], async () => {
 });
 
 watch([searchKey], async () => {
-    pageNumber.value = 0
-    await init()
+    pageNumber.value = 0;
+    await init();
 });
 
 watch(sorting, () => {

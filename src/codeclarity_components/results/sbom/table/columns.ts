@@ -37,16 +37,8 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            // Dependency is both direct and transitive
-            if (row.original.is_direct_count > 0 && row.original.is_transitive_count > 0) {
-                return h('div', { class: 'text-severityMedium' }, row.getValue('name'));
-            }
-            // Dependency is direct
-            if (row.original.is_direct_count > 0) {
-                return h('div', { class: 'text-primary' }, row.getValue('name'));
-            }
             // Dependency is transitive
-            return h('div', { class: 'text-muted-foreground' }, row.getValue('name'));
+            return h('div', row.getValue('name'));
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -84,6 +76,41 @@ export const columns: ColumnDef<Dependency>[] = [
             // console.log(row);
 
             return h('div', { class: 'lowercase' }, row.getValue('newest_release'));
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'dev',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Dev', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => h('div', { class: 'lowercase' }, row.getValue('dev')),
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'is_direct_count',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Type', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => {
+            if ((row.getValue('is_direct_count') as number) > 0) {
+                return h('div', { class: 'lowercase' }, 'Direct');
+            }
+            return h('div', { class: 'lowercase' }, 'Transitive');
         },
         enableSorting: false // Sorting done on the API side
     },

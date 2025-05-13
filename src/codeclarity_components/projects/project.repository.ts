@@ -75,7 +75,9 @@ export enum ProjectsSortInterface {
     PATCH_TYPE = 'patch_type',
     LICENSE_TYPE = 'type',
     DEPENDENCY_COUNT = 'dep_count',
-    ID = 'id'
+    ID = 'id',
+    DEV = 'dev',
+    DIRECT = 'is_direct_count'
 }
 
 export class ProjectRepository extends BaseRepository {

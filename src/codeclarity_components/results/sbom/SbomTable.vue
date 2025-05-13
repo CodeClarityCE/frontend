@@ -29,8 +29,8 @@ const render = ref(false);
 
 const searchKey = ref('');
 
-const sortKey: Ref<ProjectsSortInterface> = ref(ProjectsSortInterface.COMBINED_SEVERITY);
-const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
+const sortKey: Ref<ProjectsSortInterface> = ref(ProjectsSortInterface.DIRECT);
+const sortDirection: Ref<SortDirection> = ref(SortDirection.ASC);
 const sorting = ref<SortingState>([]);
 const columnFilters = ref<ColumnFiltersState>([]);
 // By default, all columns are visible except for the release column

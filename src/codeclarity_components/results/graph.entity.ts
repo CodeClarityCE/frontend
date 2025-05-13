@@ -23,6 +23,7 @@ export class Dependency {
     deprecated!: boolean;
     deprecated_message!: string;
     dev!: boolean;
+    prod!: boolean;
     file_path!: string;
     git_url!: Map<string, string>;
     is_direct!: boolean;

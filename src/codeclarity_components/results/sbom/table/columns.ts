@@ -5,6 +5,7 @@ import { Button } from '@/shadcn/ui/button';
 import moment from 'moment';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { Icon } from '@iconify/vue/dist/iconify.js';
 
 export const columns: ColumnDef<Dependency>[] = [
     // {
@@ -91,7 +92,36 @@ export const columns: ColumnDef<Dependency>[] = [
                 () => ['Dev', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
             );
         },
-        cell: ({ row }) => h('div', { class: 'lowercase' }, row.getValue('dev')),
+        cell: (
+            { row }) => {
+
+            if (row.getValue('dev') == true) {
+                return h(Icon, { icon: 'line-md:circle-to-confirm-circle-transition', class: 'text-severityLow' })
+            }
+            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' })
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'prod',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Prod', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: (
+            { row }) => {
+            if (row.getValue('prod') == true) {
+                return h(Icon, { icon: 'line-md:circle-to-confirm-circle-transition', class: 'text-severityLow' })
+            }
+            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' })
+        }
+        ,
         enableSorting: false // Sorting done on the API side
     },
     {

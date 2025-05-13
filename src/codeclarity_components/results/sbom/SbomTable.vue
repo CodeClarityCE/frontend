@@ -88,8 +88,14 @@ async function init() {
 onMounted(async () => {
     init();
 });
-watch([pageNumber, pageLimitSelected, sortDirection, sortKey, searchKey], async () => {
+
+watch([pageNumber, pageLimitSelected, sortDirection, sortKey], async () => {
     await init();
+});
+
+watch([searchKey], async () => {
+    pageNumber.value = 0
+    await init()
 });
 
 watch(sorting, () => {

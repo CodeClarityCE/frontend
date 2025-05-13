@@ -30,6 +30,10 @@ export class SbomStats {
 
     @IsNotEmpty()
     @IsNumber()
+    number_of_both_direct_transitive_dependencies!: number;
+
+    @IsNotEmpty()
+    @IsNumber()
     number_of_deprecated_dependencies!: number;
 
     @IsNotEmpty()

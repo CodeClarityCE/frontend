@@ -206,12 +206,13 @@ function createDepStatusDistChart() {
 }
 
 function createDepTypeChart() {
-    const labels = ['Direct', 'Transitive'];
+    const labels = ['Direct', 'Transitive', 'Both'];
     const data = [
         stats.value.number_of_direct_dependencies,
-        stats.value.number_of_transitive_dependencies
+        stats.value.number_of_transitive_dependencies,
+        stats.value.number_of_both_direct_transitive_dependencies
     ];
-    const colors = ['#146C94', '#19A7CE'];
+    const colors = ['#146C94', '#19A7CE', '#008491'];
 
     const dependency_dist_data = {
         labels: labels,
@@ -317,6 +318,17 @@ function createDepTypeChart() {
                                     <div>Transitive</div>
                                     <div class="text-[#19a7ce]">
                                         {{ stats?.number_of_transitive_dependencies }}
+                                    </div>
+                                </div>
+                            </div>
+                            <TextLoader v-if="!render" />
+                            <TextLoader v-if="!render" />
+                            <div v-if="render" class="flex items-center gap-1">
+                                <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
+                                <div class="flex items-center gap-1">
+                                    <div>Both</div>
+                                    <div class="text-[#008491]">
+                                        {{ stats?.number_of_both_direct_transitive_dependencies }}
                                     </div>
                                 </div>
                             </div>

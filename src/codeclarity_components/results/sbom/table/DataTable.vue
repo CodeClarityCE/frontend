@@ -33,7 +33,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const props = defineProps<{
     columns: ColumnDef<TData, TValue>[];
-    data: TData[];
 }>();
 
 const pageLimitSelected = defineModel<number>('pageLimitSelected', { default: 15 });
@@ -41,13 +40,12 @@ const searchKey = defineModel<string>('searchKey', { default: '' });
 const sorting = defineModel<SortingState>('sorting', { default: [] });
 const columnFilters = defineModel<ColumnFiltersState>('columnFilters', { default: [] });
 const columnVisibility = defineModel<VisibilityState>('columnVisibility', { default: {} });
+const data = defineModel<TData[]>('data', { default: [] });
 
 const rowSelection = ref({});
 
 const table = useVueTable({
-    get data() {
-        return props.data;
-    },
+    data,
     get columns() {
         return props.columns;
     },

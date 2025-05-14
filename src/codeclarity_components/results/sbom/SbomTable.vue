@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, type Ref, watch } from 'vue';
+import { ref, onMounted, type Ref, watch, shallowRef } from 'vue';
 import { columns } from './table/columns';
 import DataTable from './table/DataTable.vue';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
@@ -17,7 +17,8 @@ const authStore = useAuthStore();
 
 const sbomRepository: ResultsRepository = new ResultsRepository();
 
-const data: Ref<Array<Dependency>> = ref([]);
+const data: Ref<Array<Dependency>> = shallowRef([]);
+const selected_workspace = defineModel<string>('selected_workspace', { default: {} });
 
 const pageNumber = ref(0);
 const pageLimitSelected = ref(15);
@@ -58,7 +59,7 @@ async function init() {
             orgId: userStore.getDefaultOrg.id,
             projectId: project_id,
             analysisId: analysis_id,
-            workspace: '.',
+            workspace: selected_workspace.value,
             sort: {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
@@ -104,6 +105,7 @@ watch(sorting, () => {
         sortDirection.value = sorting.value[0].desc ? SortDirection.DESC : SortDirection.ASC;
     }
 });
+watch([selected_workspace], () => init());
 </script>
 
 <template>
@@ -126,8 +128,8 @@ watch(sorting, () => {
             v-model:sorting="sorting"
             v-model:column-filters="columnFilters"
             v-model:column-visibility="columnVisibility"
+            v-model:data="data"
             :columns="columns"
-            :data="data"
         />
 
         <div class="flex gap-2 items-center justify-center">

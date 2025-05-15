@@ -50,23 +50,23 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 
+const render: Ref<boolean> = ref(false);
+const stats: Ref<SbomStats> = ref(new SbomStats());
+const workspaces: Ref<WorkspacesOutput> = ref(new WorkspacesOutput());
+const selected_workspace: Ref<string> = ref('.');
+
 watch(
     () => props.projectID,
     () => {
-        getSbomStats('.');
+        getSbomStats();
     }
 );
 watch(
     () => props.analysisID,
     () => {
-        getSbomStats('.');
+        getSbomStats();
     }
 );
-
-const render: Ref<boolean> = ref(false);
-// const error = ref(false);
-const stats: Ref<SbomStats> = ref(new SbomStats());
-const workspaces: Ref<WorkspacesOutput> = ref(new WorkspacesOutput());
 
 const initChartData = {
     labels: ['Label'],
@@ -91,8 +91,8 @@ const donutDimensions = {
 };
 
 // Methods
-getSbomStats('.');
-async function getSbomStats(workspace: string, refresh: boolean = false) {
+getSbomStats();
+async function getSbomStats(refresh: boolean = false) {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -108,7 +108,7 @@ async function getSbomStats(workspace: string, refresh: boolean = false) {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: workspace,
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             handleBusinessErrors: true
         });
@@ -206,12 +206,13 @@ function createDepStatusDistChart() {
 }
 
 function createDepTypeChart() {
-    const labels = ['Direct', 'Transitive'];
+    const labels = ['Direct', 'Transitive', 'Both'];
     const data = [
         stats.value.number_of_direct_dependencies,
-        stats.value.number_of_transitive_dependencies
+        stats.value.number_of_transitive_dependencies,
+        stats.value.number_of_both_direct_transitive_dependencies
     ];
-    const colors = ['#146C94', '#19A7CE'];
+    const colors = ['#146C94', '#19A7CE', '#008491'];
 
     const dependency_dist_data = {
         labels: labels,
@@ -249,7 +250,14 @@ function createDepTypeChart() {
 <template>
     <div value="sbom" class="space-y-4">
         <div class="flex flex-col items-center">
-            <Select @update:model-value="(e) => getSbomStats(e as string)">
+            <Select
+                @update:model-value="
+                    (e) => {
+                        selected_workspace = e as string;
+                        getSbomStats();
+                    }
+                "
+            >
                 <SelectTrigger class="w-[180px]">
                     <SelectValue placeholder="Select a workspace" />
                 </SelectTrigger>
@@ -294,7 +302,8 @@ function createDepTypeChart() {
                 <CardHeader>
                     <CardTitle>Composition</CardTitle>
                     <CardDescription
-                        >{{ stats.number_of_dependencies ?? 0 }} Dependencies</CardDescription
+                        >{{ stats.number_of_dependencies ?? 0 }} Dependencies in
+                        Lockfile</CardDescription
                     >
                 </CardHeader>
                 <CardContent class="flex items-center justify-center flex-grow">
@@ -321,6 +330,17 @@ function createDepTypeChart() {
                                 </div>
                             </div>
                             <TextLoader v-if="!render" />
+                            <TextLoader v-if="!render" />
+                            <div v-if="render" class="flex items-center gap-1">
+                                <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
+                                <div class="flex items-center gap-1">
+                                    <div>Both</div>
+                                    <div class="text-[#008491]">
+                                        {{ stats?.number_of_both_direct_transitive_dependencies }}
+                                    </div>
+                                </div>
+                            </div>
+                            <TextLoader v-if="!render" />
                         </div>
 
                         <div v-if="render">
@@ -340,7 +360,7 @@ function createDepTypeChart() {
                     <CardTitle>Table</CardTitle>
                 </CardHeader>
                 <CardContent class="pl-2">
-                    <SbomTable />
+                    <SbomTable v-model:selected_workspace="selected_workspace" />
                 </CardContent>
             </Card>
         </div>

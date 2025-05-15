@@ -5,6 +5,7 @@ import { Button } from '@/shadcn/ui/button';
 import moment from 'moment';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { Icon } from '@iconify/vue/dist/iconify.js';
 
 export const columns: ColumnDef<Dependency>[] = [
     // {
@@ -37,16 +38,8 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            // Dependency is both direct and transitive
-            if (row.original.is_direct_count > 0 && row.original.is_transitive_count > 0) {
-                return h('div', { class: 'text-severityMedium' }, row.getValue('name'));
-            }
-            // Dependency is direct
-            if (row.original.is_direct_count > 0) {
-                return h('div', { class: 'text-primary' }, row.getValue('name'));
-            }
             // Dependency is transitive
-            return h('div', { class: 'text-muted-foreground' }, row.getValue('name'));
+            return h('div', row.getValue('name'));
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -84,6 +77,90 @@ export const columns: ColumnDef<Dependency>[] = [
             // console.log(row);
 
             return h('div', { class: 'lowercase' }, row.getValue('newest_release'));
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'dev',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Dev', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => {
+            if (row.getValue('dev') == true) {
+                return h(Icon, {
+                    icon: 'line-md:circle-to-confirm-circle-transition',
+                    class: 'text-severityLow'
+                });
+            }
+            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' });
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'prod',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Prod', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => {
+            if (row.getValue('prod') == true) {
+                return h(Icon, {
+                    icon: 'line-md:circle-to-confirm-circle-transition',
+                    class: 'text-severityLow'
+                });
+            }
+            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' });
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'is_direct_count',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Direct', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => {
+            if ((row.getValue('is_direct_count') as number) > 0)
+                return h('div', { class: 'lowercase' }, 'Yes');
+            return h('div', { class: 'lowercase' }, 'No');
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
+        accessorKey: 'is_transitive_count',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+                },
+                () => ['Transitive', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+            );
+        },
+        cell: ({ row }) => {
+            if ((row.getValue('is_transitive_count') as number) > 0)
+                return h('div', { class: 'lowercase' }, 'Yes');
+            return h('div', { class: 'lowercase' }, 'No');
         },
         enableSorting: false // Sorting done on the API side
     },

@@ -14,6 +14,7 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
+import SelectWorkspace from '../SelectWorkspace.vue';
 Chart.register(...registerables);
 
 export interface Props {
@@ -49,6 +50,7 @@ const render: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
+const selected_workspace: Ref<string> = ref('.');
 
 const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 const initChartData = {
@@ -88,7 +90,7 @@ async function getPatchesStats(refresh: boolean = false) {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             handleBusinessErrors: true
         });
@@ -322,6 +324,13 @@ function createSeverityDistChart() {
 </script>
 
 <template>
+        <SelectWorkspace
+            :projectID="projectID"
+            :analysisID="analysisID"
+            :get-function="getPatchesStats"
+            v-model:error="error"
+            v-model:selected_workspace="selected_workspace"
+        ></SelectWorkspace>
     <div value="sbom" class="space-y-4">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card class="col-span-2">

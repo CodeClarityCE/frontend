@@ -11,6 +11,7 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import SelectWorkspace from '../SelectWorkspace.vue';
 
 export interface Props {
     analysisID?: string;
@@ -22,7 +23,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // Repositories
-// Repositories
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
 // Store setup
@@ -33,6 +33,7 @@ const authStore = useAuthStore();
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
+const selected_workspace: Ref<string> = ref('.');
 
 watch(
     () => props.projectID,
@@ -76,7 +77,7 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             handleBusinessErrors: true
         });
@@ -101,6 +102,13 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
 
 <template>
     <div value="sbom" class="space-y-4">
+        <SelectWorkspace
+            :projectID="projectID"
+            :analysisID="analysisID"
+            :get-function="getVulnerabilitiesStats"
+            v-model:error="error"
+            v-model:selected_workspace="selected_workspace"
+        ></SelectWorkspace>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
             <Card>
                 <CardHeader class="flex flex-col items-center">

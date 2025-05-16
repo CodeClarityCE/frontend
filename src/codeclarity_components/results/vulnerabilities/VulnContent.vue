@@ -33,7 +33,7 @@ const authStore = useAuthStore();
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const selected_workspace: Ref<string> = ref('.');
+const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
 watch(
     () => props.projectID,
@@ -88,26 +88,21 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
 
         error.value = true;
         render.value = false;
-        // if (_err instanceof BusinessLogicError) {
-        //     errorCode.value = _err.error_code;
-        // }
     } finally {
         loading.value = false;
-        // createOwaspTop10DistChart();
-        // createSeverityDistChart();
-        // createRadarChart();
     }
 }
+
+watch(selected_workspace, async () => getVulnerabilitiesStats());
 </script>
 
 <template>
     <div value="sbom" class="space-y-4">
         <SelectWorkspace
-            :projectID="projectID"
-            :analysisID="analysisID"
-            :get-function="getVulnerabilitiesStats"
             v-model:error="error"
             v-model:selected_workspace="selected_workspace"
+            :project-i-d="projectID"
+            :analysis-i-d="analysisID"
         ></SelectWorkspace>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
             <Card>

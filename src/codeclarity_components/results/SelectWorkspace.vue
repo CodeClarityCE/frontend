@@ -4,12 +4,19 @@ import { WorkspacesOutput } from './workspace.entity';
 import { ResultsRepository } from './results.repository';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue
+} from '@/shadcn/ui/select';
 
 export interface Props {
-    analysisID: string;
-    projectID: string;
-    getFunction: Function;
+    analysisID?: string;
+    projectID?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
@@ -50,9 +57,9 @@ async function getSbomWorkspaces() {
     }
 }
 
-onMounted(()=>{
+onMounted(() => {
     getSbomWorkspaces();
-})
+});
 </script>
 
 <template>
@@ -60,8 +67,7 @@ onMounted(()=>{
         <Select
             @update:model-value="
                 (e: string) => {
-                    selected_workspace = e
-                    getFunction();
+                    selected_workspace = e;
                 }
             "
         >

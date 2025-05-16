@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Chart, registerables, type ChartData } from 'chart.js';
@@ -42,9 +42,17 @@ const severity_data: Ref<ChartData<'doughnut'>> = ref(
     initChartData as unknown as ChartData<'doughnut'>
 );
 
-createOwaspTop10DistChart();
-createSeverityDistChart();
-createRadarChart();
+function init() {
+    createOwaspTop10DistChart();
+    createSeverityDistChart();
+    createRadarChart();
+}
+
+init();
+
+watch(props.stats, () => {
+    init();
+});
 
 function createOwaspTop10DistChart() {
     const possible_labels = [

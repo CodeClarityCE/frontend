@@ -73,6 +73,8 @@ const cia_conf: Ref<object> = ref({});
 
 getPatchesStats();
 
+watch(selected_workspace, () => getPatchesStats());
+
 async function getPatchesStats(refresh: boolean = false) {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
@@ -324,13 +326,12 @@ function createSeverityDistChart() {
 </script>
 
 <template>
-        <SelectWorkspace
-            :projectID="projectID"
-            :analysisID="analysisID"
-            :get-function="getPatchesStats"
-            v-model:error="error"
-            v-model:selected_workspace="selected_workspace"
-        ></SelectWorkspace>
+    <SelectWorkspace
+        v-model:error="error"
+        v-model:selected_workspace="selected_workspace"
+        :project-i-d="projectID"
+        :analysis-i-d="analysisID"
+    ></SelectWorkspace>
     <div value="sbom" class="space-y-4">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card class="col-span-2">

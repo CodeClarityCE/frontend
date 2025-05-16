@@ -80,6 +80,8 @@ const donutDimensions = {
     height: '180px'
 };
 
+watch(selected_workspace, () => getSbomStats());
+
 // Methods
 getSbomStats();
 async function getSbomStats(refresh: boolean = false) {
@@ -217,13 +219,11 @@ function createDepTypeChart() {
 
 <template>
     <div value="sbom" class="space-y-4">
-        
         <SelectWorkspace
-            :projectID="projectID"
-            :analysisID="analysisID"
-            :get-function="getSbomStats"
             v-model:error="error"
             v-model:selected_workspace="selected_workspace"
+            :project-i-d="projectID"
+            :analysis-i-d="analysisID"
         ></SelectWorkspace>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">

@@ -78,6 +78,8 @@ const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
 const sortKey = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
+const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
+
 function isNoneSeverity(n: number) {
     return n == 0.0 || n == undefined;
 }
@@ -271,7 +273,7 @@ async function init() {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             pagination: {
                 page: pageNumber.value,
@@ -299,6 +301,8 @@ async function init() {
 }
 
 init();
+
+watch(selected_workspace, async () => await init());
 </script>
 
 <template>

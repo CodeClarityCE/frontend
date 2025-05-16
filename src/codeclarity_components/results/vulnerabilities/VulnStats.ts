@@ -89,6 +89,11 @@ export enum PatchType {
     None = 'NONE'
 }
 
+interface Conflict {
+    ConflictWinner: string;
+    ConflictFlag: string;
+}
+
 export interface Vulnerability {
     Id: string;
     Sources: Source[];
@@ -103,7 +108,7 @@ export interface Vulnerability {
     Weaknesses?: WeaknessInfo[];
     PatchType: PatchType;
     Description: string;
-    WinningSource: string;
+    Conflict: Conflict;
 }
 
 export interface VulnerabilityMerged {
@@ -115,6 +120,7 @@ export interface VulnerabilityMerged {
     Weaknesses: WeaknessInfo[];
     Description: string;
     WinningSource: string;
+    Conflict: Conflict;
 }
 
 export interface AffectedDeps {

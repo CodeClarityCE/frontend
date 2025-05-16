@@ -78,9 +78,14 @@ const sortByOptions = [
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-watch([pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber], () => {
-    init();
-});
+const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
+
+watch(
+    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    () => {
+        init();
+    }
+);
 
 function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
     const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
@@ -120,7 +125,7 @@ async function init() {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             pagination: {
                 page: pageNumber.value,
@@ -248,6 +253,8 @@ init();
                                 <!--------------------------------------------------------------------------->
 
                                 <div class="flex flex-col gap-4 py-1 pr-16 w-full shrink-0">
+                                    <div>{{ report.Conflict }}</div>
+
                                     <div class="flex gap-2 justify-between">
                                         <div v-if="report.Weaknesses.length > 0">
                                             <div

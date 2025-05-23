@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PositionedModalVue from '@/base_components/PositionedModal.vue';
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
+import { Icon } from '@iconify/vue/dist/iconify.js';
 defineProps<{
     finding: VulnerabilityDetails;
     versionsModalRef: typeof PositionedModalVue;
@@ -39,6 +40,14 @@ defineProps<{
                     Affected versions of {{ finding.dependency_info?.name }}:
                 </span>
                 {{ finding.vulnerability_info.version_info.affected_versions_string }}
+            </div>
+            <div
+                v-if="finding.vulnerability_info.version_info.affected_versions_string == '*'"
+                class="text-severityMedium flex gap-1 items-center"
+            >
+                <Icon icon="tabler:alert-triangle-filled"></Icon>
+                This vulnerability affectes all versions of the library and might be a false
+                positive
             </div>
 
             <!--------------------------------------------------------------------------->

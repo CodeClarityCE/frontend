@@ -59,44 +59,58 @@ defineProps<{
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex flex-row items-center gap-2">
-                                    <div class="font-normal">Sources:</div>
-                                    <div class="flex gap-2 text-sm">
-                                        <BubbleComponent :slim="true">
-                                            <template #content>
-                                                <a
-                                                    :href="
-                                                        'https://vulnerability.circl.lu/vuln/' +
-                                                        finding.vulnerability_info.vulnerability_id
-                                                    "
-                                                    target="_blank"
-                                                    >Vulnerability Lookup</a
-                                                >
-                                            </template>
-                                        </BubbleComponent>
-                                        <div
-                                            v-for="source in finding.vulnerability_info.sources"
-                                            :key="source.name"
-                                        >
-                                            <div v-if="source.name == 'NVD'">
-                                                <BubbleComponent :slim="true">
-                                                    <template #content>
-                                                        <a :href="source.vuln_url" target="_blank"
-                                                            >NVD</a
-                                                        >
-                                                    </template>
-                                                </BubbleComponent>
-                                            </div>
-                                            <div v-if="source.name == 'OSV'">
-                                                <BubbleComponent :slim="true">
-                                                    <template #content>
-                                                        <a :href="source.vuln_url" target="_blank"
-                                                            >OSV</a
-                                                        >
-                                                    </template>
-                                                </BubbleComponent>
+                                <div>
+                                    <div class="flex flex-row items-center gap-2">
+                                        <div class="font-normal">Sources:</div>
+                                        <div class="flex gap-2 text-sm">
+                                            <BubbleComponent :slim="true">
+                                                <template #content>
+                                                    <a
+                                                        :href="
+                                                            'https://vulnerability.circl.lu/vuln/' +
+                                                            finding.vulnerability_info
+                                                                .vulnerability_id
+                                                        "
+                                                        target="_blank"
+                                                        >Vulnerability Lookup</a
+                                                    >
+                                                </template>
+                                            </BubbleComponent>
+                                            <div
+                                                v-for="source in finding.vulnerability_info.sources"
+                                                :key="source.name"
+                                            >
+                                                <div v-if="source.name == 'NVD'">
+                                                    <BubbleComponent :slim="true">
+                                                        <template #content>
+                                                            <a
+                                                                :href="source.vuln_url"
+                                                                target="_blank"
+                                                                >NVD</a
+                                                            >
+                                                        </template>
+                                                    </BubbleComponent>
+                                                </div>
+                                                <div v-if="source.name == 'OSV'">
+                                                    <BubbleComponent :slim="true">
+                                                        <template #content>
+                                                            <a
+                                                                :href="source.vuln_url"
+                                                                target="_blank"
+                                                                >OSV</a
+                                                            >
+                                                        </template>
+                                                    </BubbleComponent>
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div
+                                        v-if="finding.vulnerability_info.sources.length < 2"
+                                        class="text-severityMedium flex gap-1 items-center"
+                                    >
+                                        <Icon icon="tabler:alert-triangle-filled"></Icon>
+                                        NVD and OSV do not agree
                                     </div>
                                 </div>
                             </div>
@@ -263,7 +277,7 @@ defineProps<{
                             </div>
                             <div class="text-[#6c6b6b]">
                                 (published on
-                                {{ moment(finding.dependency_info?.published).format('LL') }})
+                                {{ moment(finding.vulnerability_info.published).format('LL') }})
                             </div>
                         </div>
                         <div>

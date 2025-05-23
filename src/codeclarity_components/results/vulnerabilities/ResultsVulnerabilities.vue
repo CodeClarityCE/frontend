@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, onUpdated, ref, watch } from 'vue';
+import { onMounted, onUpdated, ref, watch, type Ref } from 'vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
 import { Card, CardContent, CardHeader } from '@/shadcn/ui/card';
 import List from './VulnList.vue';
@@ -20,6 +20,8 @@ const no_deps = false;
 const active_tab = ref('List');
 const list_ref: any = ref(null);
 const table_ref: any = ref(null);
+
+const selected_workspace: Ref<string> = ref('.');
 
 // VIEW DATA
 const details = ref(false);
@@ -135,7 +137,11 @@ watch(active_tab, async (newTab, oldTab) => {
             </div>
         </template>
 
-        <VulnContent :analysis-i-d="analysis.id" :project-i-d="project.id"></VulnContent>
+        <VulnContent
+            v-model:selected_workspace="selected_workspace"
+            :analysis-i-d="analysis.id"
+            :project-i-d="project.id"
+        ></VulnContent>
         <Card>
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             </CardHeader>
@@ -148,6 +154,7 @@ watch(active_tab, async (newTab, oldTab) => {
                     <TabsContent value="list" class="space-y-4">
                         <List
                             ref="list_ref"
+                            v-model:selected_workspace="selected_workspace"
                             :highlight-elem="reference_click_element"
                             :page-limit="20"
                             :force-open-new-tab="false"
@@ -158,6 +165,7 @@ watch(active_tab, async (newTab, oldTab) => {
                     <TabsContent value="table" class="space-y-4">
                         <Table
                             ref="table_ref"
+                            v-model:selected_workspace="selected_workspace"
                             :highlight-elem="reference_click_element"
                             :force-open-new-tab="false"
                             :analysis-i-d="analysis.id"

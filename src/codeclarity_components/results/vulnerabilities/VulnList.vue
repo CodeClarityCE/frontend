@@ -32,6 +32,7 @@ import UtilitiesFilters, {
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Badge } from '@/shadcn/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 
 export interface Props {
     [key: string]: any;
@@ -78,9 +79,14 @@ const sortByOptions = [
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-watch([pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber], () => {
-    init();
-});
+const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
+
+watch(
+    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    () => {
+        init();
+    }
+);
 
 function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
     const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
@@ -120,7 +126,7 @@ async function init() {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             pagination: {
                 page: pageNumber.value,
@@ -217,25 +223,25 @@ init();
                                             CRITICAL
                                         </div>
                                         <div
-                                            v-if="isHighSeverity(report.Severity.Severity)"
+                                            v-else-if="isHighSeverity(report.Severity.Severity)"
                                             class="px-1 py-5 font-semibold text-white bg-severityHigh"
                                         >
                                             HIGH
                                         </div>
                                         <div
-                                            v-if="isMediumSeverity(report.Severity.Severity)"
+                                            v-else-if="isMediumSeverity(report.Severity.Severity)"
                                             class="px-1 py-5 font-semibold text-white bg-severityMedium"
                                         >
                                             MODERATE
                                         </div>
                                         <div
-                                            v-if="isLowSeverity(report.Severity.Severity)"
+                                            v-else-if="isLowSeverity(report.Severity.Severity)"
                                             class="px-1 py-5 font-semibold text-white bg-severityLow"
                                         >
                                             LOW
                                         </div>
                                         <div
-                                            v-if="isNoneSeverity(report.Severity.Severity)"
+                                            v-else-if="isNoneSeverity(report.Severity.Severity)"
                                             class="px-1 py-5 font-semibold text-white bg-severityNone"
                                         >
                                             NONE
@@ -250,13 +256,7 @@ init();
                                 <div class="flex flex-col gap-4 py-1 pr-16 w-full shrink-0">
                                     <div class="flex gap-2 justify-between">
                                         <div v-if="report.Weaknesses.length > 0">
-                                            <div
-                                                style="
-                                                    margin-bottom: -10px;
-                                                    font-size: 1.25em;
-                                                    font-weight: 400;
-                                                "
-                                            >
+                                            <div class="-mb-2 text-xl">
                                                 {{ report.Weaknesses[0].WeaknessName || '' }}
                                             </div>
                                         </div>
@@ -266,8 +266,58 @@ init();
                                     <!--                               Vulnerability Id                        -->
                                     <!--------------------------------------------------------------------------->
 
-                                    <div class="text-xl font-normal">
-                                        {{ report.Vulnerability }}
+                                    <div class="flex gap-2 items-center">
+                                        <div class="text-xl font-normal">
+                                            {{ report.Vulnerability }}
+                                        </div>
+                                        <TooltipProvider
+                                            v-if="
+                                                report.Conflict.ConflictFlag ==
+                                                    'MATCH_POSSIBLE_INCORRECT' ||
+                                                report.Conflict.ConflictFlag == 'MATCH_INCORRECT'
+                                            "
+                                        >
+                                            <Tooltip>
+                                                <TooltipTrigger as-child>
+                                                    <div class="flex gap-1 items-center">
+                                                        <Icon
+                                                            :class="{
+                                                                'text-severityMedium':
+                                                                    report.Conflict.ConflictFlag ==
+                                                                    'MATCH_POSSIBLE_INCORRECT',
+                                                                'text-severityHigh':
+                                                                    report.Conflict.ConflictFlag ==
+                                                                    'MATCH_INCORRECT'
+                                                            }"
+                                                            icon="tabler:alert-triangle-filled"
+                                                        ></Icon>
+                                                        <p
+                                                            v-if="
+                                                                report.Conflict.ConflictFlag ==
+                                                                'MATCH_POSSIBLE_INCORRECT'
+                                                            "
+                                                            class="text-severityMedium"
+                                                        >
+                                                            Match possibly incorrect
+                                                        </p>
+                                                        <p v-else class="text-severityHigh">
+                                                            Match incorrect
+                                                        </p>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent class="bg-secondary text-black">
+                                                    <p
+                                                        v-if="
+                                                            report.Conflict.ConflictFlag ==
+                                                            'MATCH_POSSIBLE_INCORRECT'
+                                                        "
+                                                    >
+                                                        Vulnerability not present in both NVD and
+                                                        OSV databases
+                                                    </p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
 
                                     <div class="flex gap-5 items-center">

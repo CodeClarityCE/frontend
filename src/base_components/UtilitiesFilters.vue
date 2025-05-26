@@ -13,7 +13,7 @@ defineProps<{
     lockedCategories?: string[];
 }>();
 
-const filterState = defineModel<FilterState>('filterState', { default: {} });
+const filterState = defineModel<FilterState>('filter-state', { default: {} });
 
 // State
 const options_count: any = ref({});
@@ -90,6 +90,17 @@ export class FilterState {
         this.filterConfig = config;
         this.activeFilters = getActiveState(config);
         this.categoryCount = 0;
+    }
+
+    toString(): string {
+        let options = '';
+        this.activeFilters.forEach((filter, index) => {
+            options += filter.option;
+            if (index < this.activeFilters.length - 1) {
+                options += ',';
+            }
+        });
+        return options;
     }
 
     addFilterCategory(category: FilterCategory, integrationCategoryName?: string): ActiveFilter[] {

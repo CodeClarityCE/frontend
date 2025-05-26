@@ -68,33 +68,6 @@ const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
 const sortKey: Ref<string> = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
-const sortByOptions = [
-    { label: 'CVE', key: 'cve' },
-    { label: 'Severity', key: 'severity' },
-    { label: 'Dependency Name', key: 'dep_name' },
-    { label: 'Dependency Version', key: 'dep_version' },
-    { label: 'Weakness', key: 'weakness' },
-    { label: 'Owasp Top 10', key: 'owasp_top_10' }
-];
-
-const resultsRepository: ResultsRepository = new ResultsRepository();
-
-const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
-
-watch(
-    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
-    () => {
-        init();
-    }
-);
-
-function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
-    const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
-    const uniqueOwaspIds = Array.from(new Set(owaspIds));
-
-    return uniqueOwaspIds;
-}
-
 // Filters
 const filterState: Ref<FilterState> = ref(
     createNewFilterState({
@@ -118,15 +91,15 @@ const filterState: Ref<FilterState> = ref(
             name: 'Matching',
             type: FilterType.CHECKBOX,
             data: {
-                correct_matching: {
+                hide_correct_matching: {
                     title: 'Hide correct',
                     value: false
                 },
-                possibly_incorrect_matching: {
+                hide_possibly_incorrect_matching: {
                     title: 'Hide possibly incorrect',
                     value: false
                 },
-                incorrect_matching: {
+                hide_incorrect_matching: {
                     title: 'Hide incorrect',
                     value: false
                 }
@@ -134,6 +107,26 @@ const filterState: Ref<FilterState> = ref(
         }
     })
 );
+
+const sortByOptions = [
+    { label: 'CVE', key: 'cve' },
+    { label: 'Severity', key: 'severity' },
+    { label: 'Dependency Name', key: 'dep_name' },
+    { label: 'Dependency Version', key: 'dep_version' },
+    { label: 'Weakness', key: 'weakness' },
+    { label: 'Owasp Top 10', key: 'owasp_top_10' }
+];
+
+const resultsRepository: ResultsRepository = new ResultsRepository();
+
+const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
+
+function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
+    const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
+    const uniqueOwaspIds = Array.from(new Set(owaspIds));
+
+    return uniqueOwaspIds;
+}
 
 async function init() {
     if (!userStore.getDefaultOrg) {
@@ -160,7 +153,7 @@ async function init() {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
-            active_filters: '',
+            active_filters: filterState.value.toString(),
             search_key: searchKey.value
         });
         findings.value = res.data;
@@ -179,11 +172,18 @@ async function init() {
 
 init();
 
-watch(filterState, init);
+watch(
+    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    () => {
+        init();
+    }
+);
+
+watch(() => filterState.value.activeFilters, init);
 </script>
 
 <template>
-    <div style="display: flex; flex-direction: column; row-gap: 30px">
+    <div class="flex flex-col gap-7">
         <!--------------------------------------------------------------------------->
         <!--                            Search and Filters                         -->
         <!--------------------------------------------------------------------------->

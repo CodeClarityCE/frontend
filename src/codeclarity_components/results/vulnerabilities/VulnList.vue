@@ -101,10 +101,34 @@ const filterState: Ref<FilterState> = ref(
         ImportState: {
             name: 'Language',
             type: FilterType.RADIO,
+            icon: 'meteor-icons:language',
             data: {
                 js: {
                     title: 'JavaScript',
                     value: true
+                }
+            }
+        },
+        Divider: {
+            name: 'Language',
+            type: FilterType.DIVIDER,
+            data: {}
+        },
+        AttributeState: {
+            name: 'Matching',
+            type: FilterType.CHECKBOX,
+            data: {
+                correct_matching: {
+                    title: 'Hide correct',
+                    value: false
+                },
+                possibly_incorrect_matching: {
+                    title: 'Hide possibly incorrect',
+                    value: false
+                },
+                incorrect_matching: {
+                    title: 'Hide incorrect',
+                    value: false
                 }
             }
         }
@@ -154,6 +178,8 @@ async function init() {
 }
 
 init();
+
+watch(filterState, init);
 </script>
 
 <template>
@@ -502,9 +528,7 @@ init();
             <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings match the filter</div>
             </div>
-            <div
-                v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5"
-            >
+            <div v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings</div>
             </div>
 

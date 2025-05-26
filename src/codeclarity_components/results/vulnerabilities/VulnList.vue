@@ -188,7 +188,7 @@ watch(filterState, init);
         <!--                            Search and Filters                         -->
         <!--------------------------------------------------------------------------->
 
-        <div style="display: flex; column-gap: 1em">
+        <div class="flex gap-4">
             <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
             <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
         </div>

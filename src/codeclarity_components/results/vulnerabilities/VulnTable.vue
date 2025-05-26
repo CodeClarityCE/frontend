@@ -21,6 +21,8 @@ import UtilitiesFilters, {
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import { Badge } from '@/shadcn/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 
 export interface Props {
     [key: string]: any;
@@ -77,6 +79,46 @@ const placeholder = 'Search by dependency, dependency version, or cve';
 const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
 const sortKey = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
+
+// Filters
+const filterState: Ref<FilterState> = ref(
+    createNewFilterState({
+        ImportState: {
+            name: 'Language',
+            type: FilterType.RADIO,
+            icon: 'meteor-icons:language',
+            data: {
+                js: {
+                    title: 'JavaScript',
+                    value: true
+                }
+            }
+        },
+        Divider: {
+            name: 'Language',
+            type: FilterType.DIVIDER,
+            data: {}
+        },
+        AttributeState: {
+            name: 'Matching',
+            type: FilterType.CHECKBOX,
+            data: {
+                hide_correct_matching: {
+                    title: 'Hide correct',
+                    value: false
+                },
+                hide_possibly_incorrect_matching: {
+                    title: 'Hide possibly incorrect',
+                    value: false
+                },
+                hide_incorrect_matching: {
+                    title: 'Hide incorrect',
+                    value: false
+                }
+            }
+        }
+    })
+);
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
@@ -238,26 +280,6 @@ function updateSort(_sortKey: ProjectsSortInterface, _sortDirection: SortDirecti
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-watch([pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber], async () => {
-    init();
-});
-
-// Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        }
-    })
-);
-
 async function init() {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
@@ -283,7 +305,7 @@ async function init() {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
-            active_filters: '',
+            active_filters: filterState.value.toString(),
             search_key: searchKey.value
         });
         findings.value = res.data;
@@ -302,7 +324,13 @@ async function init() {
 
 init();
 
-watch(selected_workspace, async () => await init());
+watch(
+    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    () => {
+        init();
+    }
+);
+watch(() => filterState.value.activeFilters, init);
 </script>
 
 <template>
@@ -332,13 +360,46 @@ watch(selected_workspace, async () => await init());
                 <template #data>
                     <tr v-for="report in findings" :key="report.Id">
                         <td>
-                            <BubbleComponent :slim="true">
-                                <template #content>
-                                    <div class="text-nowrap whitespace-nowrap">
-                                        {{ report.Vulnerability }}
-                                    </div>
-                                </template>
-                            </BubbleComponent>
+                            <div class="flex items-center gap-2">
+                                <Badge
+                                    class="text-nowrap whitespace-nowrap rounded-full"
+                                    variant="secondary"
+                                    >{{ report.Vulnerability }}</Badge
+                                >
+                                <TooltipProvider
+                                    v-if="
+                                        report.Conflict.ConflictFlag ==
+                                            'MATCH_POSSIBLE_INCORRECT' ||
+                                        report.Conflict.ConflictFlag == 'MATCH_INCORRECT'
+                                    "
+                                >
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <Icon
+                                                :class="{
+                                                    'text-severityMedium':
+                                                        report.Conflict.ConflictFlag ==
+                                                        'MATCH_POSSIBLE_INCORRECT',
+                                                    'text-severityHigh':
+                                                        report.Conflict.ConflictFlag ==
+                                                        'MATCH_INCORRECT'
+                                                }"
+                                                icon="tabler:alert-triangle-filled"
+                                            ></Icon>
+                                        </TooltipTrigger>
+                                        <TooltipContent class="bg-secondary text-black">
+                                            <p
+                                                v-if="
+                                                    report.Conflict.ConflictFlag ==
+                                                    'MATCH_POSSIBLE_INCORRECT'
+                                                "
+                                            >
+                                                OSV and NVD disagree
+                                            </p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                         </td>
                         <td>
                             <SeverityBubble
@@ -541,7 +602,7 @@ watch(selected_workspace, async () => await init());
                                         query: {
                                             analysis_id: props.analysisID,
                                             project_id: props.projectID,
-                                            finding_id: report.Id
+                                            finding_id: report.Vulnerability
                                         },
                                         params: { page: 'vulnerabilities_details' }
                                     }"

@@ -338,8 +338,7 @@ watch(() => filterState.value.activeFilters, init);
                                                             'MATCH_POSSIBLE_INCORRECT'
                                                         "
                                                     >
-                                                        Vulnerability not present in both NVD and
-                                                        OSV databases
+                                                        OSV and NVD disagree
                                                     </p>
                                                 </TooltipContent>
                                             </Tooltip>

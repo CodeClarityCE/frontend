@@ -499,12 +499,11 @@ init();
             <!--                     Filter result empty indicator                     -->
             <!--------------------------------------------------------------------------->
 
-            <div v-if="matchingItemsCount == 0 && filterApplied && render" style="margin-top: 20px">
+            <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings match the filter</div>
             </div>
             <div
-                v-if="matchingItemsCount == 0 && !filterApplied && render"
-                style="margin-top: 20px"
+                v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5"
             >
                 <div style="text-align: center">No findings</div>
             </div>
@@ -525,7 +524,7 @@ init();
         <!--------------------------------------------------------------------------->
 
         <div v-else>
-            <div style="display: flex; flex-direction: column; row-gap: 10px">
+            <div class="flex flex-col gap-2">
                 <BoxLoader
                     v-for="i in 2"
                     :key="i"

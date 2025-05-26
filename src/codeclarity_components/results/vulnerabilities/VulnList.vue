@@ -68,6 +68,46 @@ const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
 const sortKey: Ref<string> = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
+// Filters
+const filterState: Ref<FilterState> = ref(
+    createNewFilterState({
+        ImportState: {
+            name: 'Language',
+            type: FilterType.RADIO,
+            icon: 'meteor-icons:language',
+            data: {
+                js: {
+                    title: 'JavaScript',
+                    value: true
+                }
+            }
+        },
+        Divider: {
+            name: 'Language',
+            type: FilterType.DIVIDER,
+            data: {}
+        },
+        AttributeState: {
+            name: 'Matching',
+            type: FilterType.CHECKBOX,
+            data: {
+                hide_correct_matching: {
+                    title: 'Hide correct',
+                    value: false
+                },
+                hide_possibly_incorrect_matching: {
+                    title: 'Hide possibly incorrect',
+                    value: false
+                },
+                hide_incorrect_matching: {
+                    title: 'Hide incorrect',
+                    value: false
+                }
+            }
+        }
+    })
+);
+
 const sortByOptions = [
     { label: 'CVE', key: 'cve' },
     { label: 'Severity', key: 'severity' },
@@ -81,35 +121,12 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
-watch(
-    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
-    () => {
-        init();
-    }
-);
-
 function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
     const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
     const uniqueOwaspIds = Array.from(new Set(owaspIds));
 
     return uniqueOwaspIds;
 }
-
-// Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        }
-    })
-);
 
 async function init() {
     if (!userStore.getDefaultOrg) {
@@ -136,7 +153,7 @@ async function init() {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
-            active_filters: '',
+            active_filters: filterState.value.toString(),
             search_key: searchKey.value
         });
         findings.value = res.data;
@@ -154,15 +171,24 @@ async function init() {
 }
 
 init();
+
+watch(
+    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    () => {
+        init();
+    }
+);
+
+watch(() => filterState.value.activeFilters, init);
 </script>
 
 <template>
-    <div style="display: flex; flex-direction: column; row-gap: 30px">
+    <div class="flex flex-col gap-7">
         <!--------------------------------------------------------------------------->
         <!--                            Search and Filters                         -->
         <!--------------------------------------------------------------------------->
 
-        <div style="display: flex; column-gap: 1em">
+        <div class="flex gap-4">
             <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
             <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
         </div>
@@ -499,13 +525,10 @@ init();
             <!--                     Filter result empty indicator                     -->
             <!--------------------------------------------------------------------------->
 
-            <div v-if="matchingItemsCount == 0 && filterApplied && render" style="margin-top: 20px">
+            <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings match the filter</div>
             </div>
-            <div
-                v-if="matchingItemsCount == 0 && !filterApplied && render"
-                style="margin-top: 20px"
-            >
+            <div v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings</div>
             </div>
 
@@ -525,7 +548,7 @@ init();
         <!--------------------------------------------------------------------------->
 
         <div v-else>
-            <div style="display: flex; flex-direction: column; row-gap: 10px">
+            <div class="flex flex-col gap-2">
                 <BoxLoader
                     v-for="i in 2"
                     :key="i"

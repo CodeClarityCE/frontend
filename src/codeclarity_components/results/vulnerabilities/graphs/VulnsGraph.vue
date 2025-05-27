@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { defineAsyncComponent, ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Chart, registerables, type ChartData } from 'chart.js';
 import type { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import { Bar, Doughnut, Radar } from 'vue-chartjs';
 import { Icon } from '@iconify/vue/dist/iconify.js';
+import type { RadarChartData, RadarChartOptions } from '@/base_components/charts/radarChart';
+import RadarChart from '@/base_components/charts/RadarChart.vue';
+import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/ErrorComponent.vue';
+
+const SecurityImpact = defineAsyncComponent({
+    loader: () => import('./components/SecurityImpact.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
+    delay: 200,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
 Chart.register(...registerables);
 
 export interface Props {
@@ -33,9 +49,6 @@ const initChartData = {
 
 const owaspTopTotalCount = ref(0);
 const severity_conf: Ref<object> = ref({});
-
-const cia_data: Ref<ChartData<'radar'>> = ref(initChartData as unknown as ChartData<'radar'>);
-const cia_conf: Ref<object> = ref({});
 const owasp_data: Ref<ChartData<'bar'>> = ref(initChartData as unknown as ChartData<'bar'>);
 const owasp_conf: Ref<object> = ref({});
 const severity_data: Ref<ChartData<'doughnut'>> = ref(
@@ -45,7 +58,6 @@ const severity_data: Ref<ChartData<'doughnut'>> = ref(
 function init() {
     createOwaspTop10DistChart();
     createSeverityDistChart();
-    createRadarChart();
 }
 
 init();
@@ -200,73 +212,6 @@ function createSeverityDistChart() {
     };
 }
 
-function createRadarChart() {
-    function getRadarChartData() {
-        const data = [
-            props.stats.mean_confidentiality_impact,
-            props.stats.mean_integrity_impact,
-            props.stats.mean_availability_impact
-        ];
-        const chart_data = {
-            labels: [
-                'Mean Confidentiality Impact',
-                'Mean Integrity Impact',
-                'Mean Availability Impact'
-            ],
-            datasets: [
-                {
-                    data: data,
-                    fill: true,
-                    backgroundColor: 'rgba(0, 132, 145, 0.4)',
-                    borderColor: 'rgb(116, 0, 184)',
-                    pointBackgroundColor: 'rgb(0116, 0, 184, 0.4)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(116, 0, 184, 0.4)',
-                    pointRadius: 0.0
-                }
-            ]
-        };
-        return chart_data;
-    }
-
-    function getRadarChartConfig() {
-        return {
-            elements: {
-                line: {
-                    borderWidth: 0
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                datalabels: {
-                    display: false
-                }
-            },
-            scale: {
-                beginAtZero: true,
-                max: 1.0,
-                min: 0,
-                stepSize: 0.5
-            },
-            scales: {
-                r: {
-                    pointLabels: {
-                        display: false
-                    },
-                    ticks: {
-                        display: false
-                    }
-                }
-            }
-        };
-    }
-
-    cia_data.value = getRadarChartData();
-    cia_conf.value = getRadarChartConfig();
-}
 </script>
 
 <template>
@@ -508,170 +453,7 @@ function createRadarChart() {
                 <CardTitle>Security Impact</CardTitle>
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                <div class="flex items-center justify-evenly">
-                    <div class="flex flex-col">
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#003532]"></Icon>
-                            <div>Confidentiality</div>
-                            <div class="side-stats-text-value text-[#003532]">
-                                {{ stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#1A4876]"></Icon>
-
-                            <div>Availability</div>
-                            <div class="side-stats-text-value text-[#1A4876]">
-                                {{ stats.mean_availability_impact?.toFixed(2) ?? 0 }}
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
-
-                            <div>Integrity</div>
-                            <div class="side-stats-text-value text-[#008491]">
-                                {{ stats.mean_integrity_impact?.toFixed(2) ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div
-                            style="
-                                position: relative;
-                                width: 200px;
-                                height: 200px;
-                                margin-right: 10px;
-                            "
-                        >
-                            <div style="position: absolute">
-                                <svg height="200" width="200">
-                                    <line
-                                        style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                        x1="100"
-                                        x2="200"
-                                        y1="130"
-                                        y2="185"
-                                    />
-                                    <line
-                                        style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                        x1="100"
-                                        x2="0"
-                                        y2="185"
-                                        y1="130"
-                                    />
-                                    <line
-                                        style="stroke: rgb(206, 206, 206); stroke-width: 2px"
-                                        x1="100"
-                                        x2="100"
-                                        y1="30"
-                                        y2="130"
-                                    />
-                                </svg>
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    left: 100px;
-                                    top: 10px;
-                                    transform: translate(-50%, -50%);
-                                    font-weight: 500;
-                                    color: rgb(70, 70, 70);
-                                    background-color: rgb(255, 255, 255);
-                                "
-                            >
-                                <span
-                                    style="font-weight: 900; color: var(--accent)"
-                                    class="ng-binding"
-                                    >{{ stats.mean_confidentiality_impact?.toFixed(2) ?? 0 }}</span
-                                >
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    bottom: 0px;
-                                    right: 0px;
-                                    font-weight: 500;
-                                    color: rgb(70, 70, 70);
-                                    background-color: rgb(255, 255, 255);
-                                "
-                            >
-                                <span
-                                    style="font-weight: 900; color: var(--accent)"
-                                    class="ng-binding"
-                                    >{{ stats.mean_integrity_impact?.toFixed(2) ?? 0 }}</span
-                                >
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    bottom: 0px;
-                                    left: 0px;
-                                    font-weight: 500;
-                                    color: rgb(70, 70, 70);
-                                    background-color: rgb(255, 255, 255);
-                                "
-                            >
-                                <span
-                                    style="font-weight: 900; color: var(--accent)"
-                                    class="ng-binding"
-                                    >{{ stats.mean_availability_impact?.toFixed(2) ?? 0 }}</span
-                                >
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    left: 0px;
-                                    top: 65px;
-                                    transform: rotate(-60deg);
-                                    font-weight: 500;
-                                    color: rgb(70, 70, 70);
-                                "
-                            >
-                                Confidentiality
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    bottom: 54px;
-                                    right: -15px;
-                                    font-weight: 500;
-                                    color: rgb(70, 70, 70);
-                                    font-family: roboto;
-                                    transform: rotate(60deg);
-                                "
-                            >
-                                Integrity
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    bottom: 0px;
-                                    left: 35px;
-                                    font-weight: 500;
-                                    color: rgb(70, 70, 70);
-                                "
-                            >
-                                Availability
-                            </div>
-                            <div
-                                style="
-                                    position: absolute;
-                                    height: 212px !important;
-                                    width: 212px !important;
-                                    margin-top: 20px;
-                                    margin-left: -6px;
-                                "
-                            >
-                                <Radar
-                                    :data="cia_data"
-                                    :options="cia_conf"
-                                    style="height: 212px !important; width: 212px !important"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <SecurityImpact :stats="stats" />
             </CardContent>
         </Card>
     </div>

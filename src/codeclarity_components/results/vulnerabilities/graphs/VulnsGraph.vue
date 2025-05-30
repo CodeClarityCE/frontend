@@ -15,6 +15,17 @@ const SecurityImpact = defineAsyncComponent({
     loader: () => import('./components/SecurityImpact.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
+    delay: 500,
+    errorComponent: ErrorComponent,
+    // The error component will be displayed if a timeout is
+    // provided and exceeded. Default: Infinity.
+    timeout: 3000
+});
+
+const Vulnerabilities = defineAsyncComponent({
+    loader: () => import('./components/Vulnerabilities.vue'),
+    loadingComponent: LoadingComponent,
+    // Delay before showing the loading component. Default: 200ms.
     delay: 200,
     errorComponent: ErrorComponent,
     // The error component will be displayed if a timeout is
@@ -48,16 +59,11 @@ const initChartData = {
 };
 
 const owaspTopTotalCount = ref(0);
-const severity_conf: Ref<object> = ref({});
 const owasp_data: Ref<ChartData<'bar'>> = ref(initChartData as unknown as ChartData<'bar'>);
 const owasp_conf: Ref<object> = ref({});
-const severity_data: Ref<ChartData<'doughnut'>> = ref(
-    initChartData as unknown as ChartData<'doughnut'>
-);
 
 function init() {
     createOwaspTop10DistChart();
-    createSeverityDistChart();
 }
 
 init();
@@ -172,46 +178,6 @@ function createOwaspTop10DistChart() {
         }
     };
 }
-
-function createSeverityDistChart() {
-    const labels = ['Critical', 'High', 'Medium', 'Low', 'None'];
-    const data = [
-        props.stats.number_of_critical,
-        props.stats.number_of_high,
-        props.stats.number_of_medium,
-        props.stats.number_of_low,
-        props.stats.number_of_none
-    ];
-    const colors = ['#4b4242', '#ae5e5e', '#cca067', '#9dae5e', '#397680'];
-
-    const dependency_dist_data = {
-        labels: labels,
-        datasets: [
-            {
-                borderColor: 'transparent',
-                spacing: 3,
-                borderRadius: 3,
-                data: data,
-                backgroundColor: colors
-            }
-        ]
-    };
-
-    severity_data.value = dependency_dist_data;
-    severity_conf.value = {
-        maintainAspectRatio: true,
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        layout: {
-            padding: 20
-        }
-    };
-}
-
 </script>
 
 <template>
@@ -221,7 +187,7 @@ function createSeverityDistChart() {
                 <CardTitle>{{ stats.number_of_vulnerabilities }} Vulnerabilities</CardTitle>
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                <div class="flex items-center justify-evenly">
+                <div class="flex items-center ">
                     <div class="flex flex-col">
                         <div class="flex gap-2 items-center">
                             <Icon
@@ -262,9 +228,7 @@ function createSeverityDistChart() {
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <Doughnut :data="severity_data" :options="severity_conf" />
-                    </div>
+                    <Vulnerabilities :stats="stats" />
                 </div>
             </CardContent>
         </Card>

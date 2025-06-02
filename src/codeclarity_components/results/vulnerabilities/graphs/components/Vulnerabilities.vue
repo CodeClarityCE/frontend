@@ -5,6 +5,8 @@ import type {
 } from '@/base_components/charts/doughnutChart';
 import DoughnutChart from '@/base_components/charts/DoughnutChart.vue';
 import { ref, type Ref } from 'vue';
+import { Icon } from '@iconify/vue/dist/iconify.js';
+import DoughnutLegend from './DoughnutLegend.vue'
 
 // Props
 const props = defineProps<{
@@ -17,41 +19,47 @@ const props = defineProps<{
     };
 }>();
 
+const doughnutColors = ['#FF1744', '#FF6D00', '#FFEA00', '#00C853', '#607D8B'];
+
 const doughnutChartData: DoughnutChartData = [
     {
         label: 'Critical',
-        color: '#4b4242',
+        color: doughnutColors[0],
         count: props.stats.number_of_critical
     },
     {
         label: 'High',
-        color: '#ae5e5e',
+        color: doughnutColors[1],
         count: props.stats.number_of_high
     },
     {
         label: 'Medium',
-        color: '#cca067',
+        color: doughnutColors[2],
         count: props.stats.number_of_medium
     },
     {
         label: 'Low',
-        color: '#9dae5e',
+        color: doughnutColors[3],
         count: props.stats.number_of_low
     },
     {
         label: 'None',
-        color: '#397680',
+        color: doughnutColors[4],
         count: props.stats.number_of_none
     }
 ];
 
 const doghnutChartOptions: Ref<Partial<DoughnutChartOptions>> = ref({});
-
 </script>
 <template>
     <div class="p-2">
-        <div class="flex flex-row justify-center items-center">
-            <DoughnutChart :id="'ciaImpact'" :data="doughnutChartData" :options="doghnutChartOptions" ></DoughnutChart>
+        <div class="flex flex-row justify-center items-center gap-2">
+            <DoughnutLegend :items="doughnutChartData" />
+            <DoughnutChart
+                :id="'vulnDoughnutChart'"
+                :data="doughnutChartData"
+                :options="doghnutChartOptions"
+            ></DoughnutChart>
         </div>
     </div>
 </template>

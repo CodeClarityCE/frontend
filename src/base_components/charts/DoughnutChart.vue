@@ -81,6 +81,6 @@ onMounted(() => {
 </script>
 <template>
     <div>
-        <div :id="id" class="doughnutChart "></div>
+        <div :id="id" class="doughnutChart"></div>
     </div>
 </template>

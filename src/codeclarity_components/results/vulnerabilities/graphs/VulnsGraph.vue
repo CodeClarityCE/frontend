@@ -15,7 +15,7 @@ const SecurityImpact = defineAsyncComponent({
     loader: () => import('./components/SecurityImpact.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
-    delay: 500,
+    delay: 200,
     errorComponent: ErrorComponent,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
@@ -187,49 +187,9 @@ function createOwaspTop10DistChart() {
                 <CardTitle>{{ stats.number_of_vulnerabilities }} Vulnerabilities</CardTitle>
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                <div class="flex items-center ">
-                    <div class="flex flex-col">
-                        <div class="flex gap-2 items-center">
-                            <Icon
-                                :icon="'ph:circle-fill'"
-                                class="text-severityCriticalLight"
-                            ></Icon>
-                            <div>Critical</div>
-                            <div class="side-stats-text-value text-severityCriticalLight">
-                                {{ stats.number_of_critical }}
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-severityHighLight"></Icon>
-                            <div>High</div>
-                            <div class="side-stats-text-value text-severityHighLight">
-                                {{ stats.number_of_high }}
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-severityMediumLight"></Icon>
-                            <div>Medium</div>
-                            <div class="side-stats-text-value text-severityMediumLight">
-                                {{ stats.number_of_medium }}
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-severityLowLight"></Icon>
-                            <div>Low</div>
-                            <div class="side-stats-text-value text-severityLowLight">
-                                {{ stats.number_of_low }}
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <Icon :icon="'ph:circle-fill'" class="text-severityNoneLight"></Icon>
-                            <div>None</div>
-                            <div class="side-stats-text-value text-severityNoneLight">
-                                {{ stats.number_of_none }}
-                            </div>
-                        </div>
-                    </div>
+                
                     <Vulnerabilities :stats="stats" />
-                </div>
+                
             </CardContent>
         </Card>
         <Card class="col-span-1 flex flex-col">

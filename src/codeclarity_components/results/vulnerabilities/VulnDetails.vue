@@ -12,7 +12,6 @@ import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
 import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
 
-import type { TreeNode } from '@/utils/tree/patching/TreeNode';
 import PositionedModal from '../../../base_components/PositionedModal.vue';
 // import { AnalysisRepository } from '@/repositories/AnalysisRepository';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
@@ -56,7 +55,6 @@ const cvss_info: Ref<any> = ref({});
 const cvss_field_info_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const active_view: Ref<string> = ref('patches');
 const readme: Ref<string> = ref('');
-const nodes_array: Ref<Array<TreeNode>> = ref([]);
 const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const chart_version: Ref<string> = ref('');
 
@@ -219,7 +217,6 @@ getFinding(props.projectID, props.analysisID);
             <VulnSummaryContent
                 :finding="finding"
                 :read-me-modal-ref="read_me_modal_ref"
-                :nodes_array="nodes_array"
                 :readme="readme"
                 :active-view="active_view"
             />

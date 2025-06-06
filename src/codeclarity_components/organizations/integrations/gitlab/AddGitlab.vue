@@ -85,6 +85,10 @@ async function submit() {
                 }
             });
             successToast('Successfully added the integration');
+            router.push({
+                name: 'orgs',
+                params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
+            });
         } else if (mode.value == FormMode.UPDATE) {
             await integrationRepo.updateGitlabIntegration({
                 orgId: orgId.value,
@@ -98,8 +102,8 @@ async function submit() {
             });
             successToast('Successfully updated the integration');
             router.push({
-                name: 'orgManage',
-                params: { orgId: orgId.value, page: 'integrations' }
+                name: 'orgs',
+                params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
             });
         }
 

@@ -265,23 +265,8 @@ export class IntegrationsRepository extends BaseRepository {
         return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
     }
 
-    async deleteGithubIntegration(options: DeleteIntegration): Promise<NoDataResponse> {
-        const RELATIVE_URL = `/org/${options.orgId}/integrations/github/${options.integrationId}`;
-
-        const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-            data: {},
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
-    }
-
-    async deleteGitlabIntegration(options: DeleteIntegration): Promise<NoDataResponse> {
-        const RELATIVE_URL = `/org/${options.orgId}/integrations/gitlab/${options.integrationId}`;
+    async deleteIntegration(options: DeleteIntegration): Promise<NoDataResponse> {
+        const RELATIVE_URL = `/org/${options.orgId}/integrations/${options.integrationId}`;
 
         const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
             data: {},

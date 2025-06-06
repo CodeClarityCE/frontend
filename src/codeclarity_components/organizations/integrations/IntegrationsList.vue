@@ -19,6 +19,7 @@ import BoxLoader from '@/base_components/BoxLoader.vue';
 import moment from 'moment';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import CardFooter from '@/shadcn/ui/card/CardFooter.vue';
 
 // Constants
 const EXPIRES_IN_DAYS_RISK = 14;
@@ -79,6 +80,30 @@ async function fetchVcsIntegrations(refresh: boolean = false) {
     }
 }
 
+async function deleteIntegration(integrationId: string) {
+    if (!(authStore.getAuthenticated && authStore.getToken)) return;
+
+    error.value = false;
+    errorCode.value = undefined;
+
+    try {
+        await integrationRepo.deleteIntegration({
+            orgId: props.orgId,
+            bearerToken: authStore.getToken,
+            integrationId: integrationId,
+            handleBusinessErrors: true
+        });
+    } catch (err) {
+        error.value = true;
+        if (err instanceof BusinessLogicError) {
+            errorCode.value = err.error_code;
+        }
+    } finally {
+        loading.value = false;
+    }
+    router.go(0);
+}
+
 function isAtRisk(vcs: VCS) {
     if (vcs.expiry_date)
         return (
@@ -93,12 +118,12 @@ init();
 <template>
     <div class="flex flex-col gap-8">
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
-        <div class="org-integrations-wrapper p-12">
-            <div class="org-integrations-group">
-                <div class="title">Version Control</div>
+        <div class="p-12">
+            <div>
+                <div class="font-semibold text-2xl">Version Control</div>
 
                 <div v-if="loading">
-                    <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
+                    <div class="flex flex-row gap-4 flex-wrap">
                         <BoxLoader
                             v-for="i in 4"
                             :key="i"
@@ -135,102 +160,126 @@ init();
                         </div>
                     </div>
 
-                    <div
-                        v-if="!error"
-                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
-                    >
+                    <div v-if="!error" class="flex flex-row gap-4 flex-wrap">
                         <template v-for="vcs in vcsIntegrations">
-                            <RouterLink
+                            <Card
                                 v-if="vcs.integration_provider == IntegrationProvider.GITLAB"
                                 :key="vcs.id"
-                                class="integration-box-wrapper-item"
-                                :to="{
-                                    name: 'orgs',
-                                    params: { action: 'edit', page: 'integrations', orgId: orgId },
-                                    query: {
-                                        provider: IntegrationProvider.GITLAB,
-                                        integrationId: vcs.id
-                                    }
-                                }"
                             >
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle class="flex gap-2 items-center">
-                                            <Icon icon="devicon:gitlab" class="text-4xl"></Icon>
-                                            Gitlab
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div class="flex flex-col gap-1 items-center">
-                                            <div
-                                                v-if="vcs.invalid == true"
-                                                class="text-[#d50909] font-black"
-                                            >
-                                                Invalid
-                                            </div>
-                                            <div
-                                                v-else-if="isAtRisk(vcs)"
-                                                class="text-[#ebc017] font-black"
-                                            >
-                                                At risk
-                                            </div>
-                                            <div
-                                                v-else-if="vcs.invalid == false"
-                                                class="text-[#1d7e2c] font-black"
-                                            >
-                                                Configured
-                                            </div>
-                                            <div>
-                                                {{ vcs.service_domain }}
-                                            </div>
+                                <CardHeader>
+                                    <CardTitle class="flex gap-2 items-center">
+                                        <Icon icon="devicon:gitlab" class="text-4xl"></Icon>
+                                        Gitlab
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div class="flex flex-col gap-1 items-center">
+                                        <div
+                                            v-if="vcs.invalid == true"
+                                            class="text-[#d50909] font-black"
+                                        >
+                                            Invalid
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            </RouterLink>
-                            <RouterLink
+                                        <div
+                                            v-else-if="isAtRisk(vcs)"
+                                            class="text-[#ebc017] font-black"
+                                        >
+                                            At risk
+                                        </div>
+                                        <div
+                                            v-else-if="vcs.invalid == false"
+                                            class="text-[#1d7e2c] font-black"
+                                        >
+                                            Configured
+                                        </div>
+                                        <div>
+                                            {{ vcs.service_domain }}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                                <CardFooter class="flex gap-2">
+                                    <RouterLink
+                                        :to="{
+                                            name: 'orgs',
+                                            params: {
+                                                action: 'edit',
+                                                page: 'integrations',
+                                                orgId: orgId
+                                            },
+                                            query: {
+                                                provider: IntegrationProvider.GITLAB,
+                                                integrationId: vcs.id
+                                            }
+                                        }"
+                                    >
+                                        <Button>Show</Button>
+                                    </RouterLink>
+                                    <Button
+                                        variant="destructive"
+                                        @click="deleteIntegration(vcs.id)"
+                                    >
+                                        Delete
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                            <Card
                                 v-if="vcs.integration_provider == IntegrationProvider.GITHUB"
                                 :key="vcs.id"
-                                class="integration-box-wrapper-item"
-                                :to="{
-                                    name: 'orgs',
-                                    params: { action: 'edit', page: 'integrations', orgId: orgId },
-                                    query: {
-                                        provider: IntegrationProvider.GITHUB,
-                                        integrationId: vcs.id
-                                    }
-                                }"
                             >
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle class="flex gap-2 items-center">
-                                            <Icon icon="devicon:github" class="text-4xl"></Icon>
-                                            Github
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div class="flex flex-col gap-1 items-center">
-                                            <div
-                                                v-if="vcs.invalid == true"
-                                                class="text-[#d50909] font-black"
-                                            >
-                                                Invalid
-                                            </div>
-                                            <div
-                                                v-else-if="isAtRisk(vcs)"
-                                                class="text-[#ebc017] font-black"
-                                            >
-                                                At risk
-                                            </div>
-                                            <div
-                                                v-else-if="vcs.invalid == false"
-                                                class="text-[#1d7e2c] font-black"
-                                            >
-                                                Configured
-                                            </div>
+                                <CardHeader>
+                                    <CardTitle class="flex gap-2 items-center">
+                                        <Icon icon="devicon:github" class="text-4xl"></Icon>
+                                        Github
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div class="flex flex-col gap-1 items-center">
+                                        <div
+                                            v-if="vcs.invalid == true"
+                                            class="text-[#d50909] font-black"
+                                        >
+                                            Invalid
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            </RouterLink>
+                                        <div
+                                            v-else-if="isAtRisk(vcs)"
+                                            class="text-[#ebc017] font-black"
+                                        >
+                                            At risk
+                                        </div>
+                                        <div
+                                            v-else-if="vcs.invalid == false"
+                                            class="text-[#1d7e2c] font-black"
+                                        >
+                                            Configured
+                                        </div>
+                                    </div>
+                                </CardContent>
+                                <CardFooter class="flex gap-2">
+                                    <RouterLink
+                                        class="integration-box-wrapper-item"
+                                        :to="{
+                                            name: 'orgs',
+                                            params: {
+                                                action: 'edit',
+                                                page: 'integrations',
+                                                orgId: orgId
+                                            },
+                                            query: {
+                                                provider: IntegrationProvider.GITHUB,
+                                                integrationId: vcs.id
+                                            }
+                                        }"
+                                    >
+                                        <Button>Show</Button>
+                                    </RouterLink>
+                                    <Button
+                                        variant="destructive"
+                                        @click="deleteIntegration(vcs.id)"
+                                    >
+                                        Delete
+                                    </Button>
+                                </CardFooter>
+                            </Card>
                         </template>
                         <RouterLink
                             v-if="

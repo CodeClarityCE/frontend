@@ -76,7 +76,7 @@ async function deleteIntegration() {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     try {
-        await integrationRepo.deleteGitlabIntegration({
+        await integrationRepo.deleteIntegration({
             orgId: props.orgId,
             integrationId: integrationId.value,
             bearerToken: authStore.getToken,
@@ -84,7 +84,10 @@ async function deleteIntegration() {
         });
 
         successToast('Succesfully deleted the integration');
-        router.push({ name: 'orgManage', params: { page: 'integrations' } });
+        router.push({
+            name: 'orgs',
+            params: { orgId: props.orgId, page: 'integrations', action: 'manage' }
+        });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
             if (_err.error_code == APIErrors.NotAuthorized) {

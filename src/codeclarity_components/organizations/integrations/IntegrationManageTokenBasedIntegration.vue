@@ -5,7 +5,6 @@ import { Icon } from '@iconify/vue';
 import { ref, type Ref } from 'vue';
 import moment from 'moment';
 import FaqBox from '@/base_components/FaqBox.vue';
-import CenteredModal from '@/base_components/CenteredModal.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import type { RouteLocationRaw } from 'vue-router';
@@ -13,7 +12,7 @@ import SortableTable, { type TableHeader } from '@/base_components/tables/Sortab
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
-import { Card, CardContent } from '@/shadcn/ui/card';
+import { Badge } from '@/shadcn/ui/badge';
 
 // Props
 const props = defineProps<{
@@ -36,30 +35,12 @@ const headers: TableHeader[] = [
 const sortKey: Ref<string> = ref('');
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
-enum ModalAction {
-    DELETE = 'DELETE',
-    NONE = ''
-}
-
 // Constants
 const EXPIRES_IN_DAYS_RISK = 14;
 
 // State
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref('');
-const centeredModalRef: any = ref(null);
-const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
-
-async function performModalAction() {
-    try {
-        if (centeredModalAction.value == ModalAction.DELETE) {
-            emit('delete');
-        }
-    } finally {
-        centeredModalAction.value = ModalAction.NONE;
-        if (centeredModalRef.value) centeredModalRef.value.toggle();
-    }
-}
 
 function isAtRisk() {
     if (props.integration && props.integration.expiry_date)
@@ -80,9 +61,8 @@ const emit = defineEmits<{
         <div class="flex flex-col gap-5 w-fit" style="font-size: 1.5em">
             <div class="flex flex-row gap-2">
                 <Icon
-                    class="icon user-icon"
+                    class="icon user-icon text-5xl w-fit"
                     icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"
                 ></Icon>
                 <div>
                     <div class="flex flex-col gap-5">
@@ -171,10 +151,10 @@ const emit = defineEmits<{
                         </div>
                         <div class="flex flex-row gap-1 items-center">
                             <div>Token type:</div>
-                            <div class="general-bubble general-bubble-slim">
+                            <Badge class="rounded-full gap-1" variant="secondary">
                                 <Icon class="icon" icon="solar:key-minimalistic-bold"></Icon>
                                 <slot name="token-type"></slot>
-                            </div>
+                            </Badge>
                         </div>
                         <div class="flex flex-row gap-1 items-center">
                             <div>Status:</div>
@@ -210,16 +190,10 @@ const emit = defineEmits<{
         <div>
             <h2 class="text-2xl font-semibold mb-2">Actions</h2>
             <div class="flex flex-row gap-5 flex-wrap faq-wrapper">
-                <div title="Delete the integration">
-                    <Card>
-                        <CardContent>Delete integration</CardContent>
-                    </Card>
-                </div>
+                <Button variant="outline" @click="emit('delete')">Delete integration</Button>
 
-                <RouterLink title="Update/Replace the integration token" :to="props.updateRoute">
-                    <Card>
-                        <CardContent>Update/Replace integration token</CardContent>
-                    </Card>
+                <RouterLink :to="props.updateRoute">
+                    <Button variant="outline">Update/Replace integration token</Button>
                 </RouterLink>
                 <slot name="extra-action"></slot>
             </div>
@@ -307,37 +281,6 @@ const emit = defineEmits<{
             </div>
         </div>
     </div>
-    <CenteredModal ref="centeredModalRef">
-        <template #title>
-            <div>
-                <div v-if="centeredModalAction == ModalAction.DELETE">Delete the integration?</div>
-            </div>
-        </template>
-        <template #content>
-            <div class="flex flex-col gap-4" style="max-width: 400px; width: 100vw">
-                <template v-if="centeredModalAction == ModalAction.DELETE">
-                    <div>Are you sure you want to delete the integration?</div>
-                    <Alert variant="destructive">
-                        <AlertDescription>
-                            This might cause currently running analyses to fail. And other side
-                            effects are also expected!
-                        </AlertDescription>
-                    </Alert>
-                    <div>You can always add a new integration.</div>
-                </template>
-            </div>
-        </template>
-        <template #buttons>
-            <Button
-                v-if="centeredModalAction == ModalAction.DELETE"
-                variant="destructive"
-                @click="performModalAction()"
-            >
-                <Icon icon="solar:trash-bin-trash-bold"></Icon>
-            </Button>
-            <Button variant="outline" @click="centeredModalRef.toggle()"> Cancel </Button>
-        </template>
-    </CenteredModal>
 </template>
 
 <style scoped lang="scss">

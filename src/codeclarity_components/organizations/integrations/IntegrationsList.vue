@@ -240,8 +240,13 @@ init();
                             "
                             class="integration-box-wrapper-item"
                             :to="{
-                                name: 'orgAddIntegration',
-                                params: { provider: IntegrationProvider.GITHUB }
+                                name: 'orgs',
+                                params: {
+                                    orgId: orgId,
+                                    page: 'integrations',
+                                    action: 'add',
+                                    provider: IntegrationProvider.GITHUB
+                                }
                             }"
                         >
                             <Card>

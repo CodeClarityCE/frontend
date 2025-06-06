@@ -18,7 +18,7 @@ let config: DoughnutChartOptions = {
 
 config = { ...config, ...props.options };
 
-const colors = props.data.map((slice) => slice.color)
+const colors = props.data.map((slice) => slice.color);
 
 onMounted(() => {
     // The radius of the pieplot is half the width or half the height (smallest one). I subtract a bit of margin.
@@ -32,7 +32,7 @@ onMounted(() => {
 
     // append the svg object to the div called 'my_dataviz'
     const svg = d3
-        .select('.doughnutChart')
+        .select('#' + props.id)
         .append('svg')
         .attr('width', config.w)
         .attr('height', config.h)
@@ -40,10 +40,7 @@ onMounted(() => {
         .attr('transform', 'translate(' + config.w / 2 + ',' + config.h / 2 + ')');
 
     // set the color scale
-    var color = d3
-        .scaleOrdinal()
-        .domain(Object.keys(data))
-        .range(colors);
+    const color = d3.scaleOrdinal().domain(Object.keys(data)).range(colors);
 
     // Compute the position of each group on the pie:
 
@@ -74,13 +71,11 @@ onMounted(() => {
             'fill',
             (d: d3.PieArcDatum<[VulnerabilityLabel, number]>) => color(d.data[0]) as string
         )
-        .attr('stroke', 'black')
-        .style('stroke-width', '2px')
-        .style('opacity', 0.7);
+        .style('opacity', 1);
 });
 </script>
 <template>
     <div>
-        <div :id="id" class="doughnutChart"></div>
+        <div :id="id"></div>
     </div>
 </template>

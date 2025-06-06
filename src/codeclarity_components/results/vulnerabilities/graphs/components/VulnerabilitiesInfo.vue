@@ -5,8 +5,7 @@ import type {
 } from '@/base_components/charts/doughnutChart';
 import DoughnutChart from '@/base_components/charts/DoughnutChart.vue';
 import { ref, type Ref } from 'vue';
-import { Icon } from '@iconify/vue/dist/iconify.js';
-import DoughnutLegend from './DoughnutLegend.vue'
+import DoughnutLegend from './DoughnutLegend.vue';
 
 // Props
 const props = defineProps<{
@@ -19,7 +18,7 @@ const props = defineProps<{
     };
 }>();
 
-const doughnutColors = ['#FF1744', '#FF6D00', '#FFEA00', '#00C853', '#607D8B'];
+const doughnutColors = ['#dadada', '#d7afaf', '#ddcfae', '#d7ddae', '#94c2ca'];
 
 const doughnutChartData: DoughnutChartData = [
     {

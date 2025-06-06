@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
-import { Chart, registerables, type ChartData } from 'chart.js';
-import type { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
-import { Bar, Doughnut, Radar } from 'vue-chartjs';
-import { Icon } from '@iconify/vue/dist/iconify.js';
-import type { RadarChartData, RadarChartOptions } from '@/base_components/charts/radarChart';
-import RadarChart from '@/base_components/charts/RadarChart.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
 import ErrorComponent from '@/base_components/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import type { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Chart, registerables, type ChartData } from 'chart.js';
+import type { Ref } from 'vue';
+import { defineAsyncComponent, ref, watch } from 'vue';
+import { Bar } from 'vue-chartjs';
 
 const SecurityImpact = defineAsyncComponent({
     loader: () => import('./components/SecurityImpact.vue'),
@@ -23,7 +21,7 @@ const SecurityImpact = defineAsyncComponent({
 });
 
 const Vulnerabilities = defineAsyncComponent({
-    loader: () => import('./components/Vulnerabilities.vue'),
+    loader: () => import('./components/VulnerabilitiesInfo.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
@@ -187,9 +185,7 @@ function createOwaspTop10DistChart() {
                 <CardTitle>{{ stats.number_of_vulnerabilities }} Vulnerabilities</CardTitle>
             </CardHeader>
             <CardContent class="flex items-center justify-center flex-grow">
-                
-                    <Vulnerabilities :stats="stats" />
-                
+                <Vulnerabilities :stats="stats" />
             </CardContent>
         </Card>
         <Card class="col-span-1 flex flex-col">

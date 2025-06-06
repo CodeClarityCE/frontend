@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import type { VulnerabilityLabel } from '@/base_components/charts/doughnutChart';
-
+// TODO : make this a common component
 export interface LegendItem {
     label: VulnerabilityLabel;
     color: string;

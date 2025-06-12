@@ -5,7 +5,7 @@ import type {
 } from '@/base_components/charts/doughnutChart';
 import DoughnutChart from '@/base_components/charts/DoughnutChart.vue';
 import { ref, type Ref } from 'vue';
-import DoughnutLegend from './DoughnutLegend.vue';
+import BulletLegend from './BulletLegend.vue';
 
 // Props
 const props = defineProps<{
@@ -53,7 +53,7 @@ const doghnutChartOptions: Ref<Partial<DoughnutChartOptions>> = ref({});
 <template>
     <div class="p-2">
         <div class="flex flex-row justify-center items-center gap-2">
-            <DoughnutLegend :items="doughnutChartData" />
+            <BulletLegend :items="doughnutChartData" />
             <DoughnutChart
                 :id="'vulnDoughnutChart'"
                 :data="doughnutChartData"

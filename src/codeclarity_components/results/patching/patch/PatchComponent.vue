@@ -18,7 +18,6 @@ export interface Props {
 
 withDefaults(defineProps<Props>(), {});
 
-
 // function computeTree() {
 //     if (props.patch && props.patch.patches) {
 //         let paths = [];
@@ -106,8 +105,7 @@ withDefaults(defineProps<Props>(), {});
                             <PatchInformation :patch="patchable" :patch-info="patch" />
                         </div>
                     </TabsContent>
-                    <TabsContent value="tree">
-                    </TabsContent>
+                    <TabsContent value="tree"> </TabsContent>
                 </Tabs>
             </div>
         </CardContent>

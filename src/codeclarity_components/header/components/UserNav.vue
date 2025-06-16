@@ -15,7 +15,7 @@ import {
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
 import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
 import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';

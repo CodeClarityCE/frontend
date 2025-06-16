@@ -14,7 +14,7 @@ import BoxLoader from '@/base_components/BoxLoader.vue';
 import SearchBar from '@/base_components/SearchBar.vue';
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import FilterBox from '@/base_components/UtilitiesFilters.vue';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import Pagination from '@/base_components/PaginationComponent.vue';
 import type { Repository } from '@/codeclarity_components/projects/project.entity';

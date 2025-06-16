@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue';

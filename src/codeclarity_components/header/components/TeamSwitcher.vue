@@ -21,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
 import { CheckIcon } from 'lucide-vue-next';
 
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import { useAuthStore } from '@/stores/auth';
 import { errorToast, successToast } from '@/utils/toasts';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';

@@ -13,7 +13,7 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import ProjectsListHeader from './ProjectsListHeader.vue';
 import { useProjectsMainStore } from '@/stores/StateStore';
 import { debounce } from '@/utils/searchUtils';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';

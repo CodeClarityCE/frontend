@@ -5,7 +5,7 @@ import CollapsibleTrigger from '@/shadcn/ui/collapsible/CollapsibleTrigger.vue';
 import { ref } from 'vue';
 import AnalysisItem from './AnalysisItem.vue';
 import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 
 const isOpen = ref(false);
 

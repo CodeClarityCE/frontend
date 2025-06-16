@@ -32,7 +32,7 @@ import Button from '@/shadcn/ui/button/Button.vue';
 import { toast } from '@/shadcn/ui/toast';
 import router from '@/router';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import { AlertCircle } from 'lucide-vue-next';
 import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';

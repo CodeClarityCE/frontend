@@ -17,7 +17,7 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import type { OrganizationMetaData } from '@/codeclarity_components/organizations/organization.entity';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 import ErrorComponent from '@/base_components/ErrorComponent.vue';

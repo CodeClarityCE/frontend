@@ -5,7 +5,7 @@ import { Button } from '@/shadcn/ui/button';
 import moment from 'moment';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
 import type { ColumnDef } from '@tanstack/vue-table';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 
 export const columns: ColumnDef<Dependency>[] = [
     // {

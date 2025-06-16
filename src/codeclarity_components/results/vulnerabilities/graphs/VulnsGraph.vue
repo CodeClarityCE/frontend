@@ -3,7 +3,7 @@ import ErrorComponent from '@/base_components/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/LoadingComponent.vue';
 import type { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import { Chart, registerables, type ChartData } from 'chart.js';
 import type { Ref } from 'vue';
 import { defineAsyncComponent, ref, watch } from 'vue';

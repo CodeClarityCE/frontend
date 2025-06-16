@@ -3,7 +3,7 @@ import { ref, watch, type Ref } from 'vue';
 import type { FailedProjectImport } from '../BaseImportComponent.vue';
 import Pagination from '@/base_components/PaginationComponent.vue';
 import moment from 'moment';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 

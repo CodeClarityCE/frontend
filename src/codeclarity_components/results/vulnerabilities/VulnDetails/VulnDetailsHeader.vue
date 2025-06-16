@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PositionedModalVue from '@/base_components/PositionedModal.vue';
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
-import { Icon } from '@iconify/vue/dist/iconify.js';
+import { Icon } from '@iconify/vue';
 defineProps<{
     finding: VulnerabilityDetails;
     versionsModalRef: typeof PositionedModalVue;

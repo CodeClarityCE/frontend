@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-import Tree from '../location_subtree/PatchingTree.vue';
-import type { TreeNode } from '@/utils/tree/patching/TreeNode';
 import { Icon } from '@iconify/vue';
 import type { PatchInfo } from '@/codeclarity_components/results/patching/Patching';
 import PatchInformation from './PatchInformation.vue';
@@ -21,7 +18,6 @@ export interface Props {
 
 withDefaults(defineProps<Props>(), {});
 
-const node_array: Ref<TreeNode[]> = ref(new Array<TreeNode>());
 
 // function computeTree() {
 //     if (props.patch && props.patch.patches) {
@@ -111,7 +107,6 @@ const node_array: Ref<TreeNode[]> = ref(new Array<TreeNode>());
                         </div>
                     </TabsContent>
                     <TabsContent value="tree">
-                        <Tree :nodes="node_array" :show-vuln-i-ds="true" />
                     </TabsContent>
                 </Tabs>
             </div>

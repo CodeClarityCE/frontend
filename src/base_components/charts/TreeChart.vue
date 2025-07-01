@@ -201,8 +201,13 @@ onMounted(() => {
             for (const { nodeId, uniqueId } of nodesAtDepth) {
                 if (seenNodes.has(nodeId)) {
                     // We've seen this node before at a shallower depth - mark as pruned
-                    prunedNodes.add(uniqueId);
-                    console.log(`Marking ${uniqueId} as pruned duplicate (${nodeId} at depth ${depth}, first seen at shallower depth)`);
+                    // BUT: Never prune the target dependency - users need to see all instances
+                    if (nodeId !== props.targetDependency) {
+                        prunedNodes.add(uniqueId);
+                        console.log(`Marking ${uniqueId} as pruned duplicate (${nodeId} at depth ${depth}, first seen at shallower depth)`);
+                    } else {
+                        console.log(`Skipping pruning for target dependency ${uniqueId} (${nodeId} at depth ${depth}) - target must remain visible`);
+                    }
                 } else {
                     // First time seeing this node - record it
                     seenNodes.add(nodeId);

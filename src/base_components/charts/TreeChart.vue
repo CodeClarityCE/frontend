@@ -457,7 +457,7 @@ onMounted(() => {
             if (d.data.id === "__VIRTUAL_ROOT__") return "#3b82f6"; // Blue for virtual root
             // Different colors based on depth and node type
             if (d.children) {
-                return d.depth === 1 ? "#059669" : "#374151"; // Green for level 1, dark gray for deeper
+                return "#374151"; // Dark gray for parent nodes
             }
             return "#9ca3af"; // Light gray for leaves
         })
@@ -641,13 +641,13 @@ onMounted(() => {
 
         // Calculate legend height based on whether we have pruned nodes
         const hasPrunedNodes = prunedNodes.size > 0;
-        const legendHeight = hasPrunedNodes ? 110 : 90;
+        const legendHeight = hasPrunedNodes ? 115 : 95;
         
         // Legend background
         legend.append("rect")
             .attr("x", -15)
             .attr("y", -15)
-            .attr("width", 280)
+            .attr("width", 310)
             .attr("height", legendHeight)
             .attr("fill", "rgba(255, 255, 255, 0.95)")
             .attr("stroke", "#e5e7eb")
@@ -728,7 +728,7 @@ onMounted(() => {
             .attr("cx", 10)
             .attr("cy", yOffset)
             .attr("r", 4)
-            .attr("fill", "#059669")
+            .attr("fill", "#374151")
             .attr("stroke", "#ffffff")
             .attr("stroke-width", 2);
 

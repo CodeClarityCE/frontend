@@ -7,10 +7,12 @@ import { onMounted } from 'vue';
  * TreeChart Component Props
  * @param data - Array of GraphDependency objects representing nodes in the tree
  * @param id - Unique identifier for the SVG container element
+ * @param targetDependency - Optional: The dependency to highlight in the tree (can appear multiple times)
  */
 const props = defineProps<{
     data: Array<GraphDependency>;
     id: string;
+    targetDependency?: string;
 }>();
 
 onMounted(() => {
@@ -24,6 +26,7 @@ onMounted(() => {
 
         // Debug: Log the data structure to help identify issues
         console.log('TreeChart data:', props.data);
+        console.log('Target dependency to highlight:', props.targetDependency);
         
         // Find root nodes (nodes without parents) for debugging
         const rootNodes = props.data.filter(d => 
@@ -31,6 +34,12 @@ onMounted(() => {
             !(d as any).parentId
         );
         console.log('Root nodes found:', rootNodes);
+        
+        // Find target dependency instances
+        const targetInstances = props.targetDependency 
+            ? props.data.filter(d => d.id === props.targetDependency)
+            : [];
+        console.log('Target dependency instances found:', targetInstances.length);
         
         // Debug: Show parent-child relationships
         props.data.forEach(node => {
@@ -91,9 +100,7 @@ onMounted(() => {
                 // No parent (root node)
                 return null;
             })
-            (enhancedData);
-
-        // Debug: Log the tree structure
+            (enhancedData);        // Debug: Log the tree structure
         console.log('Enhanced data used for tree:', enhancedData);
         console.log('Tree root:', root);
         console.log('Tree height:', root.height);
@@ -105,11 +112,10 @@ onMounted(() => {
 
         /**
          * Tree layout spacing configuration
-         * dx: Vertical spacing between sibling nodes
-         * dy: Horizontal spacing between parent-child levels
+         * Increased spacing for better readability
          */
-        const dx = 10;
-        const dy = width / (root.height + 1); // Distribute width based on tree depth
+        const dx = 25; // Increased vertical spacing between sibling nodes
+        const dy = 180; // Increased horizontal spacing between parent-child levels
 
     // ===========================================
     // 2. TREE LAYOUT CALCULATION
@@ -150,9 +156,23 @@ onMounted(() => {
 
     /**
      * Calculate total height needed for the SVG
-     * Add padding (dx * 2) to ensure nodes don't touch edges
+     * Add extra padding for better visual appearance
      */
-    const height = x1 - x0 + dx * 2;
+    const height = x1 - x0 + dx * 8; // Increased padding even further
+
+    // Calculate proper margins to prevent clipping
+    const marginTop = dx * 4; // Top margin
+    const marginBottom = dx * 4; // Bottom margin
+    const marginLeft = dy * 0.8; // Left margin for labels
+    const marginRight = dy * 0.2; // Right margin
+    
+    // Reserve extra space for legend if present
+    const legendSpace = props.targetDependency ? 120 : 0; // Extra space for legend
+
+    // Debug: Log layout calculations
+    console.log('Tree extent - x0:', x0, 'x1:', x1);
+    console.log('Calculated height:', height);
+    console.log('Margins - top:', marginTop, 'bottom:', marginBottom, 'left:', marginLeft, 'right:', marginRight);
 
     // ===========================================
     // 4. CREATE SVG CONTAINER
@@ -164,10 +184,45 @@ onMounted(() => {
      */
     const svg = d3.select('#' + props.id)
         .append('svg')
-        .attr("width", width)
-        .attr("height", height)
-        .attr("viewBox", [-dy / 3, x0 - dx, width, height]) // [x, y, width, height]
-        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+        .attr("width", "100%")
+        .attr("height", height + marginTop + marginBottom + legendSpace)
+        .attr("viewBox", [-marginLeft, x0 - marginTop - legendSpace, width + marginLeft + marginRight, height + marginTop + marginBottom + legendSpace])
+        .attr("style", "max-width: 100%; height: auto; font: 12px sans-serif; background: #fafafa; border-radius: 8px; overflow: visible;");
+
+    // Add background grid for better visual structure
+    const defs = svg.append("defs");
+    
+    // Create gradient for links
+    const linkGradient = defs.append("linearGradient")
+        .attr("id", "linkGradient")
+        .attr("gradientUnits", "userSpaceOnUse");
+    
+    linkGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "#64748b")
+        .attr("stop-opacity", 0.6);
+    
+    linkGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "#94a3b8")
+        .attr("stop-opacity", 0.3);
+
+    // Create highlight gradient for target dependencies
+    const highlightGradient = defs.append("radialGradient")
+        .attr("id", "highlightGradient")
+        .attr("cx", "50%")
+        .attr("cy", "50%")
+        .attr("r", "50%");
+    
+    highlightGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "#fbbf24")
+        .attr("stop-opacity", 0.8);
+    
+    highlightGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "#f59e0b")
+        .attr("stop-opacity", 1);
 
     // ===========================================
     // 5. DRAW CONNECTING LINES (LINKS)
@@ -175,24 +230,44 @@ onMounted(() => {
     
     /**
      * Create group for all connection lines between nodes
-     * These lines show the parent-child relationships in the tree
+     * Enhanced styling for better visual hierarchy
      */
     svg.append("g")
-        .attr("fill", "none")           // No fill for lines
-        .attr("stroke", "#555")         // Gray stroke color
-        .attr("stroke-opacity", 0.4)    // Semi-transparent
-        .attr("stroke-width", 1.5)      // Line thickness
-        .selectAll()                    // Select all (initially empty)
-        .data(root.links())             // Bind link data from tree
-        .join("path")                   // Create path elements
+        .attr("fill", "none")
+        .selectAll()
+        .data(root.links())
+        .join("path")
+        .attr("stroke", d => {
+            // Highlight paths to target dependencies
+            if (props.targetDependency && 
+                (d.source.data.id === props.targetDependency || d.target.data.id === props.targetDependency)) {
+                return "#f59e0b"; // Orange for target paths
+            }
+            return "url(#linkGradient)"; // Gradient for normal paths
+        })
+        .attr("stroke-width", d => {
+            // Thicker lines for target dependency paths
+            if (props.targetDependency && 
+                (d.source.data.id === props.targetDependency || d.target.data.id === props.targetDependency)) {
+                return 3;
+            }
+            return 2;
+        })
+        .attr("stroke-opacity", d => {
+            // More opaque for target paths
+            if (props.targetDependency && 
+                (d.source.data.id === props.targetDependency || d.target.data.id === props.targetDependency)) {
+                return 0.8;
+            }
+            return 0.6;
+        })
         /**
          * Generate curved paths connecting parent to child nodes
          * linkHorizontal creates smooth horizontal curves
-         * Note: x/y are swapped because tree extends horizontally, not vertically
          */
         .attr("d", d3.linkHorizontal<any, d3.HierarchyPointNode<GraphDependency>>()
-            .x(d => d.y)  // Horizontal position (tree depth)
-            .y(d => d.x)  // Vertical position (tree breadth)
+            .x(d => d.y)
+            .y(d => d.x)
         );
 
     // ===========================================
@@ -200,62 +275,210 @@ onMounted(() => {
     // ===========================================
     
     /**
-     * Create group for all tree nodes
-     * Each node consists of a circle and text label
+     * Create group for all tree nodes with enhanced styling
      */
     const node = svg.append("g")
-        .attr("stroke-linejoin", "round") // Smooth line joins
-        .attr("stroke-width", 3)          // Text outline thickness
-        .selectAll()                      // Select all (initially empty)
-        .data(root.descendants())         // Bind all nodes in tree
-        .join("g")                        // Create group for each node
-        /**
-         * Position each node group at its calculated coordinates
-         * Note: x/y are swapped for horizontal tree layout
-         */
-        .attr("transform", d => `translate(${d.y},${d.x})`);
+        .selectAll()
+        .data(root.descendants())
+        .join("g")
+        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .style("cursor", "pointer");
+
+    // Add glow effect for target dependencies
+    node.filter((d: any) => props.targetDependency !== undefined && d.data.id === props.targetDependency)
+        .append("circle")
+        .attr("r", 12)
+        .attr("fill", "none")
+        .attr("stroke", "#fbbf24")
+        .attr("stroke-width", 2)
+        .attr("stroke-opacity", 0.6)
+        .attr("filter", "blur(2px)");
 
     /**
-     * Add circular markers for each node
-     * Different colors and sizes indicate different node types
+     * Add circular markers for each node with enhanced styling
      */
     node.append("circle")
         .attr("fill", d => {
+            // Special highlighting for target dependency
+            if (props.targetDependency && d.data.id === props.targetDependency) {
+                return "url(#highlightGradient)"; // Highlighted gradient
+            }
             // Special styling for virtual root
-            if (d.data.id === "__VIRTUAL_ROOT__") return "#2563eb"; // Blue for virtual root
-            // Different colors for leaf vs parent nodes
-            return d.children ? "#555" : "#999"; // Darker for parents, lighter for leaves
+            if (d.data.id === "__VIRTUAL_ROOT__") return "#3b82f6"; // Blue for virtual root
+            // Different colors based on depth and node type
+            if (d.children) {
+                return d.depth === 1 ? "#059669" : "#374151"; // Green for level 1, dark gray for deeper
+            }
+            return "#9ca3af"; // Light gray for leaves
         })
         .attr("r", d => {
-            // Larger circle for virtual root
-            if (d.data.id === "__VIRTUAL_ROOT__") return 4;
-            return 2.5; // Normal size for other nodes
+            // Larger circles for important nodes
+            if (props.targetDependency && d.data.id === props.targetDependency) return 8;
+            if (d.data.id === "__VIRTUAL_ROOT__") return 6;
+            return d.children ? 5 : 4;
         })
-        .attr("stroke", d => d.data.id === "__VIRTUAL_ROOT__" ? "#1d4ed8" : "none")
-        .attr("stroke-width", 2);
+        .attr("stroke", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return "#f59e0b";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "#1d4ed8";
+            return "#ffffff";
+        })
+        .attr("stroke-width", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return 3;
+            return 2;
+        })
+        .attr("filter", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) {
+                return "drop-shadow(0 0 6px rgba(245, 158, 11, 0.6))";
+            }
+            return "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))";
+        });
 
     /**
-     * Add text labels showing the dependency ID
-     * Labels are positioned relative to node type for better readability
+     * Add background rectangles for text labels for better readability
+     */
+    node.append("rect")
+        .attr("x", d => {
+            const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
+            const textWidth = Math.max(text.length * 7, 50);
+            return d.children ? -textWidth - 10 : 15; // Position rect based on text width and alignment
+        })
+        .attr("y", -12)
+        .attr("width", d => {
+            const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
+            return Math.max(text.length * 7, 50); // Slightly larger minimum width
+        })
+        .attr("height", 24)
+        .attr("rx", 4)
+        .attr("fill", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) {
+                return "rgba(251, 191, 36, 0.9)"; // Yellow background for target
+            }
+            if (d.data.id === "__VIRTUAL_ROOT__") return "rgba(59, 130, 246, 0.1)";
+            return "rgba(255, 255, 255, 0.9)";
+        })
+        .attr("stroke", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return "#f59e0b";
+            return "#e5e7eb";
+        })
+        .attr("stroke-width", 1);
+
+    /**
+     * Add text labels with enhanced styling
      */
     node.append("text")
-        .attr("dy", "0.31em")  // Vertical centering adjustment
-        /**
-         * Position text based on node type:
-         * - Parent nodes: label on left (-6px)
-         * - Leaf nodes: label on right (+6px)
-         */
-        .attr("x", d => d.children ? -6 : 6)
-        .attr("text-anchor", d => d.children ? "end" : "start") // Text alignment
-        .text(d => {
-            // Show a friendlier name for virtual root
-            if (d.data.id === "__VIRTUAL_ROOT__") return "ROOT";
-            return d.data.id;
+        .attr("dy", "0.32em")
+        .attr("x", d => {
+            const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
+            const textWidth = Math.max(text.length * 7, 50);
+            return d.children ? -textWidth/2 - 10 : textWidth/2 + 15; // Center text in rect
         })
-        .attr("stroke", "white")     // White outline for better readability
-        .attr("paint-order", "stroke") // Draw outline behind text
-        .attr("font-weight", d => d.data.id === "__VIRTUAL_ROOT__" ? "bold" : "normal")
-        .attr("fill", d => d.data.id === "__VIRTUAL_ROOT__" ? "#1d4ed8" : "black");
+        .attr("text-anchor", "middle") // Always center the text
+        .text(d => {
+            if (d.data.id === "__VIRTUAL_ROOT__") return "ROOT";
+            // Truncate long dependency names for better layout
+            const name = d.data.id;
+            return name.length > 20 ? name.substring(0, 17) + "..." : name;
+        })
+        .attr("font-size", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return "14px";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "13px";
+            return "11px";
+        })
+        .attr("font-weight", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return "bold";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "bold";
+            return d.children ? "600" : "normal";
+        })
+        .attr("fill", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return "#92400e";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "#1e40af";
+            return "#374151";
+        });
+
+    // Add tooltips on hover
+    node.append("title")
+        .text(d => {
+            const isTarget = props.targetDependency && d.data.id === props.targetDependency;
+            const targetText = isTarget ? " [TARGET DEPENDENCY]" : "";
+            return `${d.data.id}${targetText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}`;
+        });
+
+    // ===========================================
+    // 7. ADD LEGEND FOR BETTER UNDERSTANDING
+    // ===========================================
+    
+    if (props.targetDependency) {
+        const legend = svg.append("g")
+            .attr("transform", `translate(${-marginLeft + 20}, ${x0 - marginTop - legendSpace + 20})`); // Position relative to viewBox
+
+        // Legend background
+        legend.append("rect")
+            .attr("x", -15)
+            .attr("y", -15)
+            .attr("width", 220)
+            .attr("height", 90)
+            .attr("fill", "rgba(255, 255, 255, 0.95)")
+            .attr("stroke", "#e5e7eb")
+            .attr("stroke-width", 1)
+            .attr("rx", 6);
+
+        // Legend title
+        legend.append("text")
+            .attr("x", 0)
+            .attr("y", 5)
+            .attr("font-size", "12px")
+            .attr("font-weight", "bold")
+            .attr("fill", "#374151")
+            .text("Legend");
+
+        // Target dependency indicator
+        legend.append("circle")
+            .attr("cx", 10)
+            .attr("cy", 25)
+            .attr("r", 6)
+            .attr("fill", "url(#highlightGradient)")
+            .attr("stroke", "#f59e0b")
+            .attr("stroke-width", 2);
+
+        legend.append("text")
+            .attr("x", 25)
+            .attr("y", 30)
+            .attr("font-size", "11px")
+            .attr("fill", "#374151")
+            .text("Target Dependency");
+
+        // Root indicator
+        legend.append("circle")
+            .attr("cx", 10)
+            .attr("cy", 45)
+            .attr("r", 5)
+            .attr("fill", "#3b82f6")
+            .attr("stroke", "#1d4ed8")
+            .attr("stroke-width", 2);
+
+        legend.append("text")
+            .attr("x", 25)
+            .attr("y", 50)
+            .attr("font-size", "11px")
+            .attr("fill", "#374151")
+            .text("Root Node");
+
+        // Parent/Child indicator
+        legend.append("circle")
+            .attr("cx", 10)
+            .attr("cy", 65)
+            .attr("r", 4)
+            .attr("fill", "#059669")
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 2);
+
+        legend.append("text")
+            .attr("x", 25)
+            .attr("y", 70)
+            .attr("font-size", "11px")
+            .attr("fill", "#374151")
+            .text("Parent/Child Nodes");
+    }
     } catch (error) {
         console.error('Error rendering TreeChart:', error);
         console.error('Data that caused the error:', props.data);
@@ -270,7 +493,78 @@ onMounted(() => {
 });
 </script>
 <template>
-    <div>
-        <div :id="id"></div>
+    <div class="tree-chart-container">
+        <div v-if="targetDependency" class="tree-chart-header">
+            <h3 class="tree-chart-title">
+                Dependency Tree for: <span class="target-name">{{ targetDependency }}</span>
+            </h3>
+            <p class="tree-chart-description">
+                The highlighted nodes show where this dependency appears in the tree structure
+            </p>
+        </div>
+        <div :id="id" class="tree-chart"></div>
     </div>
 </template>
+
+<style scoped>
+.tree-chart-container {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px; /* Increased padding */
+    background: #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    width: 100%;
+    overflow: visible;
+    min-width: 0; /* Allow container to shrink */
+}
+
+.tree-chart-header {
+    margin-bottom: 24px; /* Increased margin */
+    text-align: center;
+}
+
+.tree-chart-title {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.target-name {
+    color: #f59e0b;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background: rgba(251, 191, 36, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.tree-chart-description {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.tree-chart {
+    width: 100%;
+    overflow: visible;
+    min-height: 400px;
+    /* Add horizontal scrolling if needed */
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+/* Add some responsive behavior */
+@media (max-width: 768px) {
+    .tree-chart-container {
+        padding: 16px;
+    }
+    
+    .tree-chart-title {
+        font-size: 16px;
+    }
+    
+    .tree-chart-description {
+        font-size: 13px;
+    }
+}
+</style>

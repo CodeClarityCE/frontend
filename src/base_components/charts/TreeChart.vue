@@ -58,7 +58,7 @@ onMounted(() => {
             const referencingNodes = props.data.filter(node => 
                 node.childrenIds && node.childrenIds.includes(props.targetDependency!)
             );
-            console.log('Nodes that reference target as child:', referencingNodes.map(n => n.id));
+            //            console.log('Nodes that reference target as child:', referencingNodes.map(n => n.id));
         }
         
         // Debug: Show parent-child relationships

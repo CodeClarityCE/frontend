@@ -70,7 +70,7 @@ init();
             </div>
             
             <!-- Debug info - remove this in production -->
-            <!-- {{ hierarchy }} -->
+            {{ hierarchy }}
             
             <div class="tree-chart-wrapper">
                 <TreeChart

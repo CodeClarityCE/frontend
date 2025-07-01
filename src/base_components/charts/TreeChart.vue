@@ -25,21 +25,37 @@ onMounted(() => {
         const width = 928;
 
         // Debug: Log the data structure to help identify issues
-        console.log('TreeChart data:', props.data);
+        console.log('TreeChart data (filtered paths):', props.data);
         console.log('Target dependency to highlight:', props.targetDependency);
+        console.log(`Received ${props.data.length} nodes in filtered dependency paths`);
         
         // Find root nodes (nodes without parents) for debugging
         const rootNodes = props.data.filter(d => 
             (!d.parentIds || d.parentIds.length === 0) && 
             !(d as any).parentId
         );
-        console.log('Root nodes found:', rootNodes);
+        console.log('Root nodes found:', rootNodes.map(n => n.id));
         
         // Find target dependency instances
         const targetInstances = props.targetDependency 
             ? props.data.filter(d => d.id === props.targetDependency)
             : [];
         console.log('Target dependency instances found:', targetInstances.length);
+        console.log('Target dependency instances:', targetInstances);
+        
+        // Debug: Check if target appears in multiple contexts
+        if (props.targetDependency && targetInstances.length > 0) {
+            const allParents = targetInstances.flatMap(instance => instance.parentIds || []);
+            const uniqueParents = [...new Set(allParents)];
+            console.log('Target dependency has parents:', uniqueParents);
+            console.log('Multiple instances will be created for each parent relationship');
+            
+            // Check which nodes reference the target as a child
+            const referencingNodes = props.data.filter(node => 
+                node.childrenIds && node.childrenIds.includes(props.targetDependency!)
+            );
+            console.log('Nodes that reference target as child:', referencingNodes.map(n => n.id));
+        }
         
         // Debug: Show parent-child relationships
         props.data.forEach(node => {
@@ -53,10 +69,8 @@ onMounted(() => {
 
         /**
          * Convert flat array of dependencies into hierarchical tree structure
-         * d3.stratify() creates a tree from tabular data by linking children to parents
-         * We need to handle the new parentIds array structure and ensure single root
-         * 
-         * We'll build the tree using both parentIds and childrenIds to ensure all relationships are captured
+         * Since the same dependency can appear multiple times with different parents,
+         * we need to create unique node instances for each parent-child relationship
          */
         
         // First, create a map of all nodes for quick lookup
@@ -65,51 +79,99 @@ onMounted(() => {
             nodeMap.set(node.id, node);
         });
         
-        // Enhance the data with complete parent-child relationships
-        const enhancedData = props.data.map(node => {
-            const enhanced = { ...node };
+        // Create unique nodes for each parent-child relationship
+        const expandedNodes: Array<GraphDependency & { uniqueId: string }> = [];
+        const processedRelationships = new Set<string>();
+        
+        // Process each node and create instances for each parent relationship
+        for (const node of props.data) {
+            if (!node.parentIds || node.parentIds.length === 0) {
+                // Root node - create single instance
+                expandedNodes.push({
+                    ...node,
+                    uniqueId: node.id,
+                    parentIds: []
+                });
+            } else {
+                // Node with parents - create instance for each parent
+                for (let i = 0; i < node.parentIds.length; i++) {
+                    const parentId = node.parentIds[i];
+                    const relationshipKey = `${parentId}->${node.id}`;
+                    
+                    if (!processedRelationships.has(relationshipKey)) {
+                        const uniqueId = node.parentIds.length > 1 ? `${node.id}_instance_${i}` : node.id;
+                        
+                        expandedNodes.push({
+                            ...node,
+                            uniqueId: uniqueId,
+                            parentIds: [parentId],
+                            childrenIds: node.childrenIds || []
+                        });
+                        
+                        processedRelationships.add(relationshipKey);
+                    }
+                }
+            }
+        }
+        
+        console.log('Expanded nodes for tree (with unique instances):', expandedNodes.length);
+        console.log('Sample expanded nodes:', expandedNodes.slice(0, 5).map(n => ({ 
+            id: n.id, 
+            uniqueId: n.uniqueId, 
+            parents: n.parentIds?.length || 0 
+        })));
+        
+        // Update child references to point to the correct unique instances
+        const updatedNodes = expandedNodes.map(node => {
+            const updatedNode = { ...node };
             
-            // Ensure we have all children listed based on what nodes point to this as parent
-            const childrenFromParentRefs = props.data
-                .filter(d => d.parentIds && d.parentIds.includes(node.id))
-                .map(d => d.id);
+            if (node.childrenIds && node.childrenIds.length > 0) {
+                const updatedChildren: string[] = [];
+                
+                for (const childId of node.childrenIds) {
+                    // Find all instances of this child that have this node as parent
+                    const childInstances = expandedNodes.filter(expanded => 
+                        expanded.id === childId && 
+                        expanded.parentIds && 
+                        expanded.parentIds.includes(node.id)
+                    );
+                    
+                    if (childInstances.length > 0) {
+                        updatedChildren.push(...childInstances.map(ci => ci.uniqueId));
+                    } else {
+                        // Fallback - use original child ID
+                        updatedChildren.push(childId);
+                    }
+                }
+                
+                updatedNode.childrenIds = updatedChildren;
+            }
             
-            // Combine children from childrenIds and those found via parent references
-            const allChildren = new Set([
-                ...(enhanced.childrenIds || []),
-                ...childrenFromParentRefs
-            ]);
-            
-            enhanced.childrenIds = Array.from(allChildren);
-            
-            return enhanced;
+            return updatedNode;
         });
         
-        const root = d3.stratify<GraphDependency>()
-            .id((d: GraphDependency) => d.id)           // Unique identifier for each node
-            .parentId((d: GraphDependency) => {
-                // Handle the new parentIds array structure
+        const root = d3.stratify<GraphDependency & { uniqueId: string }>()
+            .id((d) => d.uniqueId)           // Use unique identifier for each instance
+            .parentId((d) => {
                 if (d.parentIds && d.parentIds.length > 0) {
-                    // Use the first parent for tree structure (d3.stratify requires single parent)
-                    return d.parentIds[0];
+                    // Find the parent's unique ID
+                    const parentId = d.parentIds[0];
+                    const parentNode = updatedNodes.find(n => n.id === parentId);
+                    return parentNode ? parentNode.uniqueId : parentId;
                 }
-                // Handle legacy parentId for backward compatibility
-                if ((d as any).parentId) {
-                    return (d as any).parentId;
-                }
-                // No parent (root node)
                 return null;
             })
-            (enhancedData);
+            (updatedNodes);
 
         // Debug: Log the tree structure
-        console.log('Enhanced data used for tree:', enhancedData);
+        console.log('Updated nodes used for tree:', updatedNodes.length);
         console.log('Tree root:', root);
         console.log('Tree height:', root.height);
         console.log('Tree descendants:', root.descendants().map(d => ({ 
-            id: d.data.id, 
+            id: d.data.id,
+            uniqueId: d.data.uniqueId,
             depth: d.depth, 
-            children: d.children?.map(c => c.data.id) || []
+            children: d.children?.map(c => c.data.uniqueId) || []
         })));
 
         /**
@@ -127,7 +189,7 @@ onMounted(() => {
      * Create D3 tree layout generator with specified node spacing
      * This calculates x,y coordinates for all nodes in the tree
      */
-    const tree = d3.tree<GraphDependency>().nodeSize([dx, dy]);
+    const tree = d3.tree<GraphDependency & { uniqueId: string }>().nodeSize([dx, dy]);
     
     // Optional: Sort nodes alphabetically (currently commented out)
     // root.sort((a, b) => d3.ascending(a.data.name, b.data.name));
@@ -240,7 +302,7 @@ onMounted(() => {
         .data(root.links())
         .join("path")
         .attr("stroke", d => {
-            // Highlight paths to target dependencies
+            // Highlight paths to target dependencies (all instances)
             if (props.targetDependency && 
                 (d.source.data.id === props.targetDependency || d.target.data.id === props.targetDependency)) {
                 return "#f59e0b"; // Orange for target paths
@@ -248,7 +310,7 @@ onMounted(() => {
             return "url(#linkGradient)"; // Gradient for normal paths
         })
         .attr("stroke-width", d => {
-            // Thicker lines for target dependency paths
+            // Thicker lines for target dependency paths (all instances)
             if (props.targetDependency && 
                 (d.source.data.id === props.targetDependency || d.target.data.id === props.targetDependency)) {
                 return 3;
@@ -256,7 +318,7 @@ onMounted(() => {
             return 2;
         })
         .attr("stroke-opacity", d => {
-            // More opaque for target paths
+            // More opaque for target paths (all instances)
             if (props.targetDependency && 
                 (d.source.data.id === props.targetDependency || d.target.data.id === props.targetDependency)) {
                 return 0.8;
@@ -267,7 +329,7 @@ onMounted(() => {
          * Generate curved paths connecting parent to child nodes
          * linkHorizontal creates smooth horizontal curves
          */
-        .attr("d", d3.linkHorizontal<any, d3.HierarchyPointNode<GraphDependency>>()
+        .attr("d", d3.linkHorizontal<any, d3.HierarchyPointNode<GraphDependency & { uniqueId: string }>>()
             .x(d => d.y)
             .y(d => d.x)
         );
@@ -286,7 +348,7 @@ onMounted(() => {
         .attr("transform", d => `translate(${d.y},${d.x})`)
         .style("cursor", "pointer");
 
-    // Add glow effect for target dependencies
+    // Add glow effect for target dependencies (all instances)
     node.filter((d: any) => props.targetDependency !== undefined && d.data.id === props.targetDependency)
         .append("circle")
         .attr("r", 12)
@@ -301,7 +363,7 @@ onMounted(() => {
      */
     node.append("circle")
         .attr("fill", d => {
-            // Special highlighting for target dependency
+            // Special highlighting for target dependency (all instances)
             if (props.targetDependency && d.data.id === props.targetDependency) {
                 return "url(#highlightGradient)"; // Highlighted gradient
             }
@@ -361,7 +423,7 @@ onMounted(() => {
         .attr("rx", 6)
         .attr("fill", d => {
             if (props.targetDependency && d.data.id === props.targetDependency) {
-                return "rgba(251, 191, 36, 0.95)"; // Yellow background for target
+                return "rgba(251, 191, 36, 0.95)"; // Yellow background for target (all instances)
             }
             if (d.data.id === "__VIRTUAL_ROOT__") return "rgba(59, 130, 246, 0.15)";
             return "rgba(255, 255, 255, 0.95)";
@@ -421,7 +483,8 @@ onMounted(() => {
         .text(d => {
             const isTarget = props.targetDependency && d.data.id === props.targetDependency;
             const targetText = isTarget ? " [TARGET DEPENDENCY]" : "";
-            return `${d.data.id}${targetText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}`;
+            const instanceText = d.data.uniqueId !== d.data.id ? ` (Instance: ${d.data.uniqueId})` : "";
+            return `${d.data.id}${targetText}${instanceText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}`;
         });
 
     // ===========================================
@@ -520,7 +583,7 @@ onMounted(() => {
                 Dependency Tree for: <span class="target-name">{{ targetDependency }}</span>
             </h3>
             <p class="tree-chart-description">
-                The highlighted nodes show where this dependency appears in the tree structure
+                Shows all paths that lead to this dependency, with multiple instances for different parent relationships
             </p>
         </div>
         <div :id="id" class="tree-chart"></div>

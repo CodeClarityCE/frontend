@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
-import { ref, type PropType, type Ref } from 'vue';
+import { ref, type PropType, type Ref, onMounted } from 'vue';
 
 // Import stores
 import { useUserStore } from '@/stores/user';
@@ -56,7 +56,9 @@ async function init() {
     }
 }
 
-init();
+onMounted(() => {
+    init();
+});
 </script>
 
 <template>
@@ -118,11 +120,9 @@ init();
     overflow-x: auto;
     overflow-y: visible;
 }
-
-/* Adjust the SVG container to prevent clipping */
 .tree-chart-wrapper :deep(.tree-chart) {
     width: 100%;
-    min-width: 1400px; /* Increased minimum width for better spacing */
+    min-width: 100%;
     overflow-x: auto;
     overflow-y: visible;
 }
@@ -130,8 +130,16 @@ init();
 /* Make sure the SVG itself doesn't get clipped */
 .tree-chart-wrapper :deep(svg) {
     width: 100%;
-    min-width: 1400px; /* Increased minimum width */
+    min-width: 100%;
     height: auto;
     overflow: visible;
+}
+
+/* Responsive adjustment for smaller screens */
+@media (max-width: 1400px) {
+    .tree-chart-wrapper :deep(.tree-chart),
+    .tree-chart-wrapper :deep(svg) {
+        min-width: 100vw;
+    }
 }
 </style>

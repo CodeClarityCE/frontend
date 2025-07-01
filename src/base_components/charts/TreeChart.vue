@@ -28,49 +28,6 @@ onMounted(() => {
         /** Fixed width for the chart canvas */
         const width = 928;
 
-        // Debug: Log the data structure to help identify issues
-        console.log('TreeChart data (filtered paths):', props.data);
-        console.log('Target dependency to highlight:', props.targetDependency);
-        console.log(`Received ${props.data.length} nodes in filtered dependency paths`);
-        
-        // Find root nodes (nodes without parents) for debugging
-        const rootNodes = props.data.filter(d => 
-            (!d.parentIds || d.parentIds.length === 0) && 
-            !(d as any).parentId
-        );
-        console.log('Root nodes found:', rootNodes.map(n => n.id));
-        
-        // Find target dependency instances
-        const targetInstances = props.targetDependency 
-            ? props.data.filter(d => d.id === props.targetDependency)
-            : [];
-        console.log('Target dependency instances found:', targetInstances.length);
-        console.log('Target dependency instances:', targetInstances);
-        
-        // Debug: Check if target appears in multiple contexts
-        if (props.targetDependency && targetInstances.length > 0) {
-            const allParents = targetInstances.flatMap(instance => instance.parentIds || []);
-            const uniqueParents = [...new Set(allParents)];
-            console.log('Target dependency has parents:', uniqueParents);
-            console.log('Multiple instances will be created for each parent relationship');
-            
-            // Check which nodes reference the target as a child
-            const referencingNodes = props.data.filter(node => 
-                node.childrenIds && node.childrenIds.includes(props.targetDependency!)
-            );
-            //            console.log('Nodes that reference target as child:', referencingNodes.map(n => n.id));
-        }
-        
-        // Debug: Show parent-child relationships
-        props.data.forEach(node => {
-            if (node.childrenIds && node.childrenIds.length > 0) {
-                console.log(`Node ${node.id} has children:`, node.childrenIds);
-            }
-            if (node.parentIds && node.parentIds.length > 0) {
-                console.log(`Node ${node.id} has parents:`, node.parentIds);
-            }
-        });
-
         /**
          * Convert flat array of dependencies into hierarchical tree structure
          * Since the same dependency can appear multiple times with different parents,

@@ -69,9 +69,6 @@ init();
                 <span class="text-gray-600 text-sm">Dependencies with a gray background are dev dependencies</span>
             </div>
             
-            <!-- Debug info - remove this in production -->
-            {{ hierarchy }}
-            
             <div class="tree-chart-wrapper">
                 <TreeChart
                     v-if="hierarchy.length > 0"

@@ -149,12 +149,12 @@ onMounted(() => {
             
             return updatedNode;
         });
-        
-        const root = d3.stratify<GraphDependency & { uniqueId: string }>()
-            .id((d) => d.uniqueId)           // Use unique identifier for each instance
+
+        // Create the initial tree structure to determine which nodes should be pruned
+        const tempRoot = d3.stratify<GraphDependency & { uniqueId: string }>()
+            .id((d) => d.uniqueId)
             .parentId((d) => {
                 if (d.parentIds && d.parentIds.length > 0) {
-                    // Find the parent's unique ID
                     const parentId = d.parentIds[0];
                     const parentNode = updatedNodes.find(n => n.id === parentId);
                     return parentNode ? parentNode.uniqueId : parentId;
@@ -162,6 +162,60 @@ onMounted(() => {
                 return null;
             })
             (updatedNodes);
+
+        // Mark nodes that are pruned duplicates
+        // Strategy: For nodes that appear multiple times, mark those that appear at greater depth
+        // when the same node already appears at a shallower depth (closer to root)
+        const prunedNodes = new Set<string>();
+        const nodesByDepth = new Map<number, Array<{ nodeId: string, uniqueId: string }>>(); 
+        const seenNodes = new Set<string>(); // Track which nodeIds we've already seen
+        
+        // First, collect all nodes organized by depth using breadth-first traversal
+        const queue = [tempRoot];
+        while (queue.length > 0) {
+            const currentNode = queue.shift()!;
+            const nodeId = currentNode.data.id;
+            const uniqueId = currentNode.data.uniqueId;
+            const depth = currentNode.depth;
+            
+            // Group nodes by depth
+            if (!nodesByDepth.has(depth)) {
+                nodesByDepth.set(depth, []);
+            }
+            nodesByDepth.get(depth)!.push({ nodeId, uniqueId });
+            
+            // Add children to queue for continued breadth-first traversal
+            if (currentNode.children) {
+                queue.push(...currentNode.children);
+            }
+        }
+        
+        // Process nodes level by level, marking duplicates at deeper levels as pruned
+        const sortedDepths = Array.from(nodesByDepth.keys()).sort((a, b) => a - b);
+        console.log('Processing nodes by depth levels:', sortedDepths);
+        
+        for (const depth of sortedDepths) {
+            const nodesAtDepth = nodesByDepth.get(depth)!;
+            console.log(`Processing depth ${depth} with ${nodesAtDepth.length} nodes`);
+            
+            for (const { nodeId, uniqueId } of nodesAtDepth) {
+                if (seenNodes.has(nodeId)) {
+                    // We've seen this node before at a shallower depth - mark as pruned
+                    prunedNodes.add(uniqueId);
+                    console.log(`Marking ${uniqueId} as pruned duplicate (${nodeId} at depth ${depth}, first seen at shallower depth)`);
+                } else {
+                    // First time seeing this node - record it
+                    seenNodes.add(nodeId);
+                    console.log(`First occurrence of ${nodeId} at depth ${depth} (uniqueId: ${uniqueId})`);
+                }
+            }
+        }
+        
+        console.log('Nodes seen at each depth:', Array.from(nodesByDepth.entries()));
+        console.log(`Found ${prunedNodes.size} pruned duplicate nodes:`, Array.from(prunedNodes));
+        
+        // Use the already created tree structure
+        const root = tempRoot;
 
         // Debug: Log the tree structure
         console.log('Updated nodes used for tree:', updatedNodes.length);
@@ -231,7 +285,8 @@ onMounted(() => {
     const marginRight = dy * 0.4; // Right margin
     
     // Reserve extra space for legend if present
-    const legendSpace = props.targetDependency ? 120 : 0; // Extra space for legend
+    const hasPrunedNodes = prunedNodes.size > 0;
+    const legendSpace = props.targetDependency ? (hasPrunedNodes ? 140 : 120) : 0; // Dynamic legend space
 
     // Debug: Log layout calculations
     console.log('Tree extent - x0:', x0, 'x1:', x1);
@@ -286,6 +341,23 @@ onMounted(() => {
     highlightGradient.append("stop")
         .attr("offset", "100%")
         .attr("stop-color", "#f59e0b")
+        .attr("stop-opacity", 1);
+
+    // Create muted gradient for pruned target dependencies
+    const prunedTargetGradient = defs.append("radialGradient")
+        .attr("id", "prunedTargetGradient")
+        .attr("cx", "50%")
+        .attr("cy", "50%")
+        .attr("r", "50%");
+    
+    prunedTargetGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "#cbd5e1")
+        .attr("stop-opacity", 0.8);
+    
+    prunedTargetGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "#94a3b8")
         .attr("stop-opacity", 1);
 
     // ===========================================
@@ -363,10 +435,19 @@ onMounted(() => {
      */
     node.append("circle")
         .attr("fill", d => {
+            // Check if this is a pruned duplicate node
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            
             // Special highlighting for target dependency (all instances)
             if (props.targetDependency && d.data.id === props.targetDependency) {
-                return "url(#highlightGradient)"; // Highlighted gradient
+                return isPruned ? "url(#prunedTargetGradient)" : "url(#highlightGradient)";
             }
+            
+            // Special styling for pruned duplicates
+            if (isPruned) {
+                return "#94a3b8"; // Muted gray for pruned nodes
+            }
+            
             // Special styling for virtual root
             if (d.data.id === "__VIRTUAL_ROOT__") return "#3b82f6"; // Blue for virtual root
             // Different colors based on depth and node type
@@ -376,22 +457,46 @@ onMounted(() => {
             return "#9ca3af"; // Light gray for leaves
         })
         .attr("r", d => {
+            // Smaller circles for pruned duplicates
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            if (isPruned) return 3;
+            
             // Larger circles for important nodes
             if (props.targetDependency && d.data.id === props.targetDependency) return 8;
             if (d.data.id === "__VIRTUAL_ROOT__") return 6;
             return d.children ? 5 : 4;
         })
         .attr("stroke", d => {
-            if (props.targetDependency && d.data.id === props.targetDependency) return "#f59e0b";
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            
+            if (props.targetDependency && d.data.id === props.targetDependency) {
+                return isPruned ? "#64748b" : "#f59e0b";
+            }
+            if (isPruned) return "#64748b";
             if (d.data.id === "__VIRTUAL_ROOT__") return "#1d4ed8";
             return "#ffffff";
         })
         .attr("stroke-width", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            if (isPruned) return 1; // Thinner stroke for pruned nodes
+            
             if (props.targetDependency && d.data.id === props.targetDependency) return 3;
             return 2;
         })
+        .attr("stroke-dasharray", d => {
+            // Add dashed border for pruned duplicates
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            return isPruned ? "3,3" : "none";
+        })
+        .attr("opacity", d => {
+            // Reduced opacity for pruned duplicates
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            return isPruned ? 0.6 : 1;
+        })
         .attr("filter", d => {
-            if (props.targetDependency && d.data.id === props.targetDependency) {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            
+            if (props.targetDependency && d.data.id === props.targetDependency && !isPruned) {
                 return "drop-shadow(0 0 6px rgba(245, 158, 11, 0.6))";
             }
             return "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))";
@@ -422,20 +527,39 @@ onMounted(() => {
         .attr("height", 28)
         .attr("rx", 6)
         .attr("fill", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            
             if (props.targetDependency && d.data.id === props.targetDependency) {
-                return "rgba(251, 191, 36, 0.95)"; // Yellow background for target (all instances)
+                return isPruned ? "rgba(203, 213, 225, 0.95)" : "rgba(251, 191, 36, 0.95)";
             }
+            if (isPruned) return "rgba(248, 250, 252, 0.7)"; // More muted background for pruned
             if (d.data.id === "__VIRTUAL_ROOT__") return "rgba(59, 130, 246, 0.15)";
             return "rgba(255, 255, 255, 0.95)";
         })
         .attr("stroke", d => {
-            if (props.targetDependency && d.data.id === props.targetDependency) return "#f59e0b";
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            
+            if (props.targetDependency && d.data.id === props.targetDependency) {
+                return isPruned ? "#94a3b8" : "#f59e0b";
+            }
+            if (isPruned) return "#cbd5e1";
             if (d.data.id === "__VIRTUAL_ROOT__") return "#3b82f6";
             return "#e5e7eb";
         })
         .attr("stroke-width", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            if (isPruned) return 1;
             if (props.targetDependency && d.data.id === props.targetDependency) return 2;
             return 1;
+        })
+        .attr("stroke-dasharray", d => {
+            // Add dashed border for pruned duplicates  
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            return isPruned ? "2,2" : "none";
+        })
+        .attr("opacity", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            return isPruned ? 0.7 : 1;
         });
 
     /**
@@ -460,31 +584,46 @@ onMounted(() => {
             if (d.data.id === "__VIRTUAL_ROOT__") return "ROOT";
             // Truncate long dependency names for better layout
             const name = d.data.id;
-            return name.length > 25 ? name.substring(0, 22) + "..." : name;
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            const displayName = name.length > 25 ? name.substring(0, 22) + "..." : name;
+            // Add indicator for pruned nodes
+            return isPruned ? `${displayName} (⋯)` : displayName;
         })
         .attr("font-size", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            if (isPruned) return "9px"; // Smaller font for pruned nodes
             if (props.targetDependency && d.data.id === props.targetDependency) return "13px";
             if (d.data.id === "__VIRTUAL_ROOT__") return "12px";
             return "10px";
         })
         .attr("font-weight", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            if (isPruned) return "normal"; // Normal weight for pruned nodes
             if (props.targetDependency && d.data.id === props.targetDependency) return "bold";
             if (d.data.id === "__VIRTUAL_ROOT__") return "bold";
             return d.children ? "600" : "normal";
         })
         .attr("fill", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            if (isPruned) return "#64748b"; // Muted text color for pruned nodes
             if (props.targetDependency && d.data.id === props.targetDependency) return "#92400e";
             if (d.data.id === "__VIRTUAL_ROOT__") return "#1e40af";
             return "#374151";
+        })
+        .attr("opacity", d => {
+            const isPruned = prunedNodes.has(d.data.uniqueId);
+            return isPruned ? 0.8 : 1;
         });
 
     // Add tooltips on hover
     node.append("title")
         .text(d => {
             const isTarget = props.targetDependency && d.data.id === props.targetDependency;
+            const isPruned = prunedNodes.has(d.data.uniqueId);
             const targetText = isTarget ? " [TARGET DEPENDENCY]" : "";
             const instanceText = d.data.uniqueId !== d.data.id ? ` (Instance: ${d.data.uniqueId})` : "";
-            return `${d.data.id}${targetText}${instanceText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}`;
+            const prunedText = isPruned ? "\n[PRUNED] - Children shown elsewhere in tree" : "";
+            return `${d.data.id}${targetText}${instanceText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}${prunedText}`;
         });
 
     // ===========================================
@@ -495,12 +634,16 @@ onMounted(() => {
         const legend = svg.append("g")
             .attr("transform", `translate(${-marginLeft + 20}, ${x0 - marginTop - legendSpace + 20})`); // Position relative to viewBox
 
+        // Calculate legend height based on whether we have pruned nodes
+        const hasPrunedNodes = prunedNodes.size > 0;
+        const legendHeight = hasPrunedNodes ? 110 : 90;
+        
         // Legend background
         legend.append("rect")
             .attr("x", -15)
             .attr("y", -15)
-            .attr("width", 220)
-            .attr("height", 90)
+            .attr("width", 280)
+            .attr("height", legendHeight)
             .attr("fill", "rgba(255, 255, 255, 0.95)")
             .attr("stroke", "#e5e7eb")
             .attr("stroke-width", 1)
@@ -515,10 +658,12 @@ onMounted(() => {
             .attr("fill", "#374151")
             .text("Legend");
 
+        let yOffset = 25;
+
         // Target dependency indicator
         legend.append("circle")
             .attr("cx", 10)
-            .attr("cy", 25)
+            .attr("cy", yOffset)
             .attr("r", 6)
             .attr("fill", "url(#highlightGradient)")
             .attr("stroke", "#f59e0b")
@@ -526,15 +671,39 @@ onMounted(() => {
 
         legend.append("text")
             .attr("x", 25)
-            .attr("y", 30)
+            .attr("y", yOffset + 5)
             .attr("font-size", "11px")
             .attr("fill", "#374151")
             .text("Target Dependency");
 
+        yOffset += 20;
+
+        // Pruned duplicate indicator (only if there are pruned nodes)
+        if (hasPrunedNodes) {
+            legend.append("circle")
+                .attr("cx", 10)
+                .attr("cy", yOffset)
+                .attr("r", 3)
+                .attr("fill", "#94a3b8")
+                .attr("stroke", "#64748b")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "3,3")
+                .attr("opacity", 0.6);
+
+            legend.append("text")
+                .attr("x", 25)
+                .attr("y", yOffset + 5)
+                .attr("font-size", "11px")
+                .attr("fill", "#374151")
+                .text("Pruned Duplicate (⋯) - Children shown elsewhere");
+
+            yOffset += 20;
+        }
+
         // Root indicator
         legend.append("circle")
             .attr("cx", 10)
-            .attr("cy", 45)
+            .attr("cy", yOffset)
             .attr("r", 5)
             .attr("fill", "#3b82f6")
             .attr("stroke", "#1d4ed8")
@@ -542,15 +711,17 @@ onMounted(() => {
 
         legend.append("text")
             .attr("x", 25)
-            .attr("y", 50)
+            .attr("y", yOffset + 5)
             .attr("font-size", "11px")
             .attr("fill", "#374151")
             .text("Root Node");
 
+        yOffset += 20;
+
         // Parent/Child indicator
         legend.append("circle")
             .attr("cx", 10)
-            .attr("cy", 65)
+            .attr("cy", yOffset)
             .attr("r", 4)
             .attr("fill", "#059669")
             .attr("stroke", "#ffffff")
@@ -558,7 +729,7 @@ onMounted(() => {
 
         legend.append("text")
             .attr("x", 25)
-            .attr("y", 70)
+            .attr("y", yOffset + 5)
             .attr("font-size", "11px")
             .attr("fill", "#374151")
             .text("Parent/Child Nodes");

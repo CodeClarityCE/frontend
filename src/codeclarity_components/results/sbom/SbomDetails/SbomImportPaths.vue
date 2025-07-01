@@ -46,11 +46,10 @@ async function init() {
             projectId: props.projectID,
             analysisId: props.analysisID,
             workspace: '.',
-            dependency: props.dependency.name+"@"+props.dependency.version,
+            dependency: props.dependency.name + '@' + props.dependency.version,
             bearerToken: authStore.getToken
         });
-        hierarchy.value = res.data
-
+        hierarchy.value = res.data;
     } catch {
         console.error('error');
     }
@@ -68,7 +67,9 @@ onMounted(() => {
                 <h2 class="font-black text-2xl mb-2">
                     <span class="text-primary text-3xl">I</span>mport Paths
                 </h2>
-                <span class="text-gray-600 text-sm">Dependencies with a gray background are dev dependencies</span>
+                <span class="text-gray-600 text-sm"
+                    >Dependencies with a gray background are dev dependencies</span
+                >
             </div>
 
             <div class="tree-chart-wrapper">

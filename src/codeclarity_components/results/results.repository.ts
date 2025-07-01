@@ -168,9 +168,10 @@ export class ResultsRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        
-
-        return Entity.unMarshal<DataResponse<Array<GraphDependency>>>(response, DataResponse<Array<GraphDependency>>);
+        return Entity.unMarshal<DataResponse<Array<GraphDependency>>>(
+            response,
+            DataResponse<Array<GraphDependency>>
+        );
     }
 
     async getLicenses(options: GetSbomRequestOptions): Promise<PaginatedResponse<License>> {

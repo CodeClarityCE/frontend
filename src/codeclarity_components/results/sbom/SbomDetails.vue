@@ -109,7 +109,12 @@ getDependency(props.projectID, props.analysisID);
             <div class="flex flex-row flex-wrap gap-y-10">
                 <SbomInformation class="w-1/2" :dependency="dependency"></SbomInformation>
                 <SbomDependencyHealth class="w-1/2" :dependency="dependency"></SbomDependencyHealth>
-                <SbomImportPaths class="w-1/2" :dependency="dependency" :analysis-i-d="analysisID" :project-i-d="projectID"></SbomImportPaths>
+                <SbomImportPaths
+                    class="w-1/2"
+                    :dependency="dependency"
+                    :analysis-i-d="analysisID"
+                    :project-i-d="projectID"
+                ></SbomImportPaths>
             </div>
         </div>
 

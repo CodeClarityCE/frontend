@@ -125,7 +125,7 @@ init();
 /* Adjust the SVG container to prevent clipping */
 .tree-chart-wrapper :deep(.tree-chart) {
     width: 100%;
-    min-width: 1200px; /* Increased minimum width for proper display */
+    min-width: 1400px; /* Increased minimum width for better spacing */
     overflow-x: auto;
     overflow-y: visible;
 }
@@ -133,7 +133,7 @@ init();
 /* Make sure the SVG itself doesn't get clipped */
 .tree-chart-wrapper :deep(svg) {
     width: 100%;
-    min-width: 1200px; /* Increased minimum width */
+    min-width: 1400px; /* Increased minimum width */
     height: auto;
     overflow: visible;
 }

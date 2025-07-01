@@ -100,7 +100,9 @@ onMounted(() => {
                 // No parent (root node)
                 return null;
             })
-            (enhancedData);        // Debug: Log the tree structure
+            (enhancedData);
+
+        // Debug: Log the tree structure
         console.log('Enhanced data used for tree:', enhancedData);
         console.log('Tree root:', root);
         console.log('Tree height:', root.height);
@@ -114,8 +116,8 @@ onMounted(() => {
          * Tree layout spacing configuration
          * Increased spacing for better readability
          */
-        const dx = 25; // Increased vertical spacing between sibling nodes
-        const dy = 180; // Increased horizontal spacing between parent-child levels
+        const dx = 40; // Increased vertical spacing between sibling nodes
+        const dy = 250; // Increased horizontal spacing between parent-child levels
 
     // ===========================================
     // 2. TREE LAYOUT CALCULATION
@@ -161,10 +163,10 @@ onMounted(() => {
     const height = x1 - x0 + dx * 8; // Increased padding even further
 
     // Calculate proper margins to prevent clipping
-    const marginTop = dx * 4; // Top margin
-    const marginBottom = dx * 4; // Bottom margin
-    const marginLeft = dy * 0.8; // Left margin for labels
-    const marginRight = dy * 0.2; // Right margin
+    const marginTop = dx * 3; // Top margin
+    const marginBottom = dx * 3; // Bottom margin
+    const marginLeft = dy * 0.6; // Left margin for labels
+    const marginRight = dy * 0.4; // Right margin
     
     // Reserve extra space for legend if present
     const legendSpace = props.targetDependency ? 120 : 0; // Extra space for legend
@@ -339,28 +341,40 @@ onMounted(() => {
     node.append("rect")
         .attr("x", d => {
             const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
-            const textWidth = Math.max(text.length * 7, 50);
-            return d.children ? -textWidth - 10 : 15; // Position rect based on text width and alignment
+            const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
+            const textWidth = Math.max(displayText.length * 8 + 16, 60); // More generous width calculation
+            
+            // Position rect based on whether node has children (left vs right side)
+            if (d.children) {
+                return -textWidth - 20; // Left side for parent nodes
+            } else {
+                return 20; // Right side for leaf nodes
+            }
         })
-        .attr("y", -12)
+        .attr("y", -14)
         .attr("width", d => {
             const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
-            return Math.max(text.length * 7, 50); // Slightly larger minimum width
+            const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
+            return Math.max(displayText.length * 8 + 16, 60);
         })
-        .attr("height", 24)
-        .attr("rx", 4)
+        .attr("height", 28)
+        .attr("rx", 6)
         .attr("fill", d => {
             if (props.targetDependency && d.data.id === props.targetDependency) {
-                return "rgba(251, 191, 36, 0.9)"; // Yellow background for target
+                return "rgba(251, 191, 36, 0.95)"; // Yellow background for target
             }
-            if (d.data.id === "__VIRTUAL_ROOT__") return "rgba(59, 130, 246, 0.1)";
-            return "rgba(255, 255, 255, 0.9)";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "rgba(59, 130, 246, 0.15)";
+            return "rgba(255, 255, 255, 0.95)";
         })
         .attr("stroke", d => {
             if (props.targetDependency && d.data.id === props.targetDependency) return "#f59e0b";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "#3b82f6";
             return "#e5e7eb";
         })
-        .attr("stroke-width", 1);
+        .attr("stroke-width", d => {
+            if (props.targetDependency && d.data.id === props.targetDependency) return 2;
+            return 1;
+        });
 
     /**
      * Add text labels with enhanced styling
@@ -369,20 +383,27 @@ onMounted(() => {
         .attr("dy", "0.32em")
         .attr("x", d => {
             const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
-            const textWidth = Math.max(text.length * 7, 50);
-            return d.children ? -textWidth/2 - 10 : textWidth/2 + 15; // Center text in rect
+            const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
+            const textWidth = Math.max(displayText.length * 8 + 16, 60);
+            
+            // Center text within the rectangle
+            if (d.children) {
+                return -textWidth/2 - 20; // Center in left-side rect
+            } else {
+                return textWidth/2 + 20; // Center in right-side rect
+            }
         })
-        .attr("text-anchor", "middle") // Always center the text
+        .attr("text-anchor", "middle")
         .text(d => {
             if (d.data.id === "__VIRTUAL_ROOT__") return "ROOT";
             // Truncate long dependency names for better layout
             const name = d.data.id;
-            return name.length > 20 ? name.substring(0, 17) + "..." : name;
+            return name.length > 25 ? name.substring(0, 22) + "..." : name;
         })
         .attr("font-size", d => {
-            if (props.targetDependency && d.data.id === props.targetDependency) return "14px";
-            if (d.data.id === "__VIRTUAL_ROOT__") return "13px";
-            return "11px";
+            if (props.targetDependency && d.data.id === props.targetDependency) return "13px";
+            if (d.data.id === "__VIRTUAL_ROOT__") return "12px";
+            return "10px";
         })
         .attr("font-weight", d => {
             if (props.targetDependency && d.data.id === props.targetDependency) return "bold";

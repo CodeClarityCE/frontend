@@ -634,46 +634,48 @@ onMounted(() => {
             return isPruned ? 0.8 : 1;
         });
 
-    // Add dev/prod badge (small rectangle with text) next to the label
+    // Dynamically sized and aligned dev/prod badge (small rectangle with text) next to the label
     // Only show the badge for the first dependency node (depth === 1, not virtual root)
     node.append("rect")
         .filter(d => (d.data.dev || d.data.prod) && d.depth === 1 && d.data.id !== "__VIRTUAL_ROOT__")
         .attr("x", d => {
-            // Place badge just after the text label
+            // Place badge just after the text label, with extra spacing
             const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
             const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
             const textWidth = Math.max(displayText.length * 8 + 16, 60);
-            if (d.children) {
-                return -textWidth/2 - 20 + 36; // left side, after label
-            } else {
-                return textWidth/2 + 20 + 6; // right side, after label
-            }
+            const badgeText = d.data.dev ? "DEV" : "PROD";
+            const badgeWidth = badgeText.length * 8 + 16;
+            // Always place badge to the right of the label rect
+            return (d.children ? -textWidth - 32 : 8) + textWidth;
         })
-        .attr("y", -10)
-        .attr("width", 28)
-        .attr("height", 16)
-        .attr("rx", 4)
+        .attr("y", -7)
+        .attr("width", d => {
+            const badgeText = d.data.dev ? "DEV" : "PROD";
+            return badgeText.length * 8;
+        })
+        .attr("height", 13)
+        .attr("rx", 8)
         .attr("fill", d => d.data.dev ? "#f3e8ff" : "#bbf7d0")
         .attr("stroke", d => d.data.dev ? "#a855f7" : "#22c55e")
-        .attr("stroke-width", 1.2)
-        .attr("opacity", 0.95);
+        // .attr("stroke-width", 1)
+        .attr("opacity", 0.98)
+        .style("filter", "drop-shadow(0 1px 2px rgba(0,0,0,0.07))");
 
     node.append("text")
         .filter(d => (d.data.dev || d.data.prod) && d.depth === 1 && d.data.id !== "__VIRTUAL_ROOT__")
         .attr("x", d => {
-            // Place badge text inside the badge
+            // Center badge text inside the badge
             const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
             const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
             const textWidth = Math.max(displayText.length * 8 + 16, 60);
-            if (d.children) {
-                return -textWidth/2 - 20 + 50; // left side, center of badge
-            } else {
-                return textWidth/2 + 20 + 20; // right side, center of badge
-            }
+            const badgeText = d.data.dev ? "DEV" : "PROD";
+            const badgeWidth = badgeText.length * 8 + 1;
+            // Always place badge to the right of the label rect, center text in badge
+            return (d.children ? -textWidth - 32 : 8) + textWidth + badgeWidth/2;
         })
         .attr("y", 2)
         .attr("text-anchor", "middle")
-        .attr("font-size", "9px")
+        .attr("font-size", "7px")
         .attr("font-weight", "bold")
         .attr("fill", d => d.data.dev ? "#a855f7" : "#15803d")
         .text(d => d.data.dev ? "DEV" : "PROD");

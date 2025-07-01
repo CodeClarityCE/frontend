@@ -19,7 +19,7 @@ function renderLegend() {
   // Remove previous legend if exists
   d3.select(props.svgSelector + ' #' + legendGroupId).remove();
 
-  const legendHeight = props.hasPrunedNodes ? 115 : 95;
+  const legendHeight = props.hasPrunedNodes ? 165 : 145;
   const svg = d3.select(props.svgSelector);
   const legend = svg.append('g')
     .attr('id', legendGroupId)
@@ -126,19 +126,19 @@ function renderLegend() {
   legend.append('rect')
     .attr('x', 0)
     .attr('y', badgeLegendYOffset)
-    .attr('width', 28)
+    .attr('width', 32)
     .attr('height', 16)
     .attr('rx', 4)
-    .attr('fill', '#22c55e')
-    .attr('stroke', '#16a34a')
+    .attr('fill', '#bbf7d0')
+    .attr('stroke', '#22c55e')
     .attr('stroke-width', 1.2);
   legend.append('text')
-    .attr('x', 14)
+    .attr('x', 16)
     .attr('y', badgeLegendYOffset + 11)
     .attr('text-anchor', 'middle')
     .attr('font-size', '10px')
     .attr('font-weight', 'bold')
-    .attr('fill', '#fff')
+    .attr('fill', '#15803d')
     .text('PROD');
   legend.append('text')
     .attr('x', 35)
@@ -153,8 +153,8 @@ function renderLegend() {
     .attr('width', 28)
     .attr('height', 16)
     .attr('rx', 4)
-    .attr('fill', '#2563eb')
-    .attr('stroke', '#1d4ed8')
+    .attr('fill', '#f3e8ff')
+    .attr('stroke', '#a855f7')
     .attr('stroke-width', 1.2);
   legend.append('text')
     .attr('x', 14)
@@ -162,7 +162,7 @@ function renderLegend() {
     .attr('text-anchor', 'middle')
     .attr('font-size', '10px')
     .attr('font-weight', 'bold')
-    .attr('fill', '#fff')
+    .attr('fill', '#a855f7')
     .text('DEV');
   legend.append('text')
     .attr('x', 35)

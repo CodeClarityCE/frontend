@@ -591,7 +591,6 @@ onMounted(() => {
             const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
             const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
             const textWidth = Math.max(displayText.length * 8 + 16, 60);
-            
             // Center text within the rectangle
             if (d.children) {
                 return -textWidth/2 - 20; // Center in left-side rect
@@ -634,6 +633,50 @@ onMounted(() => {
             const isPruned = prunedNodes.has(d.data.uniqueId);
             return isPruned ? 0.8 : 1;
         });
+
+    // Add dev/prod badge (small rectangle with text) next to the label
+    // Only show the badge for the first dependency node (depth === 1, not virtual root)
+    node.append("rect")
+        .filter(d => (d.data.dev || d.data.prod) && d.depth === 1 && d.data.id !== "__VIRTUAL_ROOT__")
+        .attr("x", d => {
+            // Place badge just after the text label
+            const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
+            const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
+            const textWidth = Math.max(displayText.length * 8 + 16, 60);
+            if (d.children) {
+                return -textWidth/2 - 20 + 36; // left side, after label
+            } else {
+                return textWidth/2 + 20 + 6; // right side, after label
+            }
+        })
+        .attr("y", -10)
+        .attr("width", 28)
+        .attr("height", 16)
+        .attr("rx", 4)
+        .attr("fill", d => d.data.dev ? "#f3e8ff" : "#bbf7d0")
+        .attr("stroke", d => d.data.dev ? "#a855f7" : "#22c55e")
+        .attr("stroke-width", 1.2)
+        .attr("opacity", 0.95);
+
+    node.append("text")
+        .filter(d => (d.data.dev || d.data.prod) && d.depth === 1 && d.data.id !== "__VIRTUAL_ROOT__")
+        .attr("x", d => {
+            // Place badge text inside the badge
+            const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
+            const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
+            const textWidth = Math.max(displayText.length * 8 + 16, 60);
+            if (d.children) {
+                return -textWidth/2 - 20 + 50; // left side, center of badge
+            } else {
+                return textWidth/2 + 20 + 20; // right side, center of badge
+            }
+        })
+        .attr("y", 2)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "9px")
+        .attr("font-weight", "bold")
+        .attr("fill", d => d.data.dev ? "#a855f7" : "#15803d")
+        .text(d => d.data.dev ? "DEV" : "PROD");
 
     // Add tooltips on hover
     node.append("title")

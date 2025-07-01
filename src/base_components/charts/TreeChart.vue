@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { GraphDependency } from '@/codeclarity_components/results/graph.entity';
 import * as d3 from 'd3';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
+import TreeChartLegend from './TreeChartLegend.vue';
 
 /**
  * TreeChart Component Props
@@ -14,6 +15,9 @@ const props = defineProps<{
     id: string;
     targetDependency?: string;
 }>();
+
+// Add these refs to expose legend props for the legend component
+const legendProps = ref<any>(null);
 
 onMounted(() => {
     try {
@@ -642,222 +646,29 @@ onMounted(() => {
             return `${d.data.id}${targetText}${instanceText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}${prunedText}`;
         });
 
+    // Prepare legendProps for the legend component
+    legendProps.value = {
+        svgSelector: '#' + props.id + ' svg',
+        marginLeft,
+        x0,
+        marginTop,
+        legendSpace,
+        hasPrunedNodes,
+        prunedNodes,
+        targetDependency: props.targetDependency
+    };
+
     // ===========================================
     // 7. ADD LEGEND FOR BETTER UNDERSTANDING
     // ===========================================
-    
+    // Legend is now rendered by TreeChartLegend component
     if (props.targetDependency) {
-        const legend = svg.append("g")
-            .attr("transform", `translate(${-marginLeft + 20}, ${x0 - marginTop - legendSpace + 20})`); // Position relative to viewBox
-
-        // Calculate legend height based on whether we have pruned nodes
-        const hasPrunedNodes = prunedNodes.size > 0;
-        const legendHeight = hasPrunedNodes ? 115 : 95;
-        
-        // Legend background
-        legend.append("rect")
-            .attr("x", -15)
-            .attr("y", -15)
-            .attr("width", 310)
-            .attr("height", legendHeight)
-            .attr("fill", "rgba(255, 255, 255, 0.95)")
-            .attr("stroke", "#e5e7eb")
-            .attr("stroke-width", 1)
-            .attr("rx", 6);
-
-        // Legend title
-        legend.append("text")
-            .attr("x", 0)
-            .attr("y", 5)
-            .attr("font-size", "12px")
-            .attr("font-weight", "bold")
-            .attr("fill", "#374151")
-            .text("Legend");
-
-        let yOffset = 25;
-
-        // Target dependency indicator
-        legend.append("circle")
-            .attr("cx", 10)
-            .attr("cy", yOffset)
-            .attr("r", 6)
-            .attr("fill", "url(#highlightGradient)")
-            .attr("stroke", "#f59e0b")
-            .attr("stroke-width", 2);
-
-        legend.append("text")
-            .attr("x", 25)
-            .attr("y", yOffset + 5)
-            .attr("font-size", "11px")
-            .attr("fill", "#374151")
-            .text("Target Dependency");
-
-        yOffset += 20;
-
-        // Pruned duplicate indicator (only if there are pruned nodes)
-        if (hasPrunedNodes) {
-            legend.append("circle")
-                .attr("cx", 10)
-                .attr("cy", yOffset)
-                .attr("r", 3)
-                .attr("fill", "#94a3b8")
-                .attr("stroke", "#64748b")
-                .attr("stroke-width", 1)
-                .attr("stroke-dasharray", "3,3")
-                .attr("opacity", 0.6);
-
-            legend.append("text")
-                .attr("x", 25)
-                .attr("y", yOffset + 5)
-                .attr("font-size", "11px")
-                .attr("fill", "#374151")
-                .text("Pruned Duplicate (⋯) - Children shown elsewhere");
-
-            yOffset += 20;
-        }
-
-        // Root indicator
-        legend.append("circle")
-            .attr("cx", 10)
-            .attr("cy", yOffset)
-            .attr("r", 5)
-            .attr("fill", "#3b82f6")
-            .attr("stroke", "#1d4ed8")
-            .attr("stroke-width", 2);
-
-        legend.append("text")
-            .attr("x", 25)
-            .attr("y", yOffset + 5)
-            .attr("font-size", "11px")
-            .attr("fill", "#374151")
-            .text("Root Node");
-
-        yOffset += 20;
-
-        // Parent/Child indicator
-        legend.append("circle")
-            .attr("cx", 10)
-            .attr("cy", yOffset)
-            .attr("r", 4)
-            .attr("fill", "#374151")
-            .attr("stroke", "#ffffff")
-            .attr("stroke-width", 2);
-
-        legend.append("text")
-            .attr("x", 25)
-            .attr("y", yOffset + 5)
-            .attr("font-size", "11px")
-            .attr("fill", "#374151")
-            .text("Parent/Child Nodes");
-
-        yOffset += 20;
-
-        // PROD/DEV indicators (if applicable)
-        // Add prod/dev badge for direct dependencies (children of virtual root)
-        node.filter(d => !!(d.data.parentIds && d.data.parentIds.includes("__VIRTUAL_ROOT__") && (d.data.prod || d.data.dev)))
-        .append("g")
-        .each(function(d) {
-            const g = d3.select(this);
-            // Calculate label width as in the rect
-            const text = d.data.id === "__VIRTUAL_ROOT__" ? "ROOT" : d.data.id;
-            const displayText = text.length > 25 ? text.substring(0, 22) + "..." : text;
-            const textWidth = Math.max(displayText.length * 8 + 16, 60);
-            // Rectangle x is 20 for leaves, -textWidth-20 for parents
-            const rectX = d.children ? -textWidth - 20 : 20;
-            const badgeMargin = 2;
-            let badgeX = rectX + textWidth - 22 - badgeMargin; // 20 = badge width
-            let badgeY = -14 - 12; // place badge above the rect (rect y is -14, badge height is 12, add 2px gap)
-            if (d.data.prod) {
-                g.append("rect")
-                    .attr("x", badgeX)
-                    .attr("y", badgeY)
-                    .attr("width", 24)
-                    .attr("height", 12)
-                    .attr("rx", 3)
-                    .attr("fill", "#22c55e")
-                    .attr("stroke", "#16a34a")
-                    .attr("stroke-width", 1);
-                g.append("text")
-                    .attr("x", badgeX + 12)
-                    .attr("y", badgeY + 9)
-                    .attr("text-anchor", "middle")
-                    .attr("font-size", "8px")
-                    .attr("font-weight", "bold")
-                    .attr("fill", "#fff")
-                    .text("PROD");
-                badgeX -= 22; // space for next badge if needed
-            }
-            if (d.data.dev) {
-                g.append("rect")
-                    .attr("x", badgeX)
-                    .attr("y", badgeY)
-                    .attr("width", 24)
-                    .attr("height", 12)
-                    .attr("rx", 3)
-                    .attr("fill", "#2563eb")
-                    .attr("stroke", "#1d4ed8")
-                    .attr("stroke-width", 1);
-                g.append("text")
-                    .attr("x", badgeX + 12)
-                    .attr("y", badgeY + 9)
-                    .attr("text-anchor", "middle")
-                    .attr("font-size", "8px")
-                    .attr("font-weight", "bold")
-                    .attr("fill", "#fff")
-                    .text("DEV");
-            }
-        });
-
-        // Add legend entries for PROD/DEV badges (larger and more spaced)
-        let badgeLegendYOffset = yOffset;
-        legend.append("rect")
-            .attr("x", 0)
-            .attr("y", badgeLegendYOffset)
-            .attr("width", 28)
-            .attr("height", 16)
-            .attr("rx", 4)
-            .attr("fill", "#22c55e")
-            .attr("stroke", "#16a34a")
-            .attr("stroke-width", 1.2);
-        legend.append("text")
-            .attr("x", 14)
-            .attr("y", badgeLegendYOffset + 11)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "10px")
-            .attr("font-weight", "bold")
-            .attr("fill", "#fff")
-            .text("PROD");
-        legend.append("text")
-            .attr("x", 35)
-            .attr("y", badgeLegendYOffset + 12)
-            .attr("font-size", "11px")
-            .attr("fill", "#374151")
-            .text("Direct Production Dependency");
-        badgeLegendYOffset += 20;
-        legend.append("rect")
-            .attr("x", 0)
-            .attr("y", badgeLegendYOffset)
-            .attr("width", 28)
-            .attr("height", 16)
-            .attr("rx", 4)
-            .attr("fill", "#2563eb")
-            .attr("stroke", "#1d4ed8")
-            .attr("stroke-width", 1.2);
-        legend.append("text")
-            .attr("x", 14)
-            .attr("y", badgeLegendYOffset + 11)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "10px")
-            .attr("font-weight", "bold")
-            .attr("fill", "#fff")
-            .text("DEV");
-        legend.append("text")
-            .attr("x", 35)
-            .attr("y", badgeLegendYOffset + 12)
-            .attr("font-size", "11px")
-            .attr("fill", "#374151")
-            .text("Direct Development Dependency");
-        yOffset = badgeLegendYOffset + 20;
+        // Import and mount the legend component, passing required props
+        // The legend will render itself into the SVG
+        // (see TreeChartLegend.vue)
+        //
+        // Usage in template:
+        // <TreeChartLegend ... />
     }
     } catch (error) {
         console.error('Error rendering TreeChart:', error);
@@ -883,6 +694,7 @@ onMounted(() => {
             </p>
         </div>
         <div :id="id" class="tree-chart"></div>
+        <TreeChartLegend v-if="legendProps && legendProps.targetDependency" v-bind="legendProps" />
     </div>
 </template>
 

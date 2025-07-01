@@ -1,19 +1,9 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-export class SbomGraph {
-    @IsNotEmpty()
-    graph!: Graph;
-
-    @IsNotEmpty()
-    @IsString()
-    project_name!: string;
-}
-
-class Graph {
-    dependencies!: Map<string, Dependency>;
-    start_deps!: Array<string>;
-    start_deps_constraints!: Map<string, string>;
-    start_dev_deps!: Array<string>;
-    start_dev_deps_constraints!: Map<string, string>;
+export class GraphDependency {
+    id!: string;
+    parentIds?: string[];
+    childrenIds?: string[];
+    prod!: boolean;
+    dev!: boolean;
 }
 
 export class Dependency {

@@ -7,7 +7,6 @@ import {
 } from '../../utils/api/BaseRepository';
 import { DataResponse } from '../../utils/api/responses/DataResponse';
 import type { AnalysisStats, PatchingStats, SbomStats } from './stats.entity';
-import { Dependency, type SbomGraph } from './graph.entity';
 import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
 import type { License } from './licenses/License';
 import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
@@ -16,6 +15,7 @@ import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDet
 import { DependencyDetails } from './sbom/SbomDetails/SbomDetails';
 import type { Result } from './result.entity';
 import type { WorkspacesOutput } from './workspace.entity';
+import type { Dependency, GraphDependency } from './graph.entity';
 
 export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
@@ -102,23 +102,6 @@ export class ResultsRepository extends BaseRepository {
         );
     }
 
-    async getSbomGraph(options: GetSbomStatsRequestOptions): Promise<DataResponse<SbomGraph>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/graph`;
-
-        const response = await this.getRequest<DataResponse<SbomGraph>>({
-            queryParams: {
-                workspace: options.workspace
-            },
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<SbomGraph>>(response, DataResponse<SbomGraph>);
-    }
-
     async getSbom(options: GetSbomRequestOptions): Promise<PaginatedResponse<Dependency>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom`;
 
@@ -170,10 +153,10 @@ export class ResultsRepository extends BaseRepository {
 
     async getDependencyGraph(
         options: GetDependencyRequestOptions
-    ): Promise<DataResponse<SbomGraph>> {
+    ): Promise<DataResponse<Array<GraphDependency>>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency/graph`;
 
-        const response = await this.getRequest<DataResponse<SbomGraph>>({
+        const response = await this.getRequest<DataResponse<Array<GraphDependency>>>({
             queryParams: {
                 workspace: options.workspace,
                 dependency: options.dependency
@@ -185,7 +168,9 @@ export class ResultsRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        return Entity.unMarshal<DataResponse<SbomGraph>>(response, DataResponse<SbomGraph>);
+        
+
+        return Entity.unMarshal<DataResponse<Array<GraphDependency>>>(response, DataResponse<Array<GraphDependency>>);
     }
 
     async getLicenses(options: GetSbomRequestOptions): Promise<PaginatedResponse<License>> {

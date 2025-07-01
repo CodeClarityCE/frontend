@@ -18,6 +18,7 @@ import { Icon } from '@iconify/vue';
 import router from '@/router';
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import SbomImportPaths from './SbomDetails/SbomImportPaths.vue';
 
 type Props = {
     [key: string]: any;
@@ -107,9 +108,8 @@ getDependency(props.projectID, props.analysisID);
             <SbomDetailsHeader :dependency="dependency"></SbomDetailsHeader>
             <div class="flex flex-row flex-wrap gap-y-10">
                 <SbomInformation class="w-1/2" :dependency="dependency"></SbomInformation>
-                <!-- <SbomImportPaths class="w-1/2" :dependency="dependency" :analysisID="analysisID" :projectID="projectID">
-                </SbomImportPaths> -->
                 <SbomDependencyHealth class="w-1/2" :dependency="dependency"></SbomDependencyHealth>
+                <SbomImportPaths class="w-1/2" :dependency="dependency" :analysis-i-d="analysisID" :project-i-d="projectID"></SbomImportPaths>
             </div>
         </div>
 

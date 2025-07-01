@@ -2,6 +2,8 @@ export class GraphDependency {
     id!: string;
     parentIds?: string[];
     childrenIds?: string[];
+    prod!: boolean;
+    dev!: boolean;
 }
 
 export class Dependency {

@@ -250,8 +250,19 @@ onMounted(() => {
      */
     const tree = d3.tree<GraphDependency & { uniqueId: string }>().nodeSize([dx, dy]);
     
-    // Optional: Sort nodes alphabetically (currently commented out)
-    // root.sort((a, b) => d3.ascending(a.data.name, b.data.name));
+    // Sort children so that production branches come first
+    root.sort((a, b) => {
+        // Virtual root always first
+        if (a.data.id === "__VIRTUAL_ROOT__") return -1;
+        if (b.data.id === "__VIRTUAL_ROOT__") return 1;
+        // Production first, then dev, then others
+        if (a.data.prod && !b.data.prod) return -1;
+        if (!a.data.prod && b.data.prod) return 1;
+        if (a.data.dev && !b.data.dev) return -1;
+        if (!a.data.dev && b.data.dev) return 1;
+        // Otherwise, alphabetical
+        return (a.data.id || '').localeCompare(b.data.id || '');
+    });
 
     /**
      * Apply the tree layout to calculate positions

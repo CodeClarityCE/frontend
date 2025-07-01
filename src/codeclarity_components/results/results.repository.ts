@@ -168,6 +168,9 @@ export class ResultsRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
+        console.log(response);
+        
+
         return Entity.unMarshal<DataResponse<Array<GraphDependency>>>(response, DataResponse<Array<GraphDependency>>);
     }
 

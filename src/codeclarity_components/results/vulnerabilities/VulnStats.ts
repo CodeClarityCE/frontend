@@ -121,6 +121,13 @@ export interface VulnerabilityMerged {
     Description: string;
     WinningSource: string;
     Conflict: Conflict;
+    VLAI: VLAI[];
+}
+
+export interface VLAI {
+    Source: Source;
+    Score: string;
+    Confidence: number;
 }
 
 export interface AffectedDeps {

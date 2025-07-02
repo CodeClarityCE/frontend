@@ -364,6 +364,23 @@ watch(() => filterState.value.activeFilters, init);
                                                 }}</template>
                                             </SeverityBubble>
 
+                                            <SeverityBubble
+                                                v-for="vla in report.VLAI"
+                                                :key="vla.Source"
+                                                :critical="vla.Score == 'critical'"
+                                                :high="vla.Score == 'high'"
+                                                :medium="vla.Score == 'medium'"
+                                                :low="vla.Score == 'low'"
+                                                :none="vla.Score == 'none'"
+                                            >
+                                                <template #content
+                                                    >{{ vla.Source }}
+                                                    {{
+                                                        (vla.Confidence * 100).toFixed(1)
+                                                    }}%</template
+                                                >
+                                            </SeverityBubble>
+
                                             <!--------------------------------------------------------------------------->
                                             <!--                                CWE Info                               -->
                                             <!--------------------------------------------------------------------------->

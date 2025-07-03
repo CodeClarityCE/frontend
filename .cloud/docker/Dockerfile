@@ -1,14 +1,14 @@
 #syntax=docker/dockerfile:1.4
 
 # Dev image
-FROM node:24.0.1-alpine AS frontend-dev
+FROM node:24.3.0-alpine AS frontend-dev
 WORKDIR /app
 COPY --link . /app/
 RUN corepack enable
 ENTRYPOINT ["/bin/sh", "-c" , "yarn set version stable && yarn install && yarn dev --host"]
 
 # Builder image
-FROM node:24.0.1-alpine AS yarn_builder
+FROM node:24.3.0-alpine AS yarn_builder
 COPY --link . /app/
 WORKDIR /app
 # RUN yarn set version stable

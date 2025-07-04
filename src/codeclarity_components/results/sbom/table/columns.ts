@@ -45,16 +45,24 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const name = row.getValue('name') as string;
-            return h('div', { 
-                class: 'flex items-center gap-2' 
-            }, [
-                h('div', {
-                    class: 'w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex-shrink-0'
-                }),
-                h('span', { 
-                    class: 'font-medium text-gray-900 dark:text-gray-100 truncate' 
-                }, name)
-            ]);
+            return h(
+                'div',
+                {
+                    class: 'flex items-center gap-2'
+                },
+                [
+                    h('div', {
+                        class: 'w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex-shrink-0'
+                    }),
+                    h(
+                        'span',
+                        {
+                            class: 'font-medium text-gray-900 dark:text-gray-100 truncate'
+                        },
+                        name
+                    )
+                ]
+            );
         },
         enableSorting: false
     },
@@ -79,20 +87,40 @@ export const columns: ColumnDef<Dependency>[] = [
         cell: ({ row }) => {
             const version = row.getValue('version') as string;
             const parts = version.split('.');
-            
-            return h('div', { 
-                class: 'inline-flex items-center gap-1' 
-            }, [
-                h('div', { 
-                    class: 'font-mono text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1 rounded border font-medium' 
-                }, [
-                    h('span', { class: 'text-emerald-600 dark:text-emerald-400 font-semibold' }, parts[0] || '0'),
-                    h('span', { class: 'text-slate-400' }, '.'),
-                    h('span', { class: 'text-blue-600 dark:text-blue-400 font-semibold' }, parts[1] || '0'),
-                    h('span', { class: 'text-slate-400' }, '.'),
-                    h('span', { class: 'text-purple-600 dark:text-purple-400' }, parts.slice(2).join('.') || '0')
-                ])
-            ]);
+
+            return h(
+                'div',
+                {
+                    class: 'inline-flex items-center gap-1'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: 'font-mono text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1 rounded border font-medium'
+                        },
+                        [
+                            h(
+                                'span',
+                                { class: 'text-emerald-600 dark:text-emerald-400 font-semibold' },
+                                parts[0] || '0'
+                            ),
+                            h('span', { class: 'text-slate-400' }, '.'),
+                            h(
+                                'span',
+                                { class: 'text-blue-600 dark:text-blue-400 font-semibold' },
+                                parts[1] || '0'
+                            ),
+                            h('span', { class: 'text-slate-400' }, '.'),
+                            h(
+                                'span',
+                                { class: 'text-purple-600 dark:text-purple-400' },
+                                parts.slice(2).join('.') || '0'
+                            )
+                        ]
+                    )
+                ]
+            );
         },
         enableSorting: false
     },
@@ -118,31 +146,43 @@ export const columns: ColumnDef<Dependency>[] = [
             const currentVersion = row.getValue('version') as string;
             const newestVersion = row.getValue('newest_release') as string;
             const isUpToDate = newestVersion === currentVersion;
-            
+
             if (isUpToDate) {
-                return h('div', { 
-                    class: 'flex items-center gap-2' 
-                }, [
-                    h('div', {
-                        class: 'flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800'
-                    }, [
-                        h(Icon, { 
-                            icon: 'tabler:check-circle', 
-                            class: 'w-4 h-4' 
-                        }),
-                        h('span', { 
-                            class: 'font-medium text-sm' 
-                        }, 'Up to date')
-                    ])
-                ]);
+                return h(
+                    'div',
+                    {
+                        class: 'flex items-center gap-2'
+                    },
+                    [
+                        h(
+                            'div',
+                            {
+                                class: 'flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800'
+                            },
+                            [
+                                h(Icon, {
+                                    icon: 'tabler:check-circle',
+                                    class: 'w-4 h-4'
+                                }),
+                                h(
+                                    'span',
+                                    {
+                                        class: 'font-medium text-sm'
+                                    },
+                                    'Up to date'
+                                )
+                            ]
+                        )
+                    ]
+                );
             }
-            
+
             // Determine update severity (major, minor, patch)
             const currentParts = currentVersion.split('.').map(Number);
             const newestParts = newestVersion.split('.').map(Number);
             let updateType = 'patch';
             let severity: 'low' | 'medium' | 'high' = 'low';
-            
+
             if (newestParts[0] > currentParts[0]) {
                 updateType = 'major';
                 severity = 'high';
@@ -150,31 +190,52 @@ export const columns: ColumnDef<Dependency>[] = [
                 updateType = 'minor';
                 severity = 'medium';
             }
-            
+
             const severityColors = {
                 low: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
                 medium: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
                 high: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
             };
-            
-            return h('div', { 
-                class: 'flex flex-col gap-1' 
-            }, [
-                h('div', {
-                    class: `flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${severityColors[severity]}`
-                }, [
-                    h(Icon, { 
-                        icon: updateType === 'major' ? 'tabler:arrow-big-up' : updateType === 'minor' ? 'tabler:arrow-up' : 'tabler:arrow-narrow-up',
-                        class: 'w-4 h-4' 
-                    }),
-                    h('span', { 
-                        class: 'font-mono font-medium' 
-                    }, newestVersion),
-                    h('span', { 
-                        class: 'text-xs opacity-75 uppercase font-semibold' 
-                    }, updateType)
-                ])
-            ]);
+
+            return h(
+                'div',
+                {
+                    class: 'flex flex-col gap-1'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: `flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${severityColors[severity]}`
+                        },
+                        [
+                            h(Icon, {
+                                icon:
+                                    updateType === 'major'
+                                        ? 'tabler:arrow-big-up'
+                                        : updateType === 'minor'
+                                          ? 'tabler:arrow-up'
+                                          : 'tabler:arrow-narrow-up',
+                                class: 'w-4 h-4'
+                            }),
+                            h(
+                                'span',
+                                {
+                                    class: 'font-mono font-medium'
+                                },
+                                newestVersion
+                            ),
+                            h(
+                                'span',
+                                {
+                                    class: 'text-xs opacity-75 uppercase font-semibold'
+                                },
+                                updateType
+                            )
+                        ]
+                    )
+                ]
+            );
         },
         enableSorting: false
     },
@@ -192,24 +253,40 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const isDev = row.getValue('dev') as boolean;
-            
+
             if (isDev) {
-                return h('div', { 
-                    class: 'flex items-center justify-center' 
-                }, [
-                    h('div', {
-                        class: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800'
-                    }, 'Yes')
-                ]);
+                return h(
+                    'div',
+                    {
+                        class: 'flex items-center justify-center'
+                    },
+                    [
+                        h(
+                            'div',
+                            {
+                                class: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800'
+                            },
+                            'Yes'
+                        )
+                    ]
+                );
             }
-            
-            return h('div', { 
-                class: 'flex items-center justify-center' 
-            }, [
-                h('div', {
-                    class: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
-                }, 'No')
-            ]);
+
+            return h(
+                'div',
+                {
+                    class: 'flex items-center justify-center'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                        },
+                        'No'
+                    )
+                ]
+            );
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -227,24 +304,40 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const isProd = row.getValue('prod') as boolean;
-            
+
             if (isProd) {
-                return h('div', { 
-                    class: 'flex items-center justify-center' 
-                }, [
-                    h('div', {
-                        class: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs font-medium border border-green-200 dark:border-green-800'
-                    }, 'Yes')
-                ]);
+                return h(
+                    'div',
+                    {
+                        class: 'flex items-center justify-center'
+                    },
+                    [
+                        h(
+                            'div',
+                            {
+                                class: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs font-medium border border-green-200 dark:border-green-800'
+                            },
+                            'Yes'
+                        )
+                    ]
+                );
             }
-            
-            return h('div', { 
-                class: 'flex items-center justify-center' 
-            }, [
-                h('div', {
-                    class: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
-                }, 'No')
-            ]);
+
+            return h(
+                'div',
+                {
+                    class: 'flex items-center justify-center'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                        },
+                        'No'
+                    )
+                ]
+            );
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -263,16 +356,24 @@ export const columns: ColumnDef<Dependency>[] = [
         cell: ({ row }) => {
             const isDirectCount = row.getValue('is_direct_count') as number;
             const isDirect = isDirectCount > 0;
-            
-            return h('div', { 
-                class: 'flex items-center justify-center' 
-            }, [
-                h('div', {
-                    class: isDirect 
-                        ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-full text-xs font-medium border border-purple-200 dark:border-purple-800'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
-                }, isDirect ? 'Yes' : 'No')
-            ]);
+
+            return h(
+                'div',
+                {
+                    class: 'flex items-center justify-center'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: isDirect
+                                ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-full text-xs font-medium border border-purple-200 dark:border-purple-800'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                        },
+                        isDirect ? 'Yes' : 'No'
+                    )
+                ]
+            );
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -291,16 +392,24 @@ export const columns: ColumnDef<Dependency>[] = [
         cell: ({ row }) => {
             const isTransitiveCount = row.getValue('is_transitive_count') as number;
             const isTransitive = isTransitiveCount > 0;
-            
-            return h('div', { 
-                class: 'flex items-center justify-center' 
-            }, [
-                h('div', {
-                    class: isTransitive 
-                        ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 px-2 py-1 rounded-full text-xs font-medium border border-orange-200 dark:border-orange-800'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
-                }, isTransitive ? 'Yes' : 'No')
-            ]);
+
+            return h(
+                'div',
+                {
+                    class: 'flex items-center justify-center'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: isTransitive
+                                ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 px-2 py-1 rounded-full text-xs font-medium border border-orange-200 dark:border-orange-800'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                        },
+                        isTransitive ? 'Yes' : 'No'
+                    )
+                ]
+            );
         },
         enableSorting: false // Sorting done on the API side
     },

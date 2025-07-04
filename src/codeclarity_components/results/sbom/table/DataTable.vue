@@ -94,10 +94,15 @@ function toggleFilter(filterType: string) {
 <template>
     <div class="space-y-4">
         <!-- Header Section with Search and Filters -->
-        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border">
+        <div
+            class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border"
+        >
             <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-1">
                 <div class="relative flex-1 max-w-sm">
-                    <Icon icon="tabler:search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Icon
+                        icon="tabler:search"
+                        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
+                    />
                     <Input
                         class="pl-10 bg-white dark:bg-gray-800"
                         placeholder="Search by name, version, or status..."
@@ -110,11 +115,14 @@ function toggleFilter(filterType: string) {
                         <Icon icon="tabler:filter" class="w-3 h-3" />
                         {{ table.getFilteredRowModel().rows.length }} dependencies
                     </div>
-                    
+
                     <!-- Row Density Toggle -->
                     <div class="flex items-center gap-1">
                         <span class="text-xs">Density:</span>
-                        <Select :model-value="rowDensity" @update:model-value="(value: any) => rowDensity = value">
+                        <Select
+                            :model-value="rowDensity"
+                            @update:model-value="(value: any) => (rowDensity = value)"
+                        >
                             <SelectTrigger class="h-7 w-20 text-xs">
                                 <SelectValue />
                             </SelectTrigger>
@@ -127,7 +135,7 @@ function toggleFilter(filterType: string) {
                     </div>
                 </div>
             </div>
-            
+
             <div class="flex items-center gap-2">
                 <!-- Quick Filters -->
                 <DropdownMenu>
@@ -139,7 +147,10 @@ function toggleFilter(filterType: string) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" class="w-52">
                         <DropdownMenuCheckboxItem @click="toggleFilter('outdated')">
-                            <Icon icon="tabler:alert-triangle" class="w-4 h-4 mr-2 text-amber-500" />
+                            <Icon
+                                icon="tabler:alert-triangle"
+                                class="w-4 h-4 mr-2 text-amber-500"
+                            />
                             Show only outdated
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem @click="toggleFilter('direct')">
@@ -186,9 +197,13 @@ function toggleFilter(filterType: string) {
         <div class="border rounded-lg overflow-hidden bg-white dark:bg-gray-950">
             <Table>
                 <TableHeader class="bg-gray-50 dark:bg-gray-900/50">
-                    <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="border-b border-gray-200 dark:border-gray-800">
-                        <TableHead 
-                            v-for="header in headerGroup.headers" 
+                    <TableRow
+                        v-for="headerGroup in table.getHeaderGroups()"
+                        :key="headerGroup.id"
+                        class="border-b border-gray-200 dark:border-gray-800"
+                    >
+                        <TableHead
+                            v-for="header in headerGroup.headers"
                             :key="header.id"
                             class="font-semibold text-gray-900 dark:text-gray-100 py-3"
                         >
@@ -211,14 +226,14 @@ function toggleFilter(filterType: string) {
                                 'hover:bg-blue-50 dark:hover:bg-blue-950/30',
                                 {
                                     'h-12': rowDensity === 'compact',
-                                    'h-16': rowDensity === 'normal', 
+                                    'h-16': rowDensity === 'normal',
                                     'h-20': rowDensity === 'comfortable',
                                     'bg-gray-50/50 dark:bg-gray-900/20': index % 2 === 1
                                 }
                             ]"
                         >
-                            <TableCell 
-                                v-for="cell in row.getVisibleCells()" 
+                            <TableCell
+                                v-for="cell in row.getVisibleCells()"
                                 :key="cell.id"
                                 :class="[
                                     'align-middle',
@@ -239,7 +254,9 @@ function toggleFilter(filterType: string) {
                     <template v-else>
                         <TableRow>
                             <TableCell :col-span="columns.length" class="h-32 text-center">
-                                <div class="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                                <div
+                                    class="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400"
+                                >
                                     <Icon icon="tabler:package-off" class="w-8 h-8" />
                                     <p class="text-sm font-medium">No dependencies found</p>
                                     <p class="text-xs">Try adjusting your search or filters</p>

@@ -32,7 +32,6 @@ import UtilitiesFilters, {
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Badge } from '@/shadcn/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 
 export interface Props {
     [key: string]: any;
@@ -54,6 +53,9 @@ const authStore = useAuthStore();
 
 const selectionPageLimit = [5, 10, 20, 30, 40, 50, 75, 100];
 const placeholder = 'Search by dependency, dependency version, or cve';
+
+// UI state for improved hierarchy
+const expandedCards: Ref<Set<string>> = ref(new Set());
 
 const render: Ref<boolean> = ref(false);
 const pageLimitSelected: Ref<number> = ref(10);
@@ -126,6 +128,23 @@ function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
     const uniqueOwaspIds = Array.from(new Set(owaspIds));
 
     return uniqueOwaspIds;
+}
+
+function toggleCardExpansion(vulnerabilityId: string) {
+    if (expandedCards.value.has(vulnerabilityId)) {
+        expandedCards.value.delete(vulnerabilityId);
+    } else {
+        expandedCards.value.add(vulnerabilityId);
+    }
+}
+
+function isCardExpanded(vulnerabilityId: string) {
+    return expandedCards.value.has(vulnerabilityId);
+}
+
+function truncateDescription(description: string, maxLength: number = 120) {
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength) + '...';
 }
 
 async function init() {
@@ -217,329 +236,227 @@ watch(() => filterState.value.activeFilters, init);
         <!--                           Vulnerabilities List                        -->
         <!--------------------------------------------------------------------------->
 
-        <div v-if="render" class="flex flex-col gap-y-6">
-            <div v-for="report in findings" :key="report.Id">
-                <RouterLink
-                    class="flex flex-col gap-2 transition-all hover:scale-105"
-                    :to="{
-                        name: 'results',
-                        query: {
-                            analysis_id: props.analysisID,
-                            project_id: props.projectID,
-                            finding_id: report.Vulnerability
-                        },
-                        params: { page: 'vulnerabilities_details' }
-                    }"
-                >
-                    <div title="View vulnerability details" style="font-size: 1.05rem">
-                        <div class="relative">
-                            <div class="short_listing_vulnerability mb-4 flex gap-x-4 p-2">
-                                <!--------------------------------------------------------------------------->
-                                <!--                     Side severity class indicator                     -->
-                                <!--------------------------------------------------------------------------->
-
-                                <div class="flex w-12 flex-shrink-0">
-                                    <div
-                                        class="[writing-mode:vertical-lr] flex items-center self-start"
-                                    >
-                                        <div
-                                            v-if="isCriticalSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityCritical"
-                                        >
-                                            CRITICAL
-                                        </div>
-                                        <div
-                                            v-else-if="isHighSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityHigh"
-                                        >
-                                            HIGH
-                                        </div>
-                                        <div
-                                            v-else-if="isMediumSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityMedium"
-                                        >
-                                            MODERATE
-                                        </div>
-                                        <div
-                                            v-else-if="isLowSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityLow"
-                                        >
-                                            LOW
-                                        </div>
-                                        <div
-                                            v-else-if="isNoneSeverity(report.Severity.Severity)"
-                                            class="px-1 py-5 font-semibold text-white bg-severityNone"
-                                        >
-                                            NONE
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!--------------------------------------------------------------------------->
-                                <!--                       Vulnerability information                       -->
-                                <!--------------------------------------------------------------------------->
-
-                                <div class="flex flex-col gap-4 py-1 pr-16 w-full shrink-0">
-                                    <div class="flex gap-2 justify-between">
-                                        <div v-if="report.Weaknesses.length > 0">
-                                            <div class="-mb-2 text-xl">
-                                                {{ report.Weaknesses[0].WeaknessName || '' }}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!--------------------------------------------------------------------------->
-                                    <!--                               Vulnerability Id                        -->
-                                    <!--------------------------------------------------------------------------->
-
-                                    <div class="flex gap-2 items-center">
-                                        <div class="text-xl font-normal">
-                                            {{ report.Vulnerability }}
-                                        </div>
-                                        <TooltipProvider
-                                            v-if="
-                                                report.Conflict.ConflictFlag ==
-                                                    'MATCH_POSSIBLE_INCORRECT' ||
-                                                report.Conflict.ConflictFlag == 'MATCH_INCORRECT'
-                                            "
-                                        >
-                                            <Tooltip>
-                                                <TooltipTrigger as-child>
-                                                    <div class="flex gap-1 items-center">
-                                                        <Icon
-                                                            :class="{
-                                                                'text-severityMedium':
-                                                                    report.Conflict.ConflictFlag ==
-                                                                    'MATCH_POSSIBLE_INCORRECT',
-                                                                'text-severityHigh':
-                                                                    report.Conflict.ConflictFlag ==
-                                                                    'MATCH_INCORRECT'
-                                                            }"
-                                                            icon="tabler:alert-triangle-filled"
-                                                        ></Icon>
-                                                        <p
-                                                            v-if="
-                                                                report.Conflict.ConflictFlag ==
-                                                                'MATCH_POSSIBLE_INCORRECT'
-                                                            "
-                                                            class="text-severityMedium"
-                                                        >
-                                                            Match possibly incorrect
-                                                        </p>
-                                                        <p v-else class="text-severityHigh">
-                                                            Match incorrect
-                                                        </p>
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent class="bg-secondary text-black">
-                                                    <p
-                                                        v-if="
-                                                            report.Conflict.ConflictFlag ==
-                                                            'MATCH_POSSIBLE_INCORRECT'
-                                                        "
-                                                    >
-                                                        OSV and NVD disagree
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-
-                                    <div class="flex gap-5 items-center">
-                                        <div class="flex gap-y-5 gap-x-2 flex-wrap">
-                                            <!--------------------------------------------------------------------------->
-                                            <!--                              Severity indicator                       -->
-                                            <!--------------------------------------------------------------------------->
-                                            <SeverityBubble
-                                                :critical="
-                                                    isCriticalSeverity(report.Severity.Severity)
-                                                "
-                                                :high="isHighSeverity(report.Severity.Severity)"
-                                                :medium="isMediumSeverity(report.Severity.Severity)"
-                                                :low="isLowSeverity(report.Severity.Severity)"
-                                                :none="isNoneSeverity(report.Severity.Severity)"
-                                            >
-                                                <template #content>{{
-                                                    report.Severity.Severity
-                                                }}</template>
-                                            </SeverityBubble>
-
-                                            <SeverityBubble
-                                                v-for="vla in report.VLAI"
-                                                :key="vla.Source"
-                                                :critical="vla.Score == 'critical'"
-                                                :high="vla.Score == 'high'"
-                                                :medium="vla.Score == 'medium'"
-                                                :low="vla.Score == 'low'"
-                                                :none="vla.Score == 'none'"
-                                            >
-                                                <template #content
-                                                    >{{ vla.Source }}
-                                                    {{
-                                                        (vla.Confidence * 100).toFixed(1)
-                                                    }}%</template
-                                                >
-                                            </SeverityBubble>
-
-                                            <Badge>
-                                                EPSS {{ (report.EPSS.Score * 100).toFixed(2) }}% (
-                                                {{ (report.EPSS.Percentile * 100).toFixed(2) }}%)
-                                            </Badge>
-
-                                            <!--------------------------------------------------------------------------->
-                                            <!--                                CWE Info                               -->
-                                            <!--------------------------------------------------------------------------->
-
-                                            <div
-                                                v-if="report.Weaknesses"
-                                                class="flex gap-1 justify-between items-center"
-                                            >
-                                                <Badge
-                                                    v-for="weakness in report.Weaknesses"
-                                                    :key="weakness.WeaknessId"
-                                                    :cwe="true"
-                                                >
-                                                    {{ weakness.WeaknessId }}
-                                                </Badge>
-                                            </div>
-
-                                            <!--------------------------------------------------------------------------->
-                                            <!--                            Owasp Top 10 Info                          -->
-                                            <!--------------------------------------------------------------------------->
-                                            <div
-                                                v-if="
-                                                    report.Weaknesses &&
-                                                    report.Weaknesses.some(
-                                                        (weakness) => weakness.OWASPTop10Id != ''
-                                                    )
-                                                "
-                                                class="flex gap-1 justify-between items-center"
-                                            >
-                                                <div>
-                                                    <Icon :icon="'simple-icons:owasp'"></Icon>
-                                                </div>
-                                                <div
-                                                    v-for="owaspID in getUniqueOWASP(
-                                                        report.Weaknesses
-                                                    )"
-                                                    :key="owaspID"
-                                                    class="flex gap-2 items-center font-bold text-[#5e5e5e]"
-                                                >
-                                                    <div v-if="owaspID == '1345'">
-                                                        A01: Broken Access Control
-                                                    </div>
-                                                    <div v-if="owaspID == '1346'">
-                                                        A02: Cryptographic Failures
-                                                    </div>
-                                                    <div v-if="owaspID == '1347'">
-                                                        A03: Injection
-                                                    </div>
-                                                    <div v-if="owaspID == '1348'">
-                                                        A04: Insecure Design
-                                                    </div>
-                                                    <div v-if="owaspID == '1349'">
-                                                        A05: Security Misconfiguration
-                                                    </div>
-                                                    <div v-if="owaspID == '1352'">
-                                                        A06: Vulnerable and Outdated Components
-                                                    </div>
-                                                    <div v-if="owaspID == '1353'">
-                                                        A07: Identification and Authentication
-                                                        Failures
-                                                    </div>
-                                                    <div v-if="owaspID == '1354'">
-                                                        A08: Software and Data Integrity Failures
-                                                    </div>
-                                                    <div v-if="owaspID == '1355'">
-                                                        A09: Security Logging and Monitoring
-                                                        Failures
-                                                    </div>
-                                                    <div v-if="owaspID == '1356'">
-                                                        A10: Server-Side Request Forgery
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!--------------------------------------------------------------------------->
-                                        <!--                              Impact info                              -->
-                                        <!--------------------------------------------------------------------------->
-
-                                        <div
-                                            class="flex gap-5 gap-y-5 gap-x-1 flex-wrap text-[#444] text-sm"
-                                        >
-                                            <BubbleComponent
-                                                v-if="
-                                                    report.Severity &&
-                                                    report.Severity.ConfidentialityImpact !=
-                                                        'NONE' &&
-                                                    report.Severity.AvailabilityImpact != ''
-                                                "
-                                                title="Impacts Confidentiality"
-                                            >
-                                                <template #content>
-                                                    <Icon :icon="'prime:angle-double-down'"></Icon>
-                                                    <div>Confidentiality</div>
-                                                </template>
-                                            </BubbleComponent>
-
-                                            <BubbleComponent
-                                                v-if="
-                                                    report.Severity &&
-                                                    report.Severity.AvailabilityImpact != 'NONE' &&
-                                                    report.Severity.AvailabilityImpact != ''
-                                                "
-                                                title="Impacts Availability"
-                                            >
-                                                <template #content>
-                                                    <Icon :icon="'prime:angle-double-down'"></Icon>
-                                                    <div>Availability</div>
-                                                </template>
-                                            </BubbleComponent>
-
-                                            <BubbleComponent
-                                                v-if="
-                                                    report.Severity &&
-                                                    report.Severity.IntegrityImpact != 'NONE' &&
-                                                    report.Severity.AvailabilityImpact != ''
-                                                "
-                                                title="Impacts Integrity"
-                                            >
-                                                <template #content>
-                                                    <Icon :icon="'prime:angle-double-down'"></Icon>
-                                                    <div>Integrity</div>
-                                                </template>
-                                            </BubbleComponent>
-                                        </div>
-                                    </div>
-
-                                    <!--------------------------------------------------------------------------->
-                                    <!--                           Affected dep info                           -->
-                                    <!--------------------------------------------------------------------------->
-
-                                    <div v-if="report.Affected.length == 1">
-                                        Vulnerable library:
-                                    </div>
-                                    <div v-else>Vulnerable libraries:</div>
-                                    <div
-                                        v-for="info in report.Affected"
-                                        :key="info.AffectedDependency"
-                                    >
-                                        {{ info.AffectedDependency }}@{{ info.AffectedVersion }}
-                                    </div>
-
-                                    <!--------------------------------------------------------------------------->
-                                    <!--                       Vulnerability description                       -->
-                                    <!--------------------------------------------------------------------------->
-
-                                    <InfoMarkdown
-                                        :markdown="report.Description.trim()"
-                                    ></InfoMarkdown>
-                                </div>
+        <div v-if="render" class="flex flex-col gap-y-4">
+            <div v-for="report in findings" :key="report.Id" class="vulnerability-card">
+                <div class="vulnerability-card-wrapper border border-gray-200 rounded-lg hover:shadow-md transition-all">
+                    <!-- Card Header: Most Important Info -->
+                    <div 
+                        class="card-header flex items-start gap-4 p-4 cursor-pointer" 
+                        @click="toggleCardExpansion(report.Vulnerability)"
+                    >
+                        
+                        <!-- Severity Indicator -->
+                        <div class="severity-badge flex-shrink-0">
+                            <div
+                                v-if="isCriticalSeverity(report.Severity.Severity)"
+                                class="px-3 py-1 text-xs font-bold text-white bg-severityCritical rounded-full"
+                            >
+                                CRITICAL
+                            </div>
+                            <div
+                                v-else-if="isHighSeverity(report.Severity.Severity)"
+                                class="px-3 py-1 text-xs font-bold text-white bg-severityHigh rounded-full"
+                            >
+                                HIGH
+                            </div>
+                            <div
+                                v-else-if="isMediumSeverity(report.Severity.Severity)"
+                                class="px-3 py-1 text-xs font-bold text-white bg-severityMedium rounded-full"
+                            >
+                                MEDIUM
+                            </div>
+                            <div
+                                v-else-if="isLowSeverity(report.Severity.Severity)"
+                                class="px-3 py-1 text-xs font-bold text-white bg-severityLow rounded-full"
+                            >
+                                LOW
+                            </div>
+                            <div
+                                v-else-if="isNoneSeverity(report.Severity.Severity)"
+                                class="px-3 py-1 text-xs font-bold text-white bg-severityNone rounded-full"
+                            >
+                                NONE
                             </div>
                         </div>
+
+                        <!-- Primary Information -->
+                        <div class="flex-1 min-w-0">
+                            <!-- CVE ID and Weakness Type -->
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ report.Vulnerability }}
+                                </h3>
+                                <div v-if="report.Weaknesses.length > 0" class="text-sm text-gray-600">
+                                    {{ report.Weaknesses[0].WeaknessName }}
+                                </div>
+                            </div>
+
+                            <!-- Affected Libraries -->
+                            <div class="mb-2">
+                                <div class="flex flex-wrap gap-2">
+                                    <Badge
+                                        v-for="info in report.Affected.slice(0, 3)"
+                                        :key="info.AffectedDependency"
+                                        variant="outline"
+                                        class="text-xs"
+                                    >
+                                        {{ info.AffectedDependency }}@{{ info.AffectedVersion }}
+                                    </Badge>
+                                    <Badge
+                                        v-if="report.Affected.length > 3"
+                                        variant="outline"
+                                        class="text-xs text-gray-500"
+                                    >
+                                        +{{ report.Affected.length - 3 }} more
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            <!-- Description Preview -->
+                            <div class="text-sm text-gray-600 line-clamp-2">
+                                {{ truncateDescription(report.Description) }}
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions & Key Metrics -->
+                        <div class="flex-shrink-0 flex items-center gap-2">
+                            <!-- High Impact Warning -->
+                            <div v-if="report.EPSS.Score > 0.1" class="text-amber-500" title="High exploitation probability">
+                                <Icon icon="tabler:alert-triangle" class="w-5 h-5" />
+                            </div>
+                            
+                            <!-- Conflict Warning -->
+                            <div
+                                v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' || 
+                                      report.Conflict.ConflictFlag === 'MATCH_INCORRECT'"
+                                :class="{
+                                    'text-amber-500': report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
+                                    'text-red-500': report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
+                                }"
+                                :title="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' ? 
+                                        'Match possibly incorrect' : 'Match incorrect'"
+                            >
+                                <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
+                            </div>
+
+                            <!-- Expand/Collapse Icon -->
+                            <Icon 
+                                :icon="isCardExpanded(report.Vulnerability) ? 'tabler:chevron-up' : 'tabler:chevron-down'"
+                                class="w-5 h-5 text-gray-400"
+                            />
+                        </div>
                     </div>
-                </RouterLink>
+
+                    <!-- Expandable Content -->
+                    <div v-if="isCardExpanded(report.Vulnerability)" class="card-body border-t border-gray-100 p-4">
+                        <!-- Secondary Metrics Row -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <!-- EPSS Score -->
+                            <Badge variant="secondary" class="text-xs">
+                                EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
+                            </Badge>
+
+                            <!-- Additional Severity Sources -->
+                            <SeverityBubble
+                                v-for="vla in report.VLAI"
+                                :key="vla.Source"
+                                :critical="vla.Score == 'critical'"
+                                :high="vla.Score == 'high'"
+                                :medium="vla.Score == 'medium'"
+                                :low="vla.Score == 'low'"
+                                :none="vla.Score == 'none'"
+                                class="text-xs"
+                            >
+                                <template #content>{{ vla.Source }}</template>
+                            </SeverityBubble>
+
+                            <!-- CWE Badges -->
+                            <Badge
+                                v-for="weakness in report.Weaknesses"
+                                :key="weakness.WeaknessId"
+                                :cwe="true"
+                                class="text-xs"
+                            >
+                                {{ weakness.WeaknessId }}
+                            </Badge>
+                        </div>
+
+                        <!-- Full Description -->
+                        <div class="mb-4">
+                            <InfoMarkdown :markdown="report.Description.trim()" />
+                        </div>
+
+                        <!-- Impact Information -->
+                        <div class="flex gap-2 mb-4">
+                            <BubbleComponent
+                                v-if="report.Severity?.ConfidentialityImpact !== 'NONE' && 
+                                      report.Severity?.ConfidentialityImpact !== ''"
+                                title="Impacts Confidentiality"
+                                class="text-xs"
+                            >
+                                <template #content>
+                                    <Icon icon="tabler:shield-lock" class="w-3 h-3" />
+                                    <span>Confidentiality</span>
+                                </template>
+                            </BubbleComponent>
+
+                            <BubbleComponent
+                                v-if="report.Severity?.AvailabilityImpact !== 'NONE' && 
+                                      report.Severity?.AvailabilityImpact !== ''"
+                                title="Impacts Availability"
+                                class="text-xs"
+                            >
+                                <template #content>
+                                    <Icon icon="tabler:server" class="w-3 h-3" />
+                                    <span>Availability</span>
+                                </template>
+                            </BubbleComponent>
+
+                            <BubbleComponent
+                                v-if="report.Severity?.IntegrityImpact !== 'NONE' && 
+                                      report.Severity?.IntegrityImpact !== ''"
+                                title="Impacts Integrity"
+                                class="text-xs"
+                            >
+                                <template #content>
+                                    <Icon icon="tabler:shield-check" class="w-3 h-3" />
+                                    <span>Integrity</span>
+                                </template>
+                            </BubbleComponent>
+                        </div>
+
+                        <!-- OWASP Top 10 Information -->
+                        <div
+                            v-if="report.Weaknesses?.some(w => w.OWASPTop10Id !== '')"
+                            class="flex gap-2 items-center text-sm text-gray-600"
+                        >
+                            <Icon icon="simple-icons:owasp" class="w-4 h-4" />
+                            <div v-for="owaspID in getUniqueOWASP(report.Weaknesses)" :key="owaspID">
+                                <span v-if="owaspID === '1347'" class="font-medium">A03: Injection</span>
+                                <!-- Add other OWASP mappings as needed -->
+                            </div>
+                        </div>
+
+                        <!-- View Details Link -->
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <RouterLink
+                                :to="{
+                                    name: 'results',
+                                    query: {
+                                        analysis_id: props.analysisID,
+                                        project_id: props.projectID,
+                                        finding_id: report.Vulnerability
+                                    },
+                                    params: { page: 'vulnerabilities_details' }
+                                }"
+                                class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm"
+                            >
+                                View detailed analysis
+                                <Icon icon="tabler:external-link" class="w-4 h-4" />
+                            </RouterLink>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!--------------------------------------------------------------------------->
@@ -584,4 +501,36 @@ watch(() => filterState.value.activeFilters, init);
 @use '@/assets/colors.scss';
 @use '@/assets/common/summary.scss';
 @use '@/assets/common/cvss.scss';
+
+.vulnerability-card-wrapper {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: #e2e8f0;
+    }
+}
+
+.card-header {
+    &:hover {
+        background-color: #f8fafc;
+    }
+}
+
+.severity-badge {
+    min-width: 70px;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// Improved spacing for badges and bubbles
+.card-body .flex.flex-wrap {
+    gap: 0.375rem;
+}
 </style>

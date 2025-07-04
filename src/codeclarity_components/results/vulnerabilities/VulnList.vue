@@ -590,14 +590,58 @@ watch(() => filterState.value.activeFilters, init);
                             </div>
 
                             <!-- CWE Badges -->
-                            <Badge
+                            <TooltipProvider
                                 v-for="weakness in report.Weaknesses"
                                 :key="weakness.WeaknessId"
-                                :cwe="true"
-                                class="text-xs px-2 py-1"
                             >
-                                {{ weakness.WeaknessId }}
-                            </Badge>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Badge :cwe="true" class="text-xs px-2 py-1 cursor-help">
+                                            {{ weakness.WeaknessId }}
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white border border-gray-300 shadow-lg"
+                                    >
+                                        <div class="max-w-sm space-y-2 p-3">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:bug"
+                                                    class="w-4 h-4 text-red-600"
+                                                />
+                                                <span class="font-semibold text-base text-gray-900">
+                                                    {{ weakness.WeaknessId }}
+                                                </span>
+                                            </div>
+
+                                            <div class="text-sm space-y-1">
+                                                <div class="font-medium text-gray-900">
+                                                    {{ weakness.WeaknessName }}
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    Common weakness pattern that can lead to
+                                                    security vulnerabilities
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-200">
+                                                <a
+                                                    :href="`https://cwe.mitre.org/data/definitions/${weakness.WeaknessId.replace('CWE-', '')}.html`"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                >
+                                                    View CWE details
+                                                    <Icon
+                                                        icon="tabler:external-link"
+                                                        class="w-3 h-3"
+                                                    />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
 
                         <!-- Full Description -->

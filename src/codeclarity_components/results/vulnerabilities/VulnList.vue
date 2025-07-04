@@ -345,17 +345,70 @@ watch(() => filterState.value.activeFilters, init);
                             </div>
 
                             <!-- High Exploitation Risk Banner -->
-                            <div
-                                v-if="report.EPSS.Score > 0.1"
-                                class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium border border-red-200"
-                            >
-                                <Icon icon="tabler:trending-up" class="w-3 h-3" />
-                                <span
-                                    >High exploitation probability ({{
-                                        (report.EPSS.Score * 100).toFixed(1)
-                                    }}%)</span
-                                >
-                            </div>
+                            <TooltipProvider v-if="report.EPSS.Score > 0.1">
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <div
+                                            class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium border border-red-200 cursor-help"
+                                        >
+                                            <Icon icon="tabler:trending-up" class="w-3 h-3" />
+                                            <span
+                                                >High exploitation probability ({{
+                                                    (report.EPSS.Score * 100).toFixed(1)
+                                                }}%)</span
+                                            >
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white border border-gray-300 shadow-lg"
+                                    >
+                                        <div class="max-w-sm space-y-3 p-3">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:trending-up"
+                                                    class="w-4 h-4 text-red-600"
+                                                />
+                                                <span class="font-semibold text-base text-gray-900">
+                                                    EPSS Score:
+                                                    {{ (report.EPSS.Score * 100).toFixed(1) }}%
+                                                </span>
+                                            </div>
+
+                                            <div
+                                                class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                                            >
+                                                <div class="font-medium text-gray-900">
+                                                    Exploit Prediction Scoring System
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    Predicts the probability that this vulnerability
+                                                    will be exploited in the wild within the next 30
+                                                    days.
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <strong>Score > 10%:</strong> High likelihood of
+                                                    exploitation - prioritize patching.
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-200">
+                                                <a
+                                                    href="https://www.first.org/epss/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                >
+                                                    Learn more about EPSS
+                                                    <Icon
+                                                        icon="tabler:external-link"
+                                                        class="w-3 h-3"
+                                                    />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
                             <!-- Match Uncertainty Banner -->
                             <div
@@ -445,9 +498,66 @@ watch(() => filterState.value.activeFilters, init);
                         <!-- Secondary Metrics Row -->
                         <div class="flex flex-wrap gap-1.5 mb-3">
                             <!-- EPSS Score -->
-                            <Badge variant="secondary" class="text-xs px-2 py-1">
-                                EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
-                            </Badge>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Badge
+                                            variant="secondary"
+                                            class="text-xs px-2 py-1 cursor-help"
+                                        >
+                                            EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white border border-gray-300 shadow-lg"
+                                    >
+                                        <div class="max-w-sm space-y-3 p-3">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:trending-up"
+                                                    class="w-4 h-4 text-red-600"
+                                                />
+                                                <span class="font-semibold text-base text-gray-900">
+                                                    EPSS Score:
+                                                    {{ (report.EPSS.Score * 100).toFixed(1) }}%
+                                                </span>
+                                            </div>
+
+                                            <div
+                                                class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                                            >
+                                                <div class="font-medium text-gray-900">
+                                                    Exploit Prediction Scoring System
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    Predicts the probability that this vulnerability
+                                                    will be exploited in the wild within the next 30
+                                                    days.
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <strong>Score > 10%:</strong> High likelihood of
+                                                    exploitation - prioritize patching.
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-200">
+                                                <a
+                                                    href="https://www.first.org/epss/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                >
+                                                    Learn more about EPSS
+                                                    <Icon
+                                                        icon="tabler:external-link"
+                                                        class="w-3 h-3"
+                                                    />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
                             <!-- Additional Severity Sources with Confidence -->
                             <div

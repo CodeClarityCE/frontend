@@ -343,6 +343,15 @@ watch(() => filterState.value.activeFilters, init);
                             <div class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                                 {{ truncateDescription(report.Description) }}
                             </div>
+                            
+                            <!-- High Exploitation Risk Banner -->
+                            <div 
+                                v-if="report.EPSS.Score > 0.1" 
+                                class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium border border-red-200"
+                            >
+                                <Icon icon="tabler:trending-up" class="w-3 h-3" />
+                                <span>High exploitation probability ({{ (report.EPSS.Score * 100).toFixed(1) }}%)</span>
+                            </div>
                         </div>
 
                         <!-- Quick Actions & Key Metrics -->
@@ -350,10 +359,11 @@ watch(() => filterState.value.activeFilters, init);
                             <!-- High Impact Warning -->
                             <div
                                 v-if="report.EPSS.Score > 0.1"
-                                class="text-amber-500"
+                                class="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md border border-red-200"
                                 title="High exploitation probability"
                             >
-                                <Icon icon="tabler:alert-triangle" class="w-5 h-5" />
+                                <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
+                                <span class="text-xs font-semibold">HIGH RISK</span>
                             </div>
 
                             <!-- Conflict Warning -->

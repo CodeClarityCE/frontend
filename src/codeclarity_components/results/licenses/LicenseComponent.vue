@@ -79,6 +79,92 @@ const hasIssues = computed(() => {
     return props.license.license_compliance_violation || props.license.unable_to_infer;
 });
 
+// Helper functions for property descriptions
+const getPropertyDescription = (
+    property: string,
+    type: 'permission' | 'condition' | 'limitation'
+) => {
+    const descriptions = {
+        // Permissions
+        'commercial-use': 'The software may be used for commercial purposes.',
+        modifications: 'The software may be modified.',
+        distribution: 'The software may be distributed.',
+        'private-use': 'The software may be used and modified in private.',
+        'patent-use-permission':
+            'This license provides an express grant of patent rights from contributors.',
+
+        // Conditions
+        'include-copyright':
+            'A copy of the license and copyright notice must be included with the software.',
+        'include-copyright-source':
+            'A copy of the license and copyright notice must be included with the software in source form, but is not required for binaries.',
+        'document-changes': 'Changes made to the code must be documented.',
+        'disclose-source': 'Source code must be made available when the software is distributed.',
+        'network-use-disclose':
+            'Users who interact with the software via network are given the right to receive a copy of the source code.',
+        'same-license':
+            'Modifications must be released under the same license when distributing the software. In some cases a similar or related license may be used.',
+        'same-license-file':
+            'Modifications of existing files must be released under the same license when distributing the software. In some cases a similar or related license may be used.',
+        'same-license-library':
+            'Modifications must be released under the same license when distributing the software. In some cases a similar or related license may be used, or this condition may not apply to works that use the software as a library.',
+
+        // Limitations
+        'trademark-use':
+            'This license explicitly states that it does NOT grant trademark rights, even though licenses without such a statement probably do not grant any implicit trademark rights.',
+        liability: 'This license includes a limitation of liability.',
+        'patent-use-limitation':
+            'This license explicitly states that it does NOT grant any rights in the patents of contributors.',
+        warranty: 'The license explicitly states that it does NOT provide any warranty.'
+    };
+
+    // Handle patent-use for both permissions and limitations
+    if (property === 'patent-use') {
+        if (type === 'permission') {
+            return descriptions['patent-use-permission'];
+        } else if (type === 'limitation') {
+            return descriptions['patent-use-limitation'];
+        }
+    }
+
+    return descriptions[property as keyof typeof descriptions] || 'No information available.';
+};
+
+const getPropertyIcon = (property: string, type: 'permission' | 'condition' | 'limitation') => {
+    const icons = {
+        // Permissions
+        'commercial-use': 'tabler:building-store',
+        modifications: 'tabler:edit',
+        distribution: 'tabler:share',
+        'private-use': 'tabler:lock',
+        'patent-use': 'tabler:certificate',
+
+        // Conditions
+        'include-copyright': 'tabler:copyright',
+        'include-copyright-source': 'tabler:file-text',
+        'document-changes': 'tabler:file-diff',
+        'disclose-source': 'tabler:code',
+        'network-use-disclose': 'tabler:network',
+        'same-license': 'tabler:repeat',
+        'same-license-file': 'tabler:file-code',
+        'same-license-library': 'tabler:books',
+
+        // Limitations
+        'trademark-use': 'tabler:trademark',
+        liability: 'tabler:shield-off',
+        warranty: 'tabler:shield-x'
+    };
+
+    return icons[property as keyof typeof icons] || 'tabler:info-circle';
+};
+
+const formatPropertyName = (property: string) => {
+    return property
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
 type Props = {
     license: License;
     last?: boolean;
@@ -160,6 +246,21 @@ async function fillModal(title: string, type: string) {
         property_content.value = 'No information available.';
     }
 }
+
+// Helper functions for descriptions (using the main property description function)
+function getPermissionDescription(permission: string): string {
+    return getPropertyDescription(permission, 'permission');
+}
+
+function getConditionDescription(condition: string): string {
+    return getPropertyDescription(condition, 'condition');
+}
+
+function getLimitationDescription(limitation: string): string {
+    return getPropertyDescription(limitation, 'limitation');
+}
+
+// ...existing code...
 </script>
 
 <template>
@@ -450,114 +551,135 @@ async function fillModal(title: string, type: string) {
                 </div>
 
                 <!-- License Properties -->
-                <div
-                    v-if="props.license.license_properties"
-                    class="grid grid-cols-1 lg:grid-cols-3 gap-6"
-                >
-                    <!-- Permissions -->
+                <div v-if="props.license.license_properties" class="space-y-6">
+                    <!-- Permissions Section -->
                     <div
                         v-if="props.license.license_properties.permissions"
-                        class="bg-emerald-50 rounded-lg p-4"
+                        class="border border-emerald-200 rounded-lg overflow-hidden"
                     >
-                        <div class="flex items-center gap-2 mb-3">
-                            <Icon icon="tabler:shield-check" class="w-5 h-5 text-emerald-600" />
-                            <span class="font-semibold text-emerald-900">Permissions</span>
+                        <div class="bg-emerald-100 px-4 py-3 border-b border-emerald-200">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:check" class="w-5 h-5 text-emerald-700" />
+                                <h4 class="font-semibold text-emerald-900">Permissions</h4>
+                                <Badge
+                                    variant="secondary"
+                                    class="text-xs bg-emerald-50 text-emerald-700"
+                                >
+                                    {{
+                                        props.license.license_properties.permissions.length
+                                    }}
+                                    granted
+                                </Badge>
+                            </div>
+                            <p class="text-sm text-emerald-700 mt-1">
+                                Rights that the license explicitly grants to users
+                            </p>
                         </div>
-                        <div class="space-y-2">
+                        <div class="bg-emerald-50 p-4 space-y-3">
                             <div
                                 v-for="permission in props.license.license_properties.permissions"
                                 :key="permission"
+                                class="flex items-start gap-3 p-3 bg-white rounded-lg border border-emerald-100 hover:border-emerald-200 transition-colors"
                             >
-                                <Popover>
-                                    <PopoverTrigger>
-                                        <Badge
-                                            variant="secondary"
-                                            class="flex gap-1 items-center cursor-pointer hover:bg-emerald-100"
-                                            @click="fillModal(permission, 'permission')"
-                                        >
-                                            {{ permission }}
-                                            <Icon icon="tabler:info-circle" class="w-3 h-3" />
-                                        </Badge>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <div class="font-semibold">{{ property_title }}</div>
-                                        <div class="text-sm text-gray-600 mt-1">
-                                            {{ property_content }}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
+                                <Icon
+                                    :icon="getPropertyIcon(permission, 'permission')"
+                                    class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 mb-1">
+                                        {{ formatPropertyName(permission) }}
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        {{ getPermissionDescription(permission) }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Conditions -->
+                    <!-- Conditions Section -->
                     <div
                         v-if="props.license.license_properties.conditions"
-                        class="bg-amber-50 rounded-lg p-4"
+                        class="border border-amber-200 rounded-lg overflow-hidden"
                     >
-                        <div class="flex items-center gap-2 mb-3">
-                            <Icon icon="tabler:shield-exclamation" class="w-5 h-5 text-amber-600" />
-                            <span class="font-semibold text-amber-900">Conditions</span>
+                        <div class="bg-amber-100 px-4 py-3 border-b border-amber-200">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:alert-circle" class="w-5 h-5 text-amber-700" />
+                                <h4 class="font-semibold text-amber-900">Conditions</h4>
+                                <Badge
+                                    variant="secondary"
+                                    class="text-xs bg-amber-50 text-amber-700"
+                                >
+                                    {{
+                                        props.license.license_properties.conditions.length
+                                    }}
+                                    required
+                                </Badge>
+                            </div>
+                            <p class="text-sm text-amber-700 mt-1">
+                                Requirements that must be met when using this license
+                            </p>
                         </div>
-                        <div class="space-y-2">
+                        <div class="bg-amber-50 p-4 space-y-3">
                             <div
                                 v-for="condition in props.license.license_properties.conditions"
                                 :key="condition"
+                                class="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100 hover:border-amber-200 transition-colors"
                             >
-                                <Popover>
-                                    <PopoverTrigger>
-                                        <Badge
-                                            variant="secondary"
-                                            class="flex gap-1 items-center cursor-pointer hover:bg-amber-100"
-                                            @click="fillModal(condition, 'condition')"
-                                        >
-                                            {{ condition }}
-                                            <Icon icon="tabler:info-circle" class="w-3 h-3" />
-                                        </Badge>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <div class="font-semibold">{{ property_title }}</div>
-                                        <div class="text-sm text-gray-600 mt-1">
-                                            {{ property_content }}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
+                                <Icon
+                                    :icon="getPropertyIcon(condition, 'condition')"
+                                    class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 mb-1">
+                                        {{ formatPropertyName(condition) }}
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        {{ getConditionDescription(condition) }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Limitations -->
+                    <!-- Limitations Section -->
                     <div
                         v-if="props.license.license_properties.limitations"
-                        class="bg-red-50 rounded-lg p-4"
+                        class="border border-red-200 rounded-lg overflow-hidden"
                     >
-                        <div class="flex items-center gap-2 mb-3">
-                            <Icon icon="tabler:shield-x" class="w-5 h-5 text-red-600" />
-                            <span class="font-semibold text-red-900">Limitations</span>
+                        <div class="bg-red-100 px-4 py-3 border-b border-red-200">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:x" class="w-5 h-5 text-red-700" />
+                                <h4 class="font-semibold text-red-900">Limitations</h4>
+                                <Badge variant="secondary" class="text-xs bg-red-50 text-red-700">
+                                    {{
+                                        props.license.license_properties.limitations.length
+                                    }}
+                                    restrictions
+                                </Badge>
+                            </div>
+                            <p class="text-sm text-red-700 mt-1">
+                                Rights and protections that the license does NOT provide
+                            </p>
                         </div>
-                        <div class="space-y-2">
+                        <div class="bg-red-50 p-4 space-y-3">
                             <div
                                 v-for="limitation in props.license.license_properties.limitations"
                                 :key="limitation"
+                                class="flex items-start gap-3 p-3 bg-white rounded-lg border border-red-100 hover:border-red-200 transition-colors"
                             >
-                                <Popover>
-                                    <PopoverTrigger>
-                                        <Badge
-                                            variant="secondary"
-                                            class="flex gap-1 items-center cursor-pointer hover:bg-red-100"
-                                            @click="fillModal(limitation, 'limitation')"
-                                        >
-                                            {{ limitation }}
-                                            <Icon icon="tabler:info-circle" class="w-3 h-3" />
-                                        </Badge>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <div class="font-semibold">{{ property_title }}</div>
-                                        <div class="text-sm text-gray-600 mt-1">
-                                            {{ property_content }}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
+                                <Icon
+                                    :icon="getPropertyIcon(limitation, 'limitation')"
+                                    class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
+                                />
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 mb-1">
+                                        {{ formatPropertyName(limitation) }}
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        {{ getLimitationDescription(limitation) }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

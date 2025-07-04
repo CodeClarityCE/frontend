@@ -719,30 +719,57 @@ watch(() => filterState.value.activeFilters, init);
                                             <Tooltip>
                                                 <TooltipTrigger as-child>
                                                     <div
-                                                        class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold cursor-help"
+                                                        class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border severity-badge-bg cursor-help"
                                                         :class="{
-                                                            'bg-green-100 text-green-800':
-                                                                vla.Confidence >= 0.9,
-                                                            'bg-yellow-100 text-yellow-800':
-                                                                vla.Confidence >= 0.5 &&
-                                                                vla.Confidence < 0.9,
-                                                            'bg-red-100 text-red-800':
-                                                                vla.Confidence < 0.5
+                                                            'severity-critical-bg':
+                                                                vla.Score == 'critical',
+                                                            'severity-high-bg': vla.Score == 'high',
+                                                            'severity-medium-bg':
+                                                                vla.Score == 'medium',
+                                                            'severity-low-bg': vla.Score == 'low',
+                                                            'severity-none-bg':
+                                                                vla.Score == 'none' || !vla.Score
                                                         }"
                                                     >
-                                                        <Icon
-                                                            :icon="
-                                                                vla.Confidence >= 0.9
-                                                                    ? 'tabler:check-circle'
-                                                                    : vla.Confidence >= 0.5
-                                                                      ? 'tabler:alert-circle'
-                                                                      : 'tabler:x-circle'
-                                                            "
-                                                            class="w-3 h-3"
-                                                        />
-                                                        <span class="text-xs">{{
-                                                            vla.Source
-                                                        }}</span>
+                                                        <!-- Source icon/name -->
+                                                        <span
+                                                            class="font-semibold"
+                                                            :class="{
+                                                                'text-severityCritical':
+                                                                    vla.Score == 'critical',
+                                                                'text-severityHigh':
+                                                                    vla.Score == 'high',
+                                                                'text-severityMedium':
+                                                                    vla.Score == 'medium',
+                                                                'text-severityLow':
+                                                                    vla.Score == 'low',
+                                                                'text-severityNone':
+                                                                    vla.Score == 'none' ||
+                                                                    !vla.Score
+                                                            }"
+                                                        >
+                                                            {{ vla.Source }}
+                                                        </span>
+
+                                                        <!-- Severity level indicator -->
+                                                        <span
+                                                            v-if="vla.Score"
+                                                            class="ml-1 font-bold text-xs uppercase"
+                                                            :class="{
+                                                                'text-severityCritical':
+                                                                    vla.Score == 'critical',
+                                                                'text-severityHigh':
+                                                                    vla.Score == 'high',
+                                                                'text-severityMedium':
+                                                                    vla.Score == 'medium',
+                                                                'text-severityLow':
+                                                                    vla.Score == 'low',
+                                                                'text-severityNone':
+                                                                    vla.Score == 'none'
+                                                            }"
+                                                        >
+                                                            {{ vla.Score.charAt(0) }}
+                                                        </span>
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent
@@ -802,8 +829,23 @@ watch(() => filterState.value.activeFilters, init);
                                                                     >Severity Rating:</span
                                                                 >
                                                                 <span
-                                                                    class="font-bold text-gray-900 capitalize"
-                                                                    >{{ vla.Score }}</span
+                                                                    class="font-bold capitalize px-2 py-1 rounded text-xs severity-badge-bg"
+                                                                    :class="{
+                                                                        'severity-critical-bg text-severityCritical':
+                                                                            vla.Score == 'critical',
+                                                                        'severity-high-bg text-severityHigh':
+                                                                            vla.Score == 'high',
+                                                                        'severity-medium-bg text-severityMedium':
+                                                                            vla.Score == 'medium',
+                                                                        'severity-low-bg text-severityLow':
+                                                                            vla.Score == 'low',
+                                                                        'severity-none-bg text-severityNone':
+                                                                            vla.Score == 'none' ||
+                                                                            !vla.Score
+                                                                    }"
+                                                                    >{{
+                                                                        vla.Score || 'Not Available'
+                                                                    }}</span
                                                                 >
                                                             </div>
                                                         </div>
@@ -1600,5 +1642,26 @@ td {
 .severity-none-bg {
     background-color: rgb(249 250 251);
     border-color: rgb(209 213 219);
+}
+
+/* Severity text colors */
+.text-severityCritical {
+    color: rgb(220 38 38);
+}
+
+.text-severityHigh {
+    color: rgb(234 88 12);
+}
+
+.text-severityMedium {
+    color: rgb(202 138 4);
+}
+
+.text-severityLow {
+    color: rgb(37 99 235);
+}
+
+.text-severityNone {
+    color: rgb(107 114 128);
 }
 </style>

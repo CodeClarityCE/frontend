@@ -552,23 +552,23 @@ watch(() => filterState.value.activeFilters, init);
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-red-500 rounded"></div>
+                                <div class="w-3 h-3 bg-severityCritical rounded"></div>
                                 <span class="text-gray-600 dark:text-gray-400"
                                     >Critical (9.0-10.0)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-orange-500 rounded"></div>
+                                <div class="w-3 h-3 bg-severityHigh rounded"></div>
                                 <span class="text-gray-600 dark:text-gray-400">High (7.0-8.9)</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-yellow-500 rounded"></div>
+                                <div class="w-3 h-3 bg-severityMedium rounded"></div>
                                 <span class="text-gray-600 dark:text-gray-400"
                                     >Medium (4.0-6.9)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-blue-500 rounded"></div>
+                                <div class="w-3 h-3 bg-severityLow rounded"></div>
                                 <span class="text-gray-600 dark:text-gray-400">Low (0.1-3.9)</span>
                             </div>
                         </div>

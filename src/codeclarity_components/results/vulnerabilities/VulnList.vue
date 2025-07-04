@@ -123,11 +123,110 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
-function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
-    const owaspIds = weaknessInfo.map((weakness) => weakness.OWASPTop10Id);
-    const uniqueOwaspIds = Array.from(new Set(owaspIds));
+// OWASP Top 10 2021 mapping with descriptions
+const owaspMapping: Record<
+    string,
+    {
+        id: string;
+        name: string;
+        description: string;
+        impact: string;
+        color: string;
+    }
+> = {
+    '1345': {
+        id: 'A01',
+        name: 'Broken Access Control',
+        description:
+            'Failures related to restrictions on what authenticated users are allowed to do.',
+        impact: 'Unauthorized access to data, functions, or entire systems.',
+        color: 'bg-red-50 border-red-200 text-red-800'
+    },
+    '1346': {
+        id: 'A02',
+        name: 'Cryptographic Failures',
+        description: 'Failures related to cryptography which lead to exposure of sensitive data.',
+        impact: 'Data breaches, identity theft, and exposure of sensitive information.',
+        color: 'bg-orange-50 border-orange-200 text-orange-800'
+    },
+    '1347': {
+        id: 'A03',
+        name: 'Injection',
+        description:
+            'Application is vulnerable to injection attacks when untrusted data is sent as part of a command or query.',
+        impact: 'Data loss, corruption, denial of access, or complete host takeover.',
+        color: 'bg-red-50 border-red-200 text-red-800'
+    },
+    '1348': {
+        id: 'A04',
+        name: 'Insecure Design',
+        description: 'Missing or ineffective control design that could have prevented attacks.',
+        impact: 'Wide range of attacks depending on the missing security controls.',
+        color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+    },
+    '1349': {
+        id: 'A05',
+        name: 'Security Misconfiguration',
+        description: 'Missing appropriate security hardening or improperly configured permissions.',
+        impact: 'Unauthorized access to system data or functionality.',
+        color: 'bg-blue-50 border-blue-200 text-blue-800'
+    },
+    '1352': {
+        id: 'A06',
+        name: 'Vulnerable Components',
+        description: 'Using components with known vulnerabilities or outdated versions.',
+        impact: 'Range from minimal to complete host takeover and data compromise.',
+        color: 'bg-purple-50 border-purple-200 text-purple-800'
+    },
+    '1353': {
+        id: 'A07',
+        name: 'Authentication Failures',
+        description: 'Application functions related to authentication and session management.',
+        impact: 'Compromise of passwords, keys, or session tokens.',
+        color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+    },
+    '1354': {
+        id: 'A08',
+        name: 'Software & Data Integrity',
+        description: 'Code and infrastructure that does not protect against integrity violations.',
+        impact: 'Unauthorized code execution and system compromise.',
+        color: 'bg-pink-50 border-pink-200 text-pink-800'
+    },
+    '1355': {
+        id: 'A09',
+        name: 'Logging & Monitoring',
+        description: 'Insufficient logging and monitoring coupled with missing incident response.',
+        impact: 'Allows attacks to continue undetected and escalate.',
+        color: 'bg-green-50 border-green-200 text-green-800'
+    },
+    '1356': {
+        id: 'A10',
+        name: 'Server-Side Request Forgery',
+        description:
+            'SSRF flaws occur when a web application fetches a remote resource without validating user-supplied URL.',
+        impact: 'Unauthorized access to internal systems and data exfiltration.',
+        color: 'bg-teal-50 border-teal-200 text-teal-800'
+    }
+};
 
+function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
+    const owaspIds = weaknessInfo
+        .map((weakness) => weakness.OWASPTop10Id)
+        .filter((id) => id && id !== '');
+    const uniqueOwaspIds = Array.from(new Set(owaspIds));
     return uniqueOwaspIds;
+}
+
+function getOwaspInfo(owaspId: string) {
+    return (
+        owaspMapping[owaspId] || {
+            id: 'Unknown',
+            name: 'Uncategorized',
+            description: 'This vulnerability does not map to a specific OWASP Top 10 category.',
+            impact: 'Impact varies depending on the specific vulnerability.',
+            color: 'bg-gray-50 border-gray-200 text-gray-800'
+        }
+    );
 }
 
 function toggleCardExpansion(vulnerabilityId: string) {
@@ -824,6 +923,21 @@ watch(() => filterState.value.activeFilters, init);
                                                         confidence - verify with additional sources
                                                     </p>
                                                 </div>
+
+                                                <div class="pt-2 border-t border-gray-200">
+                                                    <a
+                                                        href="https://www.vulnerability-lookup.org/user-manual/ai/"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                    >
+                                                        Learn more about VLAI assessments
+                                                        <Icon
+                                                            icon="tabler:external-link"
+                                                            class="w-3 h-3"
+                                                        />
+                                                    </a>
+                                                </div>
                                             </div>
                                         </TooltipContent>
                                     </Tooltip>
@@ -1215,17 +1329,83 @@ watch(() => filterState.value.activeFilters, init);
                         <!-- OWASP Top 10 Information -->
                         <div
                             v-if="report.Weaknesses?.some((w) => w.OWASPTop10Id !== '')"
-                            class="flex gap-2 items-center text-sm text-gray-600 mb-3"
+                            class="mb-3"
                         >
-                            <Icon icon="simple-icons:owasp" class="w-4 h-4" />
-                            <div
-                                v-for="owaspID in getUniqueOWASP(report.Weaknesses)"
-                                :key="owaspID"
-                            >
-                                <span v-if="owaspID === '1347'" class="font-medium"
-                                    >A03: Injection</span
+                            <div class="flex flex-wrap gap-2">
+                                <div
+                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses)"
+                                    :key="owaspID"
                                 >
-                                <!-- Add other OWASP mappings as needed -->
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div
+                                                    :class="[
+                                                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all hover:shadow-sm cursor-help',
+                                                        getOwaspInfo(owaspID).color
+                                                    ]"
+                                                >
+                                                    <Icon
+                                                        icon="simple-icons:owasp"
+                                                        class="w-3 h-3"
+                                                    />
+                                                    <span
+                                                        >{{ getOwaspInfo(owaspID).id }}:
+                                                        {{ getOwaspInfo(owaspID).name }}</span
+                                                    >
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                                class="bg-white border border-gray-300 shadow-lg max-w-sm"
+                                            >
+                                                <div class="space-y-3 p-3">
+                                                    <div class="flex items-center gap-2">
+                                                        <Icon
+                                                            icon="simple-icons:owasp"
+                                                            class="w-4 h-4 text-orange-600"
+                                                        />
+                                                        <span
+                                                            class="font-semibold text-base text-gray-900"
+                                                        >
+                                                            OWASP {{ getOwaspInfo(owaspID).id }}
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="space-y-2">
+                                                        <div>
+                                                            <h4
+                                                                class="font-medium text-sm text-gray-900 mb-1"
+                                                            >
+                                                                {{ getOwaspInfo(owaspID).name }}
+                                                            </h4>
+                                                            <p
+                                                                class="text-sm text-gray-600 leading-relaxed"
+                                                            >
+                                                                {{
+                                                                    getOwaspInfo(owaspID)
+                                                                        .description
+                                                                }}
+                                                            </p>
+                                                        </div>
+
+                                                        <div class="bg-gray-50 p-2 rounded-lg">
+                                                            <h5
+                                                                class="font-medium text-xs text-gray-700 mb-1"
+                                                            >
+                                                                Potential Impact:
+                                                            </h5>
+                                                            <p
+                                                                class="text-xs text-gray-600 leading-relaxed"
+                                                            >
+                                                                {{ getOwaspInfo(owaspID).impact }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                             </div>
                         </div>
 

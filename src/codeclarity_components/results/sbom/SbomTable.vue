@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, type Ref, watch, shallowRef } from 'vue';
+import { ref, onMounted, type Ref, watch, shallowRef, computed } from 'vue';
 import { columns } from './table/columns';
 import DataTable from './table/DataTable.vue';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
@@ -38,6 +38,19 @@ const columnFilters = ref<ColumnFiltersState>([]);
 // By default, all columns are visible except for the release column
 const columnVisibility = ref<VisibilityState>({
     release: false
+});
+
+// Computed statistics for dashboard
+const outdatedCount = computed(() => {
+    return data.value.filter(dep => dep.version !== dep.newest_release).length;
+});
+
+const directCount = computed(() => {
+    return data.value.filter(dep => dep.is_direct_count > 0).length;
+});
+
+const prodCount = computed(() => {
+    return data.value.filter(dep => dep.prod).length;
 });
 
 async function init() {
@@ -125,11 +138,49 @@ watch([selected_workspace], () => init());
                     <span>{{ nmbEntriesTotal }} total dependencies</span>
                 </div>
             </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:package" class="w-4 h-4 text-blue-500" />
+                        <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ nmbEntriesTotal }}</div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:alert-triangle" class="w-4 h-4 text-amber-500" />
+                        <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Outdated</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ outdatedCount }}</div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:target" class="w-4 h-4 text-purple-500" />
+                        <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Direct</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ directCount }}</div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:code" class="w-4 h-4 text-green-500" />
+                        <span class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Prod</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ prodCount }}</div>
+                </div>
+            </div>
             
             <!-- Status Legend -->
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border">
-                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Dependency Types</h3>
-                <div class="flex flex-wrap gap-4 text-xs">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-lg p-4 border">
+                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <Icon icon="tabler:info-circle" class="w-4 h-4" />
+                    Dependency Types & Status Indicators
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 bg-purple-100 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded"></div>
                         <span class="text-gray-600 dark:text-gray-400">Direct dependencies (requested by you)</span>
@@ -151,15 +202,38 @@ watch([selected_workspace], () => init());
         </div>
 
         <!-- Data Table -->
-        <DataTable
-            v-model:page-limit-selected="pageLimitSelected"
-            v-model:search-key="searchKey"
-            v-model:sorting="sorting"
-            v-model:column-filters="columnFilters"
-            v-model:column-visibility="columnVisibility"
-            v-model:data="data"
-            :columns="columns"
-        />
+        <div v-if="render">
+            <DataTable
+                v-model:page-limit-selected="pageLimitSelected"
+                v-model:search-key="searchKey"
+                v-model:sorting="sorting"
+                v-model:column-filters="columnFilters"
+                v-model:column-visibility="columnVisibility"
+                v-model:data="data"
+                :columns="columns"
+            />
+        </div>
+        
+        <!-- Loading State -->
+        <div v-else class="border rounded-lg overflow-hidden bg-white dark:bg-gray-950">
+            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 border-b">
+                <div class="flex items-center justify-between">
+                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
+                    <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    <div v-for="i in 8" :key="i" class="flex items-center gap-4">
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded flex-1 animate-pulse"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Enhanced Pagination -->
         <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border">

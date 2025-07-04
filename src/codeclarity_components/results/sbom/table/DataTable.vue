@@ -43,6 +43,7 @@ const columnVisibility = defineModel<VisibilityState>('columnVisibility', { defa
 const data = defineModel<TData[]>('data', { default: [] });
 
 const rowSelection = ref({});
+const rowDensity = ref('normal');
 
 const table = useVueTable({
     data,
@@ -83,6 +84,11 @@ function setPageSize(pageSize: any) {
 function search(_searchKey: any) {
     searchKey.value = String(_searchKey || '');
 }
+
+function toggleFilter(filterType: string) {
+    // This would integrate with your actual filtering logic
+    console.log('Toggle filter:', filterType);
+}
 </script>
 
 <template>
@@ -94,42 +100,86 @@ function search(_searchKey: any) {
                     <Icon icon="tabler:search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                         class="pl-10 bg-white dark:bg-gray-800"
-                        placeholder="Filter dependencies..."
+                        placeholder="Search by name, version, or status..."
                         :model-value="table.getColumn('name')?.getFilterValue() as string"
                         @update:model-value="search"
                     />
                 </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                    {{ table.getFilteredRowModel().rows.length }} dependencies
+                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center gap-1">
+                        <Icon icon="tabler:filter" class="w-3 h-3" />
+                        {{ table.getFilteredRowModel().rows.length }} dependencies
+                    </div>
+                    
+                    <!-- Row Density Toggle -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs">Density:</span>
+                        <Select :model-value="rowDensity" @update:model-value="(value: any) => rowDensity = value">
+                            <SelectTrigger class="h-7 w-20 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="compact">Compact</SelectItem>
+                                <SelectItem value="normal">Normal</SelectItem>
+                                <SelectItem value="comfortable">Roomy</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
             
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <Button variant="outline" class="gap-2">
-                        <Icon icon="tabler:columns" class="w-4 h-4" />
-                        Columns
-                        <Icon icon="tabler:chevron-down" class="w-4 h-4"></Icon>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" class="w-48">
-                    <DropdownMenuCheckboxItem
-                        v-for="column in table
-                            .getAllColumns()
-                            .filter((column) => column.getCanHide())"
-                        :key="column.id"
-                        class="capitalize"
-                        :checked="column.getIsVisible()"
-                        @update:checked="
-                            (value: any) => {
-                                column.toggleVisibility(!!value);
-                            }
-                        "
-                    >
-                        {{ column.id.replace('_', ' ') }}
-                    </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <div class="flex items-center gap-2">
+                <!-- Quick Filters -->
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button variant="outline" size="sm" class="gap-2">
+                            <Icon icon="tabler:filter-star" class="w-4 h-4" />
+                            Quick Filters
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-52">
+                        <DropdownMenuCheckboxItem @click="toggleFilter('outdated')">
+                            <Icon icon="tabler:alert-triangle" class="w-4 h-4 mr-2 text-amber-500" />
+                            Show only outdated
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem @click="toggleFilter('direct')">
+                            <Icon icon="tabler:target" class="w-4 h-4 mr-2 text-purple-500" />
+                            Show only direct
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem @click="toggleFilter('dev')">
+                            <Icon icon="tabler:code" class="w-4 h-4 mr-2 text-blue-500" />
+                            Show only dev deps
+                        </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button variant="outline" class="gap-2">
+                            <Icon icon="tabler:columns" class="w-4 h-4" />
+                            Columns
+                            <Icon icon="tabler:chevron-down" class="w-4 h-4"></Icon>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-48">
+                        <DropdownMenuCheckboxItem
+                            v-for="column in table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())"
+                            :key="column.id"
+                            class="capitalize"
+                            :checked="column.getIsVisible()"
+                            @update:checked="
+                                (value: any) => {
+                                    column.toggleVisibility(!!value);
+                                }
+                            "
+                        >
+                            {{ column.id.replace('_', ' ') }}
+                        </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
         </div>
 
         <!-- Table Section -->
@@ -153,15 +203,31 @@ function search(_searchKey: any) {
                 <TableBody>
                     <template v-if="table.getRowModel().rows?.length">
                         <TableRow
-                            v-for="row in table.getRowModel().rows"
+                            v-for="(row, index) in table.getRowModel().rows"
                             :key="row.id"
                             :data-state="row.getIsSelected() ? 'selected' : undefined"
-                            class="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150 border-b border-gray-100 dark:border-gray-800"
+                            :class="[
+                                'transition-colors duration-150 border-b border-gray-100 dark:border-gray-800',
+                                'hover:bg-blue-50 dark:hover:bg-blue-950/30',
+                                {
+                                    'h-12': rowDensity === 'compact',
+                                    'h-16': rowDensity === 'normal', 
+                                    'h-20': rowDensity === 'comfortable',
+                                    'bg-gray-50/50 dark:bg-gray-900/20': index % 2 === 1
+                                }
+                            ]"
                         >
                             <TableCell 
                                 v-for="cell in row.getVisibleCells()" 
                                 :key="cell.id"
-                                class="py-3"
+                                :class="[
+                                    'align-middle',
+                                    {
+                                        'py-2': rowDensity === 'compact',
+                                        'py-3': rowDensity === 'normal',
+                                        'py-4': rowDensity === 'comfortable'
+                                    }
+                                ]"
                             >
                                 <FlexRender
                                     :render="cell.column.columnDef.cell"

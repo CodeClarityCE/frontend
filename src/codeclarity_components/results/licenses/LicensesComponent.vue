@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { ref, type Ref, watch } from 'vue';
+import { ref, type Ref, watch, computed } from 'vue';
 import SearchBar from '@/base_components/SearchBar.vue';
 import BoxLoader from '@/base_components/BoxLoader.vue';
+import { Icon } from '@iconify/vue';
 
 // import moment from 'moment';
 import LicenseComponent from './LicenseComponent.vue';
@@ -118,32 +119,216 @@ async function init() {
     }
 }
 
+// Computed statistics for dashboard
+const uniqueLicenseCount = computed(() => {
+    return licensesUsed.value.length;
+});
+
+const totalDependencies = computed(() => {
+    return licensesUsed.value.reduce(
+        (total, license) => total + (license.deps_using_license?.length || 0),
+        0
+    );
+});
+
+const copyleftLicenseCount = computed(() => {
+    const copyleftLicenses = ['GPL', 'LGPL', 'AGPL', 'MPL', 'EPL', 'CDDL', 'EUPL'];
+    return licensesUsed.value.filter((license) =>
+        copyleftLicenses.some(
+            (copyleft) =>
+                license.name?.toUpperCase().includes(copyleft) ||
+                license.id?.toUpperCase().includes(copyleft)
+        )
+    ).length;
+});
+
+const permissiveLicenseCount = computed(() => {
+    const permissiveLicenses = ['MIT', 'BSD', 'Apache', 'ISC', 'Zlib'];
+    return licensesUsed.value.filter((license) =>
+        permissiveLicenses.some(
+            (permissive) =>
+                license.name?.toUpperCase().includes(permissive) ||
+                license.id?.toUpperCase().includes(permissive)
+        )
+    ).length;
+});
+
 init();
 </script>
 
 <template>
-    <div class="flex flex-col gap-y-2">
-        <div class="flex gap-4">
-            <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
+    <div class="container py-6 mx-auto space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Licenses</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        License compliance and usage analysis for your project dependencies
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Icon icon="tabler:license" class="w-4 h-4" />
+                    <span>{{ nmbEntriesTotal }} total licenses</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:file-certificate" class="w-4 h-4 text-blue-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Unique</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ uniqueLicenseCount }}
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:package" class="w-4 h-4 text-green-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Dependencies</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ totalDependencies }}
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:shield-check" class="w-4 h-4 text-emerald-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Permissive</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ permissiveLicenseCount }}
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:shield-exclamation" class="w-4 h-4 text-orange-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Copyleft</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ copyleftLicenseCount }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- License Information Legend -->
+            <div
+                class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800"
+            >
+                <h3
+                    class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2"
+                >
+                    <Icon icon="tabler:info-circle" class="w-4 h-4" />
+                    License Types & Compliance Information
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                    <div class="space-y-2">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                            License Categories
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-emerald-500 rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Permissive (MIT, BSD, Apache)</span
+                                >
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-orange-500 rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Copyleft (GPL, LGPL, MPL)</span
+                                >
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-gray-500 rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Proprietary & Other</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                            Compliance Status
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:check-circle" class="w-3 h-3 text-green-600" />
+                                <span class="text-gray-600 dark:text-gray-400">Compliant</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Icon
+                                    icon="tabler:alert-triangle"
+                                    class="w-3 h-3 text-orange-600"
+                                />
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Review Required</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">Usage Rights</div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:building" class="w-3 h-3 text-blue-600" />
+                                <span class="text-gray-600 dark:text-gray-400">Commercial Use</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:git-fork" class="w-3 h-3 text-purple-600" />
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Distribution Rights</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!--------------------------------------------------------------------------->
-        <!--                           Active Filters list                         -->
-        <!--------------------------------------------------------------------------->
+        <!-- Search and Filters -->
+        <div class="flex flex-col gap-4">
+            <div class="flex gap-4">
+                <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
+                <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
+            </div>
 
-        <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
+            <!--------------------------------------------------------------------------->
+            <!--                           Active Filters list                         -->
+            <!--------------------------------------------------------------------------->
 
-        <UtilitiesSort
-            v-model:page-limit-selected="pageLimitSelected"
-            v-model:sort-key="sortKey"
-            v-model:sort-direction="sortDirection"
-            :selection-page-limit="selectionPageLimit"
-            :sort-options="sortByOptions"
-            :showing="nmbEntriesShowing"
-            :total="nmbEntriesTotal"
-        >
-        </UtilitiesSort>
+            <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
+
+            <UtilitiesSort
+                v-model:page-limit-selected="pageLimitSelected"
+                v-model:sort-key="sortKey"
+                v-model:sort-direction="sortDirection"
+                :selection-page-limit="selectionPageLimit"
+                :sort-options="sortByOptions"
+                :showing="nmbEntriesShowing"
+                :total="nmbEntriesTotal"
+            >
+            </UtilitiesSort>
+        </div>
+
+        <!-- Licenses List -->
         <div v-if="render" class="flex flex-col gap-y-8">
             <div v-for="(license, index) in licensesUsed" :key="index">
                 <LicenseComponent
@@ -154,28 +339,49 @@ init();
                     :project-i-d="projectID"
                 />
             </div>
+
+            <!-- No Results Messages -->
+            <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
+                <div style="text-align: center">No licenses match the filter</div>
+            </div>
+            <div v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5">
+                <div style="text-align: center">No licenses</div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between border-t border-gray-200 py-4">
+                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:file-text" class="w-4 h-4" />
+                        <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>
+                    </div>
+                    <div class="text-xs">
+                        Showing
+                        {{ Math.min(pageNumber * pageLimitSelected + 1, nmbEntriesTotal) }}-{{
+                            Math.min((pageNumber + 1) * pageLimitSelected, nmbEntriesTotal)
+                        }}
+                        of {{ nmbEntriesTotal }}
+                    </div>
+                </div>
+
+                <PaginationComponent
+                    v-model:page="pageNumber"
+                    v-model:nmb-entries-showing="pageLimitSelected"
+                    v-model:nmb-entries-total="nmbEntriesTotal"
+                    v-model:total-pages="totalPages"
+                />
+            </div>
         </div>
-        <div v-if="matchingItemsCount == 0 && filterApplied && render" style="">
-            <div style="text-align: center">No licenses match the filter</div>
-        </div>
-        <div v-if="matchingItemsCount == 0 && !filterApplied && render" style="">
-            <div style="text-align: center">No licenses</div>
-        </div>
-        <div v-if="!render" style="display: flex; flex-direction: column; row-gap: 10px">
-            <BoxLoader
-                v-for="index in 4"
-                :key="index"
-                :dimensions="{ width: '100%', height: '100px' }"
-            />
-        </div>
-        <div class="text-[#484848] font-normal flex justify-between mt-7">
-            <div style="">Showing {{ nmbEntriesShowing }} out of {{ nmbEntriesTotal }} entries</div>
-            <PaginationComponent
-                v-model:page="pageNumber"
-                v-model:nmb-entries-showing="pageLimitSelected"
-                v-model:nmb-entries-total="nmbEntriesTotal"
-                v-model:total-pages="totalPages"
-            />
+
+        <!-- Loading skeleton -->
+        <div v-else>
+            <div class="flex flex-col gap-2">
+                <BoxLoader
+                    v-for="index in 4"
+                    :key="index"
+                    :dimensions="{ width: '100%', height: '100px' }"
+                />
+            </div>
         </div>
     </div>
 </template>

@@ -892,47 +892,324 @@ watch(() => filterState.value.activeFilters, init);
 
                         <!-- Impact Information -->
                         <div class="flex gap-1.5 mb-3">
-                            <BubbleComponent
-                                v-if="
-                                    report.Severity?.ConfidentialityImpact !== 'NONE' &&
-                                    report.Severity?.ConfidentialityImpact !== ''
-                                "
-                                title="Impacts Confidentiality"
-                                class="text-xs"
-                            >
-                                <template #content>
-                                    <Icon icon="tabler:shield-lock" class="w-3 h-3" />
-                                    <span>Confidentiality</span>
-                                </template>
-                            </BubbleComponent>
+                            <TooltipProvider>
+                                <Tooltip
+                                    v-if="
+                                        report.Severity?.ConfidentialityImpact !== 'NONE' &&
+                                        report.Severity?.ConfidentialityImpact !== ''
+                                    "
+                                >
+                                    <TooltipTrigger as-child>
+                                        <BubbleComponent
+                                            class="text-xs impact-bubble cursor-pointer"
+                                            :class="{
+                                                'impact-high':
+                                                    report.Severity?.ConfidentialityImpact ===
+                                                        'HIGH' ||
+                                                    report.Severity?.ConfidentialityImpact ===
+                                                        'COMPLETE',
+                                                'impact-medium':
+                                                    report.Severity?.ConfidentialityImpact ===
+                                                        'LOW' ||
+                                                    report.Severity?.ConfidentialityImpact ===
+                                                        'PARTIAL'
+                                            }"
+                                        >
+                                            <template #content>
+                                                <Icon icon="tabler:shield-lock" class="w-3 h-3" />
+                                                <span>Confidentiality</span>
+                                                <span class="ml-1 text-xs font-bold text-white">
+                                                    {{ report.Severity?.ConfidentialityImpact }}
+                                                </span>
+                                            </template>
+                                        </BubbleComponent>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white text-gray-800 shadow-lg border max-w-sm"
+                                    >
+                                        <div class="space-y-3 p-1">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:shield-lock"
+                                                    class="w-4 h-4 text-blue-600"
+                                                />
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-semibold text-base"
+                                                        >Confidentiality Impact</span
+                                                    >
+                                                    <span
+                                                        class="px-2 py-1 rounded text-xs font-bold text-white"
+                                                        :class="{
+                                                            'bg-red-600':
+                                                                report.Severity
+                                                                    ?.ConfidentialityImpact ===
+                                                                    'HIGH' ||
+                                                                report.Severity
+                                                                    ?.ConfidentialityImpact ===
+                                                                    'COMPLETE',
+                                                            'bg-orange-600':
+                                                                report.Severity
+                                                                    ?.ConfidentialityImpact ===
+                                                                    'LOW' ||
+                                                                report.Severity
+                                                                    ?.ConfidentialityImpact ===
+                                                                    'PARTIAL'
+                                                        }"
+                                                    >
+                                                        {{ report.Severity?.ConfidentialityImpact }}
+                                                    </span>
+                                                </div>
+                                            </div>
 
-                            <BubbleComponent
-                                v-if="
-                                    report.Severity?.AvailabilityImpact !== 'NONE' &&
-                                    report.Severity?.AvailabilityImpact !== ''
-                                "
-                                title="Impacts Availability"
-                                class="text-xs"
-                            >
-                                <template #content>
-                                    <Icon icon="tabler:server" class="w-3 h-3" />
-                                    <span>Availability</span>
-                                </template>
-                            </BubbleComponent>
+                                            <div class="text-sm bg-gray-50 p-3 rounded-lg">
+                                                <div class="font-medium text-gray-900 mb-2">
+                                                    {{
+                                                        report.Severity?.ConfidentialityImpact ===
+                                                            'HIGH' ||
+                                                        report.Severity?.ConfidentialityImpact ===
+                                                            'COMPLETE'
+                                                            ? 'High Impact'
+                                                            : 'Limited Impact'
+                                                    }}
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <span
+                                                        v-if="
+                                                            report.Severity
+                                                                ?.ConfidentialityImpact ===
+                                                                'HIGH' ||
+                                                            report.Severity
+                                                                ?.ConfidentialityImpact ===
+                                                                'COMPLETE'
+                                                        "
+                                                    >
+                                                        Complete loss of confidentiality - attackers
+                                                        can access all sensitive data, user
+                                                        credentials, encryption keys, or system
+                                                        secrets. This represents a total compromise
+                                                        of data privacy.
+                                                    </span>
+                                                    <span v-else>
+                                                        Partial confidentiality loss - attackers can
+                                                        access some restricted information, but
+                                                        cannot control what is obtained. The scope
+                                                        of information disclosure is limited.
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
-                            <BubbleComponent
-                                v-if="
-                                    report.Severity?.IntegrityImpact !== 'NONE' &&
-                                    report.Severity?.IntegrityImpact !== ''
-                                "
-                                title="Impacts Integrity"
-                                class="text-xs"
-                            >
-                                <template #content>
-                                    <Icon icon="tabler:shield-check" class="w-3 h-3" />
-                                    <span>Integrity</span>
-                                </template>
-                            </BubbleComponent>
+                            <TooltipProvider>
+                                <Tooltip
+                                    v-if="
+                                        report.Severity?.AvailabilityImpact !== 'NONE' &&
+                                        report.Severity?.AvailabilityImpact !== ''
+                                    "
+                                >
+                                    <TooltipTrigger as-child>
+                                        <BubbleComponent
+                                            class="text-xs impact-bubble cursor-pointer"
+                                            :class="{
+                                                'impact-high':
+                                                    report.Severity?.AvailabilityImpact ===
+                                                        'HIGH' ||
+                                                    report.Severity?.AvailabilityImpact ===
+                                                        'COMPLETE',
+                                                'impact-medium':
+                                                    report.Severity?.AvailabilityImpact === 'LOW' ||
+                                                    report.Severity?.AvailabilityImpact ===
+                                                        'PARTIAL'
+                                            }"
+                                        >
+                                            <template #content>
+                                                <Icon icon="tabler:server" class="w-3 h-3" />
+                                                <span>Availability</span>
+                                                <span class="ml-1 text-xs font-bold text-white">
+                                                    {{ report.Severity?.AvailabilityImpact }}
+                                                </span>
+                                            </template>
+                                        </BubbleComponent>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white text-gray-800 shadow-lg border max-w-sm"
+                                    >
+                                        <div class="space-y-3 p-1">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:server"
+                                                    class="w-4 h-4 text-purple-600"
+                                                />
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-semibold text-base"
+                                                        >Availability Impact</span
+                                                    >
+                                                    <span
+                                                        class="px-2 py-1 rounded text-xs font-bold text-white"
+                                                        :class="{
+                                                            'bg-red-600':
+                                                                report.Severity
+                                                                    ?.AvailabilityImpact ===
+                                                                    'HIGH' ||
+                                                                report.Severity
+                                                                    ?.AvailabilityImpact ===
+                                                                    'COMPLETE',
+                                                            'bg-orange-600':
+                                                                report.Severity
+                                                                    ?.AvailabilityImpact ===
+                                                                    'LOW' ||
+                                                                report.Severity
+                                                                    ?.AvailabilityImpact ===
+                                                                    'PARTIAL'
+                                                        }"
+                                                    >
+                                                        {{ report.Severity?.AvailabilityImpact }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-sm bg-gray-50 p-3 rounded-lg">
+                                                <div class="font-medium text-gray-900 mb-2">
+                                                    {{
+                                                        report.Severity?.AvailabilityImpact ===
+                                                            'HIGH' ||
+                                                        report.Severity?.AvailabilityImpact ===
+                                                            'COMPLETE'
+                                                            ? 'Complete Service Disruption'
+                                                            : 'Performance Degradation'
+                                                    }}
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <span
+                                                        v-if="
+                                                            report.Severity?.AvailabilityImpact ===
+                                                                'HIGH' ||
+                                                            report.Severity?.AvailabilityImpact ===
+                                                                'COMPLETE'
+                                                        "
+                                                    >
+                                                        Total shutdown or denial of service -
+                                                        attackers can completely prevent legitimate
+                                                        users from accessing the system or service,
+                                                        causing sustained outages and business
+                                                        disruption.
+                                                    </span>
+                                                    <span v-else>
+                                                        Reduced performance or intermittent
+                                                        interruptions - some resources may be
+                                                        partially available, but overall system
+                                                        functionality is degraded without complete
+                                                        failure.
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                                <Tooltip
+                                    v-if="
+                                        report.Severity?.IntegrityImpact !== 'NONE' &&
+                                        report.Severity?.IntegrityImpact !== ''
+                                    "
+                                >
+                                    <TooltipTrigger as-child>
+                                        <BubbleComponent
+                                            class="text-xs impact-bubble cursor-pointer"
+                                            :class="{
+                                                'impact-high':
+                                                    report.Severity?.IntegrityImpact === 'HIGH' ||
+                                                    report.Severity?.IntegrityImpact === 'COMPLETE',
+                                                'impact-medium':
+                                                    report.Severity?.IntegrityImpact === 'LOW' ||
+                                                    report.Severity?.IntegrityImpact === 'PARTIAL'
+                                            }"
+                                        >
+                                            <template #content>
+                                                <Icon icon="tabler:shield-check" class="w-3 h-3" />
+                                                <span>Integrity</span>
+                                                <span class="ml-1 text-xs font-bold text-white">
+                                                    {{ report.Severity?.IntegrityImpact }}
+                                                </span>
+                                            </template>
+                                        </BubbleComponent>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white text-gray-800 shadow-lg border max-w-sm"
+                                    >
+                                        <div class="space-y-3 p-1">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:shield-check"
+                                                    class="w-4 h-4 text-green-600"
+                                                />
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-semibold text-base"
+                                                        >Integrity Impact</span
+                                                    >
+                                                    <span
+                                                        class="px-2 py-1 rounded text-xs font-bold text-white"
+                                                        :class="{
+                                                            'bg-red-600':
+                                                                report.Severity?.IntegrityImpact ===
+                                                                    'HIGH' ||
+                                                                report.Severity?.IntegrityImpact ===
+                                                                    'COMPLETE',
+                                                            'bg-orange-600':
+                                                                report.Severity?.IntegrityImpact ===
+                                                                    'LOW' ||
+                                                                report.Severity?.IntegrityImpact ===
+                                                                    'PARTIAL'
+                                                        }"
+                                                    >
+                                                        {{ report.Severity?.IntegrityImpact }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-sm bg-gray-50 p-3 rounded-lg">
+                                                <div class="font-medium text-gray-900 mb-2">
+                                                    {{
+                                                        report.Severity?.IntegrityImpact ===
+                                                            'HIGH' ||
+                                                        report.Severity?.IntegrityImpact ===
+                                                            'COMPLETE'
+                                                            ? 'Complete Data Compromise'
+                                                            : 'Limited Data Modification'
+                                                    }}
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <span
+                                                        v-if="
+                                                            report.Severity?.IntegrityImpact ===
+                                                                'HIGH' ||
+                                                            report.Severity?.IntegrityImpact ===
+                                                                'COMPLETE'
+                                                        "
+                                                    >
+                                                        Total loss of data integrity - attackers can
+                                                        modify, delete, or corrupt any system files,
+                                                        application data, or critical
+                                                        configurations, potentially rendering
+                                                        systems unreliable.
+                                                    </span>
+                                                    <span v-else>
+                                                        Limited data modification capability -
+                                                        attackers can alter some information but
+                                                        cannot control the scope or consequence of
+                                                        modifications. Impact is constrained but
+                                                        still concerning.
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
 
                         <!-- OWASP Top 10 Information -->
@@ -1124,5 +1401,38 @@ h3 {
 .severity-none-bg {
     background-color: rgba(colors.$severity-none, 0.1);
     border-color: rgba(colors.$severity-none, 0.3);
+}
+
+// Impact bubble styling
+.impact-bubble {
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.impact-high {
+    background-color: #dc2626 !important; // Strong red for HIGH/COMPLETE impact
+    border-color: #991b1b !important;
+    color: white !important;
+
+    &:hover {
+        background-color: #b91c1c !important;
+        border-color: #7f1d1d !important;
+    }
+}
+
+.impact-medium {
+    background-color: #ea580c !important; // Distinct orange for LOW/PARTIAL impact
+    border-color: #c2410c !important;
+    color: white !important;
+
+    &:hover {
+        background-color: #dc2626 !important;
+        border-color: #991b1b !important;
+    }
 }
 </style>

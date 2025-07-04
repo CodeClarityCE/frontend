@@ -38,8 +38,10 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            // Dependency is transitive
-            return h('div', row.getValue('name'));
+            const name = row.getValue('name') as string;
+            return h('div', { 
+                class: 'font-medium text-gray-900 dark:text-gray-100' 
+            }, name);
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -55,7 +57,12 @@ export const columns: ColumnDef<Dependency>[] = [
                 () => ['Version', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
             );
         },
-        cell: ({ row }) => h('div', { class: 'lowercase' }, row.getValue('version')),
+        cell: ({ row }) => {
+            const version = row.getValue('version') as string;
+            return h('div', { 
+                class: 'font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border' 
+            }, version);
+        },
         enableSorting: false // Sorting done on the API side
     },
     {
@@ -71,12 +78,34 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            if (row.getValue('newest_release') == row.getValue('version')) {
-                return h('div', { class: 'lowercase' }, 'Up to date');
+            const currentVersion = row.getValue('version') as string;
+            const newestVersion = row.getValue('newest_release') as string;
+            
+            if (newestVersion === currentVersion) {
+                return h('div', { 
+                    class: 'flex items-center gap-2' 
+                }, [
+                    h(Icon, { 
+                        icon: 'line-md:circle-to-confirm-circle-transition', 
+                        class: 'text-green-500 w-4 h-4' 
+                    }),
+                    h('span', { 
+                        class: 'text-green-700 dark:text-green-400 font-medium text-sm' 
+                    }, 'Up to date')
+                ]);
             }
-            // console.log(row);
-
-            return h('div', { class: 'lowercase' }, row.getValue('newest_release'));
+            
+            return h('div', { 
+                class: 'flex items-center gap-2' 
+            }, [
+                h(Icon, { 
+                    icon: 'line-md:alert-circle', 
+                    class: 'text-amber-500 w-4 h-4' 
+                }),
+                h('span', { 
+                    class: 'font-mono text-sm bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-2 py-1 rounded border border-amber-200 dark:border-amber-800' 
+                }, newestVersion)
+            ]);
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -93,13 +122,25 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            if (row.getValue('dev') == true) {
-                return h(Icon, {
-                    icon: 'line-md:circle-to-confirm-circle-transition',
-                    class: 'text-severityLow'
-                });
+            const isDev = row.getValue('dev') as boolean;
+            
+            if (isDev) {
+                return h('div', { 
+                    class: 'flex items-center justify-center' 
+                }, [
+                    h('div', {
+                        class: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800'
+                    }, 'Yes')
+                ]);
             }
-            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' });
+            
+            return h('div', { 
+                class: 'flex items-center justify-center' 
+            }, [
+                h('div', {
+                    class: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                }, 'No')
+            ]);
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -116,13 +157,25 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            if (row.getValue('prod') == true) {
-                return h(Icon, {
-                    icon: 'line-md:circle-to-confirm-circle-transition',
-                    class: 'text-severityLow'
-                });
+            const isProd = row.getValue('prod') as boolean;
+            
+            if (isProd) {
+                return h('div', { 
+                    class: 'flex items-center justify-center' 
+                }, [
+                    h('div', {
+                        class: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs font-medium border border-green-200 dark:border-green-800'
+                    }, 'Yes')
+                ]);
             }
-            return h(Icon, { icon: 'line-md:close-circle-filled', class: 'text-severityHigh' });
+            
+            return h('div', { 
+                class: 'flex items-center justify-center' 
+            }, [
+                h('div', {
+                    class: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                }, 'No')
+            ]);
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -139,9 +192,18 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            if ((row.getValue('is_direct_count') as number) > 0)
-                return h('div', { class: 'lowercase' }, 'Yes');
-            return h('div', { class: 'lowercase' }, 'No');
+            const isDirectCount = row.getValue('is_direct_count') as number;
+            const isDirect = isDirectCount > 0;
+            
+            return h('div', { 
+                class: 'flex items-center justify-center' 
+            }, [
+                h('div', {
+                    class: isDirect 
+                        ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-full text-xs font-medium border border-purple-200 dark:border-purple-800'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                }, isDirect ? 'Yes' : 'No')
+            ]);
         },
         enableSorting: false // Sorting done on the API side
     },
@@ -158,9 +220,18 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            if ((row.getValue('is_transitive_count') as number) > 0)
-                return h('div', { class: 'lowercase' }, 'Yes');
-            return h('div', { class: 'lowercase' }, 'No');
+            const isTransitiveCount = row.getValue('is_transitive_count') as number;
+            const isTransitive = isTransitiveCount > 0;
+            
+            return h('div', { 
+                class: 'flex items-center justify-center' 
+            }, [
+                h('div', {
+                    class: isTransitive 
+                        ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 px-2 py-1 rounded-full text-xs font-medium border border-orange-200 dark:border-orange-800'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full text-xs font-medium border'
+                }, isTransitive ? 'Yes' : 'No')
+            ]);
         },
         enableSorting: false // Sorting done on the API side
     },

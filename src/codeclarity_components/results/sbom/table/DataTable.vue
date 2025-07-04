@@ -74,33 +74,45 @@ const table = useVueTable({
 });
 table.setPageSize(pageLimitSelected.value);
 
-function setPageSize(pageSize: string) {
-    table.setPageSize(parseInt(pageSize));
-    pageLimitSelected.value = parseInt(pageSize);
+function setPageSize(pageSize: any) {
+    const size = typeof pageSize === 'string' ? parseInt(pageSize) : (pageSize ?? 15);
+    table.setPageSize(size);
+    pageLimitSelected.value = size;
 }
 
-function search(_searchKey: string) {
-    searchKey.value = _searchKey;
+function search(_searchKey: any) {
+    searchKey.value = String(_searchKey || '');
 }
 </script>
 
 <template>
-    <div>
-        <div class="flex items-center py-4">
-            <Input
-                class="max-w-sm"
-                placeholder="Filter dependencies..."
-                :model-value="table.getColumn('name')?.getFilterValue() as string"
-                @update:model-value="search"
-            />
+    <div class="space-y-4">
+        <!-- Header Section with Search and Filters -->
+        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border">
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-1">
+                <div class="relative flex-1 max-w-sm">
+                    <Icon icon="tabler:search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                        class="pl-10 bg-white dark:bg-gray-800"
+                        placeholder="Filter dependencies..."
+                        :model-value="table.getColumn('name')?.getFilterValue() as string"
+                        @update:model-value="search"
+                    />
+                </div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ table.getFilteredRowModel().rows.length }} dependencies
+                </div>
+            </div>
+            
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                    <Button variant="outline" class="ml-auto">
+                    <Button variant="outline" class="gap-2">
+                        <Icon icon="tabler:columns" class="w-4 h-4" />
                         Columns
-                        <Icon icon="tabler:chevron-down" class="w-4 h-4 ml-2"></Icon>
+                        <Icon icon="tabler:chevron-down" class="w-4 h-4"></Icon>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" class="w-48">
                     <DropdownMenuCheckboxItem
                         v-for="column in table
                             .getAllColumns()
@@ -109,21 +121,27 @@ function search(_searchKey: string) {
                         class="capitalize"
                         :checked="column.getIsVisible()"
                         @update:checked="
-                            (value) => {
+                            (value: any) => {
                                 column.toggleVisibility(!!value);
                             }
                         "
                     >
-                        {{ column.id }}
+                        {{ column.id.replace('_', ' ') }}
                     </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        <div class="border rounded-md">
+
+        <!-- Table Section -->
+        <div class="border rounded-lg overflow-hidden bg-white dark:bg-gray-950">
             <Table>
-                <TableHeader>
-                    <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                        <TableHead v-for="header in headerGroup.headers" :key="header.id">
+                <TableHeader class="bg-gray-50 dark:bg-gray-900/50">
+                    <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="border-b border-gray-200 dark:border-gray-800">
+                        <TableHead 
+                            v-for="header in headerGroup.headers" 
+                            :key="header.id"
+                            class="font-semibold text-gray-900 dark:text-gray-100 py-3"
+                        >
                             <FlexRender
                                 v-if="!header.isPlaceholder"
                                 :render="header.column.columnDef.header"
@@ -138,8 +156,13 @@ function search(_searchKey: string) {
                             v-for="row in table.getRowModel().rows"
                             :key="row.id"
                             :data-state="row.getIsSelected() ? 'selected' : undefined"
+                            class="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150 border-b border-gray-100 dark:border-gray-800"
                         >
-                            <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                            <TableCell 
+                                v-for="cell in row.getVisibleCells()" 
+                                :key="cell.id"
+                                class="py-3"
+                            >
                                 <FlexRender
                                     :render="cell.column.columnDef.cell"
                                     :props="cell.getContext()"
@@ -149,18 +172,24 @@ function search(_searchKey: string) {
                     </template>
                     <template v-else>
                         <TableRow>
-                            <TableCell :col-span="columns.length" class="h-24 text-center">
-                                No results.
+                            <TableCell :col-span="columns.length" class="h-32 text-center">
+                                <div class="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                                    <Icon icon="tabler:package-off" class="w-8 h-8" />
+                                    <p class="text-sm font-medium">No dependencies found</p>
+                                    <p class="text-xs">Try adjusting your search or filters</p>
+                                </div>
                             </TableCell>
                         </TableRow>
                     </template>
                 </TableBody>
             </Table>
         </div>
-        <div class="flex items-center justify-evenly py-4 space-x-2">
-            <div class="flex items-center space-x-6 lg:space-x-8">
-                <div class="flex items-center space-x-2">
-                    <p class="text-sm font-medium">Rows per page</p>
+
+        <!-- Pagination Section -->
+        <div class="flex items-center justify-between py-4 px-2">
+            <div class="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center gap-2">
+                    <span>Show</span>
                     <Select
                         :model-value="`${table.getState().pagination.pageSize}`"
                         @update:model-value="setPageSize"
@@ -178,6 +207,7 @@ function search(_searchKey: string) {
                             </SelectItem>
                         </SelectContent>
                     </Select>
+                    <span>entries</span>
                 </div>
             </div>
         </div>

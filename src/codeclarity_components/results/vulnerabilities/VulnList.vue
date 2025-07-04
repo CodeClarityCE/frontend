@@ -901,7 +901,7 @@ watch(() => filterState.value.activeFilters, init);
                                 >
                                     <TooltipTrigger as-child>
                                         <BubbleComponent
-                                            class="text-xs impact-bubble cursor-pointer"
+                                            class="text-xs impact-bubble cursor-help"
                                             :class="{
                                                 'impact-high':
                                                     report.Severity?.ConfidentialityImpact ===
@@ -1011,7 +1011,7 @@ watch(() => filterState.value.activeFilters, init);
                                 >
                                     <TooltipTrigger as-child>
                                         <BubbleComponent
-                                            class="text-xs impact-bubble cursor-pointer"
+                                            class="text-xs impact-bubble cursor-help"
                                             :class="{
                                                 'impact-high':
                                                     report.Severity?.AvailabilityImpact ===
@@ -1119,7 +1119,7 @@ watch(() => filterState.value.activeFilters, init);
                                 >
                                     <TooltipTrigger as-child>
                                         <BubbleComponent
-                                            class="text-xs impact-bubble cursor-pointer"
+                                            class="text-xs impact-bubble cursor-help"
                                             :class="{
                                                 'impact-high':
                                                     report.Severity?.IntegrityImpact === 'HIGH' ||

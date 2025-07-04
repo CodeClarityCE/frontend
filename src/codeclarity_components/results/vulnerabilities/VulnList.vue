@@ -142,9 +142,31 @@ function isCardExpanded(vulnerabilityId: string) {
     return expandedCards.value.has(vulnerabilityId);
 }
 
-function truncateDescription(description: string, maxLength: number = 120) {
+function truncateDescription(description: string, maxLength: number = 150) {
     if (description.length <= maxLength) return description;
-    return description.substring(0, maxLength) + '...';
+
+    // Remove markdown formatting like ####
+    const cleanDescription = description.replace(/^#+\s*/, '').trim();
+
+    if (cleanDescription.length <= maxLength) return cleanDescription;
+
+    // Find the last complete word within the limit
+    const truncated = cleanDescription.substring(0, maxLength);
+    const lastSpaceIndex = truncated.lastIndexOf(' ');
+
+    if (lastSpaceIndex > maxLength * 0.7) {
+        return truncated.substring(0, lastSpaceIndex) + '...';
+    }
+
+    return truncated + '...';
+}
+
+function getSeverityBorderColor(severityValue: number) {
+    if (isCriticalSeverity(severityValue)) return 'border-l-red-600';
+    if (isHighSeverity(severityValue)) return 'border-l-orange-500';
+    if (isMediumSeverity(severityValue)) return 'border-l-yellow-500';
+    if (isLowSeverity(severityValue)) return 'border-l-blue-500';
+    return 'border-l-gray-400';
 }
 
 async function init() {
@@ -236,44 +258,46 @@ watch(() => filterState.value.activeFilters, init);
         <!--                           Vulnerabilities List                        -->
         <!--------------------------------------------------------------------------->
 
-        <div v-if="render" class="flex flex-col gap-y-4">
+        <div v-if="render" class="flex flex-col gap-y-3">
             <div v-for="report in findings" :key="report.Id" class="vulnerability-card">
-                <div class="vulnerability-card-wrapper border border-gray-200 rounded-lg hover:shadow-md transition-all">
+                <div
+                    class="vulnerability-card-wrapper border border-gray-200 rounded-lg hover:shadow-lg transition-all border-l-4"
+                    :class="getSeverityBorderColor(report.Severity.Severity)"
+                >
                     <!-- Card Header: Most Important Info -->
-                    <div 
-                        class="card-header flex items-start gap-4 p-4 cursor-pointer" 
+                    <div
+                        class="card-header flex items-start gap-4 p-3 cursor-pointer"
                         @click="toggleCardExpansion(report.Vulnerability)"
                     >
-                        
                         <!-- Severity Indicator -->
                         <div class="severity-badge flex-shrink-0">
                             <div
                                 v-if="isCriticalSeverity(report.Severity.Severity)"
-                                class="px-3 py-1 text-xs font-bold text-white bg-severityCritical rounded-full"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severityCritical rounded-md shadow-sm"
                             >
                                 CRITICAL
                             </div>
                             <div
                                 v-else-if="isHighSeverity(report.Severity.Severity)"
-                                class="px-3 py-1 text-xs font-bold text-white bg-severityHigh rounded-full"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severityHigh rounded-md shadow-sm"
                             >
                                 HIGH
                             </div>
                             <div
                                 v-else-if="isMediumSeverity(report.Severity.Severity)"
-                                class="px-3 py-1 text-xs font-bold text-white bg-severityMedium rounded-full"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severityMedium rounded-md shadow-sm"
                             >
                                 MEDIUM
                             </div>
                             <div
                                 v-else-if="isLowSeverity(report.Severity.Severity)"
-                                class="px-3 py-1 text-xs font-bold text-white bg-severityLow rounded-full"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severityLow rounded-md shadow-sm"
                             >
                                 LOW
                             </div>
                             <div
                                 v-else-if="isNoneSeverity(report.Severity.Severity)"
-                                class="px-3 py-1 text-xs font-bold text-white bg-severityNone rounded-full"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severityNone rounded-md shadow-sm"
                             >
                                 NONE
                             </div>
@@ -282,30 +306,33 @@ watch(() => filterState.value.activeFilters, init);
                         <!-- Primary Information -->
                         <div class="flex-1 min-w-0">
                             <!-- CVE ID and Weakness Type -->
-                            <div class="flex items-center gap-3 mb-2">
-                                <h3 class="text-lg font-semibold text-gray-900">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="text-xl font-bold text-gray-900 tracking-tight">
                                     {{ report.Vulnerability }}
                                 </h3>
-                                <div v-if="report.Weaknesses.length > 0" class="text-sm text-gray-600">
+                                <div
+                                    v-if="report.Weaknesses.length > 0"
+                                    class="text-sm text-gray-500 font-medium"
+                                >
                                     {{ report.Weaknesses[0].WeaknessName }}
                                 </div>
                             </div>
 
                             <!-- Affected Libraries -->
                             <div class="mb-2">
-                                <div class="flex flex-wrap gap-2">
+                                <div class="flex flex-wrap gap-1.5">
                                     <Badge
                                         v-for="info in report.Affected.slice(0, 3)"
                                         :key="info.AffectedDependency"
                                         variant="outline"
-                                        class="text-xs"
+                                        class="text-xs px-2 py-1"
                                     >
                                         {{ info.AffectedDependency }}@{{ info.AffectedVersion }}
                                     </Badge>
                                     <Badge
                                         v-if="report.Affected.length > 3"
                                         variant="outline"
-                                        class="text-xs text-gray-500"
+                                        class="text-xs text-gray-500 px-2 py-1"
                                     >
                                         +{{ report.Affected.length - 3 }} more
                                     </Badge>
@@ -313,7 +340,7 @@ watch(() => filterState.value.activeFilters, init);
                             </div>
 
                             <!-- Description Preview -->
-                            <div class="text-sm text-gray-600 line-clamp-2">
+                            <div class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                                 {{ truncateDescription(report.Description) }}
                             </div>
                         </div>
@@ -321,38 +348,56 @@ watch(() => filterState.value.activeFilters, init);
                         <!-- Quick Actions & Key Metrics -->
                         <div class="flex-shrink-0 flex items-center gap-2">
                             <!-- High Impact Warning -->
-                            <div v-if="report.EPSS.Score > 0.1" class="text-amber-500" title="High exploitation probability">
+                            <div
+                                v-if="report.EPSS.Score > 0.1"
+                                class="text-amber-500"
+                                title="High exploitation probability"
+                            >
                                 <Icon icon="tabler:alert-triangle" class="w-5 h-5" />
                             </div>
-                            
+
                             <!-- Conflict Warning -->
                             <div
-                                v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' || 
-                                      report.Conflict.ConflictFlag === 'MATCH_INCORRECT'"
+                                v-if="
+                                    report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' ||
+                                    report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
+                                "
                                 :class="{
-                                    'text-amber-500': report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
-                                    'text-red-500': report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
+                                    'text-amber-500':
+                                        report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
+                                    'text-red-500':
+                                        report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                 }"
-                                :title="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' ? 
-                                        'Match possibly incorrect' : 'Match incorrect'"
+                                :title="
+                                    report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
+                                        ? 'Match possibly incorrect'
+                                        : 'Match incorrect'
+                                "
                             >
                                 <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
                             </div>
 
                             <!-- Expand/Collapse Icon -->
-                            <Icon 
-                                :icon="isCardExpanded(report.Vulnerability) ? 'tabler:chevron-up' : 'tabler:chevron-down'"
+                            <Icon
+                                :icon="
+                                    isCardExpanded(report.Vulnerability)
+                                        ? 'tabler:chevron-up'
+                                        : 'tabler:chevron-down'
+                                "
                                 class="w-5 h-5 text-gray-400"
                             />
                         </div>
                     </div>
 
                     <!-- Expandable Content -->
-                    <div v-if="isCardExpanded(report.Vulnerability)" class="card-body border-t border-gray-100 p-4">
+                    <div
+                        v-if="isCardExpanded(report.Vulnerability)"
+                        class="card-body border-t border-gray-100 p-3"
+                    >
                         <!-- Secondary Metrics Row -->
-                        <div class="flex flex-wrap gap-2 mb-4">
+                        <div class="flex flex-wrap gap-1.5 mb-3">
                             <!-- EPSS Score -->
-                            <Badge variant="secondary" class="text-xs">
+                            <Badge variant="secondary" class="text-xs px-2 py-1">
                                 EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
                             </Badge>
 
@@ -375,22 +420,24 @@ watch(() => filterState.value.activeFilters, init);
                                 v-for="weakness in report.Weaknesses"
                                 :key="weakness.WeaknessId"
                                 :cwe="true"
-                                class="text-xs"
+                                class="text-xs px-2 py-1"
                             >
                                 {{ weakness.WeaknessId }}
                             </Badge>
                         </div>
 
                         <!-- Full Description -->
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <InfoMarkdown :markdown="report.Description.trim()" />
                         </div>
 
                         <!-- Impact Information -->
-                        <div class="flex gap-2 mb-4">
+                        <div class="flex gap-1.5 mb-3">
                             <BubbleComponent
-                                v-if="report.Severity?.ConfidentialityImpact !== 'NONE' && 
-                                      report.Severity?.ConfidentialityImpact !== ''"
+                                v-if="
+                                    report.Severity?.ConfidentialityImpact !== 'NONE' &&
+                                    report.Severity?.ConfidentialityImpact !== ''
+                                "
                                 title="Impacts Confidentiality"
                                 class="text-xs"
                             >
@@ -401,8 +448,10 @@ watch(() => filterState.value.activeFilters, init);
                             </BubbleComponent>
 
                             <BubbleComponent
-                                v-if="report.Severity?.AvailabilityImpact !== 'NONE' && 
-                                      report.Severity?.AvailabilityImpact !== ''"
+                                v-if="
+                                    report.Severity?.AvailabilityImpact !== 'NONE' &&
+                                    report.Severity?.AvailabilityImpact !== ''
+                                "
                                 title="Impacts Availability"
                                 class="text-xs"
                             >
@@ -413,8 +462,10 @@ watch(() => filterState.value.activeFilters, init);
                             </BubbleComponent>
 
                             <BubbleComponent
-                                v-if="report.Severity?.IntegrityImpact !== 'NONE' && 
-                                      report.Severity?.IntegrityImpact !== ''"
+                                v-if="
+                                    report.Severity?.IntegrityImpact !== 'NONE' &&
+                                    report.Severity?.IntegrityImpact !== ''
+                                "
                                 title="Impacts Integrity"
                                 class="text-xs"
                             >
@@ -427,18 +478,23 @@ watch(() => filterState.value.activeFilters, init);
 
                         <!-- OWASP Top 10 Information -->
                         <div
-                            v-if="report.Weaknesses?.some(w => w.OWASPTop10Id !== '')"
-                            class="flex gap-2 items-center text-sm text-gray-600"
+                            v-if="report.Weaknesses?.some((w) => w.OWASPTop10Id !== '')"
+                            class="flex gap-2 items-center text-sm text-gray-600 mb-3"
                         >
                             <Icon icon="simple-icons:owasp" class="w-4 h-4" />
-                            <div v-for="owaspID in getUniqueOWASP(report.Weaknesses)" :key="owaspID">
-                                <span v-if="owaspID === '1347'" class="font-medium">A03: Injection</span>
+                            <div
+                                v-for="owaspID in getUniqueOWASP(report.Weaknesses)"
+                                :key="owaspID"
+                            >
+                                <span v-if="owaspID === '1347'" class="font-medium"
+                                    >A03: Injection</span
+                                >
                                 <!-- Add other OWASP mappings as needed -->
                             </div>
                         </div>
 
                         <!-- View Details Link -->
-                        <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="mt-3 pt-3 border-t border-gray-100">
                             <RouterLink
                                 :to="{
                                     name: 'results',
@@ -498,27 +554,39 @@ watch(() => filterState.value.activeFilters, init);
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 @use '@/assets/common/summary.scss';
 @use '@/assets/common/cvss.scss';
+@use '@/assets/colors.scss' as colors;
 
 .vulnerability-card-wrapper {
     transition: all 0.2s ease-in-out;
-    
+
     &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: #e2e8f0;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        border-color: #d1d5db;
+        transform: translateY(-1px);
     }
 }
 
 .card-header {
+    transition: background-color 0.15s ease;
+
     &:hover {
-        background-color: #f8fafc;
+        background-color: #f9fafb;
     }
 }
 
 .severity-badge {
-    min-width: 70px;
+    min-width: 85px;
+
+    > div {
+        transition: all 0.15s ease;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+    }
 }
 
 .line-clamp-2 {
@@ -527,10 +595,49 @@ watch(() => filterState.value.activeFilters, init);
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.5;
 }
 
-// Improved spacing for badges and bubbles
+// Enhanced spacing for badges and bubbles
 .card-body .flex.flex-wrap {
-    gap: 0.375rem;
+    gap: 0.25rem;
+}
+
+// Color-coded left borders
+.border-l-red-600 {
+    border-left-color: colors.$severity-critical !important;
+}
+
+.border-l-orange-500 {
+    border-left-color: colors.$severity-high !important;
+}
+
+.border-l-yellow-500 {
+    border-left-color: colors.$severity-medium !important;
+}
+
+.border-l-blue-500 {
+    border-left-color: colors.$severity-low !important;
+}
+
+.border-l-gray-400 {
+    border-left-color: colors.$severity-none !important;
+}
+
+// Enhanced CVE styling
+h3 {
+    letter-spacing: -0.025em;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: #1f2937;
+    }
+}
+
+// Improved badge spacing
+.vulnerability-card .flex.flex-wrap {
+    .badge + .badge {
+        margin-left: 0;
+    }
 }
 </style>

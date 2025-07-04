@@ -20,7 +20,6 @@ import {
     isMediumSeverity
 } from '@/utils/severity';
 import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
 import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
 import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
@@ -32,6 +31,7 @@ import UtilitiesFilters, {
 import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Badge } from '@/shadcn/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 
 export interface Props {
     [key: string]: any;
@@ -343,35 +343,43 @@ watch(() => filterState.value.activeFilters, init);
                             <div class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                                 {{ truncateDescription(report.Description) }}
                             </div>
-                            
+
                             <!-- High Exploitation Risk Banner -->
-                            <div 
-                                v-if="report.EPSS.Score > 0.1" 
+                            <div
+                                v-if="report.EPSS.Score > 0.1"
                                 class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium border border-red-200"
                             >
                                 <Icon icon="tabler:trending-up" class="w-3 h-3" />
-                                <span>High exploitation probability ({{ (report.EPSS.Score * 100).toFixed(1) }}%)</span>
+                                <span
+                                    >High exploitation probability ({{
+                                        (report.EPSS.Score * 100).toFixed(1)
+                                    }}%)</span
+                                >
                             </div>
-                            
+
                             <!-- Match Uncertainty Banner -->
-                            <div 
-                                v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' || 
-                                      report.Conflict.ConflictFlag === 'MATCH_INCORRECT'" 
+                            <div
+                                v-if="
+                                    report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' ||
+                                    report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
+                                "
                                 class="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border"
                                 :class="{
-                                    'bg-amber-50 text-amber-700 border-amber-200': 
+                                    'bg-amber-50 text-amber-700 border-amber-200':
                                         report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
-                                    'bg-red-50 text-red-700 border-red-200': 
+                                    'bg-red-50 text-red-700 border-red-200':
                                         report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                 }"
                             >
                                 <Icon icon="tabler:alert-triangle" class="w-3 h-3" />
-                                <span v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'">
+                                <span
+                                    v-if="
+                                        report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
+                                    "
+                                >
                                     OSV and NVD data sources disagree
                                 </span>
-                                <span v-else>
-                                    Vulnerability match is incorrect
-                                </span>
+                                <span v-else> Vulnerability match is incorrect </span>
                             </div>
                         </div>
 
@@ -407,12 +415,14 @@ watch(() => filterState.value.activeFilters, init);
                                 "
                             >
                                 <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
-                                <span v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'">
+                                <span
+                                    v-if="
+                                        report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
+                                    "
+                                >
                                     UNCERTAIN
                                 </span>
-                                <span v-else>
-                                    MISMATCH
-                                </span>
+                                <span v-else> MISMATCH </span>
                             </div>
 
                             <!-- Expand/Collapse Icon -->
@@ -439,19 +449,145 @@ watch(() => filterState.value.activeFilters, init);
                                 EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
                             </Badge>
 
-                            <!-- Additional Severity Sources -->
-                            <SeverityBubble
+                            <!-- Additional Severity Sources with Confidence -->
+                            <div
                                 v-for="vla in report.VLAI"
                                 :key="vla.Source"
-                                :critical="vla.Score == 'critical'"
-                                :high="vla.Score == 'high'"
-                                :medium="vla.Score == 'medium'"
-                                :low="vla.Score == 'low'"
-                                :none="vla.Score == 'none'"
-                                class="text-xs"
+                                class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border severity-badge-bg"
+                                :class="{
+                                    'severity-critical-bg': vla.Score == 'critical',
+                                    'severity-high-bg': vla.Score == 'high',
+                                    'severity-medium-bg': vla.Score == 'medium',
+                                    'severity-low-bg': vla.Score == 'low',
+                                    'severity-none-bg': vla.Score == 'none'
+                                }"
                             >
-                                <template #content>{{ vla.Source }}</template>
-                            </SeverityBubble>
+                                <!-- Source icon/name -->
+                                <span
+                                    class="font-semibold"
+                                    :class="{
+                                        'text-severityCritical': vla.Score == 'critical',
+                                        'text-severityHigh': vla.Score == 'high',
+                                        'text-severityMedium': vla.Score == 'medium',
+                                        'text-severityLow': vla.Score == 'low',
+                                        'text-severityNone': vla.Score == 'none'
+                                    }"
+                                >
+                                    {{ vla.Source }}
+                                </span>
+
+                                <!-- Confidence indicator -->
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <div
+                                                class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold cursor-help"
+                                                :class="{
+                                                    'bg-green-100 text-green-800':
+                                                        vla.Confidence >= 0.9,
+                                                    'bg-yellow-100 text-yellow-800':
+                                                        vla.Confidence >= 0.5 &&
+                                                        vla.Confidence < 0.9,
+                                                    'bg-red-100 text-red-800': vla.Confidence < 0.5
+                                                }"
+                                            >
+                                                <Icon
+                                                    :icon="
+                                                        vla.Confidence >= 0.9
+                                                            ? 'tabler:check-circle'
+                                                            : vla.Confidence >= 0.5
+                                                              ? 'tabler:alert-circle'
+                                                              : 'tabler:x-circle'
+                                                    "
+                                                    class="w-3 h-3"
+                                                />
+                                                <span v-if="vla.Confidence >= 0.9">HIGH</span>
+                                                <span v-else-if="vla.Confidence >= 0.5">MED</span>
+                                                <span v-else>LOW</span>
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                            class="bg-white border border-gray-300 shadow-lg"
+                                        >
+                                            <div class="max-w-sm space-y-3 p-3">
+                                                <div class="flex items-center gap-2">
+                                                    <Icon
+                                                        :icon="
+                                                            vla.Confidence >= 0.9
+                                                                ? 'tabler:check-circle'
+                                                                : vla.Confidence >= 0.5
+                                                                  ? 'tabler:alert-circle'
+                                                                  : 'tabler:x-circle'
+                                                        "
+                                                        class="w-4 h-4"
+                                                        :class="{
+                                                            'text-green-600': vla.Confidence >= 0.9,
+                                                            'text-amber-600':
+                                                                vla.Confidence >= 0.5 &&
+                                                                vla.Confidence < 0.9,
+                                                            'text-red-600': vla.Confidence < 0.5
+                                                        }"
+                                                    />
+                                                    <span
+                                                        class="font-semibold text-base text-gray-900"
+                                                    >
+                                                        {{ vla.Source }} Assessment Confidence
+                                                    </span>
+                                                </div>
+
+                                                <div
+                                                    class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                                                >
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-700 font-medium"
+                                                            >Confidence Score:</span
+                                                        >
+                                                        <span class="font-bold text-gray-900"
+                                                            >{{
+                                                                Math.round(vla.Confidence * 100)
+                                                            }}%</span
+                                                        >
+                                                    </div>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-700 font-medium"
+                                                            >Severity Rating:</span
+                                                        >
+                                                        <span
+                                                            class="font-bold text-gray-900 capitalize"
+                                                            >{{ vla.Score }}</span
+                                                        >
+                                                    </div>
+                                                </div>
+
+                                                <div class="pt-2 border-t border-gray-200">
+                                                    <p
+                                                        v-if="vla.Confidence >= 0.9"
+                                                        class="text-sm text-gray-800 font-medium flex items-center gap-1"
+                                                    >
+                                                        <span class="text-green-600">✓</span> Highly
+                                                        reliable assessment with strong confidence
+                                                    </p>
+                                                    <p
+                                                        v-else-if="vla.Confidence >= 0.5"
+                                                        class="text-sm text-gray-800 font-medium flex items-center gap-1"
+                                                    >
+                                                        <span class="text-amber-600">⚠</span>
+                                                        Moderate reliability - cross-reference
+                                                        recommended
+                                                    </p>
+                                                    <p
+                                                        v-else
+                                                        class="text-sm text-gray-800 font-medium flex items-center gap-1"
+                                                    >
+                                                        <span class="text-red-600">⚠</span> Low
+                                                        confidence - verify with additional sources
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
 
                             <!-- CWE Badges -->
                             <Badge
@@ -677,5 +813,31 @@ h3 {
     .badge + .badge {
         margin-left: 0;
     }
+}
+
+// Severity background colors to match text colors
+.severity-critical-bg {
+    background-color: rgba(colors.$severity-critical, 0.1);
+    border-color: rgba(colors.$severity-critical, 0.3);
+}
+
+.severity-high-bg {
+    background-color: rgba(colors.$severity-high, 0.1);
+    border-color: rgba(colors.$severity-high, 0.3);
+}
+
+.severity-medium-bg {
+    background-color: rgba(colors.$severity-medium, 0.1);
+    border-color: rgba(colors.$severity-medium, 0.3);
+}
+
+.severity-low-bg {
+    background-color: rgba(colors.$severity-low, 0.1);
+    border-color: rgba(colors.$severity-low, 0.3);
+}
+
+.severity-none-bg {
+    background-color: rgba(colors.$severity-none, 0.1);
+    border-color: rgba(colors.$severity-none, 0.3);
 }
 </style>

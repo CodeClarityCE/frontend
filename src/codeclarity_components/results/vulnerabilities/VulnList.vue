@@ -352,6 +352,27 @@ watch(() => filterState.value.activeFilters, init);
                                 <Icon icon="tabler:trending-up" class="w-3 h-3" />
                                 <span>High exploitation probability ({{ (report.EPSS.Score * 100).toFixed(1) }}%)</span>
                             </div>
+                            
+                            <!-- Match Uncertainty Banner -->
+                            <div 
+                                v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' || 
+                                      report.Conflict.ConflictFlag === 'MATCH_INCORRECT'" 
+                                class="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border"
+                                :class="{
+                                    'bg-amber-50 text-amber-700 border-amber-200': 
+                                        report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
+                                    'bg-red-50 text-red-700 border-red-200': 
+                                        report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
+                                }"
+                            >
+                                <Icon icon="tabler:alert-triangle" class="w-3 h-3" />
+                                <span v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'">
+                                    OSV and NVD data sources disagree
+                                </span>
+                                <span v-else>
+                                    Vulnerability match is incorrect
+                                </span>
+                            </div>
                         </div>
 
                         <!-- Quick Actions & Key Metrics -->
@@ -372,10 +393,11 @@ watch(() => filterState.value.activeFilters, init);
                                     report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' ||
                                     report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                 "
+                                class="flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-semibold"
                                 :class="{
-                                    'text-amber-500':
+                                    'bg-amber-50 text-amber-700 border-amber-200':
                                         report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
-                                    'text-red-500':
+                                    'bg-red-100 text-red-700 border-red-200':
                                         report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                 }"
                                 :title="
@@ -385,6 +407,12 @@ watch(() => filterState.value.activeFilters, init);
                                 "
                             >
                                 <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
+                                <span v-if="report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'">
+                                    UNCERTAIN
+                                </span>
+                                <span v-else>
+                                    MISMATCH
+                                </span>
                             </div>
 
                             <!-- Expand/Collapse Icon -->

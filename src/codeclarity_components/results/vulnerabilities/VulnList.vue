@@ -381,6 +381,11 @@ watch(() => filterState.value.activeFilters, init);
                                                 >
                                             </SeverityBubble>
 
+                                            <Badge>
+                                                EPSS {{ (report.EPSS.Score * 100).toFixed(2) }}% (
+                                                {{ (report.EPSS.Percentile * 100).toFixed(2) }}%)
+                                            </Badge>
+
                                             <!--------------------------------------------------------------------------->
                                             <!--                                CWE Info                               -->
                                             <!--------------------------------------------------------------------------->

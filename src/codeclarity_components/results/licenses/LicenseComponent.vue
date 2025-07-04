@@ -565,9 +565,7 @@ function getLimitationDescription(limitation: string): string {
                                     variant="secondary"
                                     class="text-xs bg-emerald-50 text-emerald-700"
                                 >
-                                    {{
-                                        props.license.license_properties.permissions.length
-                                    }}
+                                    {{ props.license.license_properties.permissions.length }}
                                     granted
                                 </Badge>
                             </div>
@@ -610,9 +608,7 @@ function getLimitationDescription(limitation: string): string {
                                     variant="secondary"
                                     class="text-xs bg-amber-50 text-amber-700"
                                 >
-                                    {{
-                                        props.license.license_properties.conditions.length
-                                    }}
+                                    {{ props.license.license_properties.conditions.length }}
                                     required
                                 </Badge>
                             </div>
@@ -652,9 +648,7 @@ function getLimitationDescription(limitation: string): string {
                                 <Icon icon="tabler:x" class="w-5 h-5 text-red-700" />
                                 <h4 class="font-semibold text-red-900">Limitations</h4>
                                 <Badge variant="secondary" class="text-xs bg-red-50 text-red-700">
-                                    {{
-                                        props.license.license_properties.limitations.length
-                                    }}
+                                    {{ props.license.license_properties.limitations.length }}
                                     restrictions
                                 </Badge>
                             </div>

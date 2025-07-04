@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import { License } from '@/codeclarity_components/results/licenses/License';
 import Popover from '@/shadcn/ui/popover/Popover.vue';
@@ -7,9 +7,77 @@ import PopoverTrigger from '@/shadcn/ui/popover/PopoverTrigger.vue';
 import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import { Card, CardContent } from '@/shadcn/ui/card';
+import { Button } from '@/shadcn/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 
 const property_title = ref('');
 const property_content = ref('');
+const isExpanded = ref(false);
+
+// Computed properties for license categorization and styling
+const licenseCategory = computed(() => {
+    const category = props.license.license_category?.toLowerCase();
+    if (category?.includes('permissive')) return 'permissive';
+    if (category?.includes('copyleft')) return 'copyleft';
+    if (category?.includes('strong')) return 'strong-copyleft';
+    if (category?.includes('weak')) return 'weak-copyleft';
+    return 'unknown';
+});
+
+const licenseTypeInfo = computed(() => {
+    const category = licenseCategory.value;
+    const configs = {
+        permissive: {
+            color: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+            icon: 'tabler:shield-check',
+            iconColor: 'text-emerald-600',
+            gradient: 'from-emerald-50 to-green-50',
+            riskLevel: 'Low Risk',
+            riskColor: 'text-emerald-700 bg-emerald-100'
+        },
+        copyleft: {
+            color: 'bg-orange-50 border-orange-200 text-orange-800',
+            icon: 'tabler:shield-exclamation',
+            iconColor: 'text-orange-600',
+            gradient: 'from-orange-50 to-yellow-50',
+            riskLevel: 'Medium Risk',
+            riskColor: 'text-orange-700 bg-orange-100'
+        },
+        'strong-copyleft': {
+            color: 'bg-red-50 border-red-200 text-red-800',
+            icon: 'tabler:shield-x',
+            iconColor: 'text-red-600',
+            gradient: 'from-red-50 to-orange-50',
+            riskLevel: 'High Risk',
+            riskColor: 'text-red-700 bg-red-100'
+        },
+        'weak-copyleft': {
+            color: 'bg-amber-50 border-amber-200 text-amber-800',
+            icon: 'tabler:shield-half',
+            iconColor: 'text-amber-600',
+            gradient: 'from-amber-50 to-orange-50',
+            riskLevel: 'Medium Risk',
+            riskColor: 'text-amber-700 bg-amber-100'
+        },
+        unknown: {
+            color: 'bg-gray-50 border-gray-200 text-gray-800',
+            icon: 'tabler:help-circle',
+            iconColor: 'text-gray-600',
+            gradient: 'from-gray-50 to-slate-50',
+            riskLevel: 'Review Required',
+            riskColor: 'text-gray-700 bg-gray-100'
+        }
+    };
+    return configs[category] || configs.unknown;
+});
+
+const dependencyCount = computed(() => {
+    return props.license.deps_using_license?.length || 0;
+});
+
+const hasIssues = computed(() => {
+    return props.license.license_compliance_violation || props.license.unable_to_infer;
+});
 
 type Props = {
     license: License;
@@ -95,72 +163,221 @@ async function fillModal(title: string, type: string) {
 </script>
 
 <template>
-    <Card>
-        <CardContent>
-            <div class="flex flex-col gap-4 relative">
-                <div v-if="props.license.name" class="font-semibold text-lg flex gap-1">
-                    <div>{{ props.license.name }} ({{ props.license.id }})</div>
-                    <span
-                        v-if="props.license.license_compliance_violation"
-                        class="flex gap-1 items-center text-sm text-destructive"
-                    >
-                        <Icon :icon="'ic:round-warning'"></Icon> License Compliance Violation
-                    </span>
-                </div>
-                <div v-else class="font-semibold text-lg flex gap-1">
-                    <div>{{ props.license.id }}</div>
-                    <span
-                        v-if="props.license.unable_to_infer"
-                        class="flex gap-1 items-center text-sm text-destructive"
-                    >
-                        <Icon :icon="'ic:round-warning'"></Icon> Unknown license reference
-                    </span>
-                </div>
-                <div
-                    v-if="props.license.references && props.license.references.length > 0"
-                    class="flex gap-4"
-                >
-                    <div
-                        v-for="reference in props.license.references"
-                        :key="reference"
-                        class="license-reference"
-                    >
-                        <span style="cursor: pointer">
-                            <a
-                                class="text-primary hover:text-primaryHovered cursor-pointer"
-                                :title="'Opens reference ' + reference + ' in a new tab.'"
-                                target="_blank"
-                                :href="reference"
-                            >
-                                {{ referenceDomain(reference) }}
-                                <Icon :icon="'ic:attach-file-round'"></Icon>
-                            </a>
-                        </span>
+    <Card
+        class="license-card transition-all duration-300 hover:shadow-lg border-l-4"
+        :class="[
+            licenseTypeInfo.gradient,
+            hasIssues
+                ? 'border-l-red-500'
+                : `border-l-${licenseTypeInfo.iconColor.split('-')[1]}-500`
+        ]"
+    >
+        <CardContent class="p-6">
+            <!-- Header Section -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <!-- License Name and Status -->
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="flex items-center gap-2">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <div class="p-2 rounded-lg" :class="licenseTypeInfo.color">
+                                            <Icon
+                                                :icon="licenseTypeInfo.icon"
+                                                class="w-5 h-5"
+                                                :class="licenseTypeInfo.iconColor"
+                                            />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <div class="text-sm">
+                                            <div class="font-semibold">
+                                                {{
+                                                    licenseCategory.charAt(0).toUpperCase() +
+                                                    licenseCategory.slice(1)
+                                                }}
+                                                License
+                                            </div>
+                                            <div class="text-xs text-gray-600 mt-1">
+                                                {{ licenseTypeInfo.riskLevel }}
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">
+                                    {{ props.license.name || props.license.id }}
+                                    <span
+                                        v-if="
+                                            props.license.name &&
+                                            props.license.id !== props.license.name
+                                        "
+                                        class="text-sm font-normal text-gray-600"
+                                    >
+                                        ({{ props.license.id }})
+                                    </span>
+                                </h3>
+
+                                <!-- Status Badges -->
+                                <div class="flex items-center gap-2 mt-1">
+                                    <Badge
+                                        variant="outline"
+                                        class="text-xs px-2 py-1"
+                                        :class="licenseTypeInfo.riskColor"
+                                    >
+                                        {{ licenseTypeInfo.riskLevel }}
+                                    </Badge>
+
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger as-child>
+                                                <Badge
+                                                    variant="secondary"
+                                                    class="text-xs px-2 py-1"
+                                                >
+                                                    <Icon
+                                                        icon="tabler:package"
+                                                        class="w-3 h-3 mr-1"
+                                                    />
+                                                    {{ dependencyCount }} dependencies
+                                                </Badge>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <div class="text-sm">
+                                                    {{ dependencyCount }} dependencies use this
+                                                    license
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning Messages -->
+                    <div v-if="hasIssues" class="mb-3">
+                        <div
+                            v-if="props.license.license_compliance_violation"
+                            class="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3"
+                        >
+                            <Icon icon="tabler:alert-triangle" class="w-4 h-4 flex-shrink-0" />
+                            <span class="font-medium">License Compliance Violation</span>
+                        </div>
+
+                        <div
+                            v-if="props.license.unable_to_infer"
+                            class="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3"
+                        >
+                            <Icon icon="tabler:help-circle" class="w-4 h-4 flex-shrink-0" />
+                            <span class="font-medium">Unknown license reference</span>
+                        </div>
                     </div>
                 </div>
-                <div class="flex gap-2 items-center cursor-pointer">
-                    Dependencies using license:
+
+                <!-- Quick Actions -->
+                <div class="flex items-center gap-2">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <Button variant="ghost" size="sm" @click="isExpanded = !isExpanded">
+                                    <Icon
+                                        :icon="
+                                            isExpanded ? 'tabler:chevron-up' : 'tabler:chevron-down'
+                                        "
+                                        class="w-4 h-4"
+                                    />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {{ isExpanded ? 'Collapse' : 'Expand' }} details
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            </div>
+
+            <!-- Quick Info Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <!-- Category Info -->
+                <div v-if="props.license.license_category" class="flex items-center gap-2">
+                    <div class="text-sm text-gray-600">Category:</div>
                     <Popover>
                         <PopoverTrigger>
-                            <Badge variant="secondary">
-                                {{ props.license.deps_using_license.length }}
-                                <Icon :icon="'heroicons:chevron-right-solid'"></Icon>
+                            <Badge variant="secondary" class="cursor-pointer hover:bg-gray-200">
+                                {{ props.license.license_category }}
+                                <Icon icon="tabler:info-circle" class="w-3 h-3 ml-1" />
                             </Badge>
                         </PopoverTrigger>
-                        <PopoverContent class="w-fit">
-                            <div class="flex flex-row gap-4 justify-between items-center">
-                                <div class="font-semibold">Dependencies using this license</div>
+                        <PopoverContent class="w-fit max-w-md">
+                            <div class="space-y-3 p-2">
+                                <div class="font-bold text-gray-900">License Category</div>
+                                <div class="text-sm space-y-2">
+                                    <div>
+                                        Most open-source software licenses fall into two groups:
+                                        <span class="font-semibold">permissive licenses</span>
+                                        and
+                                        <span class="font-semibold">copyleft licenses</span>.
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="flex items-center gap-2 font-semibold text-emerald-700"
+                                        >
+                                            <Icon icon="tabler:shield-check" class="w-4 h-4" />
+                                            Permissive Licenses
+                                        </div>
+                                        <div class="text-gray-600 mt-1">
+                                            Impose minimal restrictions on how the software can be
+                                            used, modified, and redistributed. Examples: MIT, BSD,
+                                            Apache licenses.
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="flex items-center gap-2 font-semibold text-orange-700"
+                                        >
+                                            <Icon
+                                                icon="tabler:shield-exclamation"
+                                                class="w-4 h-4"
+                                            />
+                                            Copyleft Licenses
+                                        </div>
+                                        <div class="text-gray-600 mt-1">
+                                            Ensure that derivative works also remain open source.
+                                            Examples: GPL, LGPL, MPL licenses.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
 
-                            <div class="max-w-3xl max-h-96 overflow-y-auto -mx-5">
-                                <div style="display: flex; flex-direction: column">
+                <!-- Dependencies Count -->
+                <div class="flex items-center gap-2">
+                    <div class="text-sm text-gray-600">Dependencies:</div>
+                    <Popover>
+                        <PopoverTrigger>
+                            <Badge variant="outline" class="cursor-pointer hover:bg-gray-50">
+                                {{ dependencyCount }}
+                                <Icon icon="tabler:external-link" class="w-3 h-3 ml-1" />
+                            </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-fit max-w-lg">
+                            <div class="space-y-3">
+                                <div class="font-semibold text-gray-900">
+                                    Dependencies using this license
+                                </div>
+                                <div class="max-h-64 overflow-y-auto space-y-1">
                                     <div
                                         v-for="dep in props.license.deps_using_license"
                                         :key="dep"
                                         class="licenses-deps-using-row"
                                     >
                                         <RouterLink
-                                            title="View dependency details"
                                             :to="{
                                                 name: 'results',
                                                 query: {
@@ -170,9 +387,11 @@ async function fillModal(title: string, type: string) {
                                                 },
                                                 params: { page: 'sbom_details' }
                                             }"
-                                            class="flex flex-row gap-2 items-center cursor-pointer"
+                                            class="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                                            title="View dependency details"
                                         >
-                                            {{ dep }} <Icon :icon="'ic:outline-open-in-new'"></Icon>
+                                            {{ dep }}
+                                            <Icon icon="tabler:external-link" class="w-3 h-3" />
                                         </RouterLink>
                                     </div>
                                 </div>
@@ -180,263 +399,191 @@ async function fillModal(title: string, type: string) {
                         </PopoverContent>
                     </Popover>
                 </div>
+
+                <!-- References -->
                 <div
-                    v-if="props.license.license_category"
-                    class="flex gap-2 items-center cursor-pointer"
+                    v-if="props.license.references && props.license.references.length > 0"
+                    class="flex items-center gap-2"
                 >
-                    Category:
-                    <Popover>
-                        <PopoverTrigger>
-                            <Badge variant="secondary">
-                                {{ props.license.license_category }}
-                                <Icon :icon="'heroicons:chevron-right-solid'"></Icon>
-                            </Badge>
-                        </PopoverTrigger>
-                        <PopoverContent class="w-fit">
-                            <div class="flex flex-row gap-4 justify-between items-center">
-                                <div class="font-bold">License Category</div>
-                            </div>
-                            <div style="max-width: 800px; max-height: 30em; overflow-y: auto">
-                                <div style="display: flex; flex-direction: column; row-gap: 1em">
-                                    <div>
-                                        Most open-source software licenses fall into two groups:
-                                        <span style="font-weight: 600">permissive licenses</span>
-                                        and
-                                        <span style="font-weight: 600">copyleft licenses</span>.
-                                    </div>
-                                    <div>
-                                        <span class="flex flex-row gap-2" style="font-weight: 600">
-                                            <Icon :icon="'mdi:shield-check'"></Icon>
-                                            Permissive Licenses
-                                        </span>
-                                        are open-source licenses that impose minimal restrictions on
-                                        how the software can be used, modified, and redistributed.
-                                        Permissive licenses typically require users to include the
-                                        original copyright notice and a copy of the license text
-                                        when redistributing the software. Examples of permissive
-                                        licenses include the MIT license, BSD license, and Apache
-                                        license.
-                                    </div>
-                                    <div
-                                        style="display: flex; flex-direction: column; row-gap: 1em"
+                    <div class="text-sm text-gray-600">References:</div>
+                    <div class="flex gap-2">
+                        <TooltipProvider
+                            v-for="reference in props.license.references.slice(0, 2)"
+                            :key="reference"
+                        >
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <a
+                                        :href="reference"
+                                        target="_blank"
+                                        class="text-blue-600 hover:text-blue-800 text-sm underline"
                                     >
-                                        <div>
-                                            <span
-                                                class="flex flex-row gap-2"
-                                                style="font-weight: 600"
-                                            >
-                                                <Icon
-                                                    :icon="'heroicons:shield-exclamation-solid'"
-                                                ></Icon>
-                                                Copyleft Licenses
-                                            </span>
-                                            are open-source licenses that aim to ensure that
-                                            derivative works or modifications of the original
-                                            software also remain open source. There are two flavors
-                                            of copyleft licenses: strong and weak.
-                                        </div>
-                                        <div
-                                            style="
-                                                display: flex;
-                                                flex-direction: column;
-                                                row-gap: 1em;
-                                            "
-                                        >
-                                            <div>
-                                                <span style="font-weight: 600"
-                                                    >Strong copyleft licenses</span
-                                                >
-                                                have stricter requirements compared to other
-                                                copyleft licenses. They mandate that if software
-                                                includes code licensed under a strong copyleft
-                                                license, the entire software, must be made available
-                                                under the same copyleft license. This means that the
-                                                software and its source code must be freely
-                                                accessible and redistributable under the terms of
-                                                the strong copyleft license. Examples of strong
-                                                copyleft licenses include the GNU General Public
-                                                License (GPL) and the GNU Affero General Public
-                                                License (AGPL)
-                                            </div>
-                                            <div>
-                                                <span style="font-weight: 600"
-                                                    >Weak copyleft licenses</span
-                                                >
-                                                have more flexible requirements compared to strong
-                                                copyleft licenses. They usually apply copyleft
-                                                restrictions only to the specific components that
-                                                are directly derived from the original copylefted
-                                                software. Other parts of the software that interact
-                                                or are combined with the copylefted component may
-                                                have different licensing terms. Weak copyleft
-                                                licenses allow for a combination of copylefted and
-                                                proprietary code in a single project, as long as the
-                                                copylefted component's source code remains available
-                                                and subject to the same copyleft license. Examples
-                                                of weak copyleft licenses include the Mozilla Public
-                                                License (MPL) and the Lesser General Public License
-                                                (LGPL).
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                                        {{ referenceDomain(reference) }}
+                                    </a>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Opens {{ reference }} in a new tab
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <span
+                            v-if="props.license.references.length > 2"
+                            class="text-sm text-gray-500"
+                        >
+                            +{{ props.license.references.length - 2 }} more
+                        </span>
+                    </div>
                 </div>
-                <div v-if="!props.license.license_category" class="flex gap-2 items-center">
-                    Category:
-                    <Badge variant="secondary"> Uncategorized </Badge>
-                </div>
-                <div v-if="props.license.description && props.license.description.length > 0">
-                    {{ props.license.description }}
-                </div>
+            </div>
+
+            <!-- Expandable Content -->
+            <div v-if="isExpanded" class="space-y-4 border-t border-gray-200 pt-4">
+                <!-- Description -->
                 <div
-                    v-if="
-                        props.license.unable_to_infer == false &&
-                        !(props.license.description && props.license.description.length > 0) &&
-                        props.license.references != null &&
-                        props.license.references.length > 0
-                    "
+                    v-if="props.license.description && props.license.description.length > 0"
+                    class="bg-gray-50 rounded-lg p-4"
                 >
-                    We do not have any more information on this license, you may however consult the
-                    references above or your legal team to learn more.
+                    <h4 class="font-semibold text-sm text-gray-900 mb-2">Description</h4>
+                    <p class="text-sm text-gray-700 leading-relaxed">
+                        {{ props.license.description }}
+                    </p>
                 </div>
+
+                <!-- License Properties -->
                 <div
-                    v-if="
-                        props.license.unable_to_infer == false &&
-                        !(props.license.description && props.license.description.length > 0) &&
-                        !(props.license.references != null && props.license.references.length > 0)
-                    "
+                    v-if="props.license.license_properties"
+                    class="grid grid-cols-1 lg:grid-cols-3 gap-6"
                 >
-                    We do not have any more information on this license, you may however consult
-                    your legal team to learn more.
-                </div>
-                <div v-if="props.license.unable_to_infer">
-                    This license "reference" was found in the dependencies listed above. We were,
-                    however, unable to identify which license the dependency is distributed under.
-                    This might be because: The license text was changed to such a large degree, that
-                    the license terms no longer align with the "original" license. No license file
-                    or license information found in the source code that allows us to collaborate
-                    the license defined by the developer.
-                    <b
-                        >We strongly suggest, a manual review of those dependencies using the
-                        "unrecognized" license to make sure your application does not infringe on
-                        any licenses imposed by those dependencies.</b
-                    >
-                </div>
-                <div v-if="props.license.license_properties" class="flex gap-8">
+                    <!-- Permissions -->
                     <div
                         v-if="props.license.license_properties.permissions"
-                        class="flex flex-col gap-y-2"
+                        class="bg-emerald-50 rounded-lg p-4"
                     >
-                        <div class="flex flex-row gap-2 items-center">
-                            <Icon class="text-xl" :icon="'jam:shield-check'"></Icon>
-                            <span class="font-semibold">Permissions:</span>
+                        <div class="flex items-center gap-2 mb-3">
+                            <Icon icon="tabler:shield-check" class="w-5 h-5 text-emerald-600" />
+                            <span class="font-semibold text-emerald-900">Permissions</span>
                         </div>
-                        <div
-                            v-for="permission in props.license.license_properties.permissions"
-                            :key="permission"
-                        >
-                            <Popover>
-                                <PopoverTrigger>
-                                    <Badge
-                                        variant="secondary"
-                                        class="flex gap-1 items-center cursor-pointer"
-                                        @click="fillModal(permission, 'permission')"
-                                    >
-                                        {{ permission }}
-                                        <Icon :icon="'material-symbols:help-outline'"></Icon>
-                                    </Badge>
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                    <div class="font-semibold">{{ property_title }}</div>
-                                    {{ property_content }}
-                                </PopoverContent>
-                            </Popover>
+                        <div class="space-y-2">
+                            <div
+                                v-for="permission in props.license.license_properties.permissions"
+                                :key="permission"
+                            >
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Badge
+                                            variant="secondary"
+                                            class="flex gap-1 items-center cursor-pointer hover:bg-emerald-100"
+                                            @click="fillModal(permission, 'permission')"
+                                        >
+                                            {{ permission }}
+                                            <Icon icon="tabler:info-circle" class="w-3 h-3" />
+                                        </Badge>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <div class="font-semibold">{{ property_title }}</div>
+                                        <div class="text-sm text-gray-600 mt-1">
+                                            {{ property_content }}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Conditions -->
                     <div
                         v-if="props.license.license_properties.conditions"
-                        class="flex flex-col gap-y-2"
+                        class="bg-amber-50 rounded-lg p-4"
                     >
-                        <div class="flex flex-row gap-2 items-center">
-                            <Icon class="text-xl" :icon="'jam:shield-close'"></Icon>
-                            <span class="font-semibold">Conditions:</span>
+                        <div class="flex items-center gap-2 mb-3">
+                            <Icon icon="tabler:shield-exclamation" class="w-5 h-5 text-amber-600" />
+                            <span class="font-semibold text-amber-900">Conditions</span>
                         </div>
-                        <div
-                            v-for="condition in props.license.license_properties.conditions"
-                            :key="condition"
-                        >
-                            <Popover>
-                                <PopoverTrigger>
-                                    <Badge
-                                        variant="secondary"
-                                        class="flex gap-1 items-center cursor-pointer"
-                                        @click="fillModal(condition, 'permission')"
-                                    >
-                                        {{ condition }}
-                                        <Icon :icon="'material-symbols:help-outline'"></Icon>
-                                    </Badge>
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                    <div class="font-semibold">{{ property_title }}</div>
-                                    {{ property_content }}
-                                </PopoverContent>
-                            </Popover>
+                        <div class="space-y-2">
+                            <div
+                                v-for="condition in props.license.license_properties.conditions"
+                                :key="condition"
+                            >
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Badge
+                                            variant="secondary"
+                                            class="flex gap-1 items-center cursor-pointer hover:bg-amber-100"
+                                            @click="fillModal(condition, 'condition')"
+                                        >
+                                            {{ condition }}
+                                            <Icon icon="tabler:info-circle" class="w-3 h-3" />
+                                        </Badge>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <div class="font-semibold">{{ property_title }}</div>
+                                        <div class="text-sm text-gray-600 mt-1">
+                                            {{ property_content }}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Limitations -->
                     <div
                         v-if="props.license.license_properties.limitations"
-                        class="flex flex-col gap-y-2"
+                        class="bg-red-50 rounded-lg p-4"
                     >
-                        <div class="flex flex-row gap-2 items-center">
-                            <Icon class="text-xl" :icon="'jam:shield-minus'"></Icon>
-                            <span class="font-semibold">Limitations:</span>
+                        <div class="flex items-center gap-2 mb-3">
+                            <Icon icon="tabler:shield-x" class="w-5 h-5 text-red-600" />
+                            <span class="font-semibold text-red-900">Limitations</span>
                         </div>
-                        <div
-                            v-for="limitation in props.license.license_properties.limitations"
-                            :key="limitation"
-                        >
-                            <Popover>
-                                <PopoverTrigger>
-                                    <Badge
-                                        variant="secondary"
-                                        class="flex gap-1 items-center cursor-pointer"
-                                        @click="fillModal(limitation, 'permission')"
-                                    >
-                                        {{ limitation }}
-                                        <Icon :icon="'material-symbols:help-outline'"></Icon>
-                                    </Badge>
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                    <div class="font-semibold">{{ property_title }}</div>
-                                    {{ property_content }}
-                                </PopoverContent>
-                            </Popover>
+                        <div class="space-y-2">
+                            <div
+                                v-for="limitation in props.license.license_properties.limitations"
+                                :key="limitation"
+                            >
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Badge
+                                            variant="secondary"
+                                            class="flex gap-1 items-center cursor-pointer hover:bg-red-100"
+                                            @click="fillModal(limitation, 'limitation')"
+                                        >
+                                            {{ limitation }}
+                                            <Icon icon="tabler:info-circle" class="w-3 h-3" />
+                                        </Badge>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <div class="font-semibold">{{ property_title }}</div>
+                                        <div class="text-sm text-gray-600 mt-1">
+                                            {{ property_content }}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div v-if="props.license.license_properties">
-                    <div
-                        v-if="
-                            props.license.license_properties.conditions ||
-                            props.license.license_properties.permissions ||
-                            props.license.license_properties.limitations
-                        "
+
+                <!-- Attribution -->
+                <div
+                    v-if="props.license.license_properties"
+                    class="text-xs text-gray-500 border-t pt-3"
+                >
+                    License properties from
+                    <a
+                        class="text-blue-600 hover:text-blue-800"
+                        target="_blank"
+                        href="https://choosealicense.com/"
                     >
-                        License properties from
-                        <a class="text-primary" target="_blank" href="https://choosealicense.com/"
-                            >choosealicense.com</a
-                        >
-                        licensed under
-                        <a
-                            class="text-primary"
-                            target="_blank"
-                            href="https://creativecommons.org/licenses/by/3.0/"
-                            >CC BY 3.0</a
-                        >
-                    </div>
+                        choosealicense.com
+                    </a>
+                    licensed under
+                    <a
+                        class="text-blue-600 hover:text-blue-800"
+                        target="_blank"
+                        href="https://creativecommons.org/licenses/by/3.0/"
+                    >
+                        CC BY 3.0
+                    </a>
                 </div>
             </div>
         </CardContent>
@@ -444,6 +591,14 @@ async function fillModal(title: string, type: string) {
 </template>
 
 <style scoped>
+.license-card {
+    transition: all 0.3s ease;
+}
+
+.license-card:hover {
+    transform: translateY(-1px);
+}
+
 .licenses-deps-using-row {
     padding-top: 0.8em;
     padding-bottom: 0.8em;

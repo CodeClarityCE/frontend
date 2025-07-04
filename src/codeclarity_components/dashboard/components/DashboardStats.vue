@@ -319,159 +319,335 @@ fetchVcsIntegrations();
             </template>
         </div>
     </div>
-    <div v-else class="space-y-6">
+    <div v-else class="space-y-8 relative min-h-screen">
+        <!-- Enhanced background with subtle patterns -->
+        <div
+            class="absolute inset-0 bg-gradient-to-br from-slate-50/50 via-white to-blue-50/30 -z-10"
+        ></div>
+        <div
+            class="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(59,130,246,0.05)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(147,51,234,0.05)_0%,transparent_50%)] -z-10"
+        ></div>
+
         <!-- Dashboard Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between mb-6">
+        <div class="mb-10">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Security Dashboard</h1>
-                    <p class="text-muted-foreground mt-1">
+                    <h1
+                        class="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 bg-clip-text text-transparent"
+                    >
+                        Security Dashboard
+                    </h1>
+                    <p class="text-slate-600 mt-2 text-lg">
                         Monitor your organization's security posture and vulnerabilities
                     </p>
                 </div>
-                <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Icon icon="solar:calendar-linear" class="h-4 w-4" />
-                    <span>Last updated: {{ new Date().toLocaleDateString() }}</span>
+                <div class="flex items-center gap-3">
+                    <div
+                        class="flex items-center gap-2 text-sm text-slate-500 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 shadow-sm"
+                    >
+                        <Icon icon="solar:calendar-linear" class="h-4 w-4 text-slate-400" />
+                        <span>Last updated: {{ new Date().toLocaleDateString() }}</span>
+                    </div>
+                    <Button variant="outline" size="sm" class="hidden sm:flex items-center gap-2">
+                        <Icon icon="solar:refresh-linear" class="h-4 w-4" />
+                        Refresh
+                    </Button>
                 </div>
             </div>
 
-            <!-- Quick Stats Row -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <!-- Enhanced Quick Stats Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <Card
-                    class="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300 hover:shadow-md transition-all duration-300"
+                    class="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
-                    <CardContent class="p-4">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-slate-600/5 to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    ></div>
+                    <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-700">Critical Issues</p>
-                                <p class="text-2xl font-bold text-black">14</p>
-                                <p class="text-xs text-gray-600 mt-1">+2 this week</p>
+                            <div class="space-y-2">
+                                <p
+                                    class="text-sm font-semibold text-slate-600 uppercase tracking-wide"
+                                >
+                                    Critical Issues
+                                </p>
+                                <p class="text-3xl font-bold text-black">14</p>
+                                <div class="flex items-center gap-1 text-xs">
+                                    <Icon
+                                        icon="solar:arrow-up-linear"
+                                        class="h-3 w-3 text-red-500"
+                                    />
+                                    <span class="text-red-600 font-medium">+2 this week</span>
+                                </div>
                             </div>
-                            <Icon icon="solar:danger-triangle-bold" class="h-8 w-8 text-black" />
+                            <div
+                                class="p-3 bg-slate-900/10 rounded-full group-hover:bg-slate-900/20 transition-colors duration-300"
+                            >
+                                <Icon
+                                    icon="solar:danger-triangle-bold"
+                                    class="h-8 w-8 text-black"
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card
-                    class="bg-gradient-to-br from-red-50 to-red-100 border-red-200 hover:shadow-md transition-all duration-300"
+                    class="group relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100 border-red-200 hover:border-red-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
-                    <CardContent class="p-4">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-red-600/5 to-red-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    ></div>
+                    <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-red-700">High Severity</p>
-                                <p class="text-2xl font-bold text-red-900">10</p>
-                                <p class="text-xs text-red-600 mt-1">-3 this week</p>
+                            <div class="space-y-2">
+                                <p
+                                    class="text-sm font-semibold text-red-700 uppercase tracking-wide"
+                                >
+                                    High Severity
+                                </p>
+                                <p class="text-3xl font-bold text-red-900">10</p>
+                                <div class="flex items-center gap-1 text-xs">
+                                    <Icon
+                                        icon="solar:arrow-down-linear"
+                                        class="h-3 w-3 text-green-500"
+                                    />
+                                    <span class="text-green-600 font-medium">-3 this week</span>
+                                </div>
                             </div>
-                            <Icon icon="solar:shield-warning-bold" class="h-8 w-8 text-red-500" />
+                            <div
+                                class="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors duration-300"
+                            >
+                                <Icon
+                                    icon="solar:shield-warning-bold"
+                                    class="h-8 w-8 text-red-500"
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card
-                    class="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-md transition-all duration-300"
+                    class="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
-                    <CardContent class="p-4">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    ></div>
+                    <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-blue-700">Projects Scanned</p>
-                                <p class="text-2xl font-bold text-blue-900">24</p>
-                                <p class="text-xs text-blue-600 mt-1">All systems</p>
+                            <div class="space-y-2">
+                                <p
+                                    class="text-sm font-semibold text-blue-700 uppercase tracking-wide"
+                                >
+                                    Projects Scanned
+                                </p>
+                                <p class="text-3xl font-bold text-blue-900">24</p>
+                                <div class="flex items-center gap-1 text-xs">
+                                    <Icon
+                                        icon="solar:check-circle-linear"
+                                        class="h-3 w-3 text-green-500"
+                                    />
+                                    <span class="text-blue-600 font-medium">All systems</span>
+                                </div>
                             </div>
-                            <Icon icon="solar:folder-check-bold" class="h-8 w-8 text-blue-500" />
+                            <div
+                                class="p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors duration-300"
+                            >
+                                <Icon
+                                    icon="solar:folder-check-bold"
+                                    class="h-8 w-8 text-blue-500"
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card
-                    class="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-md transition-all duration-300"
+                    class="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
-                    <CardContent class="p-4">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-emerald-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    ></div>
+                    <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-green-700">Security Score</p>
-                                <p class="text-2xl font-bold text-green-900">7.8</p>
-                                <p class="text-xs text-green-600 mt-1">Good standing</p>
+                            <div class="space-y-2">
+                                <p
+                                    class="text-sm font-semibold text-emerald-700 uppercase tracking-wide"
+                                >
+                                    Security Score
+                                </p>
+                                <p class="text-3xl font-bold text-emerald-900">7.8</p>
+                                <div class="flex items-center gap-1 text-xs">
+                                    <Icon
+                                        icon="solar:shield-check-linear"
+                                        class="h-3 w-3 text-emerald-500"
+                                    />
+                                    <span class="text-emerald-600 font-medium">Good standing</span>
+                                </div>
                             </div>
-                            <Icon icon="solar:shield-check-bold" class="h-8 w-8 text-green-500" />
+                            <div
+                                class="p-3 bg-emerald-500/10 rounded-full group-hover:bg-emerald-500/20 transition-colors duration-300"
+                            >
+                                <Icon
+                                    icon="solar:shield-check-bold"
+                                    class="h-8 w-8 text-emerald-500"
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
         </div>
 
-        <!-- Main Dashboard Grid -->
-        <div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-9">
-            <!-- Vulnerability Exposure Overview - Larger prominent card -->
+        <!-- Enhanced Main Dashboard Grid -->
+        <div class="grid gap-8 lg:grid-cols-12">
+            <!-- Vulnerability Exposure Overview - Enhanced prominent card -->
             <Card
-                class="xl:col-span-5 xl:col-start-3 shadow-sm hover:shadow-md transition-shadow duration-300"
+                class="lg:col-span-8 shadow-sm hover:shadow-xl transition-all duration-500 border-0 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:chart-square-bold" class="h-5 w-5 text-blue-600" />
-                        <CardTitle class="text-lg">Vulnerability Exposure Overview</CardTitle>
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors duration-300"
+                            >
+                                <Icon
+                                    icon="solar:chart-square-bold"
+                                    class="h-6 w-6 text-blue-600"
+                                />
+                            </div>
+                            <div>
+                                <CardTitle class="text-xl font-bold text-slate-900"
+                                    >Vulnerability Exposure Overview</CardTitle
+                                >
+                                <CardDescription class="text-slate-600 mt-1">
+                                    Total severity of vulnerabilities across all your projects
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-slate-400 hover:text-slate-600"
+                        >
+                            <Icon icon="solar:maximize-linear" class="h-4 w-4" />
+                        </Button>
                     </div>
-                    <CardDescription>
-                        This chart displays the total severity of vulnerabilities across all your
-                        projects.
-                    </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                     <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
                 </CardContent>
             </Card>
 
-            <!-- Vulnerabilities Summary -->
+            <!-- Vulnerabilities Summary - Enhanced -->
             <Card
-                class="xl:col-start-1 xl:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300 border-l-4 border-l-black"
+                class="lg:col-span-4 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-slate-900 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:bug-bold" class="h-5 w-5 text-black" />
-                        <CardTitle class="text-lg">Vulnerabilities Summary</CardTitle>
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-900/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors duration-300"
+                            >
+                                <Icon icon="solar:bug-bold" class="h-6 w-6 text-slate-900" />
+                            </div>
+                            <div>
+                                <CardTitle class="text-lg font-bold text-slate-900"
+                                    >Vulnerabilities Summary</CardTitle
+                                >
+                                <CardDescription class="text-slate-600 mt-1">
+                                    Current threats affecting your projects
+                                </CardDescription>
+                            </div>
+                        </div>
                     </div>
-                    <CardDescription>
-                        Current vulnerabilities affecting your projects.
-                    </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                     <CurrentVulns :integration-ids="activeIntegrationIds"></CurrentVulns>
                 </CardContent>
             </Card>
 
-            <!-- License Distribution -->
+            <!-- License Distribution - Enhanced -->
             <Card
-                class="xl:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300 border-l-4 border-l-purple-500"
+                class="lg:col-span-6 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-purple-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:document-text-bold" class="h-5 w-5 text-purple-600" />
-                        <CardTitle class="text-lg">Open Source Licenses</CardTitle>
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-purple-700/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors duration-300"
+                            >
+                                <Icon
+                                    icon="solar:document-text-bold"
+                                    class="h-6 w-6 text-purple-600"
+                                />
+                            </div>
+                            <div>
+                                <CardTitle class="text-lg font-bold text-slate-900"
+                                    >Open Source Licenses</CardTitle
+                                >
+                                <CardDescription class="text-slate-600 mt-1">
+                                    License compliance across your dependencies
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-slate-400 hover:text-slate-600"
+                        >
+                            <Icon icon="solar:export-linear" class="h-4 w-4" />
+                        </Button>
                     </div>
-                    <CardDescription>
-                        Comprehensive overview of open source licenses used by your project's
-                        dependencies.
-                    </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                     <LicenseDist :integration-ids="activeIntegrationIds"></LicenseDist>
                 </CardContent>
             </Card>
 
-            <!-- Vulnerability Impact Analysis -->
+            <!-- Vulnerability Impact Analysis - Enhanced -->
             <Card
-                class="xl:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300 border-l-4 border-l-yellow-500"
+                class="lg:col-span-6 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-amber-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:target-bold" class="h-5 w-5 text-yellow-600" />
-                        <CardTitle class="text-lg">Impact Analysis</CardTitle>
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors duration-300"
+                            >
+                                <Icon icon="solar:target-bold" class="h-6 w-6 text-amber-600" />
+                            </div>
+                            <div>
+                                <CardTitle class="text-lg font-bold text-slate-900"
+                                    >Impact Analysis</CardTitle
+                                >
+                                <CardDescription class="text-slate-600 mt-1">
+                                    Risk assessment and severity insights
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-slate-400 hover:text-slate-600"
+                        >
+                            <Icon icon="solar:download-linear" class="h-4 w-4" />
+                        </Button>
                     </div>
-                    <CardDescription>
-                        Average severity of vulnerabilities affecting your projects, providing
-                        insight into potential risks.
-                    </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                     <VulnerabilityImpact
                         :integration-ids="activeIntegrationIds"
                     ></VulnerabilityImpact>
@@ -479,134 +655,267 @@ fetchVcsIntegrations();
             </Card>
         </div>
 
-        <!-- Action Items Section -->
-        <div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 mt-8">
-            <!-- Recent Activity -->
-            <Card class="shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:history-bold" class="h-5 w-5 text-gray-600" />
-                        <CardTitle class="text-lg">Recent Activity</CardTitle>
+        <!-- Enhanced Action Items Section -->
+        <div class="grid gap-8 lg:grid-cols-3 mt-12">
+            <!-- Recent Activity - Enhanced -->
+            <Card
+                class="shadow-sm hover:shadow-xl transition-all duration-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+            >
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-700/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors duration-300"
+                            >
+                                <Icon icon="solar:history-bold" class="h-5 w-5 text-slate-600" />
+                            </div>
+                            <CardTitle class="text-lg font-bold text-slate-900"
+                                >Recent Activity</CardTitle
+                            >
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-slate-400 hover:text-slate-600"
+                        >
+                            <Icon icon="solar:eye-linear" class="h-4 w-4" />
+                        </Button>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <div class="space-y-3">
+                <CardContent className="relative">
+                    <div class="space-y-4 max-h-80 overflow-y-auto activity-scroll">
                         <div
-                            class="flex items-center gap-3 p-2 rounded-lg bg-gray-50 border border-gray-200"
+                            class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:danger-triangle-bold" class="h-4 w-4 text-black" />
-                            <div class="flex-1">
-                                <p class="text-sm font-medium">
+                            <div class="flex-shrink-0 p-2 bg-slate-900 rounded-lg">
+                                <Icon
+                                    icon="solar:danger-triangle-bold"
+                                    class="h-4 w-4 text-white"
+                                />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
                                     New critical vulnerability detected
                                 </p>
-                                <p class="text-xs text-gray-500">2 hours ago</p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    CVE-2025-1234 in dependencies
+                                </p>
+                                <p class="text-xs text-slate-400 mt-2">2 hours ago</p>
                             </div>
                         </div>
                         <div
-                            class="flex items-center gap-3 p-2 rounded-lg bg-green-50 border border-green-100"
+                            class="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:check-circle-bold" class="h-4 w-4 text-green-500" />
-                            <div class="flex-1">
-                                <p class="text-sm font-medium">5 vulnerabilities resolved</p>
-                                <p class="text-xs text-gray-500">1 day ago</p>
+                            <div class="flex-shrink-0 p-2 bg-emerald-500 rounded-lg">
+                                <Icon icon="solar:check-circle-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
+                                    5 vulnerabilities resolved
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Security patches applied successfully
+                                </p>
+                                <p class="text-xs text-slate-400 mt-2">1 day ago</p>
                             </div>
                         </div>
                         <div
-                            class="flex items-center gap-3 p-2 rounded-lg bg-blue-50 border border-blue-100"
+                            class="flex items-start gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:add-circle-bold" class="h-4 w-4 text-blue-500" />
-                            <div class="flex-1">
-                                <p class="text-sm font-medium">New project added</p>
-                                <p class="text-xs text-gray-500">2 days ago</p>
+                            <div class="flex-shrink-0 p-2 bg-blue-500 rounded-lg">
+                                <Icon icon="solar:add-circle-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
+                                    New project added
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Frontend-v2 repository scanned
+                                </p>
+                                <p class="text-xs text-slate-400 mt-2">2 days ago</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-100 hover:border-amber-200 transition-all duration-200 cursor-pointer"
+                        >
+                            <div class="flex-shrink-0 p-2 bg-amber-500 rounded-lg">
+                                <Icon icon="solar:refresh-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
+                                    Security scan completed
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Full system audit finished
+                                </p>
+                                <p class="text-xs text-slate-400 mt-2">3 days ago</p>
                             </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <!-- Recommended Actions -->
-            <Card class="shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:lightbulb-bold" class="h-5 w-5 text-yellow-600" />
-                        <CardTitle class="text-lg">Recommended Actions</CardTitle>
+            <!-- Recommended Actions - Enhanced -->
+            <Card
+                class="shadow-sm hover:shadow-xl transition-all duration-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+            >
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors duration-300"
+                            >
+                                <Icon icon="solar:lightbulb-bold" class="h-5 w-5 text-amber-600" />
+                            </div>
+                            <CardTitle class="text-lg font-bold text-slate-900"
+                                >Recommended Actions</CardTitle
+                            >
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-slate-400 hover:text-slate-600"
+                        >
+                            <Icon icon="solar:settings-linear" class="h-4 w-4" />
+                        </Button>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <div class="space-y-3">
-                        <Button
-                            variant="outline"
-                            class="w-full justify-start h-auto p-3 border-gray-300 hover:bg-gray-50"
+                <CardContent className="relative">
+                    <div class="space-y-4 max-h-80 overflow-y-auto">
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition-all duration-200 cursor-pointer"
                         >
-                            <div class="text-left">
-                                <p class="font-medium text-black">Address Critical Issues</p>
-                                <p class="text-xs text-gray-600">
-                                    14 critical vulnerabilities need attention
+                            <div class="flex-shrink-0 p-2 bg-slate-900 rounded-lg">
+                                <Icon
+                                    icon="solar:danger-triangle-bold"
+                                    class="h-4 w-4 text-white"
+                                />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
+                                    Address Critical Issues
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    14 critical vulnerabilities need immediate attention
                                 </p>
                             </div>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            class="w-full justify-start h-auto p-3 border-blue-200 hover:bg-blue-50"
+                        </div>
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 transition-all duration-200 cursor-pointer"
                         >
-                            <div class="text-left">
-                                <p class="font-medium text-blue-700">Update Dependencies</p>
-                                <p class="text-xs text-blue-600">
+                            <div class="flex-shrink-0 p-2 bg-blue-500 rounded-lg">
+                                <Icon icon="solar:refresh-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
+                                    Update Dependencies
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
                                     8 packages have security updates available
                                 </p>
                             </div>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            class="w-full justify-start h-auto p-3 border-gray-200 hover:bg-gray-50"
+                        </div>
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-100 hover:border-purple-200 transition-all duration-200 cursor-pointer"
                         >
-                            <div class="text-left">
-                                <p class="font-medium text-gray-700">Review License Compliance</p>
-                                <p class="text-xs text-gray-600">Check new license requirements</p>
+                            <div class="flex-shrink-0 p-2 bg-purple-500 rounded-lg">
+                                <Icon icon="solar:document-text-bold" class="h-4 w-4 text-white" />
                             </div>
-                        </Button>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">
+                                    Review License Compliance
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Check new license requirements
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <!-- Quick Navigation -->
-            <Card class="shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardHeader class="pb-4">
-                    <div class="flex items-center gap-2">
-                        <Icon icon="solar:compass-bold" class="h-5 w-5 text-indigo-600" />
-                        <CardTitle class="text-lg">Quick Navigation</CardTitle>
+            <!-- Enhanced Quick Navigation -->
+            <Card
+                class="shadow-sm hover:shadow-xl transition-all duration-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+            >
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-blue-600/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+                <CardHeader class="pb-6 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors duration-300"
+                            >
+                                <Icon icon="solar:compass-bold" class="h-5 w-5 text-indigo-600" />
+                            </div>
+                            <CardTitle class="text-lg font-bold text-slate-900"
+                                >Quick Navigation</CardTitle
+                            >
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-slate-400 hover:text-slate-600"
+                        >
+                            <Icon icon="solar:menu-dots-linear" class="h-4 w-4" />
+                        </Button>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <div class="grid grid-cols-2 gap-2">
-                        <Button
-                            variant="ghost"
-                            class="h-auto p-3 flex flex-col items-center gap-1 hover:bg-blue-50"
+                <CardContent className="relative">
+                    <div class="space-y-4 max-h-80 overflow-y-auto">
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:folder-bold" class="h-5 w-5 text-blue-600" />
-                            <span class="text-xs">Projects</span>
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            class="h-auto p-3 flex flex-col items-center gap-1 hover:bg-purple-50"
+                            <div class="flex-shrink-0 p-2 bg-blue-500 rounded-lg">
+                                <Icon icon="solar:folder-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Projects</p>
+                                <p class="text-xs text-slate-500 mt-1">Manage your repositories</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-100 hover:border-purple-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:settings-bold" class="h-5 w-5 text-purple-600" />
-                            <span class="text-xs">Settings</span>
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            class="h-auto p-3 flex flex-col items-center gap-1 hover:bg-green-50"
+                            <div class="flex-shrink-0 p-2 bg-purple-500 rounded-lg">
+                                <Icon icon="solar:settings-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Settings</p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Configure your preferences
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:chart-2-bold" class="h-5 w-5 text-green-600" />
-                            <span class="text-xs">Reports</span>
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            class="h-auto p-3 flex flex-col items-center gap-1 hover:bg-orange-50"
+                            <div class="flex-shrink-0 p-2 bg-emerald-500 rounded-lg">
+                                <Icon icon="solar:chart-2-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Reports</p>
+                                <p class="text-xs text-slate-500 mt-1">View detailed analytics</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-start gap-4 p-4 rounded-xl bg-orange-50 border border-orange-100 hover:bg-orange-100 hover:border-orange-200 transition-all duration-200 cursor-pointer"
                         >
-                            <Icon icon="solar:shield-bold" class="h-5 w-5 text-orange-600" />
-                            <span class="text-xs">Security</span>
-                        </Button>
+                            <div class="flex-shrink-0 p-2 bg-orange-500 rounded-lg">
+                                <Icon icon="solar:shield-bold" class="h-4 w-4 text-white" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Security</p>
+                                <p class="text-xs text-slate-500 mt-1">Security configurations</p>
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -674,22 +983,203 @@ fetchVcsIntegrations();
     background-clip: text;
 }
 
-/* Custom scrollbar for activity feed */
+/* Enhanced dashboard animations and styling */
+.grid {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Staggered animation for cards with improved timing */
+.grid > *:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.grid > *:nth-child(2) {
+    animation-delay: 0.15s;
+}
+.grid > *:nth-child(3) {
+    animation-delay: 0.2s;
+}
+.grid > *:nth-child(4) {
+    animation-delay: 0.25s;
+}
+.grid > *:nth-child(5) {
+    animation-delay: 0.3s;
+}
+.grid > *:nth-child(6) {
+    animation-delay: 0.35s;
+}
+
+/* Enhanced card hover effects */
+.hover\:-translate-y-1:hover {
+    transform: translateY(-4px);
+}
+
+.group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+}
+
+/* Enhanced shadows */
+.shadow-sm {
+    box-shadow:
+        0 1px 2px 0 rgba(0, 0, 0, 0.05),
+        0 1px 3px 0 rgba(0, 0, 0, 0.08);
+}
+
+.hover\:shadow-xl:hover {
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* Backdrop blur enhancement */
+.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.bg-white\/70 {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Custom scrollbar styling */
 .activity-scroll::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
 }
 
 .activity-scroll::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 2px;
+    background: rgba(241, 245, 249, 0.5);
+    border-radius: 8px;
 }
 
 .activity-scroll::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 2px;
+    background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+    border-radius: 8px;
+    transition: background 0.3s ease;
 }
 
 .activity-scroll::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: linear-gradient(to bottom, #94a3b8, #64748b);
+}
+
+/* Enhanced button animations */
+.transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradient text improvements */
+.bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.text-transparent {
+    -webkit-text-fill-color: transparent;
+}
+
+/* Icon consistency and animations */
+.h-4.w-4,
+.h-5.w-5,
+.h-6.w-6,
+.h-8.w-8 {
+    flex-shrink: 0;
+    transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+}
+
+/* Group hover effects for nested elements */
+.group\/button:hover .group-hover\/button\:bg-slate-800 {
+    background-color: rgb(30 41 59);
+}
+
+.group\/button:hover .group-hover\/button\:bg-blue-600 {
+    background-color: rgb(37 99 235);
+}
+
+.group\/button:hover .group-hover\/button\:bg-purple-600 {
+    background-color: rgb(147 51 234);
+}
+
+.group\/nav:hover .group-hover\/nav\:bg-blue-200 {
+    background-color: rgb(191 219 254);
+}
+
+.group\/nav:hover .group-hover\/nav\:bg-purple-200 {
+    background-color: rgb(233 213 255);
+}
+
+.group\/nav:hover .group-hover\/nav\:bg-emerald-200 {
+    background-color: rgb(167 243 208);
+}
+
+.group\/nav:hover .group-hover\/nav\:bg-orange-200 {
+    background-color: rgb(254 215 170);
+}
+
+/* Enhanced responsive design */
+@media (max-width: 768px) {
+    .grid {
+        gap: 1rem;
+    }
+
+    .space-y-8 > * + * {
+        margin-top: 1.5rem;
+    }
+}
+
+/* Performance optimizations */
+.group {
+    will-change: transform;
+}
+
+.transition-all,
+.transition-colors,
+.transition-opacity,
+.transition-shadow {
+    will-change: auto;
+}
+
+/* Focus states for accessibility */
+.focus\:ring-2:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Loading state animations */
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background-size: 200px 100%;
+}
+
+/* Improved color transitions */
+.text-slate-400,
+.text-slate-500,
+.text-slate-600,
+.text-slate-700,
+.text-slate-900 {
+    transition: color 0.2s ease;
 }
 </style>

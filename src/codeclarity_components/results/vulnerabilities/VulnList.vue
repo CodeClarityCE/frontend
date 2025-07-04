@@ -439,44 +439,175 @@ watch(() => filterState.value.activeFilters, init);
                         <!-- Quick Actions & Key Metrics -->
                         <div class="flex-shrink-0 flex items-center gap-2">
                             <!-- High Impact Warning -->
-                            <div
-                                v-if="report.EPSS.Score > 0.1"
-                                class="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md border border-red-200"
-                                title="High exploitation probability"
-                            >
-                                <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
-                                <span class="text-xs font-semibold">HIGH RISK</span>
-                            </div>
+                            <TooltipProvider v-if="report.EPSS.Score > 0.1">
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <div
+                                            class="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md border border-red-200 cursor-help"
+                                        >
+                                            <Icon
+                                                icon="tabler:alert-triangle-filled"
+                                                class="w-4 h-4"
+                                            />
+                                            <span class="text-xs font-semibold">HIGH RISK</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white border border-gray-300 shadow-lg"
+                                    >
+                                        <div class="max-w-sm space-y-3 p-3">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:alert-triangle-filled"
+                                                    class="w-4 h-4 text-red-600"
+                                                />
+                                                <span class="font-semibold text-base text-gray-900">
+                                                    High Risk Vulnerability
+                                                </span>
+                                            </div>
+
+                                            <div
+                                                class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                                            >
+                                                <div class="font-medium text-gray-900">
+                                                    Priority Action Required
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    This vulnerability has a high probability ({{
+                                                        (report.EPSS.Score * 100).toFixed(1)
+                                                    }}%) of being exploited in the wild.
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <strong>Recommendation:</strong> Prioritize
+                                                    patching or implementing mitigations
+                                                    immediately.
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-200">
+                                                <p
+                                                    class="text-sm text-gray-800 font-medium flex items-center gap-1"
+                                                >
+                                                    <span class="text-red-600">⚠</span> High
+                                                    exploitation probability detected via EPSS
+                                                    scoring
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
                             <!-- Conflict Warning -->
-                            <div
+                            <TooltipProvider
                                 v-if="
                                     report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT' ||
                                     report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                 "
-                                class="flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-semibold"
-                                :class="{
-                                    'bg-amber-50 text-amber-700 border-amber-200':
-                                        report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT',
-                                    'bg-red-100 text-red-700 border-red-200':
-                                        report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
-                                }"
-                                :title="
-                                    report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
-                                        ? 'Match possibly incorrect'
-                                        : 'Match incorrect'
-                                "
                             >
-                                <Icon icon="tabler:alert-triangle-filled" class="w-4 h-4" />
-                                <span
-                                    v-if="
-                                        report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
-                                    "
-                                >
-                                    UNCERTAIN
-                                </span>
-                                <span v-else> MISMATCH </span>
-                            </div>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <div
+                                            class="flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-semibold cursor-help"
+                                            :class="{
+                                                'bg-amber-50 text-amber-700 border-amber-200':
+                                                    report.Conflict.ConflictFlag ===
+                                                    'MATCH_POSSIBLE_INCORRECT',
+                                                'bg-red-100 text-red-700 border-red-200':
+                                                    report.Conflict.ConflictFlag ===
+                                                    'MATCH_INCORRECT'
+                                            }"
+                                        >
+                                            <Icon
+                                                icon="tabler:alert-triangle-filled"
+                                                class="w-4 h-4"
+                                            />
+                                            <span
+                                                v-if="
+                                                    report.Conflict.ConflictFlag ===
+                                                    'MATCH_POSSIBLE_INCORRECT'
+                                                "
+                                            >
+                                                UNCERTAIN
+                                            </span>
+                                            <span v-else> MISMATCH </span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        class="bg-white border border-gray-300 shadow-lg"
+                                    >
+                                        <div class="max-w-sm space-y-3 p-3">
+                                            <div class="flex items-center gap-2">
+                                                <Icon
+                                                    icon="tabler:alert-triangle-filled"
+                                                    class="w-4 h-4"
+                                                    :class="{
+                                                        'text-amber-600':
+                                                            report.Conflict.ConflictFlag ===
+                                                            'MATCH_POSSIBLE_INCORRECT',
+                                                        'text-red-600':
+                                                            report.Conflict.ConflictFlag ===
+                                                            'MATCH_INCORRECT'
+                                                    }"
+                                                />
+                                                <span class="font-semibold text-base text-gray-900">
+                                                    Match Reliability Warning
+                                                </span>
+                                            </div>
+
+                                            <div
+                                                class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                                            >
+                                                <div class="font-medium text-gray-900">
+                                                    {{
+                                                        report.Conflict.ConflictFlag ===
+                                                        'MATCH_POSSIBLE_INCORRECT'
+                                                            ? 'Possibly Incorrect Match'
+                                                            : 'Incorrect Match'
+                                                    }}
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    {{
+                                                        report.Conflict.ConflictFlag ===
+                                                        'MATCH_POSSIBLE_INCORRECT'
+                                                            ? 'NVD and OSV databases disagree on this vulnerability match. The vulnerability may not actually affect this dependency version.'
+                                                            : 'This vulnerability match has been determined to be incorrect. The vulnerability likely does not affect this dependency.'
+                                                    }}
+                                                </div>
+                                                <div class="text-gray-600">
+                                                    <strong>Recommendation:</strong>
+                                                    {{
+                                                        report.Conflict.ConflictFlag ===
+                                                        'MATCH_POSSIBLE_INCORRECT'
+                                                            ? 'Verify manually before taking action.'
+                                                            : 'This can likely be ignored unless manual verification confirms otherwise.'
+                                                    }}
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-200">
+                                                <p
+                                                    class="text-sm text-gray-800 font-medium flex items-center gap-1"
+                                                >
+                                                    <span
+                                                        :class="{
+                                                            'text-amber-600':
+                                                                report.Conflict.ConflictFlag ===
+                                                                'MATCH_POSSIBLE_INCORRECT',
+                                                            'text-red-600':
+                                                                report.Conflict.ConflictFlag ===
+                                                                'MATCH_INCORRECT'
+                                                        }"
+                                                        >⚠</span
+                                                    >
+                                                    Cross-reference with multiple vulnerability
+                                                    databases recommended
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
                             <!-- Expand/Collapse Icon -->
                             <Icon

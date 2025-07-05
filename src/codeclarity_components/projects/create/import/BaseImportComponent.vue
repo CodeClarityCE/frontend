@@ -3,7 +3,6 @@ import { type GetRepositoriesRequestOptions } from '@/codeclarity_components/org
 import Button from '@/shadcn/ui/button/Button.vue';
 import router from '@/router';
 import Input from '@/shadcn/ui/input/Input.vue';
-import { Separator } from '@/shadcn/ui/separator';
 import {
     FormControl,
     FormDescription,
@@ -181,68 +180,76 @@ async function onSelectedReposChange(repos: Repository[]) {
 }
 </script>
 <template>
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-8 min-h-screen py-8">
         <!--------------------------------------------------------------------------->
         <!--                                 Header                                -->
         <!--------------------------------------------------------------------------->
-        <div class="flex flex-row gap-4 items-center">
-            <div style="font-size: 2rem">
-                <slot name="icon"></slot>
+        <div class="bg-white shadow-sm border-b border-gray-200 px-8 py-6 -m-8 mb-8">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-row gap-4 items-center">
+                    <div style="font-size: 2rem">
+                        <slot name="icon"></slot>
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 700">
+                        <slot name="integration_provider_name"></slot>
+                    </div>
+                    <Button
+                        class="w-fit cursor-pointer gap-1"
+                        variant="outline"
+                        title="Force refresh repositories"
+                        @click="forceRefreshRepos()"
+                    >
+                        <Icon class="icon" icon="solar:refresh-bold"></Icon>
+                        <div>Force refresh</div>
+                    </Button>
+                </div>
             </div>
-            <div style="font-size: 2rem; font-weight: 700">
-                <slot name="integration_provider_name"></slot>
-            </div>
-            <Button
-                class="w-fit cursor-pointer gap-1"
-                variant="outline"
-                title="Force refresh repositories"
-                @click="forceRefreshRepos()"
-            >
-                <Icon class="icon" icon="solar:refresh-bold"></Icon>
-                <div>Force refresh</div>
-            </Button>
         </div>
 
-        <div class="flex flex-col items-center gap-16">
-            <div class="flex flex-col gap-8">
-                <RepoTable
-                    v-if="Object.keys(reposFailedToImport).length == 0"
-                    ref="repoTableRef"
-                    :integration="integration"
-                    :get-repos="getRepos"
-                    @on-selected-repos-change="onSelectedReposChange($event)"
-                >
-                </RepoTable>
+        <div class="px-8">
+            <div class="flex flex-col items-center gap-8 max-w-6xl mx-auto">
+                <div class="flex flex-col gap-6 w-full">
+                    <RepoTable
+                        v-if="Object.keys(reposFailedToImport).length == 0"
+                        ref="repoTableRef"
+                        :integration="integration"
+                        :get-repos="getRepos"
+                        @on-selected-repos-change="onSelectedReposChange($event)"
+                    >
+                    </RepoTable>
 
-                <!--------------------------------------------------------------------------->
-                <!--                              Import Error                             -->
-                <!--------------------------------------------------------------------------->
-                <template v-else>
-                    <div class="">
-                        <div class="text-destructive font-light">
-                            <div class="flex flex-col gap-1">
-                                <div class="flex flex-row gap-1 items-center">
-                                    <Icon class="text-xl" icon="solar:danger-triangle-bold"></Icon>
-                                    <div class="font-black">Some repository imports failed</div>
+                    <!--------------------------------------------------------------------------->
+                    <!--                              Import Error                             -->
+                    <!--------------------------------------------------------------------------->
+                    <template v-else>
+                        <div class="">
+                            <div class="text-destructive font-light">
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex flex-row gap-1 items-center">
+                                        <Icon
+                                            class="text-xl"
+                                            icon="solar:danger-triangle-bold"
+                                        ></Icon>
+                                        <div class="font-black">Some repository imports failed</div>
+                                    </div>
+                                    <div>Note: the other repository imports succeeded.</div>
                                 </div>
-                                <div>Note: the other repository imports succeeded.</div>
                             </div>
                         </div>
-                    </div>
 
-                    <ImportErrorTable :repos-failed-to-import="reposFailedToImport">
-                    </ImportErrorTable>
-                </template>
+                        <ImportErrorTable :repos-failed-to-import="reposFailedToImport">
+                        </ImportErrorTable>
+                    </template>
 
-                <div class="flex flex-col gap-4">
-                    <Button
-                        v-if="Object.keys(reposFailedToImport).length > 0"
-                        class="cursor-pointer m-0 w-fit"
-                        @click="clearImportErrors()"
-                        >Clear errors</Button
-                    >
-                    <template v-else>
+                    <div class="mt-6">
+                        <Button
+                            v-if="Object.keys(reposFailedToImport).length > 0"
+                            class="cursor-pointer m-0 w-fit"
+                            @click="clearImportErrors()"
+                            >Clear errors</Button
+                        >
                         <div
+                            v-else-if="selectedRepos.length > 0"
                             class="flex flex-col gap-3 p-6 bg-blue-50 border border-blue-200 rounded-lg"
                         >
                             <div class="flex items-center gap-2">
@@ -252,45 +259,87 @@ async function onSelectedReposChange(repos: Repository[]) {
                             <p class="text-sm text-blue-700">
                                 You have selected <strong>{{ selectedRepos.length }}</strong>
                                 {{ selectedRepos.length === 1 ? 'repository' : 'repositories' }} for
-                                import.
-                                {{
-                                    selectedRepos.length === 0
-                                        ? 'Please select repositories to import.'
-                                        : 'Click the button below to start the import process.'
-                                }}
+                                import. Click the button below to start the import process.
                             </p>
                             <Button
                                 class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 cursor-pointer m-0 w-fit transition-colors duration-200"
-                                :disabled="selectedRepos.length === 0"
                                 @click="importProjectsBulk()"
                             >
                                 <Icon icon="lucide:download" class="w-4 h-4 mr-2" />
-                                Import {{ selectedRepos.length > 0 ? selectedRepos.length : '' }}
+                                Import {{ selectedRepos.length }}
                                 {{ selectedRepos.length === 1 ? 'project' : 'projects' }}
                             </Button>
                         </div>
-                    </template>
+                    </div>
+                </div>
+
+                <!-- Divider Section -->
+                <div class="flex items-center justify-center my-12">
+                    <div class="flex-1 border-t border-gray-300"></div>
+                    <div class="px-6 text-gray-500 font-medium text-sm uppercase tracking-wide">
+                        Or
+                    </div>
+                    <div class="flex-1 border-t border-gray-300"></div>
+                </div>
+
+                <!-- Manual Import Section -->
+                <div class="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="p-3 bg-gray-100 rounded-lg">
+                            <Icon icon="lucide:link" class="w-6 h-6 text-gray-600" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                Import manually
+                            </h3>
+                            <p class="text-gray-600 text-sm">
+                                Can't find your repository in the list above? Import it directly
+                                using its URL.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form class="space-y-4" @submit="onSubmit">
+                        <FormField v-slot="{ componentField }" name="repository">
+                            <FormItem>
+                                <FormLabel class="text-gray-700 font-medium"
+                                    >Repository URL</FormLabel
+                                >
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        placeholder="https://github.com/username/repository"
+                                        v-bind="componentField"
+                                        class="h-12 text-base"
+                                    />
+                                </FormControl>
+                                <FormDescription class="text-gray-500">
+                                    Enter the complete URL of the repository you want to import
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        </FormField>
+                        <div class="pt-2">
+                            <Button
+                                type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors duration-200"
+                            >
+                                <Icon icon="lucide:plus" class="w-4 h-4 mr-2" />
+                                Import Repository
+                            </Button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <Separator class="w-1/2" label="or"></Separator>
-            <form @submit="onSubmit">
-                <FormField v-slot="{ componentField }" name="repository">
-                    <FormItem>
-                        <FormLabel>Import manually</FormLabel>
-                        <FormControl>
-                            <Input type="text" placeholder="https://..." v-bind="componentField" />
-                        </FormControl>
-                        <FormDescription> URL of a repository </FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                </FormField>
-                <Button type="submit"> Submit </Button>
-            </form>
         </div>
 
         <!--------------------------------------------------------------------------->
         <!--                                   FAQ                                 -->
         <!--------------------------------------------------------------------------->
-        <Faq> </Faq>
+        <div class="px-8">
+            <div class="max-w-6xl mx-auto">
+                <Faq> </Faq>
+            </div>
+        </div>
     </div>
 </template>

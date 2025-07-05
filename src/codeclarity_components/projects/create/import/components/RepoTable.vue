@@ -98,25 +98,6 @@ const searchKey = ref('');
 const activeFilters: Ref<string[]> = ref(['only_non_imported']);
 const selectedRepos: Ref<Repository[]> = ref([]);
 
-// Language color mapping for potential future use
-const languageColors: { [key: string]: string } = {
-    JavaScript: '#f1e05a',
-    TypeScript: '#2b7489',
-    Python: '#3572A5',
-    Java: '#b07219',
-    'C#': '#239120',
-    PHP: '#4F5D95',
-    Ruby: '#701516',
-    Go: '#00ADD8',
-    Rust: '#dea584',
-    Swift: '#ffac45',
-    Kotlin: '#F18E33',
-    Dart: '#00B4AB',
-    Vue: '#4FC08D',
-    React: '#61DAFB',
-    default: '#8b5cf6'
-};
-
 // Watchers
 watch([activeFilters, repos], () => {
     updateSelectAllState();
@@ -345,189 +326,215 @@ defineExpose({
         <!--------------------------------------------------------------------------->
         <!--                              Paginated Repos                          -->
         <!--------------------------------------------------------------------------->
-        <div class="bg-gray-50 rounded-lg p-6">
-            <Pagination
-                v-model:page="page"
-                v-model:nmb-entries-showing="entriesPerPage"
-                v-model:nmb-entries-total="totalEntries"
-                v-model:total-pages="totalPages"
-            >
-                <template #content>
-                    <div
-                        v-if="totalEntries == 0 && searchKey != ''"
-                        class="flex flex-col items-center gap-4 py-16"
-                    >
-                        <Icon icon="lucide:search-x" class="text-6xl text-gray-300" />
-                        <div class="text-lg text-gray-500">No repositories match your search</div>
-                        <div class="text-sm text-gray-400">
-                            Try adjusting your search terms or filters
-                        </div>
+        <Pagination
+            v-model:page="page"
+            v-model:nmb-entries-showing="entriesPerPage"
+            v-model:nmb-entries-total="totalEntries"
+            v-model:total-pages="totalPages"
+        >
+            <template #content>
+                <div
+                    v-if="totalEntries == 0 && searchKey != ''"
+                    class="flex flex-col items-center gap-4 py-16"
+                >
+                    <Icon icon="lucide:search-x" class="text-6xl text-gray-300" />
+                    <div class="text-lg text-gray-500">No repositories match your search</div>
+                    <div class="text-sm text-gray-400">
+                        Try adjusting your search terms or filters
                     </div>
-                    <div
-                        v-else-if="totalEntries == 0 && searchKey == ''"
-                        class="flex flex-col items-center gap-4 py-16"
-                    >
-                        <Icon icon="octicon:repo-24" class="text-6xl text-gray-300" />
-                        <div class="text-lg text-gray-500">No repositories found</div>
-                        <div class="text-sm text-gray-400">
-                            Try adjusting your filters or check your integration settings
-                        </div>
+                </div>
+                <div
+                    v-else-if="totalEntries == 0 && searchKey == ''"
+                    class="flex flex-col items-center gap-4 py-16"
+                >
+                    <Icon icon="octicon:repo-24" class="text-6xl text-gray-300" />
+                    <div class="text-lg text-gray-500">No repositories found</div>
+                    <div class="text-sm text-gray-400">
+                        Try adjusting your filters or check your integration settings
                     </div>
-                    <template v-else-if="totalEntries > 0">
-                        <!-- Selection Summary Bar -->
-                        <div
-                            v-if="selectedRepos.length > 0"
-                            class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
-                        >
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <Icon icon="lucide:check-circle-2" class="text-blue-600" />
-                                    <div>
-                                        <div class="font-medium text-blue-900 text-sm">
-                                            {{ selectedRepos.length }}
-                                            {{
-                                                selectedRepos.length === 1
-                                                    ? 'repository'
-                                                    : 'repositories'
-                                            }}
-                                            selected
-                                        </div>
-                                        <div class="text-blue-700 text-xs mt-1">
-                                            Ready for import
-                                        </div>
-                                    </div>
+                </div>
+                <template v-else-if="totalEntries > 0">
+                    <!-- No selectable repositories message -->
+                    <div
+                        v-if="
+                            repos &&
+                            repos.filter((repo) =>
+                                activeFilters.includes('only_non_imported')
+                                    ? !repo.imported_already
+                                    : true
+                            ).length === 0
+                        "
+                        class="bg-green-50 border border-green-200 rounded-lg p-6 mb-4 text-center"
+                    >
+                        <Icon
+                            icon="lucide:check-circle"
+                            class="w-12 h-12 text-green-600 mx-auto mb-3"
+                        />
+                        <h3 class="font-semibold text-green-900 mb-2">
+                            All repositories are already imported!
+                        </h3>
+                        <p class="text-green-700 text-sm">
+                            All available repositories from this integration have been successfully
+                            imported.
+                        </p>
+                    </div>
+
+                    <!-- Select All Section - Only show if there are selectable repos -->
+                    <div
+                        v-else-if="
+                            repos &&
+                            repos.filter((repo) =>
+                                activeFilters.includes('only_non_imported')
+                                    ? !repo.imported_already
+                                    : true
+                            ).length > 0
+                        "
+                        class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4"
+                    >
+                        <div class="flex items-center gap-3">
+                            <input
+                                v-model="selectAll"
+                                type="checkbox"
+                                class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                @click="toggleSelectAll()"
+                            />
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-700 text-sm">
+                                    Select All Repositories
                                 </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    class="text-blue-700 border-blue-300 hover:bg-blue-100"
-                                    @click="
-                                        selectedRepos = [];
-                                        updateSelectAllState();
-                                    "
-                                >
-                                    Clear Selection
-                                </Button>
+                                <div class="text-gray-600 text-xs mt-1">
+                                    {{
+                                        repos?.filter((repo) =>
+                                            activeFilters.includes('only_non_imported')
+                                                ? !repo.imported_already
+                                                : true
+                                        ).length || 0
+                                    }}
+                                    repositories available for selection
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Select All Section -->
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                    <!-- Selection Summary Bar -->
+                    <div
+                        v-if="selectedRepos.length > 0"
+                        class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
+                    >
+                        <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <input
-                                    v-model="selectAll"
-                                    type="checkbox"
-                                    class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                                    @click="toggleSelectAll()"
-                                />
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-700 text-sm">
-                                        Select All Repositories
-                                    </div>
-                                    <div class="text-gray-600 text-xs mt-1">
+                                <Icon icon="lucide:check-circle-2" class="text-blue-600" />
+                                <div>
+                                    <div class="font-medium text-blue-900 text-sm">
+                                        {{ selectedRepos.length }}
                                         {{
-                                            repos?.filter((repo) =>
-                                                activeFilters.includes('only_non_imported')
-                                                    ? !repo.imported_already
-                                                    : true
-                                            ).length || 0
+                                            selectedRepos.length === 1
+                                                ? 'repository'
+                                                : 'repositories'
                                         }}
-                                        repositories available for selection
+                                        selected
                                     </div>
+                                    <div class="text-blue-700 text-xs mt-1">Ready for import</div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Table Section -->
-                        <div
-                            class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
-                        >
-                            <SortableTable
-                                :headers="headers"
-                                :sort-key="sortKey"
-                                :sort-direction="sortDirection"
-                                class="w-full modern-table"
-                                @on-sort-change="updateSort"
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                class="text-blue-700 border-blue-300 hover:bg-blue-100"
+                                @click="
+                                    selectedRepos = [];
+                                    updateSelectAllState();
+                                "
                             >
-                                <template #data>
-                                    <!-- Repository Rows -->
-                                    <tr
-                                        v-for="repo in repos"
-                                        :key="repo.id"
-                                        class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150"
-                                        :class="{
-                                            'bg-blue-50/30 border-blue-200': selectedRepos
-                                                .map((x) => x.id)
-                                                .includes(repo.id)
-                                        }"
-                                    >
-                                        <td class="p-4">
-                                            <input
-                                                type="checkbox"
-                                                :checked="
-                                                    selectedRepos.map((x) => x.id).includes(repo.id)
-                                                "
-                                                class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                                                @click="selectRepo(repo)"
+                                Clear Selection
+                            </Button>
+                        </div>
+                    </div>
+
+                    <!-- Table Section -->
+                    <div
+                        class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
+                    >
+                        <SortableTable
+                            :headers="headers"
+                            :sort-key="sortKey"
+                            :sort-direction="sortDirection"
+                            class="w-full modern-table"
+                            @on-sort-change="updateSort"
+                        >
+                            <template #data>
+                                <!-- Repository Rows -->
+                                <tr
+                                    v-for="repo in repos"
+                                    :key="repo.id"
+                                    class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150"
+                                    :class="{
+                                        'bg-blue-50/30 border-blue-200': selectedRepos
+                                            .map((x) => x.id)
+                                            .includes(repo.id)
+                                    }"
+                                >
+                                    <td class="p-4">
+                                        <input
+                                            type="checkbox"
+                                            :checked="
+                                                selectedRepos.map((x) => x.id).includes(repo.id)
+                                            "
+                                            class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                            @click="selectRepo(repo)"
+                                        />
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-3">
+                                            <Icon
+                                                icon="octicon:repo-16"
+                                                class="text-gray-600 text-lg flex-shrink-0"
                                             />
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-3">
-                                                <Icon
-                                                    icon="octicon:repo-16"
-                                                    class="text-gray-600 text-lg flex-shrink-0"
-                                                />
-                                                <div class="flex flex-col min-w-0">
-                                                    <div class="font-medium text-gray-900 truncate">
-                                                        {{ repo.fully_qualified_name }}
-                                                    </div>
-                                                    <div class="text-sm text-gray-500 mt-1">
-                                                        {{ repo.visibility }}
-                                                    </div>
+                                            <div class="flex flex-col min-w-0">
+                                                <div class="font-medium text-gray-900 truncate">
+                                                    {{ repo.fully_qualified_name }}
+                                                </div>
+                                                <div class="text-sm text-gray-500 mt-1">
+                                                    {{ repo.visibility }}
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td class="p-4">
-                                            <Badge
-                                                v-if="repo.imported_already"
-                                                variant="default"
-                                                class="bg-green-100 text-green-800 hover:bg-green-100"
-                                            >
-                                                <Icon
-                                                    icon="lucide:check-circle"
-                                                    class="w-3 h-3 mr-1"
-                                                />
-                                                Imported
-                                            </Badge>
-                                            <Badge
-                                                v-else
-                                                variant="secondary"
-                                                class="bg-gray-100 text-gray-600 hover:bg-gray-100"
-                                            >
-                                                <Icon icon="lucide:clock" class="w-3 h-3 mr-1" />
-                                                Not imported
-                                            </Badge>
-                                        </td>
-                                        <td class="p-4">
-                                            <div
-                                                class="text-gray-700 text-sm line-clamp-2 max-w-md"
-                                            >
-                                                {{ repo.description || 'No description available' }}
-                                            </div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="text-gray-600 text-sm">
-                                                {{ moment(repo.created_at).format('MMM DD, YYYY') }}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </SortableTable>
-                        </div>
-                    </template>
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <Badge
+                                            v-if="repo.imported_already"
+                                            variant="default"
+                                            class="bg-green-100 text-green-800 hover:bg-green-100"
+                                        >
+                                            <Icon icon="lucide:check-circle" class="w-3 h-3 mr-1" />
+                                            Imported
+                                        </Badge>
+                                        <Badge
+                                            v-else
+                                            variant="secondary"
+                                            class="bg-gray-100 text-gray-600 hover:bg-gray-100"
+                                        >
+                                            <Icon icon="lucide:clock" class="w-3 h-3 mr-1" />
+                                            Not imported
+                                        </Badge>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="text-gray-700 text-sm line-clamp-2 max-w-md">
+                                            {{ repo.description || 'No description available' }}
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="text-gray-600 text-sm">
+                                            {{ moment(repo.created_at).format('MMM DD, YYYY') }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </SortableTable>
+                    </div>
                 </template>
-            </Pagination>
-        </div>
+            </template>
+        </Pagination>
     </template>
 </template>
 

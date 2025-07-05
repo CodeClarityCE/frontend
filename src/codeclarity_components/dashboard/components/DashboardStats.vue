@@ -308,32 +308,28 @@ fetchVcsIntegrations();
                         params: { orgId: defaultOrg!.id, page: 'integrations', action: 'manage' }
                     }"
                 >
-                    <Button> Link to Github or Gitlab </Button>
+                    <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+                        Link to Github or Gitlab
+                    </Button>
                 </RouterLink>
                 <RouterLink
                     v-else-if="orgMetaData.projects.length == 0"
                     :to="{ name: 'projects', params: { page: 'add' } }"
                 >
-                    <Button> <Icon icon="ion:add-sharp" /> Add a project </Button>
+                    <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+                        <Icon icon="ion:add-sharp" /> Add a project
+                    </Button>
                 </RouterLink>
             </template>
         </div>
     </div>
     <div v-else class="space-y-8 relative min-h-screen">
-        <!-- Enhanced background with subtle patterns -->
-        <div
-            class="absolute inset-0 bg-gradient-to-br from-slate-50/50 via-white to-blue-50/30 -z-10"
-        ></div>
-        <div
-            class="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(59,130,246,0.05)_0%,transparent_50%),radial-gradient(circle_at_80%_20%,rgba(147,51,234,0.05)_0%,transparent_50%)] -z-10"
-        ></div>
-
         <!-- Dashboard Header -->
         <div class="mb-10">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
                 <div>
                     <h1
-                        class="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 bg-clip-text text-transparent"
+                        class="text-4xl font-bold tracking-tight bg-gradient-to-r from-black via-theme-gray to-theme-primary bg-clip-text text-transparent"
                     >
                         Security Dashboard
                     </h1>
@@ -345,10 +341,14 @@ fetchVcsIntegrations();
                     <div
                         class="flex items-center gap-2 text-sm text-slate-500 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 shadow-sm"
                     >
-                        <Icon icon="solar:calendar-linear" class="h-4 w-4 text-slate-400" />
+                        <Icon icon="solar:calendar-linear" class="h-4 w-4 text-theme-primary" />
                         <span>Last updated: {{ new Date().toLocaleDateString() }}</span>
                     </div>
-                    <Button variant="outline" size="sm" class="hidden sm:flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="hidden sm:flex items-center gap-2 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
+                    >
                         <Icon icon="solar:refresh-linear" class="h-4 w-4" />
                         Refresh
                     </Button>
@@ -358,10 +358,10 @@ fetchVcsIntegrations();
             <!-- Enhanced Quick Stats Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <Card
-                    class="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    class="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:border-theme-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-slate-600/5 to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        class="absolute inset-0 bg-gradient-to-br from-black/5 to-theme-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     ></div>
                     <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
@@ -373,15 +373,12 @@ fetchVcsIntegrations();
                                 </p>
                                 <p class="text-3xl font-bold text-black">14</p>
                                 <div class="flex items-center gap-1 text-xs">
-                                    <Icon
-                                        icon="solar:arrow-up-linear"
-                                        class="h-3 w-3 text-red-500"
-                                    />
-                                    <span class="text-red-600 font-medium">+2 this week</span>
+                                    <Icon icon="solar:arrow-up-linear" class="h-3 w-3 text-black" />
+                                    <span class="text-black font-medium">+2 this week</span>
                                 </div>
                             </div>
                             <div
-                                class="p-3 bg-slate-900/10 rounded-full group-hover:bg-slate-900/20 transition-colors duration-300"
+                                class="p-3 bg-black/10 rounded-full group-hover:bg-black/20 transition-colors duration-300"
                             >
                                 <Icon
                                     icon="solar:danger-triangle-bold"
@@ -393,34 +390,32 @@ fetchVcsIntegrations();
                 </Card>
 
                 <Card
-                    class="group relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100 border-red-200 hover:border-red-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    class="group relative overflow-hidden bg-gradient-to-br from-theme-primary/10 to-theme-primary/20 border-theme-primary/30 hover:border-theme-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-red-600/5 to-red-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-theme-primary/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     ></div>
                     <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
                             <div class="space-y-2">
-                                <p
-                                    class="text-sm font-semibold text-red-700 uppercase tracking-wide"
-                                >
+                                <p class="text-sm font-semibold text-black uppercase tracking-wide">
                                     High Severity
                                 </p>
-                                <p class="text-3xl font-bold text-red-900">10</p>
+                                <p class="text-3xl font-bold text-black">10</p>
                                 <div class="flex items-center gap-1 text-xs">
                                     <Icon
                                         icon="solar:arrow-down-linear"
-                                        class="h-3 w-3 text-green-500"
+                                        class="h-3 w-3 text-theme-primary"
                                     />
-                                    <span class="text-green-600 font-medium">-3 this week</span>
+                                    <span class="text-theme-primary font-medium">-3 this week</span>
                                 </div>
                             </div>
                             <div
-                                class="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors duration-300"
+                                class="p-3 bg-theme-primary/10 rounded-full group-hover:bg-theme-primary/20 transition-colors duration-300"
                             >
                                 <Icon
                                     icon="solar:shield-warning-bold"
-                                    class="h-8 w-8 text-red-500"
+                                    class="h-8 w-8 text-theme-primary"
                                 />
                             </div>
                         </div>
@@ -428,69 +423,66 @@ fetchVcsIntegrations();
                 </Card>
 
                 <Card
-                    class="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    class="group relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:border-theme-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     ></div>
                     <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
                             <div class="space-y-2">
                                 <p
-                                    class="text-sm font-semibold text-blue-700 uppercase tracking-wide"
+                                    class="text-sm font-semibold text-slate-600 uppercase tracking-wide"
                                 >
                                     Projects Scanned
                                 </p>
-                                <p class="text-3xl font-bold text-blue-900">24</p>
+                                <p class="text-3xl font-bold text-black">24</p>
                                 <div class="flex items-center gap-1 text-xs">
                                     <Icon
                                         icon="solar:check-circle-linear"
-                                        class="h-3 w-3 text-green-500"
+                                        class="h-3 w-3 text-theme-primary"
                                     />
-                                    <span class="text-blue-600 font-medium">All systems</span>
+                                    <span class="text-theme-primary font-medium">All systems</span>
                                 </div>
                             </div>
                             <div
-                                class="p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors duration-300"
+                                class="p-3 bg-black/10 rounded-full group-hover:bg-black/20 transition-colors duration-300"
                             >
-                                <Icon
-                                    icon="solar:folder-check-bold"
-                                    class="h-8 w-8 text-blue-500"
-                                />
+                                <Icon icon="solar:folder-check-bold" class="h-8 w-8 text-black" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card
-                    class="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    class="group relative overflow-hidden bg-gradient-to-br from-theme-primary/10 to-theme-primary/20 border-theme-primary/30 hover:border-theme-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-emerald-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-theme-primary/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     ></div>
                     <CardContent class="p-6 relative">
                         <div class="flex items-center justify-between">
                             <div class="space-y-2">
-                                <p
-                                    class="text-sm font-semibold text-emerald-700 uppercase tracking-wide"
-                                >
+                                <p class="text-sm font-semibold text-black uppercase tracking-wide">
                                     Security Score
                                 </p>
-                                <p class="text-3xl font-bold text-emerald-900">7.8</p>
+                                <p class="text-3xl font-bold text-black">7.8</p>
                                 <div class="flex items-center gap-1 text-xs">
                                     <Icon
                                         icon="solar:shield-check-linear"
-                                        class="h-3 w-3 text-emerald-500"
+                                        class="h-3 w-3 text-theme-primary"
                                     />
-                                    <span class="text-emerald-600 font-medium">Good standing</span>
+                                    <span class="text-theme-primary font-medium"
+                                        >Good standing</span
+                                    >
                                 </div>
                             </div>
                             <div
-                                class="p-3 bg-emerald-500/10 rounded-full group-hover:bg-emerald-500/20 transition-colors duration-300"
+                                class="p-3 bg-theme-primary/10 rounded-full group-hover:bg-theme-primary/20 transition-colors duration-300"
                             >
                                 <Icon
                                     icon="solar:shield-check-bold"
-                                    class="h-8 w-8 text-emerald-500"
+                                    class="h-8 w-8 text-theme-primary"
                                 />
                             </div>
                         </div>
@@ -506,21 +498,21 @@ fetchVcsIntegrations();
                 class="lg:col-span-8 shadow-sm hover:shadow-xl transition-all duration-500 border-0 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors duration-300"
+                                class="p-2 bg-theme-primary/10 rounded-lg group-hover:bg-theme-primary/20 transition-colors duration-300"
                             >
                                 <Icon
                                     icon="solar:chart-square-bold"
-                                    class="h-6 w-6 text-blue-600"
+                                    class="h-6 w-6 text-theme-primary"
                                 />
                             </div>
                             <div>
-                                <CardTitle class="text-xl font-bold text-slate-900"
+                                <CardTitle class="text-xl font-bold text-black"
                                     >Vulnerability Exposure Overview</CardTitle
                                 >
                                 <CardDescription class="text-slate-600 mt-1">
@@ -531,7 +523,7 @@ fetchVcsIntegrations();
                         <Button
                             variant="ghost"
                             size="sm"
-                            class="text-slate-400 hover:text-slate-600"
+                            class="text-slate-400 hover:text-theme-primary"
                         >
                             <Icon icon="solar:maximize-linear" class="h-4 w-4" />
                         </Button>
@@ -544,21 +536,21 @@ fetchVcsIntegrations();
 
             <!-- Vulnerabilities Summary - Enhanced -->
             <Card
-                class="lg:col-span-4 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-slate-900 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="lg:col-span-4 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-black bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-900/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-black/5 to-theme-primary/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors duration-300"
+                                class="p-2 bg-black/10 rounded-lg group-hover:bg-black/20 transition-colors duration-300"
                             >
-                                <Icon icon="solar:bug-bold" class="h-6 w-6 text-slate-900" />
+                                <Icon icon="solar:bug-bold" class="h-6 w-6 text-black" />
                             </div>
                             <div>
-                                <CardTitle class="text-lg font-bold text-slate-900"
+                                <CardTitle class="text-lg font-bold text-black"
                                     >Vulnerabilities Summary</CardTitle
                                 >
                                 <CardDescription class="text-slate-600 mt-1">
@@ -575,24 +567,24 @@ fetchVcsIntegrations();
 
             <!-- License Distribution - Enhanced -->
             <Card
-                class="lg:col-span-6 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-purple-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="lg:col-span-6 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-theme-primary bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-purple-700/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-theme-primary/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors duration-300"
+                                class="p-2 bg-theme-primary/10 rounded-lg group-hover:bg-theme-primary/20 transition-colors duration-300"
                             >
                                 <Icon
                                     icon="solar:document-text-bold"
-                                    class="h-6 w-6 text-purple-600"
+                                    class="h-6 w-6 text-theme-primary"
                                 />
                             </div>
                             <div>
-                                <CardTitle class="text-lg font-bold text-slate-900"
+                                <CardTitle class="text-lg font-bold text-black"
                                     >Open Source Licenses</CardTitle
                                 >
                                 <CardDescription class="text-slate-600 mt-1">
@@ -603,7 +595,7 @@ fetchVcsIntegrations();
                         <Button
                             variant="ghost"
                             size="sm"
-                            class="text-slate-400 hover:text-slate-600"
+                            class="text-slate-400 hover:text-theme-primary"
                         >
                             <Icon icon="solar:export-linear" class="h-4 w-4" />
                         </Button>
@@ -616,21 +608,21 @@ fetchVcsIntegrations();
 
             <!-- Vulnerability Impact Analysis - Enhanced -->
             <Card
-                class="lg:col-span-6 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-amber-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="lg:col-span-6 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-black bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-black/5 to-theme-primary/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors duration-300"
+                                class="p-2 bg-black/10 rounded-lg group-hover:bg-black/20 transition-colors duration-300"
                             >
-                                <Icon icon="solar:target-bold" class="h-6 w-6 text-amber-600" />
+                                <Icon icon="solar:target-bold" class="h-6 w-6 text-black" />
                             </div>
                             <div>
-                                <CardTitle class="text-lg font-bold text-slate-900"
+                                <CardTitle class="text-lg font-bold text-black"
                                     >Impact Analysis</CardTitle
                                 >
                                 <CardDescription class="text-slate-600 mt-1">
@@ -641,7 +633,7 @@ fetchVcsIntegrations();
                         <Button
                             variant="ghost"
                             size="sm"
-                            class="text-slate-400 hover:text-slate-600"
+                            class="text-slate-400 hover:text-theme-primary"
                         >
                             <Icon icon="solar:download-linear" class="h-4 w-4" />
                         </Button>

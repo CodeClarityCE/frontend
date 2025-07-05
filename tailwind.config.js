@@ -23,7 +23,15 @@ module.exports = {
     	},
     	extend: {
     		colors: {
-    			green: '#808e64',
+    			// Primary theme colors
+    			'theme-primary': '#1dce79',
+    			'theme-primary-dark': '#18b56b',
+    			'theme-primary-light': '#2ee085',
+    			'theme-black': '#000000',
+    			'theme-gray': '#1a1a1a',
+    			'theme-gray-light': '#333333',
+    			
+    			green: '#1dce79',
     			patched: '#5a9d09',
     			partiallyPatched: '#ffc107',
     			notPatched: '#bf1313',

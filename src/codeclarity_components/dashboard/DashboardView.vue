@@ -6,7 +6,7 @@ import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue'
 import { defineAsyncComponent } from 'vue';
 
 const DashboardStats = defineAsyncComponent({
-    loader: () => import('./components/DashboardStats.vue'),
+    loader: () => import('./layout/DashboardStats.vue'),
     loadingComponent: LoadingComponent,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,

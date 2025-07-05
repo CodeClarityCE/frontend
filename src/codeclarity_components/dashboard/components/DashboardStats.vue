@@ -495,7 +495,7 @@ fetchVcsIntegrations();
         <div class="grid gap-8 lg:grid-cols-12">
             <!-- Vulnerability Exposure Overview - Enhanced prominent card -->
             <Card
-                class="lg:col-span-8 shadow-sm hover:shadow-xl transition-all duration-500 border-0 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="lg:col-span-8 shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-theme-primary bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -651,7 +651,7 @@ fetchVcsIntegrations();
         <div class="grid gap-8 lg:grid-cols-3 mt-12">
             <!-- Recent Activity - Enhanced -->
             <Card
-                class="shadow-sm hover:shadow-xl transition-all duration-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-black bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-700/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -752,7 +752,7 @@ fetchVcsIntegrations();
 
             <!-- Recommended Actions - Enhanced -->
             <Card
-                class="shadow-sm hover:shadow-xl transition-all duration-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-theme-primary bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -834,7 +834,7 @@ fetchVcsIntegrations();
 
             <!-- Enhanced Quick Navigation -->
             <Card
-                class="shadow-sm hover:shadow-xl transition-all duration-500 bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
+                class="shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-theme-primary bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-blue-600/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"

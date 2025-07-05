@@ -654,17 +654,17 @@ fetchVcsIntegrations();
                 class="shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-black bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-700/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors duration-300"
+                                class="p-2 bg-black/10 rounded-lg group-hover:bg-black/20 transition-colors duration-300"
                             >
-                                <Icon icon="solar:history-bold" class="h-5 w-5 text-slate-600" />
+                                <Icon icon="solar:history-bold" class="h-5 w-5 text-black" />
                             </div>
-                            <CardTitle class="text-lg font-bold text-slate-900"
+                            <CardTitle class="text-lg font-bold text-black"
                                 >Recent Activity</CardTitle
                             >
                         </div>
@@ -755,17 +755,20 @@ fetchVcsIntegrations();
                 class="shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-theme-primary bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors duration-300"
+                                class="p-2 bg-theme-primary/10 rounded-lg group-hover:bg-theme-primary/20 transition-colors duration-300"
                             >
-                                <Icon icon="solar:lightbulb-bold" class="h-5 w-5 text-amber-600" />
+                                <Icon
+                                    icon="solar:lightbulb-bold"
+                                    class="h-5 w-5 text-theme-primary"
+                                />
                             </div>
-                            <CardTitle class="text-lg font-bold text-slate-900"
+                            <CardTitle class="text-lg font-bold text-black"
                                 >Recommended Actions</CardTitle
                             >
                         </div>
@@ -837,17 +840,20 @@ fetchVcsIntegrations();
                 class="shadow-sm hover:shadow-xl transition-all duration-500 border-l-4 border-l-theme-primary bg-white/70 backdrop-blur-sm hover:-translate-y-1 group"
             >
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-blue-600/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 ></div>
                 <CardHeader class="pb-6 relative">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div
-                                class="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors duration-300"
+                                class="p-2 bg-theme-primary/10 rounded-lg group-hover:bg-theme-primary/20 transition-colors duration-300"
                             >
-                                <Icon icon="solar:compass-bold" class="h-5 w-5 text-indigo-600" />
+                                <Icon
+                                    icon="solar:compass-bold"
+                                    class="h-5 w-5 text-theme-primary"
+                                />
                             </div>
-                            <CardTitle class="text-lg font-bold text-slate-900"
+                            <CardTitle class="text-lg font-bold text-black"
                                 >Quick Navigation</CardTitle
                             >
                         </div>

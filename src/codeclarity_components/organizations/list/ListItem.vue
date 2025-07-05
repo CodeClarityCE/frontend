@@ -11,7 +11,6 @@ import { APIErrors } from '@/utils/api/ApiErrors';
 import { errorToast, successToast } from '@/utils/toasts';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
-import { Button } from '@/shadcn/ui/button';
 
 enum OrgAction {
     DELETE = 'delete',
@@ -23,7 +22,6 @@ const authStore = useAuthStore();
 const orgActionModalRef: any = ref(null);
 const orgAction: Ref<string> = ref('');
 const orgActionId: Ref<string> = ref('');
-const optionsModalRef: any = ref(null);
 const orgRepo: OrgRepository = new OrgRepository();
 
 defineProps<{
@@ -97,228 +95,249 @@ function performOrgAction() {
 }
 </script>
 <template>
-    <div
-        class="flex flex-col gap-8 h-auto justify-between border border-gray-200 no-underline text-gray-600 bg-white rounded-lg p-5 w-fit flex-grow"
-    >
-        <div class="flex flex-row gap-3 items-center mb-2 w-full">
-            <div class="flex flex-col w-full">
-                <div class="flex flex-row gap-1 justify-between w-full">
-                    <div>
-                        <div class="flex flex-row gap-2 items-center flex-wrap w-full">
-                            <div class="truncate text-wrap max-w-64 text-3xl font-medium">
-                                {{ membership.organization.name }}
-                            </div>
-                            <div>
-                                <div
-                                    v-if="membership.organization.role == MemberRole.OWNER"
-                                    class="rounded-2xl px-2 py-1 bg-yellow text-white w-fit font-black text-sm"
-                                >
-                                    Owner
-                                </div>
-                                <div
-                                    v-if="membership.organization.role == MemberRole.ADMIN"
-                                    class="rounded-2xl px-2 py-1 bg-red text-white w-fit font-black text-sm"
-                                >
-                                    Admin
-                                </div>
-                                <div
-                                    v-if="membership.organization.role == MemberRole.MODERATOR"
-                                    class="rounded-2xl px-2 py-1 bg-primary text-white w-fit font-black text-sm"
-                                >
-                                    Moderator
-                                </div>
-                                <div
-                                    v-if="membership.organization.role == MemberRole.USER"
-                                    class="rounded-2xl px-2 py-1 bg-green text-white w-fit font-black text-sm"
-                                >
-                                    User
-                                </div>
-                            </div>
-                            <div
-                                v-if="membership.organization.personal"
-                                class="rounded-2xl px-2 py-1 bg-primary text-white w-fit font-black text-sm"
-                                title="A personal organization is a private org to which only you have access. Other people cannot be invited to join this type of organziation."
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 h-full flex flex-col">
+        <!-- Organization Header -->
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 truncate mb-2">
+                    {{ membership.organization.name }}
+                </h3>
+                
+                <!-- Role and Personal Badges -->
+                <div class="flex items-center gap-2 flex-wrap mb-3">
+                    <span
+                        v-if="membership.organization.role == MemberRole.OWNER"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded"
+                    >
+                        <Icon icon="solar:crown-bold" class="text-xs" />
+                        Owner
+                    </span>
+                    <span
+                        v-else-if="membership.organization.role == MemberRole.ADMIN"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded"
+                    >
+                        <Icon icon="solar:shield-check-bold" class="text-xs" />
+                        Admin
+                    </span>
+                    <span
+                        v-else-if="membership.organization.role == MemberRole.MODERATOR"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded"
+                    >
+                        <Icon icon="solar:star-bold" class="text-xs" />
+                        Moderator
+                    </span>
+                    <span
+                        v-else-if="membership.organization.role == MemberRole.USER"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded"
+                    >
+                        <Icon icon="solar:user-bold" class="text-xs" />
+                        User
+                    </span>
+                    
+                    <span
+                        v-if="membership.organization.personal"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded"
+                        title="A personal organization is a private org to which only you have access."
+                    >
+                        <Icon icon="solar:lock-bold" class="text-xs" />
+                        Personal
+                    </span>
+                </div>
+                
+                <!-- Description -->
+                <p class="text-gray-600 text-sm line-clamp-2">
+                    {{ membership.organization.description || 'No description provided.' }}
+                </p>
+            </div>
+            
+            <!-- Action Menu -->
+            <div v-if="!membership.organization.personal">
+                <Popover>
+                    <PopoverTrigger as-child>
+                        <button class="p-1 hover:bg-gray-100 rounded transition-colors">
+                            <Icon icon="solar:menu-dots-bold" class="text-gray-500 text-lg" />
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent class="w-48 p-2">
+                        <div class="flex flex-col gap-1">
+                            <button
+                                class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors duration-150"
+                                @click="
+                                    orgActionId = membership.organization.id;
+                                    orgAction = OrgAction.LEAVE;
+                                    orgActionModalRef.toggle();
+                                "
                             >
-                                Personal Org
-                            </div>
+                                <Icon icon="solar:exit-bold" class="text-orange-600" />
+                                Leave
+                            </button>
+                            <button
+                                v-if="membership.organization.role == MemberRole.OWNER"
+                                class="flex items-center gap-3 px-3 py-2 text-sm text-red-700 hover:bg-red-50 rounded transition-colors duration-150"
+                                @click="
+                                    orgActionId = membership.organization.id;
+                                    orgAction = OrgAction.DELETE;
+                                    orgActionModalRef.toggle();
+                                "
+                            >
+                                <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
+                                Delete
+                            </button>
                         </div>
-                    </div>
-                    <div class="flex flex-row gap-1 w-fit items-center">
-                        <div class="flex flex-row gap-1 w-fit items-center">
-                            <div class="flex flex-col items-end w-full">
-                                <div class="text-yellow font-black">Owner</div>
-                                <div v-if="membership.organization.created_by">
-                                    @{{ membership.organization.created_by.handle }}
-                                </div>
-                                <div v-if="!membership.organization.created_by">Deleted user</div>
-                            </div>
-                            <div>
-                                <div v-if="membership.organization.created_by">
-                                    <div v-if="membership.organization.created_by.avatar_url">
-                                        <!-- <Icon class="icon crown" icon="solar:crown-bold"></Icon> -->
-                                        <img
-                                            class="rounded-full w-9"
-                                            :src="membership.organization.created_by.avatar_url"
-                                        />
-                                    </div>
-                                    <div
-                                        v-if="!membership.organization.created_by.avatar_url"
-                                        class="bg-gray-500 rounded-full w-9 h-9 flex flex-row items-center justify-center"
-                                    >
-                                        <!-- <Icon class="icon crown" icon="solar:crown-bold"></Icon> -->
-                                        <Icon
-                                            class="text-white text-2xl"
-                                            icon="solar:smile-circle-broken"
-                                        ></Icon>
-                                    </div>
-                                </div>
-                                <div v-else>
-                                    <div
-                                        class="bg-gray-500 rounded-full w-9 h-9 flex flex-row items-center justify-center"
-                                    >
-                                        <!-- <Icon class="icon crown" icon="solar:crown-bold"></Icon> -->
-                                        <Icon
-                                            class="text-white text-2xl"
-                                            icon="solar:confounded-square-outline"
-                                        ></Icon>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- <div>
-                        Joined on: {{ moment(org.member_ship.joined_on).format('LL') }}
-                    </div> -->
+                    </PopoverContent>
+                </Popover>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <!-- Members Count -->
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                <div class="flex items-center justify-center mb-1">
+                    <Icon icon="solar:users-group-rounded-bold" class="text-blue-600 text-xl" />
+                </div>
+                <div class="text-lg font-bold text-blue-900">
+                    {{ membership.organization.organizationMemberships.length }}
+                </div>
+                <div class="text-xs text-blue-600 font-medium">
+                    Member{{ membership.organization.organizationMemberships.length !== 1 ? 's' : '' }}
+                </div>
+            </div>
+            
+            <!-- Join Date -->
+            <div class="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                <div class="flex items-center justify-center mb-1">
+                    <Icon icon="solar:calendar-bold" class="text-green-600 text-xl" />
+                </div>
+                <div class="text-sm font-bold text-green-900">
+                    {{ moment(membership.organization.joined_on).format('MMM') }}
+                </div>
+                <div class="text-lg font-bold text-green-900">
+                    {{ moment(membership.organization.joined_on).format('DD') }}
+                </div>
+                <div class="text-xs text-green-600 font-medium">
+                    {{ moment(membership.organization.joined_on).format('YYYY') }}
                 </div>
             </div>
         </div>
-        <div class="flex flex-col gap-5">
-            <div class="flex flex-col gap-1" style="font-weight: 400">
-                <div>Joined on {{ moment(membership.organization.joined_on).format('LL') }}</div>
-                <div class="flex flex-row gap-2">
-                    Number of members:
-                    <span
-                        class="px-1 py-3.5 rounded-lg text-sm font-medium text-gray-700"
-                        style="
-                            padding: 3px 12px;
-                            background-color: rgb(240, 240, 240);
-                            border-radius: 15px;
-                            font-size: 0.8em;
-                        "
-                        >{{ membership.organization.organizationMemberships.length }}</span
+
+        <!-- Owner Info -->
+        <div class="bg-gray-50 border border-gray-100 rounded-lg p-3 mb-4">
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <img
+                        v-if="membership.organization.created_by?.avatar_url"
+                        class="w-8 h-8 rounded-full object-cover"
+                        :src="membership.organization.created_by.avatar_url"
+                        :alt="membership.organization.created_by?.handle || 'User avatar'"
+                    />
+                    <div
+                        v-else
+                        class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center"
                     >
+                        <Icon
+                            :icon="membership.organization.created_by ? 'solar:user-bold' : 'solar:user-cross-bold'"
+                            class="text-white text-sm"
+                        />
+                    </div>
+                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full flex items-center justify-center">
+                        <Icon icon="solar:crown-bold" class="text-white text-xs" />
+                    </div>
                 </div>
-                <div>
-                    {{ membership.organization.description }}
-                </div>
-            </div>
-            <div class="flex flex-row gap-2 items-center w-full">
-                <RouterLink
-                    :to="{
-                        name: 'orgs',
-                        params: {
-                            action: 'manage',
-                            page: 'main',
-                            orgId: membership.organization.id
-                        }
-                    }"
-                >
-                    <Button>Manage organization</Button>
-                </RouterLink>
-                <div v-if="!membership.organization.personal">
-                    <Popover>
-                        <PopoverTrigger as-child>
-                            <Button>
-                                <Icon icon="bi:three-dots-vertical" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent>
-                            <div
-                                class="max-h-96 overflow-y-auto flex flex-col text-sm font- whitespace-nowrap p-1"
-                            >
-                                <a
-                                    class="no-underline flex flex-row gap-2 items-center p-2 hover:bg-gray-200 rounded"
-                                    title="Leave organization"
-                                    @click="
-                                        orgActionId = membership.organization.id;
-                                        orgAction = OrgAction.LEAVE;
-                                        optionsModalRef.toggle();
-                                        orgActionModalRef.toggle();
-                                    "
-                                >
-                                    <Icon class="text-xl" icon="mingcute:exit-door-line"></Icon>
-                                    Leave org
-                                </a>
-                                <div
-                                    class="no-underline flex flex-row gap-2 items-center p-2 hover:bg-gray-200 rounded"
-                                    title="Delete organization"
-                                    @click="
-                                        orgActionId = membership.organization.id;
-                                        orgAction = OrgAction.DELETE;
-                                        optionsModalRef.toggle();
-                                        orgActionModalRef.toggle();
-                                    "
-                                >
-                                    <Icon class="text-xl" icon="solar:trash-bin-trash-bold"></Icon>
-                                    Delete org
-                                </div>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs text-gray-500 font-medium">Owner</div>
+                    <div class="text-sm font-medium text-gray-900 truncate">
+                        {{ membership.organization.created_by ? `@${membership.organization.created_by.handle}` : 'Deleted user' }}
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="mt-auto">
+            <RouterLink
+                :to="{
+                    name: 'orgs',
+                    params: {
+                        action: 'manage',
+                        page: 'main',
+                        orgId: membership.organization.id
+                    }
+                }"
+                class="block"
+            >
+                <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <Icon icon="solar:settings-bold-duotone" class="text-lg" />
+                    <span>Manage</span>
+                </button>
+            </RouterLink>
         </div>
     </div>
+    
+    <!-- Action Confirmation Modal -->
     <CenteredModal ref="orgActionModalRef">
         <template #title>
-            <div class="flex flex-row gap-2 items-center justify-between">
-                <div v-if="orgAction == OrgAction.DELETE">Delete the organization?</div>
-                <div v-if="orgAction == OrgAction.LEAVE">Leave the organization?</div>
+            <div class="flex items-center gap-3">
+                <div 
+                    v-if="orgAction == OrgAction.DELETE"
+                    class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
+                >
+                    <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
+                </div>
+                <div 
+                    v-if="orgAction == OrgAction.LEAVE"
+                    class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center"
+                >
+                    <Icon icon="solar:exit-bold" class="text-orange-600" />
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">
+                        {{ orgAction == OrgAction.DELETE ? 'Delete Organization' : 'Leave Organization' }}
+                    </h3>
+                </div>
             </div>
         </template>
         <template #content>
-            <div class="flex flex-col gap-6 max-w-96 w-screen">
-                <div v-if="orgAction == OrgAction.DELETE">
-                    Are you sure you want to delete the organization?
-                </div>
-                <div v-if="orgAction == OrgAction.LEAVE">
-                    Are you sure you want to leave the organization?
-                </div>
-                <div v-if="orgAction == OrgAction.DELETE" class="mt-2">
-                    <div class="flex flex-row gap-2 items-center">
-                        <div>
-                            <Icon class="text-2xl" icon="solar:danger-triangle-bold-duotone"></Icon>
-                        </div>
-                        <div>This action is permanent and cannot be reverted.</div>
+            <div class="space-y-3">
+                <p class="text-gray-600">
+                    <span v-if="orgAction == OrgAction.DELETE">
+                        Are you sure you want to permanently delete this organization?
+                    </span>
+                    <span v-if="orgAction == OrgAction.LEAVE">
+                        Are you sure you want to leave this organization?
+                    </span>
+                </p>
+                
+                <div 
+                    v-if="orgAction == OrgAction.DELETE" 
+                    class="bg-red-50 border border-red-200 rounded-lg p-3"
+                >
+                    <div class="flex items-center gap-2">
+                        <Icon icon="solar:danger-triangle-bold" class="text-red-600" />
+                        <span class="text-sm text-red-800 font-medium">This action cannot be undone.</span>
                     </div>
                 </div>
             </div>
         </template>
         <template #buttons>
-            <Button
-                variant="destructive"
+            <button
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors"
                 @click="
                     performOrgAction();
                     orgActionModalRef.toggle();
                 "
             >
-                <template v-if="orgAction == OrgAction.DELETE" #icon>
-                    <Icon class="icon" icon="solar:trash-bin-trash-bold"></Icon>
-                </template>
-                <template v-else-if="orgAction == OrgAction.LEAVE" #icon>
-                    <Icon class="icon" icon="mingcute:exit-door-line"></Icon>
-                </template>
-                <template v-if="orgAction == OrgAction.DELETE" #text> Delete </template>
-                <template v-else-if="orgAction == OrgAction.LEAVE" #text> Leave </template>
-            </Button>
-            <Button
+                {{ orgAction == OrgAction.DELETE ? 'Delete' : 'Leave' }}
+            </button>
+            <button
+                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition-colors"
                 @click="
                     orgActionId = '';
                     orgActionModalRef.toggle();
                 "
             >
-                <template #text> Cancel </template>
-            </Button>
+                Cancel
+            </button>
         </template>
     </CenteredModal>
 </template>

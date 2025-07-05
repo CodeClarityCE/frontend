@@ -119,8 +119,19 @@ fetchVcsIntegrations();
                             </div>
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <Button @click="fetchVcsIntegrations()"> Try again </Button>
-                            <Button @click="router.back()"> Go back </Button>
+                            <Button
+                                class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                                @click="fetchVcsIntegrations()"
+                            >
+                                Try again
+                            </Button>
+                            <Button
+                                variant="outline"
+                                class="border-slate-300 hover:border-theme-primary hover:text-theme-primary"
+                                @click="router.back()"
+                            >
+                                Go back
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -146,7 +157,11 @@ fetchVcsIntegrations();
         <!-- Import Repo Screen -->
         <div v-else-if="!error && selectedVCS">
             <div class="flex flex-col gap-12">
-                <h2 class="text-3xl font-bold tracking-tight">Projects</h2>
+                <h2
+                    class="text-4xl font-bold tracking-tight bg-gradient-to-r from-black via-theme-gray to-theme-primary bg-clip-text text-transparent"
+                >
+                    Projects
+                </h2>
                 <GithubImportComponent
                     v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
                     :integration="selectedVCS.id"

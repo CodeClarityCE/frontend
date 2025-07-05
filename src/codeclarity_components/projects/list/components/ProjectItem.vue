@@ -73,7 +73,7 @@ async function deleteProject() {
     >
         <!-- Gradient overlay that appears on hover -->
         <div
-            class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         ></div>
 
         <CardHeader class="pb-4 relative">
@@ -82,7 +82,7 @@ async function deleteProject() {
                     <!-- Project provider and name -->
                     <div class="flex items-center gap-3">
                         <div
-                            class="p-2 rounded-lg bg-slate-100 group-hover:bg-slate-200 transition-colors duration-300"
+                            class="p-2 rounded-lg bg-black/10 group-hover:bg-black/20 transition-colors duration-300"
                         >
                             <Icon
                                 v-if="project.type == IntegrationProvider.GITLAB"
@@ -123,7 +123,7 @@ async function deleteProject() {
                         :id="'dot-menu-' + project.id"
                         variant="ghost"
                         size="sm"
-                        class="h-8 w-8 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        class="h-8 w-8 p-0 text-slate-400 hover:text-theme-primary hover:bg-theme-primary/10"
                         @click="projectOptionsModalRef.toggle()"
                     >
                         <Icon
@@ -176,11 +176,14 @@ async function deleteProject() {
                 <!-- Header with analysis count and add button -->
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="p-1.5 bg-blue-100 rounded-md">
-                            <Icon icon="solar:document-text-bold" class="h-4 w-4 text-blue-600" />
+                        <div class="p-1.5 bg-theme-primary/10 rounded-md">
+                            <Icon
+                                icon="solar:document-text-bold"
+                                class="h-4 w-4 text-theme-primary"
+                            />
                         </div>
                         <div>
-                            <div class="text-sm font-semibold text-slate-900">Recent Analysis</div>
+                            <div class="text-sm font-semibold text-black">Recent Analysis</div>
                             <div class="text-xs text-slate-500">
                                 {{ project.analyses.length }} total
                             </div>
@@ -190,7 +193,7 @@ async function deleteProject() {
                         <Button
                             variant="outline"
                             size="sm"
-                            class="h-8 w-8 p-0 border-slate-200 hover:bg-blue-50 hover:border-blue-300"
+                            class="h-8 w-8 p-0 border-slate-200 hover:bg-theme-primary/10 hover:border-theme-primary"
                         >
                             <Icon icon="solar:add-circle-linear" class="h-4 w-4 text-slate-600" />
                         </Button>
@@ -216,7 +219,10 @@ async function deleteProject() {
                     </div>
                 </div>
                 <RouterLink :to="'/analyses/add?id=' + project.id">
-                    <Button size="sm" class="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button
+                        size="sm"
+                        class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                    >
                         <Icon icon="solar:play-circle-linear" class="h-4 w-4 mr-2" />
                         Create Analysis
                     </Button>

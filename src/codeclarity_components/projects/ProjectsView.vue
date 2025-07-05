@@ -37,7 +37,7 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-    <main class="p-12">
+    <main class="p-8 space-y-6">
         <CreateProject v-if="props.page == 'add'" />
         <ProjectsList v-else />
     </main>

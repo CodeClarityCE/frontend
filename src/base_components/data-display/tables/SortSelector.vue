@@ -7,7 +7,7 @@ export interface SortOption {
 <script setup lang="ts">
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { Icon } from '@iconify/vue';
-import type { TableHeader } from '@/base_components/tables/SortableTable.vue';
+import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 
 // Props
 const props = defineProps<{

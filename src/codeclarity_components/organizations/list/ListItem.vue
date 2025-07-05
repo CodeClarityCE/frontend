@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { Icon } from '@iconify/vue';
 import moment from 'moment';

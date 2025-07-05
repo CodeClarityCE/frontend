@@ -4,8 +4,8 @@ import { OrgRepository } from '@/codeclarity_components/organizations/organizati
 import { useAuthStore } from '@/stores/auth';
 import { ref, watch, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import SearchBar from '@/base_components/SearchBar.vue';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import OrgListItem from './ListItem.vue';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
 

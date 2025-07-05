@@ -1,25 +1,27 @@
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue';
 import type { Ref } from 'vue';
-import SearchBar from '@/base_components/SearchBar.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
 import { Icon } from '@iconify/vue';
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import PaginationComponent from '@/base_components/PaginationComponent.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
+import SortableTable, {
+    type TableHeader
+} from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
     type FilterState
-} from '@/base_components/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
+} from '@/base_components/filters/UtilitiesFilters.vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';

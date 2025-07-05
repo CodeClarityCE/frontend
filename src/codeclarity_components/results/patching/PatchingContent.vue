@@ -4,8 +4,8 @@ import { Icon } from '@iconify/vue';
 import Patches from './PatchingPatches.vue';
 import PatchesTable from './PatchingTable.vue';
 import { ref, type Ref, watch } from 'vue';
-import TextLoader from '../../../base_components/TextLoader.vue';
-import BoxLoader from '../../../base_components/BoxLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 
 import { Radar, Bar } from 'vue-chartjs';
 import { Chart, registerables, type ChartData } from 'chart.js';

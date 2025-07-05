@@ -2,8 +2,8 @@
 import type { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useStateStore } from '@/stores/state';
 
-import ErrorComponent from '@/base_components/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const OAuth2Callback = defineAsyncComponent({

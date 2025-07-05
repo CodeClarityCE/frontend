@@ -10,23 +10,25 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { debounce } from '@/utils/searchUtils';
 import router from '@/router';
-import BoxLoader from '@/base_components/BoxLoader.vue';
-import SearchBar from '@/base_components/SearchBar.vue';
-import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
-import FilterBox from '@/base_components/UtilitiesFilters.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+import FilterBox from '@/base_components/filters/UtilitiesFilters.vue';
 import { Icon } from '@iconify/vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import type { Repository } from '@/codeclarity_components/projects/project.entity';
 import {
     createNewFilterState,
     FilterType,
     type FilterState,
     type ActiveFilter
-} from '@/base_components/UtilitiesFilters.vue';
+} from '@/base_components/filters/UtilitiesFilters.vue';
 import { ref, watch, type Ref } from 'vue';
 import moment from 'moment';
-import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import SortableTable, {
+    type TableHeader
+} from '@/base_components/data-display/tables/SortableTable.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Badge } from '@/shadcn/ui/badge';
 

@@ -14,7 +14,7 @@ import { PluginRepository } from '@/codeclarity_components/organizations/analyze
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { Form } from 'vee-validate';
 import * as yup from 'yup';
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 import * as lite from 'litegraph.js';

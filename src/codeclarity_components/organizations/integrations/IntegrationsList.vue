@@ -15,7 +15,7 @@ import {
 } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import moment from 'moment';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';

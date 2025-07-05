@@ -3,7 +3,7 @@ import { onMounted, ref, type Ref } from 'vue';
 import * as yup from 'yup';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { Form } from 'vee-validate';
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import router from '@/router';

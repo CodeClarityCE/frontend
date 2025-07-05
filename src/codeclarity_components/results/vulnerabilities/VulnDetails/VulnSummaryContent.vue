@@ -2,8 +2,8 @@
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
-import type CenteredModalVue from '@/base_components/CenteredModal.vue';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import type CenteredModalVue from '@/base_components/ui/modals/CenteredModal.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 

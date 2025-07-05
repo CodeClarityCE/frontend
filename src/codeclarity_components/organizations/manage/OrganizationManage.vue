@@ -11,7 +11,7 @@ import { useAuthStore } from '@/stores/auth';
 import { ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { errorToast, successToast } from '@/utils/toasts';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';

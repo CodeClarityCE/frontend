@@ -8,7 +8,7 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import PaginationComponent from '@/base_components/PaginationComponent.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
 import { Icon } from '@iconify/vue';
 

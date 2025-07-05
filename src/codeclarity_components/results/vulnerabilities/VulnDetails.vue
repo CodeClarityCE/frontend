@@ -2,7 +2,7 @@
 import { ref, type Ref } from 'vue';
 import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
 
-import CenteredModal from '../../../base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 // import { buildDependencyTree } from "../../../dependency-tree.js";
 
 import moment from 'moment';
@@ -12,7 +12,7 @@ import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
 import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
 
-import PositionedModal from '../../../base_components/PositionedModal.vue';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
 // import { AnalysisRepository } from '@/repositories/AnalysisRepository';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 

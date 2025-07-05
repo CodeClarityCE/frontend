@@ -7,12 +7,12 @@ import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import { ref, watch, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import Pagination from '@/base_components/PaginationComponent.vue';
-import { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
+import { type TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import SortSelector from '@/base_components/tables/SortSelector.vue';
-import HeatMapChart from '@/base_components/charts/HeatMapChart.vue';
-import type { RadarChartOptions } from '@/base_components/charts/radarChart';
+import SortSelector from '@/base_components/data-display/tables/SortSelector.vue';
+import HeatMapChart from '@/base_components/data-display/charts/HeatMapChart.vue';
+import type { RadarChartOptions } from '@/base_components/data-display/charts/radarChart';
 import { Skeleton } from '@/shadcn/ui/skeleton';
 import Button from '@/shadcn/ui/button/Button.vue';
 

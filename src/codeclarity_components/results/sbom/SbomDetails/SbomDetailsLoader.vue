@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BoxLoader from '@/base_components/BoxLoader.vue';
-import TextLoader from '@/base_components/TextLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
 </script>
 
 <template>

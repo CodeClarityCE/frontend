@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { License } from '@/codeclarity_components/results/licenses/License';
-import SearchBar from '../SearchBar.vue';
+import SearchBar from '../filters/SearchBar.vue';
 import { ref, toRef, watch } from 'vue';
 
 const props = defineProps<{

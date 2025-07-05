@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import PositionedModal from '@/base_components/PositionedModal.vue';
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { ref, type Ref } from 'vue';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';

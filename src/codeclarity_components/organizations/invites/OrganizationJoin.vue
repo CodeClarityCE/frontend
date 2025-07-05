@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth';
 import { onMounted, ref, type Ref } from 'vue';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
-import FaqBox from '@/base_components/FaqBox.vue';
+import FaqBox from '@/base_components/layout/FaqBox.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { successToast } from '@/utils/toasts';
 import Button from '@/shadcn/ui/button/Button.vue';

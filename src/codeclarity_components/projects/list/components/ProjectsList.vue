@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import ProjectItem from './ProjectItem.vue';
 import NoProjects from './NoProjects.vue';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
@@ -17,7 +17,7 @@ import { Icon } from '@iconify/vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 // Stores

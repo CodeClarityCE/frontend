@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { Form } from 'vee-validate';
 import { ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';

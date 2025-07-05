@@ -12,7 +12,7 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
 import { Icon } from '@iconify/vue';
 import type { LicensePolicy } from '@/codeclarity_components/organizations/policy/license_policy.entity';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 const orgInfo: Ref<Organization | undefined> = ref();

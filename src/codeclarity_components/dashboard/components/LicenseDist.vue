@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import WaffleChart, { type WaffleChartEntry } from '@/base_components/charts/WaffleChart.vue';
+import WaffleChart, {
+    type WaffleChartEntry
+} from '@/base_components/data-display/charts/WaffleChart.vue';
 import { ref, watch, type Ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user';

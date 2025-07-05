@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import moment from 'moment';

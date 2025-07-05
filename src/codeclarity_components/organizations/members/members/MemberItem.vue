@@ -11,7 +11,7 @@ import { APIErrors } from '@/utils/api/ApiErrors';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import moment from 'moment';
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import { errorToast, successToast } from '@/utils/toasts';

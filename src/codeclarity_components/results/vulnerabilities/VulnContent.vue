@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue';
 
 import { ref, watch, computed } from 'vue';
 import type { Ref } from 'vue';
-import TextLoader from '../../../base_components/TextLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
 import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import VulnsGraph from './graphs/VulnsGraph.vue';
 

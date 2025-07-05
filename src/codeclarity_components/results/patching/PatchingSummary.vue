@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, type Ref, watch } from 'vue';
-import TextLoader from '../../../base_components/TextLoader.vue';
-import BoxLoader from '../../../base_components/BoxLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 
 import { Radar, Bar } from 'vue-chartjs';
 import { Icon } from '@iconify/vue';

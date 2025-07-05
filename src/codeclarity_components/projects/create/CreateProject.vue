@@ -14,7 +14,7 @@ import { Icon } from '@iconify/vue';
 import router from '@/router';
 import GithubImportComponent from './import/GithubImportComponent.vue';
 import GitlabImportComponent from './import/GitlabImportComponent.vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { storeToRefs } from 'pinia';
 import NoIntegration from './integrations/NoIntegration.vue';
 import Integrations from './integrations/IntegrationsComponent.vue';

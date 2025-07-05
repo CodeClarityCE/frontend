@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '../../results.repository';
 import type { GraphDependency } from '../../graph.entity';
-import TreeChart from '@/base_components/charts/TreeChart.vue';
+import TreeChart from '@/base_components/data-display/charts/TreeChart.vue';
 
 const props = defineProps({
     dependency: {

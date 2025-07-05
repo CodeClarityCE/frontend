@@ -12,7 +12,7 @@ import { useAuthStore } from '@/stores/auth';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { Form } from 'vee-validate';
 import * as yup from 'yup';
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';

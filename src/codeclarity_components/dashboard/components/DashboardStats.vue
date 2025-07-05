@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { useStateStore } from '@/stores/state';
-import type { ActiveFilter, FilterCategory } from '@/base_components/UtilitiesFilters.vue';
+import type { ActiveFilter, FilterCategory } from '@/base_components/filters/UtilitiesFilters.vue';
 import {
     createNewFilterState,
     FilterType,
     type FilterState
-} from '@/base_components/UtilitiesFilters.vue';
+} from '@/base_components/filters/UtilitiesFilters.vue';
 import { ref, type Ref } from 'vue';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { storeToRefs } from 'pinia';
@@ -20,8 +20,8 @@ import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
 import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
-import ErrorComponent from '@/base_components/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const LicenseDist = defineAsyncComponent({

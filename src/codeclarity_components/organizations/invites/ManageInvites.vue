@@ -9,12 +9,12 @@ import { OrgRepository } from '../organization.repository';
 import { useAuthStore } from '@/stores/auth';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import Pagination from '@/base_components/PaginationComponent.vue';
-import SearchBar from '@/base_components/SearchBar.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
 import { debounce } from '@/utils/searchUtils';
 import OrgInviteItem from './invite/InviteItem.vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
-import SortableTable from '@/base_components/tables/SortableTable.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 const placeholder = 'Search by invitee email, inviter email, or inviter handle';

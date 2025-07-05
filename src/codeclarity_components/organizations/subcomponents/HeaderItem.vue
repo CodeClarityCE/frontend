@@ -6,7 +6,7 @@ import { type Organization } from '@/codeclarity_components/organizations/organi
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import { useAuthStore } from '@/stores/auth';
 import { ref, type Ref } from 'vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';

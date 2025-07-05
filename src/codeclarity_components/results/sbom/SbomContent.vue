@@ -4,8 +4,8 @@ import { Icon } from '@iconify/vue';
 
 import { ref, watch, computed } from 'vue';
 import type { Ref } from 'vue';
-import TextLoader from '../../../base_components/TextLoader.vue';
-import DonutLoader from '../../../base_components/DonutLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
 import { SbomStats } from '@/codeclarity_components/results/stats.entity';
 import { Doughnut } from 'vue-chartjs';
 

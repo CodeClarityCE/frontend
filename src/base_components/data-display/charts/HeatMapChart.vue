@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import * as d3 from 'd3';
 import { onMounted, toRef, watch } from 'vue';
-import type { RadarChartOptions } from '@/base_components/charts/radarChart';
+import type { RadarChartOptions } from '@/base_components/data-display/charts/radarChart';
 
 export interface Props {
     chartData: {

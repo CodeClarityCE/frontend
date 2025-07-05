@@ -7,10 +7,10 @@ import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import { ref, watch, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import SortableTable from '@/base_components/tables/SortableTable.vue';
-import { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
+import { type TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { ProjectGradeClass } from '@/codeclarity_components/dashboard/dashboard.entity';
 import {
@@ -20,7 +20,7 @@ import {
     isLowSeverity,
     isMediumSeverity
 } from '@/utils/severity';
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
 import { Badge } from '@/shadcn/ui/badge';
 import { Skeleton } from '@/shadcn/ui/skeleton';
 import Button from '@/shadcn/ui/button/Button.vue';

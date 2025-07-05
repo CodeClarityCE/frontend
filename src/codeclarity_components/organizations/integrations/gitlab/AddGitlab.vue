@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { Form } from 'vee-validate';
 import { ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
@@ -11,7 +11,7 @@ import { GitlabTokenType } from '@/codeclarity_components/organizations/integrat
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import * as yup from 'yup';
 import { APIErrors } from '@/utils/api/ApiErrors';
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { ValidationError as YupValidationError } from 'yup';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';

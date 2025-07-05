@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import SearchBar from '@/base_components/SearchBar.vue';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import OrgAuditLogItem from './audit/OrgAuditLogItem.vue';
-import SortableTable from '@/base_components/tables/SortableTable.vue';
+import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import type { TableHeader } from '@/base_components/tables/SortableTable.vue';
+import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 import type { AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 

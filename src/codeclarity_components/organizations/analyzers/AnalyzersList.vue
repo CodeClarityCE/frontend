@@ -11,7 +11,7 @@ import HeaderItem from '@/codeclarity_components/organizations/subcomponents/Hea
 import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import type { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
 import Card from '@/shadcn/ui/card/Card.vue';
 import CardHeader from '@/shadcn/ui/card/CardHeader.vue';

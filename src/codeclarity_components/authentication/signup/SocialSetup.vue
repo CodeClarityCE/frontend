@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
 import * as yup from 'yup';
 import { Form } from 'vee-validate';
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { Icon } from '@iconify/vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';

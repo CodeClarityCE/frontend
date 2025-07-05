@@ -8,7 +8,7 @@ import { ref, type Ref } from 'vue';
 import OrgHeaderItem from '@/views/org/subcomponents/OrgHeaderItem.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { Icon } from '@iconify/vue';
-import FaqBox from '@/base_components/FaqBox.vue';
+import FaqBox from '@/base_components/layout/FaqBox.vue';
 import { errorToast, successToast } from '@/utils/toasts';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { z } from 'zod';

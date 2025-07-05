@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import FaqBox from '@/base_components/FaqBox.vue';
+import FaqBox from '@/base_components/layout/FaqBox.vue';
 import { useStateStore } from '@/stores/state';
 
 const state = useStateStore();

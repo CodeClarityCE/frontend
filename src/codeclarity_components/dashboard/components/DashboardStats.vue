@@ -520,13 +520,6 @@ fetchVcsIntegrations();
                                 </CardDescription>
                             </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="text-slate-400 hover:text-theme-primary"
-                        >
-                            <Icon icon="solar:maximize-linear" class="h-4 w-4" />
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent class-name="relative">
@@ -592,13 +585,6 @@ fetchVcsIntegrations();
                                 </CardDescription>
                             </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="text-slate-400 hover:text-theme-primary"
-                        >
-                            <Icon icon="solar:export-linear" class="h-4 w-4" />
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent class-name="relative">
@@ -630,13 +616,6 @@ fetchVcsIntegrations();
                                 </CardDescription>
                             </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="text-slate-400 hover:text-theme-primary"
-                        >
-                            <Icon icon="solar:download-linear" class="h-4 w-4" />
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent class-name="relative">
@@ -668,13 +647,6 @@ fetchVcsIntegrations();
                                 >Recent Activity</CardTitle
                             >
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="text-slate-400 hover:text-slate-600"
-                        >
-                            <Icon icon="solar:eye-linear" class="h-4 w-4" />
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent class-name="relative">
@@ -772,13 +744,6 @@ fetchVcsIntegrations();
                                 >Recommended Actions</CardTitle
                             >
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="text-slate-400 hover:text-slate-600"
-                        >
-                            <Icon icon="solar:settings-linear" class="h-4 w-4" />
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent class-name="relative">
@@ -857,13 +822,6 @@ fetchVcsIntegrations();
                                 >Quick Navigation</CardTitle
                             >
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="text-slate-400 hover:text-slate-600"
-                        >
-                            <Icon icon="solar:menu-dots-linear" class="h-4 w-4" />
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent class-name="relative">

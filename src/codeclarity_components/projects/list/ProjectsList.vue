@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { onBeforeUnmount, ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
 import ProjectsList from './components/ProjectsList.vue';
 import { useProjectsMainStore } from '@/stores/StateStore';
 import { storeToRefs } from 'pinia';
@@ -12,6 +11,8 @@ import type { OrganizationMetaData } from '@/codeclarity_components/organization
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { Button } from '@/shadcn/ui/button';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 
 // Repositories
 const orgRepo: OrgRepository = new OrgRepository();
@@ -67,24 +68,180 @@ async function fetchOrgMetaData() {
 }
 
 fetchOrgMetaData();
+
+// Helper functions for statistics
+function getCompletedAnalysesCount(): number {
+    if (!orgMetaData.value?.projects) return 0;
+    return orgMetaData.value.projects.reduce((count, project) => {
+        if (!project.analyses) return count;
+        return (
+            count +
+            project.analyses.filter(
+                (analysis) =>
+                    analysis.status === AnalysisStatus.COMPLETED ||
+                    analysis.status === AnalysisStatus.FINISHED
+            ).length
+        );
+    }, 0);
+}
+
+function getRunningAnalysesCount(): number {
+    if (!orgMetaData.value?.projects) return 0;
+    return orgMetaData.value.projects.reduce((count, project) => {
+        if (!project.analyses) return count;
+        return (
+            count +
+            project.analyses.filter(
+                (analysis) =>
+                    analysis.status === AnalysisStatus.STARTED ||
+                    analysis.status === AnalysisStatus.REQUESTED ||
+                    analysis.status === AnalysisStatus.ONGOING ||
+                    analysis.status === AnalysisStatus.UPDATING_DB
+            ).length
+        );
+    }, 0);
+}
+
+function getLastActivityTime(): string {
+    if (!orgMetaData.value?.projects) return 'N/A';
+
+    let latestDate: Date | null = null;
+
+    orgMetaData.value.projects.forEach((project) => {
+        if (!project.analyses) return;
+        project.analyses.forEach((analysis) => {
+            const createdDate = new Date(analysis.created_on);
+            if (!latestDate || createdDate > latestDate) {
+                latestDate = createdDate;
+            }
+        });
+    });
+
+    if (!latestDate) return 'N/A';
+
+    const now = new Date();
+    const diffInHours = Math.floor(
+        (now.getTime() - (latestDate as Date).getTime()) / (1000 * 60 * 60)
+    );
+
+    if (diffInHours < 1) return 'Now';
+    if (diffInHours < 24) return `${diffInHours}h`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) return `${diffInDays}d`;
+    return '30d+';
+}
 </script>
 <template>
-    <div class="flex flex-col gap-8 h-full">
-        <!-- Header -->
-        <div class="flex flex-row gap-4 justify-between items-center">
-            <div class="flex flex-row gap-4 justify-between flex-wrap items-center w-full">
-                <h2 class="text-3xl font-bold tracking-tight">Projects</h2>
-                <div v-if="orgMetaData && orgMetaData.integrations.length > 0">
+    <div class="flex flex-col gap-6 h-full">
+        <!-- Enhanced Header with Statistics -->
+        <div class="space-y-6">
+            <!-- Main Header -->
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="space-y-1">
+                    <h1 class="text-3xl font-bold tracking-tight text-slate-900">Projects</h1>
+                    <p class="text-slate-600">Manage and monitor your project security analyses</p>
+                </div>
+                <div v-if="orgMetaData && orgMetaData.projects.length > 0">
                     <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-                        <Button> <Icon icon="ion:add-sharp" /> Add a project </Button>
+                        <Button
+                            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
+                            Add Project
+                        </Button>
                     </RouterLink>
                 </div>
-                <div v-else>
-                    <BoxLoader
-                        :dimensions="{ height: '40px', width: '125px' }"
-                        :static="true"
-                    ></BoxLoader>
+                <div v-else-if="!orgMetaDataLoading">
+                    <Button disabled class="inline-flex items-center gap-2">
+                        <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
+                        Add Project
+                    </Button>
                 </div>
+                <div v-else>
+                    <Skeleton class="h-10 w-32" />
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div
+                v-if="orgMetaData && orgMetaData.projects.length > 0"
+                class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
+                <!-- Total Projects -->
+                <Card class="border-slate-200 hover:border-slate-300 transition-colors">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium text-slate-600"
+                            >Total Projects</CardTitle
+                        >
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <Icon icon="solar:folder-bold" class="h-4 w-4 text-blue-600" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-slate-900">
+                            {{ orgMetaData.projects.length }}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Active repositories</p>
+                    </CardContent>
+                </Card>
+
+                <!-- Completed Analyses -->
+                <Card class="border-slate-200 hover:border-slate-300 transition-colors">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium text-slate-600">Completed</CardTitle>
+                        <div class="p-2 bg-emerald-100 rounded-lg">
+                            <Icon icon="solar:check-circle-bold" class="h-4 w-4 text-emerald-600" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-slate-900">
+                            {{ getCompletedAnalysesCount() }}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Finished analyses</p>
+                    </CardContent>
+                </Card>
+
+                <!-- Running Analyses -->
+                <Card class="border-slate-200 hover:border-slate-300 transition-colors">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium text-slate-600">Running</CardTitle>
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <Icon icon="solar:refresh-bold" class="h-4 w-4 text-blue-600" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-slate-900">
+                            {{ getRunningAnalysesCount() }}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">In progress</p>
+                    </CardContent>
+                </Card>
+
+                <!-- Last Activity -->
+                <Card class="border-slate-200 hover:border-slate-300 transition-colors">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium text-slate-600"
+                            >Last Activity</CardTitle
+                        >
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <Icon icon="solar:clock-circle-bold" class="h-4 w-4 text-purple-600" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-slate-900">
+                            {{ getLastActivityTime() }}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Recent analysis</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Loading State for Statistics -->
+            <div
+                v-else-if="orgMetaDataLoading"
+                class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
+                <Skeleton v-for="i in 4" :key="i" class="h-24 w-full" />
             </div>
         </div>
 
@@ -92,8 +249,7 @@ fetchOrgMetaData();
             v-if="
                 orgMetaDataLoading ||
                 orgMetaDataError ||
-                (orgMetaData &&
-                    (orgMetaData.integrations.length == 0 || orgMetaData.projects.length == 0))
+                (orgMetaData && orgMetaData.projects.length == 0)
             "
             class="h-full relative"
         >
@@ -124,32 +280,19 @@ fetchOrgMetaData();
                         style="font-size: 5rem"
                     ></Icon>
                     <div style="font-size: 1.25rem">
-                        <div v-if="orgMetaData.integrations.length == 0">
-                            You have no integration with a VCS system yet
-                        </div>
-                        <div v-else-if="orgMetaData.projects.length == 0">
-                            You have imported no projects yet
-                        </div>
+                        <div v-if="orgMetaData.projects.length == 0">You have no projects yet</div>
                     </div>
 
                     <RouterLink
-                        v-if="orgMetaData.integrations.length == 0"
-                        :to="{
-                            name: 'orgs',
-                            params: {
-                                orgId: defaultOrg!.id,
-                                page: 'integrations',
-                                action: 'manage'
-                            }
-                        }"
-                    >
-                        <Button> Link to Github or Gitlab </Button>
-                    </RouterLink>
-                    <RouterLink
-                        v-else-if="orgMetaData.projects.length == 0"
+                        v-if="orgMetaData.projects.length == 0"
                         :to="{ name: 'projects', params: { page: 'add' } }"
                     >
-                        <Button> <Icon icon="ion:add-sharp" /> Add a project </Button>
+                        <Button
+                            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
+                            Add your first project
+                        </Button>
                     </RouterLink>
                 </template>
             </div>

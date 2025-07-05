@@ -95,14 +95,16 @@ function performOrgAction() {
 }
 </script>
 <template>
-    <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 h-full flex flex-col">
+    <div
+        class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 h-full flex flex-col"
+    >
         <!-- Organization Header -->
         <div class="flex items-start justify-between mb-4">
             <div class="flex-1 min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 truncate mb-2">
                     {{ membership.organization.name }}
                 </h3>
-                
+
                 <!-- Role and Personal Badges -->
                 <div class="flex items-center gap-2 flex-wrap mb-3">
                     <span
@@ -133,7 +135,7 @@ function performOrgAction() {
                         <Icon icon="solar:user-bold" class="text-xs" />
                         User
                     </span>
-                    
+
                     <span
                         v-if="membership.organization.personal"
                         class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded"
@@ -143,13 +145,13 @@ function performOrgAction() {
                         Personal
                     </span>
                 </div>
-                
+
                 <!-- Description -->
                 <p class="text-gray-600 text-sm line-clamp-2">
                     {{ membership.organization.description || 'No description provided.' }}
                 </p>
             </div>
-            
+
             <!-- Action Menu -->
             <div v-if="!membership.organization.personal">
                 <Popover>
@@ -200,10 +202,12 @@ function performOrgAction() {
                     {{ membership.organization.organizationMemberships.length }}
                 </div>
                 <div class="text-xs text-blue-600 font-medium">
-                    Member{{ membership.organization.organizationMemberships.length !== 1 ? 's' : '' }}
+                    Member{{
+                        membership.organization.organizationMemberships.length !== 1 ? 's' : ''
+                    }}
                 </div>
             </div>
-            
+
             <!-- Join Date -->
             <div class="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
                 <div class="flex items-center justify-center mb-1">
@@ -236,18 +240,28 @@ function performOrgAction() {
                         class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center"
                     >
                         <Icon
-                            :icon="membership.organization.created_by ? 'solar:user-bold' : 'solar:user-cross-bold'"
+                            :icon="
+                                membership.organization.created_by
+                                    ? 'solar:user-bold'
+                                    : 'solar:user-cross-bold'
+                            "
                             class="text-white text-sm"
                         />
                     </div>
-                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full flex items-center justify-center">
+                    <div
+                        class="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full flex items-center justify-center"
+                    >
                         <Icon icon="solar:crown-bold" class="text-white text-xs" />
                     </div>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="text-xs text-gray-500 font-medium">Owner</div>
                     <div class="text-sm font-medium text-gray-900 truncate">
-                        {{ membership.organization.created_by ? `@${membership.organization.created_by.handle}` : 'Deleted user' }}
+                        {{
+                            membership.organization.created_by
+                                ? `@${membership.organization.created_by.handle}`
+                                : 'Deleted user'
+                        }}
                     </div>
                 </div>
             </div>
@@ -266,25 +280,27 @@ function performOrgAction() {
                 }"
                 class="block"
             >
-                <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <button
+                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                >
                     <Icon icon="solar:settings-bold-duotone" class="text-lg" />
                     <span>Manage</span>
                 </button>
             </RouterLink>
         </div>
     </div>
-    
+
     <!-- Action Confirmation Modal -->
     <CenteredModal ref="orgActionModalRef">
         <template #title>
             <div class="flex items-center gap-3">
-                <div 
+                <div
                     v-if="orgAction == OrgAction.DELETE"
                     class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
                 >
                     <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
                 </div>
-                <div 
+                <div
                     v-if="orgAction == OrgAction.LEAVE"
                     class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center"
                 >
@@ -292,7 +308,11 @@ function performOrgAction() {
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-gray-900">
-                        {{ orgAction == OrgAction.DELETE ? 'Delete Organization' : 'Leave Organization' }}
+                        {{
+                            orgAction == OrgAction.DELETE
+                                ? 'Delete Organization'
+                                : 'Leave Organization'
+                        }}
                     </h3>
                 </div>
             </div>
@@ -307,14 +327,16 @@ function performOrgAction() {
                         Are you sure you want to leave this organization?
                     </span>
                 </p>
-                
-                <div 
-                    v-if="orgAction == OrgAction.DELETE" 
+
+                <div
+                    v-if="orgAction == OrgAction.DELETE"
                     class="bg-red-50 border border-red-200 rounded-lg p-3"
                 >
                     <div class="flex items-center gap-2">
                         <Icon icon="solar:danger-triangle-bold" class="text-red-600" />
-                        <span class="text-sm text-red-800 font-medium">This action cannot be undone.</span>
+                        <span class="text-sm text-red-800 font-medium"
+                            >This action cannot be undone.</span
+                        >
                     </div>
                 </div>
             </div>

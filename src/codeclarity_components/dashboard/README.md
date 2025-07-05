@@ -1,23 +1,128 @@
-# Dashboard Module 📊 (SIMPLIFIED FOR CONTRIBUTORS)
+# Dashboard Components
 
-Welcome to the CodeClarity Dashboard module! This folder contains all components and logic for the main security dashboard view.
+Simple, well-organized dashboard components for CodeClarity.
 
-## � **SIMPLIFIED ARCHITECTURE**
-
-This dashboard has been specifically designed to be **contributor-friendly** with these key simplifications:
-
-### ✅ **What Makes This Easy to Contribute To:**
-
-- **📁 Clear folder structure** - Components grouped by purpose (layout/sections/charts)
-- **🔧 Composables pattern** - Business logic separated from UI components
-- **📝 Mock data available** - Easy development without backend dependencies
-- **🧩 Small, focused components** - Each component has one clear responsibility
-- **📖 Comprehensive documentation** - Every file and function is documented
-
-## �🏗️ Folder Structure
+## Structure
 
 ```
 dashboard/
+├── DashboardView.vue           # Main entry point
+├── layout/                     # Layout components
+│   ├── DashboardHeader.vue     # Title + refresh button
+│   ├── DashboardStats.vue      # Main orchestrator
+│   ├── DashboardEmptyState.vue # Loading/error states
+│   └── DashboardSidebar.vue    # Activity + navigation
+├── sections/                   # Content sections
+│   ├── DashboardQuickStats.vue # Key metrics
+│   └── DashboardCharts.vue     # Chart grid
+├── charts/                     # Individual charts
+│   ├── CurrentVulns.vue        # Current vulnerabilities
+│   ├── ExposureOverview.vue    # Exposure chart
+│   ├── LicenseDist.vue         # License distribution
+│   └── VulnerabilityImpact.vue # Impact analysis
+└── composables/                # Data management
+    ├── useDashboardData.ts     # Real API data
+    └── useMockData.ts          # Mock data for dev
+```
+
+## Key Principles
+
+### 1. Simple Component Hierarchy
+- `DashboardView` → `DashboardStats` → sections
+- Each component has a single responsibility
+- No deep nesting or complex dependencies
+
+### 2. Clear Data Flow
+- `useDashboardData` handles all API calls
+- `useMockData` provides development data
+- Props flow down, events bubble up
+
+### 3. Easy Collaboration
+- Minimal complexity in each component
+- Clear TypeScript interfaces
+- Good comments and documentation
+- No async component loading complexity
+
+## Working with the Dashboard
+
+### Adding New Stats
+Edit `useMockData.ts` and add to the `stats` object:
+
+```typescript
+const stats = {
+    critical: 14,
+    high: 10,
+    projects: 24,
+    score: 7.8,
+    newMetric: 42  // Add here
+};
+```
+
+### Adding New Charts
+1. Create chart component in `charts/`
+2. Import in `DashboardCharts.vue`
+3. Add to the grid layout
+
+### Modifying Layout
+The main layout is in `DashboardStats.vue`:
+- Header (title, refresh)
+- Quick stats (4 metrics)
+- Charts (2x2 grid)
+- Sidebar (activity, actions, nav)
+
+### Data Sources
+- **Development**: Uses `useMockData` for testing
+- **Production**: Uses `useDashboardData` for real API calls
+- Switch by changing imports in components
+
+## Development Tips
+
+1. **Start with mock data** - Use `useMockData` to prototype
+2. **Keep components small** - Each should fit on one screen
+3. **Use TypeScript** - Define interfaces for all props
+4. **Test empty states** - Ensure good UX when no data
+5. **Mobile first** - Use responsive grid classes
+
+## Common Tasks
+
+### Update Dashboard Title
+Edit props in `DashboardHeader.vue`:
+
+```vue
+withDefaults(defineProps<Props>(), {
+    title: 'Your New Title',
+    description: 'Your new description'
+});
+```
+
+### Add Activity Item
+Edit `useMockData.ts` activities array:
+
+```typescript
+const activities = [
+    {
+        id: 4,
+        title: 'New activity',
+        description: 'Description here',
+        time: 'Just now',
+        variant: 'primary',
+        icon: 'solar:star-bold'
+    }
+];
+```
+
+### Connect Real Data
+Replace mock data import with real data:
+
+```typescript
+// From this:
+import { useMockData } from '../composables/useMockData';
+const { stats } = useMockData();
+
+// To this:
+import { useDashboardData } from '../composables/useDashboardData';
+const { realStats } = useDashboardData();
+```
 ├── DashboardView.vue           # Main entry point - loaded by the router
 ├── dashboard.entity.ts         # TypeScript types and interfaces
 ├── dashboard.repository.ts     # Data fetching and API logic

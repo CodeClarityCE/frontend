@@ -1,10 +1,11 @@
 /**
- * Ultra-Simple Mock Data for Dashboard Development
+ * useMockData - Simple mock data for dashboard development
  *
- * Just the basics - easy to understand and modify.
+ * Easy-to-modify data for rapid prototyping and testing.
+ * Replace with real API calls when ready.
  */
 export function useMockData() {
-    // Simple dashboard stats
+    // Key dashboard metrics
     const stats = {
         critical: 14,
         high: 10,
@@ -12,7 +13,7 @@ export function useMockData() {
         score: 7.8
     };
 
-    // Simple activity feed
+    // Recent activity items
     const activities = [
         {
             id: 1,
@@ -40,7 +41,7 @@ export function useMockData() {
         }
     ];
 
-    // Simple recommendations
+    // Recommended actions
     const recommendations = [
         {
             id: 1,

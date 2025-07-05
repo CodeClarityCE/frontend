@@ -73,28 +73,29 @@ import { Icon } from '@iconify/vue';
 import { useMockData } from '../composables/useMockData';
 
 /**
- * DashboardSidebar - Activity feed and quick actions (SIMPLIFIED)
+ * DashboardSidebar - Activity feed and quick actions
  *
- * Now uses composable for data management.
- * Easy to replace with real API data.
+ * Three simple sections:
+ * - Recent activity
+ * - Recommended actions  
+ * - Quick navigation
  */
 
-// Get mock data for development
 const { activities, recommendations } = useMockData();
 
-// Helper function to get variant-specific CSS classes
+// CSS classes for different variants
 function getVariantClass(variant: string): string {
-    const classes = {
+    const variants = {
         danger: 'bg-red-500',
-        success: 'bg-green-500',
+        success: 'bg-green-500', 
         primary: 'bg-blue-500',
         warning: 'bg-yellow-500',
         default: 'bg-gray-500'
     };
-    return classes[variant as keyof typeof classes] || classes.default;
+    return variants[variant as keyof typeof variants] || variants.default;
 }
 
-// Static navigation items (these rarely change)
+// Static navigation items
 const navigation = [
     {
         id: 1,
@@ -105,7 +106,7 @@ const navigation = [
     },
     {
         id: 2,
-        title: 'Settings',
+        title: 'Settings', 
         description: 'Configure your preferences',
         icon: 'solar:settings-bold',
         variant: 'default'
@@ -113,7 +114,7 @@ const navigation = [
     {
         id: 3,
         title: 'Reports',
-        description: 'View detailed analytics',
+        description: 'View detailed analytics', 
         icon: 'solar:chart-2-bold',
         variant: 'success'
     },

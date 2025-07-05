@@ -46,13 +46,12 @@ import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 /**
- * DashboardHeader - Main dashboard header with title and controls (SIMPLIFIED)
+ * DashboardHeader - Clean header with title and refresh button
  *
- * Features:
- * - Customizable title and description via props
+ * Simple header that displays:
+ * - Title and description
  * - Last updated timestamp
- * - Refresh button that emits refresh event
- * - Responsive design for mobile/desktop
+ * - Refresh button with loading state
  */
 
 interface Props {

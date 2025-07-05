@@ -1,4 +1,3 @@
-// composables/useDashboardData.ts
 import { ref, computed, onMounted } from 'vue';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
@@ -8,41 +7,37 @@ import { OrgRepository } from '@/codeclarity_components/organizations/organizati
 import { storeToRefs } from 'pinia';
 
 /**
- * Simplified Dashboard Data Composable
+ * useDashboardData - Simple dashboard data management
  *
- * Ultra-simple data management for the dashboard.
- * Focuses on the essential data needed for display.
+ * Handles:
+ * - Loading organization and integration data
+ * - Simple error states
+ * - Loading states
+ * - Empty state logic
  */
 export function useDashboardData() {
-    // Simple state setup
+    // Store setup
     const state = useStateStore();
     const { defaultOrg } = storeToRefs(useUserStore());
     const auth = useAuthStore();
 
-    // Set page state once
     state.$reset();
     state.page = 'home';
 
-    // Minimal reactive state with proper types
+    // Simple reactive state
     const isLoading = ref(false);
     const hasError = ref(false);
     const orgData = ref<any>(null);
     const integrations = ref<any[]>([]);
 
-    // Simple computed properties
+    // Computed helpers
     const isReady = computed(() => defaultOrg?.value && auth.getAuthenticated && auth.getToken);
     const hasData = computed(() => !!(orgData.value && integrations.value.length > 0));
-    const shouldShowEmptyState = computed(
-        () => isLoading.value || hasError.value || !hasData.value
-    );
-
-    // Integration IDs for charts (simplified)
-    const activeIntegrationIds = computed(() =>
-        integrations.value.map((integration) => integration.id || '')
-    );
+    const shouldShowEmptyState = computed(() => isLoading.value || hasError.value || !hasData.value);
+    const activeIntegrationIds = computed(() => integrations.value.map(integration => integration.id || ''));
 
     /**
-     * Simplified data fetching - does everything in one go
+     * Load all dashboard data
      */
     async function loadDashboardData() {
         if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
@@ -53,7 +48,7 @@ export function useDashboardData() {
         hasError.value = false;
 
         try {
-            // Fetch both org data and integrations in parallel
+            // Load org data and integrations in parallel
             const [orgResponse, integrationsResponse] = await Promise.allSettled([
                 new OrgRepository().getOrgMetaData({
                     orgId: defaultOrg.value.id,
@@ -68,17 +63,16 @@ export function useDashboardData() {
                 })
             ]);
 
-            // Handle org data
+            // Handle responses
             if (orgResponse.status === 'fulfilled') {
                 orgData.value = orgResponse.value;
             }
 
-            // Handle integrations data
             if (integrationsResponse.status === 'fulfilled') {
                 integrations.value = integrationsResponse.value.data || [];
             }
 
-            // Only show error if both failed
+            // Show error only if both failed
             if (orgResponse.status === 'rejected' && integrationsResponse.status === 'rejected') {
                 hasError.value = true;
             }
@@ -90,7 +84,7 @@ export function useDashboardData() {
         }
     }
 
-    // Auto-load data when composable is used
+    // Auto-load on mount
     onMounted(() => {
         if (isReady.value) {
             loadDashboardData();
@@ -98,20 +92,20 @@ export function useDashboardData() {
     });
 
     return {
-        // Simple state
+        // State
         isLoading,
         hasError,
         shouldShowEmptyState,
         activeIntegrationIds,
 
-        // Computed helpers
+        // Computed
         hasIntegrations: computed(() => integrations.value.length > 0),
-        hasProjects: computed(() => !!orgData.value), // Simplified assumption
+        hasProjects: computed(() => !!orgData.value),
 
-        // Simple action
+        // Actions
         refreshData: loadDashboardData,
 
-        // Store reference
+        // Store refs
         defaultOrg
     };
 }

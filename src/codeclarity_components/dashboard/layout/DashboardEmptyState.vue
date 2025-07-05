@@ -69,13 +69,12 @@ import Button from '@/shadcn/ui/button/Button.vue';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
 
 /**
- * DashboardEmptyState - Shows when dashboard cannot display data
+ * DashboardEmptyState - Shows when dashboard has no data
  *
- * Handles different empty states:
- * - Loading with skeleton
- * - Error fetching organization data
- * - No VCS integrations configured
- * - No projects imported yet
+ * Simple states:
+ * - Loading skeleton
+ * - Error message
+ * - Setup guidance (no integrations/projects)
  */
 
 interface Props {

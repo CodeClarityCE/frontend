@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDashboardData } from '../composables/useDashboardData';
 
-// Component imports
+// Simple component imports
 import DashboardHeader from './DashboardHeader.vue';
 import DashboardQuickStats from '../sections/DashboardQuickStats.vue';
 import DashboardCharts from '../sections/DashboardCharts.vue';
@@ -9,13 +9,14 @@ import DashboardSidebar from './DashboardSidebar.vue';
 import DashboardEmptyState from './DashboardEmptyState.vue';
 
 /**
- * DashboardStats - Main dashboard orchestrator (SIMPLIFIED)
+ * DashboardStats - Main dashboard container
  *
- * This component now focuses purely on layout and presentation.
- * All data management logic has been moved to the useDashboardData composable.
+ * Simple orchestrator that:
+ * 1. Gets data from composable
+ * 2. Shows empty state if needed
+ * 3. Otherwise renders dashboard sections
  */
 
-// Get dashboard data and state from composable
 const {
     activeIntegrationIds,
     shouldShowEmptyState,
@@ -29,7 +30,7 @@ const {
 </script>
 
 <template>
-    <!-- Show empty state if loading, error, or setup needed -->
+    <!-- Empty state: loading, error, or setup needed -->
     <DashboardEmptyState
         v-if="shouldShowEmptyState"
         :is-error="hasError"
@@ -38,18 +39,11 @@ const {
         :org-id="defaultOrg?.id"
     />
 
-    <!-- Main dashboard content -->
-    <div v-else class="space-y-8 min-h-screen">
-        <!-- Dashboard header with title and controls -->
+    <!-- Main dashboard: header + stats + charts + sidebar -->
+    <div v-else class="space-y-8">
         <DashboardHeader :is-loading="isLoading" @refresh="refreshData" />
-
-        <!-- Quick stats overview -->
         <DashboardQuickStats />
-
-        <!-- Main charts and visualizations -->
         <DashboardCharts :integration-ids="activeIntegrationIds" />
-
-        <!-- Activity sidebar with navigation -->
         <DashboardSidebar />
     </div>
 </template>

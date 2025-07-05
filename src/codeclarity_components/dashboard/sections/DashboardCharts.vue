@@ -49,51 +49,21 @@
 
 <script setup lang="ts">
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import { defineAsyncComponent } from 'vue';
-import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 
-// Async component imports with loading states
-const LicenseDist = defineAsyncComponent({
-    loader: () => import('../charts/LicenseDist.vue'),
-    loadingComponent: LoadingComponent,
-    delay: 200,
-    errorComponent: ErrorComponent,
-    timeout: 3000
-});
-
-const ExposureOverview = defineAsyncComponent({
-    loader: () => import('../charts/ExposureOverview.vue'),
-    loadingComponent: LoadingComponent,
-    delay: 200,
-    errorComponent: ErrorComponent,
-    timeout: 3000
-});
-
-const VulnerabilityImpact = defineAsyncComponent({
-    loader: () => import('../charts/VulnerabilityImpact.vue'),
-    loadingComponent: LoadingComponent,
-    delay: 200,
-    errorComponent: ErrorComponent,
-    timeout: 3000
-});
-
-const CurrentVulns = defineAsyncComponent({
-    loader: () => import('../charts/CurrentVulns.vue'),
-    loadingComponent: LoadingComponent,
-    delay: 200,
-    errorComponent: ErrorComponent,
-    timeout: 3000
-});
+// Simple direct imports - no async complexity
+import LicenseDist from '../charts/LicenseDist.vue';
+import ExposureOverview from '../charts/ExposureOverview.vue';
+import VulnerabilityImpact from '../charts/VulnerabilityImpact.vue';
+import CurrentVulns from '../charts/CurrentVulns.vue';
 
 /**
- * DashboardCharts - Main chart components for the dashboard
+ * DashboardCharts - Simple chart grid layout
  *
- * Contains the primary visualizations:
- * - Vulnerability exposure overview (main chart)
- * - Current vulnerabilities summary
- * - License distribution analysis
- * - Vulnerability impact analysis
+ * Four main charts in a responsive grid:
+ * - Exposure overview (large)
+ * - Current vulnerabilities (small)
+ * - License distribution
+ * - Vulnerability impact
  */
 
 interface Props {

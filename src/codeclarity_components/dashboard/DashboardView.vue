@@ -1,21 +1,15 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { useStateStore } from '@/stores/state';
+import DashboardStats from './layout/DashboardStats.vue';
 
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
-import { defineAsyncComponent } from 'vue';
+/**
+ * DashboardView - Main dashboard entry point
+ * 
+ * Simple wrapper that sets page state and renders the main dashboard.
+ * No async loading complexity - keeps it simple for collaboration.
+ */
 
-const DashboardStats = defineAsyncComponent({
-    loader: () => import('./layout/DashboardStats.vue'),
-    loadingComponent: LoadingComponent,
-    // Delay before showing the loading component. Default: 200ms.
-    delay: 200,
-    errorComponent: ErrorComponent,
-    // The error component will be displayed if a timeout is
-    // provided and exceeded. Default: Infinity.
-    timeout: 3000
-});
-
+// Set page state
 const state = useStateStore();
 state.$reset();
 state.page = 'dashboard';

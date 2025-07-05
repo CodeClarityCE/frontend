@@ -40,11 +40,11 @@ import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import { useMockData } from '../composables/useMockData';
 
 /**
- * Ultra-Simple Dashboard Stats
+ * DashboardQuickStats - Simple 4-stat overview
  *
- * Just displays 4 key metrics. Easy to understand and modify.
+ * Displays key metrics in a responsive grid.
+ * Easy to understand and modify.
  */
 
-// Get simple stats data
 const { stats } = useMockData();
 </script>

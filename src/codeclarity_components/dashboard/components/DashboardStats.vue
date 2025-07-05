@@ -537,7 +537,7 @@ fetchVcsIntegrations();
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <ExposureOverview :integration-ids="activeIntegrationIds"></ExposureOverview>
                 </CardContent>
             </Card>
@@ -568,7 +568,7 @@ fetchVcsIntegrations();
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <CurrentVulns :integration-ids="activeIntegrationIds"></CurrentVulns>
                 </CardContent>
             </Card>
@@ -609,7 +609,7 @@ fetchVcsIntegrations();
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <LicenseDist :integration-ids="activeIntegrationIds"></LicenseDist>
                 </CardContent>
             </Card>
@@ -647,7 +647,7 @@ fetchVcsIntegrations();
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <VulnerabilityImpact
                         :integration-ids="activeIntegrationIds"
                     ></VulnerabilityImpact>
@@ -685,7 +685,7 @@ fetchVcsIntegrations();
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <div class="space-y-4 max-h-80 overflow-y-auto activity-scroll">
                         <div
                             class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition-all duration-200 cursor-pointer"
@@ -786,7 +786,7 @@ fetchVcsIntegrations();
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <div class="space-y-4 max-h-80 overflow-y-auto">
                         <div
                             class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition-all duration-200 cursor-pointer"
@@ -868,7 +868,7 @@ fetchVcsIntegrations();
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent class-name="relative">
                     <div class="space-y-4 max-h-80 overflow-y-auto">
                         <div
                             class="flex items-start gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 transition-all duration-200 cursor-pointer"

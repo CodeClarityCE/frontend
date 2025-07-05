@@ -10,8 +10,6 @@ import { Card, CardContent } from '@/shadcn/ui/card';
 import { Button } from '@/shadcn/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 
-const property_title = ref('');
-const property_content = ref('');
 const isExpanded = ref(false);
 
 // Computed properties for license categorization and styling
@@ -130,7 +128,7 @@ const getPropertyDescription = (
     return descriptions[property as keyof typeof descriptions] || 'No information available.';
 };
 
-const getPropertyIcon = (property: string, type: 'permission' | 'condition' | 'limitation') => {
+const getPropertyIcon = (property: string) => {
     const icons = {
         // Permissions
         'commercial-use': 'tabler:building-store',
@@ -186,64 +184,6 @@ function referenceDomain(url: string) {
         console.error(error);
 
         return '';
-    }
-}
-
-async function fillModal(title: string, type: string) {
-    property_title.value = title;
-
-    // Limitations
-    if (title == 'trademark-use' && type == 'limitation') {
-        property_content.value =
-            'This license explicitly states that it does NOT grant trademark rights, even though licenses without such a statement probably do not grant any implicit trademark rights.';
-    } else if (title == 'liability' && type == 'limitation') {
-        property_content.value = 'This license includes a limitation of liability.';
-    } else if (title == 'patent-use' && type == 'limitation') {
-        property_content.value =
-            'This license explicitly states that it does NOT grant any rights in the patents of contributors.';
-    } else if (title == 'warranty' && type == 'limitation') {
-        property_content.value =
-            'The license explicitly states that it does NOT provide any warranty.';
-    }
-    // Conditions
-    else if (title == 'include-copyright' && type == 'condition') {
-        property_content.value =
-            'A copy of the license and copyright notice must be included with the software.';
-    } else if (title == 'include-copyright-source' && type == 'condition') {
-        property_content.value =
-            'A copy of the license and copyright notice must be included with the software in source form, but is not required for binaries.';
-    } else if (title == 'document-changes' && type == 'condition') {
-        property_content.value = 'Changes made to the code must be documented.';
-    } else if (title == 'disclose-source' && type == 'condition') {
-        property_content.value =
-            'Source code must be made available when the software is distributed.';
-    } else if (title == 'network-use-disclose' && type == 'condition') {
-        property_content.value =
-            'Users who interact with the software via network are given the right to receive a copy of the source code.';
-    } else if (title == 'same-license' && type == 'condition') {
-        property_content.value =
-            'Modifications must be released under the same license when distributing the software. In some cases a similar or related license may be used.';
-    } else if (title == 'same-license-file' && type == 'condition') {
-        property_content.value =
-            'Modifications of existing files must be released under the same license when distributing the software. In some cases a similar or related license may be used.';
-    } else if (title == 'same-license-library' && type == 'condition') {
-        property_content.value =
-            'Modifications must be released under the same license when distributing the software. In some cases a similar or related license may be used, or this condition may not apply to works that use the software as a library.';
-    }
-    // Permissions
-    else if (title == 'commercial-use' && type == 'permission') {
-        property_content.value = 'The software may be used for commercial purposes.';
-    } else if (title == 'modifications' && type == 'permission') {
-        property_content.value = 'The software may be modified.';
-    } else if (title == 'distribution' && type == 'permission') {
-        property_content.value = 'The software may be distributed.';
-    } else if (title == 'private-use' && type == 'permission') {
-        property_content.value = 'The software may be used and modified in private.';
-    } else if (title == 'patent-use' && type == 'permission') {
-        property_content.value =
-            'This license provides an express grant of patent rights from contributors.';
-    } else {
-        property_content.value = 'No information available.';
     }
 }
 

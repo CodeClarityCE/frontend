@@ -234,7 +234,7 @@ async function onSelectedReposChange(repos: Repository[]) {
                     </ImportErrorTable>
                 </template>
 
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-4">
                     <Button
                         v-if="Object.keys(reposFailedToImport).length > 0"
                         class="cursor-pointer m-0 w-fit"
@@ -242,14 +242,32 @@ async function onSelectedReposChange(repos: Repository[]) {
                         >Clear errors</Button
                     >
                     <template v-else>
-                        <Button
-                            class="rounded bg-primary text-white py-3 px-5 cursor-pointer m-0 w-fit"
-                            @click="importProjectsBulk()"
+                        <div
+                            class="flex flex-col gap-3 p-6 bg-blue-50 border border-blue-200 rounded-lg"
                         >
-                            Import projects
-                        </Button>
-                        <div style="margin-bottom: 5px">
-                            You have selected {{ selectedRepos.length }} repositories
+                            <div class="flex items-center gap-2">
+                                <Icon icon="lucide:info" class="text-blue-600" />
+                                <span class="font-medium text-blue-900">Ready to import</span>
+                            </div>
+                            <p class="text-sm text-blue-700">
+                                You have selected <strong>{{ selectedRepos.length }}</strong>
+                                {{ selectedRepos.length === 1 ? 'repository' : 'repositories' }} for
+                                import.
+                                {{
+                                    selectedRepos.length === 0
+                                        ? 'Please select repositories to import.'
+                                        : 'Click the button below to start the import process.'
+                                }}
+                            </p>
+                            <Button
+                                class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 cursor-pointer m-0 w-fit transition-colors duration-200"
+                                :disabled="selectedRepos.length === 0"
+                                @click="importProjectsBulk()"
+                            >
+                                <Icon icon="lucide:download" class="w-4 h-4 mr-2" />
+                                Import {{ selectedRepos.length > 0 ? selectedRepos.length : '' }}
+                                {{ selectedRepos.length === 1 ? 'project' : 'projects' }}
+                            </Button>
                         </div>
                     </template>
                 </div>

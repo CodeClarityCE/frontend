@@ -120,85 +120,140 @@ init();
             </div>
         </div>
     </div>
-    <div v-else-if="orgInfo" class="flex flex-col w-full org-header-item-wrapper bg-gray-100 p-12">
-        <div class="flex flex-row gap-3 items-center w-full" style="margin-bottom: 0.5em">
-            <div class="flex flex-col w-full">
-                <div class="flex flex-row gap-1 justify-between w-full">
-                    <div>
-                        <div class="flex flex-row gap-2 items-center flex-wrap w-full">
-                            <div class="font-medium text-3xl">
-                                {{ orgInfo.name }}
-                            </div>
-                            <Badge v-if="orgInfo.role == MemberRole.OWNER">Owner</Badge>
-                            <Badge v-if="orgInfo.role == MemberRole.ADMIN">Admin</Badge>
-                            <Badge v-if="orgInfo.role == MemberRole.MODERATOR">Moderator</Badge>
-                            <Badge v-if="orgInfo.role == MemberRole.USER">User</Badge>
+    <div
+        v-else-if="orgInfo"
+        class="flex flex-col w-full org-header-item-wrapper bg-white border-b border-gray-200 px-8 py-12"
+    >
+        <div class="max-w-4xl mx-auto w-full">
+            <div class="flex flex-row gap-6 items-center justify-between w-full mb-6">
+                <div class="flex flex-col">
+                    <div class="flex flex-row gap-3 items-center flex-wrap mb-3">
+                        <h1 class="font-bold text-4xl text-gray-900">
+                            {{ orgInfo.name }}
+                        </h1>
+                        <div class="flex flex-row gap-2">
+                            <Badge
+                                v-if="orgInfo.role == MemberRole.OWNER"
+                                class="bg-blue-100 text-blue-800 border-blue-200"
+                                >Owner</Badge
+                            >
+                            <Badge
+                                v-if="orgInfo.role == MemberRole.ADMIN"
+                                class="bg-green-100 text-green-800 border-green-200"
+                                >Admin</Badge
+                            >
+                            <Badge
+                                v-if="orgInfo.role == MemberRole.MODERATOR"
+                                class="bg-orange-100 text-orange-800 border-orange-200"
+                                >Moderator</Badge
+                            >
+                            <Badge
+                                v-if="orgInfo.role == MemberRole.USER"
+                                class="bg-gray-100 text-gray-800 border-gray-200"
+                                >User</Badge
+                            >
                             <Badge
                                 v-if="orgInfo.personal"
-                                title="A personal organization is a private org to which only you have access. Other people cannot be invited to join this type of organziation."
+                                class="bg-purple-100 text-purple-800 border-purple-200"
+                                title="A personal organization is a private org to which only you have access. Other people cannot be invited to join this type of organization."
                             >
-                                Personnal Org</Badge
-                            >
+                                Personal Org
+                            </Badge>
                         </div>
                     </div>
-                    <div class="flex flex-row gap-1 w-fit items-center">
-                        <div class="flex flex-row gap-4 w-fit items-center">
-                            <div class="flex flex-col items-end">
-                                <div class="text-yellow font-black">Owner</div>
-                                <div v-if="orgInfo.created_by">
-                                    @{{ orgInfo.created_by.handle }}
-                                </div>
-                                <div v-if="!orgInfo.created_by">Deleted user</div>
+                </div>
+
+                <div class="flex flex-row gap-4 items-center">
+                    <div class="text-right">
+                        <div class="text-sm font-semibold text-gray-900 mb-1">Owner</div>
+                        <div class="text-sm text-gray-600">
+                            <span v-if="orgInfo.created_by">@{{ orgInfo.created_by.handle }}</span>
+                            <span v-else class="text-gray-400">Deleted user</span>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <div v-if="orgInfo.created_by">
+                            <div v-if="orgInfo.created_by.avatar_url">
+                                <img
+                                    class="rounded-full w-12 h-12 border-2 border-gray-200"
+                                    :src="orgInfo.created_by.avatar_url"
+                                    :alt="orgInfo.created_by.handle"
+                                />
                             </div>
-                            <div class="user-avatar-wrapper">
-                                <div v-if="orgInfo.created_by">
-                                    <div v-if="orgInfo.created_by.avatar_url">
-                                        <img
-                                            class="rounded-full w-10 h-10"
-                                            :src="orgInfo.created_by.avatar_url"
-                                        />
-                                    </div>
-                                    <div
-                                        v-if="!orgInfo.created_by.avatar_url"
-                                        class="bg-gray-200 rounded-full w-10 h-10 flex flex-row items-center justify-center"
-                                    >
-                                        <Icon
-                                            class="text-2xl text-black"
-                                            icon="solar:smile-circle-broken"
-                                        ></Icon>
-                                    </div>
-                                </div>
-                                <div v-else>
-                                    <div class="user-avatar-inner-wrapper">
-                                        <Icon
-                                            class="text-2xl text-black"
-                                            icon="solar:confounded-square-outline"
-                                        ></Icon>
-                                    </div>
-                                </div>
+                            <div
+                                v-else
+                                class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-200"
+                            >
+                                <Icon
+                                    class="text-2xl text-gray-600"
+                                    icon="solar:smile-circle-broken"
+                                />
+                            </div>
+                        </div>
+                        <div v-else>
+                            <div
+                                class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-200"
+                            >
+                                <Icon
+                                    class="text-2xl text-gray-400"
+                                    icon="solar:confounded-square-outline"
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="flex flex-col gap-5">
-            <div class="flex flex-col gap-1 font-normal text-gray-500">
-                <div>Joined on {{ moment(orgInfo.joined_on).format('LL') }}</div>
-                <div class="flex-row flex-row-10">
-                    Number of members:
-                    <span
-                        style="
-                            padding: 3px 12px;
-                            background-color: rgb(222, 222, 222);
-                            border-radius: 15px;
-                            font-size: 0.8em;
-                        "
-                        >{{ orgInfo.number_of_members }}</span
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div
+                    class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200"
+                >
+                    <div
+                        class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"
                     >
+                        <Icon icon="solar:calendar-bold-duotone" class="text-lg text-blue-600" />
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900">Joined</div>
+                        <div class="text-gray-600">
+                            {{ moment(orgInfo.joined_on).format('LL') }}
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    {{ orgInfo.description }}
+
+                <div
+                    class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200"
+                >
+                    <div
+                        class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
+                    >
+                        <Icon
+                            icon="solar:users-group-rounded-bold-duotone"
+                            class="text-lg text-green-600"
+                        />
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900">Members</div>
+                        <div class="text-gray-600">{{ orgInfo.number_of_members }}</div>
+                    </div>
+                </div>
+
+                <div
+                    v-if="orgInfo.description"
+                    class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200"
+                >
+                    <div
+                        class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center"
+                    >
+                        <Icon
+                            icon="solar:document-text-bold-duotone"
+                            class="text-lg text-purple-600"
+                        />
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900">Description</div>
+                        <div class="text-gray-600">{{ orgInfo.description }}</div>
+                    </div>
                 </div>
             </div>
         </div>

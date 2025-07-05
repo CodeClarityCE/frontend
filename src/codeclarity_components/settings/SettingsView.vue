@@ -27,7 +27,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <main class="p-12">
+    <main class="min-h-screen bg-white">
         <SettingAccount v-if="props.page == 'account'" />
     </main>
 </template>

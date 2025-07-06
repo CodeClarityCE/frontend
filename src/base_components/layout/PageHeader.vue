@@ -1,5 +1,5 @@
 <template>
-    <!-- Dashboard header with title, description and refresh button -->
+    <!-- Page header with title, description and refresh button -->
     <div class="mb-10">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
             <!-- Title and description -->
@@ -46,12 +46,14 @@ import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 /**
- * DashboardHeader - Clean header with title and refresh button
+ * PageHeader - Reusable page header component
  *
- * Simple header that displays:
+ * A flexible header component that displays:
  * - Title and description
- * - Last updated timestamp
- * - Refresh button with loading state
+ * - Optional last updated timestamp
+ * - Optional refresh button with loading state
+ *
+ * Can be used across different pages for consistent styling
  */
 
 interface Props {
@@ -62,8 +64,8 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-    title: 'Security Dashboard',
-    description: "Monitor your organization's security posture and vulnerabilities",
+    title: 'Page Title',
+    description: 'Page description',
     showLastUpdated: true,
     isLoading: false
 });

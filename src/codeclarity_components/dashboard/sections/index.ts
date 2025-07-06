@@ -1,6 +1,6 @@
 /**
  * Dashboard Section Components
- * 
+ *
  * Main content sections of the dashboard.
  * Import like: import { DashboardCharts } from './sections'
  */

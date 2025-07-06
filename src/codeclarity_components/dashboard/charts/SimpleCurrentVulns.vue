@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Skeleton } from '@/shadcn/ui/skeleton';
 import { ScrollArea } from '@/shadcn/ui/scroll-area';
@@ -87,10 +87,10 @@ const auth = useAuthStore();
 // Simple severity styling
 function getSeverityClass(severity: string): string {
     const classes = {
-        'CRITICAL': 'bg-red-100 text-red-800',
-        'HIGH': 'bg-orange-100 text-orange-800',
-        'MEDIUM': 'bg-yellow-100 text-yellow-800',
-        'LOW': 'bg-green-100 text-green-800'
+        CRITICAL: 'bg-red-100 text-red-800',
+        HIGH: 'bg-orange-100 text-orange-800',
+        MEDIUM: 'bg-yellow-100 text-yellow-800',
+        LOW: 'bg-green-100 text-green-800'
     };
     return classes[severity as keyof typeof classes] || classes.LOW;
 }
@@ -116,9 +116,9 @@ async function loadVulnerabilityData() {
             // Update stats
             const severityCounts = response.data.severity_count || [];
             stats.value = {
-                critical: severityCounts.find(s => s.severity_class === 'CRITICAL')?.count || 0,
-                high: severityCounts.find(s => s.severity_class === 'HIGH')?.count || 0,
-                medium: severityCounts.find(s => s.severity_class === 'MEDIUM')?.count || 0
+                critical: severityCounts.find((s) => s.severity_class === 'CRITICAL')?.count || 0,
+                high: severityCounts.find((s) => s.severity_class === 'HIGH')?.count || 0,
+                medium: severityCounts.find((s) => s.severity_class === 'MEDIUM')?.count || 0
             };
 
             // Update recent vulns
@@ -130,9 +130,11 @@ async function loadVulnerabilityData() {
                     severity: vuln.severity_class || 'LOW'
                 }))
                 .sort((a, b) => {
-                    const severityOrder = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
-                    return (severityOrder[b.severity as keyof typeof severityOrder] || 0) - 
-                           (severityOrder[a.severity as keyof typeof severityOrder] || 0);
+                    const severityOrder = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+                    return (
+                        (severityOrder[b.severity as keyof typeof severityOrder] || 0) -
+                        (severityOrder[a.severity as keyof typeof severityOrder] || 0)
+                    );
                 })
                 .slice(0, 5); // Show only top 5
         }

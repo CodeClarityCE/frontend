@@ -2,7 +2,7 @@
 import { useDashboardData } from '../composables/useDashboardData';
 
 // Simple component imports
-import DashboardHeader from './DashboardHeader.vue';
+import { PageHeader } from '@/base_components';
 import DashboardQuickStats from '../sections/DashboardQuickStats.vue';
 import DashboardCharts from '../sections/DashboardCharts.vue';
 import DashboardSidebar from './DashboardSidebar.vue';
@@ -41,7 +41,12 @@ const {
 
     <!-- Main dashboard: header + stats + charts + sidebar -->
     <div v-else class="space-y-8">
-        <DashboardHeader :is-loading="isLoading" @refresh="refreshData" />
+        <PageHeader
+            title="Security Dashboard"
+            description="Monitor your organization's security posture and vulnerabilities"
+            :is-loading="isLoading"
+            @refresh="refreshData"
+        />
         <DashboardQuickStats />
         <DashboardCharts :integration-ids="activeIntegrationIds" />
         <DashboardSidebar />

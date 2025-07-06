@@ -59,6 +59,7 @@ export { default as UtilitiesFilters } from './filters/UtilitiesFilters.vue';
 // -----------------------------------------------------------------------------
 export { default as ExpandableBox } from './layout/ExpandableBox.vue';
 export { default as FaqBox } from './layout/FaqBox.vue';
+export { default as PageHeader } from './layout/PageHeader.vue';
 
 // Utility Components
 // -----------------------------------------------------------------------------

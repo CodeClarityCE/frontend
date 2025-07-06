@@ -33,8 +33,12 @@ export function useDashboardData() {
     // Computed helpers
     const isReady = computed(() => defaultOrg?.value && auth.getAuthenticated && auth.getToken);
     const hasData = computed(() => !!(orgData.value && integrations.value.length > 0));
-    const shouldShowEmptyState = computed(() => isLoading.value || hasError.value || !hasData.value);
-    const activeIntegrationIds = computed(() => integrations.value.map(integration => integration.id || ''));
+    const shouldShowEmptyState = computed(
+        () => isLoading.value || hasError.value || !hasData.value
+    );
+    const activeIntegrationIds = computed(() =>
+        integrations.value.map((integration) => integration.id || '')
+    );
 
     /**
      * Load all dashboard data

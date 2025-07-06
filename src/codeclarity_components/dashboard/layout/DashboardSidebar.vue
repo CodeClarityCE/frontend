@@ -77,7 +77,7 @@ import { useMockData } from '../composables/useMockData';
  *
  * Three simple sections:
  * - Recent activity
- * - Recommended actions  
+ * - Recommended actions
  * - Quick navigation
  */
 
@@ -87,7 +87,7 @@ const { activities, recommendations } = useMockData();
 function getVariantClass(variant: string): string {
     const variants = {
         danger: 'bg-red-500',
-        success: 'bg-green-500', 
+        success: 'bg-green-500',
         primary: 'bg-blue-500',
         warning: 'bg-yellow-500',
         default: 'bg-gray-500'
@@ -106,7 +106,7 @@ const navigation = [
     },
     {
         id: 2,
-        title: 'Settings', 
+        title: 'Settings',
         description: 'Configure your preferences',
         icon: 'solar:settings-bold',
         variant: 'default'
@@ -114,7 +114,7 @@ const navigation = [
     {
         id: 3,
         title: 'Reports',
-        description: 'View detailed analytics', 
+        description: 'View detailed analytics',
         icon: 'solar:chart-2-bold',
         variant: 'success'
     },

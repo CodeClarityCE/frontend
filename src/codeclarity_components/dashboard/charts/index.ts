@@ -1,6 +1,6 @@
 /**
  * Dashboard Chart Components
- * 
+ *
  * Individual chart components for data visualization.
  * Import like: import { CurrentVulns } from './charts'
  */

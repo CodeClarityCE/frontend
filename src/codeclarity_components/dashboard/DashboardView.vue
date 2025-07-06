@@ -4,7 +4,7 @@ import DashboardStats from './layout/DashboardStats.vue';
 
 /**
  * DashboardView - Main dashboard entry point
- * 
+ *
  * Simple wrapper that sets page state and renders the main dashboard.
  * No async loading complexity - keeps it simple for collaboration.
  */

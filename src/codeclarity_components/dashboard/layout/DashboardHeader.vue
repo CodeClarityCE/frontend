@@ -17,7 +17,7 @@
                     v-if="showLastUpdated"
                     class="flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm"
                 >
-                    <Icon icon="solar:calendar-linear" class="h-4 w-4 text-blue-500" />
+                    <Icon icon="solar:calendar-linear" class="h-4 w-4 text-theme-primary" />
                     <span>Last updated: {{ new Date().toLocaleDateString() }}</span>
                 </div>
 
@@ -25,7 +25,7 @@
                 <Button
                     variant="outline"
                     size="sm"
-                    class="hidden sm:flex items-center gap-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+                    class="hidden sm:flex items-center gap-2 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
                     :disabled="isLoading"
                     @click="$emit('refresh')"
                 >

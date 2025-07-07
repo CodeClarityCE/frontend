@@ -14,7 +14,8 @@ import { Icon } from '@iconify/vue';
 import type { LicensePolicy } from '@/codeclarity_components/organizations/policy/license_policy.entity';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
 const orgInfo: Ref<Organization | undefined> = ref();
 
 const props = defineProps<{
@@ -69,83 +70,179 @@ async function fetchPolicies(refresh: boolean = false) {
 fetchPolicies();
 </script>
 <template>
-    <div class="flex flex-col gap-8 org-members-manage-wrapper">
-        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
-        <div class="org-integrations-wrapper">
-            <div class="flex flex-col gap-4 p-12">
-                <div class="text-[#4f4e4e] text-3xl font-semibold">License Policies</div>
+    <div class="min-h-screen bg-gray-50">
+        <!-- Page Header -->
+        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)" />
 
-                <div v-if="loading">
-                    <div class="integration-box-wrapper flex flex-row gap-4 flex-wrap">
-                        <BoxLoader
-                            v-for="i in 4"
-                            :key="i"
-                            :dimensions="{ width: '150px', height: '150px' }"
-                        />
-                    </div>
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-8 py-8">
+            <!-- License Policies Overview -->
+            <InfoCard
+                title="License Policies"
+                description="Manage license compliance policies for your organization"
+                icon="solar:shield-check-bold"
+                variant="primary"
+                class="mb-8"
+            >
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <StatCard
+                        label="Total Policies"
+                        :value="licensePolicies.length"
+                        icon="solar:shield-bold"
+                        variant="default"
+                        subtitle="All policies"
+                    />
+
+                    <StatCard
+                        label="Active Policies"
+                        :value="licensePolicies.length"
+                        icon="solar:check-circle-bold"
+                        variant="success"
+                        subtitle="Currently enforced"
+                    />
+
+                    <StatCard
+                        label="License Types"
+                        :value="new Set(licensePolicies.flatMap((p) => p.content || [])).size"
+                        icon="solar:document-text-bold"
+                        variant="primary"
+                        subtitle="Unique licenses"
+                    />
+                </div>
+            </InfoCard>
+
+            <!-- License Policies Section -->
+            <InfoCard
+                title="Policy Management"
+                description="Configure and manage your license compliance policies"
+                icon="solar:settings-bold"
+                variant="default"
+                class="mb-8"
+            >
+                <div v-if="loading" class="flex flex-row gap-4 flex-wrap">
+                    <BoxLoader
+                        v-for="i in 4"
+                        :key="i"
+                        :dimensions="{ width: '300px', height: '200px' }"
+                    />
                 </div>
 
                 <div v-if="!loading">
-                    <div v-if="error" class="flex flex-row gap-2">
+                    <div
+                        v-if="error"
+                        class="flex flex-row gap-4 items-center p-8 bg-red-50 border border-red-200 rounded-xl"
+                    >
                         <Icon
-                            class="icon user-icon"
+                            class="text-red-500"
                             icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"
-                        ></Icon>
-                        <div>
-                            <div class="flex flex-col gap-5">
-                                <div class="flex flex-col gap-2">
-                                    <div>Failed to fetch VCS integrations</div>
-                                    <div v-if="errorCode" style="font-size: 0.9em">
-                                        We encountered an error while processing the request.
-                                    </div>
-                                    <div v-else style="font-size: 0.9eem">
-                                        <div>
-                                            We encountered an error while processing the request.
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetchPolicies"> Try again </Button>
-                                    <Button @click="router.back"> Go back </Button>
-                                </div>
+                            style="font-size: 3rem"
+                        />
+                        <div class="flex-1">
+                            <div class="text-lg font-semibold text-red-700 mb-2">
+                                Failed to fetch license policies
+                            </div>
+                            <div v-if="errorCode" class="text-red-600 mb-4">
+                                We encountered an error while processing the request.
+                            </div>
+                            <div v-else class="text-red-600 mb-4">
+                                We encountered an error while processing the request.
+                            </div>
+                            <div class="flex flex-row gap-3">
+                                <Button variant="destructive" @click="fetchPolicies"
+                                    >Try again</Button
+                                >
+                                <Button variant="outline" @click="router.back">Go back</Button>
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        v-if="!error"
-                        class="integration-box-wrapper flex flex-row gap-4 flex-wrap"
-                    >
-                        <template v-for="licensePolicy in licensePolicies" :key="licensePolicy.id">
-                            <RouterLink
-                                class="integration-box-wrapper-iteme"
-                                :to="{
-                                    name: 'orgs',
-                                    params: {
-                                        page: 'policy',
-                                        orgId: orgId,
-                                        action: 'edit'
-                                    },
-                                    query: { policyId: licensePolicy.id }
-                                }"
-                            >
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle class="flex gap-4 items-center">
-                                            {{ licensePolicy.name }}
-                                            <Icon
-                                                class="text-3xl"
-                                                icon="solar:settings-bold"
-                                            ></Icon>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>{{ licensePolicy.description }}</CardContent>
-                                </Card>
-                            </RouterLink>
-                        </template>
+                    <div v-if="!error" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <!-- Existing License Policies -->
+                        <div
+                            v-for="licensePolicy in licensePolicies"
+                            :key="licensePolicy.id"
+                            class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4 border-l-theme-primary"
+                        >
+                            <div class="flex items-center gap-3 mb-4">
+                                <Icon
+                                    icon="solar:shield-check-bold"
+                                    class="text-4xl text-theme-primary"
+                                />
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-theme-black">
+                                        {{ licensePolicy.name }}
+                                    </h3>
+                                    <p class="text-sm text-theme-gray line-clamp-2">
+                                        {{ licensePolicy.description }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <div
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-green-100 text-theme-primary rounded-full"
+                                >
+                                    <Icon icon="solar:check-circle-bold" class="mr-1 text-xs" />
+                                    Active
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="text-xs text-theme-gray mb-2">
+                                    {{
+                                        licensePolicy.policy_type === 'WHITELIST'
+                                            ? 'Allowed Licenses'
+                                            : 'Blocked Licenses'
+                                    }}
+                                </div>
+                                <div class="flex flex-wrap gap-1">
+                                    <span
+                                        v-for="license in licensePolicy.content?.slice(0, 3)"
+                                        :key="license"
+                                        class="inline-block px-2 py-1 text-xs rounded"
+                                        :class="
+                                            licensePolicy.policy_type === 'WHITELIST'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-red-100 text-red-700'
+                                        "
+                                    >
+                                        {{ license }}
+                                    </span>
+                                    <span
+                                        v-if="(licensePolicy.content?.length || 0) > 3"
+                                        class="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
+                                    >
+                                        +{{ (licensePolicy.content?.length || 0) - 3 }} more
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <RouterLink
+                                    :to="{
+                                        name: 'orgs',
+                                        params: {
+                                            page: 'policy',
+                                            orgId: orgId,
+                                            action: 'edit'
+                                        },
+                                        query: { policyId: licensePolicy.id }
+                                    }"
+                                    class="flex-1"
+                                >
+                                    <Button
+                                        class="w-full bg-theme-black hover:bg-theme-gray text-white"
+                                    >
+                                        <Icon icon="solar:eye-bold" class="mr-2 text-sm" />
+                                        View
+                                    </Button>
+                                </RouterLink>
+                            </div>
+                        </div>
+
+                        <!-- Add New Policy -->
                         <RouterLink
-                            class="integration-box-wrapper-item"
                             :to="{
                                 name: 'orgs',
                                 params: {
@@ -154,19 +251,36 @@ fetchPolicies();
                                     action: 'add'
                                 }
                             }"
+                            class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-theme-primary hover:bg-gray-50 transition-all duration-200 group"
                         >
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle class="flex gap-4 items-center">
-                                        Add a license policy
-                                        <Icon class="text-3xl" icon="solar:add-circle-bold"></Icon>
-                                    </CardTitle>
-                                </CardHeader>
-                            </Card>
+                            <div
+                                class="flex flex-col items-center justify-center h-full text-center"
+                            >
+                                <div class="flex items-center gap-3 mb-4">
+                                    <Icon
+                                        icon="solar:shield-plus-bold"
+                                        class="text-4xl text-gray-400 group-hover:text-theme-primary transition-colors"
+                                    />
+                                    <Icon
+                                        icon="solar:add-circle-bold"
+                                        class="text-2xl text-theme-primary"
+                                    />
+                                </div>
+                                <h3 class="text-lg font-semibold text-theme-black mb-2">
+                                    Add License Policy
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Create a new license compliance policy
+                                </p>
+                            </div>
                         </RouterLink>
                     </div>
                 </div>
-            </div>
+            </InfoCard>
         </div>
     </div>
 </template>
+
+<style lang="scss" scoped>
+/* Custom styles if needed - most styling is now handled by Tailwind classes */
+</style>

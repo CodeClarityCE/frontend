@@ -79,7 +79,7 @@ async function deleteAccount(password: string) {
 
         <FormField v-slot="{ componentField }" name="password_deletion">
             <FormItem v-auto-animate>
-                <FormLabel class="text-sm font-semibold text-gray-700"
+                <FormLabel class="text-sm font-semibold text-theme-black"
                     >Password Confirmation</FormLabel
                 >
                 <FormControl>
@@ -87,7 +87,7 @@ async function deleteAccount(password: string) {
                         type="password"
                         placeholder="Enter your password to confirm deletion"
                         v-bind="componentField"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
                     />
                 </FormControl>
                 <FormMessage />

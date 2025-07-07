@@ -75,16 +75,18 @@ async function updatePersonalInformation(first_name: string, last_name: string) 
     <form class="space-y-6" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="first_name">
             <FormItem v-auto-animate>
-                <FormLabel class="text-sm font-semibold text-gray-700">
+                <FormLabel class="text-sm font-semibold text-theme-black">
                     First Name
-                    <span class="text-gray-500 font-normal">(Current: {{ user?.first_name }})</span>
+                    <span class="text-theme-gray font-normal"
+                        >(Current: {{ user?.first_name }})</span
+                    >
                 </FormLabel>
                 <FormControl>
                     <Input
                         type="text"
                         placeholder="Enter your first name"
                         v-bind="componentField"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
                 <FormMessage />
@@ -93,16 +95,18 @@ async function updatePersonalInformation(first_name: string, last_name: string) 
 
         <FormField v-slot="{ componentField }" name="last_name">
             <FormItem v-auto-animate>
-                <FormLabel class="text-sm font-semibold text-gray-700">
+                <FormLabel class="text-sm font-semibold text-theme-black">
                     Last Name
-                    <span class="text-gray-500 font-normal">(Current: {{ user?.last_name }})</span>
+                    <span class="text-theme-gray font-normal"
+                        >(Current: {{ user?.last_name }})</span
+                    >
                 </FormLabel>
                 <FormControl>
                     <Input
                         type="text"
                         placeholder="Enter your last name"
                         v-bind="componentField"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
                 <FormMessage />
@@ -111,7 +115,7 @@ async function updatePersonalInformation(first_name: string, last_name: string) 
 
         <Button
             type="submit"
-            class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+            class="w-full bg-theme-primary hover:bg-theme-primary-dark text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
         >
             Update Information
         </Button>

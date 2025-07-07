@@ -23,6 +23,7 @@
 
                 <!-- Refresh button -->
                 <Button
+                    v-if="showRefresh"
                     variant="outline"
                     size="sm"
                     class="hidden sm:flex items-center gap-2 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
@@ -60,6 +61,7 @@ interface Props {
     title?: string;
     description?: string;
     showLastUpdated?: boolean;
+    showRefresh?: boolean;
     isLoading?: boolean;
 }
 
@@ -67,6 +69,7 @@ withDefaults(defineProps<Props>(), {
     title: 'Page Title',
     description: 'Page description',
     showLastUpdated: true,
+    showRefresh: true,
     isLoading: false
 });
 

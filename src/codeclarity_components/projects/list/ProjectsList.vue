@@ -293,6 +293,19 @@ function getLastActivityTime(): string {
         <!-- Projects List -->
         <div v-else class="space-y-6">
             <ProjectsList />
+
+            <!-- Floating Add Button for mobile -->
+            <RouterLink
+                :to="{ name: 'projects', params: { page: 'add' } }"
+                class="fixed bottom-6 right-6 z-50 md:hidden"
+            >
+                <Button
+                    size="lg"
+                    class="h-14 w-14 rounded-full bg-theme-primary hover:bg-theme-primary-dark text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                    <Icon icon="solar:add-circle-bold" class="h-6 w-6" />
+                </Button>
+            </RouterLink>
         </div>
     </div>
 </template>

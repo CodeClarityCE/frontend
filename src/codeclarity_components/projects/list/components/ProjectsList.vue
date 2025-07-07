@@ -158,6 +158,31 @@ fetchProjects();
 
             <!-- Projects grid with improved spacing -->
             <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <!-- Add Project CTA Card -->
+                <RouterLink :to="{ name: 'projects', params: { page: 'add' } }" class="block">
+                    <div
+                        class="h-full bg-gradient-to-br from-theme-primary/10 to-theme-primary/5 border-2 border-dashed border-theme-primary/30 rounded-xl p-6 hover:border-theme-primary/50 hover:bg-theme-primary/15 transition-all duration-300 cursor-pointer group min-h-[280px]"
+                    >
+                        <div class="flex flex-col items-center text-center h-full justify-center">
+                            <div
+                                class="p-4 bg-theme-primary/20 rounded-full mb-4 group-hover:bg-theme-primary/30 transition-colors"
+                            >
+                                <Icon
+                                    icon="solar:add-circle-bold"
+                                    class="h-8 w-8 text-theme-primary"
+                                />
+                            </div>
+                            <div class="text-lg font-semibold text-theme-primary mb-2">
+                                Add Project
+                            </div>
+                            <div class="text-sm text-theme-gray/60">
+                                Import a new repository to start security analysis
+                            </div>
+                        </div>
+                    </div>
+                </RouterLink>
+
+                <!-- Existing Projects -->
                 <ProjectItem
                     v-for="project in projects"
                     :key="project.id"

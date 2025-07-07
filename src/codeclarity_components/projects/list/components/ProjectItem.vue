@@ -87,7 +87,7 @@ async function deleteProject() {
                     <!-- Project provider and name -->
                     <div class="flex items-center gap-3">
                         <div
-                            class="p-2.5 rounded-xl bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-all duration-300 ring-1 ring-theme-primary/20"
+                            class="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-150 transition-all duration-300"
                         >
                             <Icon
                                 v-if="project.type == IntegrationProvider.GITLAB"
@@ -180,68 +180,36 @@ async function deleteProject() {
         </CardHeader>
 
         <CardContent class="relative pt-0 pb-6">
-            <!-- Analysis section with theme-consistent styling -->
-            <div v-if="project.analyses && project.analyses.length > 0" class="space-y-4">
-                <!-- Header with analysis count and add button -->
+            <!-- Simplified Analysis section -->
+            <div v-if="project.analyses && project.analyses.length > 0" class="space-y-3">
+                <!-- Clean header with just count and action -->
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <div
-                            class="p-2 bg-theme-primary/15 rounded-lg ring-1 ring-theme-primary/20"
-                        >
-                            <Icon
-                                icon="solar:document-text-bold"
-                                class="h-4 w-4 text-theme-primary"
-                            />
-                        </div>
-                        <div>
-                            <div class="text-sm font-semibold text-theme-black">
-                                Recent Analysis
-                            </div>
-                            <div class="text-xs text-theme-gray/60">
-                                {{ project.analyses.length }} total
-                            </div>
-                        </div>
-                    </div>
+                    <span class="text-sm font-medium text-theme-black">
+                        {{ project.analyses.length }} Analysis
+                    </span>
                     <RouterLink :to="'/analyses/add?id=' + project.id">
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            class="h-8 w-8 p-0 border-theme-primary/30 hover:bg-theme-primary/10 hover:border-theme-primary transition-all duration-300"
+                            class="text-xs text-theme-primary hover:bg-theme-primary/5"
                         >
-                            <Icon
-                                icon="solar:add-circle-linear"
-                                class="h-4 w-4 text-theme-primary"
-                            />
+                            + New
                         </Button>
                     </RouterLink>
                 </div>
 
-                <!-- Analysis list with theme styling -->
-                <div
-                    class="bg-gradient-to-br from-theme-primary/5 to-theme-primary/2 rounded-xl p-4 border border-theme-primary/15"
-                >
-                    <AnalysisList :analyses="project.analyses" :project-i-d="project.id" />
-                </div>
+                <!-- Clean analysis list -->
+                <AnalysisList :analyses="project.analyses" :project-i-d="project.id" />
             </div>
 
-            <!-- Empty state with theme design -->
-            <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-                <div class="p-4 bg-theme-primary/10 rounded-full mb-4 ring-1 ring-theme-primary/20">
-                    <Icon icon="solar:file-text-linear" class="h-8 w-8 text-theme-primary" />
-                </div>
-                <div class="space-y-2 mb-4">
-                    <div class="text-sm font-semibold text-theme-black">No Analysis Found</div>
-                    <div class="text-xs text-theme-gray/60 max-w-48">
-                        Start your first security analysis to identify vulnerabilities and licensing
-                        issues
-                    </div>
-                </div>
+            <!-- Simplified empty state -->
+            <div v-else class="text-center py-6">
+                <div class="text-sm text-theme-gray/60 mb-3">No analyses yet</div>
                 <RouterLink :to="'/analyses/add?id=' + project.id">
                     <Button
                         size="sm"
-                        class="bg-theme-primary hover:bg-theme-primary-dark text-white shadow-sm hover:shadow-md transition-all duration-300"
+                        class="bg-theme-primary hover:bg-theme-primary-dark text-white"
                     >
-                        <Icon icon="solar:play-circle-linear" class="h-4 w-4 mr-2" />
                         Create Analysis
                     </Button>
                 </RouterLink>

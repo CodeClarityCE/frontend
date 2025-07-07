@@ -1,180 +1,348 @@
 <script lang="ts" setup>
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import { Icon } from '@iconify/vue';
 import moment from 'moment';
 import type { PropType } from 'vue';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
     dependency: {
         type: Object as PropType<DependencyDetails>,
         required: true
     }
 });
+
+// Computed properties for version management
+const isVersionOutdated = computed(() => {
+    if (!props.dependency.release_date || !props.dependency.lastest_release_date) return false;
+    const diffDays = moment(props.dependency.lastest_release_date).diff(
+        moment(props.dependency.release_date),
+        'days'
+    );
+    return diffDays > 182; // 6 months
+});
+
+const getVersionLag = () => {
+    if (!props.dependency.release_date || !props.dependency.lastest_release_date) return '';
+    const diffDays = moment(props.dependency.lastest_release_date).diff(
+        moment(props.dependency.release_date),
+        'days'
+    );
+
+    if (diffDays < 30) return `${diffDays} days`;
+    if (diffDays < 365) return `${Math.round(diffDays / 30)} months`;
+    return `${Math.round(diffDays / 365)} years`;
+};
+
+// Engine icon mapping
+const getEngineIcon = (engineName: string): string => {
+    const iconMap: { [key: string]: string } = {
+        node: 'akar-icons:node-fill',
+        npm: 'akar-icons:npm-fill',
+        yarn: 'akar-icons:yarn-fill',
+        python: 'akar-icons:python-fill',
+        java: 'skill-icons:java-dark',
+        go: 'skill-icons:golang',
+        rust: 'skill-icons:rust',
+        php: 'skill-icons:php-dark'
+    };
+    return iconMap[engineName.toLowerCase()] || 'solar:cpu-bolt-bold';
+};
+
+// Package age calculations
+const getPackageAge = (): string => {
+    if (!props.dependency.release_date) return 'Unknown';
+
+    const now = moment();
+    const release = moment(props.dependency.release_date);
+    const diffDays = now.diff(release, 'days');
+
+    if (diffDays < 30) return `${diffDays} days old`;
+    if (diffDays < 365) return `${Math.round(diffDays / 30)} months old`;
+    return `${Math.round(diffDays / 365)} years old`;
+};
+
+const getAgeClass = (): string => {
+    if (!props.dependency.release_date) return 'unknown';
+
+    const diffDays = moment().diff(moment(props.dependency.release_date), 'days');
+
+    if (diffDays < 90) return 'fresh'; // < 3 months
+    if (diffDays < 365) return 'moderate'; // < 1 year
+    if (diffDays < 730) return 'old'; // < 2 years
+    return 'very-old'; // > 2 years
+};
+
+const getAgeIcon = (): string => {
+    const ageClass = getAgeClass();
+    const iconMap: { [key: string]: string } = {
+        fresh: 'solar:star-bold',
+        moderate: 'solar:clock-circle-bold',
+        old: 'solar:history-bold',
+        'very-old': 'solar:danger-triangle-bold',
+        unknown: 'solar:question-circle-bold'
+    };
+    return iconMap[ageClass];
+};
+
+const getAgeDescription = (): string => {
+    const ageClass = getAgeClass();
+    const descriptions: { [key: string]: string } = {
+        fresh: 'Recently released package',
+        moderate: 'Moderately aged package',
+        old: 'Older package, consider checking for updates',
+        'very-old': 'Very old package, review maintenance status',
+        unknown: 'Release date unavailable'
+    };
+    return descriptions[ageClass];
+};
 </script>
 
 <template>
     <div class="information-panel">
-        <div class="section-header">
-            <h2 class="section-title">Information</h2>
-        </div>
-
-        <div class="info-content">
-            <!-- Package Manager -->
-            <div class="info-item">
-                <div class="info-label">Integrated through:</div>
-                <div class="info-value">
-                    <div v-if="dependency.package_manager == 'NPM'" class="integration-info">
-                        <a
-                            :href="`https://www.npmjs.com/package/${dependency.name}/v/${dependency.version}`"
-                            target="_blank"
-                            class="integration-link"
-                        >
-                            <Icon :icon="'akar-icons:npm-fill'" class="integration-icon"></Icon>
-                            <span>NPM</span>
-                        </a>
+        <!-- Package Manager Section -->
+        <div class="info-section">
+            <div class="section-header">
+                <Icon icon="solar:box-bold" class="section-icon" />
+                <h3 class="section-title">Package Source</h3>
+            </div>
+            <div class="info-grid">
+                <div class="info-card primary">
+                    <div class="info-card-header">
+                        <Icon icon="solar:download-bold" class="info-icon" />
+                        <span class="info-title">Package Manager</span>
                     </div>
-                    <div v-else-if="dependency.package_manager == 'YARN'" class="integration-info">
-                        <a
-                            :href="`https://yarnpkg.com/package?name=${dependency.name}&version=${dependency.version}`"
-                            target="_blank"
-                            class="integration-link"
-                        >
-                            <Icon :icon="'akar-icons:yarn-fill'" class="integration-icon"></Icon>
-                            <span>Yarn</span>
-                        </a>
-                    </div>
-                    <div v-else-if="dependency.package_manager == 'SELF'" class="integration-info">
-                        <Icon :icon="'ion:document-outline'" class="integration-icon"></Icon>
-                        <span class="font-semibold">{{ dependency.name }}</span>
-                        <span class="text-sm text-gray-500">self-managed</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Version Information -->
-            <div class="info-item">
-                <div class="info-label">Version:</div>
-                <div class="info-value">
-                    <Badge variant="outline" class="version-badge">{{ dependency.version }}</Badge>
-                </div>
-            </div>
-
-            <!-- Release Date -->
-            <div
-                v-if="
-                    moment(dependency.release_date).toString() !==
-                    'Mon Jan 01 0001 00:17:30 GMT+0017'
-                "
-                class="info-item"
-            >
-                <div class="info-label">Release Date:</div>
-                <div class="info-value">
-                    <span class="date-value">{{
-                        moment(dependency.release_date).format('LL')
-                    }}</span>
-                </div>
-            </div>
-
-            <!-- Latest Version -->
-            <div class="info-item">
-                <div class="info-label">Latest Version:</div>
-                <div class="info-value">
-                    <Badge variant="outline" class="version-badge latest">{{
-                        dependency.latest_version
-                    }}</Badge>
-                </div>
-            </div>
-
-            <!-- Latest Release Date -->
-            <div
-                v-if="
-                    moment(dependency.lastest_release_date).toString() !==
-                    'Mon Jan 01 0001 00:17:30 GMT+0017'
-                "
-                class="info-item"
-            >
-                <div class="info-label">Latest Release:</div>
-                <div class="info-value">
-                    <span class="date-value">{{
-                        moment(dependency.lastest_release_date).format('LL')
-                    }}</span>
-                </div>
-            </div>
-
-            <!-- Engines -->
-            <div v-if="dependency.engines" class="info-item">
-                <div class="info-label">Engines Supported:</div>
-                <div class="info-value">
-                    <div class="engines-list">
+                    <div class="info-card-content">
+                        <div v-if="dependency.package_manager == 'NPM'" class="integration-info">
+                            <a
+                                :href="`https://www.npmjs.com/package/${dependency.name}/v/${dependency.version}`"
+                                target="_blank"
+                                class="integration-link npm"
+                            >
+                                <Icon icon="akar-icons:npm-fill" class="integration-icon npm" />
+                                <span class="integration-text">NPM Registry</span>
+                                <Icon icon="solar:external-link-linear" class="external-icon" />
+                            </a>
+                        </div>
                         <div
-                            v-for="(value, key) in dependency.engines"
-                            :key="key"
-                            class="engine-item"
+                            v-else-if="dependency.package_manager == 'YARN'"
+                            class="integration-info"
                         >
-                            <Icon
-                                v-if="dependency.engines.hasOwnProperty('node')"
-                                :icon="'akar-icons:node-fill'"
-                                class="engine-icon"
-                            ></Icon>
-                            <span class="engine-version">{{ value }}</span>
+                            <a
+                                :href="`https://yarnpkg.com/package?name=${dependency.name}&version=${dependency.version}`"
+                                target="_blank"
+                                class="integration-link yarn"
+                            >
+                                <Icon icon="akar-icons:yarn-fill" class="integration-icon yarn" />
+                                <span class="integration-text">Yarn Registry</span>
+                                <Icon icon="solar:external-link-linear" class="external-icon" />
+                            </a>
+                        </div>
+                        <div
+                            v-else-if="dependency.package_manager == 'SELF'"
+                            class="integration-info"
+                        >
+                            <div class="integration-link self">
+                                <Icon icon="solar:home-bold" class="integration-icon self" />
+                                <span class="integration-text">Self-managed</span>
+                            </div>
+                        </div>
+                        <div v-else class="integration-info">
+                            <div class="integration-link unknown">
+                                <Icon
+                                    icon="solar:question-circle-bold"
+                                    class="integration-icon unknown"
+                                />
+                                <span class="integration-text">{{
+                                    dependency.package_manager || 'Unknown'
+                                }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <Icon icon="solar:hierarchy-2-bold" class="info-icon" />
+                        <span class="info-title">Dependency Type</span>
+                    </div>
+                    <div class="info-card-content">
+                        <div class="dependency-type">
+                            <Icon
+                                :icon="
+                                    dependency.transitive
+                                        ? 'solar:hierarchy-2-linear'
+                                        : 'solar:download-linear'
+                                "
+                                :class="[
+                                    'type-icon',
+                                    dependency.transitive ? 'transitive' : 'direct'
+                                ]"
+                            />
+                            <span class="type-text">{{
+                                dependency.transitive ? 'Transitive' : 'Direct'
+                            }}</span>
+                        </div>
+                        <p class="type-description">
+                            {{
+                                dependency.transitive
+                                    ? 'Indirect dependency through another package'
+                                    : 'Direct dependency in your project'
+                            }}
+                        </p>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <!-- Status Information -->
-            <div class="info-item">
-                <div class="status-badges">
-                    <div v-if="dependency.license == ''" class="status-item">
-                        <div class="info-label">License:</div>
-                        <Badge variant="destructive" class="status-badge">
-                            <Icon icon="material-symbols:warning" class="mr-1" />
-                            Unlicensed
-                        </Badge>
+        <!-- Version Information Section -->
+        <div class="info-section">
+            <div class="section-header">
+                <Icon icon="solar:tag-bold" class="section-icon" />
+                <h3 class="section-title">Version Information</h3>
+            </div>
+            <div class="version-grid">
+                <div class="version-item current">
+                    <div class="version-label">
+                        <Icon icon="solar:bookmark-bold" class="version-icon current" />
+                        <span>Current Version</span>
                     </div>
-
-                    <div v-if="dependency.license != ''" class="status-item">
-                        <div class="info-label">License:</div>
-                        <Badge variant="outline" class="license-badge">
-                            {{ dependency.license }}
-                        </Badge>
-                    </div>
-
+                    <Badge variant="outline" class="version-badge current">{{
+                        dependency.version
+                    }}</Badge>
                     <div
                         v-if="
-                            moment(dependency.lastest_release_date).diff(
-                                moment(dependency.release_date),
-                                'days'
-                            ) > 182
+                            dependency.release_date &&
+                            moment(dependency.release_date).toString() !==
+                                'Mon Jan 01 0001 00:17:30 GMT+0017'
                         "
-                        class="status-item"
+                        class="version-date"
                     >
-                        <div class="info-label">Status:</div>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Badge variant="secondary" class="status-badge outdated">
-                                        <Icon icon="material-symbols:update" class="mr-1" />
-                                        Outdated
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div class="tooltip-content">
-                                        <p>
-                                            {{
-                                                moment(dependency.lastest_release_date).diff(
-                                                    moment(dependency.release_date),
-                                                    'days'
-                                                )
-                                            }}
-                                            days behind latest release
-                                        </p>
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        Released {{ moment(dependency.release_date).fromNow() }}
+                    </div>
+                </div>
+
+                <div class="version-item latest">
+                    <div class="version-label">
+                        <Icon icon="solar:star-bold" class="version-icon latest" />
+                        <span>Latest Version</span>
+                    </div>
+                    <Badge variant="outline" class="version-badge latest">{{
+                        dependency.latest_version
+                    }}</Badge>
+                    <div
+                        v-if="
+                            dependency.lastest_release_date &&
+                            moment(dependency.lastest_release_date).toString() !==
+                                'Mon Jan 01 0001 00:17:30 GMT+0017'
+                        "
+                        class="version-date"
+                    >
+                        Released {{ moment(dependency.lastest_release_date).fromNow() }}
+                    </div>
+                </div>
+
+                <div v-if="isVersionOutdated" class="version-status outdated">
+                    <Icon icon="solar:clock-circle-bold" class="status-icon outdated" />
+                    <div class="status-content">
+                        <span class="status-title">Version Status</span>
+                        <p class="status-description">
+                            {{ getVersionLag() }} behind the latest release
+                        </p>
+                    </div>
+                </div>
+
+                <div v-else class="version-status current">
+                    <Icon icon="solar:check-circle-bold" class="status-icon current" />
+                    <div class="status-content">
+                        <span class="status-title">Version Status</span>
+                        <p class="status-description">Using the latest version</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Details Section -->
+        <div class="info-section">
+            <div class="section-header">
+                <Icon icon="solar:settings-bold" class="section-icon" />
+                <h3 class="section-title">Technical Details</h3>
+            </div>
+            <div class="details-grid">
+                <!-- License Information -->
+                <div class="detail-card license">
+                    <div class="detail-header">
+                        <Icon icon="solar:document-text-bold" class="detail-icon" />
+                        <span class="detail-title">License</span>
+                    </div>
+                    <div class="detail-content">
+                        <div
+                            v-if="dependency.license && dependency.license !== ''"
+                            class="license-info valid"
+                        >
+                            <Badge variant="outline" class="license-badge valid">
+                                {{ dependency.license }}
+                            </Badge>
+                            <span class="license-status">Licensed</span>
+                        </div>
+                        <div v-else class="license-info invalid">
+                            <Badge variant="destructive" class="license-badge invalid">
+                                <Icon icon="solar:danger-triangle-bold" class="mr-1" />
+                                Unlicensed
+                            </Badge>
+                            <span class="license-status">No license information</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engine Support -->
+                <div
+                    v-if="dependency.engines && Object.keys(dependency.engines).length > 0"
+                    class="detail-card engines"
+                >
+                    <div class="detail-header">
+                        <Icon icon="solar:cpu-bolt-bold" class="detail-icon" />
+                        <span class="detail-title">Engine Support</span>
+                    </div>
+                    <div class="detail-content">
+                        <div class="engines-list">
+                            <div
+                                v-for="(value, key) in dependency.engines"
+                                :key="key"
+                                class="engine-item"
+                            >
+                                <Icon
+                                    :icon="getEngineIcon(String(key))"
+                                    :class="['engine-icon', String(key).toLowerCase()]"
+                                />
+                                <div class="engine-info">
+                                    <span class="engine-name">{{
+                                        String(key).charAt(0).toUpperCase() + String(key).slice(1)
+                                    }}</span>
+                                    <code class="engine-version">{{ value }}</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Package Age Indicator -->
+                <div class="detail-card age">
+                    <div class="detail-header">
+                        <Icon icon="solar:calendar-bold" class="detail-icon" />
+                        <span class="detail-title">Package Age</span>
+                    </div>
+                    <div class="detail-content">
+                        <div class="age-info">
+                            <div class="age-indicator">
+                                <Icon :icon="getAgeIcon()" :class="['age-icon', getAgeClass()]" />
+                                <span :class="['age-text', getAgeClass()]">{{
+                                    getPackageAge()
+                                }}</span>
+                            </div>
+                            <p class="age-description">{{ getAgeDescription() }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,152 +355,509 @@ defineProps({
 
 .information-panel {
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
-.section-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.section-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0;
-}
-
-.info-content {
+/* Section Headers */
+.info-section {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-}
-
-.info-label {
-    font-weight: 500;
-    color: #6b7280;
-    font-size: 0.875rem;
-}
-
-.info-value {
+.section-header {
     display: flex;
     align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
 }
 
-.integration-info {
-    display: inline-flex;
+.section-icon {
+    font-size: 1.25rem;
+    color: theme('colors.theme-primary');
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: theme('colors.theme-black');
+    margin: 0;
+}
+
+/* Grid Layouts */
+.info-grid,
+.details-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-grid {
+    grid-template-columns: 1fr;
+
+    @media (min-width: 640px) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.details-grid {
+    grid-template-columns: 1fr;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+.version-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    grid-template-rows: auto auto;
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Card Components */
+.info-card,
+.detail-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: rgba(29, 206, 121, 0.3);
+    }
+
+    &.primary {
+        border-left: 4px solid theme('colors.theme-primary');
+        background: rgba(29, 206, 121, 0.02);
+    }
+}
+
+.info-card-header,
+.detail-header {
+    display: flex;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.info-icon,
+.detail-icon {
+    font-size: 1rem;
+    color: theme('colors.theme-primary');
+}
+
+.info-title,
+.detail-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: theme('colors.theme-black');
+}
+
+.info-card-content,
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Integration Links */
+.integration-info {
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
 .integration-link {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.5rem;
     text-decoration: none;
-    color: #1f2937;
+    color: theme('colors.theme-black');
     font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
 
-    &:hover {
-        color: colors.$base-color;
+    &.npm {
+        &:hover {
+            background: rgba(203, 56, 55, 0.1);
+            color: #cb3837;
+        }
+    }
+
+    &.yarn {
+        &:hover {
+            background: rgba(44, 142, 187, 0.1);
+            color: #2c8ebb;
+        }
+    }
+
+    &.self {
+        background: rgba(75, 85, 99, 0.1);
+        color: #4b5563;
+        cursor: default;
+    }
+
+    &.unknown {
+        background: rgba(156, 163, 175, 0.1);
+        color: #6b7280;
+        cursor: default;
     }
 }
 
 .integration-icon {
-    font-size: 1rem;
-}
+    font-size: 1.2rem;
 
-.version-badge {
-    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    font-weight: 500;
-    font-size: 0.8rem;
+    &.npm {
+        color: #cb3837;
+    }
 
-    &.latest {
-        color: #059669;
-        border-color: #d1fae5;
-        background-color: #ecfdf5;
+    &.yarn {
+        color: #2c8ebb;
+    }
+
+    &.self {
+        color: theme('colors.theme-primary');
+    }
+
+    &.unknown {
+        color: #9ca3af;
     }
 }
 
-.date-value {
-    font-weight: 400;
-    color: #374151;
-    font-size: 0.875rem;
+.integration-text {
+    flex: 1;
+    font-size: 0.9rem;
 }
 
-.engines-list {
+.external-icon {
+    font-size: 0.875rem;
+    opacity: 0.7;
+}
+
+/* Dependency Type */
+.dependency-type {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.type-icon {
+    font-size: 1.1rem;
+
+    &.direct {
+        color: theme('colors.theme-primary');
+    }
+
+    &.transitive {
+        color: #f59e0b;
+    }
+}
+
+.type-text {
+    font-weight: 600;
+    color: theme('colors.theme-black');
+}
+
+.type-description {
+    font-size: 0.8rem;
+    color: theme('colors.theme-gray');
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Version Items */
+.version-item {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
 }
 
-.engine-item {
+.version-label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.engine-icon {
+.version-icon {
     font-size: 1rem;
-    color: #8cc84b;
+
+    &.current {
+        color: #6b7280;
+    }
+
+    &.latest {
+        color: theme('colors.theme-primary');
+    }
 }
 
-.engine-version {
+.version-badge {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    font-weight: 500;
-    color: #374151;
-    font-size: 0.875rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    align-self: flex-start;
+
+    &.current {
+        background: rgba(75, 85, 99, 0.1);
+        border-color: #6b7280;
+        color: #374151;
+    }
+
+    &.latest {
+        background: rgba(29, 206, 121, 0.1);
+        border-color: rgba(29, 206, 121, 0.3);
+        color: theme('colors.theme-primary');
+    }
 }
 
-.status-badges {
+.version-date {
+    font-size: 0.8rem;
+    color: theme('colors.theme-gray');
+    font-style: italic;
+}
+
+/* Version Status */
+.version-status {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 8px;
+
+    &.current {
+        background: rgba(29, 206, 121, 0.1);
+        border: 1px solid rgba(29, 206, 121, 0.2);
+    }
+
+    &.outdated {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+}
+
+.status-icon {
+    font-size: 1.25rem;
+
+    &.current {
+        color: theme('colors.theme-primary');
+    }
+
+    &.outdated {
+        color: #f59e0b;
+    }
+}
+
+.status-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.status-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: theme('colors.theme-black');
+}
+
+.status-description {
+    font-size: 0.8rem;
+    color: theme('colors.theme-gray');
+    margin: 0;
+}
+
+/* License Information */
+.license-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.license-badge {
+    font-weight: 600;
+    font-size: 0.8rem;
+    align-self: flex-start;
+
+    &.valid {
+        background: rgba(29, 206, 121, 0.1);
+        border-color: rgba(29, 206, 121, 0.3);
+        color: theme('colors.theme-primary');
+    }
+}
+
+.license-status {
+    font-size: 0.8rem;
+    color: theme('colors.theme-gray');
+}
+
+/* Engine Support */
+.engines-list {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
-.status-item {
+.engine-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.engine-icon {
+    font-size: 1.25rem;
+
+    &.node {
+        color: #8cc84b;
+    }
+
+    &.npm {
+        color: #cb3837;
+    }
+
+    &.yarn {
+        color: #2c8ebb;
+    }
+}
+
+.engine-info {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.125rem;
 }
 
-.status-badge {
-    align-self: flex-start;
+.engine-name {
+    font-weight: 600;
     font-size: 0.8rem;
+    color: theme('colors.theme-black');
+    text-transform: capitalize;
+}
 
-    &.outdated {
-        color: #d97706;
-        background-color: #fef3c7;
-        border-color: #fbbf24;
+.engine-version {
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.75rem;
+    color: theme('colors.theme-gray');
+    background: #f3f4f6;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+}
+
+/* Package Age */
+.age-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.age-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.age-icon {
+    font-size: 1rem;
+
+    &.fresh {
+        color: theme('colors.theme-primary');
+    }
+
+    &.moderate {
+        color: #f59e0b;
+    }
+
+    &.old {
+        color: #ef4444;
+    }
+
+    &.very-old {
+        color: #dc2626;
+    }
+
+    &.unknown {
+        color: #9ca3af;
     }
 }
 
-.license-badge {
-    color: #059669;
-    border-color: #d1fae5;
-    background-color: #ecfdf5;
-    font-weight: 500;
-    font-size: 0.8rem;
-}
+.age-text {
+    font-weight: 600;
+    font-size: 0.9rem;
 
-.tooltip-content {
-    max-width: 200px;
+    &.fresh {
+        color: theme('colors.theme-primary');
+    }
 
-    p {
-        margin: 0;
-        font-size: 0.875rem;
+    &.moderate {
+        color: #f59e0b;
+    }
+
+    &.old {
+        color: #ef4444;
+    }
+
+    &.very-old {
+        color: #dc2626;
+    }
+
+    &.unknown {
+        color: #9ca3af;
     }
 }
 
+.age-description {
+    font-size: 0.8rem;
+    color: theme('colors.theme-gray');
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .info-item {
-        gap: 0.25rem;
+    .information-panel {
+        gap: 1.5rem;
+    }
+
+    .info-grid,
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .version-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-card,
+    .detail-card {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .version-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }
 </style>

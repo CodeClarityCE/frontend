@@ -93,7 +93,7 @@ defineProps({
 .package-name {
     font-size: 2rem;
     font-weight: 700;
-    color: #1f2937;
+    color: theme('colors.theme-black');
     margin: 0;
     word-break: break-word;
     line-height: 1.1;
@@ -106,7 +106,7 @@ defineProps({
 .package-version {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #6b7280;
+    color: theme('colors.theme-primary');
 
     @media (max-width: 768px) {
         font-size: 1.125rem;
@@ -124,7 +124,9 @@ defineProps({
     transition: all 0.15s ease-in-out;
 
     &:hover {
-        background: #f3f4f6;
+        background: theme('colors.theme-primary');
+        color: white;
+        transform: translateY(-1px);
     }
 }
 
@@ -138,6 +140,10 @@ defineProps({
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     transition: all 0.15s ease-in-out;
+
+    &:hover {
+        color: inherit;
+    }
 }
 
 .link-icon {

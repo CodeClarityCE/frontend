@@ -124,7 +124,7 @@ onMounted(() => {
 .section-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #1f2937;
+    color: theme('colors.theme-black');
     margin: 0;
 }
 
@@ -137,14 +137,14 @@ onMounted(() => {
 
 .chart-description {
     padding: 0.75rem 1rem;
-    background: #f9fafb;
+    background: rgba(29, 206, 121, 0.05);
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid rgba(29, 206, 121, 0.2);
 }
 
 .description-text {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: theme('colors.theme-gray');
     margin: 0;
     line-height: 1.5;
 }

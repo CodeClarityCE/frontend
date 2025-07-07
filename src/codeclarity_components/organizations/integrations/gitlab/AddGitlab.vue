@@ -18,6 +18,7 @@ import FormTextField from '@/base_components/forms/FormTextField.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 
 enum FormMode {
     UPDATE = 'UPDATE',
@@ -178,252 +179,556 @@ async function init() {
 init();
 </script>
 <template>
-    <div class="flex flex-row gap-8 p-12">
-        <div class="flex flex-col gap-5" style="width: 48%">
-            <div class="flex flex-col gap-1">
-                <div class="flex flex-row gap-2 items-center" style="font-size: 2em">
-                    <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
-                    <div>GitLab</div>
-                </div>
-                <div v-if="mode == FormMode.CREATE">
-                    Link your GitLab account by entering a personal access token below.
-                </div>
-                <div v-else-if="mode == FormMode.UPDATE">
-                    Update your GitLab integration by entering a personal access token below.
-                </div>
-            </div>
+    <div class="min-h-screen bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Page Header -->
+            <InfoCard
+                title="GitLab Integration"
+                description="Connect your GitLab repositories for comprehensive security analysis and vulnerability detection"
+                icon="devicon:gitlab"
+                variant="primary"
+                class="mb-8 shadow-lg"
+            />
 
-            <Alert v-if="error" variant="destructive">
-                <AlertDescription class="flex flex-row gap-2 items-center">
-                    <Icon icon="material-symbols:error-outline" />
-                    <div v-if="errorCode">
-                        <div
-                            v-if="
-                                errorCode == APIErrors.IntegrationTokenExpired ||
-                                errorCode == APIErrors.IntegrationInvalidToken ||
-                                errorCode == APIErrors.IntegrationWrongTokenType
-                            "
-                        >
-                            Your token appears invalid or expired.
-                        </div>
-                        <div
-                            v-else-if="
-                                errorCode == APIErrors.IntegrationIntegrationTokenMissingPermissions
-                            "
-                        >
-                            Your token does not have the required permissions. Please select both
-                            <span class="code-bubble">api</span> and
-                            <span class="code-bubble">read_user</span> scopes.
-                        </div>
-                        <div v-else-if="errorCode == APIErrors.DuplicateIntegration">
-                            You already have an integration with GitLab for the same host.
-                        </div>
-                        <div v-else-if="errorCode == APIErrors.EntityNotFound">
-                            <div v-if="mode == FormMode.CREATE">
-                                This should not have happened. Please try again.
-                                <!-- Race condition -->
-                            </div>
-                            <div v-if="mode == FormMode.UPDATE">
-                                The integration you are trying to update does not exist.
-                            </div>
-                        </div>
-                        <div
-                            v-else-if="errorCode == APIErrors.ValidationFailed"
-                            style="white-space: break-spaces"
-                        >
-                            <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                            {{ validationError!.toMessage('Invalid form:') }}
-                        </div>
-                        <div v-else-if="errorCode == APIErrors.NotAuthorized">
-                            You are not authorized to perform this action.
-                        </div>
-                        <div v-else>An error occured during the processing of the request.</div>
-                    </div>
-                    <div v-else>An error occured during the processing of the request.</div>
-                </AlertDescription>
-            </Alert>
-
-            <Form
-                class="normal-form"
-                :validation-schema="formValidationSchema"
-                style="row-gap: 20px"
-                @submit="submit"
-            >
-                <FormTextField
-                    v-model="formPersonalAccessToken"
-                    :placeholder="'Enter a Gitlab personal access token'"
-                    :type="'text'"
-                    :name="'token'"
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Left Column - Configuration Form -->
+                <InfoCard
+                    :title="
+                        mode === FormMode.CREATE
+                            ? 'Add GitLab Integration'
+                            : 'Update GitLab Integration'
+                    "
+                    :description="
+                        mode === FormMode.CREATE
+                            ? 'Link your GitLab account by entering a personal access token with the required permissions'
+                            : 'Update your GitLab integration credentials and permissions'
+                    "
+                    icon="solar:settings-bold"
+                    variant="default"
+                    class="shadow-md"
                 >
-                    <template #name>Personal access token</template>
-                </FormTextField>
-
-                <div class="flex flex-col gap-4 gitlab-host-selection">
-                    <div>GitLab instance</div>
-                    <div class="flex flex-row gap-4" style="text-align: center">
-                        <div class="gitlab-host-selection-container" @click="setSelfHosted(false)">
-                            <Button class="w-full h-16" variant="outline">GitLab.com</Button>
-                            <div v-if="selfHosted == false" class="active">
-                                <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
-                            </div>
-                        </div>
-                        <div class="gitlab-host-selection-container" @click="setSelfHosted(true)">
-                            <Button class="w-full h-16 flex flex-col gap-2" variant="outline">
-                                <div>Self hosted</div>
-                                <div v-if="selfHosted == true">
-                                    {{ formGitlabInstanceUrl }}
+                    <Alert v-if="error" variant="destructive" class="mb-6">
+                        <AlertDescription class="flex flex-row gap-2 items-center">
+                            <Icon icon="solar:danger-triangle-bold" class="text-red-500" />
+                            <div v-if="errorCode">
+                                <div
+                                    v-if="
+                                        errorCode == APIErrors.IntegrationTokenExpired ||
+                                        errorCode == APIErrors.IntegrationInvalidToken ||
+                                        errorCode == APIErrors.IntegrationWrongTokenType
+                                    "
+                                    class="text-red-700"
+                                >
+                                    Your token appears invalid or expired.
                                 </div>
-                            </Button>
-                            <div v-if="selfHosted == true" class="active">
-                                <Icon class="icon" icon="fluent:checkmark-12-filled"></Icon>
+                                <div
+                                    v-else-if="
+                                        errorCode ==
+                                        APIErrors.IntegrationIntegrationTokenMissingPermissions
+                                    "
+                                    class="text-red-700"
+                                >
+                                    Your token does not have the required permissions. Please select
+                                    both
+                                    <span class="px-2 py-1 bg-gray-200 rounded text-sm font-mono"
+                                        >api</span
+                                    >
+                                    and
+                                    <span class="px-2 py-1 bg-gray-200 rounded text-sm font-mono"
+                                        >read_user</span
+                                    >
+                                    scopes.
+                                </div>
+                                <div
+                                    v-else-if="errorCode == APIErrors.DuplicateIntegration"
+                                    class="text-red-700"
+                                >
+                                    You already have an integration with GitLab for the same host.
+                                </div>
+                                <div
+                                    v-else-if="errorCode == APIErrors.EntityNotFound"
+                                    class="text-red-700"
+                                >
+                                    <div v-if="mode == FormMode.CREATE">
+                                        This should not have happened. Please try again.
+                                    </div>
+                                    <div v-if="mode == FormMode.UPDATE">
+                                        The integration you are trying to update does not exist.
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="errorCode == APIErrors.ValidationFailed"
+                                    class="text-red-700 whitespace-pre-line"
+                                >
+                                    {{ validationError!.toMessage('Invalid form:') }}
+                                </div>
+                                <div
+                                    v-else-if="errorCode == APIErrors.NotAuthorized"
+                                    class="text-red-700"
+                                >
+                                    You are not authorized to perform this action.
+                                </div>
+                                <div v-else class="text-red-700">
+                                    An error occurred during the processing of the request.
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <LoadingSubmitButton ref="loadingButtonRef">
-                        <span v-if="mode == FormMode.CREATE">Link GitLab</span>
-                        <span v-else-if="mode == FormMode.UPDATE">Update GitLab integration</span>
-                    </LoadingSubmitButton>
-                </div>
-            </Form>
-        </div>
-        <div class="flex flex-col gap-5" style="width: 48%">
-            <div class="flex flex-col gap-1">
-                <div class="flex flex-row gap-2 items-center" style="font-size: 2em">
-                    <div v-if="mode == FormMode.CREATE">Creating a personal access token</div>
-                    <div v-if="mode == FormMode.UPDATE">Updating a personal access token</div>
-                </div>
-            </div>
-            <div class="flex flex-col gap-4 flex-column-15rem">
-                <Alert>
-                    <AlertDescription class="flex flex-col gap-2 p-4">
-                        <div>
-                            To save you some time we have prefilled a token with the correct
-                            permissions:
-                        </div>
-                        <a
-                            target="_blank"
-                            class="clear-button flex flex-row gap-1 w-fit items-center"
-                            :href="
-                                formGitlabInstanceUrl +
-                                '/-/user_settings/personal_access_tokens?name=CodeClarity+Access+token&scopes=read_api,read_user,read_repository,self_rotate'
-                            "
-                        >
-                            <Button>
-                                <Icon icon="devicon:gitlab" class="icon integration-icon"></Icon>
-                                Prefilled access token
-                            </Button>
-                        </a>
+                            <div v-else class="text-red-700">
+                                An error occurred during the processing of the request.
+                            </div>
+                        </AlertDescription>
+                    </Alert>
 
-                        <div>
-                            (1) Click on "Add new token" on the top right.<br />
-                            (2) Select an expiration time that fits your security policy.<br />
-                            (3) Click "Create personal access token".<br />
-                        </div>
-
-                        <div>
-                            Copy and paste the newly created token in the field labeled "Personal
-                            access token" within this page.
-                        </div>
-                    </AlertDescription>
-                </Alert>
-                <Alert>
-                    <AlertDescription class="flex flex-col gap-5 p-4">
-                        <div class="flex flex-col gap-2">
-                            <div>Alternatively, create a token manually:</div>
-
-                            <a
-                                target="_blank"
-                                class="clear-button flex flex-row gap-1 w-fit items-center"
-                                :href="
-                                    formGitlabInstanceUrl +
-                                    '/-/user_settings/personal_access_tokens'
-                                "
+                    <Form
+                        class="space-y-6"
+                        :validation-schema="formValidationSchema"
+                        @submit="submit"
+                    >
+                        <div class="space-y-2">
+                            <FormTextField
+                                v-model="formPersonalAccessToken"
+                                placeholder="glpat-xxxxxxxxxxxxxxxxxxxx"
+                                type="password"
+                                name="token"
+                                class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20 w-full"
                             >
-                                <Button>
-                                    <Icon
-                                        icon="devicon:gitlab"
-                                        class="icon integration-icon"
-                                    ></Icon>
-                                    Manually create an access token
-                                </Button>
-                            </a>
+                                <template #name>
+                                    <div class="flex items-center gap-2">
+                                        <Icon icon="solar:key-bold" class="text-theme-primary" />
+                                        <span class="text-sm font-semibold text-theme-black"
+                                            >Personal Access Token</span
+                                        >
+                                    </div>
+                                </template>
+                            </FormTextField>
+                            <p class="text-xs text-theme-gray">
+                                Your token should start with "glpat-" and have the required
+                                permissions
+                            </p>
+                        </div>
 
+                        <div class="space-y-4">
                             <div>
-                                (1) Click on "Add new token" on the top right.<br />
-                                (2) Enter a name, such as "CodeClarity".<br />
-                                (3) Select <span class="code-bubble">read_api</span>,
-                                <span class="code-bubble">read_user</span>,
-                                <span class="code-bubble">read_repository</span>, and
-                                <span class="code-bubble">self_rotate</span> scopes.<br />
-                                (4) Select an expiration time that fits your security policy.<br />
-                                (5) Click "Create personal access token".<br />
+                                <h4 class="text-lg font-semibold text-theme-black mb-2">
+                                    GitLab Instance
+                                </h4>
+                                <p class="text-sm text-theme-gray mb-4">
+                                    Choose your GitLab instance type
+                                </p>
                             </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div
+                                    class="relative cursor-pointer group"
+                                    @click="setSelfHosted(false)"
+                                >
+                                    <Button
+                                        type="button"
+                                        class="w-full h-20 border-2 transition-all duration-200 hover:shadow-md"
+                                        :class="
+                                            !selfHosted
+                                                ? 'border-theme-primary bg-theme-primary/5 shadow-md'
+                                                : 'border-gray-300 hover:border-theme-primary/50'
+                                        "
+                                        variant="outline"
+                                    >
+                                        <div class="flex flex-col items-center gap-2">
+                                            <Icon icon="devicon:gitlab" class="text-2xl" />
+                                            <span class="font-medium">GitLab.com</span>
+                                        </div>
+                                    </Button>
+                                </div>
 
-                            <div>
-                                Copy and paste the newly created token in the field labeled
-                                "Personal access token" within this page.
+                                <div
+                                    class="relative cursor-pointer group"
+                                    @click="setSelfHosted(true)"
+                                >
+                                    <Button
+                                        type="button"
+                                        class="w-full h-20 border-2 transition-all duration-200 hover:shadow-md"
+                                        :class="
+                                            selfHosted
+                                                ? 'border-theme-primary bg-theme-primary/5 shadow-md'
+                                                : 'border-gray-300 hover:border-theme-primary/50'
+                                        "
+                                        variant="outline"
+                                    >
+                                        <div class="flex flex-col items-center gap-2">
+                                            <Icon
+                                                icon="solar:server-bold"
+                                                class="text-2xl text-gray-600"
+                                            />
+                                            <div class="text-center">
+                                                <div class="font-medium">Self Hosted</div>
+                                                <div
+                                                    v-if="selfHosted"
+                                                    class="text-xs text-theme-gray truncate max-w-[100px]"
+                                                >
+                                                    {{
+                                                        formGitlabInstanceUrl.replace(
+                                                            'https://',
+                                                            ''
+                                                        )
+                                                    }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </AlertDescription>
-                </Alert>
+
+                        <LoadingSubmitButton
+                            ref="loadingButtonRef"
+                            class="w-full bg-theme-black hover:bg-theme-gray text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+                        >
+                            <Icon icon="devicon:gitlab" class="mr-2 text-lg" />
+                            <span v-if="mode == FormMode.CREATE">Connect GitLab Integration</span>
+                            <span v-else-if="mode == FormMode.UPDATE"
+                                >Update GitLab Integration</span
+                            >
+                        </LoadingSubmitButton>
+
+                        <div
+                            class="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                        >
+                            <Icon
+                                icon="solar:shield-check-bold"
+                                class="text-blue-600 mt-0.5 flex-shrink-0"
+                            />
+                            <div class="text-xs text-blue-700">
+                                <strong>Security Note:</strong> Your token is encrypted and stored
+                                securely. We only use it to access your repositories for security
+                                analysis.
+                            </div>
+                        </div>
+                    </Form>
+                </InfoCard>
+
+                <!-- Right Column - Instructions -->
+                <div class="space-y-6">
+                    <InfoCard
+                        title="Quick Setup"
+                        description="Choose your access level and create a pre-configured token"
+                        icon="solar:magic-stick-bold"
+                        variant="primary"
+                        class="shadow-md"
+                    >
+                        <div class="space-y-6">
+                            <div
+                                class="flex items-start gap-3 p-4 bg-gradient-to-r from-theme-primary/10 to-blue-50 rounded-lg border border-theme-primary/20"
+                            >
+                                <div
+                                    class="flex-shrink-0 w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center"
+                                >
+                                    <Icon icon="solar:star-bold" class="text-white text-sm" />
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-theme-black mb-1">
+                                        Choose Your Access Level
+                                    </h4>
+                                    <p class="text-sm text-theme-gray">
+                                        Select the appropriate token type based on the level of
+                                        access you need for your GitLab repositories.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <a
+                                    target="_blank"
+                                    :href="
+                                        formGitlabInstanceUrl +
+                                        '/-/user_settings/personal_access_tokens?name=CodeClarity+Full+Access&scopes=read_api,read_user,read_repository,self_rotate'
+                                    "
+                                    class="inline-block"
+                                >
+                                    <Button
+                                        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                                    >
+                                        <Icon icon="mdi:gitlab" class="mr-2 text-lg text-white" />
+                                        <div class="text-left">
+                                            <div class="text-sm">Full Access</div>
+                                            <div class="text-xs opacity-90">
+                                                Complete API Access
+                                            </div>
+                                        </div>
+                                    </Button>
+                                </a>
+
+                                <a
+                                    target="_blank"
+                                    :href="
+                                        formGitlabInstanceUrl +
+                                        '/-/user_settings/personal_access_tokens?name=CodeClarity+Repository+Only&scopes=read_repository'
+                                    "
+                                    class="inline-block"
+                                >
+                                    <Button
+                                        variant="outline"
+                                        class="w-full border-orange-600 text-orange-700 hover:bg-orange-50 font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                                    >
+                                        <Icon icon="mdi:gitlab" class="mr-2 text-lg" />
+                                        <div class="text-left">
+                                            <div class="text-sm">Repository Only</div>
+                                            <div class="text-xs opacity-70">
+                                                Limited Repository Access
+                                            </div>
+                                        </div>
+                                    </Button>
+                                </a>
+                            </div>
+
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div
+                                        class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
+                                    >
+                                        <Icon
+                                            icon="solar:list-check-bold"
+                                            class="text-white text-xs"
+                                        />
+                                    </div>
+                                    <h4 class="font-semibold text-theme-black">
+                                        Follow these steps:
+                                    </h4>
+                                </div>
+                                <ol class="space-y-2">
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >1</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Click "Add new token" on the top right</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >2</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Select an expiration time that fits your security
+                                            policy</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >3</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Click "Create personal access token"</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >4</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Copy and paste the token in the form above</span
+                                        >
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </InfoCard>
+
+                    <InfoCard
+                        title="Manual Setup"
+                        description="Create a token manually with the required permissions"
+                        icon="solar:settings-bold"
+                        variant="default"
+                        class="shadow-md"
+                    >
+                        <div class="space-y-6">
+                            <div
+                                class="flex items-start gap-3 p-4 bg-orange-50 rounded-lg border border-orange-200"
+                            >
+                                <div
+                                    class="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center"
+                                >
+                                    <Icon icon="solar:settings-bold" class="text-white text-sm" />
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-theme-black mb-1">
+                                        Advanced Configuration
+                                    </h4>
+                                    <p class="text-sm text-theme-gray">
+                                        For users who prefer to configure permissions manually or
+                                        need custom settings.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <a
+                                    target="_blank"
+                                    :href="
+                                        formGitlabInstanceUrl +
+                                        '/-/user_settings/personal_access_tokens'
+                                    "
+                                    class="inline-block"
+                                >
+                                    <Button
+                                        variant="outline"
+                                        class="border-gray-300 hover:border-gray-400 font-semibold px-6 py-3 rounded-lg transition-all duration-200"
+                                    >
+                                        <Icon icon="devicon:gitlab" class="mr-2 text-lg" />
+                                        Create Token Manually
+                                    </Button>
+                                </a>
+                            </div>
+
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div
+                                        class="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center"
+                                    >
+                                        <Icon
+                                            icon="solar:list-check-bold"
+                                            class="text-white text-xs"
+                                        />
+                                    </div>
+                                    <h4 class="font-semibold text-theme-black">
+                                        Configuration steps:
+                                    </h4>
+                                </div>
+                                <ol class="space-y-3">
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >1</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Click on "Add new token" on the top right</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >2</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Enter a descriptive name, such as "CodeClarity"</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >3</span
+                                        >
+                                        <div class="flex-1">
+                                            <span class="text-sm text-theme-gray block mb-2"
+                                                >Select these required scopes:</span
+                                            >
+                                            <div class="flex flex-wrap gap-2">
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 border border-blue-200 rounded-full text-xs font-mono"
+                                                >
+                                                    <Icon
+                                                        icon="solar:check-circle-bold"
+                                                        class="text-theme-primary"
+                                                    />
+                                                    read_api
+                                                </span>
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200 rounded-full text-xs font-mono"
+                                                >
+                                                    <Icon
+                                                        icon="solar:check-circle-bold"
+                                                        class="text-theme-primary"
+                                                    />
+                                                    read_user
+                                                </span>
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 border border-purple-200 rounded-full text-xs font-mono"
+                                                >
+                                                    <Icon
+                                                        icon="solar:check-circle-bold"
+                                                        class="text-theme-primary"
+                                                    />
+                                                    read_repository
+                                                </span>
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 border border-orange-200 rounded-full text-xs font-mono"
+                                                >
+                                                    <Icon
+                                                        icon="solar:check-circle-bold"
+                                                        class="text-theme-primary"
+                                                    />
+                                                    self_rotate
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >4</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Select an expiration time that fits your security
+                                            policy</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >5</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Click "Create personal access token"</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span
+                                            class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                            >6</span
+                                        >
+                                        <span class="text-sm text-theme-gray"
+                                            >Copy and paste the token in the form on the left</span
+                                        >
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </InfoCard>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Self-hosted URL Modal -->
     <CenteredModal ref="selfHostedModalRef">
         <template #title>
-            <div>Enter the url of your self-hosted GitLab instance.</div>
+            <div class="text-xl font-semibold text-theme-black">Self-hosted GitLab Instance</div>
         </template>
         <template #content>
-            <div
-                style="
-                    display: flex;
-                    flex-direction: column;
-                    row-gap: 1.5em;
-                    max-width: 400px;
-                    width: 100vw;
-                "
-            >
+            <div class="space-y-4 max-w-md">
+                <p class="text-theme-gray">Enter the URL of your self-hosted GitLab instance:</p>
                 <input
                     v-model="formGitlabInstanceUrl"
                     type="text"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary outline-none transition-colors"
+                    placeholder="https://gitlab.example.com"
                     @input="validateGitlabInstanceUrl"
                 />
-                <div style="color: red">{{ formGitlabInstanceUrlError }}</div>
+                <div v-if="formGitlabInstanceUrlError" class="text-red-500 text-sm">
+                    {{ formGitlabInstanceUrlError }}
+                </div>
             </div>
         </template>
         <template #buttons>
-            <Button @click="selfHostedModalRef.toggle()"> Done </Button>
+            <Button
+                class="bg-theme-black hover:bg-theme-gray text-white"
+                @click="selfHostedModalRef.toggle()"
+            >
+                Done
+            </Button>
         </template>
     </CenteredModal>
 </template>
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
-@use '@/assets/common/form.scss';
-
-.gitlab-host-selection-container {
-    position: relative;
-    width: 100%;
-
-    .active {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        z-index: 1;
-        color: #fff;
-        font-weight: bold;
-        background-color: #fff;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid green;
-    }
-
-    .active .icon {
-        z-index: 2;
-        color: green;
-        position: absolute;
-        right: 1px;
-        top: 1px;
-    }
-}
+/* Custom styles if needed - most styling is now handled by Tailwind classes */
 </style>

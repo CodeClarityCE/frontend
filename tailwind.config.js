@@ -45,6 +45,12 @@ module.exports = {
 				severityMediumLight: '#cca067',
 				severityLowLight: '#9dae5e',
 				severityNoneLight: '#397680',
+				// Transparent severity colors for progress bars
+				severityCriticalBg: 'rgba(0, 0, 0, 0.1)',
+				severityHighBg: 'rgba(191, 19, 19, 0.1)',
+				severityMediumBg: 'rgba(255, 193, 7, 0.1)',
+				severityLowBg: 'rgba(90, 157, 9, 0.1)',
+				severityNoneBg: 'rgba(9, 136, 157, 0.1)',
     			border: 'hsl(var(--border))',
     			input: 'hsl(var(--input))',
     			ring: 'hsl(var(--ring))',

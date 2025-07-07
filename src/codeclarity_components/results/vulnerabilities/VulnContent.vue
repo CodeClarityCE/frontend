@@ -282,9 +282,9 @@ function handleExportSecurityReport() {
                                     stats.number_of_critical ?? 0
                                 }}</span>
                             </div>
-                            <div class="w-full bg-red-100 rounded-full h-2">
+                            <div class="w-full bg-severityCriticalBg rounded-full h-2">
                                 <div
-                                    class="bg-red-600 h-2 rounded-full transition-all duration-300"
+                                    class="bg-severityCritical h-2 rounded-full transition-all duration-300"
                                     :style="{ width: `${severityDistribution.critical}%` }"
                                 ></div>
                             </div>
@@ -302,9 +302,9 @@ function handleExportSecurityReport() {
                                     stats.number_of_high ?? 0
                                 }}</span>
                             </div>
-                            <div class="w-full bg-orange-100 rounded-full h-2">
+                            <div class="w-full bg-severityHighBg rounded-full h-2">
                                 <div
-                                    class="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                                    class="bg-severityHigh h-2 rounded-full transition-all duration-300"
                                     :style="{ width: `${severityDistribution.high}%` }"
                                 ></div>
                             </div>
@@ -322,9 +322,9 @@ function handleExportSecurityReport() {
                                     stats.number_of_medium ?? 0
                                 }}</span>
                             </div>
-                            <div class="w-full bg-yellow-100 rounded-full h-2">
+                            <div class="w-full bg-severityMediumBg rounded-full h-2">
                                 <div
-                                    class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                                    class="bg-severityMedium h-2 rounded-full transition-all duration-300"
                                     :style="{ width: `${severityDistribution.medium}%` }"
                                 ></div>
                             </div>
@@ -342,9 +342,9 @@ function handleExportSecurityReport() {
                                     stats.number_of_low ?? 0
                                 }}</span>
                             </div>
-                            <div class="w-full bg-green-100 rounded-full h-2">
+                            <div class="w-full bg-severityLowBg rounded-full h-2">
                                 <div
-                                    class="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                    class="bg-severityLow h-2 rounded-full transition-all duration-300"
                                     :style="{ width: `${severityDistribution.low}%` }"
                                 ></div>
                             </div>
@@ -415,9 +415,9 @@ function handleExportSecurityReport() {
                                 stats.number_of_critical ?? 0
                             }}</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="w-full bg-severityCriticalBg rounded-full h-2">
                             <div
-                                class="bg-red-600 h-2 rounded-full transition-all duration-300"
+                                class="bg-severityCritical h-2 rounded-full transition-all duration-300"
                                 :style="{
                                     width: `${Math.min(100, (stats.number_of_critical || 0) * 25)}%`
                                 }"
@@ -430,9 +430,9 @@ function handleExportSecurityReport() {
                                 stats.number_of_high ?? 0
                             }}</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="w-full bg-severityHighBg rounded-full h-2">
                             <div
-                                class="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                                class="bg-severityHigh h-2 rounded-full transition-all duration-300"
                                 :style="{
                                     width: `${Math.min(100, (stats.number_of_high || 0) * 25)}%`
                                 }"
@@ -445,9 +445,9 @@ function handleExportSecurityReport() {
                                 (stats.number_of_medium || 0) + (stats.number_of_low || 0)
                             }}</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="w-full bg-severityMediumBg rounded-full h-2">
                             <div
-                                class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                                class="bg-severityMedium h-2 rounded-full transition-all duration-300"
                                 :style="{
                                     width: `${Math.min(100, ((stats.number_of_medium || 0) + (stats.number_of_low || 0)) * 25)}%`
                                 }"

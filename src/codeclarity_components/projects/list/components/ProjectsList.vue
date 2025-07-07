@@ -100,33 +100,35 @@ fetchProjects();
 <template>
     <template v-if="error">
         <div class="flex flex-row justify-center" style="margin-top: 5vh">
-            <div class="flex flex-row gap-2 w-fit" style="font-size: 1.5em">
-                <Icon
-                    class="icon user-icon h-fit"
-                    icon="solar:confounded-square-outline"
-                    style="font-size: 2.5em"
-                >
-                </Icon>
-                <div>
-                    <div class="flex flex-col gap-5">
-                        <div class="flex flex-col gap-1">
-                            <div>We failed to retrieve your projects</div>
-                            <div class="text-xs">
-                                <div v-if="errorCode == APIErrors.NotAuthorized">
-                                    You do not have permission to access this page.
-                                </div>
-                                <div v-else>An error occured while retrieving your projects.</div>
+            <div
+                class="flex flex-row gap-4 w-fit max-w-lg bg-white border border-red-200 rounded-xl p-6 shadow-sm"
+            >
+                <div class="flex-shrink-0">
+                    <div class="p-3 bg-red-100 rounded-xl">
+                        <Icon class="h-8 w-8 text-red-600" icon="solar:confounded-square-outline" />
+                    </div>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
+                        <div class="text-lg font-semibold text-theme-black">
+                            We failed to retrieve your projects
+                        </div>
+                        <div class="text-sm text-theme-gray/60">
+                            <div v-if="errorCode == APIErrors.NotAuthorized">
+                                You do not have permission to access this page.
                             </div>
+                            <div v-else>An error occurred while retrieving your projects.</div>
                         </div>
-                        <div class="flex flex-row gap-1 items-center flex-wrap">
-                            <Button
-                                v-if="errorCode != APIErrors.NotAuthorized"
-                                @click="fetchProjects(true)"
-                            >
-                                Try again
-                            </Button>
-                            <Button @click="router.back()"> Go back </Button>
-                        </div>
+                    </div>
+                    <div class="flex flex-row gap-2 items-center flex-wrap">
+                        <Button
+                            v-if="errorCode != APIErrors.NotAuthorized"
+                            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                            @click="fetchProjects(true)"
+                        >
+                            Try again
+                        </Button>
+                        <Button variant="outline" @click="router.back()"> Go back </Button>
                     </div>
                 </div>
             </div>
@@ -154,8 +156,8 @@ fetchProjects();
                 <NoProjects />
             </div>
 
-            <!-- <div v-else class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4"> -->
-            <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <!-- Projects grid with improved spacing -->
+            <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 <ProjectItem
                     v-for="project in projects"
                     :key="project.id"
@@ -165,8 +167,12 @@ fetchProjects();
             </div>
         </div>
 
-        <div class="flex flex-row justify-between">
-            <div style="">Showing {{ projects.length }} out of {{ totalEntries }} entries</div>
+        <div
+            class="flex flex-row justify-between items-center mt-8 pt-4 border-t border-theme-primary/10"
+        >
+            <div class="text-sm text-theme-gray/60">
+                Showing {{ projects.length }} out of {{ totalEntries }} entries
+            </div>
             <Pagination
                 v-model:page="page"
                 v-model:nmb-entries-showing="entriesPerPage"

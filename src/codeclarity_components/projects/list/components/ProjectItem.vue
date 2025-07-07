@@ -69,20 +69,25 @@ async function deleteProject() {
 </script>
 <template>
     <Card
-        class="group relative overflow-hidden bg-white/70 backdrop-blur-sm border-0 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
+        class="group relative overflow-hidden bg-white border border-slate-200/60 shadow-sm hover:shadow-lg hover:border-theme-primary/30 transition-all duration-300 hover:-translate-y-0.5"
     >
-        <!-- Gradient overlay that appears on hover -->
+        <!-- Subtle gradient overlay -->
         <div
-            class="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-black/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            class="absolute inset-0 bg-gradient-to-br from-theme-primary/3 to-theme-primary/1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         ></div>
 
-        <CardHeader class="pb-4 relative">
+        <!-- Theme accent border -->
+        <div
+            class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-theme-primary to-theme-primary-light rounded-t-lg"
+        ></div>
+
+        <CardHeader class="pb-4 relative pt-6">
             <CardTitle class="flex flex-row items-start justify-between space-y-0">
                 <div class="flex flex-col gap-3 flex-1 min-w-0">
                     <!-- Project provider and name -->
                     <div class="flex items-center gap-3">
                         <div
-                            class="p-2 rounded-lg bg-black/10 group-hover:bg-black/20 transition-colors duration-300"
+                            class="p-2.5 rounded-xl bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-all duration-300 ring-1 ring-theme-primary/20"
                         >
                             <Icon
                                 v-if="project.type == IntegrationProvider.GITLAB"
@@ -97,33 +102,37 @@ async function deleteProject() {
                             <Icon
                                 v-else
                                 icon="fluent-mdl2:unknown-solid"
-                                class="w-5 h-5 text-slate-500"
+                                class="w-5 h-5 text-theme-gray"
                             />
                         </div>
                         <div class="flex flex-col min-w-0 flex-1">
-                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">
+                            <div
+                                class="text-xs text-theme-gray/70 font-semibold uppercase tracking-wider"
+                            >
                                 {{ project.name.split('/')[0] }}
                             </div>
-                            <div class="text-lg font-bold text-slate-900 truncate">
+                            <div
+                                class="text-lg font-bold text-theme-black truncate group-hover:text-theme-primary transition-colors duration-300"
+                            >
                                 {{ project.name.split('/').slice(-1)[0] }}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Import date with better styling -->
-                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                        <Icon icon="solar:calendar-linear" class="h-3 w-3" />
+                    <!-- Import date with theme colors -->
+                    <div class="flex items-center gap-2 text-xs text-theme-gray/60">
+                        <Icon icon="solar:calendar-linear" class="h-3.5 w-3.5 text-theme-primary" />
                         <span>Imported {{ moment(project.added_on).format('MMM DD, YYYY') }}</span>
                     </div>
                 </div>
 
-                <!-- Options menu with better positioning -->
+                <!-- Options menu with theme styling -->
                 <div class="relative flex-shrink-0">
                     <Button
                         :id="'dot-menu-' + project.id"
                         variant="ghost"
                         size="sm"
-                        class="h-8 w-8 p-0 text-slate-400 hover:text-theme-primary hover:bg-theme-primary/10"
+                        class="h-8 w-8 p-0 text-theme-gray/50 hover:text-theme-primary hover:bg-theme-primary/10 transition-all duration-300"
                         @click="projectOptionsModalRef.toggle()"
                     >
                         <Icon
@@ -144,16 +153,16 @@ async function deleteProject() {
                     >
                         <template #content>
                             <div
-                                class="min-w-48 overflow-y-auto flex flex-col font-normal text-sm p-1 bg-white border border-slate-200 rounded-lg shadow-lg"
+                                class="min-w-48 overflow-y-auto flex flex-col font-normal text-sm p-1 bg-white border border-theme-primary/20 rounded-lg shadow-lg"
                             >
                                 <div
-                                    class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-slate-50 rounded-md transition-colors duration-200"
+                                    class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-theme-primary/5 rounded-md transition-colors duration-200"
                                 >
                                     <Icon
-                                        class="h-4 w-4 text-blue-500"
+                                        class="h-4 w-4 text-theme-primary"
                                         icon="solar:graph-outline"
                                     ></Icon>
-                                    <span class="text-slate-700">Project Dashboard</span>
+                                    <span class="text-theme-black">Project Dashboard</span>
                                 </div>
                                 <div
                                     class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-red-50 rounded-md transition-colors duration-200 text-red-600"
@@ -170,21 +179,25 @@ async function deleteProject() {
             </CardTitle>
         </CardHeader>
 
-        <CardContent class="relative pt-0">
-            <!-- Analysis section with better visual hierarchy -->
+        <CardContent class="relative pt-0 pb-6">
+            <!-- Analysis section with theme-consistent styling -->
             <div v-if="project.analyses && project.analyses.length > 0" class="space-y-4">
                 <!-- Header with analysis count and add button -->
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="p-1.5 bg-theme-primary/10 rounded-md">
+                        <div
+                            class="p-2 bg-theme-primary/15 rounded-lg ring-1 ring-theme-primary/20"
+                        >
                             <Icon
                                 icon="solar:document-text-bold"
                                 class="h-4 w-4 text-theme-primary"
                             />
                         </div>
                         <div>
-                            <div class="text-sm font-semibold text-black">Recent Analysis</div>
-                            <div class="text-xs text-slate-500">
+                            <div class="text-sm font-semibold text-theme-black">
+                                Recent Analysis
+                            </div>
+                            <div class="text-xs text-theme-gray/60">
                                 {{ project.analyses.length }} total
                             </div>
                         </div>
@@ -193,27 +206,32 @@ async function deleteProject() {
                         <Button
                             variant="outline"
                             size="sm"
-                            class="h-8 w-8 p-0 border-slate-200 hover:bg-theme-primary/10 hover:border-theme-primary"
+                            class="h-8 w-8 p-0 border-theme-primary/30 hover:bg-theme-primary/10 hover:border-theme-primary transition-all duration-300"
                         >
-                            <Icon icon="solar:add-circle-linear" class="h-4 w-4 text-slate-600" />
+                            <Icon
+                                icon="solar:add-circle-linear"
+                                class="h-4 w-4 text-theme-primary"
+                            />
                         </Button>
                     </RouterLink>
                 </div>
 
-                <!-- Analysis list with enhanced styling -->
-                <div class="bg-slate-50/50 rounded-lg p-4 border border-slate-100">
+                <!-- Analysis list with theme styling -->
+                <div
+                    class="bg-gradient-to-br from-theme-primary/5 to-theme-primary/2 rounded-xl p-4 border border-theme-primary/15"
+                >
                     <AnalysisList :analyses="project.analyses" :project-i-d="project.id" />
                 </div>
             </div>
 
-            <!-- Empty state with better design -->
+            <!-- Empty state with theme design -->
             <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-                <div class="p-4 bg-slate-100 rounded-full mb-4">
-                    <Icon icon="solar:file-text-linear" class="h-8 w-8 text-slate-400" />
+                <div class="p-4 bg-theme-primary/10 rounded-full mb-4 ring-1 ring-theme-primary/20">
+                    <Icon icon="solar:file-text-linear" class="h-8 w-8 text-theme-primary" />
                 </div>
                 <div class="space-y-2 mb-4">
-                    <div class="text-sm font-medium text-slate-900">No Analysis Found</div>
-                    <div class="text-xs text-slate-500 max-w-48">
+                    <div class="text-sm font-semibold text-theme-black">No Analysis Found</div>
+                    <div class="text-xs text-theme-gray/60 max-w-48">
                         Start your first security analysis to identify vulnerabilities and licensing
                         issues
                     </div>
@@ -221,7 +239,7 @@ async function deleteProject() {
                 <RouterLink :to="'/analyses/add?id=' + project.id">
                     <Button
                         size="sm"
-                        class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                        class="bg-theme-primary hover:bg-theme-primary-dark text-white shadow-sm hover:shadow-md transition-all duration-300"
                     >
                         <Icon icon="solar:play-circle-linear" class="h-4 w-4 mr-2" />
                         Create Analysis
@@ -231,24 +249,24 @@ async function deleteProject() {
         </CardContent>
     </Card>
 
-    <!-- Enhanced delete modal -->
+    <!-- Enhanced delete modal with theme consistency -->
     <CenteredModal ref="projectDeleteModalRef">
         <template #title>
             <div class="flex flex-row items-center gap-3">
-                <div class="p-2 bg-red-100 rounded-lg">
+                <div class="p-2 bg-red-100 rounded-lg ring-1 ring-red-200">
                     <Icon icon="solar:trash-bin-trash-bold" class="h-5 w-5 text-red-600" />
                 </div>
-                <div class="text-lg font-semibold text-slate-900">Delete Project</div>
+                <div class="text-lg font-semibold text-theme-black">Delete Project</div>
             </div>
         </template>
         <template #content>
             <div class="space-y-4 max-w-md">
-                <div class="text-sm text-slate-600">
+                <div class="text-sm text-theme-gray">
                     Are you sure you want to permanently delete this project?
                 </div>
-                <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <div class="text-sm font-medium text-slate-900">{{ project.name }}</div>
-                    <div class="text-xs text-slate-500 mt-1">
+                <div class="p-4 bg-theme-primary/5 rounded-lg border border-theme-primary/20">
+                    <div class="text-sm font-medium text-theme-black">{{ project.name }}</div>
+                    <div class="text-xs text-theme-gray/60 mt-1">
                         Imported {{ moment(project.added_on).format('MMM DD, YYYY') }}
                     </div>
                 </div>

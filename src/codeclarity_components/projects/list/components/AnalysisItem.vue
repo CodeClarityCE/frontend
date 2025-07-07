@@ -163,15 +163,15 @@ getChart(props.projectID, props.analysis.id);
 <template>
     <div v-if="props.analysis != null" class="w-full">
         <div
-            class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 transition-all duration-200"
+            class="flex gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 transition-all duration-200"
         >
             <!-- Language/Tech icon with better styling -->
-            <div class="flex-shrink-0 p-2 bg-amber-100 rounded-lg">
+            <div class="flex-shrink-0 p-1.5 bg-amber-100 rounded-lg">
                 <Icon icon="devicon:javascript" class="h-5 w-5" />
             </div>
 
-            <!-- Analysis status and progress -->
-            <div class="flex-1 min-w-0">
+            <!-- Analysis status and progress - takes available space -->
+            <div class="flex-1 min-w-0 pr-3">
                 <!-- Status indicator with enhanced design -->
                 <div
                     v-if="
@@ -180,122 +180,112 @@ getChart(props.projectID, props.analysis.id);
                     "
                     class="space-y-2"
                 >
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-slate-900">Completed</span>
-                        </div>
-                        <Popover>
-                            <PopoverTrigger as-child>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    class="h-6 px-2 text-xs text-slate-500 hover:text-slate-700"
-                                >
-                                    View Details
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent class="w-96" align="end">
-                                <div class="space-y-3">
-                                    <div
-                                        class="flex items-center gap-3 pb-2 border-b border-slate-200"
-                                    >
-                                        <div class="p-2 bg-blue-100 rounded-lg">
-                                            <Icon
-                                                icon="solar:document-text-bold"
-                                                class="h-4 w-4 text-blue-600"
-                                            />
-                                        </div>
-                                        <div>
-                                            <div class="font-semibold text-slate-900 text-sm">
-                                                Analysis Details
-                                            </div>
-                                            <div class="text-xs text-slate-500">
-                                                Execution overview
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="max-h-64 overflow-y-auto space-y-2">
-                                        <div v-if="getAllStages(analysis.steps).length > 0">
-                                            <div
-                                                v-for="(stage, index) in getAllStages(
-                                                    analysis.steps
-                                                )"
-                                                :key="index"
-                                                class="flex items-center justify-between p-2 rounded bg-slate-50"
-                                            >
-                                                <div class="flex items-center gap-2">
-                                                    <div
-                                                        class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
-                                                    >
-                                                        {{ index + 1 }}
-                                                    </div>
-                                                    <div
-                                                        class="text-xs font-medium text-slate-900 uppercase"
-                                                    >
-                                                        {{ stage.Name }}
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    v-if="stage.Status == AnalysisStatus.STARTED"
-                                                    class="flex items-center gap-1 text-blue-600"
-                                                >
-                                                    <span class="text-xs">Running</span>
-                                                    <Icon
-                                                        icon="solar:refresh-linear"
-                                                        class="h-3 w-3 animate-spin"
-                                                    />
-                                                </div>
-
-                                                <div
-                                                    v-else-if="
-                                                        stage.Status == AnalysisStatus.SUCCESS
-                                                    "
-                                                    class="flex items-center gap-1 text-emerald-600"
-                                                >
-                                                    <span class="text-xs">{{
-                                                        getTimeDiff(stage)
-                                                    }}</span>
-                                                    <Icon
-                                                        icon="solar:check-circle-bold"
-                                                        class="h-3 w-3"
-                                                    />
-                                                </div>
-
-                                                <div
-                                                    v-else
-                                                    class="flex items-center gap-1 text-red-600"
-                                                >
-                                                    <span class="text-xs">Failed</span>
-                                                    <Icon
-                                                        icon="solar:close-circle-bold"
-                                                        class="h-3 w-3"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div v-else class="text-center py-6">
-                                            <div
-                                                class="p-3 bg-slate-100 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center"
-                                            >
-                                                <Icon
-                                                    icon="solar:document-text-linear"
-                                                    class="h-6 w-6 text-slate-400"
-                                                />
-                                            </div>
-                                            <div class="text-xs text-slate-600">
-                                                No detailed steps available
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        <span class="text-sm font-medium text-slate-900">Completed</span>
                     </div>
                     <div class="text-xs text-slate-500">
                         {{ moment(props.analysis.created_on).format('MMM DD, YYYY [at] h:mm A') }}
                     </div>
+                    <Popover>
+                        <PopoverTrigger as-child>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                class="h-6 px-2 text-xs text-slate-500 hover:text-slate-700"
+                            >
+                                View Details
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-96" align="end">
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
+                                    <div class="p-2 bg-blue-100 rounded-lg">
+                                        <Icon
+                                            icon="solar:document-text-bold"
+                                            class="h-4 w-4 text-blue-600"
+                                        />
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-slate-900 text-sm">
+                                            Analysis Details
+                                        </div>
+                                        <div class="text-xs text-slate-500">Execution overview</div>
+                                    </div>
+                                </div>
+                                <div class="max-h-64 overflow-y-auto space-y-2">
+                                    <div v-if="getAllStages(analysis.steps).length > 0">
+                                        <div
+                                            v-for="(stage, index) in getAllStages(analysis.steps)"
+                                            :key="index"
+                                            class="flex items-center justify-between p-2 rounded bg-slate-50"
+                                        >
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
+                                                >
+                                                    {{ index + 1 }}
+                                                </div>
+                                                <div
+                                                    class="text-xs font-medium text-slate-900 uppercase"
+                                                >
+                                                    {{ stage.Name }}
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                v-if="stage.Status == AnalysisStatus.STARTED"
+                                                class="flex items-center gap-1 text-blue-600"
+                                            >
+                                                <span class="text-xs">Running</span>
+                                                <Icon
+                                                    icon="solar:refresh-linear"
+                                                    class="h-3 w-3 animate-spin"
+                                                />
+                                            </div>
+
+                                            <div
+                                                v-else-if="stage.Status == AnalysisStatus.SUCCESS"
+                                                class="flex items-center gap-1 text-emerald-600"
+                                            >
+                                                <span class="text-xs">{{
+                                                    getTimeDiff(stage)
+                                                }}</span>
+                                                <Icon
+                                                    icon="solar:check-circle-bold"
+                                                    class="h-3 w-3"
+                                                />
+                                            </div>
+
+                                            <div
+                                                v-else
+                                                class="flex items-center gap-1 text-red-600"
+                                            >
+                                                <span class="text-xs">Failed</span>
+                                                <Icon
+                                                    icon="solar:close-circle-bold"
+                                                    class="h-3 w-3"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-center py-6">
+                                        <div
+                                            class="p-3 bg-slate-100 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center"
+                                        >
+                                            <Icon
+                                                icon="solar:document-text-linear"
+                                                class="h-6 w-6 text-slate-400"
+                                            />
+                                        </div>
+                                        <div class="text-xs text-slate-600">
+                                            No detailed steps available
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
                 <div
@@ -563,8 +553,8 @@ getChart(props.projectID, props.analysis.id);
                 </div>
             </div>
 
-            <!-- Quick actions -->
-            <div class="flex items-center gap-1 ml-4">
+            <!-- Quick actions positioned to the right -->
+            <div class="flex flex-col items-end gap-1 flex-shrink-0">
                 <Button
                     v-if="
                         props.analysis.status == AnalysisStatus.COMPLETED ||

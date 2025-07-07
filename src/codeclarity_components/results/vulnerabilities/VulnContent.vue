@@ -222,7 +222,7 @@ function handleExportSecurityReport() {
             <StatCard
                 label="Vulnerable Dependencies"
                 :value="stats.number_of_vulnerable_dependencies ?? 0"
-                icon="solar:package-bold"
+                icon="tabler:package"
                 variant="danger"
                 :subtitle="
                     stats.number_of_vulnerable_dependencies_diff !== undefined
@@ -473,13 +473,13 @@ function handleExportSecurityReport() {
                     <div class="grid gap-3">
                         <!-- Confidentiality -->
                         <div
-                            class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200"
+                            class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-blue-100">
+                                <div class="p-2 rounded-lg bg-green-100">
                                     <Icon
                                         icon="solar:eye-closed-bold"
-                                        class="w-5 h-5 text-blue-600"
+                                        class="w-5 h-5 text-green-600"
                                     />
                                 </div>
                                 <div>
@@ -499,13 +499,13 @@ function handleExportSecurityReport() {
 
                         <!-- Integrity -->
                         <div
-                            class="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200"
+                            class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-purple-100">
+                                <div class="p-2 rounded-lg bg-green-100">
                                     <Icon
                                         icon="solar:shield-check-bold"
-                                        class="w-5 h-5 text-purple-600"
+                                        class="w-5 h-5 text-green-600"
                                     />
                                 </div>
                                 <div>
@@ -579,7 +579,7 @@ function handleExportSecurityReport() {
             <StatCard
                 label="Mean Severity"
                 :value="stats.mean_severity?.toFixed(2) ?? '0.00'"
-                icon="solar:chart-line-bold"
+                icon="solar:chart-linear"
                 variant="default"
                 :subtitle="
                     stats.mean_severity_diff !== undefined
@@ -665,11 +665,13 @@ function handleExportSecurityReport() {
         >
             <div class="grid gap-3 grid-cols-1 md:grid-cols-3">
                 <button
-                    class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:border-theme-primary hover:bg-theme-primary/5 transition-all duration-200 text-left group"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200 hover:border-green-300 hover:bg-green-100 transition-all duration-200 text-left group"
                     @click="handleFixCritical"
                 >
-                    <div class="p-2 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
-                        <Icon icon="solar:bug-minimalistic-bold" class="w-5 h-5 text-red-600" />
+                    <div
+                        class="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors"
+                    >
+                        <Icon icon="solar:bug-minimalistic-bold" class="w-5 h-5 text-green-600" />
                     </div>
                     <div>
                         <p class="font-semibold text-theme-black">Fix Critical Issues</p>
@@ -680,13 +682,13 @@ function handleExportSecurityReport() {
                 </button>
 
                 <button
-                    class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:border-theme-primary hover:bg-theme-primary/5 transition-all duration-200 text-left group"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200 hover:border-green-300 hover:bg-green-100 transition-all duration-200 text-left group"
                     @click="handleUpdateVulnerable"
                 >
                     <div
-                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
+                        class="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors"
                     >
-                        <Icon icon="solar:refresh-bold" class="w-5 h-5 text-theme-primary" />
+                        <Icon icon="solar:refresh-bold" class="w-5 h-5 text-green-600" />
                     </div>
                     <div>
                         <p class="font-semibold text-theme-black">Update Dependencies</p>
@@ -698,13 +700,13 @@ function handleExportSecurityReport() {
                 </button>
 
                 <button
-                    class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 hover:border-theme-primary hover:bg-theme-primary/5 transition-all duration-200 text-left group"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200 hover:border-green-300 hover:bg-green-100 transition-all duration-200 text-left group"
                     @click="handleExportSecurityReport"
                 >
                     <div
-                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
+                        class="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors"
                     >
-                        <Icon icon="solar:document-bold" class="w-5 h-5 text-theme-primary" />
+                        <Icon icon="solar:document-bold" class="w-5 h-5 text-green-600" />
                     </div>
                     <div>
                         <p class="font-semibold text-theme-black">Export Report</p>

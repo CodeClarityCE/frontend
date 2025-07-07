@@ -162,67 +162,61 @@ init();
         <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Licenses</h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <h2 class="text-2xl font-bold text-theme-black">Licenses</h2>
+                    <p class="text-sm text-theme-gray mt-1">
                         License compliance and usage analysis for your project dependencies
                     </p>
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Icon icon="tabler:license" class="w-4 h-4" />
+                <div class="flex items-center gap-2 text-sm text-theme-gray">
+                    <Icon icon="tabler:license" class="w-4 h-4 text-theme-primary" />
                     <span>{{ nmbEntriesTotal }} total licenses</span>
                 </div>
             </div>
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3 shadow-sm">
                     <div class="flex items-center gap-2">
-                        <Icon icon="tabler:file-certificate" class="w-4 h-4 text-blue-500" />
-                        <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
-                            >Unique</span
-                        >
+                        <Icon icon="tabler:file-certificate" class="w-4 h-4 text-theme-primary" />
+                        <span class="text-xs text-theme-gray uppercase tracking-wide">Unique</span>
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-theme-black">
                         {{ uniqueLicenseCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3 shadow-sm">
                     <div class="flex items-center gap-2">
-                        <Icon icon="tabler:package" class="w-4 h-4 text-green-500" />
-                        <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                        <Icon icon="tabler:package" class="w-4 h-4 text-theme-primary" />
+                        <span class="text-xs text-theme-gray uppercase tracking-wide"
                             >Dependencies</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-theme-black">
                         {{ totalDependencies }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3 shadow-sm">
                     <div class="flex items-center gap-2">
-                        <Icon icon="tabler:shield-check" class="w-4 h-4 text-emerald-500" />
-                        <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                        <Icon icon="tabler:shield-check" class="w-4 h-4 text-theme-primary" />
+                        <span class="text-xs text-theme-gray uppercase tracking-wide"
                             >Permissive</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-theme-black">
                         {{ permissiveLicenseCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3 shadow-sm">
                     <div class="flex items-center gap-2">
-                        <Icon icon="tabler:shield-exclamation" class="w-4 h-4 text-orange-500" />
-                        <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                        <Icon icon="tabler:shield-exclamation" class="w-4 h-4 text-theme-primary" />
+                        <span class="text-xs text-theme-gray uppercase tracking-wide"
                             >Copyleft</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-theme-black">
                         {{ copyleftLicenseCount }}
                     </div>
                 </div>
@@ -230,72 +224,59 @@ init();
 
             <!-- License Information Legend -->
             <div
-                class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800"
+                class="bg-gradient-to-r from-gray-50 to-green-50 rounded-lg p-4 border border-theme-primary/20"
             >
-                <h3
-                    class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2"
-                >
-                    <Icon icon="tabler:info-circle" class="w-4 h-4" />
+                <h3 class="text-sm font-medium text-theme-black mb-3 flex items-center gap-2">
+                    <Icon icon="tabler:info-circle" class="w-4 h-4 text-theme-primary" />
                     License Types & Compliance Information
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">
-                            License Categories
-                        </div>
+                        <div class="font-medium text-theme-black">License Categories</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-emerald-500 rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400"
-                                    >Permissive (MIT, BSD, Apache)</span
-                                >
+                                <div class="w-3 h-3 bg-theme-primary rounded"></div>
+                                <span class="text-theme-gray">Permissive (MIT, BSD, Apache)</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-orange-500 rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400"
-                                    >Copyleft (GPL, LGPL, MPL)</span
-                                >
+                                <div class="w-3 h-3 bg-yellow-500 rounded"></div>
+                                <span class="text-theme-gray">Copyleft (GPL, LGPL, MPL)</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-gray-500 rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400"
-                                    >Proprietary & Other</span
-                                >
+                                <div class="w-3 h-3 bg-theme-black rounded"></div>
+                                <span class="text-theme-gray">Proprietary & Other</span>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">
-                            Compliance Status
-                        </div>
+                        <div class="font-medium text-theme-black">Compliance Status</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <Icon icon="tabler:check-circle" class="w-3 h-3 text-green-600" />
-                                <span class="text-gray-600 dark:text-gray-400">Compliant</span>
+                                <Icon
+                                    icon="tabler:check-circle"
+                                    class="w-3 h-3 text-theme-primary"
+                                />
+                                <span class="text-theme-gray">Compliant</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <Icon
                                     icon="tabler:alert-triangle"
-                                    class="w-3 h-3 text-orange-600"
+                                    class="w-3 h-3 text-yellow-600"
                                 />
-                                <span class="text-gray-600 dark:text-gray-400"
-                                    >Review Required</span
-                                >
+                                <span class="text-theme-gray">Review Required</span>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">Usage Rights</div>
+                        <div class="font-medium text-theme-black">Usage Rights</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <Icon icon="tabler:building" class="w-3 h-3 text-blue-600" />
-                                <span class="text-gray-600 dark:text-gray-400">Commercial Use</span>
+                                <Icon icon="tabler:building" class="w-3 h-3 text-theme-primary" />
+                                <span class="text-theme-gray">Commercial Use</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <Icon icon="tabler:git-fork" class="w-3 h-3 text-purple-600" />
-                                <span class="text-gray-600 dark:text-gray-400"
-                                    >Distribution Rights</span
-                                >
+                                <Icon icon="tabler:git-fork" class="w-3 h-3 text-theme-primary" />
+                                <span class="text-theme-gray">Distribution Rights</span>
                             </div>
                         </div>
                     </div>
@@ -350,9 +331,9 @@ init();
 
             <!-- Pagination -->
             <div class="flex items-center justify-between border-t border-gray-200 py-4">
-                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center gap-4 text-sm text-theme-gray">
                     <div class="flex items-center gap-2">
-                        <Icon icon="tabler:file-text" class="w-4 h-4" />
+                        <Icon icon="tabler:file-text" class="w-4 h-4 text-theme-primary" />
                         <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>
                     </div>
                     <div class="text-xs">

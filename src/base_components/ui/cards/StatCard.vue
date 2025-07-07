@@ -7,12 +7,12 @@
                 <!-- Statistics content -->
                 <div class="space-y-2">
                     <!-- Label (required) -->
-                    <p class="text-sm font-semibold uppercase tracking-wide text-gray-600">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-theme-gray">
                         {{ label }}
                     </p>
 
                     <!-- Value (required) -->
-                    <p class="text-3xl font-bold text-gray-900">{{ value }}</p>
+                    <p class="text-3xl font-bold text-theme-black">{{ value }}</p>
 
                     <!-- Optional subtitle with icon -->
                     <div v-if="subtitle || $slots.subtitle" class="flex items-center gap-1 text-xs">
@@ -21,7 +21,7 @@
                             :icon="subtitleIcon"
                             class="h-3 w-3 text-gray-500"
                         />
-                        <span class="font-medium text-gray-600">
+                        <span class="font-medium text-theme-gray">
                             <slot name="subtitle">{{ subtitle }}</slot>
                         </span>
                     </div>
@@ -72,9 +72,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Map variant to border color - easy to customize for different stat types
 const borderColor = {
-    primary: 'border-l-4 border-l-blue-500', // Blue for primary metrics
+    primary: 'border-l-4 border-l-theme-primary', // Theme primary for primary metrics
     danger: 'border-l-4 border-l-red-500', // Red for concerning metrics
-    success: 'border-l-4 border-l-green-500', // Green for positive metrics
-    default: 'border-l-4 border-l-gray-400' // Gray for neutral metrics
+    success: 'border-l-4 border-l-theme-primary', // Theme primary for positive metrics
+    default: 'border-l-4 border-l-theme-black' // Black for neutral metrics
 }[props.variant];
 </script>

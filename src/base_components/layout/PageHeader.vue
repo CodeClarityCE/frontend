@@ -4,8 +4,8 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
             <!-- Title and description -->
             <div>
-                <h1 class="text-4xl font-bold tracking-tight text-gray-900">{{ title }}</h1>
-                <p class="text-gray-600 mt-2 text-lg">
+                <h1 class="text-4xl font-bold tracking-tight text-theme-black">{{ title }}</h1>
+                <p class="text-theme-gray mt-2 text-lg">
                     {{ description }}
                 </p>
             </div>
@@ -15,7 +15,7 @@
                 <!-- Last updated indicator -->
                 <div
                     v-if="showLastUpdated"
-                    class="flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm"
+                    class="flex items-center gap-2 text-sm text-theme-gray bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm"
                 >
                     <Icon icon="solar:calendar-linear" class="h-4 w-4 text-theme-primary" />
                     <span>Last updated: {{ new Date().toLocaleDateString() }}</span>

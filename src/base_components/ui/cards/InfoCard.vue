@@ -9,8 +9,10 @@
 
                 <!-- Title and optional description -->
                 <div>
-                    <CardTitle class="text-lg font-semibold">{{ title }}</CardTitle>
-                    <CardDescription v-if="description" class="text-sm">{{
+                    <CardTitle class="text-lg font-semibold text-theme-black">{{
+                        title
+                    }}</CardTitle>
+                    <CardDescription v-if="description" class="text-sm text-theme-gray">{{
                         description
                     }}</CardDescription>
                 </div>
@@ -56,10 +58,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Map variant to border color class - easy to modify for new variants
 const borderColor = {
-    primary: 'border-l-blue-500', // Blue for primary actions
+    primary: 'border-l-theme-primary', // Theme primary for primary actions
     danger: 'border-l-red-500', // Red for warnings/errors
-    success: 'border-l-green-500', // Green for success states
+    success: 'border-l-theme-primary', // Theme primary for success states
     warning: 'border-l-yellow-500', // Yellow for warnings
-    default: 'border-l-gray-400' // Gray for neutral content
+    default: 'border-l-theme-black' // Black for neutral content
 }[props.variant];
 </script>

@@ -196,7 +196,7 @@ async function joinOrg() {
                 <div v-if="orgInfo" class="flex flex-col gap-4 w-1/2 self-center">
                     <div class="text-xl">
                         Join the
-                        <span class="text-primary font-semibold">{{ orgInfo.name }}</span>
+                        <span class="text-theme-primary font-semibold">{{ orgInfo.name }}</span>
                         organization?
                     </div>
                     <div class="flex flex-col gap-2">
@@ -211,7 +211,10 @@ async function joinOrg() {
                         </div>
                     </div>
                     <div class="text-secondary-foreground">
-                        <span v-if="orgInfo.invite_created_by" class="text-primary font-semibold">
+                        <span
+                            v-if="orgInfo.invite_created_by"
+                            class="text-theme-primary font-semibold"
+                        >
                             {{ orgInfo.invite_created_by.last_name }}
                             {{ orgInfo.invite_created_by.first_name }} ({{
                                 orgInfo.invite_created_by.email
@@ -220,7 +223,7 @@ async function joinOrg() {
                         <span v-else> Deleted User </span>
                         <span>
                             has invited you to join the Organization '<span
-                                class="text-primary font-semibold"
+                                class="text-theme-primary font-semibold"
                                 >{{ orgInfo.name }}</span
                             >' as a
                             <span

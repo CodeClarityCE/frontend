@@ -46,7 +46,7 @@
                         params: { orgId: orgId, page: 'integrations', action: 'manage' }
                     }"
                 >
-                    <Button class="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
                         Link to Github or Gitlab
                     </Button>
                 </RouterLink>
@@ -54,7 +54,7 @@
                     v-else-if="!hasProjects"
                     :to="{ name: 'projects', params: { page: 'add' } }"
                 >
-                    <Button class="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
                         <Icon icon="ion:add-sharp" /> Add a project
                     </Button>
                 </RouterLink>

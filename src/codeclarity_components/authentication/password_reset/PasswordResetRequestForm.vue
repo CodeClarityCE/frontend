@@ -124,7 +124,7 @@ async function submit() {
             </div>
             <div class="flex flex-col justify-between gap-4">
                 <RouterLink
-                    class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primaryHovered"
+                    class="rounded py-3 px-5 text-white shadow-md bg-theme-primary hover:bg-theme-primary-dark"
                     :to="{ name: 'login' }"
                     style="width: 100%"
                 >

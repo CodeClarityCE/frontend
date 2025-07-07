@@ -87,10 +87,10 @@ const { activities, recommendations } = useMockData();
 function getVariantClass(variant: string): string {
     const variants = {
         danger: 'bg-red-500',
-        success: 'bg-green-500',
-        primary: 'bg-blue-500',
+        success: 'bg-theme-primary',
+        primary: 'bg-theme-primary',
         warning: 'bg-yellow-500',
-        default: 'bg-gray-500'
+        default: 'bg-theme-black'
     };
     return variants[variant as keyof typeof variants] || variants.default;
 }

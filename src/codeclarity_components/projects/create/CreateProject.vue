@@ -6,6 +6,7 @@ import {
     IntegrationProvider
 } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useStateStore } from '@/stores/state';
+import { PageHeader, InfoCard } from '@/base_components';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
@@ -91,88 +92,150 @@ fetchVcsIntegrations();
 </script>
 
 <template>
-    <!-- Loading Placeholder -->
-    <div v-if="loading">
-        <div class="flex flex-row gap-4 flex-wrap">
-            <BoxLoader v-for="i in 4" :key="i" :dimensions="{ width: '150px', height: '150px' }" />
-        </div>
-    </div>
+    <main class="min-h-screen bg-white p-6">
+        <!-- Page Header -->
+        <PageHeader
+            title="Import Project"
+            description="Connect your repositories to start security analysis"
+            :show-last-updated="false"
+            :show-refresh="false"
+        />
 
-    <div v-else>
-        <!-- VCS Fetch Error -->
-        <div v-if="error">
-            <div class="flex flex-row gap-2">
-                <Icon
-                    class="text-xl"
-                    icon="solar:confounded-square-outline"
-                    style="font-size: 3rem; height: fit-content"
-                ></Icon>
-                <div>
-                    <div class="flex flex-col gap-5">
-                        <div class="flex flex-col gap-2">
-                            <div>Failed to fetch VCS integrations</div>
-                            <div v-if="errorCode" class="text-sm">
-                                We encountered an error while processing the request.
+        <!-- Loading State -->
+        <div v-if="loading" class="space-y-6">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <BoxLoader
+                    v-for="i in 4"
+                    :key="i"
+                    :dimensions="{ width: '100%', height: '120px' }"
+                />
+            </div>
+        </div>
+
+        <div v-else class="space-y-8">
+            <!-- Error State -->
+            <InfoCard
+                v-if="error"
+                title="Connection Error"
+                description="We encountered an issue while fetching your integrations"
+                icon="solar:confounded-square-bold"
+                variant="danger"
+            >
+                <div class="space-y-4">
+                    <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                        <div class="flex items-start gap-3">
+                            <Icon
+                                icon="solar:danger-triangle-bold"
+                                class="h-5 w-5 text-red-600 mt-0.5"
+                            />
+                            <div>
+                                <p class="font-medium text-red-800">
+                                    Failed to fetch VCS integrations
+                                </p>
+                                <p class="text-sm text-red-700 mt-1">
+                                    {{
+                                        errorCode
+                                            ? 'We encountered an error while processing the request.'
+                                            : 'Please check your connection and try again.'
+                                    }}
+                                </p>
                             </div>
-                            <div v-else class="text-sm">
-                                <div>We encountered an error while processing the request.</div>
-                            </div>
-                        </div>
-                        <div class="flex flex-row gap-2 items-center flex-wrap">
-                            <Button
-                                class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-                                @click="fetchVcsIntegrations()"
-                            >
-                                Try again
-                            </Button>
-                            <Button
-                                variant="outline"
-                                class="border-slate-300 hover:border-theme-primary hover:text-theme-primary"
-                                @click="router.back()"
-                            >
-                                Go back
-                            </Button>
                         </div>
                     </div>
+                    <div class="flex gap-3">
+                        <Button
+                            class="bg-theme-primary hover:bg-theme-primary/90 text-white"
+                            @click="fetchVcsIntegrations()"
+                        >
+                            <Icon icon="solar:refresh-bold" class="h-4 w-4 mr-2" />
+                            Try Again
+                        </Button>
+                        <Button
+                            variant="outline"
+                            class="border-gray-300 text-gray-700 hover:border-theme-primary hover:text-theme-primary"
+                            @click="router.back()"
+                        >
+                            Go Back
+                        </Button>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </InfoCard>
 
-        <!-- VCS Selection -->
-        <template v-else-if="!error && !selectedVCS">
-            <div v-if="vcsIntegrations.length == 0">
-                <NoIntegration :default-org="defaultOrg!" @on-refresh="onIntegrationsRefresh">
-                </NoIntegration>
-            </div>
+            <!-- VCS Selection State -->
+            <template v-else-if="!error && !selectedVCS">
+                <!-- No Integrations -->
+                <div v-if="vcsIntegrations.length == 0">
+                    <NoIntegration :default-org="defaultOrg!" @on-refresh="onIntegrationsRefresh" />
+                </div>
 
-            <div v-else-if="vcsIntegrations.length > 0">
-                <Integrations
-                    :vcs-integrations="vcsIntegrations"
-                    @on-selected-v-c-s="onSelectedVCS"
+                <!-- Multiple Integrations -->
+                <div v-else-if="vcsIntegrations.length > 0">
+                    <InfoCard
+                        title="Select Integration"
+                        description="Choose the version control system you want to import projects from"
+                        icon="solar:code-bold"
+                        variant="primary"
+                    >
+                        <Integrations
+                            :vcs-integrations="vcsIntegrations"
+                            @on-selected-v-c-s="onSelectedVCS"
+                        />
+                    </InfoCard>
+                </div>
+            </template>
+
+            <!-- Import Repository State -->
+            <div v-else-if="!error && selectedVCS" class="space-y-8">
+                <!-- Integration Info -->
+                <InfoCard
+                    title="Repository Import"
+                    description="Browse and select repositories to import for security analysis"
+                    icon="solar:folder-bold"
+                    variant="primary"
                 >
-                </Integrations>
-            </div>
-        </template>
+                    <div
+                        class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                        <div class="p-2 bg-theme-primary/10 rounded-lg">
+                            <Icon
+                                v-if="
+                                    selectedVCS.integration_provider == IntegrationProvider.GITHUB
+                                "
+                                icon="simple-icons:github"
+                                class="h-6 w-6 text-theme-black"
+                            />
+                            <Icon
+                                v-else-if="
+                                    selectedVCS.integration_provider == IntegrationProvider.GITLAB
+                                "
+                                icon="simple-icons:gitlab"
+                                class="h-6 w-6 text-theme-black"
+                            />
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-theme-black">
+                                {{ selectedVCS.integration_provider }}
+                            </h4>
+                            <p class="text-sm text-theme-gray">Connected and ready to import</p>
+                        </div>
+                        <div
+                            class="px-3 py-1 bg-theme-primary/10 text-theme-primary text-xs font-medium rounded-full"
+                        >
+                            Active
+                        </div>
+                    </div>
+                </InfoCard>
 
-        <!-- Import Repo Screen -->
-        <div v-else-if="!error && selectedVCS">
-            <div class="flex flex-col gap-12">
-                <h2
-                    class="text-4xl font-bold tracking-tight bg-gradient-to-r from-black via-theme-gray to-theme-primary bg-clip-text text-transparent"
-                >
-                    Projects
-                </h2>
+                <!-- Repository Import Component -->
                 <GithubImportComponent
                     v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
                     :integration="selectedVCS.id"
-                >
-                </GithubImportComponent>
+                />
                 <GitlabImportComponent
                     v-if="selectedVCS.integration_provider == IntegrationProvider.GITLAB"
                     :integration="selectedVCS.id"
-                >
-                </GitlabImportComponent>
+                />
             </div>
         </div>
-    </div>
+    </main>
 </template>

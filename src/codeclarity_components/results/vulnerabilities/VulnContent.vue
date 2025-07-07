@@ -473,13 +473,13 @@ function handleExportSecurityReport() {
                     <div class="grid gap-3">
                         <!-- Confidentiality -->
                         <div
-                            class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                            class="flex items-center justify-between p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-green-100">
+                                <div class="p-2 rounded-lg bg-theme-primary/10">
                                     <Icon
                                         icon="solar:eye-closed-bold"
-                                        class="w-5 h-5 text-green-600"
+                                        class="w-5 h-5 text-theme-primary"
                                     />
                                 </div>
                                 <div>
@@ -499,13 +499,13 @@ function handleExportSecurityReport() {
 
                         <!-- Integrity -->
                         <div
-                            class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                            class="flex items-center justify-between p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-green-100">
+                                <div class="p-2 rounded-lg bg-theme-primary/10">
                                     <Icon
                                         icon="solar:shield-check-bold"
-                                        class="w-5 h-5 text-green-600"
+                                        class="w-5 h-5 text-theme-primary"
                                     />
                                 </div>
                                 <div>
@@ -523,11 +523,14 @@ function handleExportSecurityReport() {
 
                         <!-- Availability -->
                         <div
-                            class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                            class="flex items-center justify-between p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
                         >
                             <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-green-100">
-                                    <Icon icon="solar:server-bold" class="w-5 h-5 text-green-600" />
+                                <div class="p-2 rounded-lg bg-theme-primary/10">
+                                    <Icon
+                                        icon="solar:server-bold"
+                                        class="w-5 h-5 text-theme-primary"
+                                    />
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-theme-black">Availability</p>
@@ -665,13 +668,16 @@ function handleExportSecurityReport() {
         >
             <div class="grid gap-3 grid-cols-1 md:grid-cols-3">
                 <button
-                    class="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200 hover:border-green-300 hover:bg-green-100 transition-all duration-200 text-left group"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-theme-primary/5 border border-theme-primary/20 hover:border-theme-primary/30 hover:bg-theme-primary/10 transition-all duration-200 text-left group"
                     @click="handleFixCritical"
                 >
                     <div
-                        class="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors"
+                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
                     >
-                        <Icon icon="solar:bug-minimalistic-bold" class="w-5 h-5 text-green-600" />
+                        <Icon
+                            icon="solar:bug-minimalistic-bold"
+                            class="w-5 h-5 text-theme-primary"
+                        />
                     </div>
                     <div>
                         <p class="font-semibold text-theme-black">Fix Critical Issues</p>
@@ -682,13 +688,13 @@ function handleExportSecurityReport() {
                 </button>
 
                 <button
-                    class="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200 hover:border-green-300 hover:bg-green-100 transition-all duration-200 text-left group"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-theme-primary/5 border border-theme-primary/20 hover:border-theme-primary/30 hover:bg-theme-primary/10 transition-all duration-200 text-left group"
                     @click="handleUpdateVulnerable"
                 >
                     <div
-                        class="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors"
+                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
                     >
-                        <Icon icon="solar:refresh-bold" class="w-5 h-5 text-green-600" />
+                        <Icon icon="solar:refresh-bold" class="w-5 h-5 text-theme-primary" />
                     </div>
                     <div>
                         <p class="font-semibold text-theme-black">Update Dependencies</p>
@@ -700,13 +706,13 @@ function handleExportSecurityReport() {
                 </button>
 
                 <button
-                    class="flex items-center gap-3 p-3 rounded-xl bg-green-50 border border-green-200 hover:border-green-300 hover:bg-green-100 transition-all duration-200 text-left group"
+                    class="flex items-center gap-3 p-3 rounded-xl bg-theme-primary/5 border border-theme-primary/20 hover:border-theme-primary/30 hover:bg-theme-primary/10 transition-all duration-200 text-left group"
                     @click="handleExportSecurityReport"
                 >
                     <div
-                        class="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors"
+                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
                     >
-                        <Icon icon="solar:document-bold" class="w-5 h-5 text-green-600" />
+                        <Icon icon="solar:document-bold" class="w-5 h-5 text-theme-primary" />
                     </div>
                     <div>
                         <p class="font-semibold text-theme-black">Export Report</p>

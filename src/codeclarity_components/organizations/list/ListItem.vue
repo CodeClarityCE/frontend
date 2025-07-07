@@ -96,12 +96,12 @@ function performOrgAction() {
 </script>
 <template>
     <div
-        class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 h-full flex flex-col"
+        class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-6 h-full flex flex-col hover:border-theme-primary/30"
     >
         <!-- Organization Header -->
         <div class="flex items-start justify-between mb-4">
             <div class="flex-1 min-w-0">
-                <h3 class="text-lg font-bold text-gray-900 truncate mb-2">
+                <h3 class="text-lg font-bold text-theme-black truncate mb-2">
                     {{ membership.organization.name }}
                 </h3>
 
@@ -109,28 +109,28 @@ function performOrgAction() {
                 <div class="flex items-center gap-2 flex-wrap mb-3">
                     <span
                         v-if="membership.organization.role == MemberRole.OWNER"
-                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-primary bg-theme-primary/10 rounded border border-theme-primary/20"
                     >
                         <Icon icon="solar:crown-bold" class="text-xs" />
                         Owner
                     </span>
                     <span
                         v-else-if="membership.organization.role == MemberRole.ADMIN"
-                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-black bg-theme-black/10 rounded border border-theme-black/20"
                     >
                         <Icon icon="solar:shield-check-bold" class="text-xs" />
                         Admin
                     </span>
                     <span
                         v-else-if="membership.organization.role == MemberRole.MODERATOR"
-                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-primary bg-theme-primary/10 rounded border border-theme-primary/20"
                     >
                         <Icon icon="solar:star-bold" class="text-xs" />
                         Moderator
                     </span>
                     <span
                         v-else-if="membership.organization.role == MemberRole.USER"
-                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-primary bg-theme-primary/10 rounded border border-theme-primary/20"
                     >
                         <Icon icon="solar:user-bold" class="text-xs" />
                         User
@@ -138,7 +138,7 @@ function performOrgAction() {
 
                     <span
                         v-if="membership.organization.personal"
-                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-black bg-theme-black/10 rounded border border-theme-black/20"
                         title="A personal organization is a private org to which only you have access."
                     >
                         <Icon icon="solar:lock-bold" class="text-xs" />
@@ -147,7 +147,7 @@ function performOrgAction() {
                 </div>
 
                 <!-- Description -->
-                <p class="text-gray-600 text-sm line-clamp-2">
+                <p class="text-theme-gray text-sm line-clamp-2">
                     {{ membership.organization.description || 'No description provided.' }}
                 </p>
             </div>
@@ -157,13 +157,13 @@ function performOrgAction() {
                 <Popover>
                     <PopoverTrigger as-child>
                         <button class="p-1 hover:bg-gray-100 rounded transition-colors">
-                            <Icon icon="solar:menu-dots-bold" class="text-gray-500 text-lg" />
+                            <Icon icon="solar:menu-dots-bold" class="text-theme-gray text-lg" />
                         </button>
                     </PopoverTrigger>
                     <PopoverContent class="w-48 p-2">
                         <div class="flex flex-col gap-1">
                             <button
-                                class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors duration-150"
+                                class="flex items-center gap-3 px-3 py-2 text-sm text-theme-gray hover:bg-gray-100 rounded transition-colors duration-150"
                                 @click="
                                     orgActionId = membership.organization.id;
                                     orgAction = OrgAction.LEAVE;
@@ -194,14 +194,19 @@ function performOrgAction() {
         <!-- Stats Cards -->
         <div class="grid grid-cols-2 gap-3 mb-4">
             <!-- Members Count -->
-            <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+            <div
+                class="bg-theme-primary/5 border border-theme-primary/20 rounded-lg p-3 text-center"
+            >
                 <div class="flex items-center justify-center mb-1">
-                    <Icon icon="solar:users-group-rounded-bold" class="text-blue-600 text-xl" />
+                    <Icon
+                        icon="solar:users-group-rounded-bold"
+                        class="text-theme-primary text-xl"
+                    />
                 </div>
-                <div class="text-lg font-bold text-blue-900">
+                <div class="text-lg font-bold text-theme-black">
                     {{ membership.organization.organizationMemberships.length }}
                 </div>
-                <div class="text-xs text-blue-600 font-medium">
+                <div class="text-xs text-theme-primary font-medium">
                     Member{{
                         membership.organization.organizationMemberships.length !== 1 ? 's' : ''
                     }}
@@ -209,24 +214,24 @@ function performOrgAction() {
             </div>
 
             <!-- Join Date -->
-            <div class="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+            <div class="bg-theme-black/5 border border-theme-black/20 rounded-lg p-3 text-center">
                 <div class="flex items-center justify-center mb-1">
-                    <Icon icon="solar:calendar-bold" class="text-green-600 text-xl" />
+                    <Icon icon="solar:calendar-bold" class="text-theme-black text-xl" />
                 </div>
-                <div class="text-sm font-bold text-green-900">
+                <div class="text-sm font-bold text-theme-black">
                     {{ moment(membership.organization.joined_on).format('MMM') }}
                 </div>
-                <div class="text-lg font-bold text-green-900">
+                <div class="text-lg font-bold text-theme-black">
                     {{ moment(membership.organization.joined_on).format('DD') }}
                 </div>
-                <div class="text-xs text-green-600 font-medium">
+                <div class="text-xs text-theme-gray font-medium">
                     {{ moment(membership.organization.joined_on).format('YYYY') }}
                 </div>
             </div>
         </div>
 
         <!-- Owner Info -->
-        <div class="bg-gray-50 border border-gray-100 rounded-lg p-3 mb-4">
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
             <div class="flex items-center gap-2">
                 <div class="relative">
                     <img
@@ -237,7 +242,7 @@ function performOrgAction() {
                     />
                     <div
                         v-else
-                        class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center"
+                        class="w-8 h-8 bg-theme-gray rounded-full flex items-center justify-center"
                     >
                         <Icon
                             :icon="
@@ -249,14 +254,14 @@ function performOrgAction() {
                         />
                     </div>
                     <div
-                        class="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full flex items-center justify-center"
+                        class="absolute -top-1 -right-1 w-3 h-3 bg-theme-primary rounded-full flex items-center justify-center"
                     >
                         <Icon icon="solar:crown-bold" class="text-white text-xs" />
                     </div>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="text-xs text-gray-500 font-medium">Owner</div>
-                    <div class="text-sm font-medium text-gray-900 truncate">
+                    <div class="text-xs text-theme-gray font-medium">Owner</div>
+                    <div class="text-sm font-medium text-theme-black truncate">
                         {{
                             membership.organization.created_by
                                 ? `@${membership.organization.created_by.handle}`
@@ -281,7 +286,7 @@ function performOrgAction() {
                 class="block"
             >
                 <button
-                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    class="w-full bg-theme-primary hover:bg-theme-primary-dark text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                 >
                     <Icon icon="solar:settings-bold-duotone" class="text-lg" />
                     <span>Manage</span>
@@ -307,7 +312,7 @@ function performOrgAction() {
                     <Icon icon="solar:exit-bold" class="text-orange-600" />
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-gray-900">
+                    <h3 class="text-lg font-bold text-theme-black">
                         {{
                             orgAction == OrgAction.DELETE
                                 ? 'Delete Organization'
@@ -319,7 +324,7 @@ function performOrgAction() {
         </template>
         <template #content>
             <div class="space-y-3">
-                <p class="text-gray-600">
+                <p class="text-theme-gray">
                     <span v-if="orgAction == OrgAction.DELETE">
                         Are you sure you want to permanently delete this organization?
                     </span>

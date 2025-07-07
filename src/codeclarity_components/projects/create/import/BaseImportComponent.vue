@@ -271,9 +271,7 @@ async function onSelectedReposChange(repos: Repository[]) {
                                 />
                                 <span class="font-medium text-theme-black">
                                     {{ selectedRepos.length }}
-                                    {{
-                                        selectedRepos.length === 1 ? 'repository' : 'repositories'
-                                    }}
+                                    {{ selectedRepos.length === 1 ? 'repository' : 'repositories' }}
                                     selected
                                 </span>
                             </div>

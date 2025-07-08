@@ -15,50 +15,55 @@
             class="flex flex-col gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg"
         >
             <!-- Error state -->
-            <template v-if="isError">
-                <Icon
-                    class="text-red-500"
-                    icon="solar:confounded-square-linear"
-                    style="font-size: 5rem"
-                />
-                <div class="text-xl text-center">
-                    Unable to fetch the state of your organization
-                </div>
-            </template>
+            <InfoCard
+                v-if="isError"
+                title="Error"
+                description="Unable to fetch the state of your organization."
+                icon="solar:confounded-square-linear"
+                variant="default"
+            >
+            </InfoCard>
 
             <!-- Setup needed state -->
-            <template v-else>
-                <Icon
-                    class="text-gray-400"
-                    icon="solar:sleeping-square-linear"
-                    style="font-size: 5rem"
-                />
-                <div class="text-xl text-center">
-                    <div v-if="!hasIntegrations">You have no integration with a VCS system yet</div>
-                    <div v-else-if="!hasProjects">You have imported no projects yet</div>
-                </div>
-
-                <!-- Action buttons -->
-                <RouterLink
-                    v-if="!hasIntegrations"
-                    :to="{
-                        name: 'orgs',
-                        params: { orgId: orgId, page: 'integrations', action: 'manage' }
-                    }"
-                >
-                    <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
-                        Link to Github or Gitlab
-                    </Button>
-                </RouterLink>
-                <RouterLink
-                    v-else-if="!hasProjects"
-                    :to="{ name: 'projects', params: { page: 'add' } }"
-                >
-                    <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
-                        <Icon icon="ion:add-sharp" /> Add a project
-                    </Button>
-                </RouterLink>
-            </template>
+            <InfoCard
+                v-else-if="!hasIntegrations"
+                title="No VCS Integration Yet"
+                description="You have no integration with a VCS system yet"
+                icon="solar:sleeping-square-linear"
+                variant="default"
+            >
+                <template #actions>
+                    <RouterLink
+                        v-if="!hasIntegrations"
+                        :to="{
+                            name: 'orgs',
+                            params: { orgId: orgId, page: 'integrations', action: 'manage' }
+                        }"
+                    >
+                        <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+                            Link to Github or Gitlab
+                        </Button>
+                    </RouterLink>
+                </template>
+            </InfoCard>
+            <InfoCard
+                v-else-if="!hasProjects"
+                title="No Projects Yet"
+                description="Get started by adding your first project to begin security analysis."
+                icon="solar:sleeping-square-linear"
+                variant="default"
+            >
+                <template #actions>
+                    <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
+                        <Button
+                            class="bg-theme-primary hover:bg-theme-primary-dark text-white flex items-center gap-2"
+                        >
+                            <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
+                            Add Project
+                        </Button>
+                    </RouterLink>
+                </template>
+            </InfoCard>
         </div>
     </div>
 </template>
@@ -67,6 +72,7 @@
 import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
+import { InfoCard } from '@/base_components';
 
 /**
  * DashboardEmptyState - Shows when dashboard has no data

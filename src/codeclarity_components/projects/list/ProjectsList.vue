@@ -270,6 +270,30 @@ function getLastActivityTime(): string {
                     variant="danger"
                 />
                 <InfoCard
+                    v-else-if="orgMetaData && orgMetaData.integrations.length == 0"
+                    title="No VCS Integration Yet"
+                    description="You have no integration with a VCS system yet"
+                    icon="solar:sleeping-square-linear"
+                    variant="default"
+                >
+                    <template #actions>
+                        <RouterLink
+                            :to="{
+                                name: 'orgs',
+                                params: {
+                                    orgId: orgMetaData.id,
+                                    page: 'integrations',
+                                    action: 'manage'
+                                }
+                            }"
+                        >
+                            <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+                                Link to Github or Gitlab
+                            </Button>
+                        </RouterLink>
+                    </template>
+                </InfoCard>
+                <InfoCard
                     v-else-if="orgMetaData && orgMetaData.projects.length == 0"
                     title="No Projects Yet"
                     description="Get started by adding your first project to begin security analysis."

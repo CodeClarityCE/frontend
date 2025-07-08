@@ -161,7 +161,7 @@ export const columns: ColumnDef<Dependency>[] = [
                             },
                             [
                                 h(Icon, {
-                                    icon: 'tabler:check-circle',
+                                    icon: 'tabler:circle-check',
                                     class: 'w-4 h-4'
                                 }),
                                 h(

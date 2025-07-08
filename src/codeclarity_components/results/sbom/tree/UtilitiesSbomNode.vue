@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
-import SeverityBubble from '@/base_components/bubbles/SeverityBubble.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
 import type { FlatTreeNode } from '@/utils/tree/sbom/TreeGenerator';
 
 type Props = {

@@ -1,24 +1,24 @@
 <script lang="ts" setup>
-import SearchBar from '@/base_components/SearchBar.vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { ref, type Ref, watch } from 'vue';
 import Patch from './patch/PatchComponent.vue';
 
 // Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import PaginationComponent from '@/base_components/PaginationComponent.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { PatchedManifestData } from '@/codeclarity_components/results/patching/Patching';
 import type { Workspace } from '@/codeclarity_components/results/patching/Patching';
-import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
     type FilterState
-} from '@/base_components/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
+} from '@/base_components/filters/UtilitiesFilters.vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 
 export interface Props {

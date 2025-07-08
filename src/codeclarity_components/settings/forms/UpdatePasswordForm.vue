@@ -14,11 +14,17 @@ import * as z from 'zod';
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 
 import { Button } from '@/shadcn/ui/button';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    FormDescription
+} from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
 import { useUserStore } from '@/stores/user';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
-import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 
 const userRepository: UserRepository = new UserRepository();
 
@@ -73,47 +79,65 @@ async function updatePassword(
 </script>
 
 <template>
-    <form @submit="onSubmit">
+    <form class="space-y-6" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="old_password">
             <FormItem v-auto-animate>
-                <FormLabel>Old password</FormLabel>
+                <FormLabel class="text-sm font-semibold text-theme-black"
+                    >Current Password</FormLabel
+                >
                 <FormControl>
                     <Input
                         type="password"
-                        placeholder="Enter your old password"
+                        placeholder="Enter your current password"
                         v-bind="componentField"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
                 <FormMessage />
             </FormItem>
         </FormField>
+
         <FormField v-slot="{ componentField }" name="password">
             <FormItem v-auto-animate>
-                <FormLabel>Password</FormLabel>
+                <FormLabel class="text-sm font-semibold text-theme-black">New Password</FormLabel>
                 <FormControl>
                     <Input
                         type="password"
                         placeholder="Enter your new password"
                         v-bind="componentField"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
-                <FormDescription> Please use a strong password. </FormDescription>
+                <FormDescription class="text-xs text-theme-gray mt-1">
+                    Password must be at least 10 characters long and contain a mix of letters,
+                    numbers, and symbols.
+                </FormDescription>
                 <FormMessage />
             </FormItem>
         </FormField>
+
         <FormField v-slot="{ componentField }" name="password_confirmation">
             <FormItem v-auto-animate>
-                <FormLabel>Password confirmation</FormLabel>
+                <FormLabel class="text-sm font-semibold text-theme-black"
+                    >Confirm New Password</FormLabel
+                >
                 <FormControl>
                     <Input
                         type="password"
                         placeholder="Confirm your new password"
                         v-bind="componentField"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
                 <FormMessage />
             </FormItem>
         </FormField>
-        <Button type="submit" class="mt-4"> Update Password </Button>
+
+        <Button
+            type="submit"
+            class="w-full bg-theme-black hover:bg-theme-gray text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+            Update Password
+        </Button>
     </form>
 </template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { ref, type Ref, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 
@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { PatchedManifestData } from '@/codeclarity_components/results/patching/Patching';
 import type { PatchInfo, UpgradeInfo } from '@/codeclarity_components/results/patching/Patching';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 

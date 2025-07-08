@@ -4,11 +4,13 @@ import router from '@/router';
 import { Icon } from '@iconify/vue';
 import { ref, type Ref } from 'vue';
 import moment from 'moment';
-import FaqBox from '@/base_components/FaqBox.vue';
+import FaqBox from '@/base_components/layout/FaqBox.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import type { RouteLocationRaw } from 'vue-router';
-import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import SortableTable, {
+    type TableHeader
+} from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';

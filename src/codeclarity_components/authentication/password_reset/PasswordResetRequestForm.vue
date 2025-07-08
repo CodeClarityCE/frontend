@@ -3,7 +3,7 @@ import { ref, type Ref } from 'vue';
 import * as yup from 'yup';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { Form } from 'vee-validate';
-import LoadingSubmitButton from '@/base_components/LoadingSubmitButton.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import { Icon } from '@iconify/vue';
@@ -124,7 +124,7 @@ async function submit() {
             </div>
             <div class="flex flex-col justify-between gap-4">
                 <RouterLink
-                    class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primaryHovered"
+                    class="rounded py-3 px-5 text-white shadow-md bg-theme-primary hover:bg-theme-primary-dark"
                     :to="{ name: 'login' }"
                     style="width: 100%"
                 >

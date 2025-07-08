@@ -10,7 +10,7 @@ import { useAuthStore } from '@/stores/auth';
 const user = useUserStore();
 const auth = useAuthStore();
 
-import LoadingContainer from '@/base_components/LoadingContainer.vue';
+import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';

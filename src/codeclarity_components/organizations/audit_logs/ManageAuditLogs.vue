@@ -17,8 +17,8 @@ import HeaderItem from '@/codeclarity_components/organizations/subcomponents/Hea
 import { Icon } from '@iconify/vue';
 
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import BoxLoader from '@/base_components/BoxLoader.vue';
-import type { TableHeader } from '@/base_components/tables/SortableTable.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 import AuditLogsTable from '@/enterprise_components/activity_logs/AuditLogsTable.vue';
 import { Card, CardContent } from '@/shadcn/ui/card';
 

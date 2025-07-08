@@ -72,29 +72,52 @@ async function updatePersonalInformation(first_name: string, last_name: string) 
 </script>
 
 <template>
-    <form @submit="onSubmit">
+    <form class="space-y-6" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="first_name">
             <FormItem v-auto-animate>
-                <FormLabel>First Name: {{ user?.first_name }}</FormLabel>
+                <FormLabel class="text-sm font-semibold text-theme-black">
+                    First Name
+                    <span class="text-theme-gray font-normal"
+                        >(Current: {{ user?.first_name }})</span
+                    >
+                </FormLabel>
                 <FormControl>
                     <Input
                         type="text"
                         placeholder="Enter your first name"
                         v-bind="componentField"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
                 <FormMessage />
             </FormItem>
         </FormField>
+
         <FormField v-slot="{ componentField }" name="last_name">
             <FormItem v-auto-animate>
-                <FormLabel>Last Name: {{ user?.last_name }}</FormLabel>
+                <FormLabel class="text-sm font-semibold text-theme-black">
+                    Last Name
+                    <span class="text-theme-gray font-normal"
+                        >(Current: {{ user?.last_name }})</span
+                    >
+                </FormLabel>
                 <FormControl>
-                    <Input type="text" placeholder="Enter your last name" v-bind="componentField" />
+                    <Input
+                        type="text"
+                        placeholder="Enter your last name"
+                        v-bind="componentField"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
+                    />
                 </FormControl>
                 <FormMessage />
             </FormItem>
         </FormField>
-        <Button type="submit" class="mt-4"> Update </Button>
+
+        <Button
+            type="submit"
+            class="w-full bg-theme-primary hover:bg-theme-primary-dark text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+            Update Information
+        </Button>
     </form>
 </template>

@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { ref, watch, type Ref } from 'vue';
 import type { FailedProjectImport } from '../BaseImportComponent.vue';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
-import SortableTable, { type TableHeader } from '@/base_components/tables/SortableTable.vue';
+import SortableTable, {
+    type TableHeader
+} from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 
 // Props

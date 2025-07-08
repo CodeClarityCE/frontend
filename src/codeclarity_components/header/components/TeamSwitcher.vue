@@ -157,7 +157,12 @@ fetch();
                     role="combobox"
                     aria-expanded="open"
                     aria-label="Select an organization"
-                    :class="cn('w-[200px] justify-between', $attrs.class ?? '')"
+                    :class="
+                        cn(
+                            'w-[220px] justify-between bg-gray-50 border-gray-300 hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900',
+                            $attrs.class ?? ''
+                        )
+                    "
                 >
                     <Avatar class="mr-2 h-5 w-5">
                         <AvatarImage
@@ -173,10 +178,11 @@ fetch();
                     ></Icon>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent class="w-[200px] p-0">
+            <PopoverContent class="w-[220px] p-0">
                 <Command
                     :filter-function="
-                        (list, term) => list.filter((i) => i.label?.toLowerCase()?.includes(term))
+                        (list: any[], term: string) =>
+                            list.filter((i: any) => i.label?.toLowerCase()?.includes(term))
                     "
                 >
                     <CommandList>

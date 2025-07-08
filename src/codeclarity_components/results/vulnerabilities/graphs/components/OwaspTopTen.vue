@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { BarChartData, BarChartOptions } from '@/base_components/charts/barChart';
-import BarChart from '@/base_components/charts/BarChart.vue';
+import type { BarChartData, BarChartOptions } from '@/base_components/data-display/charts/barChart';
+import BarChart from '@/base_components/data-display/charts/BarChart.vue';
 import BulletLegend from './BulletLegend.vue';
 
 // Props

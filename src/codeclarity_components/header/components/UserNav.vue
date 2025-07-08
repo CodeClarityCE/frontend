@@ -99,10 +99,13 @@ fetchNotifications();
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
-            <Button variant="ghost" class="relative h-8 w-8 rounded-full">
-                <Avatar class="h-8 w-8">
+            <Button
+                variant="ghost"
+                class="relative h-9 w-9 rounded-full hover:bg-gray-100 transition-colors duration-200"
+            >
+                <Avatar class="h-8 w-8 border border-gray-200">
                     <AvatarImage src="/avatars/01.png" alt="@shadcn" />
-                    <AvatarFallback
+                    <AvatarFallback class="bg-gray-100 text-gray-700 font-medium text-sm"
                         >{{ userStore.getUser?.first_name.charAt(0)
                         }}{{ userStore.getUser?.last_name.charAt(0) }}</AvatarFallback
                     >

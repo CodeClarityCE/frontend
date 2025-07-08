@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { useStateStore } from '@/stores/state';
 
-import ErrorComponent from '@/base_components/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import PageHeader from '@/base_components/layout/PageHeader.vue';
 import { defineAsyncComponent } from 'vue';
 
 const OrgsList = defineAsyncComponent({
@@ -114,48 +115,120 @@ const props = defineProps<{
     page?: string;
     orgId?: string;
 }>();
+
+// Helper functions for dynamic page titles and descriptions
+function getPageTitle(): string {
+    if (props.action === 'add' && !props.orgId) {
+        return 'Create Organization';
+    }
+    if (props.action === 'list' && !props.orgId) {
+        return 'Organizations';
+    }
+    if (props.orgId) {
+        switch (props.page) {
+            case 'policies':
+            case 'policy':
+                return 'Organization Policies';
+            case 'logs':
+                return 'Audit Logs';
+            case 'members':
+                return 'Members';
+            case 'invites':
+                return 'Invitations';
+            case 'integrations':
+                return 'Integrations';
+            case 'analyzers':
+                return 'Analyzers';
+            default:
+                return 'Organization Overview';
+        }
+    }
+    return 'Organizations';
+}
+
+function getPageDescription(): string {
+    if (props.action === 'add' && !props.orgId) {
+        return 'Create a new organization to manage your team and projects';
+    }
+    if (props.action === 'list' && !props.orgId) {
+        return "Monitor your organization's security posture and vulnerabilities";
+    }
+    if (props.orgId) {
+        switch (props.page) {
+            case 'policies':
+            case 'policy':
+                return 'Configure security policies and compliance settings';
+            case 'logs':
+                return 'Review organization activity and audit trails';
+            case 'members':
+                return 'Manage organization members and their permissions';
+            case 'invites':
+                return 'Send and manage organization invitations';
+            case 'integrations':
+                return 'Connect external tools and services';
+            case 'analyzers':
+                return 'Configure security analyzers and scanning tools';
+            default:
+                return 'Organization management and overview';
+        }
+    }
+    return 'Manage your organizations and security settings';
+}
 </script>
 <template>
-    <main class="p-12">
-        <CreateOrg v-if="props.action == 'add' && !props.orgId" />
-        <OrgsList v-else-if="props.action == 'list' && !props.orgId" />
-        <OrgPolicies
-            v-if="(props.page == 'policies' || props.page == 'policy') && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-            :action="props.action"
-        />
-        <OrgManageAuditLogs
-            v-else-if="props.page == 'logs' && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-        />
-        <OrgManageMembers
-            v-else-if="props.page == 'members' && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-        />
-        <OrgManageInvites
-            v-else-if="props.page == 'invites' && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-        />
-        <OrgManageIntegrations
-            v-else-if="props.page == 'integrations' && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-            :action="props.action"
-        />
-        <OrgAnalyzers
-            v-else-if="props.page == 'analyzers' && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-            :action="props.action"
-        />
-        <OrgManageOverview
-            v-else-if="props.page && props.orgId"
-            :page="props.page"
-            :org-id="props.orgId"
-        />
-    </main>
+    <div class="min-h-screen bg-gray-50">
+        <div class="max-w-7xl mx-auto p-6">
+            <!-- Page Header with Dashboard Theme -->
+            <PageHeader
+                :title="getPageTitle()"
+                :description="getPageDescription()"
+                :show-last-updated="false"
+                :show-refresh="false"
+            />
+
+            <!-- Main Content Area -->
+            <div class="space-y-6">
+                <CreateOrg v-if="props.action == 'add' && !props.orgId" />
+                <OrgsList v-else-if="props.action == 'list' && !props.orgId" />
+                <OrgPolicies
+                    v-if="(props.page == 'policies' || props.page == 'policy') && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                    :action="props.action"
+                />
+                <OrgManageAuditLogs
+                    v-else-if="props.page == 'logs' && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                />
+                <OrgManageMembers
+                    v-else-if="props.page == 'members' && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                />
+                <OrgManageInvites
+                    v-else-if="props.page == 'invites' && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                />
+                <OrgManageIntegrations
+                    v-else-if="props.page == 'integrations' && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                    :action="props.action"
+                />
+                <OrgAnalyzers
+                    v-else-if="props.page == 'analyzers' && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                    :action="props.action"
+                />
+                <OrgManageOverview
+                    v-else-if="props.page && props.orgId"
+                    :page="props.page"
+                    :org-id="props.orgId"
+                />
+            </div>
+        </div>
+    </div>
 </template>

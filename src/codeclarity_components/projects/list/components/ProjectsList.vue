@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import ProjectItem from './ProjectItem.vue';
 import NoProjects from './NoProjects.vue';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
@@ -17,7 +17,7 @@ import { Icon } from '@iconify/vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import Pagination from '@/base_components/PaginationComponent.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 // Stores
@@ -100,33 +100,35 @@ fetchProjects();
 <template>
     <template v-if="error">
         <div class="flex flex-row justify-center" style="margin-top: 5vh">
-            <div class="flex flex-row gap-2 w-fit" style="font-size: 1.5em">
-                <Icon
-                    class="icon user-icon h-fit"
-                    icon="solar:confounded-square-outline"
-                    style="font-size: 2.5em"
-                >
-                </Icon>
-                <div>
-                    <div class="flex flex-col gap-5">
-                        <div class="flex flex-col gap-1">
-                            <div>We failed to retrieve your projects</div>
-                            <div class="text-xs">
-                                <div v-if="errorCode == APIErrors.NotAuthorized">
-                                    You do not have permission to access this page.
-                                </div>
-                                <div v-else>An error occured while retrieving your projects.</div>
+            <div
+                class="flex flex-row gap-4 w-fit max-w-lg bg-white border border-red-200 rounded-xl p-6 shadow-sm"
+            >
+                <div class="flex-shrink-0">
+                    <div class="p-3 bg-red-100 rounded-xl">
+                        <Icon class="h-8 w-8 text-red-600" icon="solar:confounded-square-outline" />
+                    </div>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
+                        <div class="text-lg font-semibold text-theme-black">
+                            We failed to retrieve your projects
+                        </div>
+                        <div class="text-sm text-theme-gray/60">
+                            <div v-if="errorCode == APIErrors.NotAuthorized">
+                                You do not have permission to access this page.
                             </div>
+                            <div v-else>An error occurred while retrieving your projects.</div>
                         </div>
-                        <div class="flex flex-row gap-1 items-center flex-wrap">
-                            <Button
-                                v-if="errorCode != APIErrors.NotAuthorized"
-                                @click="fetchProjects(true)"
-                            >
-                                Try again
-                            </Button>
-                            <Button @click="router.back()"> Go back </Button>
-                        </div>
+                    </div>
+                    <div class="flex flex-row gap-2 items-center flex-wrap">
+                        <Button
+                            v-if="errorCode != APIErrors.NotAuthorized"
+                            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                            @click="fetchProjects(true)"
+                        >
+                            Try again
+                        </Button>
+                        <Button variant="outline" @click="router.back()"> Go back </Button>
                     </div>
                 </div>
             </div>
@@ -154,8 +156,33 @@ fetchProjects();
                 <NoProjects />
             </div>
 
-            <!-- <div v-else class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4"> -->
-            <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <!-- Projects grid with improved spacing -->
+            <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <!-- Add Project CTA Card -->
+                <RouterLink :to="{ name: 'projects', params: { page: 'add' } }" class="block">
+                    <div
+                        class="h-full bg-gradient-to-br from-theme-primary/10 to-theme-primary/5 border-2 border-dashed border-theme-primary/30 rounded-xl p-6 hover:border-theme-primary/50 hover:bg-theme-primary/15 transition-all duration-300 cursor-pointer group min-h-[280px]"
+                    >
+                        <div class="flex flex-col items-center text-center h-full justify-center">
+                            <div
+                                class="p-4 bg-theme-primary/20 rounded-full mb-4 group-hover:bg-theme-primary/30 transition-colors"
+                            >
+                                <Icon
+                                    icon="solar:add-circle-bold"
+                                    class="h-8 w-8 text-theme-primary"
+                                />
+                            </div>
+                            <div class="text-lg font-semibold text-theme-primary mb-2">
+                                Add Project
+                            </div>
+                            <div class="text-sm text-theme-gray/60">
+                                Import a new repository to start security analysis
+                            </div>
+                        </div>
+                    </div>
+                </RouterLink>
+
+                <!-- Existing Projects -->
                 <ProjectItem
                     v-for="project in projects"
                     :key="project.id"
@@ -165,8 +192,12 @@ fetchProjects();
             </div>
         </div>
 
-        <div class="flex flex-row justify-between">
-            <div style="">Showing {{ projects.length }} out of {{ totalEntries }} entries</div>
+        <div
+            class="flex flex-row justify-between items-center mt-8 pt-4 border-t border-theme-primary/10"
+        >
+            <div class="text-sm text-theme-gray/60">
+                Showing {{ projects.length }} out of {{ totalEntries }} entries
+            </div>
             <Pagination
                 v-model:page="page"
                 v-model:nmb-entries-showing="entriesPerPage"

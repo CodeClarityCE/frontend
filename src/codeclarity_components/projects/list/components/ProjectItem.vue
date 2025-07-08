@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import PositionedModal from '@/base_components/PositionedModal.vue';
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { ref, type Ref } from 'vue';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
@@ -12,9 +12,8 @@ import { errorToast, successToast } from '@/utils/toasts';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { useProjectsMainStore } from '@/stores/StateStore';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Button } from '@/shadcn/ui/button';
-import { Separator } from '@/shadcn/ui/separator';
 import AnalysisList from './AnalysisList.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
@@ -69,32 +68,78 @@ async function deleteProject() {
 }
 </script>
 <template>
-    <Card class="flex flex-col">
-        <CardHeader>
-            <CardTitle class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div class="flex flex-wrap items-center">
-                    <Icon
-                        v-if="project.type == IntegrationProvider.GITLAB"
-                        icon="devicon:gitlab"
-                        class="w-8 flex-shrink-0"
-                    />
-                    <Icon
-                        v-else-if="project.type == IntegrationProvider.GITHUB"
-                        icon="devicon:github"
-                        class="w-8 flex-shrink-0"
-                    />
-                    <Icon v-else icon="fluent-mdl2:unknown-solid" class="w-8 flex-shrink-0" />
-                    <span>{{ project.name.split('/')[0] }}/</span>
-                    <span>{{ project.name.split('/').slice(-1)[0] }}</span>
+    <Card
+        class="group relative overflow-hidden bg-white border border-slate-200/60 shadow-sm hover:shadow-lg hover:border-theme-primary/30 transition-all duration-300 hover:-translate-y-0.5"
+    >
+        <!-- Subtle gradient overlay -->
+        <div
+            class="absolute inset-0 bg-gradient-to-br from-theme-primary/3 to-theme-primary/1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        ></div>
+
+        <!-- Theme accent border -->
+        <div
+            class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-theme-primary to-theme-primary-light rounded-t-lg"
+        ></div>
+
+        <CardHeader class="pb-4 relative pt-6">
+            <CardTitle class="flex flex-row items-start justify-between space-y-0">
+                <div class="flex flex-col gap-3 flex-1 min-w-0">
+                    <!-- Project provider and name -->
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-150 transition-all duration-300"
+                        >
+                            <Icon
+                                v-if="project.type == IntegrationProvider.GITLAB"
+                                icon="devicon:gitlab"
+                                class="w-5 h-5"
+                            />
+                            <Icon
+                                v-else-if="project.type == IntegrationProvider.GITHUB"
+                                icon="devicon:github"
+                                class="w-5 h-5"
+                            />
+                            <Icon
+                                v-else
+                                icon="fluent-mdl2:unknown-solid"
+                                class="w-5 h-5 text-theme-gray"
+                            />
+                        </div>
+                        <div class="flex flex-col min-w-0 flex-1">
+                            <div
+                                class="text-xs text-theme-gray/70 font-semibold uppercase tracking-wider"
+                            >
+                                {{ project.name.split('/')[0] }}
+                            </div>
+                            <div
+                                class="text-lg font-bold text-theme-black truncate group-hover:text-theme-primary transition-colors duration-300"
+                            >
+                                {{ project.name.split('/').slice(-1)[0] }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Import date with theme colors -->
+                    <div class="flex items-center gap-2 text-xs text-theme-gray/60">
+                        <Icon icon="solar:calendar-linear" class="h-3.5 w-3.5 text-theme-primary" />
+                        <span>Imported {{ moment(project.added_on).format('MMM DD, YYYY') }}</span>
+                    </div>
                 </div>
-                <div class="relative">
+
+                <!-- Options menu with theme styling -->
+                <div class="relative flex-shrink-0">
                     <Button
                         :id="'dot-menu-' + project.id"
-                        variant="secondary"
-                        size="icon"
+                        variant="ghost"
+                        size="sm"
+                        class="h-8 w-8 p-0 text-theme-gray/50 hover:text-theme-primary hover:bg-theme-primary/10 transition-all duration-300"
                         @click="projectOptionsModalRef.toggle()"
                     >
-                        <Icon :id="'dot-menu-' + project.id" icon="bi:three-dots-vertical" />
+                        <Icon
+                            :id="'dot-menu-' + project.id"
+                            icon="solar:menu-dots-linear"
+                            class="h-4 w-4"
+                        />
                     </Button>
                     <PositionedModal
                         ref="projectOptionsModalRef"
@@ -108,86 +153,110 @@ async function deleteProject() {
                     >
                         <template #content>
                             <div
-                                class="max-h-96 overflow-y-auto flex flex-col font-normal text-sm whitespace-nowrap p-1"
+                                class="min-w-48 overflow-y-auto flex flex-col font-normal text-sm p-1 bg-white border border-theme-primary/20 rounded-lg shadow-lg"
                             >
                                 <div
-                                    class="flex flex-row gap-2 items-center w-full cursor-pointer p-2 hover:rounded hover:bg-gray-200"
+                                    class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-theme-primary/5 rounded-md transition-colors duration-200"
                                 >
-                                    <Icon class="icon" icon="solar:graph-outline"></Icon>
-                                    Project Dashboard
+                                    <Icon
+                                        class="h-4 w-4 text-theme-primary"
+                                        icon="solar:graph-outline"
+                                    ></Icon>
+                                    <span class="text-theme-black">Project Dashboard</span>
                                 </div>
                                 <div
-                                    class="flex flex-row gap-2 items-center w-full cursor-pointer p-2 hover:rounded hover:bg-gray-200"
+                                    class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-red-50 rounded-md transition-colors duration-200 text-red-600"
                                     title="Delete the project"
                                     @click="projectDeleteModalRef.toggle()"
                                 >
-                                    <Icon class="icon" icon="solar:trash-bin-trash-linear" />
-                                    Delete
+                                    <Icon class="h-4 w-4" icon="solar:trash-bin-trash-linear" />
+                                    <span>Delete Project</span>
                                 </div>
                             </div>
                         </template>
                     </PositionedModal>
                 </div>
             </CardTitle>
-            <CardDescription>
-                Imported on: {{ moment(project.imported_on).format('LL') }}
-            </CardDescription>
         </CardHeader>
-        <Separator />
-        <CardContent class="flex flex-col items-center justify-center flex-grow">
-            <div v-if="project.analyses && project.analyses.length > 0">
-                <div class="flex flex-row items-center justify-between gap-2 py-4">
-                    <div class="text-xl font-bold">Analyses - Most Recent</div>
+
+        <CardContent class="relative pt-0 pb-6">
+            <!-- Simplified Analysis section -->
+            <div v-if="project.analyses && project.analyses.length > 0" class="space-y-3">
+                <!-- Clean header with just count and action -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-theme-black">
+                        {{ project.analyses.length }} Analysis
+                    </span>
                     <RouterLink :to="'/analyses/add?id=' + project.id">
-                        <Button variant="outline" size="icon">
-                            <Icon icon="material-symbols:add-sharp" class="text-xl" />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            class="text-xs text-theme-primary hover:bg-theme-primary/5"
+                        >
+                            + New
                         </Button>
                     </RouterLink>
                 </div>
-                <div class="flex flex-col gap-4 items-center">
-                    <AnalysisList :analyses="project.analyses" :project-i-d="project.id" />
-                </div>
+
+                <!-- Clean analysis list -->
+                <AnalysisList :analyses="project.analyses" :project-i-d="project.id" />
             </div>
-            <div v-else class="flex flex-col justify-center items-center">
-                No analysis found
-                <RouterLink
-                    :to="'/analyses/add?id=' + project.id"
-                    class="flex flex-row items-center"
-                >
-                    <Button> Create an analysis </Button>
+
+            <!-- Simplified empty state -->
+            <div v-else class="text-center py-6">
+                <div class="text-sm text-theme-gray/60 mb-3">No analyses yet</div>
+                <RouterLink :to="'/analyses/add?id=' + project.id">
+                    <Button
+                        size="sm"
+                        class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                    >
+                        Create Analysis
+                    </Button>
                 </RouterLink>
             </div>
         </CardContent>
     </Card>
+
+    <!-- Enhanced delete modal with theme consistency -->
     <CenteredModal ref="projectDeleteModalRef">
         <template #title>
-            <div class="flex flex-row items-center justify-between w-full">
-                <div>Delete {{ project.name }}?</div>
+            <div class="flex flex-row items-center gap-3">
+                <div class="p-2 bg-red-100 rounded-lg ring-1 ring-red-200">
+                    <Icon icon="solar:trash-bin-trash-bold" class="h-5 w-5 text-red-600" />
+                </div>
+                <div class="text-lg font-semibold text-theme-black">Delete Project</div>
             </div>
         </template>
         <template #content>
-            <div class="flex flex-col gap-6 max-w-96">
-                <div>Are you sure you want to delete the project:</div>
-                <div class="flex flex-col items-center justify-center">
-                    <span style="font-weight: 900">{{ project.name }}</span>
+            <div class="space-y-4 max-w-md">
+                <div class="text-sm text-theme-gray">
+                    Are you sure you want to permanently delete this project?
+                </div>
+                <div class="p-4 bg-theme-primary/5 rounded-lg border border-theme-primary/20">
+                    <div class="text-sm font-medium text-theme-black">{{ project.name }}</div>
+                    <div class="text-xs text-theme-gray/60 mt-1">
+                        Imported {{ moment(project.added_on).format('MMM DD, YYYY') }}
+                    </div>
                 </div>
                 <Alert variant="destructive">
+                    <Icon icon="solar:danger-triangle-bold" class="h-4 w-4" />
                     <AlertDescription>
-                        This action is permanent and cannot be reverted.
+                        This action cannot be undone. All analyses and data associated with this
+                        project will be permanently deleted.
                     </AlertDescription>
                 </Alert>
             </div>
         </template>
         <template #buttons>
+            <Button variant="outline" @click="projectDeleteModalRef.toggle()"> Cancel </Button>
             <Button
                 variant="destructive"
                 class="flex flex-row gap-2 items-center"
                 @click="deleteProject()"
             >
-                <Icon icon="oi:trash" />
-                <div>Delete</div>
+                <Icon icon="solar:trash-bin-trash-linear" class="h-4 w-4" />
+                Delete Project
             </Button>
-            <Button @click="projectDeleteModalRef.toggle()"> Cancel </Button>
         </template>
     </CenteredModal>
 </template>

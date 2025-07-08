@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue';
-import LoadingContainer from '@/base_components/LoadingContainer.vue';
+import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue';
 import AnalyzerComp from './AnalyzerComp.vue';
 import { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
 import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue';
-import LoadingContainer from '@/base_components/LoadingContainer.vue';
+import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue';
 import { LicensePolicy } from '@/codeclarity_components/organizations/policy/license_policy.entity';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
-import PaginationComponent from '@/base_components/PaginationComponent.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';

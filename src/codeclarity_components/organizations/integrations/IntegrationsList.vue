@@ -15,11 +15,11 @@ import {
 } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import moment from 'moment';
 import Button from '@/shadcn/ui/button/Button.vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
-import CardFooter from '@/shadcn/ui/card/CardFooter.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
 
 // Constants
 const EXPIRES_IN_DAYS_RISK = 14;
@@ -116,178 +116,267 @@ function isAtRisk(vcs: VCS) {
 init();
 </script>
 <template>
-    <div class="flex flex-col gap-8">
-        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
-        <div class="p-12">
-            <div>
-                <div class="font-semibold text-2xl">Version Control</div>
+    <div class="min-h-screen bg-gray-50">
+        <!-- Page Header -->
+        <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)" />
 
-                <div v-if="loading">
-                    <div class="flex flex-row gap-4 flex-wrap">
-                        <BoxLoader
-                            v-for="i in 4"
-                            :key="i"
-                            :dimensions="{ width: '150px', height: '150px' }"
-                        />
-                    </div>
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-8 py-8">
+            <!-- Integrations Overview -->
+            <InfoCard
+                title="Integrations"
+                description="Connect external tools and services"
+                icon="solar:settings-bold"
+                variant="primary"
+                class="mb-8"
+            >
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <StatCard
+                        label="Active Integrations"
+                        :value="vcsIntegrations.filter((v) => !v.invalid).length"
+                        icon="solar:check-circle-bold"
+                        variant="success"
+                        subtitle="Connected services"
+                    />
+
+                    <StatCard
+                        label="At Risk"
+                        :value="vcsIntegrations.filter((v) => isAtRisk(v)).length"
+                        icon="solar:clock-circle-bold"
+                        variant="primary"
+                        subtitle="Expiring soon"
+                    />
+
+                    <StatCard
+                        label="Invalid"
+                        :value="vcsIntegrations.filter((v) => v.invalid).length"
+                        icon="solar:close-circle-bold"
+                        variant="danger"
+                        subtitle="Need attention"
+                    />
+
+                    <StatCard
+                        label="Total"
+                        :value="vcsIntegrations.length"
+                        icon="solar:database-bold"
+                        variant="default"
+                        subtitle="All integrations"
+                    />
+                </div>
+            </InfoCard>
+
+            <!-- Version Control Section -->
+            <InfoCard
+                title="Version Control"
+                description="Manage your Git repository integrations"
+                icon="solar:code-square-bold"
+                variant="default"
+                class="mb-8"
+            >
+                <div v-if="loading" class="flex flex-row gap-4 flex-wrap">
+                    <BoxLoader
+                        v-for="i in 4"
+                        :key="i"
+                        :dimensions="{ width: '300px', height: '200px' }"
+                    />
                 </div>
 
                 <div v-if="!loading">
-                    <div v-if="error" class="flex flex-row gap-2">
+                    <div
+                        v-if="error"
+                        class="flex flex-row gap-4 items-center p-8 bg-red-50 border border-red-200 rounded-xl"
+                    >
                         <Icon
-                            class="icon user-icon"
+                            class="text-red-500"
                             icon="solar:confounded-square-outline"
-                            style="font-size: 3rem; height: fit-content"
-                        ></Icon>
-                        <div>
-                            <div class="flex flex-col gap-5">
-                                <div class="flex flex-col gap-2">
-                                    <div>Failed to fetch VCS integrations</div>
-                                    <div v-if="errorCode" style="font-size: 0.9em">
-                                        We encountered an error while processing the request.
-                                    </div>
-                                    <div v-else style="font-size: 0.9eem">
-                                        <div>
-                                            We encountered an error while processing the request.
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetchVcsIntegrations"> Try again </Button>
-                                    <Button @click="router.back"> Go back </Button>
-                                </div>
+                            style="font-size: 3rem"
+                        />
+                        <div class="flex-1">
+                            <div class="text-lg font-semibold text-red-700 mb-2">
+                                Failed to fetch VCS integrations
+                            </div>
+                            <div v-if="errorCode" class="text-red-600 mb-4">
+                                We encountered an error while processing the request.
+                            </div>
+                            <div v-else class="text-red-600 mb-4">
+                                We encountered an error while processing the request.
+                            </div>
+                            <div class="flex flex-row gap-3">
+                                <Button variant="destructive" @click="fetchVcsIntegrations"
+                                    >Try again</Button
+                                >
+                                <Button variant="outline" @click="router.back">Go back</Button>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="!error" class="flex flex-row gap-4 flex-wrap">
-                        <template v-for="vcs in vcsIntegrations">
-                            <Card
-                                v-if="vcs.integration_provider == IntegrationProvider.GITLAB"
-                                :key="vcs.id"
-                            >
-                                <CardHeader>
-                                    <CardTitle class="flex gap-2 items-center">
-                                        <Icon icon="devicon:gitlab" class="text-4xl"></Icon>
-                                        Gitlab
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <div
-                                            v-if="vcs.invalid == true"
-                                            class="text-[#d50909] font-black"
-                                        >
-                                            Invalid
-                                        </div>
-                                        <div
-                                            v-else-if="isAtRisk(vcs)"
-                                            class="text-[#ebc017] font-black"
-                                        >
-                                            At risk
-                                        </div>
-                                        <div
-                                            v-else-if="vcs.invalid == false"
-                                            class="text-[#1d7e2c] font-black"
-                                        >
-                                            Configured
-                                        </div>
-                                        <div>
-                                            {{ vcs.service_domain }}
-                                        </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter class="flex gap-2">
-                                    <RouterLink
-                                        :to="{
-                                            name: 'orgs',
-                                            params: {
-                                                action: 'edit',
-                                                page: 'integrations',
-                                                orgId: orgId
-                                            },
-                                            query: {
-                                                provider: IntegrationProvider.GITLAB,
-                                                integrationId: vcs.id
-                                            }
-                                        }"
-                                    >
-                                        <Button>Show</Button>
-                                    </RouterLink>
+                    <div v-if="!error" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <!-- GitLab Integrations -->
+                        <div
+                            v-for="vcs in vcsIntegrations.filter(
+                                (v) => v.integration_provider === IntegrationProvider.GITLAB
+                            )"
+                            :key="vcs.id"
+                            class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4"
+                            :class="{
+                                'border-l-red-500': vcs.invalid,
+                                'border-l-yellow-500': !vcs.invalid && isAtRisk(vcs),
+                                'border-l-theme-primary': !vcs.invalid && !isAtRisk(vcs)
+                            }"
+                        >
+                            <div class="flex items-center gap-3 mb-4">
+                                <Icon icon="devicon:gitlab" class="text-4xl" />
+                                <div>
+                                    <h3 class="text-lg font-semibold text-theme-black">GitLab</h3>
+                                    <p class="text-sm text-theme-gray">{{ vcs.service_domain }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <div
+                                    v-if="vcs.invalid"
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-red-100 text-red-700 rounded-full"
+                                >
+                                    <Icon icon="solar:close-circle-bold" class="mr-1 text-xs" />
+                                    Invalid
+                                </div>
+                                <div
+                                    v-else-if="isAtRisk(vcs)"
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-full"
+                                >
+                                    <Icon icon="solar:clock-circle-bold" class="mr-1 text-xs" />
+                                    At Risk
+                                </div>
+                                <div
+                                    v-else
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-green-100 text-theme-primary rounded-full"
+                                >
+                                    <Icon icon="solar:check-circle-bold" class="mr-1 text-xs" />
+                                    Configured
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <RouterLink
+                                    :to="{
+                                        name: 'orgs',
+                                        params: {
+                                            action: 'edit',
+                                            page: 'integrations',
+                                            orgId: orgId
+                                        },
+                                        query: {
+                                            provider: IntegrationProvider.GITLAB,
+                                            integrationId: vcs.id
+                                        }
+                                    }"
+                                    class="flex-1"
+                                >
                                     <Button
-                                        variant="destructive"
-                                        @click="deleteIntegration(vcs.id)"
+                                        class="w-full bg-theme-black hover:bg-theme-gray text-white"
                                     >
-                                        Delete
+                                        <Icon icon="solar:eye-bold" class="mr-2 text-sm" />
+                                        Show
                                     </Button>
-                                </CardFooter>
-                            </Card>
-                            <Card
-                                v-if="vcs.integration_provider == IntegrationProvider.GITHUB"
-                                :key="vcs.id"
-                            >
-                                <CardHeader>
-                                    <CardTitle class="flex gap-2 items-center">
-                                        <Icon icon="devicon:github" class="text-4xl"></Icon>
-                                        Github
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <div
-                                            v-if="vcs.invalid == true"
-                                            class="text-[#d50909] font-black"
-                                        >
-                                            Invalid
-                                        </div>
-                                        <div
-                                            v-else-if="isAtRisk(vcs)"
-                                            class="text-[#ebc017] font-black"
-                                        >
-                                            At risk
-                                        </div>
-                                        <div
-                                            v-else-if="vcs.invalid == false"
-                                            class="text-[#1d7e2c] font-black"
-                                        >
-                                            Configured
-                                        </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter class="flex gap-2">
-                                    <RouterLink
-                                        class="integration-box-wrapper-item"
-                                        :to="{
-                                            name: 'orgs',
-                                            params: {
-                                                action: 'edit',
-                                                page: 'integrations',
-                                                orgId: orgId
-                                            },
-                                            query: {
-                                                provider: IntegrationProvider.GITHUB,
-                                                integrationId: vcs.id
-                                            }
-                                        }"
-                                    >
-                                        <Button>Show</Button>
-                                    </RouterLink>
+                                </RouterLink>
+                                <Button
+                                    variant="outline"
+                                    class="border-red-500 text-red-500 hover:bg-red-50"
+                                    @click="deleteIntegration(vcs.id)"
+                                >
+                                    <Icon icon="solar:trash-bin-trash-bold" class="text-sm" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <!-- GitHub Integrations -->
+                        <div
+                            v-for="vcs in vcsIntegrations.filter(
+                                (v) => v.integration_provider === IntegrationProvider.GITHUB
+                            )"
+                            :key="vcs.id"
+                            class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4"
+                            :class="{
+                                'border-l-red-500': vcs.invalid,
+                                'border-l-yellow-500': !vcs.invalid && isAtRisk(vcs),
+                                'border-l-theme-primary': !vcs.invalid && !isAtRisk(vcs)
+                            }"
+                        >
+                            <div class="flex items-center gap-3 mb-4">
+                                <Icon icon="devicon:github" class="text-4xl" />
+                                <div>
+                                    <h3 class="text-lg font-semibold text-theme-black">GitHub</h3>
+                                    <p class="text-sm text-theme-gray">
+                                        {{ vcs.service_domain || 'GitHub.com' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <div
+                                    v-if="vcs.invalid"
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-red-100 text-red-700 rounded-full"
+                                >
+                                    <Icon icon="solar:close-circle-bold" class="mr-1 text-xs" />
+                                    Invalid
+                                </div>
+                                <div
+                                    v-else-if="isAtRisk(vcs)"
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-full"
+                                >
+                                    <Icon icon="solar:clock-circle-bold" class="mr-1 text-xs" />
+                                    At Risk
+                                </div>
+                                <div
+                                    v-else
+                                    class="inline-flex px-3 py-1 text-sm font-medium bg-green-100 text-theme-primary rounded-full"
+                                >
+                                    <Icon icon="solar:check-circle-bold" class="mr-1 text-xs" />
+                                    Configured
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <RouterLink
+                                    :to="{
+                                        name: 'orgs',
+                                        params: {
+                                            action: 'edit',
+                                            page: 'integrations',
+                                            orgId: orgId
+                                        },
+                                        query: {
+                                            provider: IntegrationProvider.GITHUB,
+                                            integrationId: vcs.id
+                                        }
+                                    }"
+                                    class="flex-1"
+                                >
                                     <Button
-                                        variant="destructive"
-                                        @click="deleteIntegration(vcs.id)"
+                                        class="w-full bg-theme-black hover:bg-theme-gray text-white"
                                     >
-                                        Delete
+                                        <Icon icon="solar:eye-bold" class="mr-2 text-sm" />
+                                        Show
                                     </Button>
-                                </CardFooter>
-                            </Card>
-                        </template>
+                                </RouterLink>
+                                <Button
+                                    variant="outline"
+                                    class="border-red-500 text-red-500 hover:bg-red-50"
+                                    @click="deleteIntegration(vcs.id)"
+                                >
+                                    <Icon icon="solar:trash-bin-trash-bold" class="text-sm" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <!-- Add GitHub Integration -->
                         <RouterLink
                             v-if="
                                 !vcsIntegrations.some(
-                                    (v) => v.integration_provider == IntegrationProvider.GITHUB
+                                    (v) => v.integration_provider === IntegrationProvider.GITHUB
                                 )
                             "
-                            class="integration-box-wrapper-item"
                             :to="{
                                 name: 'orgs',
                                 params: {
@@ -297,120 +386,72 @@ init();
                                     provider: IntegrationProvider.GITHUB
                                 }
                             }"
+                            class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-theme-primary hover:bg-gray-50 transition-all duration-200 group"
                         >
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle class="flex gap-2 justify-evenly items-center">
-                                        <Icon icon="devicon:github" class="text-4xl"></Icon>
-                                        Github
-                                        <Icon class="text-3xl" icon="solar:add-circle-bold"></Icon>
-                                    </CardTitle>
-                                </CardHeader>
-                            </Card>
+                            <div
+                                class="flex flex-col items-center justify-center h-full text-center"
+                            >
+                                <div class="flex items-center gap-3 mb-4">
+                                    <Icon
+                                        icon="devicon:github"
+                                        class="text-4xl text-gray-400 group-hover:text-theme-black transition-colors"
+                                    />
+                                    <Icon
+                                        icon="solar:add-circle-bold"
+                                        class="text-2xl text-theme-primary"
+                                    />
+                                </div>
+                                <h3 class="text-lg font-semibold text-theme-black mb-2">
+                                    Add GitHub
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Connect your GitHub repositories
+                                </p>
+                            </div>
                         </RouterLink>
+
+                        <!-- Add GitLab Integration -->
                         <RouterLink
                             v-if="
                                 !vcsIntegrations.some(
-                                    (v) => v.integration_provider == IntegrationProvider.GITLAB
+                                    (v) => v.integration_provider === IntegrationProvider.GITLAB
                                 )
                             "
-                            class="integration-box-wrapper-item"
                             :to="{
                                 name: 'orgs',
                                 params: { action: 'add', page: 'integrations', orgId: orgId },
                                 query: { provider: IntegrationProvider.GITLAB }
                             }"
+                            class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-theme-primary hover:bg-gray-50 transition-all duration-200 group"
                         >
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle class="flex gap-2 justify-evenly items-center">
-                                        <Icon icon="devicon:gitlab" class="text-4xl"></Icon>
-                                        Gitlab
-                                        <Icon class="text-3xl" icon="solar:add-circle-bold"></Icon>
-                                    </CardTitle>
-                                </CardHeader>
-                            </Card>
+                            <div
+                                class="flex flex-col items-center justify-center h-full text-center"
+                            >
+                                <div class="flex items-center gap-3 mb-4">
+                                    <Icon
+                                        icon="devicon:gitlab"
+                                        class="text-4xl text-gray-400 group-hover:text-orange-500 transition-colors"
+                                    />
+                                    <Icon
+                                        icon="solar:add-circle-bold"
+                                        class="text-2xl text-theme-primary"
+                                    />
+                                </div>
+                                <h3 class="text-lg font-semibold text-theme-black mb-2">
+                                    Add GitLab
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Connect your GitLab repositories
+                                </p>
+                            </div>
                         </RouterLink>
                     </div>
                 </div>
-            </div>
+            </InfoCard>
         </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-.org-integrations-wrapper {
-    .org-integrations-group {
-        display: flex;
-        flex-direction: column;
-        row-gap: 15px;
-
-        .title {
-            color: #4f4e4e;
-            font-size: 2em;
-            font-weight: 600;
-        }
-    }
-}
-
-.org-integrations-wrapper {
-    .integration-box-wrapper {
-        .integration-box-wrapper-item {
-            height: unset;
-            width: 100%;
-            min-height: 125px;
-            max-width: 170px;
-        }
-
-        .integration-box {
-            cursor: pointer;
-            position: relative;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            aspect-ratio: unset;
-            row-gap: 12px;
-        }
-
-        @media only screen and (min-width: 0px) {
-            .integration-box-wrapper-item {
-                width: 100%;
-                max-width: 100%;
-            }
-        }
-
-        @media only screen and (min-width: 650px) {
-            .integration-box-wrapper-item {
-                width: calc(50% - 7.5px);
-                max-width: 100%;
-            }
-        }
-
-        @media only screen and (min-width: 850px) {
-            .integration-box-wrapper-item {
-                width: calc((100% / 3) - (7.5 * 1.4px));
-            }
-        }
-
-        @media only screen and (min-width: 1000px) {
-            .integration-box-wrapper-item {
-                width: calc((100% / 4) - (7.5 * 1.5px));
-            }
-        }
-
-        @media only screen and (min-width: 1200px) {
-            .integration-box-wrapper-item {
-                width: calc((100% / 5) - (7.5 * 1.6px));
-            }
-        }
-
-        @media only screen and (min-width: 1400px) {
-            .integration-box-wrapper-item {
-                width: calc((100% / 6) - (7.5 * 1.7px));
-            }
-        }
-    }
-}
+/* Custom styles if needed - most styling is now handled by Tailwind classes */
 </style>

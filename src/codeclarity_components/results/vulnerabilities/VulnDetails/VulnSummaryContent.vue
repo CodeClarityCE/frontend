@@ -2,8 +2,8 @@
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
-import type CenteredModalVue from '@/base_components/CenteredModal.vue';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import type CenteredModalVue from '@/base_components/ui/modals/CenteredModal.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 
@@ -19,26 +19,28 @@ defineProps<{
     <!--------------------------------------------------------------------------->
     <!--                      Vulnerability summary content                    -->
     <!--------------------------------------------------------------------------->
-    <section>
-        <div class="grid grid-cols-2">
+    <section class="bg-white shadow-md rounded-lg p-6">
+        <div class="grid grid-cols-2 gap-6">
             <!--------------------------------------------------------------------------->
             <!--                         Vulnerability description                     -->
             <!--------------------------------------------------------------------------->
             <div>
                 <div class="flex flex-col gap-5">
-                    <h2 class="font-black text-xl">
+                    <h2 class="font-black text-xl text-gray-800">
                         <span class="text-primary text-3xl">V</span>ulnerability Information
                     </h2>
                     <div style="position: relative">
                         <div class="w-full">
                             <div class="flex flex-col gap-2 mb-5 max-w-96 w-full">
                                 <div>
-                                    <span class="font-normal">Published:</span>
+                                    <span class="font-normal text-gray-600">Published:</span>
                                     {{ moment(finding.vulnerability_info.published).format('LL') }}
                                 </div>
                                 <div>
                                     <div>
-                                        <span class="font-normal">Last modified:</span>
+                                        <span class="font-normal text-gray-600"
+                                            >Last modified:</span
+                                        >
                                         {{
                                             moment(finding.vulnerability_info.last_modified).format(
                                                 'LL'
@@ -47,7 +49,7 @@ defineProps<{
                                     </div>
                                 </div>
                                 <div class="flex flex-row items-center gap-2">
-                                    <div class="font-normal">Aliases:</div>
+                                    <div class="font-normal text-gray-600">Aliases:</div>
                                     <div class="flex gap-2 text-sm">
                                         <div
                                             v-for="alias in finding.vulnerability_info.aliases"
@@ -61,7 +63,7 @@ defineProps<{
                                 </div>
                                 <div>
                                     <div class="flex flex-row items-center gap-2">
-                                        <div class="font-normal">Sources:</div>
+                                        <div class="font-normal text-gray-600">Sources:</div>
                                         <div class="flex gap-2 text-sm">
                                             <BubbleComponent :slim="true">
                                                 <template #content>

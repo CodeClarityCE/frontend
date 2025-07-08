@@ -4,8 +4,8 @@ import Toaster from '@/shadcn/ui/toast/Toaster.vue';
 
 import { useAuthStore } from '@/stores/auth';
 
-import ErrorComponent from '@/base_components/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const HeaderComponent = defineAsyncComponent({

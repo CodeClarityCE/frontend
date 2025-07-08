@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
-import type { CIAImpact } from '@/codeclarity_components/dashboard/dashboard.entity';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
-import { storeToRefs } from 'pinia';
+import WaffleChart, {
+    type WaffleChartEntry
+} from '@/base_components/data-display/charts/WaffleChart.vue';
 import { ref, watch, type Ref } from 'vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
+import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import type { LicenseDist } from '@/codeclarity_components/dashboard/dashboard.entity';
 import { Icon } from '@iconify/vue';
-import RadarChart from '@/base_components/charts/RadarChart.vue';
-import type { RadarChartData, RadarChartOptions } from '@/base_components/charts/radarChart';
+import { Skeleton } from '@/shadcn/ui/skeleton';
 import Button from '@/shadcn/ui/button/Button.vue';
 
 // Props
@@ -34,38 +35,31 @@ const { defaultOrg } = storeToRefs(userStore);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const ciaMap: Ref<{ [key: string]: { color: string; value: number } }> = ref({});
-
-const chartData: Ref<RadarChartData> = ref([
-    {
-        name: 'Mean Impact',
-        axes: []
-    }
-]);
-
-const options: Ref<Partial<RadarChartOptions>> = ref({
-    format: '0.1f',
-    maxValue: 1.0
-});
+const chartOptions: Ref<any | undefined> = ref();
+const chartData: Ref<WaffleChartEntry[]> = ref([]);
+const noData: Ref<boolean> = ref(false);
 
 async function fetch(refresh: boolean = false) {
     if (!defaultOrg || !defaultOrg.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     if (!refresh) loading.value = true;
+    chartData.value = [];
+    chartOptions.value = undefined;
 
-    ciaMap.value = {};
+    noData.value = false;
     error.value = false;
     errorCode.value = undefined;
 
     try {
-        const resp = await dashboardRepository.getCIAImpact({
+        const resp = await dashboardRepository.getLicenseDist({
             orgId: defaultOrg.value.id,
             bearerToken: authStore.getToken,
             handleBusinessErrors: true,
             integrationIds: props.integrationIds
         });
-        generateChart(resp.data);
+        if (resp.data.length == 0) noData.value = true;
+        generateChartData(resp.data);
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -76,45 +70,32 @@ async function fetch(refresh: boolean = false) {
     }
 }
 
-function generateChart(stats: CIAImpact[]) {
-    const confidentiality = [];
-    const integrity = [];
-    const availability = [];
-    for (const impact of stats) {
-        if (impact.cia == 'Confidentiality') {
-            confidentiality.push(impact.impact);
-        }
-        if (impact.cia == 'Integrity') {
-            integrity.push(impact.impact);
-        }
-        if (impact.cia == 'Availability') {
-            availability.push(impact.impact);
-        }
-    }
+function generateChartData(licenseDistData: LicenseDist) {
+    const waffleChartData: WaffleChartEntry[] = [];
 
-    chartData.value[0].axes = [
-        {
-            axis: 'CONFIDENTIALITY',
-            value: confidentiality.reduce((a, b) => a + b, 0) / confidentiality.length
-        },
-        { axis: 'INTEGRITY', value: integrity.reduce((a, b) => a + b, 0) / integrity.length },
-        {
-            axis: 'AVAILABILITY',
-            value: availability.reduce((a, b) => a + b, 0) / availability.length
-        }
-    ];
+    for (const key of Object.keys(licenseDistData)) {
+        waffleChartData.push({ label: key, value: licenseDistData[key] });
+    }
+    chartData.value = waffleChartData;
 }
 
 fetch();
 </script>
 <template>
-    <div class="p-6 pb-2">
-        <div v-if="loading" class="flex flex-row gap-1">
-            <div>
-                <BoxLoader :dimensions="{ width: '250px', height: '250px' }" />
+    <div class="flex flex-col items-center justify-center">
+        <div v-if="loading || noData" class="flex flex-row justify-center items-center">
+            <div class="grid gap-1 relative grid-cols-10">
+                <Skeleton v-for="index in 100" :key="index" class="h-[20px] w-[20px] rounded" />
+                <div
+                    v-if="noData"
+                    class="flex flex-row justify-center items-center"
+                    style="position: absolute; width: 100%; height: 100%"
+                >
+                    <div style="font-weight: 900; font-size: 1.25em">No Data</div>
+                </div>
             </div>
         </div>
-        <div v-else>
+        <div v-else class="flex flex-row gap-8 justify-center items-center">
             <div v-if="error">
                 <div class="flex flex-row gap-2">
                     <Icon
@@ -134,9 +115,17 @@ fetch();
                     </div>
                 </div>
             </div>
-            <div v-else class="flex flex-row justify-center items-center">
-                <RadarChart :id="'ciaImpact'" :data="chartData" :options="options"></RadarChart>
-            </div>
+            <WaffleChart
+                v-else
+                :data="chartData"
+                :source-percentual="false"
+                :output-percentual="true"
+            >
+            </WaffleChart>
         </div>
     </div>
 </template>
+
+<style scoped lang="scss">
+@use '@/assets/colors.scss';
+</style>

@@ -1,7 +1,7 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import { interpolateColors } from '@/base_components/charts/colors-waffle';
-import CenteredModal from '../CenteredModal.vue';
+import { interpolateColors } from '@/base_components/data-display/charts/colors-waffle';
+import CenteredModal from '../../ui/modals/CenteredModal.vue';
 import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 

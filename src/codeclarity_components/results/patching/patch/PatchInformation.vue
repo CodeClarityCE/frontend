@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SemverToString from '@/base_components/SemverToString.vue';
+import SemverToString from '@/base_components/utilities/SemverToString.vue';
 import type { PatchInfo, ToPatch } from '@/codeclarity_components/results/patching/Patching';
 import Breadcrumb from '@/shadcn/ui/breadcrumb/Breadcrumb.vue';
 import BreadcrumbItem from '@/shadcn/ui/breadcrumb/BreadcrumbItem.vue';

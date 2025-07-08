@@ -43,7 +43,7 @@ watch(open, (v) => {
 
 function handleCommandSelect() {
     if (open.value) {
-        const highlighted = document.querySelectorAll('[data-highlighted=""]')[0];
+        const highlighted = document.querySelectorAll('[data-highlighted=""]')[0] as HTMLElement;
         console.log(highlighted.innerText);
         open.value = false;
         if (highlighted.innerText === 'Dashboard') {
@@ -77,14 +77,20 @@ function handleOpenChange() {
 
 <template>
     <div class="flex items-center">
-        <p class="text-sm text-muted-foreground">
-            Commands
+        <Button
+            variant="outline"
+            size="sm"
+            class="bg-gray-50 border-gray-300 hover:bg-gray-100 transition-colors duration-200 text-gray-600 hover:text-gray-900"
+            @click="handleOpenChange"
+        >
+            <Icon icon="lucide:search" class="w-4 h-4 mr-2" />
+            <span class="text-sm">Commands</span>
             <kbd
-                class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+                class="pointer-events-none ml-3 inline-flex h-5 select-none items-center gap-1 rounded bg-white border border-gray-200 px-1.5 font-mono text-[10px] font-medium text-gray-500"
             >
                 <span class="text-xs">⌘</span>K
             </kbd>
-        </p>
+        </Button>
         <CommandDialog v-model:open="open">
             <CommandInput placeholder="Type a command or search..." />
             <CommandList @click="handleCommandSelect">

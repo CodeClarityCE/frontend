@@ -2,7 +2,7 @@
 import { ref, type Ref } from 'vue';
 import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
 
-import CenteredModal from '../../../base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 // import { buildDependencyTree } from "../../../dependency-tree.js";
 
 import moment from 'moment';
@@ -12,7 +12,7 @@ import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
 import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
 
-import PositionedModal from '../../../base_components/PositionedModal.vue';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
 // import { AnalysisRepository } from '@/repositories/AnalysisRepository';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 
@@ -535,6 +535,128 @@ getFinding(props.projectID, props.analysisID);
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
-@use '@/assets/common/details.scss';
-@use '@/assets/common/cvss.scss';
+
+.details-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #ffffff; /* Changed to white for consistency */
+    border-radius: 8px; /* Added rounded corners */
+    box-shadow:
+        0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1); /* Added subtle shadow */
+    min-height: 100vh;
+}
+
+.content-header {
+    margin-bottom: 1.5rem;
+
+    .cursor-pointer {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        background: #ffffff; /* Changed to white */
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+        &:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+    }
+}
+
+.references-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #ffffff; /* Changed to white */
+    border-radius: 8px; /* Added rounded corners */
+    border: 1px solid #e5e7eb;
+    box-shadow:
+        0 1px 3px 0 rgb(0 0 0 / 0.1),
+        0 1px 2px -1px rgb(0 0 0 / 0.1); /* Added subtle shadow */
+}
+
+.references-inner-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.reference {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    transition: box-shadow 0.15s ease-in-out;
+
+    &:hover {
+        box-shadow:
+            0 4px 6px -1px rgb(0 0 0 / 0.1),
+            0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+}
+
+.reference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reference-header-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reference-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #e5e7eb;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.references-show-more-wrapper {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.button {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    transition: background 0.15s ease-in-out;
+
+    &:hover {
+        background: #f3f4f6;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .details-container {
+        padding: 1rem;
+    }
+
+    .references-wrapper {
+        padding: 1rem;
+    }
+
+    .reference {
+        padding: 0.75rem;
+    }
+}
 </style>

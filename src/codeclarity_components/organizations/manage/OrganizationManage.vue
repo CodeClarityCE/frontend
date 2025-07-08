@@ -11,11 +11,10 @@ import { useAuthStore } from '@/stores/auth';
 import { ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import CenteredModal from '@/base_components/CenteredModal.vue';
-import FaqBox from '@/base_components/FaqBox.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { errorToast, successToast } from '@/utils/toasts';
 import Button from '@/shadcn/ui/button/Button.vue';
-import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 const authStore = useAuthStore();
 
@@ -101,14 +100,21 @@ function setOrgInfo(_orgInfo: Organization) {
 }
 </script>
 <template>
-    <div class="w-full flex flex-col gap-8 org-manage-overview-wrapper">
+    <div class="space-y-6">
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
 
-        <div class="flex flex-col gap-8 p-12">
-            <div v-if="orgInfo" class="flex flex-col gap-8">
-                <div>
-                    <h2 class="text-2xl mb-2">Actions</h2>
-                    <div class="flex flex-row gap-4 flex-wrap font-normal justify-center">
+        <div v-if="orgInfo" class="space-y-6">
+            <!-- Quick Actions Card -->
+            <InfoCard
+                title="Organization Management"
+                description="Manage your organization settings, members, and policies from one central location"
+                icon="solar:settings-bold-duotone"
+                variant="primary"
+            >
+                <div class="mt-6">
+                    <!-- Management Actions Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Integration Management -->
                         <RouterLink
                             v-if="
                                 orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
@@ -117,88 +123,133 @@ function setOrgInfo(_orgInfo: Organization) {
                                 name: 'orgs',
                                 params: { action: 'manage', orgId: orgId, page: 'integrations' }
                             }"
-                            class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                            title="Manage organization integrations."
+                            class="group flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-theme-primary hover:shadow-md transition-all duration-200 hover:bg-theme-primary/5"
                         >
-                            Manage organization integrations
+                            <div class="p-3 bg-theme-primary/10 rounded-lg">
+                                <Icon
+                                    icon="solar:widget-add-bold-duotone"
+                                    class="text-xl text-theme-primary"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Manage organization integrations
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Connect external services like GitHub and GitLab
+                                </p>
+                            </div>
                         </RouterLink>
+
+                        <!-- Policy Management -->
                         <RouterLink
                             :to="{
                                 name: 'orgs',
                                 params: { action: 'manage', orgId: orgId, page: 'policies' }
                             }"
-                            class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                            title="Manage organization policies."
+                            class="group flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-theme-primary hover:shadow-md transition-all duration-200 hover:bg-theme-primary/5"
                         >
-                            Manage organization policies
+                            <div class="p-3 bg-theme-black/10 rounded-lg">
+                                <Icon
+                                    icon="solar:document-text-bold-duotone"
+                                    class="text-xl text-theme-black"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Manage organization policies
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Define analyzer behaviors and rules
+                                </p>
+                            </div>
                         </RouterLink>
-                        <template v-if="!orgInfo.personal">
-                            <RouterLink
-                                v-if="
-                                    orgInfo.role == MemberRole.OWNER ||
+
+                        <!-- Member Management -->
+                        <RouterLink
+                            v-if="
+                                !orgInfo.personal &&
+                                (orgInfo.role == MemberRole.OWNER ||
                                     orgInfo.role == MemberRole.ADMIN ||
-                                    orgInfo.role == MemberRole.MODERATOR
-                                "
-                                :to="{
-                                    name: 'orgs',
-                                    params: { action: 'manage', orgId: orgId, page: 'members' }
-                                }"
-                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                                title="Manage organization member."
-                            >
-                                Manage organization members
-                            </RouterLink>
-                            <RouterLink
-                                v-if="
-                                    orgInfo.role == MemberRole.OWNER ||
+                                    orgInfo.role == MemberRole.MODERATOR)
+                            "
+                            :to="{
+                                name: 'orgs',
+                                params: { action: 'manage', orgId: orgId, page: 'members' }
+                            }"
+                            class="group flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-theme-primary hover:shadow-md transition-all duration-200 hover:bg-theme-primary/5"
+                        >
+                            <div class="p-3 bg-theme-primary/10 rounded-lg">
+                                <Icon
+                                    icon="solar:users-group-rounded-bold-duotone"
+                                    class="text-xl text-theme-primary"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Manage organization members
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Manage organization team members
+                                </p>
+                            </div>
+                        </RouterLink>
+
+                        <!-- Invite Management -->
+                        <RouterLink
+                            v-if="
+                                !orgInfo.personal &&
+                                (orgInfo.role == MemberRole.OWNER ||
                                     orgInfo.role == MemberRole.ADMIN ||
-                                    orgInfo.role == MemberRole.MODERATOR
-                                "
-                                :to="{
-                                    name: 'orgs',
-                                    params: { action: 'manage', orgId: orgId, page: 'invites' }
-                                }"
-                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                                title="Manage organization invites."
-                            >
-                                Manage organization invites
-                            </RouterLink>
-                        </template>
+                                    orgInfo.role == MemberRole.MODERATOR)
+                            "
+                            :to="{
+                                name: 'orgs',
+                                params: { action: 'manage', orgId: orgId, page: 'invites' }
+                            }"
+                            class="group flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-theme-primary hover:shadow-md transition-all duration-200 hover:bg-theme-primary/5"
+                        >
+                            <div class="p-3 bg-theme-black/10 rounded-lg">
+                                <Icon
+                                    icon="solar:mailbox-bold-duotone"
+                                    class="text-xl text-theme-black"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Manage organization invites
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Send and manage member invites
+                                </p>
+                            </div>
+                        </RouterLink>
+
+                        <!-- Audit Logs -->
                         <RouterLink
                             :to="{
                                 name: 'orgs',
                                 params: { action: 'manage', orgId: orgId, page: 'logs' }
                             }"
-                            class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                            title="View organization audit logs."
+                            class="group flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-theme-primary hover:shadow-md transition-all duration-200 hover:bg-theme-primary/5"
                         >
-                            View organization audit logs.
+                            <div class="p-3 bg-theme-primary/10 rounded-lg">
+                                <Icon
+                                    icon="solar:file-text-bold-duotone"
+                                    class="text-xl text-theme-primary"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    View organization audit logs
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    View organization activity history
+                                </p>
+                            </div>
                         </RouterLink>
-                        <template v-if="!orgInfo.personal">
-                            <div
-                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                                title="Leave the organization."
-                                @click="
-                                    orgActionId = orgId;
-                                    orgAction = OrgAction.LEAVE;
-                                    orgActionModalRef.toggle();
-                                "
-                            >
-                                Leave the organization
-                            </div>
-                            <div
-                                v-if="orgInfo.role == MemberRole.OWNER"
-                                class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal border-redBorder bg-redLight text-destructive"
-                                title="Delete the organization."
-                                @click="
-                                    orgActionId = orgId;
-                                    orgAction = OrgAction.DELETE;
-                                    orgActionModalRef.toggle();
-                                "
-                            >
-                                Delete the organization
-                            </div>
-                        </template>
+
+                        <!-- Analyzer Management -->
                         <RouterLink
                             v-if="
                                 orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
@@ -207,183 +258,324 @@ function setOrgInfo(_orgInfo: Organization) {
                                 name: 'orgs',
                                 params: { action: 'manage', orgId: orgId, page: 'analyzers' }
                             }"
-                            class="cursor-pointer w-[calc(50%-10px)] border min-w-0 rounded-lg p-5 font-normal"
-                            title="Manage analyzers."
+                            class="group flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-theme-primary hover:shadow-md transition-all duration-200 hover:bg-theme-primary/5"
                         >
-                            Manage analyzers
+                            <div class="p-3 bg-theme-black/10 rounded-lg">
+                                <Icon
+                                    icon="solar:chart-2-bold-duotone"
+                                    class="text-xl text-theme-black"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Manage analyzers
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Configure analysis tools and settings
+                                </p>
+                            </div>
                         </RouterLink>
                     </div>
                 </div>
-            </div>
-            <div>
-                <h2 class="text-2xl mb-2">Faq</h2>
-                <div class="flex lex-row gap-5 flex-wrap faq-wrapper">
-                    <FaqBox>
-                        <template #question>What is a personal organization?</template>
-                        <template #answer
-                            >A personal organization is an organization that is created
-                            automatically for you upon registration. This organization is private,
-                            and you cannot invite other users to this organization. You also cannot
-                            leave or delete this organization.</template
+            </InfoCard>
+
+            <!-- Danger Zone -->
+            <InfoCard
+                v-if="!orgInfo.personal"
+                title="Danger Zone"
+                description="Actions that can permanently affect your organization"
+                icon="solar:danger-triangle-bold-duotone"
+                variant="danger"
+            >
+                <div class="mt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Leave Organization -->
+                        <div
+                            class="flex items-center gap-4 p-4 border border-red-200 rounded-lg cursor-pointer hover:border-red-300 hover:shadow-md transition-all duration-200 bg-red-50"
+                            @click="
+                                orgActionId = orgId;
+                                orgAction = OrgAction.LEAVE;
+                                orgActionModalRef.toggle();
+                            "
                         >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>What are integrations?</template>
-                        <template #answer
-                            >An integration is a 'connection' to one of our offered external
-                            services. For now, you can add integrations with Gitlab and Github to
-                            easily analyze your repositories.</template
+                            <div class="p-2 bg-red-100 rounded-lg">
+                                <Icon icon="solar:exit-bold" class="text-xl text-red-600" />
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-red-800">Leave the organization</h4>
+                                <p class="text-sm text-red-600">
+                                    Remove yourself from this organization
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Delete Organization -->
+                        <div
+                            v-if="orgInfo.role == MemberRole.OWNER"
+                            class="flex items-center gap-4 p-4 border border-red-300 rounded-lg cursor-pointer hover:border-red-400 hover:shadow-md transition-all duration-200 bg-red-100"
+                            @click="
+                                orgActionId = orgId;
+                                orgAction = OrgAction.DELETE;
+                                orgActionModalRef.toggle();
+                            "
                         >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>What are policies?</template>
-                        <template #answer
-                            >A policy is a 'document' in which you can define certain behaviours of
-                            our analyzers.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>Can I add users to an organization?</template>
-                        <template #answer
-                            >Yes, you can. The only exception being personal organizations. To add a
-                            user to your organization, you can invite them and if the user accepts
-                            the invitation they will join your organization.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>Can I revoke an invitation?</template>
-                        <template #answer
-                            >Yes, you can. Simply click the 'revoke' button in the invitations
-                            overview.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>Can I remove a user from an organization?</template>
-                        <template #answer
-                            >Yes, you can. Simply click the 'remove' button in the members overview.
-                            Moderators, Admins and Owners can remove any invited user that has the
-                            role 'User'. Admins can also remove moderators, and Owners can remove
-                            anyone. Finally, a user can remove a user with the same role only if
-                            they are the one that invited them to the organization.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>Can I add another owner to an organization?</template>
-                        <template #answer
-                            >No, you cannot. The role of 'Owner' is reserved to users that created
-                            the organization only.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>How long until organization invites expire?</template>
-                        <template #answer
-                            >An organization invite expires after three days for security reasons.
-                            You can always resend the invitation email in the invitations
-                            overview.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>Are my actions within an organization logged?</template>
-                        <template #answer
-                            >Yes, they are. Owners and moderators can view the audit logs of an
-                            organization for accountability reasons.</template
-                        >
-                    </FaqBox>
-                    <FaqBox>
-                        <template #question>Can I recover a deleted organization?</template>
-                        <template #answer
-                            >No, you cannot. Organization deletion is a permanent action and cannot
-                            be undone.</template
-                        >
-                    </FaqBox>
+                            <div class="p-2 bg-red-200 rounded-lg">
+                                <Icon
+                                    icon="solar:trash-bin-trash-bold"
+                                    class="text-xl text-red-700"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-red-800">Delete the organization</h4>
+                                <p class="text-sm text-red-600">
+                                    Permanently remove this organization
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </InfoCard>
+
+            <!-- FAQ Section -->
+            <InfoCard
+                title="Frequently Asked Questions"
+                description="Common questions about organizations"
+                icon="solar:question-circle-bold-duotone"
+                variant="default"
+            >
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            >
+                                <Icon
+                                    icon="solar:user-bold-duotone"
+                                    class="text-sm text-theme-primary"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    What is a personal organization?
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    A personal organization is created automatically for you upon
+                                    registration. This organization is private, and you cannot
+                                    invite other users to it.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            >
+                                <Icon
+                                    icon="solar:widget-add-bold-duotone"
+                                    class="text-sm text-theme-black"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    What are integrations?
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    An integration is a 'connection' to one of our offered external
+                                    services. For now, you can add integrations with GitLab and
+                                    GitHub.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            >
+                                <Icon
+                                    icon="solar:document-text-bold-duotone"
+                                    class="text-sm text-theme-primary"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    What are policies?
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    A policy is a 'document' in which you can define certain
+                                    behaviors of our analyzers to customize how your code is
+                                    analyzed.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            >
+                                <Icon
+                                    icon="solar:user-plus-bold-duotone"
+                                    class="text-sm text-theme-black"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Can I add users to an organization?
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Yes, you can. The only exception being personal organizations.
+                                    To add a user to your organization, you can invite them.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            >
+                                <Icon
+                                    icon="solar:letter-undo-bold-duotone"
+                                    class="text-sm text-theme-primary"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Can I revoke an invitation?
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Yes, you can. Simply click the 'revoke' button in the
+                                    invitations overview to cancel pending invitations.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            >
+                                <Icon
+                                    icon="solar:clock-circle-bold-duotone"
+                                    class="text-sm text-theme-black"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    How long until organization invites expire?
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    An organization invite expires after three days for security
+                                    reasons. You can always resend the invitation email.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </InfoCard>
+
+            <!-- Help Section -->
+            <InfoCard
+                title="Still need help?"
+                description="If you're experiencing issues not covered above, our support team is here to help"
+                icon="solar:question-circle-bold-duotone"
+                variant="default"
+            >
+                <template #actions>
+                    <Button
+                        variant="outline"
+                        class="border-theme-primary text-theme-primary hover:bg-theme-primary/10"
+                    >
+                        Contact Support
+                    </Button>
+                </template>
+            </InfoCard>
         </div>
     </div>
+
+    <!-- Action Confirmation Modal -->
     <CenteredModal ref="orgActionModalRef">
         <template #title>
-            <div
-                style="
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    column-gap: 7px;
-                    justify-content: space-between;
-                "
-            >
-                <div v-if="orgAction == OrgAction.DELETE">Delete the organization?</div>
-                <div v-if="orgAction == OrgAction.LEAVE">Leave the organization?</div>
+            <div class="flex items-center gap-3">
+                <div
+                    v-if="orgAction == OrgAction.DELETE"
+                    class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
+                >
+                    <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
+                </div>
+                <div
+                    v-if="orgAction == OrgAction.LEAVE"
+                    class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center"
+                >
+                    <Icon icon="solar:exit-bold" class="text-orange-600" />
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-theme-black">
+                        {{
+                            orgAction == OrgAction.DELETE
+                                ? 'Delete Organization'
+                                : 'Leave Organization'
+                        }}
+                    </h3>
+                </div>
             </div>
         </template>
         <template #content>
-            <div
-                style="
-                    display: flex;
-                    flex-direction: column;
-                    row-gap: 1.5em;
-                    max-width: 400px;
-                    width: 100vw;
-                "
-            >
-                <div v-if="orgAction == OrgAction.DELETE">
-                    Are you sure you want to delete the organization?
+            <div class="space-y-3">
+                <p class="text-theme-gray">
+                    <span v-if="orgAction == OrgAction.DELETE">
+                        Are you sure you want to permanently delete this organization?
+                    </span>
+                    <span v-if="orgAction == OrgAction.LEAVE">
+                        Are you sure you want to leave this organization?
+                    </span>
+                </p>
+
+                <div
+                    v-if="orgAction == OrgAction.DELETE"
+                    class="bg-red-50 border border-red-200 rounded-lg p-3"
+                >
+                    <div class="flex items-center gap-2">
+                        <Icon icon="solar:danger-triangle-bold" class="text-red-600" />
+                        <span class="text-sm text-red-800 font-medium"
+                            >This action cannot be undone.</span
+                        >
+                    </div>
                 </div>
-                <div v-if="orgAction == OrgAction.LEAVE">
-                    Are you sure you want to leave the organization?
-                </div>
-                <Alert variant="destructive">
-                    <Icon class="icon" icon="solar:danger-triangle-bold-duotone"></Icon>
-                    <AlertDescription>
-                        This action is permanent and cannot be reverted.
-                    </AlertDescription>
-                </Alert>
             </div>
         </template>
         <template #buttons>
-            <Button
-                variant="destructive"
+            <button
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors"
                 @click="
                     performOrgAction();
                     orgActionModalRef.toggle();
                 "
             >
-                <Icon
-                    v-if="orgAction == OrgAction.DELETE"
-                    class="icon"
-                    icon="solar:trash-bin-trash-bold"
-                ></Icon>
-                <Icon
-                    v-else-if="orgAction == OrgAction.LEAVE"
-                    class="icon"
-                    icon="mingcute:exit-door-line"
-                ></Icon>
-
-                <span v-if="orgAction == OrgAction.DELETE">Delete</span>
-                <span v-else-if="orgAction == OrgAction.LEAVE">Leave</span>
-            </Button>
-            <Button
-                variant="outline"
+                {{ orgAction == OrgAction.DELETE ? 'Delete' : 'Leave' }}
+            </button>
+            <button
+                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition-colors"
                 @click="
                     orgActionId = '';
                     orgActionModalRef.toggle();
                 "
             >
                 Cancel
-            </Button>
+            </button>
         </template>
     </CenteredModal>
 </template>
 
 <style scoped lang="scss">
-.faq-wrapper > .faq-box {
-    width: calc(50% - 10px);
+// Hover effects for action cards
+.group:hover {
+    transform: translateY(-1px);
 }
 
-.org-manage-overview-wrapper {
-    padding-bottom: 2rem;
-
-    .faq-wrapper > * {
-        width: calc(50% - 10px);
+// Responsive adjustments
+@media (max-width: 768px) {
+    .grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
     }
 }
 </style>

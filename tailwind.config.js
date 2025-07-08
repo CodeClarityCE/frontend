@@ -23,7 +23,15 @@ module.exports = {
     	},
     	extend: {
     		colors: {
-    			green: '#808e64',
+    			// Primary theme colors
+    			'theme-primary': '#1dce79',
+    			'theme-primary-dark': '#18b56b',
+    			'theme-primary-light': '#2ee085',
+    			'theme-black': '#000000',
+    			'theme-gray': '#1a1a1a',
+    			'theme-gray-light': '#333333',
+    			
+    			green: '#1dce79',
     			patched: '#5a9d09',
     			partiallyPatched: '#ffc107',
     			notPatched: '#bf1313',
@@ -37,6 +45,12 @@ module.exports = {
 				severityMediumLight: '#cca067',
 				severityLowLight: '#9dae5e',
 				severityNoneLight: '#397680',
+				// Transparent severity colors for progress bars
+				severityCriticalBg: 'rgba(0, 0, 0, 0.1)',
+				severityHighBg: 'rgba(191, 19, 19, 0.1)',
+				severityMediumBg: 'rgba(255, 193, 7, 0.1)',
+				severityLowBg: 'rgba(90, 157, 9, 0.1)',
+				severityNoneBg: 'rgba(9, 136, 157, 0.1)',
     			border: 'hsl(var(--border))',
     			input: 'hsl(var(--input))',
     			ring: 'hsl(var(--ring))',

@@ -10,8 +10,8 @@ import { ProjectRepository } from '@/codeclarity_components/projects/project.rep
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
 
-import ErrorComponent from '@/base_components/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const ResultsSBOM = defineAsyncComponent({

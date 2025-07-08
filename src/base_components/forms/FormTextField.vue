@@ -17,13 +17,13 @@ const props = defineProps<{
         </label>
         <Field
             v-model.trim="model"
-            class="border border-solid border-gray-400 rounded shadow-md w-full py-3 px-5"
+            class="border border-solid border-slate-300/60 focus:border-theme-primary rounded shadow-md w-full py-3 px-5 focus:ring-2 focus:ring-theme-primary/20 transition-colors"
             :placeholder="props.placeholder"
             :type="props.type"
             :name="props.name"
             :disabled="props.disabled"
             :class="props.disabled ? 'cursor-not-allowed' : ''"
         />
-        <ErrorMessage class="text-destructive mt-1 block" :name="props.name" />
+        <ErrorMessage class="text-red-500 mt-1 block" :name="props.name" />
     </div>
 </template>

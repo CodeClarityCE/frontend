@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ActiveFilter, FilterState } from '@/base_components/UtilitiesFilters.vue';
+import type { ActiveFilter, FilterState } from '@/base_components/filters/UtilitiesFilters.vue';
 import { Icon } from '@iconify/vue';
 
 const filterState = defineModel<FilterState>('filterState', { default: {} });

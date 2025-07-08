@@ -21,23 +21,41 @@ defineProps({
 });
 </script>
 <template>
-    <Collapsible v-model:open="isOpen" class="flex flex-col gap-4 items-center">
+    <Collapsible v-model:open="isOpen" class="w-full">
+        <!-- Always show the most recent analysis -->
         <AnalysisItem
             v-for="analysis in analyses.slice(0, 1)"
             :key="analysis.id"
             :analysis="analysis"
             :project-i-d="projectID"
-        ></AnalysisItem>
-        <CollapsibleTrigger v-if="analyses.length > 1" class="flex gap-2 items-center"
-            >Show older analyses <Icon icon="tabler:chevron-down"></Icon>
-        </CollapsibleTrigger>
-        <CollapsibleContent v-if="analyses.length > 1">
+        />
+
+        <!-- Show expand button if there are more analyses -->
+        <div v-if="analyses.length > 1" class="mt-3">
+            <CollapsibleTrigger
+                class="flex items-center justify-center gap-2 w-full p-2 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-all duration-200"
+            >
+                <span
+                    >{{ isOpen ? 'Hide' : 'Show' }} {{ analyses.length - 1 }} older analysis{{
+                        analyses.length - 1 > 1 ? 'es' : ''
+                    }}</span
+                >
+                <Icon
+                    icon="solar:chevron-down-linear"
+                    class="h-3 w-3 transition-transform duration-200"
+                    :class="{ 'rotate-180': isOpen }"
+                />
+            </CollapsibleTrigger>
+        </div>
+
+        <!-- Collapsible content for older analyses -->
+        <CollapsibleContent v-if="analyses.length > 1" class="mt-3 space-y-3">
             <AnalysisItem
-                v-for="analysis in analyses.slice(1, analyses.length)"
+                v-for="analysis in analyses.slice(1)"
                 :key="analysis.id"
                 :analysis="analysis"
                 :project-i-d="projectID"
-            ></AnalysisItem>
+            />
         </CollapsibleContent>
     </Collapsible>
 </template>

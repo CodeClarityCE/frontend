@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, type Ref } from 'vue';
-import TextLoader from '../../../base_components/TextLoader.vue';
-import BoxLoader from '../../../base_components/BoxLoader.vue';
-import DonutLoader from '../../../base_components/DonutLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
 // import { HttpError, BusinessLogicError } from '../../../repositories/BaseRepository.js';
 // import { DataRepository } from '../../../repositories/DataRepository.js';
 
@@ -16,7 +16,7 @@ import { ResultsRepository } from '@/codeclarity_components/results/results.repo
 import { Icon } from '@iconify/vue';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 Chart.register(...registerables);

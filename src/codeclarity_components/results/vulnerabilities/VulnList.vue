@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-import { type Ref, ref, watch } from 'vue';
-import SearchBar from '@/base_components/SearchBar.vue';
-import BoxLoader from '@/base_components/BoxLoader.vue';
+import { type Ref, ref, watch, computed } from 'vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type {
     VulnerabilityMerged,
     WeaknessInfo
 } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import { Icon } from '@iconify/vue';
 // Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import PaginationComponent from '@/base_components/PaginationComponent.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import {
     isNoneSeverity,
     isCriticalSeverity,
@@ -19,16 +20,16 @@ import {
     isLowSeverity,
     isMediumSeverity
 } from '@/utils/severity';
-import BubbleComponent from '@/base_components/bubbles/BubbleComponent.vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
-import UtilitiesSort from '@/base_components/UtilitiesSort.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
     type FilterState
-} from '@/base_components/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/ActiveFilterBar.vue';
+} from '@/base_components/filters/UtilitiesFilters.vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
@@ -320,38 +321,210 @@ watch(
 );
 
 watch(() => filterState.value.activeFilters, init);
+
+// Computed statistics for dashboard
+const criticalCount = computed(() => {
+    return findings.value.filter((vuln) => isCriticalSeverity(vuln.Severity.Severity)).length;
+});
+
+const highCount = computed(() => {
+    return findings.value.filter((vuln) => isHighSeverity(vuln.Severity.Severity)).length;
+});
+
+const patchableCount = computed(() => {
+    return findings.value.filter((vuln) =>
+        vuln.Affected.some(
+            (dep) => dep.PatchType === PatchType.Full || dep.PatchType === PatchType.Partial
+        )
+    ).length;
+});
+
+const exploitableCount = computed(() => {
+    return findings.value.filter((vuln) => vuln.EPSS.Score > 0.1).length;
+});
 </script>
 
 <template>
-    <div class="flex flex-col gap-7">
-        <!--------------------------------------------------------------------------->
-        <!--                            Search and Filters                         -->
-        <!--------------------------------------------------------------------------->
+    <div class="container py-6 mx-auto space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        Vulnerabilities
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Security vulnerabilities found in your project dependencies
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Icon icon="tabler:shield-exclamation" class="w-4 h-4" />
+                    <span>{{ nmbEntriesTotal }} total vulnerabilities</span>
+                </div>
+            </div>
 
-        <div class="flex gap-4">
-            <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
-            <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:alert-triangle" class="w-4 h-4 text-red-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Critical</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ criticalCount }}
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:exclamation-circle" class="w-4 h-4 text-orange-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >High</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ highCount }}
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:trending-up" class="w-4 h-4 text-purple-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Exploitable</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ exploitableCount }}
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:bandage" class="w-4 h-4 text-green-500" />
+                        <span
+                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            >Patchable</span
+                        >
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ patchableCount }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Indicators Legend -->
+            <div
+                class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-lg p-4 border border-red-200 dark:border-red-800"
+            >
+                <h3
+                    class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2"
+                >
+                    <Icon icon="tabler:info-circle" class="w-4 h-4" />
+                    Vulnerability Indicators & Severity Levels
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                    <div class="space-y-2">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                            Severity Levels
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-severityCritical rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Critical (9.0-10.0)</span
+                                >
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-severityHigh rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400">High (7.0-8.9)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-severityMedium rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Medium (4.0-6.9)</span
+                                >
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-severityLow rounded"></div>
+                                <span class="text-gray-600 dark:text-gray-400">Low (0.1-3.9)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                            Exploitation Risk
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:trending-up" class="w-3 h-3 text-red-600" />
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >EPSS > 10% (High risk)</span
+                                >
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:alert-triangle" class="w-3 h-3 text-amber-600" />
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Possible false match</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                            Patching Status
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:bandage" class="w-3 h-3 text-green-600" />
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >Patch available</span
+                                >
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Icon icon="tabler:bandage-off" class="w-3 h-3 text-gray-500" />
+                                <span class="text-gray-600 dark:text-gray-400"
+                                    >No patch available</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!--------------------------------------------------------------------------->
-        <!--                           Active Filters list                         -->
-        <!--------------------------------------------------------------------------->
+        <!-- Search and Filters -->
+        <div class="flex flex-col gap-4">
+            <div class="flex gap-4">
+                <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
+                <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
+            </div>
 
-        <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
+            <!--------------------------------------------------------------------------->
+            <!--                           Active Filters list                         -->
+            <!--------------------------------------------------------------------------->
 
-        <!--------------------------------------------------------------------------->
-        <!--                        Pagination info and controls                   -->
-        <!--------------------------------------------------------------------------->
-        <UtilitiesSort
-            v-model:page-limit-selected="pageLimitSelected"
-            v-model:sort-key="sortKey"
-            v-model:sort-direction="sortDirection"
-            :selection-page-limit="selectionPageLimit"
-            :sort-options="sortByOptions"
-            :showing="nmbEntriesShowing"
-            :total="nmbEntriesTotal"
-        >
-        </UtilitiesSort>
+            <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
+
+            <!--------------------------------------------------------------------------->
+            <!--                        Pagination info and controls                   -->
+            <!--------------------------------------------------------------------------->
+            <UtilitiesSort
+                v-model:page-limit-selected="pageLimitSelected"
+                v-model:sort-key="sortKey"
+                v-model:sort-direction="sortDirection"
+                :selection-page-limit="selectionPageLimit"
+                :sort-options="sortByOptions"
+                :showing="nmbEntriesShowing"
+                :total="nmbEntriesTotal"
+            >
+            </UtilitiesSort>
+        </div>
 
         <!--------------------------------------------------------------------------->
         <!--                           Vulnerabilities List                        -->
@@ -1442,15 +1615,29 @@ watch(() => filterState.value.activeFilters, init);
                 <div style="text-align: center">No findings</div>
             </div>
 
-            <!--------------------------------------------------------------------------->
-            <!--                          Pagination buttons                           -->
-            <!--------------------------------------------------------------------------->
-            <PaginationComponent
-                v-model:page="pageNumber"
-                v-model:nmb-entries-showing="pageLimitSelected"
-                v-model:nmb-entries-total="nmbEntriesTotal"
-                v-model:total-pages="totalPages"
-            />
+            <!-- Pagination -->
+            <div class="flex items-center justify-between border-t border-gray-200 py-4">
+                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:file-text" class="w-4 h-4" />
+                        <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>
+                    </div>
+                    <div class="text-xs">
+                        Showing
+                        {{ Math.min(pageNumber * pageLimitSelected + 1, nmbEntriesTotal) }}-{{
+                            Math.min((pageNumber + 1) * pageLimitSelected, nmbEntriesTotal)
+                        }}
+                        of {{ nmbEntriesTotal }}
+                    </div>
+                </div>
+
+                <PaginationComponent
+                    v-model:page="pageNumber"
+                    v-model:nmb-entries-showing="pageLimitSelected"
+                    v-model:nmb-entries-total="nmbEntriesTotal"
+                    v-model:total-pages="totalPages"
+                />
+            </div>
         </div>
 
         <!--------------------------------------------------------------------------->

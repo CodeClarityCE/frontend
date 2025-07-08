@@ -8,9 +8,9 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import moment from 'moment';
 import { Icon } from '@iconify/vue';
 import { useUserStore } from '@/stores/user';
-import CenteredModal from '@/base_components/CenteredModal.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
-import LoadingButton from '@/base_components/LoadingButton.vue';
+import LoadingButton from '@/base_components/ui/loaders/LoadingButton.vue';
 import { errorToast, successToast } from '@/utils/toasts';
 import Button from '@/shadcn/ui/button/Button.vue';
 

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Icon } from '@iconify/vue';
+import { Button } from '@/shadcn/ui/button';
 
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import type { Ref } from 'vue';
-import TextLoader from '../../../base_components/TextLoader.vue';
-import DonutLoader from '../../../base_components/DonutLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
 import { SbomStats } from '@/codeclarity_components/results/stats.entity';
 import { Doughnut } from 'vue-chartjs';
 
@@ -19,6 +19,10 @@ import { ResultsRepository } from '@/codeclarity_components/results/results.repo
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import SbomTable from './SbomTable.vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
+
+// Import common components
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 
 export interface Props {
     analysisID?: string;
@@ -82,6 +86,41 @@ const donutDimensions = {
 
 watch(selected_workspace, () => getSbomStats());
 
+// Computed properties for enhanced metrics
+const healthScore = computed(() => {
+    const total = stats.value.number_of_dependencies || 1;
+    const outdated = stats.value.number_of_outdated_dependencies || 0;
+    const deprecated = stats.value.number_of_deprecated_dependencies || 0;
+    const unlicensed = stats.value.number_of_unlicensed_dependencies || 0;
+
+    const issues = outdated + deprecated + unlicensed;
+    const score = Math.max(0, Math.round(((total - issues) / total) * 100));
+    return score;
+});
+
+const securityIssues = computed(() => {
+    return (
+        (stats.value.number_of_deprecated_dependencies || 0) +
+        (stats.value.number_of_unlicensed_dependencies || 0)
+    );
+});
+
+// Action handlers
+function handleUpdateOutdated() {
+    console.log('Handle update outdated dependencies');
+    // Implement update logic here
+}
+
+function handleFixSecurity() {
+    console.log('Handle fix security issues');
+    // Implement security fix logic here
+}
+
+function handleExportReport() {
+    console.log('Handle export report');
+    // Implement export logic here
+}
+
 // Methods
 getSbomStats();
 async function getSbomStats(refresh: boolean = false) {
@@ -129,7 +168,8 @@ function createDepStatusDistChart() {
         stats.value.number_of_unlicensed_dependencies,
         stats.value.number_of_outdated_dependencies
     ];
-    const colors = ['#146C94', '#19A7CE', '#AFD3E2'];
+    // Updated colors to use theme colors
+    const colors = ['#000000', '#1dce79', '#333333'];
 
     const dependency_dist_data = {
         labels: labels,
@@ -182,17 +222,22 @@ function createDepTypeChart() {
         stats.value.number_of_transitive_dependencies,
         stats.value.number_of_both_direct_transitive_dependencies
     ];
-    const colors = ['#146C94', '#19A7CE', '#008491'];
+    // Updated colors to use theme colors
+    const colors = ['#1dce79', '#000000', '#666666'];
 
     const dependency_dist_data = {
         labels: labels,
         datasets: [
             {
                 borderColor: 'transparent',
-                spacing: 3,
-                borderRadius: 3,
+                spacing: 4,
+                borderRadius: 8,
                 data: data,
-                backgroundColor: colors
+                backgroundColor: colors,
+                borderWidth: 2,
+                hoverBackgroundColor: colors.map((color) => color + 'DD'),
+                hoverBorderColor: colors,
+                hoverBorderWidth: 3
             }
         ]
     };
@@ -201,24 +246,49 @@ function createDepTypeChart() {
     donut_config.value = {
         maintainAspectRatio: true,
         responsive: true,
+        cutout: '60%',
         plugins: {
             legend: {
                 display: false
             },
             tooltip: {
-                // Disable the on-canvas tooltip
-                enabled: false
+                enabled: true,
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                cornerRadius: 8,
+                padding: 12,
+                displayColors: true,
+                callbacks: {
+                    label: function (context: any) {
+                        const total = context.dataset.data.reduce(
+                            (a: number, b: number) => a + b,
+                            0
+                        );
+                        const percentage = Math.round((context.parsed / total) * 100);
+                        return `${context.label}: ${context.parsed} (${percentage}%)`;
+                    }
+                }
             }
         },
         layout: {
-            padding: 20
+            padding: 10
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1000
         }
     };
 }
 </script>
 
 <template>
-    <div value="sbom" class="space-y-4">
+    <div value="sbom" class="space-y-8">
         <SelectWorkspace
             v-model:error="error"
             v-model:selected_workspace="selected_workspace"
@@ -226,94 +296,259 @@ function createDepTypeChart() {
             :analysis-i-d="analysisID"
         ></SelectWorkspace>
 
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-8">
-            <Card class="lg:col-start-3">
-                <CardHeader class="flex flex-col items-center">
-                    <CardTitle> {{ stats.number_of_non_dev_dependencies ?? 0 }}</CardTitle>
-                    <CardDescription>{{
-                        stats.number_of_direct_dependencies_diff ?? 0
-                    }}</CardDescription>
-                </CardHeader>
-                <CardContent class="flex flex-col items-center text-center">
-                    Direct Dependencies
-                </CardContent>
-            </Card>
-            <Card class="lg:col-start-3 lg:row-start-2 row-start-1 row-span-1">
-                <CardHeader class="flex flex-col items-center">
-                    <CardTitle> {{ stats.number_of_dev_dependencies ?? 0 }}</CardTitle>
-                    <CardDescription>{{
-                        stats.number_of_dev_dependencies_diff ?? 0
-                    }}</CardDescription>
-                </CardHeader>
-                <CardContent class="flex flex-col items-center text-center">
-                    Direct Dev Dependencies
-                </CardContent>
-            </Card>
-            <Card class="col-span-3 row-span-2 flex flex-col">
-                <CardHeader>
-                    <CardTitle>Composition</CardTitle>
-                    <CardDescription
-                        >{{ stats.number_of_dependencies ?? 0 }} Dependencies in
-                        Lockfile</CardDescription
-                    >
-                </CardHeader>
-                <CardContent class="flex items-center justify-center flex-grow">
-                    <div class="flex gap-2 flex-wrap items-center justify-center">
-                        <div class="flex flex-col">
-                            <TextLoader v-if="!render" />
-                            <div v-if="render" class="flex items-center gap-1">
-                                <Icon :icon="'ph:circle-fill'" class="text-[#146c94]"></Icon>
-                                <div class="flex items-center gap-1">
-                                    <div>Direct</div>
-                                    <div class="text-[#146c94]">
-                                        {{ stats?.number_of_direct_dependencies }}
-                                    </div>
-                                </div>
-                            </div>
-                            <TextLoader v-if="!render" />
-                            <div v-if="render" class="flex items-center gap-1">
-                                <Icon :icon="'ph:circle-fill'" class="text-[#19a7ce]"></Icon>
-                                <div class="flex items-center gap-1">
-                                    <div>Transitive</div>
-                                    <div class="text-[#19a7ce]">
-                                        {{ stats?.number_of_transitive_dependencies }}
-                                    </div>
-                                </div>
-                            </div>
-                            <TextLoader v-if="!render" />
-                            <TextLoader v-if="!render" />
-                            <div v-if="render" class="flex items-center gap-1">
-                                <Icon :icon="'ph:circle-fill'" class="text-[#008491]"></Icon>
-                                <div class="flex items-center gap-1">
-                                    <div>Both</div>
-                                    <div class="text-[#008491]">
-                                        {{ stats?.number_of_both_direct_transitive_dependencies }}
-                                    </div>
-                                </div>
-                            </div>
-                            <TextLoader v-if="!render" />
-                        </div>
+        <!-- Quick Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Dependencies -->
+            <StatCard
+                label="Total Dependencies"
+                :value="stats.number_of_dependencies ?? 0"
+                icon="solar:folder-bold"
+                variant="default"
+                subtitle="All project dependencies"
+                subtitle-icon="solar:folder-linear"
+                class="border-l-4 border-l-gray-400"
+            />
 
-                        <div v-if="render">
+            <!-- Direct Dependencies -->
+            <StatCard
+                label="Direct Dependencies"
+                :value="stats.number_of_direct_dependencies ?? 0"
+                icon="solar:target-bold"
+                variant="primary"
+                subtitle="Explicitly added"
+                subtitle-icon="solar:target-linear"
+                class="border-l-4 border-l-[#1dce79]"
+            />
+
+            <!-- Health Score -->
+            <StatCard
+                label="Health Score"
+                :value="`${healthScore}%`"
+                icon="solar:heart-pulse-bold"
+                :variant="healthScore >= 80 ? 'success' : healthScore >= 60 ? 'primary' : 'danger'"
+                :subtitle="
+                    healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : 'Needs attention'
+                "
+                subtitle-icon="solar:heart-pulse-linear"
+                :class="
+                    healthScore >= 80
+                        ? 'border-l-4 border-l-green-500'
+                        : healthScore >= 60
+                          ? 'border-l-4 border-l-[#1dce79]'
+                          : 'border-l-4 border-l-red-500'
+                "
+            />
+
+            <!-- Security Issues -->
+            <StatCard
+                label="Security Issues"
+                :value="securityIssues"
+                icon="solar:shield-warning-bold"
+                :variant="securityIssues === 0 ? 'success' : 'danger'"
+                :subtitle="securityIssues === 0 ? 'No issues found' : 'Requires attention'"
+                subtitle-icon="solar:shield-warning-linear"
+                :class="
+                    securityIssues === 0
+                        ? 'border-l-4 border-l-green-500'
+                        : 'border-l-4 border-l-red-500'
+                "
+            />
+        </div>
+        <!-- Main Dashboard Grid -->
+        <div class="grid gap-6 lg:grid-cols-12">
+            <!-- Dependency Composition Chart -->
+            <InfoCard
+                title="Dependency Composition"
+                :description="`${stats.number_of_dependencies ?? 0} dependencies in your project`"
+                icon="solar:chart-donut-bold"
+                variant="primary"
+                class="lg:col-span-6"
+            >
+                <div class="flex items-center justify-between gap-6">
+                    <!-- Chart -->
+                    <div class="flex-shrink-0">
+                        <div v-if="render" class="relative">
                             <Doughnut :data="donut_data" :options="donut_config" />
+                            <!-- Center text overlay -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-gray-900">
+                                        {{ stats.number_of_dependencies ?? 0 }}
+                                    </div>
+                                    <div class="text-xs text-gray-600">Total</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <DonutLoader v-if="!render" :dimensions="donutDimensions" />
-                        </div>
-                        <div class="stats-divider hide-on-collpase"></div>
+                        <DonutLoader v-if="!render" :dimensions="donutDimensions" />
                     </div>
-                </CardContent>
-            </Card>
+
+                    <!-- Legend with theme colors -->
+                    <div class="flex-1 space-y-3">
+                        <div v-if="render" class="space-y-2">
+                            <div
+                                class="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-[#1dce79]"></div>
+                                    <span class="text-sm font-medium">Direct</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-bold text-[#1dce79]">
+                                        {{ stats?.number_of_direct_dependencies }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        ({{
+                                            Math.round(
+                                                (stats?.number_of_direct_dependencies /
+                                                    stats?.number_of_dependencies) *
+                                                    100
+                                            )
+                                        }}%)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-black"></div>
+                                    <span class="text-sm font-medium">Transitive</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-bold text-black">
+                                        {{ stats?.number_of_transitive_dependencies }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        ({{
+                                            Math.round(
+                                                (stats?.number_of_transitive_dependencies /
+                                                    stats?.number_of_dependencies) *
+                                                    100
+                                            )
+                                        }}%)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-gray-600"></div>
+                                    <span class="text-sm font-medium">Both</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-bold text-gray-600">
+                                        {{ stats?.number_of_both_direct_transitive_dependencies }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        ({{
+                                            Math.round(
+                                                (stats?.number_of_both_direct_transitive_dependencies /
+                                                    stats?.number_of_dependencies) *
+                                                    100
+                                            )
+                                        }}%)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="space-y-2">
+                            <TextLoader v-for="i in 3" :key="i" />
+                        </div>
+                    </div>
+                </div>
+            </InfoCard>
+
+            <!-- Quick Actions and Additional Stats -->
+            <div class="lg:col-span-6 space-y-6">
+                <!-- Quick Actions -->
+                <InfoCard
+                    title="Quick Actions"
+                    description="Common dependency management tasks"
+                    icon="solar:lightning-bold"
+                    variant="success"
+                >
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Button
+                            class="bg-[#1dce79] hover:bg-[#17b56b] text-white flex items-center gap-2 justify-center"
+                            @click="handleUpdateOutdated"
+                        >
+                            <Icon icon="solar:refresh-bold" class="h-4 w-4" />
+                            Update Outdated
+                        </Button>
+                        <Button
+                            :disabled="securityIssues === 0"
+                            class="bg-black hover:bg-gray-800 text-white flex items-center gap-2 justify-center disabled:bg-gray-300"
+                            @click="handleFixSecurity"
+                        >
+                            <Icon icon="solar:shield-check-bold" class="h-4 w-4" />
+                            Fix Security Issues
+                        </Button>
+                        <Button
+                            variant="outline"
+                            class="border-[#1dce79] text-[#1dce79] hover:bg-[#1dce79] hover:text-white flex items-center gap-2 justify-center col-span-full"
+                            @click="handleExportReport"
+                        >
+                            <Icon icon="solar:download-bold" class="h-4 w-4" />
+                            Export Report
+                        </Button>
+                    </div>
+                </InfoCard>
+
+                <!-- Dependency Issues -->
+                <InfoCard
+                    title="Dependency Issues"
+                    description="Issues that need attention"
+                    icon="solar:danger-triangle-bold"
+                    :variant="securityIssues > 0 ? 'danger' : 'success'"
+                >
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-black"></div>
+                                <span class="text-sm font-medium">Deprecated</span>
+                            </div>
+                            <span class="text-lg font-bold text-black">
+                                {{ stats.number_of_deprecated_dependencies ?? 0 }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-[#1dce79]"></div>
+                                <span class="text-sm font-medium">Unlicensed</span>
+                            </div>
+                            <span class="text-lg font-bold text-[#1dce79]">
+                                {{ stats.number_of_unlicensed_dependencies ?? 0 }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-gray-600"></div>
+                                <span class="text-sm font-medium">Outdated</span>
+                            </div>
+                            <span class="text-lg font-bold text-gray-600">
+                                {{ stats.number_of_outdated_dependencies ?? 0 }}
+                            </span>
+                        </div>
+                    </div>
+                </InfoCard>
+            </div>
         </div>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-            <Card class="col-span-4 lg:col-start-2">
-                <CardHeader>
-                    <CardTitle>Table</CardTitle>
-                </CardHeader>
-                <CardContent class="pl-2">
-                    <SbomTable v-model:selected_workspace="selected_workspace" />
-                </CardContent>
-            </Card>
-        </div>
+
+        <!-- SBOM Table -->
+        <InfoCard
+            title="Dependencies Table"
+            description="Detailed view of all project dependencies"
+            icon="solar:table-bold"
+            variant="default"
+        >
+            <SbomTable
+                :project-i-d="projectID"
+                :analysis-i-d="analysisID"
+                :selected_workspace="selected_workspace"
+            />
+        </InfoCard>
     </div>
 </template>

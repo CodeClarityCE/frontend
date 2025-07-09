@@ -1,7 +1,6 @@
 // Data Display Components exports
 export { default as BarChart } from './charts/BarChart.vue';
 export { default as DoughnutChart } from './charts/DoughnutChart.vue';
-export { default as HeatMapChart } from './charts/HeatMapChart.vue';
 export { default as LineChart } from './charts/LineChart.vue';
 export { default as RadarChart } from './charts/RadarChart.vue';
 export { default as TreeChart } from './charts/TreeChart.vue';

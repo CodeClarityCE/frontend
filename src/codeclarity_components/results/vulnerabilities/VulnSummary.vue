@@ -6,8 +6,13 @@ import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
 // import { HttpError, BusinessLogicError } from '../../../repositories/BaseRepository.js';
 // import { DataRepository } from '../../../repositories/DataRepository.js';
 
-import { Doughnut, Radar, Bar } from 'vue-chartjs';
-import { Chart, registerables, type ChartData } from 'chart.js';
+// Chart.js imports removed - now using d3 components
+import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue';
+import type { DoughnutChartData } from '@/base_components/data-display/charts/doughnutChart';
+import RadarChart from '@/base_components/data-display/charts/RadarChart.vue';
+import type { RadarChartData } from '@/base_components/data-display/charts/radarChart';
+import BarChart from '@/base_components/data-display/charts/BarChart.vue';
+import type { BarChartData } from '@/base_components/data-display/charts/barChart';
 
 // Import stores
 import { useUserStore } from '@/stores/user';
@@ -19,7 +24,7 @@ import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
-Chart.register(...registerables);
+// Chart.js registration removed
 
 const props = defineProps({
     analysisID: {
@@ -48,27 +53,10 @@ const render = ref(false);
 const stats: Ref<AnalysisStats> = ref(new AnalysisStats());
 const owaspTopTotalCount = ref(0);
 
-const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
-const initChartData = {
-    labels: [],
-    datasets: [
-        {
-            borderColor: 'transparent',
-            spacing: 3,
-            borderRadius: 3,
-            data: [],
-            backgroundColor: colors
-        }
-    ]
-};
-const cia_data: Ref<ChartData<'radar'>> = ref(initChartData as unknown as ChartData<'radar'>);
-const cia_conf: Ref<object> = ref({});
-const owasp_data: Ref<ChartData<'bar'>> = ref(initChartData as unknown as ChartData<'bar'>);
-const owasp_conf: Ref<object> = ref({});
-const severity_data: Ref<ChartData<'doughnut'>> = ref(
-    initChartData as unknown as ChartData<'doughnut'>
-);
-const severity_conf: Ref<object> = ref({});
+// Chart initialization data removed - using d3 components now
+const cia_data: Ref<RadarChartData> = ref([]);
+const owasp_data: Ref<BarChartData> = ref([]);
+const severity_data: Ref<DoughnutChartData> = ref([]);
 
 const boxLoaderDimensions = {
     width: '100px',
@@ -174,135 +162,30 @@ function createOwaspTop10DistChart() {
         '#80FFDB'
     ];
 
-    const data: Array<any> = [];
-    const colors: Array<any> = [];
-    const labels: Array<any> = [];
+    // Convert to d3 BarChart format
+    const d3_data: BarChartData = [];
 
     let index = 0;
     for (const value of possible_values) {
         if (value > 0) {
-            data.push(value);
-            labels.push(possible_labels[index]);
-            colors.push(possible_colors[index]);
+            d3_data.push({
+                label: possible_labels[index],
+                count: value,
+                color: possible_colors[index]
+            });
         }
         index++;
     }
 
     if (count < stats.value.number_of_vulnerabilities) {
-        data.push(stats.value.number_of_vulnerabilities - count);
-        labels.push('Uncategorized');
-        colors.push('#AFD3E2');
+        d3_data.push({
+            label: 'Uncategorized',
+            count: stats.value.number_of_vulnerabilities - count,
+            color: '#AFD3E2'
+        });
     }
 
-    const dependency_dist_data = {
-        labels: labels,
-        datasets: [
-            {
-                borderColor: 'transparent',
-                spacing: 3,
-                borderRadius: 3,
-                data: data,
-                backgroundColor: colors
-            }
-        ]
-    };
-
-    owasp_data.value = dependency_dist_data;
-    owasp_conf.value = {
-        maintainAspectRatio: true,
-        responsive: true,
-        scales: {
-            y: {
-                display: false,
-                grid: {
-                    drawBorder: false,
-                    display: false
-                }
-            },
-            x: {
-                display: false,
-                grid: {
-                    drawBorder: false,
-                    display: false
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                // Disable the on-canvas tooltip
-                enabled: false,
-
-                external: function (context: any) {
-                    // Tooltip Element
-                    let tooltipEl = document.getElementById('chartjs-tooltip');
-
-                    // Create element on first render
-                    if (!tooltipEl) {
-                        tooltipEl = document.createElement('div');
-                        tooltipEl.id = 'chartjs-tooltip';
-                        tooltipEl.innerHTML = '';
-                        document.body.appendChild(tooltipEl);
-                    }
-                    tooltipEl.innerHTML = '';
-
-                    // Hide if no tooltip
-                    const tooltipModel = context.tooltip;
-                    if (tooltipModel.opacity === 0) {
-                        tooltipEl.style.opacity = '0';
-                        return;
-                    }
-
-                    // Set caret Position
-                    tooltipEl.classList.remove('above', 'below', 'no-transform');
-                    if (tooltipModel.yAlign) {
-                        tooltipEl.classList.add(tooltipModel.yAlign);
-                    } else {
-                        tooltipEl.classList.add('no-transform');
-                    }
-
-                    let innerHTML = '';
-                    innerHTML += '<div class="chart-tool-tip">';
-                    innerHTML += '<div class="chart-tool-tip-title">Owasp Top 10</div>';
-                    innerHTML += '<div class="chart-tool-tip-title-divider"></div>';
-                    innerHTML += '<div class="chart-tool-tip-data">';
-                    let index = 0;
-                    for (const dataPoint of data) {
-                        innerHTML += `<div class="chart-tool-tip-data-row">
-							<div>
-								<div><div class="chart-tool-tip-color-bubble" style="background-color:${colors[index]}"></div></div>
-								<div>${labels[index]}</div>
-							</div>
-							<div class="chart-tool-tip-data-value" style="color:${colors[index]}">${dataPoint}</div>
-						</div>`;
-                        index++;
-                    }
-                    innerHTML += '</div></div>';
-                    tooltipEl.innerHTML = innerHTML;
-
-                    const position = context.chart.canvas.getBoundingClientRect();
-                    //const bodyFont = ChartJS.helpers.toFont(tooltipModel.options.bodyFont);
-
-                    // Display, position, and set styles for font
-                    tooltipEl.style.opacity = '1';
-                    tooltipEl.style.position = 'absolute';
-                    tooltipEl.style.left =
-                        position.left + window.screenX - tooltipModel.caretX + 'px';
-                    tooltipEl.style.top =
-                        position.top + window.screenY - tooltipModel.caretY + 'px';
-                    //tooltipEl.style.font = bodyFont.string;
-                    tooltipEl.style.padding =
-                        tooltipModel.padding + 'px ' + tooltipModel.padding + 'px';
-                    tooltipEl.style.pointerEvents = 'none';
-                }
-            }
-        },
-        layout: {
-            padding: 20
-        }
-    };
+    owasp_data.value = d3_data;
 }
 
 function createSeverityDistChart() {
@@ -316,167 +199,39 @@ function createSeverityDistChart() {
     ];
     const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
 
-    const dependency_dist_data = {
-        labels: labels,
-        datasets: [
-            {
-                borderColor: 'transparent',
-                spacing: 3,
-                borderRadius: 3,
-                data: data,
-                backgroundColor: colors
-            }
-        ]
-    };
+    // Convert to d3 DoughnutChart format
+    const d3_data: DoughnutChartData = labels.map((label, index) => ({
+        label: label as any, // Cast to satisfy the type requirement
+        count: data[index],
+        color: colors[index]
+    }));
 
-    severity_data.value = dependency_dist_data;
-    severity_conf.value = {
-        maintainAspectRatio: true,
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                // Disable the on-canvas tooltip
-                enabled: false,
-
-                external: function (context: any) {
-                    // Tooltip Element
-                    let tooltipEl = document.getElementById('chartjs-tooltip');
-
-                    // Create element on first render
-                    if (!tooltipEl) {
-                        tooltipEl = document.createElement('div');
-                        tooltipEl.id = 'chartjs-tooltip';
-                        tooltipEl.innerHTML = '';
-                        document.body.appendChild(tooltipEl);
-                    }
-                    tooltipEl.innerHTML = '';
-
-                    // Hide if no tooltip
-                    const tooltipModel = context.tooltip;
-                    if (tooltipModel.opacity === 0) {
-                        tooltipEl.style.opacity = '0';
-                        return;
-                    }
-
-                    // Set caret Position
-                    tooltipEl.classList.remove('above', 'below', 'no-transform');
-                    if (tooltipModel.yAlign) {
-                        tooltipEl.classList.add(tooltipModel.yAlign);
-                    } else {
-                        tooltipEl.classList.add('no-transform');
-                    }
-
-                    let innerHTML = '';
-                    innerHTML += '<div class="chart-tool-tip">';
-                    innerHTML += '<div class="chart-tool-tip-title">Severities</div>';
-                    innerHTML += '<div class="chart-tool-tip-title-divider"></div>';
-                    innerHTML += '<div class="chart-tool-tip-data">';
-                    let index = 0;
-                    for (const dataPoint of data) {
-                        innerHTML += `<div class="chart-tool-tip-data-row">
-							<div>
-								<div><div class="chart-tool-tip-color-bubble" style="background-color:${colors[index]}"></div></div>
-								<div>${labels[index]}</div>
-							</div>
-							<div class="chart-tool-tip-data-value" style="color:${colors[index]}">${dataPoint}</div>
-						</div>`;
-                        index++;
-                    }
-                    innerHTML += '</div></div>';
-                    tooltipEl.innerHTML = innerHTML;
-
-                    const position = context.chart.canvas.getBoundingClientRect();
-                    //const bodyFont = ChartJS.helpers.toFont(tooltipModel.options.bodyFont);
-
-                    // Display, position, and set styles for font
-                    tooltipEl.style.opacity = '1';
-                    tooltipEl.style.position = 'absolute';
-                    tooltipEl.style.left =
-                        position.left + window.scrollX + tooltipModel.caretX + 'px';
-                    tooltipEl.style.top =
-                        position.top + window.scrollY + tooltipModel.caretY + 'px';
-                    //tooltipEl.style.font = bodyFont.string;
-                    tooltipEl.style.padding =
-                        tooltipModel.padding + 'px ' + tooltipModel.padding + 'px';
-                    tooltipEl.style.pointerEvents = 'none';
-                }
-            }
-        },
-        layout: {
-            padding: 20
-        }
-    };
+    severity_data.value = d3_data;
 }
 
 function createRadarChart() {
-    function getRadarChartData() {
-        const data = [
-            stats.value.mean_confidentiality_impact,
-            stats.value.mean_integrity_impact,
-            stats.value.mean_availability_impact
-        ];
-        const chart_data = {
-            labels: [
-                'Mean Confidentiality Impact',
-                'Mean Integrity Impact',
-                'Mean Availability Impact'
-            ],
-            datasets: [
+    // Convert to d3 RadarChart format
+    const d3_data: RadarChartData = [
+        {
+            name: 'CIA Impact',
+            axes: [
                 {
-                    data: data,
-                    fill: true,
-                    backgroundColor: 'rgb(116, 0, 184, 0.4)',
-                    borderColor: 'rgb(116, 0, 184)',
-                    pointBackgroundColor: 'rgb(0116, 0, 184, 0.4)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(116, 0, 184, 0.4)',
-                    pointRadius: 0.0
+                    axis: 'Confidentiality',
+                    value: (stats.value.mean_confidentiality_impact ?? 0) * 100 // Convert to percentage
+                },
+                {
+                    axis: 'Integrity',
+                    value: (stats.value.mean_integrity_impact ?? 0) * 100 // Convert to percentage
+                },
+                {
+                    axis: 'Availability',
+                    value: (stats.value.mean_availability_impact ?? 0) * 100 // Convert to percentage
                 }
             ]
-        };
-        return chart_data;
-    }
+        }
+    ];
 
-    function getRadarChartConfig() {
-        return {
-            elements: {
-                line: {
-                    borderWidth: 0
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                datalabels: {
-                    display: false
-                }
-            },
-            scale: {
-                beginAtZero: true,
-                max: 1.0,
-                min: 0,
-                stepSize: 0.5
-            },
-            scales: {
-                r: {
-                    pointLabels: {
-                        display: false
-                    },
-                    ticks: {
-                        display: false
-                    }
-                }
-            }
-        };
-    }
-
-    cia_data.value = getRadarChartData();
-    cia_conf.value = getRadarChartConfig();
+    cia_data.value = d3_data;
 }
 </script>
 
@@ -549,10 +304,10 @@ function createRadarChart() {
             </div>
             <div>
                 <div v-if="render" class="chart-wrapper">
-                    <Doughnut
+                    <DoughnutChart
+                        id="vuln-severity-chart"
                         :data="severity_data"
-                        :options="severity_conf"
-                        style="height: 200px; width: 200px"
+                        :options="{ w: 200, h: 200, p: 20 }"
                     />
                 </div>
                 <div>
@@ -733,10 +488,17 @@ function createRadarChart() {
             </div>
             <div>
                 <div v-if="render" class="chart-wrapper">
-                    <Bar
+                    <BarChart
+                        id="owasp-bar-chart"
                         :data="owasp_data"
-                        :options="owasp_conf"
-                        style="height: 200px; width: 200px"
+                        :options="{
+                            w: 200,
+                            h: 200,
+                            padding: 0.2,
+                            rounded: true,
+                            showLabels: false,
+                            shadow: false
+                        }"
                     />
                 </div>
                 <div v-if="!render" style="max-height: 200px; max-width: 200px">
@@ -913,10 +675,24 @@ function createRadarChart() {
                             margin-left: -6px;
                         "
                     >
-                        <Radar
+                        <RadarChart
+                            id="cia-radar-chart"
                             :data="cia_data"
-                            :options="cia_conf"
-                            style="height: 212px !important; width: 212px !important"
+                            :options="{
+                                w: 200,
+                                h: 200,
+                                margin: { top: 20, right: 20, bottom: 20, left: 20 },
+                                levels: 5,
+                                maxValue: 100,
+                                labelFactor: 1.15,
+                                wrapWidth: 40,
+                                opacityArea: 0.35,
+                                dotRadius: 3,
+                                opacityCircles: 0.1,
+                                strokeWidth: 2,
+                                roundStrokes: false,
+                                legend: false
+                            }"
                         />
                     </div>
                 </div>

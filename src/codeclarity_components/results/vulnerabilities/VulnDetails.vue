@@ -3,7 +3,6 @@ import { ref, type Ref } from 'vue';
 import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { formatDate } from '@/utils/dateUtils';
-import { Chart, registerables, type ChartData } from 'chart.js';
 import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
 import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
@@ -15,9 +14,7 @@ import { useAuthStore } from '@/stores/auth';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { Icon } from '@iconify/vue';
 import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
-import router from '@/router';
-import { getRadarChartData as getCVSSRadarChartData } from './cvssChart';
-import { getRadarChartData as getImpactChartData } from './impactChart';
+import router from '@/router.ts';
 import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
@@ -25,7 +22,6 @@ import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import VulnReferences from './VulnDetails/VulnReferences.vue';
 import VulnSecurityAnalysis from './VulnDetails/VulnSecurityAnalysis.vue';
-Chart.register(...registerables);
 
 type Props = {
     [key: string]: any;
@@ -51,22 +47,6 @@ const active_view: Ref<string> = ref('patches');
 const readme: Ref<string> = ref('');
 const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const chart_version: Ref<string> = ref('');
-
-const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
-const initChartData = {
-    labels: [],
-    datasets: [
-        {
-            borderColor: 'transparent',
-            spacing: 3,
-            borderRadius: 3,
-            data: [],
-            backgroundColor: colors
-        }
-    ]
-};
-const cvss_chart_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
-const impact_chart_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
 
 function toggleReferences() {
     if (references_limit.value != finding.value.references.length)
@@ -126,28 +106,6 @@ async function getFinding(projectID: string, analysisID: string) {
             chart_version.value = 'cvss3';
         } else if (finding.value.severities.cvss_2 != null) {
             chart_version.value = 'cvss2';
-        }
-        if (finding.value) {
-            const cvss_chart_config = getCVSSRadarChartData(finding.value);
-            cvss_chart_data.value = cvss_chart_config as unknown as ChartData<'radar'>;
-            if (finding.value.severities.cvss_31 != null) {
-                chart_version.value = 'cvss31';
-            } else if (finding.value.severities.cvss_3 != null) {
-                chart_version.value = 'cvss3';
-            } else if (finding.value.severities.cvss_2 != null) {
-                chart_version.value = 'cvss2';
-            }
-        }
-        if (finding.value) {
-            const impact_chart_config = getImpactChartData(finding.value);
-            impact_chart_data.value = impact_chart_config as unknown as ChartData<'radar'>;
-            if (finding.value.severities.cvss_31 != null) {
-                chart_version.value = 'cvss31';
-            } else if (finding.value.severities.cvss_3 != null) {
-                chart_version.value = 'cvss3';
-            } else if (finding.value.severities.cvss_2 != null) {
-                chart_version.value = 'cvss2';
-            }
         }
         render.value = true;
     } catch (_err) {
@@ -362,8 +320,6 @@ function getPackageManagerSubtitleIcon(): string {
                                 :cvss-v3-fields-map="cvssV3_fields_map"
                                 :cvss-v2-fields-map="cvssV2_fields_map"
                                 :chart-version="chart_version"
-                                :cvss-chart-data="cvss_chart_data"
-                                :impact-chart-data="impact_chart_data"
                                 :cvss-field-info-modal-ref="cvss_field_info_modal_ref"
                                 @open-modal="openModal"
                             />

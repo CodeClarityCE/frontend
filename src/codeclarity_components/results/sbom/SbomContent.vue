@@ -7,10 +7,8 @@ import type { Ref } from 'vue';
 import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
 import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
 import { SbomStats } from '@/codeclarity_components/results/stats.entity';
-import { Doughnut } from 'vue-chartjs';
-
-import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue';
+import type { DoughnutChartData } from '@/base_components/data-display/charts/doughnutChart';
 
 // Import stores
 import { useUserStore } from '@/stores/user';
@@ -74,8 +72,7 @@ const initChartData = {
         }
     ]
 };
-const donut_data = ref(initChartData);
-const donut_config = ref({});
+const donut_data: Ref<DoughnutChartData> = ref([]);
 const bar_data = ref(initChartData);
 const bar_config = ref({});
 
@@ -225,65 +222,14 @@ function createDepTypeChart() {
     // Updated colors to use theme colors
     const colors = ['#1dce79', '#000000', '#666666'];
 
-    const dependency_dist_data = {
-        labels: labels,
-        datasets: [
-            {
-                borderColor: 'transparent',
-                spacing: 4,
-                borderRadius: 8,
-                data: data,
-                backgroundColor: colors,
-                borderWidth: 2,
-                hoverBackgroundColor: colors.map((color) => color + 'DD'),
-                hoverBorderColor: colors,
-                hoverBorderWidth: 3
-            }
-        ]
-    };
+    // Convert to d3 DoughnutChart format
+    const d3_data: DoughnutChartData = labels.map((label, index) => ({
+        label: label as any, // Cast to satisfy the type requirement
+        count: data[index],
+        color: colors[index]
+    }));
 
-    donut_data.value = dependency_dist_data;
-    donut_config.value = {
-        maintainAspectRatio: true,
-        responsive: true,
-        cutout: '60%',
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                enabled: true,
-                backgroundColor: 'rgba(0,0,0,0.8)',
-                titleColor: '#fff',
-                bodyColor: '#fff',
-                cornerRadius: 8,
-                padding: 12,
-                displayColors: true,
-                callbacks: {
-                    label: function (context: any) {
-                        const total = context.dataset.data.reduce(
-                            (a: number, b: number) => a + b,
-                            0
-                        );
-                        const percentage = Math.round((context.parsed / total) * 100);
-                        return `${context.label}: ${context.parsed} (${percentage}%)`;
-                    }
-                }
-            }
-        },
-        layout: {
-            padding: 10
-        },
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-        animation: {
-            animateRotate: true,
-            animateScale: true,
-            duration: 1000
-        }
-    };
+    donut_data.value = d3_data;
 }
 </script>
 
@@ -368,7 +314,11 @@ function createDepTypeChart() {
                     <!-- Chart -->
                     <div class="flex-shrink-0">
                         <div v-if="render" class="relative">
-                            <Doughnut :data="donut_data" :options="donut_config" />
+                            <DoughnutChart
+                                id="sbom-dependency-chart"
+                                :data="donut_data"
+                                :options="{ w: 180, h: 180, p: 20 }"
+                            />
                             <!-- Center text overlay -->
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="text-center">

@@ -14,7 +14,7 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { Icon } from '@iconify/vue';
-import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
+import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
 import router from '@/router';
 import { getRadarChartData as getCVSSRadarChartData } from './cvssChart';
 import { getRadarChartData as getImpactChartData } from './impactChart';

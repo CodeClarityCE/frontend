@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { ref, type Ref } from 'vue';
-import * as yup from 'yup';
+import * as z from 'zod';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { Form } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
@@ -23,9 +24,11 @@ const validationError: Ref<ValidationError | undefined> = ref();
 const formEmail: Ref<string> = ref('');
 
 // Form Validation
-const formValidationSchema = yup.object({
-    email: yup.string().required('Please enter your email')
-});
+const formValidationSchema = toTypedSchema(
+    z.object({
+        email: z.string().min(1, 'Please enter your email').email('Please enter a valid email')
+    })
+);
 
 // Methods
 async function submit() {

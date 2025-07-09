@@ -9,10 +9,10 @@ import { useAuthStore } from '@/stores/auth';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
 import { GitlabTokenType } from '@/codeclarity_components/organizations/integrations/integration_add.http';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import * as yup from 'yup';
+import * as z from 'zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { ValidationError as YupValidationError } from 'yup';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
@@ -125,30 +125,32 @@ async function submit() {
 }
 
 // Form Validation
-const formValidationSchema = yup.object({
-    token: yup
-        .string()
-        .required('Enter a GitLab personal access token')
-        .matches(
-            gitlabPersonalAccessTokenRegex,
-            'Please enter a valid GitLab personal access token'
-        )
-});
+const formValidationSchema = toTypedSchema(
+    z.object({
+        token: z
+            .string()
+            .min(1, 'Enter a GitLab personal access token')
+            .regex(
+                gitlabPersonalAccessTokenRegex,
+                'Please enter a valid GitLab personal access token'
+            )
+    })
+);
 
-const gitlabInstanceUrlValidationSchema = yup.object({
-    url: yup
+const gitlabInstanceUrlValidationSchema = z.object({
+    url: z
         .string()
-        .required('Enter the url of the self-hosted GitLab instance')
+        .min(1, 'Enter the url of the self-hosted GitLab instance')
         .url('Please enter a valid url')
 });
 
 async function validateGitlabInstanceUrl() {
     try {
-        await gitlabInstanceUrlValidationSchema.validate({ url: formGitlabInstanceUrl.value });
+        gitlabInstanceUrlValidationSchema.parse({ url: formGitlabInstanceUrl.value });
         formGitlabInstanceUrlError.value = '';
     } catch (err) {
-        if (err instanceof YupValidationError) {
-            formGitlabInstanceUrlError.value = err.message;
+        if (err instanceof z.ZodError) {
+            formGitlabInstanceUrlError.value = err.errors[0]?.message || 'Invalid URL';
         }
     }
 }

@@ -4,8 +4,9 @@ import router from '@/router';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
-import * as yup from 'yup';
+import * as z from 'zod';
 import { Form } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { Icon } from '@iconify/vue';
@@ -47,26 +48,16 @@ const formFirstName: Ref<string> = ref('');
 const formLastName: Ref<string> = ref('');
 
 // Form Validation
-const formValidationSchema = yup.object({
-    'social_form[firstName]': yup
-        .string()
-        .required('A first name is required')
-        .min(1, 'Too short')
-        .max(25, 'Too long'),
-    'social_form[lastName]': yup
-        .string()
-        .required('A last name is required')
-        .min(1, 'Too short')
-        .max(25, 'Too long'),
-    'social_form[handle]': yup
-        .string()
-        .required('A handle is required')
-        .min(5, 'Too short')
-        .max(50, 'Too long'),
-    'social_form[agreeTerms]': yup
-        .bool()
-        .required('You must accept our terms and conditions to continue')
-});
+const formValidationSchema = toTypedSchema(
+    z.object({
+        'social_form[firstName]': z.string().min(1, 'A first name is required').max(25, 'Too long'),
+        'social_form[lastName]': z.string().min(1, 'A last name is required').max(25, 'Too long'),
+        'social_form[handle]': z.string().min(5, 'A handle is required').max(50, 'Too long'),
+        'social_form[agreeTerms]': z
+            .boolean()
+            .refine((val) => val === true, 'You must accept our terms and conditions to continue')
+    })
+);
 
 // Sanity Checks
 if (authStore.getAuthenticated == true) {

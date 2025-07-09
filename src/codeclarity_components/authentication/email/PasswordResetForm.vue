@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { onMounted, ref, type Ref } from 'vue';
-import * as yup from 'yup';
+import * as z from 'zod';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { Form } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
@@ -30,18 +31,17 @@ const formPassword: Ref<string> = ref('');
 const formPasswordConfirmation: Ref<string> = ref('');
 
 // Form Validation
-const formValidationSchema = yup.object({
-    new_password: yup
-        .string()
-        .required('Please enter your new password')
-        .min(10, 'Too short')
-        .max(75, 'Too long'),
-    new_password_confirmation: yup
-        .string()
-        .test('passwords-match', 'Passwords must match', function (value) {
-            return this.parent.new_password === value;
+const formValidationSchema = toTypedSchema(
+    z
+        .object({
+            new_password: z.string().min(10, 'Too short').max(75, 'Too long'),
+            new_password_confirmation: z.string()
         })
-});
+        .refine((data) => data.new_password === data.new_password_confirmation, {
+            message: 'Passwords must match',
+            path: ['new_password_confirmation']
+        })
+);
 
 // Methods
 async function submit() {

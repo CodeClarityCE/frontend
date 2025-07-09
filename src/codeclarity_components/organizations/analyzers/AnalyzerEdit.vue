@@ -13,7 +13,8 @@ import { AnalyzerRepository } from '@/codeclarity_components/organizations/analy
 import { PluginRepository } from '@/codeclarity_components/organizations/analyzers/PluginRepository';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { Form } from 'vee-validate';
-import * as yup from 'yup';
+import * as z from 'zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
@@ -52,11 +53,12 @@ const nodes = new Map<string, lite.LGraphNode>();
 const nodes_to_link = new Map<string, string[]>();
 
 // Form Validation
-const formValidationSchema = yup.object({
-    name: yup.string().required('Please enter a name').min(5),
-    description: yup.string().required('Please enter a description').min(10)
-    // steps: yup.string().required('Please list the steps').min(5)
-});
+const formValidationSchema = toTypedSchema(
+    z.object({
+        name: z.string().min(5, 'Please enter a name (minimum 5 characters)'),
+        description: z.string().min(10, 'Please enter a description (minimum 10 characters)')
+    })
+);
 
 function setOrgInfo(_orgInfo: Organization) {
     orgInfo.value = _orgInfo;

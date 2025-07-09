@@ -19,7 +19,6 @@ export { default as TextLoader } from './ui/loaders/TextLoader.vue';
 
 // Modals
 export { default as CenteredModal } from './ui/modals/CenteredModal.vue';
-export { default as FullScreenModal } from './ui/modals/FullScreenModal.vue';
 export { default as PositionedModal } from './ui/modals/PositionedModal.vue';
 
 // Data Display Components
@@ -27,7 +26,6 @@ export { default as PositionedModal } from './ui/modals/PositionedModal.vue';
 // Charts
 export { default as BarChart } from './data-display/charts/BarChart.vue';
 export { default as DoughnutChart } from './data-display/charts/DoughnutChart.vue';
-export { default as HeatMapChart } from './data-display/charts/HeatMapChart.vue';
 export { default as LineChart } from './data-display/charts/LineChart.vue';
 export { default as RadarChart } from './data-display/charts/RadarChart.vue';
 export { default as TreeChart } from './data-display/charts/TreeChart.vue';
@@ -70,7 +68,7 @@ export { default as UtilitiesSort } from './utilities/UtilitiesSort.vue';
 
 // Markdown Components
 // -----------------------------------------------------------------------------
-export { default as InfoMarkdown } from './markdown/InfoMarkdown.vue';
+export { default as InfoMarkdown } from './ui/InfoMarkdown.vue';
 
 // =============================================================================
 // TYPE EXPORTS

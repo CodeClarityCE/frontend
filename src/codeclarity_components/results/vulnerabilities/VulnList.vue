@@ -21,7 +21,7 @@ import {
     isMediumSeverity
 } from '@/utils/severity';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
-import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import UtilitiesFilters, {

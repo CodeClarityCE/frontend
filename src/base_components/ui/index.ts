@@ -11,5 +11,4 @@ export { default as LoadingSubmitButton } from './loaders/LoadingSubmitButton.vu
 export { default as TextLoader } from './loaders/TextLoader.vue';
 
 export { default as CenteredModal } from './modals/CenteredModal.vue';
-export { default as FullScreenModal } from './modals/FullScreenModal.vue';
 export { default as PositionedModal } from './modals/PositionedModal.vue';

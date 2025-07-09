@@ -44,7 +44,6 @@ base_components/
 #### Modals (`ui/modals/`)
 
 - **CenteredModal**: Centered modal dialog
-- **FullScreenModal**: Full-screen modal overlay
 - **PositionedModal**: Positioned modal with custom placement
 
 ### 📊 Data Display (`data-display/`)
@@ -53,7 +52,6 @@ base_components/
 
 - **BarChart**: Bar chart visualization
 - **DoughnutChart**: Doughnut chart
-- **HeatMapChart**: Heat map visualization
 - **LineChart**: Line chart
 - **RadarChart**: Radar/spider chart
 - **TreeChart**: Tree structure chart

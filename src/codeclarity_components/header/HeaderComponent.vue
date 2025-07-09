@@ -14,7 +14,7 @@ import UserNav from './components/UserNav.vue';
                     :to="{ name: 'home' }"
                     class="flex gap-2 items-center hover:opacity-80 transition-opacity duration-200"
                 >
-                    <img src="@/imgs/logos/logo.svg" class="h-8 self-center" />
+                    <img src="@/assets/images/logos/logo.svg" class="h-8 self-center" />
                 </RouterLink>
 
                 <div class="flex items-center gap-1">

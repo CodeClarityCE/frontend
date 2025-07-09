@@ -4,7 +4,7 @@ import moment from 'moment';
 import { Icon } from '@iconify/vue';
 import type CenteredModalVue from '@/base_components/ui/modals/CenteredModal.vue';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
-import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 
 defineProps<{

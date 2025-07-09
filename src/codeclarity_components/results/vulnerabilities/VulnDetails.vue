@@ -1,36 +1,30 @@
 <script lang="ts" setup>
 import { ref, type Ref } from 'vue';
 import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
-
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-// import { buildDependencyTree } from "../../../dependency-tree.js";
-
 import moment from 'moment';
 import { Chart, registerables, type ChartData } from 'chart.js';
 import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
 import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
 import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
-
 import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
-// import { AnalysisRepository } from '@/repositories/AnalysisRepository';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-
-// Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
-
 import { Icon } from '@iconify/vue';
-
-import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
+import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
 import router from '@/router';
 import { getRadarChartData as getCVSSRadarChartData } from './cvssChart';
 import { getRadarChartData as getImpactChartData } from './impactChart';
-import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
-
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import VulnReferences from './VulnDetails/VulnReferences.vue';
+import VulnSecurityAnalysis from './VulnDetails/VulnSecurityAnalysis.vue';
 Chart.register(...registerables);
 
 type Props = {
@@ -74,20 +68,6 @@ const initChartData = {
 const cvss_chart_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
 const impact_chart_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
 
-function getFavicon(url: string) {
-    const host = getHost(url);
-    return `https://s2.googleusercontent.com/s2/favicons?sz=64&domain=${host}`;
-}
-
-function getHost(url: string) {
-    const host = new URL(url).hostname;
-    return host;
-}
-
-function getReferences() {
-    return finding.value.references.slice(0, references_limit.value);
-}
-
 function toggleReferences() {
     if (references_limit.value != finding.value.references.length)
         references_limit.value = finding.value.references.length;
@@ -99,8 +79,6 @@ function goBack() {
 }
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
-
-// Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
@@ -116,27 +94,22 @@ async function getFinding(projectID: string, analysisID: string) {
     const urlParams = new URLSearchParams(window.location.search);
     const finding_id_param = urlParams.get('finding_id');
     let finding_id = '';
-
     if (finding_id_param) {
         finding_id = finding_id_param;
     } else {
-        finding_id = props.findingID;
+        finding_id = props.analysisID;
     }
-
     if (finding_id == '') {
         return;
     }
-
     let res: DataResponse<VulnerabilityDetails>;
     try {
         if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
-
         if (authStore.getToken == null) {
             throw new Error('No token');
         }
-
         res = await resultsRepository.getFinding({
             orgId: userStore.getDefaultOrg.id,
             projectId: projectID,
@@ -154,7 +127,6 @@ async function getFinding(projectID: string, analysisID: string) {
         } else if (finding.value.severities.cvss_2 != null) {
             chart_version.value = 'cvss2';
         }
-
         if (finding.value) {
             const cvss_chart_config = getCVSSRadarChartData(finding.value);
             cvss_chart_data.value = cvss_chart_config as unknown as ChartData<'radar'>;
@@ -177,134 +149,268 @@ async function getFinding(projectID: string, analysisID: string) {
                 chart_version.value = 'cvss2';
             }
         }
-
         render.value = true;
     } catch (_err) {
         console.error(_err);
-
-        // error.value = true;
-        // if (_err instanceof BusinessLogicError) {
-        //     errorCode.value = _err.error_code;
-        // }
-    } finally {
-        // loading.value = false;
-        // createDepTypeChart();
-        // createDepStatusDistChart();
     }
 }
-
 getFinding(props.projectID, props.analysisID);
+
+// --- Stat Card Logic ---
+function getBaseScore(finding: VulnerabilityDetails): number | null {
+    if (finding.severities.cvss_31 && finding.severities.cvss_31.base_score != null) {
+        return finding.severities.cvss_31.base_score;
+    } else if (finding.severities.cvss_3 && finding.severities.cvss_3.base_score != null) {
+        return finding.severities.cvss_3.base_score;
+    } else if (finding.severities.cvss_2 && finding.severities.cvss_2.base_score != null) {
+        return finding.severities.cvss_2.base_score;
+    }
+    return null;
+}
+
+function getSeverityLevel(
+    finding: VulnerabilityDetails
+): 'critical' | 'high' | 'medium' | 'low' | 'none' {
+    const score = getBaseScore(finding);
+    if (score == null) return 'none';
+    if (score >= 9.0) return 'critical';
+    if (score >= 7.0) return 'high';
+    if (score >= 4.0) return 'medium';
+    if (score > 0.0) return 'low';
+    return 'none';
+}
+
+function calculateSecurityScore(finding: VulnerabilityDetails): string {
+    const level = getSeverityLevel(finding);
+    if (level === 'none' || level === 'low') return 'A';
+    if (level === 'medium') return 'B';
+    if (level === 'high') return 'D';
+    if (level === 'critical') return 'F';
+    return 'B';
+}
+function getSecurityScoreVariant(
+    finding: VulnerabilityDetails
+): 'success' | 'danger' | 'primary' | 'default' {
+    const score = calculateSecurityScore(finding);
+    if (score === 'A') return 'success';
+    if (score === 'F' || score === 'D') return 'danger';
+    if (score === 'C') return 'primary';
+    return 'default';
+}
+function getSecurityScoreDescription(finding: VulnerabilityDetails): string {
+    const score = calculateSecurityScore(finding);
+    const descriptions = {
+        A: 'Excellent security',
+        B: 'Good security',
+        C: 'Fair security',
+        D: 'Poor security',
+        F: 'Critical security issues'
+    };
+    return descriptions[score as keyof typeof descriptions] || 'Unknown';
+}
+function getVulnerabilityDescription(): string {
+    return 'This is a single vulnerability.';
+}
+function getCriticalHighCount(finding: VulnerabilityDetails): number {
+    const level = getSeverityLevel(finding);
+    return level === 'critical' || level === 'high' ? 1 : 0;
+}
+function getMediumLowCount(finding: VulnerabilityDetails): string {
+    const level = getSeverityLevel(finding);
+    if (level === 'medium') return '1 medium, 0 low';
+    if (level === 'low') return '0 medium, 1 low';
+    return '0 medium, 0 low';
+}
+function getVersionStatus(finding: VulnerabilityDetails): string {
+    if (!finding.dependency_info?.version) return 'Unknown';
+    return `v${finding.dependency_info.version}`;
+}
+function getVersionStatusVariant(): 'success' | 'primary' | 'default' {
+    return 'default';
+}
+function getVersionStatusDescription(finding: VulnerabilityDetails): string {
+    if (!finding.dependency_info?.version) return 'Version information unavailable';
+    return `Version: v${finding.dependency_info.version}`;
+}
+function getPackageManager(finding: VulnerabilityDetails): string {
+    // fallback to other.package_manager if not present in dependency_info
+    return finding.other?.package_manager || 'Unknown';
+}
+function getPackageManagerSubtitle(): string {
+    return 'Direct dependency';
+}
+function getPackageManagerSubtitleIcon(): string {
+    return 'solar:download-linear';
+}
 </script>
 
 <template>
-    <div style="position: relative">
-        <!--------------------------------------------------------------------------->
-        <!--                               Navigation                              -->
-        <!--------------------------------------------------------------------------->
-        <div v-if="showBack" class="content-header cursor-pointer">
-            <Badge variant="secondary" title="Go back to preview page" @click="goBack()">
-                <Icon :icon="'material-symbols:keyboard-backspace'"></Icon>
+    <div class="sbom-details-container">
+        <!-- Navigation -->
+        <div v-if="showBack" class="navigation-section">
+            <Badge
+                variant="secondary"
+                title="Go back to preview page"
+                class="back-button"
+                @click="goBack()"
+            >
+                <Icon
+                    :icon="'material-symbols:keyboard-backspace'"
+                    class="mr-2 text-theme-primary"
+                />
                 Go back
             </Badge>
         </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                                 Content                               -->
-        <!--------------------------------------------------------------------------->
-        <div v-if="render" class="details-container flex flex-col gap-10" style="font-size: 1rem">
-            <VulnDetailsHeader :finding="finding" :versions-modal-ref="versions_modal_ref" />
-
-            <VulnSummaryContent
-                :finding="finding"
-                :read-me-modal-ref="read_me_modal_ref"
-                :readme="readme"
-                :active-view="active_view"
-            />
-
-            <VulnerabilitySeverities
-                :finding="finding"
-                :cvss-v3-fields-map="cvssV3_fields_map"
-                :cvss-v2-fields-map="cvssV2_fields_map"
-                :chart-version="chart_version"
-                :cvss-chart-data="cvss_chart_data"
-                :impact-chart-data="impact_chart_data"
-                :cvss-field-info-modal-ref="cvss_field_info_modal_ref"
-                @open-modal="openModal"
-            />
-
-            <!--------------------------------------------------------------------------->
-            <!--                            References section                         -->
-            <!--------------------------------------------------------------------------->
-            <section class="references-wrapper">
-                <div class="flex flex-col gap-5">
-                    <h2 style="font-family: lato; font-weight: 900">
-                        <div><span style="color: teal; font-size: 1.9em">R</span>eferences</div>
-                    </h2>
-                    <div class="references-inner-wrapper">
-                        <!--------------------------------------------------------------------------->
-                        <!--                               Reference                               -->
-                        <!--------------------------------------------------------------------------->
-                        <div
-                            v-for="reference in getReferences()"
-                            :key="reference.url"
-                            title="View reference (opens in a new tab)"
-                        >
-                            <a
-                                :href="reference.url"
-                                target="_blank"
-                                class="reference p-5 rounded-lg"
-                            >
-                                <div class="reference-header">
-                                    <div
-                                        class="reference-header-wrapper flex flex-col items-center gap-5 font-medium text-sm"
-                                    >
-                                        <img :src="getFavicon(reference.url)" />
-                                        <div>{{ getHost(reference.url) }}</div>
-                                    </div>
-                                    <div>
-                                        <Icon :icon="'ion:open-outline'"></Icon>
-                                    </div>
-                                </div>
-                                <div>{{ reference.url }}</div>
-                                <div class="vulnerability-references-tags-container">
-                                    <div
-                                        v-for="tag in reference.tags"
-                                        :key="tag"
-                                        class="reference-tag"
-                                    >
-                                        {{ tag }}
-                                    </div>
-                                </div>
-                            </a>
+        <!-- Content -->
+        <div v-if="render" class="content-wrapper">
+            <!-- Header Section with Package Info -->
+            <InfoCard
+                :title="finding.vulnerability_info.vulnerability_id || 'Vulnerability Details'"
+                :description="`Version ${finding.dependency_info?.version || 'unknown'} - Package information and external links`"
+                icon="solar:bug-bold"
+                variant="primary"
+                class="header-section"
+            >
+                <VulnDetailsHeader :finding="finding" :versions-modal-ref="versions_modal_ref" />
+            </InfoCard>
+            <!-- Security Overview Stats -->
+            <div class="security-stats-grid">
+                <StatCard
+                    label="Security Score"
+                    :value="calculateSecurityScore(finding)"
+                    icon="solar:shield-check-bold"
+                    :variant="getSecurityScoreVariant(finding)"
+                    :subtitle="getSecurityScoreDescription(finding)"
+                    subtitle-icon="solar:info-circle-linear"
+                />
+                <StatCard
+                    label="Total Vulnerabilities"
+                    :value="1"
+                    icon="solar:bug-bold"
+                    :variant="1 > 0 ? 'danger' : 'success'"
+                    :subtitle="getVulnerabilityDescription()"
+                    subtitle-icon="solar:shield-warning-linear"
+                />
+                <StatCard
+                    label="Critical & High"
+                    :value="getCriticalHighCount(finding)"
+                    icon="solar:danger-triangle-bold"
+                    :variant="getCriticalHighCount(finding) > 0 ? 'danger' : 'success'"
+                    :subtitle="`${getMediumLowCount(finding).split(',')[0]}`"
+                    subtitle-icon="solar:shield-check-linear"
+                />
+                <StatCard
+                    label="Version Status"
+                    :value="getVersionStatus(finding)"
+                    icon="solar:refresh-bold"
+                    :variant="getVersionStatusVariant()"
+                    :subtitle="getVersionStatusDescription(finding)"
+                    subtitle-icon="solar:calendar-linear"
+                />
+                <StatCard
+                    label="License"
+                    :value="'Unknown'"
+                    icon="solar:document-text-bold"
+                    :variant="'danger'"
+                    :subtitle="'License information missing'"
+                    subtitle-icon="solar:check-circle-linear"
+                />
+                <StatCard
+                    label="Package Manager"
+                    :value="getPackageManager(finding)"
+                    icon="solar:box-bold"
+                    variant="default"
+                    :subtitle="getPackageManagerSubtitle()"
+                    :subtitle-icon="getPackageManagerSubtitleIcon()"
+                />
+            </div>
+            <!-- Security Analysis Section (moved to top for clarity) -->
+            <InfoCard
+                title="Security Analysis"
+                description="Severity breakdown, recommendations, and identifier for this vulnerability"
+                icon="solar:bug-bold"
+                variant="danger"
+                class="vulnerability-card"
+            >
+                <VulnSecurityAnalysis
+                    :finding="finding"
+                    :get-severity-level="getSeverityLevel"
+                    :get-critical-high-count="getCriticalHighCount"
+                    :get-medium-low-count="getMediumLowCount"
+                />
+            </InfoCard>
+            <!-- Main Content Grid -->
+            <div class="main-content-grid">
+                <!-- Comprehensive Package Overview Card -->
+                <InfoCard
+                    title="Package Overview"
+                    description="Complete technical details, metadata, and security analysis"
+                    icon="solar:info-circle-bold"
+                    variant="default"
+                    class="comprehensive-overview-card"
+                >
+                    <div class="comprehensive-content">
+                        <div class="overview-section">
+                            <VulnSummaryContent
+                                :finding="finding"
+                                :read-me-modal-ref="read_me_modal_ref"
+                                :readme="readme"
+                                :active-view="active_view"
+                            />
+                            <VulnerabilitySeverities
+                                :finding="finding"
+                                :cvss-v3-fields-map="cvssV3_fields_map"
+                                :cvss-v2-fields-map="cvssV2_fields_map"
+                                :chart-version="chart_version"
+                                :cvss-chart-data="cvss_chart_data"
+                                :impact-chart-data="impact_chart_data"
+                                :cvss-field-info-modal-ref="cvss_field_info_modal_ref"
+                                @open-modal="openModal"
+                            />
                         </div>
                     </div>
-
-                    <!--------------------------------------------------------------------------->
-                    <!--                         References load more                          -->
-                    <!--------------------------------------------------------------------------->
+                </InfoCard>
+                <!-- Import Paths Card (Placeholder for now) -->
+                <InfoCard
+                    title="Import Paths & Usage"
+                    description="How this dependency is imported and used in your project"
+                    icon="solar:route-bold"
+                    variant="default"
+                    class="import-paths-card-side"
+                >
                     <div
-                        v-if="finding.references && finding.references.length > 8"
-                        class="references-show-more-wrapper"
+                        style="
+                            min-height: 300px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #888;
+                        "
                     >
-                        <div @click="toggleReferences()">
-                            <span v-if="references_limit < finding.references.length" class="button"
-                                >Show more</span
-                            >
-                            <span
-                                v-if="references_limit == finding.references.length"
-                                class="button"
-                                >Show less</span
-                            >
-                        </div>
+                        <span>Dependency tree and import paths coming soon.</span>
                     </div>
-                </div>
-            </section>
+                </InfoCard>
+            </div>
+            <!-- References Section -->
+            <InfoCard
+                title="References"
+                description="External links and documentation for this vulnerability"
+                icon="solar:link-bold"
+                variant="default"
+                class="references-section"
+            >
+                <VulnReferences
+                    :references="finding.references"
+                    :references-limit="references_limit"
+                    :on-toggle="toggleReferences"
+                />
+            </InfoCard>
         </div>
-
-        <!--------------------------------------------------------------------------->
-        <!--                               Readme modal                            -->
-        <!--------------------------------------------------------------------------->
-
+        <!-- Loading skeleton -->
+        <div v-else class="loading-wrapper">
+            <VulnDetailsLoader />
+        </div>
+        <!-- Readme Modal -->
         <CenteredModal ref="read_me_modal_ref">
             <template #title>
                 <div
@@ -324,25 +430,21 @@ getFinding(props.projectID, props.analysisID);
                             align-items: center;
                         "
                     >
-                        <Icon :icon="'tabler:markdown'"></Icon>
+                        <Icon :icon="'tabler:markdown'" />
                         <div>Readme</div>
                     </div>
                 </div>
             </template>
             <template #content>
                 <div style="max-width: 1000px; max-height: 80vh; overflow-y: auto">
-                    <InfoMarkdown class="w-full" :markdown="readme"></InfoMarkdown>
+                    <InfoMarkdown class="w-full" :markdown="readme" />
                 </div>
             </template>
             <template #buttons>
                 <Button @click="read_me_modal_ref.toggle()"> Close </Button>
             </template>
         </CenteredModal>
-
-        <!--------------------------------------------------------------------------->
-        <!--                              All versions modal                       -->
-        <!--------------------------------------------------------------------------->
-
+        <!-- All versions modal -->
         <PositionedModal ref="versions_modal_ref" :tracker="'show-all-versions'" :position="'top'">
             <template #title>
                 <div
@@ -359,9 +461,8 @@ getFinding(props.projectID, props.analysisID);
                         style="cursor: pointer"
                         title="Close modal"
                         @click="versions_modal_ref.toggle()"
+                        >Close</Icon
                     >
-                        Close
-                    </Icon>
                 </div>
             </template>
             <template #subtitle>
@@ -393,7 +494,7 @@ getFinding(props.projectID, props.analysisID);
                                 "
                             >
                                 <div>Not Affected</div>
-                                <Icon :icon="'bi:shield-check'"></Icon>
+                                <Icon :icon="'bi:shield-check'" />
                             </div>
                             <div
                                 v-for="version_obj in finding.vulnerability_info.version_info
@@ -414,9 +515,7 @@ getFinding(props.projectID, props.analysisID);
                                         "
                                     >
                                         <div>{{ version_obj.version }}</div>
-                                        <div>
-                                            {{ moment(version_obj.release).format('LL') }}
-                                        </div>
+                                        <div>{{ moment(version_obj.release).format('LL') }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -435,7 +534,7 @@ getFinding(props.projectID, props.analysisID);
                                 "
                             >
                                 <div>Affected</div>
-                                <Icon :icon="'bi:shield-exclamation'"></Icon>
+                                <Icon :icon="'bi:shield-exclamation'" />
                             </div>
                             <div
                                 v-for="version_obj in finding.vulnerability_info.version_info
@@ -468,9 +567,7 @@ getFinding(props.projectID, props.analysisID);
                                         }"
                                     >
                                         <div>{{ version_obj.version }}</div>
-                                        <div>
-                                            {{ moment(version_obj.release).format('LL') }}
-                                        </div>
+                                        <div>{{ moment(version_obj.release).format('LL') }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -482,11 +579,7 @@ getFinding(props.projectID, props.analysisID);
                 <Button variant="outline" @click="versions_modal_ref.toggle()"> Close </Button>
             </template>
         </PositionedModal>
-
-        <!--------------------------------------------------------------------------->
-        <!--                           CVSS Details Model                          -->
-        <!--------------------------------------------------------------------------->
-
+        <!-- CVSS Details Modal -->
         <CenteredModal ref="cvss_field_info_modal_ref">
             <template #title>
                 <span>CVSS{{ cvss_field_version }} - </span>
@@ -522,70 +615,210 @@ getFinding(props.projectID, props.analysisID);
                 </Button>
             </template>
         </CenteredModal>
-
-        <!--------------------------------------------------------------------------->
-        <!--                            Loading skeleton                           -->
-        <!--------------------------------------------------------------------------->
-
-        <div v-if="!render">
-            <VulnDetailsLoader />
-        </div>
     </div>
 </template>
 
 <style scoped lang="scss">
 @use '@/assets/colors.scss';
-
-.details-container {
-    max-width: 1200px;
-    margin: 0 auto;
+@use '@/assets/common/details.scss';
+@use '@/assets/common/cvss.scss';
+.sbom-details-container {
+    width: 100%;
+    max-width: 100vw;
+    margin: 0;
     padding: 2rem;
-    background: #ffffff; /* Changed to white for consistency */
-    border-radius: 8px; /* Added rounded corners */
-    box-shadow:
-        0 4px 6px -1px rgb(0 0 0 / 0.1),
-        0 2px 4px -2px rgb(0 0 0 / 0.1); /* Added subtle shadow */
+    background: white;
     min-height: 100vh;
 }
-
-.content-header {
-    margin-bottom: 1.5rem;
-
-    .cursor-pointer {
+.navigation-section {
+    margin-bottom: 2rem;
+    .back-button {
         cursor: pointer;
         transition: all 0.2s ease-in-out;
-        border-radius: 6px;
-        padding: 0.5rem 1rem;
-        background: #ffffff; /* Changed to white */
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        background: white;
+        border: 2px solid #e5e7eb;
+        box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.05);
+        font-weight: 500;
         &:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
+            background: theme('colors.theme-primary');
+            border-color: theme('colors.theme-primary');
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px 0 rgb(29 206 121 / 0.2);
         }
     }
 }
-
-.references-wrapper {
+.content-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    background: #ffffff; /* Changed to white */
-    border-radius: 8px; /* Added rounded corners */
-    border: 1px solid #e5e7eb;
-    box-shadow:
-        0 1px 3px 0 rgb(0 0 0 / 0.1),
-        0 1px 2px -1px rgb(0 0 0 / 0.1); /* Added subtle shadow */
+    gap: 2rem;
+    width: 100%;
 }
-
+.header-section {
+    margin-bottom: 0;
+}
+.security-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    width: 100%;
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+.vulnerability-section {
+    margin: 2rem 0;
+}
+.vulnerability-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+.breakdown-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: theme('colors.theme-black');
+    margin-bottom: 1rem;
+}
+.severity-breakdown {
+    .severity-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        @media (max-width: 768px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    .severity-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        transition: all 0.2s ease-in-out;
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        &.critical {
+            border-left: 4px solid theme('colors.severityCritical');
+            .severity-icon {
+                color: theme('colors.severityCritical');
+            }
+        }
+        &.high {
+            border-left: 4px solid theme('colors.severityHigh');
+            .severity-icon {
+                color: theme('colors.severityHigh');
+            }
+        }
+        &.medium {
+            border-left: 4px solid theme('colors.severityMedium');
+            .severity-icon {
+                color: theme('colors.severityMedium');
+            }
+        }
+        &.low {
+            border-left: 4px solid theme('colors.severityLow');
+            .severity-icon {
+                color: theme('colors.severityLow');
+            }
+        }
+    }
+    .severity-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .severity-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: theme('colors.theme-black');
+        margin-bottom: 0.25rem;
+    }
+    .severity-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: theme('colors.theme-gray');
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+}
+.vulnerability-list {
+    .vulnerability-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .vulnerability-badge {
+        font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+    }
+    .more-vulnerabilities {
+        font-weight: 500;
+        color: theme('colors.theme-gray');
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+    }
+}
+.comprehensive-overview-card,
+.import-paths-card-side {
+    transition: all 0.2s ease-in-out;
+    min-height: 600px;
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(29, 206, 121, 0.15);
+    }
+}
+.comprehensive-overview-card {
+    @media (min-width: 1024px) {
+        grid-column: 1 / 2;
+        min-width: 0;
+    }
+}
+.import-paths-card-side {
+    @media (min-width: 1024px) {
+        grid-column: 2 / 3;
+        min-width: 0;
+    }
+}
+.comprehensive-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    height: 100%;
+}
+.overview-section {
+    flex: 1;
+}
+.references-section {
+    margin-top: 2rem;
+}
 .references-inner-wrapper {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
 }
-
 .reference {
     display: flex;
     flex-direction: column;
@@ -595,28 +828,24 @@ getFinding(props.projectID, props.analysisID);
     border-radius: 6px;
     border: 1px solid #e5e7eb;
     transition: box-shadow 0.15s ease-in-out;
-
     &:hover {
         box-shadow:
             0 4px 6px -1px rgb(0 0 0 / 0.1),
             0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
 }
-
 .reference-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
 }
-
 .reference-header-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
 }
-
 .reference-tag {
     display: inline-block;
     padding: 0.25rem 0.5rem;
@@ -626,12 +855,10 @@ getFinding(props.projectID, props.analysisID);
     font-weight: 500;
     color: #374151;
 }
-
 .references-show-more-wrapper {
     text-align: center;
     margin-top: 1rem;
 }
-
 .button {
     cursor: pointer;
     padding: 0.5rem 1rem;
@@ -639,24 +866,44 @@ getFinding(props.projectID, props.analysisID);
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     transition: background 0.15s ease-in-out;
-
     &:hover {
         background: #f3f4f6;
     }
 }
-
-/* Responsive adjustments */
+.loading-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 4rem;
+    border: 1px solid #e5e7eb;
+    box-shadow:
+        0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1);
+    text-align: center;
+    margin: 2rem 0;
+}
 @media (max-width: 768px) {
-    .details-container {
+    .sbom-details-container {
         padding: 1rem;
     }
-
-    .references-wrapper {
-        padding: 1rem;
+    .main-content-grid {
+        gap: 1.5rem;
     }
-
-    .reference {
-        padding: 0.75rem;
+    .navigation-section {
+        margin-bottom: 1.5rem;
+    }
+    .content-wrapper {
+        gap: 1.5rem;
+    }
+}
+@media (min-width: 1400px) {
+    .sbom-details-container {
+        padding: 3rem 4rem;
+    }
+    .main-content-grid {
+        gap: 3rem;
+    }
+    .content-wrapper {
+        gap: 3rem;
     }
 }
 </style>

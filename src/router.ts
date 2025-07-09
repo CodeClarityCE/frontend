@@ -10,8 +10,8 @@ import { SocialProvider } from '@/codeclarity_components/organizations/integrati
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 import ProjectsView from '@/codeclarity_components/projects/ProjectsView.vue';
 import ResultsView from '@/codeclarity_components/results/ResultsView.vue';
-import NotFoundView from '@/codeclarity_components/errors/NotFoundView.vue';
-import TermsView from '@/codeclarity_components/terms/TermsView.vue';
+import NotFoundView from '@/codeclarity_components/views/NotFoundView.vue';
+import TermsView from '@/codeclarity_components/views/TermsView.vue';
 import AnalysesView from '@/codeclarity_components/analyses/AnalysesView.vue';
 import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue';
 import SignupView from '@/codeclarity_components/authentication/signup/SignupView.vue';
@@ -20,7 +20,7 @@ import OAuthCallbackView from '@/codeclarity_components/authentication/oauth/OAu
 import PasswordResetRequestView from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue';
 import OrganizationView from '@/codeclarity_components/organizations/OrganizationView.vue';
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
-import HelpView from '@/codeclarity_components/help/HelpView.vue';
+import HelpView from '@/codeclarity_components/views/HelpView.vue';
 import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
 
 const router = createRouter({

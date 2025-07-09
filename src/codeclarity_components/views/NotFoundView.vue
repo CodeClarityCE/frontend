@@ -19,7 +19,7 @@ import { Button } from '@/shadcn/ui/button';
                 </div>
             </div>
 
-            <img class="error-logo" src="/src/imgs/others/logo_side_wise_error.png" />
+            <img class="error-logo" src="/src/assets/images/others/logo_side_wise_error.png" />
         </div>
     </main>
 </template>

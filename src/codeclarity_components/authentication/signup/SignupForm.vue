@@ -127,12 +127,12 @@ async function submit(values: any) {
                 )
             "
         >
-            <img src="@/imgs/logos/logo.svg" class="w-8" />
+            <img src="@/assets/images/logos/logo.svg" class="w-8" />
             Sign In
         </RouterLink>
         <div class="py-10">
             <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-                <img src="@/imgs/logos/logo.svg" class="w-20 self-center" />
+                <img src="@/assets/images/logos/logo.svg" class="w-20 self-center" />
                 <div class="flex flex-col space-y-2 text-center">
                     <h1 class="text-2xl font-semibold tracking-tight">Sign Up</h1>
                     <p class="text-sm text-muted-foreground">

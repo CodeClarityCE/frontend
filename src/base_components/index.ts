@@ -68,7 +68,7 @@ export { default as UtilitiesSort } from './utilities/UtilitiesSort.vue';
 
 // Markdown Components
 // -----------------------------------------------------------------------------
-export { default as InfoMarkdown } from './markdown/InfoMarkdown.vue';
+export { default as InfoMarkdown } from './ui/InfoMarkdown.vue';
 
 // =============================================================================
 // TYPE EXPORTS

@@ -18,7 +18,7 @@ import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabi
 import router from '@/router';
 import { getRadarChartData as getCVSSRadarChartData } from './cvssChart';
 import { getRadarChartData as getImpactChartData } from './impactChart';
-import InfoMarkdown from '@/base_components/markdown/InfoMarkdown.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';

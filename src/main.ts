@@ -5,7 +5,7 @@ import { createPinia } from 'pinia';
 import VueCookies from 'vue-cookies';
 
 import App from './App.vue';
-import router from './router';
+import router from './router.ts';
 
 const app = createApp(App);
 const pinia = createPinia();

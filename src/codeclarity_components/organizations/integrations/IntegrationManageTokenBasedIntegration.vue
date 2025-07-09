@@ -3,7 +3,7 @@ import { type AccessTokenBasedIntegration } from '@/codeclarity_components/organ
 import router from '@/router';
 import { Icon } from '@iconify/vue';
 import { ref, type Ref } from 'vue';
-import moment from 'moment';
+import { formatDate, formatRelativeTime, getDaysUntilExpiry } from '@/utils/dateUtils';
 import FaqBox from '@/base_components/layout/FaqBox.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
@@ -46,10 +46,7 @@ const errorCode: Ref<string | undefined> = ref('');
 
 function isAtRisk() {
     if (props.integration && props.integration.expiry_date)
-        return (
-            moment.duration(moment(props.integration.expiry_date).diff(new Date())).asDays() <=
-            EXPIRES_IN_DAYS_RISK
-        );
+        return getDaysUntilExpiry(props.integration.expiry_date) <= EXPIRES_IN_DAYS_RISK;
     else return false;
 }
 
@@ -127,25 +124,19 @@ const emit = defineEmits<{
                         <div>
                             <slot name="header-integration-description"></slot>
                         </div>
-                        <div>Added on: {{ moment(integration.added_on).format('LL') }}</div>
+                        <div>Added on: {{ formatDate(integration.added_on, 'LL') }}</div>
                         <div>
                             Expiry date:
                             <span v-if="integration.expiry_date">
-                                {{ moment(integration.expiry_date).format('LL') }}
+                                {{ formatDate(integration.expiry_date, 'LL') }}
                                 <span
-                                    v-if="
-                                        moment
-                                            .duration(
-                                                moment(integration.expiry_date).diff(new Date())
-                                            )
-                                            .asDays() > 0
-                                    "
+                                    v-if="getDaysUntilExpiry(integration.expiry_date) > 0"
                                     :style="{
                                         color: isAtRisk() ? 'red' : 'unset',
                                         'font-weight': isAtRisk() ? 900 : 'unset'
                                     }"
                                 >
-                                    (expires {{ moment(integration.expiry_date).fromNow() }})
+                                    (expires {{ formatRelativeTime(integration.expiry_date) }})
                                 </span>
                                 <span v-else style="color: red; font-weight: 900">(Expired)</span>
                             </span>

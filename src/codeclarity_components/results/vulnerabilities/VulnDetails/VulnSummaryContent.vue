@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
 import type CenteredModalVue from '@/base_components/ui/modals/CenteredModal.vue';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
@@ -34,7 +34,7 @@ defineProps<{
                             <div class="flex flex-col gap-2 mb-5 max-w-96 w-full">
                                 <div>
                                     <span class="font-normal text-gray-600">Published:</span>
-                                    {{ moment(finding.vulnerability_info.published).format('LL') }}
+                                    {{ formatDate(finding.vulnerability_info.published, 'LL') }}
                                 </div>
                                 <div>
                                     <div>
@@ -42,7 +42,8 @@ defineProps<{
                                             >Last modified:</span
                                         >
                                         {{
-                                            moment(finding.vulnerability_info.last_modified).format(
+                                            formatDate(
+                                                finding.vulnerability_info.last_modified,
                                                 'LL'
                                             )
                                         }}
@@ -279,7 +280,7 @@ defineProps<{
                             </div>
                             <div class="text-[#6c6b6b]">
                                 (published on
-                                {{ moment(finding.vulnerability_info.published).format('LL') }})
+                                {{ formatDate(finding.vulnerability_info.published, 'LL') }})
                             </div>
                         </div>
                         <div>

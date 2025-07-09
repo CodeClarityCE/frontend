@@ -5,7 +5,7 @@ import type { Invitation } from '../invitation.entity';
 import { OrgRepository } from '../../organization.repository';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import moment from 'moment';
+import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
 import { useUserStore } from '@/stores/user';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
@@ -206,12 +206,12 @@ const emit = defineEmits<{
         </td>
         <td>
             <div>
-                {{ moment(invitation.created_on).format('LL') }}
+                {{ formatDate(invitation.created_on, 'LL') }}
             </div>
         </td>
         <td>
             <div>
-                {{ moment(invitation.ttl).fromNow() }}
+                {{ formatRelativeTime(invitation.ttl) }}
             </div>
         </td>
         <td>

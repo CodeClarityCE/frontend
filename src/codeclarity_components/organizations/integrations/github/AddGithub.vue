@@ -9,7 +9,8 @@ import { useAuthStore } from '@/stores/auth';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
 import { GithubTokenType } from '@/codeclarity_components/organizations/integrations/integration_add.http';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import * as yup from 'yup';
+import * as z from 'zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
@@ -102,12 +103,14 @@ async function submit() {
     }
 }
 // Form Validation
-const formValidationSchema = yup.object({
-    token: yup
-        .string()
-        .required('Enter a Github classic token')
-        .matches(githubClassicTokenRegex, 'Please enter a valid Github classic token')
-});
+const formValidationSchema = toTypedSchema(
+    z.object({
+        token: z
+            .string()
+            .min(1, 'Enter a Github classic token')
+            .regex(githubClassicTokenRegex, 'Please enter a valid Github classic token')
+    })
+);
 
 async function init() {
     const route = useRoute();

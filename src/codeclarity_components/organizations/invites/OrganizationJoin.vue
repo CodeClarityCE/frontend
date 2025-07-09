@@ -5,7 +5,7 @@ import { OrganizationInfoForInvitee, MemberRole } from '../organization.entity';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted, ref, type Ref } from 'vue';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
 import FaqBox from '@/base_components/layout/FaqBox.vue';
 import { APIErrors } from '@/utils/api/ApiErrors';
@@ -261,7 +261,7 @@ async function joinOrg() {
                     <div class="flex flex-col gap-1 font-semibold">
                         <div>
                             Invite created on:
-                            {{ moment(orgInfo.invite_created_on).format('LL') }}
+                            {{ formatDate(orgInfo.invite_created_on, 'LL') }}
                         </div>
                     </div>
                     <div class="flex flex-row gap-2">

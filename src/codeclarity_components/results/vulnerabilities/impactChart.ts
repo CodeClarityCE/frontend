@@ -81,61 +81,50 @@ function getContinousFromDiscreteCVSS3(value: string) {
 
 function getRadarChartData(finding: any) {
     const data = getData(finding);
+    if (!data) return null;
 
-    const chart_data = {
-        labels: ['Confidentiality', 'Availability', 'Integrity'],
-        datasets: [
-            {
-                data: data,
-                fill: true,
-                backgroundColor: 'rgb(0, 80, 128, 0.4)',
-                borderColor: 'rgb(0, 80, 128)',
-                pointBackgroundColor: 'rgb(0, 80, 128, 0.4)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgb(0, 80, 128, 0.4)',
-                pointRadius: 0.0
-            }
-        ]
-    };
-    return chart_data;
+    // Convert to d3 RadarChart format
+    const d3_data = [
+        {
+            name: 'Impact Scores',
+            axes: [
+                {
+                    axis: 'Confidentiality',
+                    value: data[0] * 100 // Convert to percentage for d3
+                },
+                {
+                    axis: 'Integrity',
+                    value: data[1] * 100
+                },
+                {
+                    axis: 'Availability',
+                    value: data[2] * 100
+                }
+            ]
+        }
+    ];
+    return d3_data;
 }
 
 function getRadarChartConfig() {
-    const dependency_dist_config = {
-        spanGaps: true,
-        elements: {
-            line: {
-                borderWidth: 0
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            },
-            datalabels: {
-                display: false
-            }
-        },
-        scale: {
-            beginAtZero: true,
-            max: 1.0,
-            min: 0,
-            stepSize: 0.5
-        },
-        scales: {
-            r: {
-                pointLabels: {
-                    display: false
-                },
-                ticks: {
-                    display: false
-                }
-            }
-        }
+    // Return d3 RadarChart configuration
+    const d3_config = {
+        w: 300,
+        h: 300,
+        margin: { top: 20, right: 20, bottom: 20, left: 20 },
+        levels: 5,
+        maxValue: 100,
+        labelFactor: 1.15,
+        wrapWidth: 40,
+        opacityArea: 0.35,
+        dotRadius: 3,
+        opacityCircles: 0.1,
+        strokeWidth: 2,
+        roundStrokes: false,
+        legend: false
     };
 
-    return dependency_dist_config;
+    return d3_config;
 }
 
 export {

@@ -5,7 +5,7 @@ import {
 } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
-import moment from 'moment';
+import { formatRelativeTime } from '@/utils/dateUtils';
 
 defineProps<{
     log: AuditLog;
@@ -89,7 +89,7 @@ defineProps<{
         </td>
         <td>
             <div>
-                {{ moment(log.created_on).fromNow() }}
+                {{ formatRelativeTime(log.created_on) }}
             </div>
         </td>
     </tr>

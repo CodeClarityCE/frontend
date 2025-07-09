@@ -3,16 +3,20 @@ import { ref, type Ref, watch } from 'vue';
 import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 
-import { Radar, Bar } from 'vue-chartjs';
+// Chart.js imports removed - using d3 components
 import { Icon } from '@iconify/vue';
-import { Chart, registerables, type ChartData } from 'chart.js';
+// Chart.js registration removed
+import RadarChart from '@/base_components/data-display/charts/RadarChart.vue';
+import type { RadarChartData } from '@/base_components/data-display/charts/radarChart';
+import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue';
+import type { GroupedBarChartData } from '@/base_components/data-display/charts/groupedBarChart';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
-Chart.register(...registerables);
+// Chart.js registration removed
 
 type Props = {
     analysisID?: string;
@@ -48,24 +52,10 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 
-const colors = ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1', '#80FFDB'];
-const initChartData = {
-    labels: [],
-    datasets: [
-        {
-            borderColor: 'transparent',
-            spacing: 3,
-            borderRadius: 3,
-            data: [],
-            backgroundColor: colors
-        }
-    ]
-};
+// Chart initialization data removed - using d3 components
 const stats: Ref<PatchingStats> = ref(new PatchingStats());
-const severity_data: Ref<ChartData<'bar'>> = ref(initChartData as ChartData<'bar'>);
-const severity_conf: Ref<object> = ref({});
-const cia_data: Ref<ChartData<'radar'>> = ref(initChartData as ChartData<'radar'>);
-const cia_conf: Ref<object> = ref({});
+const severity_data: Ref<GroupedBarChartData> = ref({ categories: [], groups: [] });
+const cia_data: Ref<RadarChartData> = ref([]);
 
 const boxLoaderDimensions = {
     width: '100px',
@@ -113,279 +103,121 @@ async function getPatchesStats(refresh: boolean = false) {
 }
 
 function createRadarChart() {
-    let maxImpact = 0;
-
-    function getRadarChartData() {
-        maxImpact = Math.max(
-            stats.value.before_patch_overall_confidentiality_impact,
-            stats.value.before_patch_overall_integrity_impact,
-            stats.value.before_patch_overall_availability_impact,
-            stats.value.after_patch_overall_confidentiality_impact,
-            stats.value.after_patch_overall_integrity_impact,
-            stats.value.after_patch_overall_availability_impact
-        );
-
-        const dataBefore = [
-            stats.value.before_patch_overall_confidentiality_impact.toFixed(1),
-            stats.value.before_patch_overall_integrity_impact.toFixed(1),
-            stats.value.before_patch_overall_availability_impact.toFixed(1)
-        ];
-        const dataAfter = [
-            stats.value.after_patch_overall_confidentiality_impact.toFixed(1),
-            stats.value.after_patch_overall_integrity_impact.toFixed(1),
-            stats.value.after_patch_overall_availability_impact.toFixed(1)
-        ];
-
-        const chart_data = {
-            labels: [
-                'Mean Confidentiality Impact',
-                'Mean Integrity Impact',
-                'Mean Availability Impact'
-            ],
-            datasets: [
+    // Convert to d3 RadarChart format with multiple datasets
+    const d3_data: RadarChartData = [
+        {
+            name: 'Before Patch',
+            axes: [
                 {
-                    data: dataBefore,
-                    fill: true,
-                    backgroundColor: 'rgb(25, 167, 206, 0.4)',
-                    borderColor: 'rgb(25, 167, 206)',
-                    pointBackgroundColor: 'rgb(25, 167, 2064, 0.4)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(25, 167, 206, 0.4)',
-                    pointRadius: 0.0
+                    axis: 'Confidentiality',
+                    value: parseFloat(
+                        stats.value.before_patch_overall_confidentiality_impact.toFixed(1)
+                    )
                 },
                 {
-                    data: dataAfter,
-                    fill: true,
-                    backgroundColor: 'rgb(20, 108, 148, 0.8)',
-                    borderColor: 'rgb(20, 108, 148)',
-                    pointBackgroundColor: 'rgb(20, 108, 148, 0.8)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(20, 108, 148, 0.8)',
-                    pointRadius: 0.0
+                    axis: 'Integrity',
+                    value: parseFloat(stats.value.before_patch_overall_integrity_impact.toFixed(1))
+                },
+                {
+                    axis: 'Availability',
+                    value: parseFloat(
+                        stats.value.before_patch_overall_availability_impact.toFixed(1)
+                    )
                 }
             ]
-        };
-        return chart_data as unknown as ChartData<'radar'>;
-    }
-
-    function getRadarChartConfig() {
-        return {
-            elements: {
-                line: {
-                    borderWidth: 0
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                datalabels: {
-                    display: false
-                }
-            },
-            scale: {
-                beginAtZero: true,
-                min: 0,
-                stepSize: maxImpact / 3
-            },
-            scales: {
-                r: {
-                    pointLabels: {
-                        display: false
-                    },
-                    ticks: {
-                        display: false
-                    }
-                }
-            }
-        };
-    }
-
-    cia_data.value = getRadarChartData();
-    cia_conf.value = getRadarChartConfig();
-}
-
-function createSeverityDistChart() {
-    const labels = [];
-    const colors: Array<string> = [];
-    const data = [
-        {
-            borderColor: 'transparent',
-            backgroundColor: colors,
-            spacing: 3,
-            borderRadius: 3,
-            label: 'Before Patch',
-            data: [],
-            yAxisID: 'y-axis-before'
         },
         {
-            borderColor: 'transparent',
-            backgroundColor: colors,
-            spacing: 3,
-            borderRadius: 3,
-            label: 'After Patch',
-            data: [],
-            yAxisID: 'y-axis-before'
+            name: 'After Patch',
+            axes: [
+                {
+                    axis: 'Confidentiality',
+                    value: parseFloat(
+                        stats.value.after_patch_overall_confidentiality_impact.toFixed(1)
+                    )
+                },
+                {
+                    axis: 'Integrity',
+                    value: parseFloat(stats.value.after_patch_overall_integrity_impact.toFixed(1))
+                },
+                {
+                    axis: 'Availability',
+                    value: parseFloat(
+                        stats.value.after_patch_overall_availability_impact.toFixed(1)
+                    )
+                }
+            ]
         }
     ];
 
+    cia_data.value = d3_data;
+}
+
+function createSeverityDistChart() {
+    const categories: string[] = [];
+    const beforeData: number[] = [];
+    const afterData: number[] = [];
+
+    // Build data arrays for categories that have non-zero values
     if (
         stats.value.after_patch_number_of_critical != 0 ||
         stats.value.before_patch_number_of_critical != 0
     ) {
-        labels.push('Critical');
-        colors.push('#7400B8');
-        (data[0].data as Array<number>).push(stats.value.before_patch_number_of_critical);
-        (data[1].data as Array<number>).push(stats.value.after_patch_number_of_critical);
+        categories.push('Critical');
+        beforeData.push(stats.value.before_patch_number_of_critical);
+        afterData.push(stats.value.after_patch_number_of_critical);
     }
 
     if (
         stats.value.after_patch_number_of_high != 0 ||
         stats.value.before_patch_number_of_high != 0
     ) {
-        labels.push('High');
-        colors.push('#6930C3');
-        (data[0].data as Array<number>).push(stats.value.before_patch_number_of_high);
-        (data[1].data as Array<number>).push(stats.value.after_patch_number_of_high);
+        categories.push('High');
+        beforeData.push(stats.value.before_patch_number_of_high);
+        afterData.push(stats.value.after_patch_number_of_high);
     }
 
     if (
         stats.value.after_patch_number_of_medium != 0 ||
         stats.value.before_patch_number_of_medium != 0
     ) {
-        labels.push('Medium');
-        colors.push('#5E60CE');
-        (data[0].data as Array<number>).push(stats.value.before_patch_number_of_medium);
-        (data[1].data as Array<number>).push(stats.value.after_patch_number_of_medium);
+        categories.push('Medium');
+        beforeData.push(stats.value.before_patch_number_of_medium);
+        afterData.push(stats.value.after_patch_number_of_medium);
     }
 
     if (stats.value.after_patch_number_of_low != 0 || stats.value.before_patch_number_of_low != 0) {
-        labels.push('Low');
-        colors.push('#5390D9');
-        (data[0].data as Array<number>).push(stats.value.before_patch_number_of_low);
-        (data[1].data as Array<number>).push(stats.value.after_patch_number_of_low);
+        categories.push('Low');
+        beforeData.push(stats.value.before_patch_number_of_low);
+        afterData.push(stats.value.after_patch_number_of_low);
     }
 
     if (
         stats.value.after_patch_number_of_none != 0 ||
         stats.value.before_patch_number_of_none != 0
     ) {
-        labels.push('None');
-        colors.push('#19A7CE');
-        (data[0].data as Array<number>).push(stats.value.before_patch_number_of_none);
-        (data[1].data as Array<number>).push(stats.value.after_patch_number_of_none);
+        categories.push('None');
+        beforeData.push(stats.value.before_patch_number_of_none);
+        afterData.push(stats.value.after_patch_number_of_none);
     }
 
-    const dependency_dist_data = {
-        labels: labels,
-        datasets: data
+    // Convert to d3 GroupedBarChart format
+    const d3_data: GroupedBarChartData = {
+        categories: categories,
+        groups: [
+            {
+                name: 'Before Patch',
+                color: '#19A7CE',
+                data: beforeData
+            },
+            {
+                name: 'After Patch',
+                color: '#146C94',
+                data: afterData
+            }
+        ]
     };
 
-    severity_data.value = dependency_dist_data;
-    severity_conf.value = {
-        skipNull: true,
-        indexAxis: 'x',
-        maintainAspectRatio: true,
-        responsive: true,
-        scales: {
-            'y-axis-before': {
-                display: false,
-                grid: {
-                    drawBorder: false,
-                    display: false
-                }
-            },
-            'y-axis-after': {
-                display: false,
-                grid: {
-                    drawBorder: false,
-                    display: false
-                }
-            },
-            x: {
-                display: false,
-                grid: {
-                    drawBorder: false,
-                    display: false
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
-            // tooltip: {
-            // 	// Disable the on-canvas tooltip
-            // 	enabled: false,
-
-            // 	external: function (context) {
-            // 		// Tooltip Element
-            // 		let tooltipEl = document.getElementById('chartjs-tooltip');
-
-            // 		// Create element on first render
-            // 		if (!tooltipEl) {
-            // 			tooltipEl = document.createElement('div');
-            // 			tooltipEl.id = 'chartjs-tooltip';
-            // 			tooltipEl.innerHTML = '';
-            // 			document.body.appendChild(tooltipEl);
-            // 		}
-            // 		tooltipEl.innerHTML = '';
-
-            // 		// Hide if no tooltip
-            // 		const tooltipModel = context.tooltip;
-            // 		if (tooltipModel.opacity === 0) {
-            // 			tooltipEl.style.opacity = 0;
-            // 			return;
-            // 		}
-
-            // 		// Set caret Position
-            // 		tooltipEl.classList.remove('above', 'below', 'no-transform');
-            // 		if (tooltipModel.yAlign) {
-            // 			tooltipEl.classList.add(tooltipModel.yAlign);
-            // 		} else {
-            // 			tooltipEl.classList.add('no-transform');
-            // 		}
-
-            // 		let innerHTML = "";
-            // 		innerHTML += '<div class="chart-tool-tip">';
-            // 		innerHTML += '<div class="chart-tool-tip-title">Issues</div>';
-            // 		innerHTML += '<div class="chart-tool-tip-title-divider"></div>';
-            // 		innerHTML += '<div class="chart-tool-tip-data">';
-            // 		let index = 0;
-            // 		for (let dataPoint of data) {
-            // 			innerHTML +=
-            // 				`<div class="chart-tool-tip-data-row">
-            // 				<div>
-            // 					<div><div class="chart-tool-tip-color-bubble" style="background-color:${colors[index]}"></div></div>
-            // 					<div>${labels[index]}</div>
-            // 				</div>
-            // 				<div class="chart-tool-tip-data-value" style="color:${colors[index]}">${JSON.stringify(dataPoint)}</div>
-            // 			</div>`;
-            // 			index++;
-            // 		}
-            // 		innerHTML += '</div></div>';
-            // 		tooltipEl.innerHTML = innerHTML;
-
-            // 		const position = context.chart.canvas.getBoundingClientRect();
-            // 		//const bodyFont = ChartJS.helpers.toFont(tooltipModel.options.bodyFont);
-
-            // 		// Display, position, and set styles for font
-            // 		tooltipEl.style.opacity = 1;
-            // 		tooltipEl.style.position = 'absolute';
-            // 		tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
-            // 		tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
-            // 		//tooltipEl.style.font = bodyFont.string;
-            // 		tooltipEl.style.padding = tooltipModel.padding + 'px ' + tooltipModel.padding + 'px';
-            // 		tooltipEl.style.pointerEvents = 'none';
-            // 	}
-            // }
-        },
-        layout: {
-            padding: 20
-        }
-    };
+    severity_data.value = d3_data;
 }
 </script>
 
@@ -545,10 +377,18 @@ function createSeverityDistChart() {
             </div>
             <div>
                 <div v-if="render" class="chart-wrapper">
-                    <Bar
+                    <GroupedBarChart
+                        id="patching-severity-bar-chart"
                         :data="severity_data"
-                        :options="severity_conf"
-                        style="height: 200px; width: 200px"
+                        :options="{
+                            w: 200,
+                            h: 200,
+                            padding: 0.1,
+                            groupPadding: 0.2,
+                            rounded: true,
+                            showLabels: false,
+                            shadow: false
+                        }"
                     />
                 </div>
                 <div v-if="!render" style="max-height: 200px; max-width: 200px">
@@ -721,10 +561,33 @@ function createSeverityDistChart() {
                             margin-left: -6px;
                         "
                     >
-                        <Radar
+                        <RadarChart
+                            id="patching-cia-radar-chart"
                             :data="cia_data"
-                            :options="cia_conf"
-                            style="height: 212px !important; width: 212px !important"
+                            :options="{
+                                w: 212,
+                                h: 212,
+                                margin: { top: 20, right: 20, bottom: 20, left: 20 },
+                                levels: 5,
+                                maxValue: Math.ceil(
+                                    Math.max(
+                                        stats.before_patch_overall_confidentiality_impact,
+                                        stats.before_patch_overall_integrity_impact,
+                                        stats.before_patch_overall_availability_impact,
+                                        stats.after_patch_overall_confidentiality_impact,
+                                        stats.after_patch_overall_integrity_impact,
+                                        stats.after_patch_overall_availability_impact
+                                    ) || 1
+                                ),
+                                labelFactor: 1.15,
+                                wrapWidth: 40,
+                                opacityArea: 0.35,
+                                dotRadius: 3,
+                                opacityCircles: 0.1,
+                                strokeWidth: 2,
+                                roundStrokes: false,
+                                legend: false
+                            }"
                         />
                     </div>
                 </div>

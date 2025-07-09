@@ -7,7 +7,7 @@ import { Input } from '@/shadcn/ui/input';
 import { Textarea } from '@/shadcn/ui/textarea';
 import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
-import { ValidationError } from 'yup';
+import { ZodError } from 'zod';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { Icon } from '@iconify/vue';
@@ -39,7 +39,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         });
         toast({ title: 'Organization created!' });
     } catch (error) {
-        if (error instanceof ValidationError) {
+        if (error instanceof ZodError) {
             toast({ title: 'Error during creation', description: error.message });
         } else if (error instanceof BusinessLogicError) {
             toast({ title: 'Error during creation', description: error.error_message });

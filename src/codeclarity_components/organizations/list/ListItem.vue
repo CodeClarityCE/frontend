@@ -2,7 +2,7 @@
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { Icon } from '@iconify/vue';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import { ref, type Ref } from 'vue';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import { useAuthStore } from '@/stores/auth';
@@ -219,13 +219,13 @@ function performOrgAction() {
                     <Icon icon="solar:calendar-bold" class="text-theme-black text-xl" />
                 </div>
                 <div class="text-sm font-bold text-theme-black">
-                    {{ moment(membership.organization.joined_on).format('MMM') }}
+                    {{ formatDate(membership.organization.joined_on, 'MMM') }}
                 </div>
                 <div class="text-lg font-bold text-theme-black">
-                    {{ moment(membership.organization.joined_on).format('DD') }}
+                    {{ formatDate(membership.organization.joined_on, 'DD') }}
                 </div>
                 <div class="text-xs text-theme-gray font-medium">
-                    {{ moment(membership.organization.joined_on).format('YYYY') }}
+                    {{ formatDate(membership.organization.joined_on, 'YYYY') }}
                 </div>
             </div>
         </div>

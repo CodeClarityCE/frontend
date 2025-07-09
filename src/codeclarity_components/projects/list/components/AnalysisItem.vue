@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { RouterLink } from 'vue-router';
-import moment from 'moment';
+import { formatDate, calculateDateDifference } from '@/utils/dateUtils';
 import { ref, type Ref } from 'vue';
 import {
     Analysis,
@@ -115,14 +115,20 @@ function getStepsDone(steps: AnalysisStage[][]) {
 }
 
 function getTimeDiff(stage: AnalysisStage) {
-    const t1 = moment(stage.Ended_on),
-        t2 = moment(stage.Started_on);
+    if (!stage.Ended_on || !stage.Started_on) return '';
+
     let time = '';
 
-    if (t1.diff(t2, 'hours') > 0) time += t1.diff(t2, 'hours') + 'h ';
-    if (t1.diff(t2, 'minutes') > 0) time += t1.diff(t2, 'minutes') + 'm ';
-    if (t1.diff(t2, 'seconds') > 0) time += t1.diff(t2, 'seconds') + 's ';
-    if (time == '' && t1.diff(t2, 'milliseconds') > 0) time += t1.diff(t2, 'milliseconds') + 'ms ';
+    const hours = calculateDateDifference(stage.Ended_on, stage.Started_on, 'hours');
+    const minutes = calculateDateDifference(stage.Ended_on, stage.Started_on, 'minutes') % 60;
+    const seconds = calculateDateDifference(stage.Ended_on, stage.Started_on, 'seconds') % 60;
+    const milliseconds =
+        calculateDateDifference(stage.Ended_on, stage.Started_on, 'milliseconds') % 1000;
+
+    if (hours > 0) time += hours + 'h ';
+    if (minutes > 0) time += minutes + 'm ';
+    if (seconds > 0) time += seconds + 's ';
+    if (time == '' && milliseconds > 0) time += milliseconds + 'ms ';
     return time;
 }
 
@@ -185,7 +191,7 @@ getChart(props.projectID, props.analysis.id);
                         <span class="text-sm font-medium text-slate-900">Completed</span>
                     </div>
                     <div class="text-xs text-slate-500">
-                        {{ moment(props.analysis.created_on).format('MMM DD, YYYY [at] h:mm A') }}
+                        {{ formatDate(props.analysis.created_on, 'MMM DD, YYYY [at] h:mm A') }}
                     </div>
                     <Popover>
                         <PopoverTrigger as-child>
@@ -548,7 +554,7 @@ getChart(props.projectID, props.analysis.id);
                         </Popover>
                     </div>
                     <div class="text-xs text-slate-500">
-                        {{ moment(props.analysis.created_on).format('MMM DD, YYYY [at] h:mm A') }}
+                        {{ formatDate(props.analysis.created_on, 'MMM DD, YYYY [at] h:mm A') }}
                     </div>
                 </div>
             </div>
@@ -607,9 +613,7 @@ getChart(props.projectID, props.analysis.id);
                         <div class="text-sm font-medium text-slate-900">Analysis Details</div>
                         <div class="text-xs text-slate-500 mt-1">
                             Started
-                            {{
-                                moment(props.analysis.created_on).format('MMM DD, YYYY [at] h:mm A')
-                            }}
+                            {{ formatDate(props.analysis.created_on, 'MMM DD, YYYY [at] h:mm A') }}
                         </div>
                     </div>
                     <Alert variant="destructive">

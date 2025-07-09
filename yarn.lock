@@ -5766,7 +5766,6 @@ __metadata:
     jsdom: "npm:26.1.0"
     litegraph.js: "npm:0.7.18"
     lucide-vue-next: "npm:0.525.0"
-    moment: "npm:2.30.1"
     npm-run-all: "npm:4.1.5"
     pinia: "npm:3.0.3"
     postcss: "npm:8.5.6"
@@ -7483,13 +7482,6 @@ __metadata:
   bin:
     mkdirp: dist/cjs/src/bin.js
   checksum: 10/16fd79c28645759505914561e249b9a1f5fe3362279ad95487a4501e4467abeb714fd35b95307326b8fd03f3c7719065ef11a6f97b7285d7888306d1bd2232ba
-  languageName: node
-  linkType: hard
-
-"moment@npm:2.30.1":
-  version: 2.30.1
-  resolution: "moment@npm:2.30.1"
-  checksum: 10/ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
   languageName: node
   linkType: hard
 

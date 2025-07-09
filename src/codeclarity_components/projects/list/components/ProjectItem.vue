@@ -2,7 +2,7 @@
 import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { ref, type Ref } from 'vue';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
 import { useAuthStore } from '@/stores/auth';
@@ -122,7 +122,7 @@ async function deleteProject() {
                     <!-- Import date with theme colors -->
                     <div class="flex items-center gap-2 text-xs text-theme-gray/60">
                         <Icon icon="solar:calendar-linear" class="h-3.5 w-3.5 text-theme-primary" />
-                        <span>Imported {{ moment(project.added_on).format('MMM DD, YYYY') }}</span>
+                        <span>Imported {{ formatDate(project.added_on, 'MMM DD, YYYY') }}</span>
                     </div>
                 </div>
 
@@ -235,7 +235,7 @@ async function deleteProject() {
                 <div class="p-4 bg-theme-primary/5 rounded-lg border border-theme-primary/20">
                     <div class="text-sm font-medium text-theme-black">{{ project.name }}</div>
                     <div class="text-xs text-theme-gray/60 mt-1">
-                        Imported {{ moment(project.added_on).format('MMM DD, YYYY') }}
+                        Imported {{ formatDate(project.added_on, 'MMM DD, YYYY') }}
                     </div>
                 </div>
                 <Alert variant="destructive">

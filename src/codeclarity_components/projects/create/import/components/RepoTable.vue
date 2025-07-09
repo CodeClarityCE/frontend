@@ -25,7 +25,7 @@ import {
     type ActiveFilter
 } from '@/base_components/filters/UtilitiesFilters.vue';
 import { ref, watch, type Ref } from 'vue';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
@@ -527,7 +527,7 @@ defineExpose({
                                     </td>
                                     <td class="p-4">
                                         <div class="text-gray-600 text-sm">
-                                            {{ moment(repo.created_at).format('MMM DD, YYYY') }}
+                                            {{ formatDate(repo.created_at, 'MMM DD, YYYY') }}
                                         </div>
                                     </td>
                                 </tr>

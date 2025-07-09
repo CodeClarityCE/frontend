@@ -2,7 +2,7 @@
 import { ref, type Ref } from 'vue';
 import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import { Chart, registerables, type ChartData } from 'chart.js';
 import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
 import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
@@ -515,7 +515,7 @@ function getPackageManagerSubtitleIcon(): string {
                                         "
                                     >
                                         <div>{{ version_obj.version }}</div>
-                                        <div>{{ moment(version_obj.release).format('LL') }}</div>
+                                        <div>{{ formatDate(version_obj.release, 'LL') }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -567,7 +567,7 @@ function getPackageManagerSubtitleIcon(): string {
                                         }"
                                     >
                                         <div>{{ version_obj.version }}</div>
-                                        <div>{{ moment(version_obj.release).format('LL') }}</div>
+                                        <div>{{ formatDate(version_obj.release, 'LL') }}</div>
                                     </div>
                                 </div>
                             </div>

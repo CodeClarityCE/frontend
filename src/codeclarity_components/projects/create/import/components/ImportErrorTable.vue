@@ -2,7 +2,7 @@
 import { ref, watch, type Ref } from 'vue';
 import type { FailedProjectImport } from '../BaseImportComponent.vue';
 import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import moment from 'moment';
+import { formatDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
 import SortableTable, {
     type TableHeader
@@ -87,7 +87,7 @@ function changePage(_page: number) {
                         </td>
                         <td>
                             <div>
-                                {{ moment(failedImport.repo.created_at).format('LL') }}
+                                {{ formatDate(failedImport.repo.created_at, 'LL') }}
                             </div>
                         </td>
                     </tr>

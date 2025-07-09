@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import { ref, watch, type Ref } from 'vue';
-import moment from 'moment';
+import { getWeekRange, formatDateRange } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
 import LineChart from '@/base_components/data-display/charts/LineChart.vue';
 import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
@@ -72,17 +72,11 @@ async function fetch(refresh: boolean = false) {
 fetch();
 
 function getWeekFormat(weekNumber: number, year: number) {
-    const startWeek = moment().day('Monday').year(year).week(weekNumber);
-    const endWeek = moment()
-        .day('Sunday')
-        .year(year)
-        .week(weekNumber + 1);
-    if (startWeek.format('YYYY') != endWeek.format('YYYY')) {
-        return `${startWeek.format('MMM Do YY')} - ${endWeek.format('MMM Do YY')}`;
+    const { start, end } = getWeekRange(weekNumber, year);
+    if (start.getFullYear() !== end.getFullYear()) {
+        return formatDateRange(start, end, 'MMM DD, YY');
     } else {
-        return `${startWeek.format('MMM D')} - ${endWeek.format('MMM D')}, ${endWeek.format(
-            'YYYY'
-        )}`;
+        return formatDateRange(start, end, 'MMM DD') + `, ${end.getFullYear()}`;
     }
 }
 

@@ -2,7 +2,7 @@
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
 import { Icon } from '@iconify/vue';
-import moment from 'moment';
+import { calculateDateDifference, formatRelativeTime, isValidDate } from '@/utils/dateUtils';
 import type { PropType } from 'vue';
 import { computed } from 'vue';
 
@@ -16,8 +16,9 @@ const props = defineProps({
 // Computed properties for version management
 const isVersionOutdated = computed(() => {
     if (!props.dependency.release_date || !props.dependency.lastest_release_date) return false;
-    const diffDays = moment(props.dependency.lastest_release_date).diff(
-        moment(props.dependency.release_date),
+    const diffDays = calculateDateDifference(
+        props.dependency.lastest_release_date,
+        props.dependency.release_date,
         'days'
     );
     return diffDays > 182; // 6 months
@@ -25,8 +26,9 @@ const isVersionOutdated = computed(() => {
 
 const getVersionLag = () => {
     if (!props.dependency.release_date || !props.dependency.lastest_release_date) return '';
-    const diffDays = moment(props.dependency.lastest_release_date).diff(
-        moment(props.dependency.release_date),
+    const diffDays = calculateDateDifference(
+        props.dependency.lastest_release_date,
+        props.dependency.release_date,
         'days'
     );
 
@@ -54,9 +56,7 @@ const getEngineIcon = (engineName: string): string => {
 const getPackageAge = (): string => {
     if (!props.dependency.release_date) return 'Unknown';
 
-    const now = moment();
-    const release = moment(props.dependency.release_date);
-    const diffDays = now.diff(release, 'days');
+    const diffDays = calculateDateDifference(new Date(), props.dependency.release_date, 'days');
 
     if (diffDays < 30) return `${diffDays} days old`;
     if (diffDays < 365) return `${Math.round(diffDays / 30)} months old`;
@@ -66,7 +66,7 @@ const getPackageAge = (): string => {
 const getAgeClass = (): string => {
     if (!props.dependency.release_date) return 'unknown';
 
-    const diffDays = moment().diff(moment(props.dependency.release_date), 'days');
+    const diffDays = calculateDateDifference(new Date(), props.dependency.release_date, 'days');
 
     if (diffDays < 90) return 'fresh'; // < 3 months
     if (diffDays < 365) return 'moderate'; // < 1 year
@@ -212,14 +212,10 @@ const getAgeDescription = (): string => {
                         dependency.version
                     }}</Badge>
                     <div
-                        v-if="
-                            dependency.release_date &&
-                            moment(dependency.release_date).toString() !==
-                                'Mon Jan 01 0001 00:17:30 GMT+0017'
-                        "
+                        v-if="dependency.release_date && isValidDate(dependency.release_date)"
                         class="version-date"
                     >
-                        Released {{ moment(dependency.release_date).fromNow() }}
+                        Released {{ formatRelativeTime(dependency.release_date) }}
                     </div>
                 </div>
 
@@ -234,12 +230,11 @@ const getAgeDescription = (): string => {
                     <div
                         v-if="
                             dependency.lastest_release_date &&
-                            moment(dependency.lastest_release_date).toString() !==
-                                'Mon Jan 01 0001 00:17:30 GMT+0017'
+                            isValidDate(dependency.lastest_release_date)
                         "
                         class="version-date"
                     >
-                        Released {{ moment(dependency.lastest_release_date).fromNow() }}
+                        Released {{ formatRelativeTime(dependency.lastest_release_date) }}
                     </div>
                 </div>
 

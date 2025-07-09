@@ -2,7 +2,7 @@ import { h } from 'vue';
 import DropdownAction from './DataTableDropDown.vue';
 import { ArrowUpDown } from 'lucide-vue-next';
 import { Button } from '@/shadcn/ui/button';
-import moment from 'moment';
+import { formatRelativeTime } from '@/utils/dateUtils';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { Icon } from '@iconify/vue';
@@ -479,7 +479,7 @@ export const columns: ColumnDef<Dependency>[] = [
 ];
 
 function formatLastPublished(dateString: string) {
-    const date = moment(dateString).fromNow();
+    const date = formatRelativeTime(dateString);
     if (date == '2023 years ago') {
         return 'N/A';
     }

@@ -4,7 +4,6 @@ import SearchBar from '@/base_components/filters/SearchBar.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { Icon } from '@iconify/vue';
 
-// import moment from 'moment';
 import LicenseComponent from './LicenseComponent.vue';
 // Import stores
 import { useUserStore } from '@/stores/user';

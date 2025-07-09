@@ -67,7 +67,6 @@ const RAW_RUNTIME_STATE =
           ["jsdom", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:26.1.0"],\
           ["litegraph.js", "npm:0.7.18"],\
           ["lucide-vue-next", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:0.525.0"],\
-          ["moment", "npm:2.30.1"],\
           ["npm-run-all", "npm:4.1.5"],\
           ["pinia", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.0.3"],\
           ["postcss", "npm:8.5.6"],\
@@ -7138,7 +7137,6 @@ const RAW_RUNTIME_STATE =
           ["jsdom", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:26.1.0"],\
           ["litegraph.js", "npm:0.7.18"],\
           ["lucide-vue-next", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:0.525.0"],\
-          ["moment", "npm:2.30.1"],\
           ["npm-run-all", "npm:4.1.5"],\
           ["pinia", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.0.3"],\
           ["postcss", "npm:8.5.6"],\
@@ -9079,15 +9077,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/mkdirp-npm-3.0.1-f94bfa769e-16fd79c286.zip/node_modules/mkdirp/",\
         "packageDependencies": [\
           ["mkdirp", "npm:3.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["moment", [\
-      ["npm:2.30.1", {\
-        "packageLocation": "./.yarn/cache/moment-npm-2.30.1-1c51a5c631-ae42d876d4.zip/node_modules/moment/",\
-        "packageDependencies": [\
-          ["moment", "npm:2.30.1"]\
         ],\
         "linkType": "HARD"\
       }]\

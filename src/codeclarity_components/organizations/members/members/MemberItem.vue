@@ -10,7 +10,7 @@ import { isMemberRoleGreaterThan } from '@/codeclarity_components/organizations/
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import moment from 'moment';
+import { formatRelativeTime } from '@/utils/dateUtils';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { ref, type Ref } from 'vue';
 import { Icon } from '@iconify/vue';
@@ -133,7 +133,7 @@ const emit = defineEmits<{
         </td>
         <td>
             <div>
-                {{ moment(member.joined_on).fromNow() }}
+                {{ formatRelativeTime(member.joined_on) }}
             </div>
         </td>
         <td>

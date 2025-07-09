@@ -16,7 +16,7 @@ import {
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import moment from 'moment';
+import { getDaysUntilExpiry } from '@/utils/dateUtils';
 import Button from '@/shadcn/ui/button/Button.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
@@ -105,11 +105,7 @@ async function deleteIntegration(integrationId: string) {
 }
 
 function isAtRisk(vcs: VCS) {
-    if (vcs.expiry_date)
-        return (
-            moment.duration(moment(vcs.expiry_date).diff(new Date())).asDays() <=
-            EXPIRES_IN_DAYS_RISK
-        );
+    if (vcs.expiry_date) return getDaysUntilExpiry(vcs.expiry_date) <= EXPIRES_IN_DAYS_RISK;
     else return false;
 }
 

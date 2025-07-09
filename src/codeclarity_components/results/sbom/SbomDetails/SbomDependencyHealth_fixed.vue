@@ -2,7 +2,7 @@
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import { Icon } from '@iconify/vue';
-import moment from 'moment';
+import { calculateDateDifference, formatRelativeTime } from '@/utils/dateUtils';
 import type { PropType } from 'vue';
 import { computed } from 'vue';
 
@@ -17,8 +17,9 @@ const props = defineProps({
 const isOutdated = computed(() => {
     if (!props.dependency.release_date || !props.dependency.lastest_release_date) return false;
     return (
-        moment(props.dependency.lastest_release_date).diff(
-            moment(props.dependency.release_date),
+        calculateDateDifference(
+            props.dependency.lastest_release_date,
+            props.dependency.release_date,
             'days'
         ) > 182
     );
@@ -39,8 +40,9 @@ const hasHealthIssues = computed(() => {
 // Helper methods
 const getDaysOutdated = (): number => {
     if (!props.dependency.release_date || !props.dependency.lastest_release_date) return 0;
-    return moment(props.dependency.lastest_release_date).diff(
-        moment(props.dependency.release_date),
+    return calculateDateDifference(
+        props.dependency.lastest_release_date,
+        props.dependency.release_date,
         'days'
     );
 };
@@ -276,7 +278,7 @@ const getHealthStatusDescription = (): string => {
                             <span class="metric-label">Last Updated</span>
                             <span class="metric-value">{{
                                 dependency.release_date
-                                    ? moment(dependency.release_date).fromNow()
+                                    ? formatRelativeTime(dependency.release_date)
                                     : 'Unknown'
                             }}</span>
                         </div>

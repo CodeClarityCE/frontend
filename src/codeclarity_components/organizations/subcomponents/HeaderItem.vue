@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { Icon } from '@iconify/vue';
-import moment from 'moment';
+import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
 import { type Organization } from '@/codeclarity_components/organizations/organization.entity';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import { useAuthStore } from '@/stores/auth';
@@ -194,7 +194,7 @@ init();
                                 <Icon icon="solar:calendar-bold" class="text-theme-primary" />
                                 <span
                                     >Joined
-                                    {{ moment(orgInfo.joined_on).format('MMM DD, YYYY') }}</span
+                                    {{ formatDate(orgInfo.joined_on, 'MMM DD, YYYY') }}</span
                                 >
                             </div>
                         </div>
@@ -287,7 +287,7 @@ init();
                         </div>
                         <div class="flex items-center gap-2 text-xs text-theme-gray">
                             <Icon icon="solar:clock-circle-bold" class="text-theme-primary" />
-                            <span>Last updated {{ moment().format('MMM DD') }}</span>
+                            <span>Last updated {{ formatCurrentDate('MMM DD') }}</span>
                         </div>
                     </div>
                 </div>

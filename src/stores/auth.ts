@@ -1,4 +1,4 @@
-import { OptionalDateTransform } from '@/decorators/OptionalDate';
+import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { Entity } from '@/utils/api/BaseEntity';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';

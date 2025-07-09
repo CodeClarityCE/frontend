@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsBoolean, IsDefined, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { GithubTokenType, GitlabTokenType } from './integration_add.http';
-import { OptionalDateTransform } from '@/decorators/OptionalDate';
+import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { TeamMember } from '../organization.entity';
 
 export enum IntegrationType {

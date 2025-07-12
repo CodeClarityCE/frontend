@@ -15,6 +15,6 @@ withDefaults(defineProps<Props>(), {
 
 <template>
     <div v-for="node in nodes" :key="node.data?.key" class="dependency-tree">
-        <Node :key="node.parentPath" :node="node" :root-name="rootName" />
+        <Node :key="`${node.key}-${node.level}`" :node="node" :root-name="rootName" />
     </div>
 </template>

@@ -63,6 +63,9 @@ export class OrganizationMetaData {
 
     @IsArray()
     projects!: Project[];
+
+    @IsArray()
+    integrations!: any[];
 }
 
 export enum MemberRole {

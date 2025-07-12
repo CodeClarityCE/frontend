@@ -28,11 +28,7 @@ const error: Ref<boolean> = ref(false);
 const render: Ref<boolean> = ref(false);
 const sortOptionSelected: Ref<string> = ref('patch_type');
 const pageLimitSelected: Ref<number> = ref(5);
-const nmbEntriesShowing = ref(pageLimitSelected.value);
-const matchingItemsCount: Ref<number> = ref(0);
-const nmbEntriesTotal: Ref<number> = ref(0);
 const pageNumber: Ref<number> = ref(0);
-const totalPages: Ref<number> = ref(0);
 const searchKey: Ref<string> = ref('');
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
@@ -85,15 +81,10 @@ async function init() {
             active_filters: '',
             search_key: searchKey.value
         });
-        patches.value = res.data;
+        // Extract patches array from workspace data
+        patches.value = Object.values(res.data.patches || {});
 
         render.value = true;
-        pageNumber.value = res.page;
-        pageLimitSelected.value = res.entries_per_page;
-        nmbEntriesShowing.value = res.entry_count;
-        matchingItemsCount.value = res.matching_count;
-        nmbEntriesTotal.value = res.total_entries;
-        totalPages.value = res.total_pages;
     } catch (_err) {
         console.error('error', _err);
         render.value = false;

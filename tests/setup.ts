@@ -51,6 +51,11 @@ vi.mock('vue-router', () => ({
     name: '',
     meta: {},
   }),
+  RouterLink: {
+    name: 'RouterLink',
+    template: '<a v-bind="$attrs"><slot /></a>',
+    props: ['to']
+  }
 }))
 
 // Mock Pinia

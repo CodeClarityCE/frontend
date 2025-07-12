@@ -14,7 +14,7 @@ describe('Data Display Index Exports', () => {
       ]
 
       for (const componentName of chartComponents) {
-        const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
         expect(module[componentName]).toBeDefined()
         expect(typeof module[componentName]).toBe('object')
       }
@@ -27,7 +27,7 @@ describe('Data Display Index Exports', () => {
       ]
 
       for (const componentName of bubbleComponents) {
-        const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
         expect(module[componentName]).toBeDefined()
         expect(typeof module[componentName]).toBe('object')
       }
@@ -40,7 +40,7 @@ describe('Data Display Index Exports', () => {
       ]
 
       for (const componentName of tableComponents) {
-        const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
         expect(module[componentName]).toBeDefined()
         expect(typeof module[componentName]).toBe('object')
       }
@@ -49,7 +49,7 @@ describe('Data Display Index Exports', () => {
 
   describe('Type and Utility Exports', () => {
     it('exports chart type definitions', async () => {
-      const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
       
       // Check that chart-related types are exported
       expect(module.BarChartData).toBeUndefined() // These are types, not runtime values
@@ -69,7 +69,7 @@ describe('Data Display Index Exports', () => {
     })
 
     it('exports color utility functions', async () => {
-      const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
       
       // Check that interpolateColors function is exported
       expect(module.interpolateColors).toBeDefined()
@@ -79,7 +79,7 @@ describe('Data Display Index Exports', () => {
 
   describe('Module Structure', () => {
     it('has all expected exports available', async () => {
-      const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
       const exports = Object.keys(module)
       
       // Verify we have a reasonable number of exports
@@ -101,7 +101,7 @@ describe('Data Display Index Exports', () => {
     })
 
     it('does not export unexpected values', async () => {
-      const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
       const exports = Object.keys(module)
       
       // Should not export internal implementation details
@@ -123,7 +123,7 @@ describe('Data Display Index Exports', () => {
       const chartComponents = ['BarChart', 'DoughnutChart', 'TreeChart']
       
       for (const componentName of chartComponents) {
-        const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
         const component = module[componentName]
         
         expect(component).toBeDefined()
@@ -136,7 +136,7 @@ describe('Data Display Index Exports', () => {
       const bubbleComponents = ['BubbleComponent', 'SeverityBubble']
       
       for (const componentName of bubbleComponents) {
-        const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
         const component = module[componentName]
         
         expect(component).toBeDefined()
@@ -149,7 +149,7 @@ describe('Data Display Index Exports', () => {
       const tableComponents = ['SortSelector', 'SortableTable']
       
       for (const componentName of tableComponents) {
-        const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
         const component = module[componentName]
         
         expect(component).toBeDefined()
@@ -161,7 +161,7 @@ describe('Data Display Index Exports', () => {
 
   describe('Import Consistency', () => {
     it('direct imports match index exports', async () => {
-      const indexModule = await import(`@/base_components/data-display/index`)
+      const indexModule = await import(`@/base_components/data-display`)
       
       // Test a few key components
       const directBarChart = (await import(`@/base_components/data-display/charts/BarChart.vue`)).default
@@ -174,7 +174,7 @@ describe('Data Display Index Exports', () => {
     })
 
     it('utility imports match index exports', async () => {
-      const indexModule = await import(`@/base_components/data-display/index`)
+      const indexModule = await import(`@/base_components/data-display`)
       const directUtility = await import(`@/base_components/data-display/charts/colors-waffle`)
       
       expect(indexModule.interpolateColors).toBe(directUtility.interpolateColors)
@@ -184,7 +184,7 @@ describe('Data Display Index Exports', () => {
   describe('Error Handling', () => {
     it('handles missing components gracefully in tests', async () => {
       // This test ensures our test setup doesn't break if a component is temporarily unavailable
-      const module = await import(`@/base_components/data-display/index`)
+      const module = await import(`@/base_components/data-display`)
       
       // All expected components should be defined
       const criticalComponents = ['BarChart', 'SortableTable', 'BubbleComponent']

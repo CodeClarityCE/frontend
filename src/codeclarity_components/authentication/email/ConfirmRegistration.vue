@@ -16,8 +16,8 @@ async function init() {
 
         await userRepository.confirmRegistration({
             data: {
-                token: searchParams.get('token'),
-                user_id_hash: searchParams.get('userid')
+                token: searchParams.get('token') || '',
+                userIdHash: searchParams.get('userid') || ''
             },
             handleBusinessErrors: true
         });

@@ -26,8 +26,9 @@ const emit = defineEmits<{
 
 function click(event: Event) {
     if (event.currentTarget) {
-        event.currentTarget.children[0].checked =
-            event.currentTarget.children[0].checked == true ? false : true;
+        const target = event.currentTarget as HTMLElement;
+        const checkbox = target.children[0] as HTMLInputElement;
+        checkbox.checked = !checkbox.checked;
     }
     select();
 }
@@ -35,12 +36,13 @@ function click(event: Event) {
 function select() {
     const inputs = document.getElementsByClassName('checkboxInput');
     for (let index = 0; index < inputs.length; index++) {
-        const element = inputs[index];
+        const element = inputs[index] as HTMLInputElement;
+        const numericValue = parseInt(element.value);
         if (element.checked) {
-            selected_analyzers.value.push(element.value);
-        } else if (selected_analyzers.value.includes(element.value)) {
+            selected_analyzers.value.push(numericValue);
+        } else if (selected_analyzers.value.includes(numericValue)) {
             selected_analyzers.value = selected_analyzers.value.filter(
-                (value) => value != element.value
+                (value) => value != numericValue
             );
         }
     }

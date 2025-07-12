@@ -2,12 +2,21 @@
 import * as d3 from 'd3';
 import { onMounted } from 'vue';
 
-const props = defineProps({
-    chartData: {
-        type: Object,
-        required: true
-    }
-});
+interface ChartDataPoint {
+    date: string;
+    close: number;
+}
+
+interface ChartData {
+    labels: string[];
+    datasets: Array<{
+        data: number[];
+    }>;
+}
+
+const props = defineProps<{
+    chartData: ChartData;
+}>();
 
 onMounted(() => {
     // Declare the chart dimensions and margins.
@@ -18,27 +27,28 @@ onMounted(() => {
     const marginBottom = 30;
     const marginLeft = 40;
 
-    const aapl = [];
+    const aapl: ChartDataPoint[] = [];
 
-    for (let i = 0; i < props.chartData['datasets'][0]['data'].length; i++) {
+    for (let i = 0; i < props.chartData.datasets[0].data.length; i++) {
         aapl.push({
-            date: props.chartData['labels'][i],
-            close: props.chartData['datasets'][0]['data'][i]
+            date: props.chartData.labels[i],
+            close: props.chartData.datasets[0].data[i]
         });
     }
 
     // Declare the x (horizontal position) scale.
-    const x = d3.scaleBand().rangeRound([0, width]).padding(1).domain(props.chartData['labels']);
+    const x = d3.scaleBand().rangeRound([0, width]).padding(1).domain(props.chartData.labels);
 
     // Declare the y (vertical position) scale.
-    const y = d3.scaleLinear(
-        d3.extent(aapl, (d) => d.close),
-        [height - marginBottom, marginTop]
-    );
+    const yExtent = d3.extent(aapl, (d) => d.close) as [number, number];
+    const y = d3
+        .scaleLinear()
+        .domain(yExtent)
+        .range([height - marginBottom, marginTop]);
 
     const line = d3
-        .area()
-        .x((d) => x(d.date))
+        .area<ChartDataPoint>()
+        .x((d) => x(d.date) || 0)
         .y((d) => y(d.close));
     // .curve(d3.curveNatural);
 
@@ -96,9 +106,9 @@ onMounted(() => {
     const mouseover = function () {
         tooltip.style('opacity', 1);
     };
-    const mousemove = function (event, d) {
+    const mousemove = function (event: MouseEvent, d: ChartDataPoint) {
         tooltip
-            .html(d['close'])
+            .html(d.close.toString())
             .style('left', event.x + 'px')
             .style('top', event.y - 18 * 2 + 'px');
     };
@@ -110,13 +120,13 @@ onMounted(() => {
         .data(aapl)
         .enter()
         .append('circle')
-        .attr('cx', (d) => x(d['date']))
-        .attr('cy', (d) => y(d['close']))
+        .attr('cx', (d) => x(d.date) || 0)
+        .attr('cy', (d) => y(d.close))
         .attr('r', 5)
         .style('fill', 'white')
         .style('stroke', '#008491')
         .attr('stroke-width', 3)
-        .attr('title', (d) => d['close'])
+        .attr('title', (d) => d.close.toString())
         .on('mouseover', mouseover)
         .on('mousemove', mousemove)
         .on('mouseleave', mouseleave);

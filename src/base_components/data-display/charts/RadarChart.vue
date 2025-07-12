@@ -30,15 +30,9 @@ let config: RadarChartOptions = {
     opacityCircles: 0.1, //The opacity of the circles of each blob
     strokeWidth: 2, //The width of the stroke around each blob
     roundStrokes: false, //If true the area and stroke will follow a round path (cardinal-closed)
-    color: d3.interpolateDiscrete([
-        '#008491',
-        '#023f47',
-        '#175181',
-        '#0b9749',
-        '#35cb36',
-        '#c3f166',
-        '#c2f79a'
-    ]), //Color function,
+    color: d3
+        .scaleOrdinal<string>()
+        .range(['#008491', '#023f47', '#175181', '#0b9749', '#35cb36', '#c3f166', '#c2f79a']), //Color function,
     format: '.0f',
     unit: '',
     legend: { title: 'LEGEND', translateX: 125, translateY: 40 }

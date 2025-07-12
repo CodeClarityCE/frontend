@@ -1,0 +1,48 @@
+{
+  "sampleOrg": {
+    "id": "org-123",
+    "name": "Test Organization",
+    "slug": "test-org",
+    "description": "A test organization for E2E testing",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  "organizationList": [
+    {
+      "id": "org-001",
+      "name": "Acme Corp",
+      "slug": "acme-corp", 
+      "description": "Technology company",
+      "member_count": 25,
+      "project_count": 12
+    },
+    {
+      "id": "org-002",
+      "name": "StartupCo",
+      "slug": "startup-co",
+      "description": "Growing startup",
+      "member_count": 8,
+      "project_count": 5
+    }
+  ],
+  "createOrg": {
+    "name": "New Test Org",
+    "slug": "new-test-org",
+    "description": "Created during E2E tests"
+  },
+  "members": [
+    {
+      "id": "user-001",
+      "email": "admin@example.com",
+      "name": "Admin User",
+      "role": "admin",
+      "joined_at": "2023-01-01T00:00:00Z"
+    },
+    {
+      "id": "user-002",
+      "email": "member@example.com", 
+      "name": "Member User",
+      "role": "member",
+      "joined_at": "2023-02-15T00:00:00Z"
+    }
+  ]
+}

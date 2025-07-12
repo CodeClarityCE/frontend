@@ -1,0 +1,51 @@
+{
+  "criticalVuln": {
+    "id": "vuln-001",
+    "title": "Remote Code Execution in Express",
+    "severity": "critical",
+    "score": 9.8,
+    "package": "express",
+    "version": "4.15.0",
+    "description": "A remote code execution vulnerability exists in Express framework",
+    "cwe": "CWE-94",
+    "published_date": "2023-06-01T00:00:00Z"
+  },
+  "vulnerabilityList": [
+    {
+      "id": "vuln-001",
+      "title": "SQL Injection in MySQL Driver",
+      "severity": "high",
+      "score": 8.5,
+      "package": "mysql2",
+      "version": "2.1.0",
+      "fixed_version": "2.3.0"
+    },
+    {
+      "id": "vuln-002", 
+      "title": "XSS Vulnerability in React",
+      "severity": "medium",
+      "score": 6.1,
+      "package": "react",
+      "version": "16.8.0",
+      "fixed_version": "16.14.0"
+    },
+    {
+      "id": "vuln-003",
+      "title": "Prototype Pollution in Lodash",
+      "severity": "low",
+      "score": 3.7,
+      "package": "lodash",
+      "version": "4.17.15",
+      "fixed_version": "4.17.19"
+    }
+  ],
+  "dashboardStats": {
+    "total": 127,
+    "critical": 3,
+    "high": 15,
+    "medium": 45,
+    "low": 64,
+    "fixed": 89,
+    "new_this_week": 12
+  }
+}

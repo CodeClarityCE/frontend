@@ -20,7 +20,7 @@ export default defineConfig({
         url: 'http://localhost:4173/__coverage__'
       }
     },
-    setupNodeEvents(on, config) {
+    setupNodeEvents(on) {
       // implement node event listeners here
       on('task', {
         log(message) {

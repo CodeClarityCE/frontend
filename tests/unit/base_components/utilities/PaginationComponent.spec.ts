@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { render, screen } from '@testing-library/vue'
-import userEvent from '@testing-library/user-event'
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue'
 
 // Mock the shadcn pagination components

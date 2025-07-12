@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { render, screen } from '@testing-library/vue'
 import StatCard from '@/base_components/ui/cards/StatCard.vue'
-import { Card, CardContent } from '@/shadcn/ui/card'
-import { Icon } from '@iconify/vue'
 
 // Mock the Card components and Icon
 const mockCard = { template: '<div class="card"><slot /></div>' }

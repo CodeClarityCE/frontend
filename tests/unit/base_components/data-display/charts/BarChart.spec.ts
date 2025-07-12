@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import BarChart from '@/base_components/data-display/charts/BarChart.vue'
-import type { BarChartData, BarChartOptions } from '@/base_components/data-display/charts/barChart'
+import type { BarChartData, BarChartOptions } from '@/base_components/data-display'
 
 // Create comprehensive D3 mock chain
 const createMockNode = (): any => {
@@ -28,7 +28,7 @@ const mockSvgNode = createMockNode()
 const mockScale = vi.fn((value: any) => {
   if (typeof value === 'string') return 50 // For band scale
   return 100 - value * 10 // For linear scale (inverted)
-})
+}) as any
 mockScale.bandwidth = vi.fn(() => 40)
 
 // Mock D3

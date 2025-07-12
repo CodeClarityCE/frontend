@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue'
-import type { GroupedBarChartData, GroupedBarChartOptions } from '@/base_components/data-display/charts/groupedBarChart'
+import type { GroupedBarChartData, GroupedBarChartOptions } from '@/base_components/data-display'
 
 // Create comprehensive D3 mock chain
 const createMockNode = (): any => {
@@ -28,24 +28,26 @@ const mockSvgNode = createMockNode()
 const mockScale = vi.fn((value: any) => {
   if (typeof value === 'string') return 50 // For band scale
   return 100 - value * 10 // For linear scale (inverted)
-})
+}) as any
 mockScale.bandwidth = vi.fn(() => 40)
+
+// Mock D3 with proper chaining
+const mockBandScale = {
+  range: vi.fn(function() { return this }),
+  domain: vi.fn(function() { return this }),
+  padding: vi.fn(() => mockScale)
+}
+
+const mockLinearScale = {
+  domain: vi.fn(function() { return this }),
+  range: vi.fn(() => mockScale)
+}
 
 // Mock D3
 vi.mock('d3', () => ({
   select: vi.fn(() => mockSvgNode),
-  scaleBand: vi.fn(() => ({
-    range: vi.fn(() => ({
-      domain: vi.fn(() => ({
-        padding: vi.fn(() => mockScale)
-      }))
-    }))
-  })),
-  scaleLinear: vi.fn(() => ({
-    domain: vi.fn(() => ({
-      range: vi.fn(() => mockScale)
-    }))
-  })),
+  scaleBand: vi.fn(() => mockBandScale),
+  scaleLinear: vi.fn(() => mockLinearScale),
   max: vi.fn(() => 10),
   extent: vi.fn(() => [0, 10])
 }))

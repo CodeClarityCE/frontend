@@ -17,4 +17,5 @@ export { default as SortableTable } from './tables/SortableTable.vue';
 export * from './charts/barChart';
 export * from './charts/colors-waffle';
 export * from './charts/doughnutChart';
+export * from './charts/groupedBarChart';
 export * from './charts/radarChart';

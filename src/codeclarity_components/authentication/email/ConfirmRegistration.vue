@@ -15,6 +15,8 @@ async function init() {
         const searchParams = url.searchParams;
 
         await userRepository.confirmRegistration({
+            userId: searchParams.get('userid') || '',
+            bearerToken: '',
             data: {
                 token: searchParams.get('token') || '',
                 userIdHash: searchParams.get('userid') || ''

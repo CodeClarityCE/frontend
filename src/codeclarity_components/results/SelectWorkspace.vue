@@ -66,7 +66,7 @@ onMounted(() => {
     <div class="flex flex-col items-center">
         <Select
             @update:model-value="
-                (e: string | number | null) => {
+                (e: string | number | bigint | Record<string, any> | null) => {
                     selected_workspace = e?.toString() || '';
                 }
             "

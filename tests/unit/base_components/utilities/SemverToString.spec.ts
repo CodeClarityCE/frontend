@@ -110,12 +110,19 @@ describe('SemverToString', () => {
 
   describe('Rendering with null/undefined semver', () => {
     it('renders "unpatchable" when semver is null', () => {
+      // Suppress Vue warning for intentional null prop test
+      const originalWarn = console.warn;
+      console.warn = vi.fn();
+      
       const wrapper = mount(SemverToString, {
         props: { semver: null },
         global: {
           components: globalComponents
         }
       })
+      
+      // Restore console.warn
+      console.warn = originalWarn;
 
       expect(wrapper.text()).toBe('unpatchable')
       const badge = wrapper.findComponent(mockBadge)
@@ -124,12 +131,19 @@ describe('SemverToString', () => {
     })
 
     it('renders "unpatchable" when semver is undefined', () => {
+      // Suppress Vue warning for intentional undefined prop test
+      const originalWarn = console.warn;
+      console.warn = vi.fn();
+      
       const wrapper = mount(SemverToString, {
         props: { semver: undefined },
         global: {
           components: globalComponents
         }
       })
+      
+      // Restore console.warn
+      console.warn = originalWarn;
 
       expect(wrapper.text()).toBe('unpatchable')
       const badge = wrapper.findComponent(mockBadge)
@@ -158,12 +172,19 @@ describe('SemverToString', () => {
     })
 
     it('uses destructive variant for unpatchable', () => {
+      // Suppress Vue warning for intentional null prop test
+      const originalWarn = console.warn;
+      console.warn = vi.fn();
+      
       const wrapper = mount(SemverToString, {
         props: { semver: null },
         global: {
           components: globalComponents
         }
       })
+      
+      // Restore console.warn
+      console.warn = originalWarn;
 
       const badge = wrapper.findComponent(mockBadge)
       expect(badge.props('variant')).toBe('destructive')

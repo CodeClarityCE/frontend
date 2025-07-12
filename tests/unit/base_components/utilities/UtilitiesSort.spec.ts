@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import UtilitiesSort from '../../../../src/base_components/utilities/UtilitiesSort.vue';
+import { SortDirection } from '../../../../src/utils/api/PaginatedRequestOptions';
 
 // Mock external dependencies
 vi.mock('@iconify/vue', () => ({
@@ -60,7 +60,7 @@ describe('UtilitiesSort', () => {
         total: 100
     };
 
-    const createWrapper = (props = {}, modelValues = {}) => {
+    const createWrapper = (props: any = {}, modelValues: any = {}) => {
         return mount(UtilitiesSort, {
             props: {
                 ...defaultProps,

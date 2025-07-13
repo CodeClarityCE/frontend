@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createRouter, createWebHistory } from 'vue-router';
-import { MemberRole, type Organization } from '@/codeclarity_components/organizations/organization.entity';
+import {
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
 import NoIntegration from './NoIntegration.vue';
 
 // Mock dependencies
@@ -181,7 +184,9 @@ describe('NoIntegration', () => {
         });
 
         const routerLinks = wrapper.findAll('[data-testid="router-link"]');
-        const manageLink = routerLinks.find((link: any) => link.text().includes('Manage Integrations'));
+        const manageLink = routerLinks.find((link: any) =>
+            link.text().includes('Manage Integrations')
+        );
         expect(manageLink).toBeFalsy();
     });
 

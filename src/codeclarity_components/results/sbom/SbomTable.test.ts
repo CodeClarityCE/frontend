@@ -81,7 +81,14 @@ vi.mock('@/base_components/utilities/PaginationComponent.vue', () => ({
     default: {
         name: 'PaginationComponent',
         template: '<div data-testid="pagination">Pagination Component</div>',
-        props: ['pageNumber', 'totalPages', 'pageLimitSelected', 'nmbEntriesShowing', 'matchingItemsCount', 'nmbEntriesTotal'],
+        props: [
+            'pageNumber',
+            'totalPages',
+            'pageLimitSelected',
+            'nmbEntriesShowing',
+            'matchingItemsCount',
+            'nmbEntriesTotal'
+        ],
         emits: ['update:pageNumber', 'update:pageLimitSelected']
     }
 }));
@@ -149,7 +156,7 @@ describe('SbomTable', () => {
         // Set render to true to show DataTable
         wrapper.vm.render = true;
         await wrapper.vm.$nextTick();
-        
+
         const dataTable = wrapper.find('[data-testid="data-table"]');
         expect(dataTable.exists()).toBe(true);
     });
@@ -241,7 +248,7 @@ describe('SbomTable', () => {
         });
 
         expect(wrapper.vm.searchKey).toBe('');
-        
+
         // Test that searchKey is reactive
         wrapper.vm.searchKey = 'test search';
         expect(wrapper.vm.searchKey).toBe('test search');

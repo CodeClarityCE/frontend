@@ -10,7 +10,7 @@ import { useAuthStore } from '@/stores/auth';
 // Mock stores
 const mockUserStore = {
     getDefaultOrg: { id: 'org-1', name: 'Test Org' },
-    getUser: { 
+    getUser: {
         default_org: { id: 'org-1', name: 'Test Org' }
     }
 };
@@ -204,7 +204,7 @@ describe('SelectWorkspace', () => {
 
         expect(consoleError).toHaveBeenCalled();
         expect(wrapper.vm.error).toBe(true);
-        
+
         consoleError.mockRestore();
     });
 
@@ -270,7 +270,7 @@ describe('SelectWorkspace', () => {
         // Reset mocks to ensure clean state
         vi.mocked(useUserStore).mockReturnValue(mockUserStore as any);
         vi.mocked(useAuthStore).mockReturnValue(mockAuthStore as any);
-        
+
         const mockRepo = {
             getSbomWorkspaces: vi.fn().mockResolvedValue(mockWorkspacesResponse)
         };

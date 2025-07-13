@@ -25,7 +25,7 @@ const mockStateStore = {
 
 const mockUserStore = {
     getDefaultOrg: { id: 'org-1', name: 'Test Org' },
-    getUser: { 
+    getUser: {
         default_org: { id: 'org-1', name: 'Test Org' }
     }
 };
@@ -68,10 +68,12 @@ const mockAnalysisResponse = {
         created_on: new Date(),
         analyzer: { id: 'analyzer-1', name: 'Test Analyzer' },
         status: AnalysisStatus.SUCCESS,
-        steps: [[
-            { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
-            { Name: 'js-vuln-finder', Status: 'success', Result: 'result-2' }
-        ]],
+        steps: [
+            [
+                { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
+                { Name: 'js-vuln-finder', Status: 'success', Result: 'result-2' }
+            ]
+        ],
         branch: 'main'
     }
 };
@@ -134,10 +136,10 @@ describe('ResultsView', () => {
     beforeEach(() => {
         pinia = createPinia();
         vi.clearAllMocks();
-        
+
         // Save original window.location
         windowLocation = window.location;
-        
+
         // Mock window.location
         delete (window as any).location;
         window.location = {
@@ -217,7 +219,7 @@ describe('ResultsView', () => {
         });
 
         await flushPromises();
-        
+
         const tabsTriggers = wrapper.findAll('[data-testid="tabs-trigger"]');
         expect(tabsTriggers.length).toBe(2); // SBOM and Vulnerabilities
         expect(tabsTriggers[0].text()).toContain('SBOM');
@@ -246,7 +248,7 @@ describe('ResultsView', () => {
         });
 
         await flushPromises();
-        
+
         expect(wrapper.find('[data-testid="vuln-details"]').exists()).toBe(true);
         expect(wrapper.find('[data-testid="tabs"]').exists()).toBe(false);
     });
@@ -273,7 +275,7 @@ describe('ResultsView', () => {
         });
 
         await flushPromises();
-        
+
         expect(wrapper.find('[data-testid="sbom-details"]').exists()).toBe(true);
         expect(wrapper.find('[data-testid="tabs"]').exists()).toBe(false);
     });
@@ -295,7 +297,7 @@ describe('ResultsView', () => {
         });
 
         await flushPromises();
-        
+
         expect(wrapper.exists()).toBe(true);
         expect(wrapper.text()).toContain('Results');
     });
@@ -326,15 +328,17 @@ describe('ResultsView', () => {
             getProjectById: vi.fn().mockResolvedValue({
                 data: {
                     ...mockAnalysisResponse.data,
-                    steps: [[
-                        { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
-                        { Name: 'js-vuln-finder', Status: 'failed', Result: null },
-                        { Name: 'js-patching', Status: 'success', Result: 'result-3' }
-                    ]]
+                    steps: [
+                        [
+                            { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
+                            { Name: 'js-vuln-finder', Status: 'failed', Result: null },
+                            { Name: 'js-patching', Status: 'success', Result: 'result-3' }
+                        ]
+                    ]
                 }
             })
         };
-        
+
         vi.mocked(AnalysisRepository).mockImplementation(() => mockAnalysisRepo as any);
 
         wrapper = mount(ResultsView, {
@@ -353,7 +357,7 @@ describe('ResultsView', () => {
         });
 
         await flushPromises();
-        
+
         const tabsTriggers = wrapper.findAll('[data-testid="tabs-trigger"]');
         expect(tabsTriggers.length).toBe(2); // Only SBOM and Patches
         expect(tabsTriggers[0].text()).toContain('SBOM');
@@ -367,17 +371,19 @@ describe('ResultsView', () => {
             getProjectById: vi.fn().mockResolvedValue({
                 data: {
                     ...mockAnalysisResponse.data,
-                    steps: [[
-                        { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
-                        { Name: 'js-vuln-finder', Status: 'success', Result: 'result-2' },
-                        { Name: 'js-patching', Status: 'success', Result: 'result-3' },
-                        { Name: 'js-license', Status: 'success', Result: 'result-4' },
-                        { Name: 'codeql', Status: 'success', Result: 'result-5' }
-                    ]]
+                    steps: [
+                        [
+                            { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
+                            { Name: 'js-vuln-finder', Status: 'success', Result: 'result-2' },
+                            { Name: 'js-patching', Status: 'success', Result: 'result-3' },
+                            { Name: 'js-license', Status: 'success', Result: 'result-4' },
+                            { Name: 'codeql', Status: 'success', Result: 'result-5' }
+                        ]
+                    ]
                 }
             })
         };
-        
+
         vi.mocked(AnalysisRepository).mockImplementation(() => mockAnalysisRepo as any);
 
         wrapper = mount(ResultsView, {
@@ -396,7 +402,7 @@ describe('ResultsView', () => {
         });
 
         await flushPromises();
-        
+
         const tabsTriggers = wrapper.findAll('[data-testid="tabs-trigger"]');
         expect(tabsTriggers.length).toBe(5);
         expect(tabsTriggers[0].text()).toContain('SBOM');

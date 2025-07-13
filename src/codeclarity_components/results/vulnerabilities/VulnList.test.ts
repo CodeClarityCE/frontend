@@ -81,7 +81,12 @@ vi.mock('@/base_components/utilities/PaginationComponent.vue', () => ({
         name: 'PaginationComponent',
         template: '<div data-testid="pagination-component">Pagination</div>',
         props: ['page', 'nmb-entries-showing', 'nmb-entries-total', 'total-pages'],
-        emits: ['update:page', 'update:nmb-entries-showing', 'update:nmb-entries-total', 'update:total-pages']
+        emits: [
+            'update:page',
+            'update:nmb-entries-showing',
+            'update:nmb-entries-total',
+            'update:total-pages'
+        ]
     }
 }));
 
@@ -105,7 +110,15 @@ vi.mock('@/base_components/utilities/UtilitiesSort.vue', () => ({
     default: {
         name: 'UtilitiesSort',
         template: '<div data-testid="utilities-sort">Sort Component</div>',
-        props: ['page-limit-selected', 'sort-key', 'sort-direction', 'selection-page-limit', 'sort-options', 'showing', 'total'],
+        props: [
+            'page-limit-selected',
+            'sort-key',
+            'sort-direction',
+            'selection-page-limit',
+            'sort-options',
+            'showing',
+            'total'
+        ],
         emits: ['update:page-limit-selected', 'update:sort-key', 'update:sort-direction']
     }
 }));
@@ -190,7 +203,8 @@ const mockVulnerabilityData = [
     {
         Id: 'vuln-1',
         Vulnerability: 'CVE-2023-1234',
-        Description: 'Test vulnerability description with some detailed information about the security issue.',
+        Description:
+            'Test vulnerability description with some detailed information about the security issue.',
         Severity: {
             Severity: 8.5,
             ConfidentialityImpact: 'HIGH',
@@ -428,14 +442,14 @@ describe('VulnList', () => {
         });
 
         const vulnerabilityId = 'CVE-2023-1234';
-        
+
         // Initially not expanded
         expect(wrapper.vm.isCardExpanded(vulnerabilityId)).toBe(false);
-        
+
         // Toggle expansion
         wrapper.vm.toggleCardExpansion(vulnerabilityId);
         expect(wrapper.vm.isCardExpanded(vulnerabilityId)).toBe(true);
-        
+
         // Toggle again to collapse
         wrapper.vm.toggleCardExpansion(vulnerabilityId);
         expect(wrapper.vm.isCardExpanded(vulnerabilityId)).toBe(false);
@@ -458,7 +472,8 @@ describe('VulnList', () => {
         expect(wrapper.vm.truncateDescription(shortDesc)).toBe(shortDesc);
 
         // Test long description
-        const longDesc = 'This is a very long description that should be truncated because it exceeds the maximum length limit that we have set for displaying descriptions in the vulnerability list component.';
+        const longDesc =
+            'This is a very long description that should be truncated because it exceeds the maximum length limit that we have set for displaying descriptions in the vulnerability list component.';
         const truncated = wrapper.vm.truncateDescription(longDesc, 50);
         expect(truncated.length).toBeLessThanOrEqual(53); // 50 + '...'
         expect(truncated).toMatch(/\.\.\.$/);
@@ -636,7 +651,9 @@ describe('VulnList', () => {
         const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
         // Mock the repository method to throw an error
-        wrapper.vm.resultsRepository.getVulnerabilities = vi.fn().mockRejectedValue(new Error('API Error'));
+        wrapper.vm.resultsRepository.getVulnerabilities = vi
+            .fn()
+            .mockRejectedValue(new Error('API Error'));
 
         await wrapper.vm.init();
 

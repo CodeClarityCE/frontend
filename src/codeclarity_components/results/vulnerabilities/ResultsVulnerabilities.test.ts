@@ -10,7 +10,14 @@ vi.mock('./VulnList.vue', () => ({
     default: {
         name: 'VulnList',
         template: '<div data-testid="vuln-list">Vuln List Component</div>',
-        props: ['selected_workspace', 'highlightElem', 'pageLimit', 'forceOpenNewTab', 'analysisID', 'projectID'],
+        props: [
+            'selected_workspace',
+            'highlightElem',
+            'pageLimit',
+            'forceOpenNewTab',
+            'analysisID',
+            'projectID'
+        ],
         emits: ['update:selected_workspace']
     }
 }));
@@ -19,7 +26,13 @@ vi.mock('./VulnTable.vue', () => ({
     default: {
         name: 'VulnTable',
         template: '<div data-testid="vuln-table">Vuln Table Component</div>',
-        props: ['selected_workspace', 'highlightElem', 'forceOpenNewTab', 'analysisID', 'projectID'],
+        props: [
+            'selected_workspace',
+            'highlightElem',
+            'forceOpenNewTab',
+            'analysisID',
+            'projectID'
+        ],
         emits: ['update:selected_workspace']
     }
 }));
@@ -125,10 +138,10 @@ describe('ResultsVulnerabilities', () => {
         Object.defineProperty(document, 'getElementById', {
             value: vi.fn((id: string) => {
                 if (id === 'loader') {
-                    return { 
-                        style: { 
+                    return {
+                        style: {
                             display: 'block'
-                        } 
+                        }
                     };
                 }
                 if (id === 'main-container') {
@@ -375,7 +388,7 @@ describe('ResultsVulnerabilities', () => {
     it('handles scroll position in onUpdated', async () => {
         const mockMainContainer = { scrollTop: 100 };
         const mockLoader = { style: { display: 'block' } };
-        
+
         document.getElementById = vi.fn().mockImplementation((id: string) => {
             if (id === 'loader') return mockLoader;
             if (id === 'main-container') return mockMainContainer;

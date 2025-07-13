@@ -60,9 +60,7 @@ describe('ResultsSBOM', () => {
         created_on: new Date(),
         analyzer: { id: 'analyzer-1', name: 'Test Analyzer' },
         status: AnalysisStatus.SUCCESS,
-        steps: [[
-            { Name: 'js-sbom', Status: 'success', Result: 'result-1' }
-        ]],
+        steps: [[{ Name: 'js-sbom', Status: 'success', Result: 'result-1' }]],
         branch: 'main'
     };
 
@@ -254,7 +252,7 @@ describe('ResultsSBOM', () => {
 
         const container = wrapper.find('#main-container');
         expect(container.exists()).toBe(true);
-        
+
         // Verify it contains the SbomContent component
         const sbomContent = wrapper.findComponent({ name: 'SbomContent' });
         expect(sbomContent.exists()).toBe(true);

@@ -6,7 +6,7 @@ import SbomContent from './SbomContent.vue';
 // Mock stores
 const mockUserStore = {
     getDefaultOrg: { id: 'org-1', name: 'Test Org' },
-    getUser: { 
+    getUser: {
         default_org: { id: 'org-1', name: 'Test Org' }
     }
 };
@@ -274,9 +274,9 @@ describe('SbomContent', () => {
         });
 
         const initialWorkspace = wrapper.vm.selected_workspace;
-        
+
         await wrapper.setProps({ projectID: 'project-456' });
-        
+
         // Reactive state should be maintained
         expect(wrapper.vm.selected_workspace).toBe(initialWorkspace);
         expect(typeof wrapper.vm.error).toBe('boolean');
@@ -364,7 +364,7 @@ describe('SbomContent', () => {
 
         expect(selectWorkspace.props('projectID')).toBe('project-123');
         expect(selectWorkspace.props('analysisID')).toBe('analysis-456');
-        
+
         expect(sbomTable.props('projectID')).toBe('project-123');
         expect(sbomTable.props('analysisID')).toBe('analysis-456');
     });

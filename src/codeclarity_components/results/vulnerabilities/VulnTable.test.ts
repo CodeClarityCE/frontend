@@ -89,7 +89,12 @@ vi.mock('@/base_components/utilities/PaginationComponent.vue', () => ({
         name: 'PaginationComponent',
         template: '<div data-testid="pagination-component">Pagination</div>',
         props: ['page', 'nmb-entries-showing', 'nmb-entries-total', 'total-pages'],
-        emits: ['update:page', 'update:nmb-entries-showing', 'update:nmb-entries-total', 'update:total-pages']
+        emits: [
+            'update:page',
+            'update:nmb-entries-showing',
+            'update:nmb-entries-total',
+            'update:total-pages'
+        ]
     }
 }));
 
@@ -97,7 +102,15 @@ vi.mock('@/base_components/utilities/UtilitiesSort.vue', () => ({
     default: {
         name: 'UtilitiesSort',
         template: '<div data-testid="utilities-sort">Sort Component</div>',
-        props: ['page-limit-selected', 'sort-key', 'sort-direction', 'selection-page-limit', 'sort-options', 'showing', 'total'],
+        props: [
+            'page-limit-selected',
+            'sort-key',
+            'sort-direction',
+            'selection-page-limit',
+            'sort-options',
+            'showing',
+            'total'
+        ],
         emits: ['update:page-limit-selected', 'update:sort-key', 'update:sort-direction']
     }
 }));
@@ -540,7 +553,7 @@ describe('VulnTable', () => {
         });
 
         expect(wrapper.vm.placeholder).toBe('Search by dependency, dependency version, or cve');
-        
+
         // Test search functionality
         wrapper.vm.searchKey = 'CVE-2023';
         expect(wrapper.vm.searchKey).toBe('CVE-2023');
@@ -631,7 +644,9 @@ describe('VulnTable', () => {
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         // Mock the repository method to throw an error
-        wrapper.vm.resultsRepository.getVulnerabilities = vi.fn().mockRejectedValue(new Error('API Error'));
+        wrapper.vm.resultsRepository.getVulnerabilities = vi
+            .fn()
+            .mockRejectedValue(new Error('API Error'));
 
         await wrapper.vm.init();
 

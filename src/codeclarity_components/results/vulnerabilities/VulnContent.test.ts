@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
 import VulnContent from './VulnContent.vue';
-import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 
 // Mock stores
 const mockUserStore = {
@@ -266,7 +265,7 @@ describe('VulnContent', () => {
         expect(distribution).toHaveProperty('high');
         expect(distribution).toHaveProperty('medium');
         expect(distribution).toHaveProperty('low');
-        
+
         // All percentages should be between 0 and 100
         Object.values(distribution).forEach((value: any) => {
             expect(value).toBeGreaterThanOrEqual(0);
@@ -288,7 +287,7 @@ describe('VulnContent', () => {
         const categories = wrapper.vm.topOwaspCategories;
         expect(Array.isArray(categories)).toBe(true);
         expect(categories.length).toBeLessThanOrEqual(3);
-        
+
         categories.forEach((category: any) => {
             expect(category).toHaveProperty('name');
             expect(category).toHaveProperty('count');
@@ -495,12 +494,13 @@ describe('VulnContent', () => {
 
         // Overall impact should be (6.0 + 5.0 + 4.0) / 3 = 5.0
         const expectedOverall = ((6.0 + 5.0 + 4.0) / 3).toFixed(1);
-        
+
         // Check the computed calculation matches our expectation
         const actualOverall = (
             ((wrapper.vm.stats.mean_confidentiality_impact || 0) +
-             (wrapper.vm.stats.mean_integrity_impact || 0) +
-             (wrapper.vm.stats.mean_availability_impact || 0)) / 3
+                (wrapper.vm.stats.mean_integrity_impact || 0) +
+                (wrapper.vm.stats.mean_availability_impact || 0)) /
+            3
         ).toFixed(1);
 
         expect(actualOverall).toBe(expectedOverall);

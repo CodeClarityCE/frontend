@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
 import SbomContent from './SbomContent.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 
 // Mock stores
 const mockUserStore = {

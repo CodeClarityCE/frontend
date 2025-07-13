@@ -190,7 +190,7 @@ describe('ProjectsList', () => {
             }
         });
 
-        expect(wrapper.vm.viewState.fetchProjects).toHaveBeenCalled;
+        expect(wrapper.vm.viewState.fetchProjects).toHaveBeenCalled();
     });
 
     it('passes correct props to header', () => {

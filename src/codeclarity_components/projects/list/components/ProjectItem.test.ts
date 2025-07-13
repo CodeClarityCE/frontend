@@ -24,7 +24,7 @@ vi.mock('@/codeclarity_components/projects/project.repository', () => ({
 }));
 
 vi.mock('@/utils/dateUtils', () => ({
-    formatDate: vi.fn((date) => '2023-01-01')
+    formatDate: vi.fn((_date) => '2023-01-01')
 }));
 
 vi.mock('@/utils/toasts', () => ({
@@ -190,7 +190,7 @@ describe('ProjectItem', () => {
         const deleteButton = wrapper.find('[data-testid="delete-button"]');
         if (deleteButton.exists()) {
             await deleteButton.trigger('click');
-            expect(wrapper.vm.projectDeleteModalRef.openModal).toHaveBeenCalled;
+            expect(wrapper.vm.projectDeleteModalRef.openModal).toHaveBeenCalled();
         }
     });
 
@@ -245,7 +245,7 @@ describe('ProjectItem', () => {
         wrapper.vm.projectRepository = mockRepo;
 
         await wrapper.vm.deleteProject();
-        expect(wrapper.vm.errorToast).toHaveBeenCalled;
+        expect(wrapper.vm.errorToast).toHaveBeenCalled();
     });
 
     it('opens options modal when options button clicked', async () => {
@@ -262,7 +262,7 @@ describe('ProjectItem', () => {
         const optionsButton = wrapper.find('[data-testid="options-button"]');
         if (optionsButton.exists()) {
             await optionsButton.trigger('click');
-            expect(wrapper.vm.projectOptionsModalRef.openModal).toHaveBeenCalled;
+            expect(wrapper.vm.projectOptionsModalRef.openModal).toHaveBeenCalled();
         }
     });
 

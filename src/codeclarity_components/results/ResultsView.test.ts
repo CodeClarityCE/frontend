@@ -152,7 +152,11 @@ describe('ResultsView', () => {
             wrapper.unmount();
         }
         // Restore window.location
-        window.location = windowLocation;
+        Object.defineProperty(window, 'location', {
+            value: windowLocation,
+            writable: true,
+            configurable: true
+        });
     });
 
     it('renders correctly', async () => {

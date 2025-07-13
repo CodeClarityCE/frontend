@@ -4,14 +4,11 @@ import SearchHeader from '@/codeclarity_components/header/components/SearchHeade
 
 // Mock external dependencies
 vi.mock('@vueuse/core', () => ({
-  useMagicKeys: () => {
-    const { ref } = require('vue');
-    return {
-      Meta_K: ref(false),
-      Ctrl_K: ref(false),
-      enter: ref(false)
-    };
-  }
+  useMagicKeys: () => ({
+    Meta_K: { value: false },
+    Ctrl_K: { value: false },
+    enter: { value: false }
+  })
 }));
 
 // Mock router

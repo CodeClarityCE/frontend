@@ -316,7 +316,6 @@ describe('TeamSwitcher - Simplified', () => {
       expect(popoverContent.exists()).toBe(true);
       
       // The command structure exists but is hidden (display: none)
-      const command = wrapper.findComponent({ name: 'Command' });
       // This is expected to not be visible in closed popover state
       expect(popoverContent.exists()).toBe(true);
     });

@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import type { Project } from '@/codeclarity_components/projects/project.entity';
 import ProjectItem from './ProjectItem.vue';
 
 // Mock all dependencies
@@ -66,18 +68,16 @@ vi.mock('@/base_components/ui/modals/CenteredModal.vue', () => ({
 describe('ProjectItem', () => {
     let wrapper: any;
     let pinia: any;
-    const mockProject = {
+    const mockProject: Project = {
         id: 'project-1',
         name: 'Test Project',
         description: 'Test Description',
-        created_on: '2023-01-01T00:00:00Z',
-        updated_on: '2023-01-02T00:00:00Z',
-        repository: {
-            id: 'repo-1',
-            name: 'test-repo',
-            url: 'https://github.com/test/repo',
-            integration_provider: 'GITHUB'
-        },
+        integration_id: 'integration-1',
+        type: IntegrationProvider.GITHUB,
+        url: 'https://github.com/test/repo',
+        upload_id: 'upload-1',
+        added_on: new Date('2023-01-01T00:00:00Z'),
+        organization_id: 'org-1',
         analyses: []
     };
 
@@ -130,7 +130,7 @@ describe('ProjectItem', () => {
             }
         });
 
-        expect(wrapper.text()).toContain('test-repo');
+        expect(wrapper.text()).toContain('Test Project');
     });
 
     it('shows correct integration provider icon', () => {
@@ -267,14 +267,9 @@ describe('ProjectItem', () => {
     });
 
     it('handles project without repository', () => {
-        const projectWithoutRepo = {
-            ...mockProject,
-            repository: null
-        };
-
         wrapper = mount(ProjectItem, {
             props: {
-                project: projectWithoutRepo
+                project: mockProject
             },
             global: {
                 plugins: [pinia]
@@ -287,10 +282,7 @@ describe('ProjectItem', () => {
     it('handles project with GitLab repository', () => {
         const gitlabProject = {
             ...mockProject,
-            repository: {
-                ...mockProject.repository,
-                integration_provider: 'GITLAB'
-            }
+            type: IntegrationProvider.GITLAB
         };
 
         wrapper = mount(ProjectItem, {

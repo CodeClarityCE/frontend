@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { AnalysisStatus, type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import AnalysisList from './AnalysisList.vue';
 
 // Mock child components
@@ -39,24 +40,30 @@ vi.mock('@/shadcn/ui/collapsible/CollapsibleTrigger.vue', () => ({
 
 describe('AnalysisList', () => {
     let wrapper: any;
-    const mockAnalyses = [
+    const mockAnalyses: Analysis[] = [
         {
             id: 'analysis-1',
-            name: 'Analysis 1',
-            status: 'COMPLETED',
-            created_on: '2023-01-01T00:00:00Z'
+            created_on: new Date('2023-01-01T00:00:00Z'),
+            analyzer: { id: 'analyzer-1', name: 'Test Analyzer' } as any,
+            status: AnalysisStatus.COMPLETED,
+            steps: [],
+            branch: 'main'
         },
         {
             id: 'analysis-2',
-            name: 'Analysis 2',
-            status: 'STARTED',
-            created_on: '2023-01-02T00:00:00Z'
+            created_on: new Date('2023-01-02T00:00:00Z'),
+            analyzer: { id: 'analyzer-2', name: 'Test Analyzer 2' } as any,
+            status: AnalysisStatus.STARTED,
+            steps: [],
+            branch: 'main'
         },
         {
             id: 'analysis-3',
-            name: 'Analysis 3',
-            status: 'FINISHED',
-            created_on: '2023-01-03T00:00:00Z'
+            created_on: new Date('2023-01-03T00:00:00Z'),
+            analyzer: { id: 'analyzer-3', name: 'Test Analyzer 3' } as any,
+            status: AnalysisStatus.FINISHED,
+            steps: [],
+            branch: 'main'
         }
     ];
 

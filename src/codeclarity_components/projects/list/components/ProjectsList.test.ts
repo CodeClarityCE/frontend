@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
 import ProjectsList from './ProjectsList.vue';
@@ -225,7 +225,7 @@ describe('ProjectsList', () => {
         wrapper.vm.$forceUpdate();
 
         const projectItems = wrapper.findAllComponents({ name: 'ProjectItem' });
-        projectItems.forEach((item, index) => {
+        projectItems.forEach((item: any, index: any) => {
             expect(item.props().project).toEqual(mockProjects[index]);
         });
     });

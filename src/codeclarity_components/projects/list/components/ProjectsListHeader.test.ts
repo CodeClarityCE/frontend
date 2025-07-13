@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import ProjectsListHeader from './ProjectsListHeader.vue';
 
 // Mock all dependencies
@@ -28,7 +29,7 @@ describe('ProjectsListHeader', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
                 sortBy: 'name',
-                sortDirection: 'asc'
+                sortDirection: SortDirection.ASC
             }
         });
 
@@ -39,19 +40,19 @@ describe('ProjectsListHeader', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
                 sortBy: 'created_on',
-                sortDirection: 'desc'
+                sortDirection: SortDirection.DESC
             }
         });
 
         expect(wrapper.props().sortBy).toBe('created_on');
-        expect(wrapper.props().sortDirection).toBe('desc');
+        expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 
     it('emits sort change events', async () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
                 sortBy: 'name',
-                sortDirection: 'asc'
+                sortDirection: SortDirection.ASC
             }
         });
 
@@ -75,18 +76,18 @@ describe('ProjectsListHeader', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
                 sortBy: 'name',
-                sortDirection: 'desc'
+                sortDirection: SortDirection.DESC
             }
         });
 
-        expect(wrapper.props().sortDirection).toBe('desc');
+        expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 
     it('handles different sort fields', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
                 sortBy: 'updated_on',
-                sortDirection: 'asc'
+                sortDirection: SortDirection.ASC
             }
         });
 
@@ -97,17 +98,17 @@ describe('ProjectsListHeader', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
                 sortBy: 'name',
-                sortDirection: 'asc'
+                sortDirection: SortDirection.ASC
             }
         });
 
         // Change props
         await wrapper.setProps({
             sortBy: 'created_on',
-            sortDirection: 'desc'
+            sortDirection: SortDirection.DESC
         });
 
         expect(wrapper.props().sortBy).toBe('created_on');
-        expect(wrapper.props().sortDirection).toBe('desc');
+        expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 });

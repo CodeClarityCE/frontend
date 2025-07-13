@@ -1,18 +1,19 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createRouter, createWebHistory } from 'vue-router';
+import { MemberRole, type Organization } from '@/codeclarity_components/organizations/organization.entity';
 import NoIntegration from './NoIntegration.vue';
 
 // Mock dependencies
 vi.mock('@/codeclarity_components/organizations/organization.entity', () => ({
     MemberRole: {
-        MEMBER: 'MEMBER',
-        ADMIN: 'ADMIN',
-        OWNER: 'OWNER'
+        USER: 3,
+        MODERATOR: 2,
+        ADMIN: 1,
+        OWNER: 0
     },
-    isMemberRoleGreaterOrEqualTo: vi.fn((role: string, requiredRole: string) => {
-        const roles = { MEMBER: 1, ADMIN: 2, OWNER: 3 };
-        return roles[role as keyof typeof roles] >= roles[requiredRole as keyof typeof roles];
+    isMemberRoleGreaterOrEqualTo: vi.fn((role: number, requiredRole: number) => {
+        return role <= requiredRole;
     })
 }));
 
@@ -43,10 +44,17 @@ const MockRouterLink = {
 describe('NoIntegration', () => {
     let wrapper: any;
     let router: any;
-    const mockOrganization = {
+    const mockOrganization: Organization = {
         id: 'org-1',
         name: 'Test Organization',
-        role: 'ADMIN'
+        color_scheme: 'blue',
+        description: 'Test organization description',
+        created_on: new Date(),
+        personal: false,
+        role: MemberRole.ADMIN,
+        number_of_members: 1,
+        organizationMemberships: [],
+        joined_on: new Date()
     };
 
     beforeEach(() => {
@@ -111,7 +119,7 @@ describe('NoIntegration', () => {
     it('shows admin message for admin users', () => {
         wrapper = mount(NoIntegration, {
             props: {
-                defaultOrg: { ...mockOrganization, role: 'ADMIN' }
+                defaultOrg: { ...mockOrganization, role: MemberRole.ADMIN }
             },
             global: {
                 plugins: [router],
@@ -128,7 +136,7 @@ describe('NoIntegration', () => {
     it('shows non-admin message for regular members', () => {
         wrapper = mount(NoIntegration, {
             props: {
-                defaultOrg: { ...mockOrganization, role: 'MEMBER' }
+                defaultOrg: { ...mockOrganization, role: MemberRole.USER }
             },
             global: {
                 plugins: [router],
@@ -144,7 +152,7 @@ describe('NoIntegration', () => {
     it('shows manage integrations button for admin users', () => {
         wrapper = mount(NoIntegration, {
             props: {
-                defaultOrg: { ...mockOrganization, role: 'ADMIN' }
+                defaultOrg: { ...mockOrganization, role: MemberRole.ADMIN }
             },
             global: {
                 plugins: [router],
@@ -162,7 +170,7 @@ describe('NoIntegration', () => {
     it('hides manage integrations button for regular members', () => {
         wrapper = mount(NoIntegration, {
             props: {
-                defaultOrg: { ...mockOrganization, role: 'MEMBER' }
+                defaultOrg: { ...mockOrganization, role: MemberRole.USER }
             },
             global: {
                 plugins: [router],
@@ -173,7 +181,7 @@ describe('NoIntegration', () => {
         });
 
         const routerLinks = wrapper.findAll('[data-testid="router-link"]');
-        const manageLink = routerLinks.find((link) => link.text().includes('Manage Integrations'));
+        const manageLink = routerLinks.find((link: any) => link.text().includes('Manage Integrations'));
         expect(manageLink).toBeFalsy();
     });
 
@@ -199,7 +207,7 @@ describe('NoIntegration', () => {
     it('has correct router link configuration for manage integrations', () => {
         wrapper = mount(NoIntegration, {
             props: {
-                defaultOrg: { ...mockOrganization, role: 'ADMIN' }
+                defaultOrg: { ...mockOrganization, role: MemberRole.ADMIN }
             },
             global: {
                 plugins: [router],
@@ -220,7 +228,7 @@ describe('NoIntegration', () => {
     it('displays all action buttons', () => {
         wrapper = mount(NoIntegration, {
             props: {
-                defaultOrg: { ...mockOrganization, role: 'ADMIN' }
+                defaultOrg: { ...mockOrganization, role: MemberRole.ADMIN }
             },
             global: {
                 plugins: [router],
@@ -234,11 +242,11 @@ describe('NoIntegration', () => {
         expect(buttons.length).toBeGreaterThanOrEqual(2); // Refresh and Go Back buttons at minimum
 
         // Check for refresh button
-        const refreshButton = buttons.find((button) => button.text().includes('Refresh'));
+        const refreshButton = buttons.find((button: any) => button.text().includes('Refresh'));
         expect(refreshButton).toBeTruthy();
 
         // Check for go back button
-        const goBackButton = buttons.find((button) => button.text().includes('Go Back'));
+        const goBackButton = buttons.find((button: any) => button.text().includes('Go Back'));
         expect(goBackButton).toBeTruthy();
     });
 
@@ -260,7 +268,7 @@ describe('NoIntegration', () => {
         });
 
         const buttons = wrapper.findAllComponents({ name: 'Button' });
-        const goBackButton = buttons.find((button) => button.text().includes('Go Back'));
+        const goBackButton = buttons.find((button: any) => button.text().includes('Go Back'));
 
         if (goBackButton) {
             await goBackButton.trigger('click');

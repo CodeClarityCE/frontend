@@ -276,7 +276,7 @@ describe('AnalyzersView', () => {
             await wrapper.vm.$nextTick();
 
             expect(wrapper.props().page).toBe(page);
-            
+
             if (wrapper) {
                 wrapper.unmount();
             }
@@ -298,7 +298,7 @@ describe('AnalyzersView', () => {
             await wrapper.vm.$nextTick();
 
             expect(wrapper.props().orgId).toBe(orgId);
-            
+
             if (wrapper) {
                 wrapper.unmount();
             }
@@ -320,7 +320,7 @@ describe('AnalyzersView', () => {
             await wrapper.vm.$nextTick();
 
             expect(wrapper.props().action).toBe(action);
-            
+
             if (wrapper) {
                 wrapper.unmount();
             }

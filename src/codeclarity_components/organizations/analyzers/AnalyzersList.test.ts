@@ -168,7 +168,7 @@ describe('AnalyzersList', () => {
     beforeEach(() => {
         pinia = createPinia();
         vi.clearAllMocks();
-        
+
         mockAnalyzerRepo.getAnalyzers.mockResolvedValue({
             data: mockAnalyzers
         });
@@ -297,7 +297,7 @@ describe('AnalyzersList', () => {
 
         // Wait for async operations
         await wrapper.vm.$nextTick();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockAnalyzerRepo.getAnalyzers).toHaveBeenCalledWith({
             orgId: 'test-org-id',
@@ -464,7 +464,7 @@ describe('AnalyzersList', () => {
         });
 
         await wrapper.vm.$nextTick();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(wrapper.vm.error).toBe(true);
     });

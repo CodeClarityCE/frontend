@@ -120,7 +120,7 @@ describe('IntegrationsList', () => {
     beforeEach(() => {
         pinia = createPinia();
         vi.clearAllMocks();
-        
+
         mockIntegrationRepo.getVCS.mockResolvedValue({
             data: mockVcsIntegrations
         });
@@ -249,7 +249,7 @@ describe('IntegrationsList', () => {
 
         // Wait for async operations
         await wrapper.vm.$nextTick();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockIntegrationRepo.getVCS).toHaveBeenCalledWith({
             orgId: 'test-org-id',
@@ -416,7 +416,7 @@ describe('IntegrationsList', () => {
         });
 
         await wrapper.vm.$nextTick();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(wrapper.vm.error).toBe(true);
     });

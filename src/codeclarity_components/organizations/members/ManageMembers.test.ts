@@ -139,9 +139,21 @@ describe('ManageMembers', () => {
             history: createWebHistory(),
             routes: [
                 { path: '/', component: { template: '<div></div>' } },
-                { path: '/orgs/:orgId/members', name: 'orgMembers', component: { template: '<div></div>' } },
-                { path: '/orgs/:orgId/manage/:page?', name: 'orgManage', component: { template: '<div></div>' } },
-                { path: '/orgs/:orgId/invite', name: 'orgAddInvite', component: { template: '<div></div>' } }
+                {
+                    path: '/orgs/:orgId/members',
+                    name: 'orgMembers',
+                    component: { template: '<div></div>' }
+                },
+                {
+                    path: '/orgs/:orgId/manage/:page?',
+                    name: 'orgManage',
+                    component: { template: '<div></div>' }
+                },
+                {
+                    path: '/orgs/:orgId/invite',
+                    name: 'orgAddInvite',
+                    component: { template: '<div></div>' }
+                }
             ]
         });
 
@@ -274,8 +286,8 @@ describe('ManageMembers', () => {
             }
         });
 
-        wrapper.vm.orgInfo = { 
-            id: 'test-org', 
+        wrapper.vm.orgInfo = {
+            id: 'test-org',
             role: MemberRole.ADMIN,
             personal: false
         };
@@ -297,8 +309,8 @@ describe('ManageMembers', () => {
             }
         });
 
-        wrapper.vm.orgInfo = { 
-            id: 'test-org', 
+        wrapper.vm.orgInfo = {
+            id: 'test-org',
             role: MemberRole.USER,
             personal: false
         };
@@ -338,7 +350,7 @@ describe('ManageMembers', () => {
         await wrapper.vm.$nextTick();
 
         const sortableTable = wrapper.findComponent({ name: 'SortableTable' });
-        
+
         if (sortableTable.exists()) {
             await sortableTable.vm.$emit('onSortChange', 'email');
             expect(wrapper.vm.sortKey).toBe('email');

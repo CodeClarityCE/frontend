@@ -109,7 +109,7 @@ describe('PoliciesList', () => {
     beforeEach(() => {
         pinia = createPinia();
         vi.clearAllMocks();
-        
+
         mockLicensePolicyRepo.getLicensePolicies.mockResolvedValue({
             data: mockLicensePolicies
         });
@@ -175,7 +175,9 @@ describe('PoliciesList', () => {
         const infoCard = wrapper.findComponent({ name: 'InfoCard' });
         expect(infoCard.exists()).toBe(true);
         expect(infoCard.props().title).toBe('License Policies');
-        expect(infoCard.props().description).toBe('Manage license compliance policies for your organization');
+        expect(infoCard.props().description).toBe(
+            'Manage license compliance policies for your organization'
+        );
         expect(infoCard.props().icon).toBe('solar:shield-check-bold');
         expect(infoCard.props().variant).toBe('primary');
     });
@@ -266,7 +268,7 @@ describe('PoliciesList', () => {
 
         // Wait for async operations
         await wrapper.vm.$nextTick();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockLicensePolicyRepo.getLicensePolicies).toHaveBeenCalledWith({
             orgId: 'test-org-id',
@@ -346,7 +348,7 @@ describe('PoliciesList', () => {
         });
 
         await wrapper.vm.$nextTick();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(wrapper.vm.error).toBe(true);
     });

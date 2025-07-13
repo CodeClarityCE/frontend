@@ -241,7 +241,7 @@ describe('IntegrationsView', () => {
             await wrapper.vm.$nextTick();
 
             expect(wrapper.props().page).toBe(page);
-            
+
             if (wrapper) {
                 wrapper.unmount();
             }
@@ -263,7 +263,7 @@ describe('IntegrationsView', () => {
             await wrapper.vm.$nextTick();
 
             expect(wrapper.props().orgId).toBe(orgId);
-            
+
             if (wrapper) {
                 wrapper.unmount();
             }

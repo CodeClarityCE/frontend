@@ -307,7 +307,9 @@ describe('OrganizationView', () => {
             }
         });
 
-        expect(wrapper.vm.getPageDescription()).toBe('Create a new organization to manage your team and projects');
+        expect(wrapper.vm.getPageDescription()).toBe(
+            'Create a new organization to manage your team and projects'
+        );
     });
 
     it('displays correct page description for organizations list', () => {
@@ -317,7 +319,9 @@ describe('OrganizationView', () => {
             }
         });
 
-        expect(wrapper.vm.getPageDescription()).toBe("Monitor your organization's security posture and vulnerabilities");
+        expect(wrapper.vm.getPageDescription()).toBe(
+            "Monitor your organization's security posture and vulnerabilities"
+        );
     });
 
     it('displays correct page description for policies page', () => {
@@ -328,7 +332,9 @@ describe('OrganizationView', () => {
             }
         });
 
-        expect(wrapper.vm.getPageDescription()).toBe('Configure security policies and compliance settings');
+        expect(wrapper.vm.getPageDescription()).toBe(
+            'Configure security policies and compliance settings'
+        );
     });
 
     it('initializes state store correctly', () => {
@@ -367,7 +373,9 @@ describe('OrganizationView', () => {
         });
 
         expect(wrapper.vm.getPageTitle()).toBe('Organizations');
-        expect(wrapper.vm.getPageDescription()).toBe('Manage your organizations and security settings');
+        expect(wrapper.vm.getPageDescription()).toBe(
+            'Manage your organizations and security settings'
+        );
     });
 
     it('shows page header with correct props', () => {
@@ -381,7 +389,9 @@ describe('OrganizationView', () => {
 
         expect(pageHeader.exists()).toBe(true);
         expect(pageHeader.props().title).toBe('Organizations');
-        expect(pageHeader.props().description).toBe("Monitor your organization's security posture and vulnerabilities");
+        expect(pageHeader.props().description).toBe(
+            "Monitor your organization's security posture and vulnerabilities"
+        );
         expect(pageHeader.props().showLastUpdated).toBe(false);
         expect(pageHeader.props().showRefresh).toBe(false);
     });

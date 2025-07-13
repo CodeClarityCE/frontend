@@ -27,5 +27,15 @@ export default typescriptEslint.config(
       "@typescript-eslint/no-empty-object-type": ["off"]
     },
   },
+  {
+    files: ['**/*.spec.ts', '**/*.test.ts'],
+    rules: {
+      "vue/multi-word-component-names": "off",
+      "vue/no-reserved-component-names": "off",
+      "vue/one-component-per-file": "off",
+      "vue/require-prop-types": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+    },
+  },
   eslintConfigPrettier
 );

@@ -24,30 +24,29 @@ async function init() {
             handleBusinessErrors: true
         });
 
-        // success.value = true;
+        // Success case
+        text.value = 'Registration confirmed. Redirecting to login page in';
+        counter.value = 5;
+        const successInterval = setInterval(() => {
+            counter.value -= 1;
+            if (counter.value == 0) {
+                clearInterval(successInterval);
+                router.push({ name: 'login' });
+            }
+        }, 1000);
     } catch (_err) {
         console.error(_err);
 
         text.value = 'Error confirming registration. Redirecting to login page in';
         counter.value = 5;
-        const interval = setInterval(() => {
+        const errorInterval = setInterval(() => {
             counter.value -= 1;
             if (counter.value == 0) {
-                clearInterval(interval);
+                clearInterval(errorInterval);
                 router.push({ name: 'login' });
             }
         }, 1000);
     }
-
-    text.value = 'Registration confirmed. Redirecting to login page in';
-    counter.value = 5;
-    const interval = setInterval(() => {
-        counter.value -= 1;
-        if (counter.value == 0) {
-            clearInterval(interval);
-            router.push({ name: 'login' });
-        }
-    }, 1000);
 }
 
 init();

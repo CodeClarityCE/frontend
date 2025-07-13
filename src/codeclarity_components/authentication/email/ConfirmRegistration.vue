@@ -27,10 +27,13 @@ async function init() {
         // Success case
         text.value = 'Registration confirmed. Redirecting to login page in';
         counter.value = 5;
-        const successInterval = setInterval(() => {
+        let successInterval: NodeJS.Timeout | null = null;
+        successInterval = setInterval(() => {
             counter.value -= 1;
             if (counter.value == 0) {
-                clearInterval(successInterval);
+                if (successInterval) {
+                    clearInterval(successInterval);
+                }
                 router.push({ name: 'login' });
             }
         }, 1000);
@@ -39,10 +42,13 @@ async function init() {
 
         text.value = 'Error confirming registration. Redirecting to login page in';
         counter.value = 5;
-        const errorInterval = setInterval(() => {
+        let errorInterval: NodeJS.Timeout | null = null;
+        errorInterval = setInterval(() => {
             counter.value -= 1;
             if (counter.value == 0) {
-                clearInterval(errorInterval);
+                if (errorInterval) {
+                    clearInterval(errorInterval);
+                }
                 router.push({ name: 'login' });
             }
         }, 1000);

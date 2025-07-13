@@ -161,7 +161,7 @@ onMounted(async () => {
             <Icon v-if="loading" icon="tabler:loader-2" class="h-10 w-10 animate-spin" />
 
             <template v-else-if="error">
-                <div v-if="errorCode == undefined || errorNonRecoverable">
+                <div v-if="!errorCode || errorNonRecoverable">
                     <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
                         <div style="font-size: 1.5em">
                             <div>Whoops</div>
@@ -208,7 +208,7 @@ onMounted(async () => {
                         </div>
 
                         <div>
-                            <Button @click="nonRecoverableErrorRedirect"> Back to login </Button>
+                            <Button @click="nonRecoverableErrorRedirect()"> Back to login </Button>
                         </div>
                     </div>
                 </div>

@@ -387,7 +387,13 @@ describe('PasswordResetForm', () => {
     it('should show back to login link in success state', async () => {
       const wrapper = mount(PasswordResetForm, {
         global: {
-          stubs: ['RouterLink']
+          components: {
+            RouterLink: defineComponent({
+              name: 'RouterLink',
+              props: ['to'],
+              template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
+            })
+          }
         }
       });
       await nextTick();
@@ -396,7 +402,7 @@ describe('PasswordResetForm', () => {
       await form.trigger('submit');
       await nextTick();
       
-      const loginLink = wrapper.find('routerlink-stub');
+      const loginLink = wrapper.find('[data-testid="router-link"]');
       expect(loginLink.exists()).toBe(true);
       expect(loginLink.text()).toBe('Back to login');
     });
@@ -407,7 +413,13 @@ describe('PasswordResetForm', () => {
       
       const wrapper = mount(PasswordResetForm, {
         global: {
-          stubs: ['RouterLink']
+          components: {
+            RouterLink: defineComponent({
+              name: 'RouterLink',
+              props: ['to'],
+              template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
+            })
+          }
         }
       });
       await nextTick();
@@ -416,7 +428,7 @@ describe('PasswordResetForm', () => {
       await form.trigger('submit');
       await nextTick();
       
-      const links = wrapper.findAll('routerlink-stub');
+      const links = wrapper.findAll('[data-testid="router-link"]');
       expect(links).toHaveLength(2);
       expect(links[0].text()).toBe('Request a new password reset');
       expect(links[1].text()).toBe('Back to login');

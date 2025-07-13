@@ -4,6 +4,7 @@ import { createPinia } from 'pinia';
 import ResultsSBOM from './ResultsSBOM.vue';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
 
 // Mock child components
 vi.mock('./SbomContent.vue', () => ({
@@ -58,9 +59,25 @@ describe('ResultsSBOM', () => {
     const mockAnalysis = {
         id: 'analysis-1',
         created_on: new Date(),
-        analyzer: { id: 'analyzer-1', name: 'Test Analyzer' },
+        analyzer: {
+            id: 'analyzer-1',
+            name: 'Test Analyzer',
+            description: 'Test Description',
+            created_on: new Date(),
+            steps: [],
+            organization_id: 'org-1'
+        } as Analyzer,
         status: AnalysisStatus.SUCCESS,
-        steps: [[{ Name: 'js-sbom', Status: 'success', Result: 'result-1' }]],
+        steps: [
+            [
+                {
+                    Name: 'js-sbom',
+                    Version: '1.0',
+                    Status: AnalysisStatus.SUCCESS,
+                    Result: 'result-1'
+                }
+            ]
+        ],
         branch: 'main'
     };
 

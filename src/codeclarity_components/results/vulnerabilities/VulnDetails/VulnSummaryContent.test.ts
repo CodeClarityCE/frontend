@@ -82,7 +82,8 @@ describe('VulnSummaryContent.vue', () => {
             ],
             version_info: {
                 affected_versions_string: '>= 1.0.0, < 2.0.0',
-                patched_versions_string: '>= 2.0.0'
+                patched_versions_string: '>= 2.0.0',
+                versions: []
             }
         };
         finding.weaknesses = [
@@ -94,8 +95,7 @@ describe('VulnSummaryContent.vue', () => {
         ];
         finding.owasp_top_10 = {
             name: 'A03:2021 – Injection',
-            description: 'OWASP Top 10 description',
-            id: 'A03'
+            description: 'OWASP Top 10 description'
         };
 
         return Object.assign(finding, overrides);

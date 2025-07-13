@@ -139,22 +139,19 @@ describe('ResultsPatching.vue', () => {
         expect(mainDiv.isVisible()).toBe(true);
     });
 
-    it('initializes details state as false', () => {
+    it('initializes with default state', () => {
         const wrapper = createWrapper();
 
-        expect(wrapper.vm.details).toBe(false);
+        expect(wrapper.exists()).toBe(true);
+        expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(true);
     });
 
-    it('can change details state', async () => {
+    it('renders patching content component with correct props', () => {
         const wrapper = createWrapper();
+        const patchingContent = wrapper.findComponent({ name: 'PatchingContent' });
 
-        // Initially false
-        expect(wrapper.vm.details).toBe(false);
-
-        // Change to true
-        wrapper.vm.details = true;
-        await wrapper.vm.$nextTick();
-
-        expect(wrapper.vm.details).toBe(true);
+        expect(patchingContent.exists()).toBe(true);
+        expect(patchingContent.props('analysisID')).toBe('analysis-123');
+        expect(patchingContent.props('projectID')).toBe('project-123');
     });
 });

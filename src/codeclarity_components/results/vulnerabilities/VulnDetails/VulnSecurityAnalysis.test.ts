@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import VulnSecurityAnalysis from './VulnSecurityAnalysis.vue';
 import { VulnerabilityDetails } from './VulnDetails';
@@ -26,9 +26,15 @@ describe('VulnSecurityAnalysis.vue', () => {
         const finding = new VulnerabilityDetails();
         finding.vulnerability_info = {
             vulnerability_id: 'CVE-2021-1234',
+            description: 'Test vulnerability description',
+            published: '2021-01-01',
+            last_modified: '2021-01-02',
+            sources: [],
+            aliases: [],
             version_info: {
                 affected_versions_string: '>= 1.0.0, < 2.0.0',
-                patched_versions_string: '>= 2.0.0'
+                patched_versions_string: '>= 2.0.0',
+                versions: []
             }
         };
 

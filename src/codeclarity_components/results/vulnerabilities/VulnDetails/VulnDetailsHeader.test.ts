@@ -25,15 +25,22 @@ describe('VulnDetailsHeader.vue', () => {
         const finding = new VulnerabilityDetails();
         finding.vulnerability_info = {
             vulnerability_id: 'CVE-2021-1234',
+            description: 'Test vulnerability description',
+            published: '2021-01-01',
+            last_modified: '2021-01-02',
+            sources: [],
+            aliases: [],
             version_info: {
                 affected_versions_string: '>= 1.0.0, < 2.0.0',
-                patched_versions_string: '>= 2.0.0'
+                patched_versions_string: '>= 2.0.0',
+                versions: []
             }
         };
         finding.weaknesses = [
             {
                 name: 'Cross-site Scripting (XSS)',
-                id: 'CWE-79'
+                id: 'CWE-79',
+                description: 'Cross-site scripting vulnerability description'
             }
         ];
         finding.dependency_info = {
@@ -42,7 +49,7 @@ describe('VulnDetailsHeader.vue', () => {
             published: '',
             description: '',
             keywords: [],
-            package_manager_links: {}
+            package_manager_links: []
         };
 
         return Object.assign(finding, overrides);
@@ -52,7 +59,7 @@ describe('VulnDetailsHeader.vue', () => {
         return mount(VulnDetailsHeader, {
             props: {
                 finding,
-                versionsModalRef: vi.fn()
+                versionsModalRef: { value: vi.fn() }
             }
         });
     };
@@ -83,9 +90,15 @@ describe('VulnDetailsHeader.vue', () => {
             const finding = createMockFinding({
                 vulnerability_info: {
                     vulnerability_id: 'CVE-2021-5678',
+                    description: 'Universal vulnerability description',
+                    published: '2021-01-01',
+                    last_modified: '2021-01-02',
+                    sources: [],
+                    aliases: [],
                     version_info: {
                         affected_versions_string: '*',
-                        patched_versions_string: 'None'
+                        patched_versions_string: 'None',
+                        versions: []
                     }
                 }
             });
@@ -134,9 +147,15 @@ describe('VulnDetailsHeader.vue', () => {
             const finding = createMockFinding({
                 vulnerability_info: {
                     vulnerability_id: '',
+                    description: 'Empty ID vulnerability description',
+                    published: '2021-01-01',
+                    last_modified: '2021-01-02',
+                    sources: [],
+                    aliases: [],
                     version_info: {
                         affected_versions_string: '>= 1.0.0',
-                        patched_versions_string: '>= 2.0.0'
+                        patched_versions_string: '>= 2.0.0',
+                        versions: []
                     }
                 }
             });
@@ -149,8 +168,16 @@ describe('VulnDetailsHeader.vue', () => {
         it('should handle multiple weaknesses', () => {
             const finding = createMockFinding({
                 weaknesses: [
-                    { name: 'Cross-site Scripting (XSS)', id: 'CWE-79' },
-                    { name: 'SQL Injection', id: 'CWE-89' }
+                    {
+                        name: 'Cross-site Scripting (XSS)',
+                        id: 'CWE-79',
+                        description: 'XSS vulnerability description'
+                    },
+                    {
+                        name: 'SQL Injection',
+                        id: 'CWE-89',
+                        description: 'SQL injection vulnerability description'
+                    }
                 ]
             });
 
@@ -209,9 +236,15 @@ describe('VulnDetailsHeader.vue', () => {
             const finding = createMockFinding({
                 vulnerability_info: {
                     vulnerability_id: 'CVE-2021-5678',
+                    description: 'Universal vulnerability for icon test',
+                    published: '2021-01-01',
+                    last_modified: '2021-01-02',
+                    sources: [],
+                    aliases: [],
                     version_info: {
                         affected_versions_string: '*',
-                        patched_versions_string: 'None'
+                        patched_versions_string: 'None',
+                        versions: []
                     }
                 }
             });

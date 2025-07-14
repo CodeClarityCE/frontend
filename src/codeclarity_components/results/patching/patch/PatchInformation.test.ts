@@ -2,12 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PatchInformation from './PatchInformation.vue';
 import type { PatchInfo, ToPatch } from '@/codeclarity_components/results/patching/Patching';
+import { SeverityType, Impact } from '@/codeclarity_components/results/patching/Patching';
 
 // Mock child components
 vi.mock('@/base_components/utilities/SemverToString.vue', () => ({
     default: {
         name: 'SemverToString',
-        template: '<span data-testid="semver-to-string">{{ semver?.version || "N/A" }}</span>',
+        template:
+            '<span data-testid="semver-to-string">{{ semver?.Major }}.{{ semver?.Minor }}.{{ semver?.Patch }}</span>',
         props: ['semver']
     }
 }));
@@ -49,7 +51,7 @@ vi.mock('@/shadcn/ui/breadcrumb/BreadcrumbSeparator.vue', () => ({
 }));
 
 // Mock Badge component (imported globally)
-global.Badge = {
+(globalThis as any).Badge = {
     name: 'Badge',
     template: '<span data-testid="badge" class="badge"><slot></slot></span>'
 };
@@ -62,26 +64,72 @@ describe('PatchInformation.vue', () => {
         DependencyVersion: '4.17.0',
         Path: ['node_modules', 'express', 'lib'],
         Vulnerability: {
+            Id: 'vuln-id-1',
+            Sources: [],
+            AffectedDependency: 'express',
+            AffectedVersion: '4.17.0',
             VulnerabilityId: 'CVE-2021-1234',
             Severity: {
-                Impact: 'HIGH'
+                Severity: 7.5,
+                SeverityType: SeverityType.CvssV3,
+                Vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N',
+                Impact: 7.5,
+                Exploitability: 8.6,
+                ConfidentialityImpact: Impact.High,
+                IntegrityImpact: Impact.None,
+                AvailabilityImpact: Impact.None
+            },
+            Weaknesses: [],
+            OSVMatch: {
+                Vulnerability: null,
+                Dependency: null,
+                AffectedInfo: null,
+                VulnerableEvidenceRange: null,
+                VulnerableEvidenceExact: null,
+                VulnerableEvidenceUniversal: null,
+                VulnerableEvidenceType: null,
+                Vulnerable: null,
+                ConflictFlag: null,
+                Severity: null,
+                SeverityType: null
+            },
+            NVDMatch: {
+                Vulnerability: null,
+                Dependency: null,
+                AffectedInfo: null,
+                VulnerableEvidenceRange: null,
+                VulnerableEvidenceExact: null,
+                VulnerableEvidenceUniversal: null,
+                VulnerableEvidenceType: null,
+                Vulnerable: null,
+                ConflictFlag: null,
+                Severity: null,
+                SeverityType: null
             }
         }
     };
 
     const mockPatchInfo: PatchInfo = {
-        vulnerability_id: 'CVE-2021-1234',
-        affected_deps: ['express'],
+        TopLevelVulnerable: false,
         IsPatchable: 'FULL',
         Patchable: [],
         Unpatchable: [],
+        Introduced: [],
         Patches: {
             'express@4.17.0': {
-                version: '4.18.0',
-                major: 4,
-                minor: 18,
-                patch: 0
+                Major: 4,
+                Minor: 18,
+                Patch: 0,
+                PreReleaseTag: '',
+                MetaData: ''
             }
+        },
+        Update: {
+            Major: 1,
+            Minor: 0,
+            Patch: 0,
+            PreReleaseTag: '',
+            MetaData: ''
         }
     };
 
@@ -114,7 +162,7 @@ describe('PatchInformation.vue', () => {
             },
             global: {
                 components: {
-                    Badge: global.Badge
+                    Badge: (globalThis as any).Badge
                 }
             }
         });
@@ -145,7 +193,7 @@ describe('PatchInformation.vue', () => {
         it('should render impact information', () => {
             wrapper = createWrapper();
 
-            expect(wrapper.text()).toContain('Impact: HIGH');
+            expect(wrapper.text()).toContain('Impact: 7.5');
         });
 
         it('should render patched version section', () => {
@@ -235,23 +283,25 @@ describe('PatchInformation.vue', () => {
         it('should display vulnerability severity impact', () => {
             wrapper = createWrapper();
 
-            expect(wrapper.text()).toContain('Impact: HIGH');
+            expect(wrapper.text()).toContain('Impact: 7.5');
         });
 
         it('should handle different impact levels', () => {
             const mediumImpactPatch = {
                 ...mockToPatch,
                 Vulnerability: {
+                    ...mockToPatch.Vulnerability,
                     VulnerabilityId: 'CVE-2021-5678',
                     Severity: {
-                        Impact: 'MEDIUM'
+                        ...mockToPatch.Vulnerability.Severity,
+                        Impact: 5.5
                     }
                 }
             };
 
             wrapper = createWrapper({ patch: mediumImpactPatch });
 
-            expect(wrapper.text()).toContain('Impact: MEDIUM');
+            expect(wrapper.text()).toContain('Impact: 5.5');
 
             const badge = wrapper.findComponent({ name: 'Badge' });
             expect(badge.text()).toBe('CVE-2021-5678');
@@ -261,8 +311,12 @@ describe('PatchInformation.vue', () => {
             const noSeverityPatch = {
                 ...mockToPatch,
                 Vulnerability: {
+                    ...mockToPatch.Vulnerability,
                     VulnerabilityId: 'CVE-2021-9999',
-                    Severity: {}
+                    Severity: {
+                        ...mockToPatch.Vulnerability.Severity,
+                        Impact: 0
+                    }
                 }
             };
 
@@ -300,10 +354,11 @@ describe('PatchInformation.vue', () => {
             const semverComponent = wrapper.findComponent({ name: 'SemverToString' });
             // Should use DependencyName@DependencyVersion as key
             expect(semverComponent.props('semver')).toEqual({
-                version: '4.18.0',
-                major: 4,
-                minor: 18,
-                patch: 0
+                Major: 4,
+                Minor: 18,
+                Patch: 0,
+                PreReleaseTag: '',
+                MetaData: ''
             });
         });
 
@@ -330,10 +385,11 @@ describe('PatchInformation.vue', () => {
                 ...mockPatchInfo,
                 Patches: {
                     'lodash@4.17.20': {
-                        version: '4.17.21',
-                        major: 4,
-                        minor: 17,
-                        patch: 21
+                        Major: 4,
+                        Minor: 17,
+                        Patch: 21,
+                        PreReleaseTag: '',
+                        MetaData: ''
                     }
                 }
             };
@@ -345,10 +401,11 @@ describe('PatchInformation.vue', () => {
 
             const semverComponent = wrapper.findComponent({ name: 'SemverToString' });
             expect(semverComponent.props('semver')).toEqual({
-                version: '4.17.21',
-                major: 4,
-                minor: 17,
-                patch: 21
+                Major: 4,
+                Minor: 17,
+                Patch: 21,
+                PreReleaseTag: '',
+                MetaData: ''
             });
         });
     });
@@ -435,10 +492,11 @@ describe('PatchInformation.vue', () => {
                 ...mockPatchInfo,
                 Patches: {
                     '@scoped/package-name_with.special-chars@1.0.0-beta.1': {
-                        version: '1.0.0',
-                        major: 1,
-                        minor: 0,
-                        patch: 0
+                        Major: 1,
+                        Minor: 0,
+                        Patch: 0,
+                        PreReleaseTag: '',
+                        MetaData: ''
                     }
                 }
             };
@@ -450,10 +508,11 @@ describe('PatchInformation.vue', () => {
 
             const semverComponent = wrapper.findComponent({ name: 'SemverToString' });
             expect(semverComponent.props('semver')).toEqual({
-                version: '1.0.0',
-                major: 1,
-                minor: 0,
-                patch: 0
+                Major: 1,
+                Minor: 0,
+                Patch: 0,
+                PreReleaseTag: '',
+                MetaData: ''
             });
         });
 
@@ -490,8 +549,10 @@ describe('PatchInformation.vue', () => {
             const undefinedVulnPatch = {
                 ...mockToPatch,
                 Vulnerability: {
+                    ...mockToPatch.Vulnerability,
                     VulnerabilityId: 'CVE-2021-TEST',
                     Severity: {
+                        ...mockToPatch.Vulnerability.Severity,
                         Impact: undefined as any
                     }
                 }

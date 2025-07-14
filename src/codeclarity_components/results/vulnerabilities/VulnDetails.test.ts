@@ -163,7 +163,14 @@ describe('VulnDetails.vue', () => {
         const vuln = new VulnerabilityDetails();
         vuln.vulnerability_info = {
             vulnerability_id: 'CVE-2023-1234',
+            description: 'Test vulnerability description',
+            published: '2023-01-01',
+            last_modified: '2023-01-02',
+            sources: [],
+            aliases: [],
             version_info: {
+                affected_versions_string: '>= 1.0.0, < 1.1.0',
+                patched_versions_string: '>= 1.1.0',
                 versions: [
                     { version: '1.0.0', status: 'affected', release: '2023-01-01' },
                     { version: '1.1.0', status: 'not_affected', release: '2023-02-01' }
@@ -171,17 +178,52 @@ describe('VulnDetails.vue', () => {
             }
         };
         vuln.dependency_info = {
-            version: '1.0.0'
+            name: 'test-package',
+            published: '2023-01-01',
+            description: 'Test package',
+            keywords: ['test'],
+            version: '1.0.0',
+            package_manager_links: []
         };
         vuln.severities = {
-            cvss_31: { base_score: 7.5 },
+            cvss_31: {
+                base_score: 7.5,
+                vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N',
+                attack_vector: 'N',
+                attack_complexity: 'L',
+                privileges_required: 'N',
+                user_interaction: 'N',
+                scope: 'U',
+                confidentiality_impact: 'H',
+                integrity_impact: 'N',
+                availability_impact: 'N'
+            },
             cvss_3: null,
             cvss_2: null
         };
-        vuln.references = [{ url: 'https://example.com', type: 'advisory' }];
+        vuln.references = [{ url: 'https://example.com', tags: ['advisory'] }];
         vuln.other = {
             package_manager: 'npm'
         };
+        vuln.owasp_top_10 = null;
+        vuln.weaknesses = [];
+        vuln.patch = {
+            TopLevelVulnerable: false,
+            IsPatchable: 'NONE',
+            Patchable: [],
+            Unpatchable: [],
+            Introduced: [],
+            Patches: {},
+            Update: {
+                Major: 0,
+                Minor: 0,
+                Patch: 0,
+                PreReleaseTag: '',
+                MetaData: ''
+            }
+        };
+        vuln.common_consequences = {};
+        vuln.location = [];
         return vuln;
     };
 
@@ -290,7 +332,18 @@ describe('VulnDetails.vue', () => {
 
     it('calculates base score correctly for CVSS 3.1', () => {
         const mockVuln = createMockVulnerabilityDetails();
-        mockVuln.severities.cvss_31 = { base_score: 8.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 8.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'H',
+            integrity_impact: 'H',
+            availability_impact: 'H'
+        };
         mockResultsRepository.getFinding.mockResolvedValue({
             data: mockVuln
         } as DataResponse<VulnerabilityDetails>);
@@ -302,7 +355,18 @@ describe('VulnDetails.vue', () => {
     it('calculates base score correctly for CVSS 3.0', () => {
         const mockVuln = createMockVulnerabilityDetails();
         mockVuln.severities.cvss_31 = null;
-        mockVuln.severities.cvss_3 = { base_score: 6.5 };
+        mockVuln.severities.cvss_3 = {
+            base_score: 6.5,
+            vector: 'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'L',
+            integrity_impact: 'N',
+            availability_impact: 'N'
+        };
         mockResultsRepository.getFinding.mockResolvedValue({
             data: mockVuln
         } as DataResponse<VulnerabilityDetails>);
@@ -315,7 +379,16 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
         mockVuln.severities.cvss_31 = null;
         mockVuln.severities.cvss_3 = null;
-        mockVuln.severities.cvss_2 = { base_score: 4.5 };
+        mockVuln.severities.cvss_2 = {
+            base_score: 4.5,
+            vector: 'AV:N/AC:L/Au:N/C:P/I:N/A:N',
+            access_vector: 'N',
+            access_complexity: 'L',
+            authentication: 'N',
+            confidentiality_impact: 'P',
+            integrity_impact: 'N',
+            availability_impact: 'N'
+        };
         mockResultsRepository.getFinding.mockResolvedValue({
             data: mockVuln
         } as DataResponse<VulnerabilityDetails>);
@@ -340,23 +413,78 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         // Test critical
-        mockVuln.severities.cvss_31 = { base_score: 9.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 9.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'H',
+            integrity_impact: 'H',
+            availability_impact: 'H'
+        };
         expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('critical');
 
         // Test high
-        mockVuln.severities.cvss_31 = { base_score: 8.0 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 8.0,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'H',
+            integrity_impact: 'H',
+            availability_impact: 'N'
+        };
         expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('high');
 
         // Test medium
-        mockVuln.severities.cvss_31 = { base_score: 5.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 5.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'L',
+            integrity_impact: 'N',
+            availability_impact: 'N'
+        };
         expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('medium');
 
         // Test low
-        mockVuln.severities.cvss_31 = { base_score: 2.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 2.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'L',
+            integrity_impact: 'N',
+            availability_impact: 'N'
+        };
         expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('low');
 
         // Test none
-        mockVuln.severities.cvss_31 = { base_score: 0 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 0,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'N',
+            integrity_impact: 'N',
+            availability_impact: 'N'
+        };
         expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('none');
     });
 
@@ -365,19 +493,39 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         // Test critical -> F
-        mockVuln.severities.cvss_31 = { base_score: 9.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 9.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+            attack_vector: 'N',
+            attack_complexity: 'L',
+            privileges_required: 'N',
+            user_interaction: 'N',
+            scope: 'U',
+            confidentiality_impact: 'H',
+            integrity_impact: 'H',
+            availability_impact: 'H'
+        };
         expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('F');
 
         // Test high -> D
-        mockVuln.severities.cvss_31 = { base_score: 8.0 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 8.0,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+        };
         expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('D');
 
         // Test medium -> B
-        mockVuln.severities.cvss_31 = { base_score: 5.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 5.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('B');
 
         // Test low -> A
-        mockVuln.severities.cvss_31 = { base_score: 2.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 2.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('A');
     });
 
@@ -386,19 +534,31 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         // Test A -> success
-        mockVuln.severities.cvss_31 = { base_score: 2.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 2.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('success');
 
         // Test F -> danger
-        mockVuln.severities.cvss_31 = { base_score: 9.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 9.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+        };
         expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('danger');
 
         // Test D -> danger
-        mockVuln.severities.cvss_31 = { base_score: 8.0 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 8.0,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+        };
         expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('danger');
 
         // Test B -> default
-        mockVuln.severities.cvss_31 = { base_score: 5.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 5.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('default');
     });
 
@@ -406,10 +566,16 @@ describe('VulnDetails.vue', () => {
         const wrapper = createWrapper();
         const mockVuln = createMockVulnerabilityDetails();
 
-        mockVuln.severities.cvss_31 = { base_score: 2.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 2.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.getSecurityScoreDescription(mockVuln)).toBe('Excellent security');
 
-        mockVuln.severities.cvss_31 = { base_score: 9.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 9.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+        };
         expect(wrapper.vm.getSecurityScoreDescription(mockVuln)).toBe('Critical security issues');
     });
 
@@ -418,15 +584,24 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         // Critical
-        mockVuln.severities.cvss_31 = { base_score: 9.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 9.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+        };
         expect(wrapper.vm.getCriticalHighCount(mockVuln)).toBe(1);
 
         // High
-        mockVuln.severities.cvss_31 = { base_score: 8.0 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 8.0,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+        };
         expect(wrapper.vm.getCriticalHighCount(mockVuln)).toBe(1);
 
         // Medium
-        mockVuln.severities.cvss_31 = { base_score: 5.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 5.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.getCriticalHighCount(mockVuln)).toBe(0);
     });
 
@@ -435,15 +610,24 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         // Medium
-        mockVuln.severities.cvss_31 = { base_score: 5.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 5.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.getMediumLowCount(mockVuln)).toBe('1 medium, 0 low');
 
         // Low
-        mockVuln.severities.cvss_31 = { base_score: 2.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 2.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+        };
         expect(wrapper.vm.getMediumLowCount(mockVuln)).toBe('0 medium, 1 low');
 
         // Critical
-        mockVuln.severities.cvss_31 = { base_score: 9.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 9.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+        };
         expect(wrapper.vm.getMediumLowCount(mockVuln)).toBe('0 medium, 0 low');
     });
 
@@ -451,10 +635,17 @@ describe('VulnDetails.vue', () => {
         const wrapper = createWrapper();
         const mockVuln = createMockVulnerabilityDetails();
 
-        mockVuln.dependency_info = { version: '1.2.3' };
+        mockVuln.dependency_info = {
+            version: '1.2.3',
+            name: 'test-package',
+            published: '2023-01-01',
+            description: 'Test package',
+            keywords: ['test'],
+            package_manager_links: []
+        } as any;
         expect(wrapper.vm.getVersionStatus(mockVuln)).toBe('v1.2.3');
 
-        mockVuln.dependency_info = null;
+        mockVuln.dependency_info = undefined;
         expect(wrapper.vm.getVersionStatus(mockVuln)).toBe('Unknown');
     });
 
@@ -462,10 +653,10 @@ describe('VulnDetails.vue', () => {
         const wrapper = createWrapper();
         const mockVuln = createMockVulnerabilityDetails();
 
-        mockVuln.other = { package_manager: 'npm' };
+        mockVuln.other = { package_manager: 'npm' } as any;
         expect(wrapper.vm.getPackageManager(mockVuln)).toBe('npm');
 
-        mockVuln.other = {};
+        mockVuln.other = { package_manager: 'unknown' } as any;
         expect(wrapper.vm.getPackageManager(mockVuln)).toBe('Unknown');
     });
 
@@ -473,7 +664,7 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
         mockVuln.references = new Array(15).fill(0).map((_, i) => ({
             url: `https://example${i}.com`,
-            type: 'advisory'
+            tags: ['advisory']
         }));
 
         mockResultsRepository.getFinding.mockResolvedValue({
@@ -558,7 +749,10 @@ describe('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         // Test CVSS 3.1
-        mockVuln.severities.cvss_31 = { base_score: 7.5 };
+        mockVuln.severities.cvss_31 = {
+            base_score: 7.5,
+            vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N'
+        };
         mockResultsRepository.getFinding.mockResolvedValue({
             data: mockVuln
         } as DataResponse<VulnerabilityDetails>);
@@ -571,7 +765,10 @@ describe('VulnDetails.vue', () => {
 
         // Test CVSS 3.0
         mockVuln.severities.cvss_31 = null;
-        mockVuln.severities.cvss_3 = { base_score: 7.5 };
+        mockVuln.severities.cvss_3 = {
+            base_score: 7.5,
+            vector: 'CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N'
+        };
         mockResultsRepository.getFinding.mockResolvedValue({
             data: mockVuln
         } as DataResponse<VulnerabilityDetails>);
@@ -585,7 +782,10 @@ describe('VulnDetails.vue', () => {
         // Test CVSS 2.0
         mockVuln.severities.cvss_31 = null;
         mockVuln.severities.cvss_3 = null;
-        mockVuln.severities.cvss_2 = { base_score: 7.5 };
+        mockVuln.severities.cvss_2 = {
+            base_score: 7.5,
+            vector: 'AV:N/AC:L/Au:N/C:P/I:N/A:N'
+        };
         mockResultsRepository.getFinding.mockResolvedValue({
             data: mockVuln
         } as DataResponse<VulnerabilityDetails>);

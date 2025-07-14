@@ -14,7 +14,7 @@ vi.mock('@/stores/auth', () => ({
         getToken: 'mock-token'
     }))
 }));
-import { PatchedManifestData } from '@/codeclarity_components/results/patching/Patching';
+import { PatchedManifestData, PatchType } from '@/codeclarity_components/results/patching/Patching';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 
 // Mock child components
@@ -94,46 +94,54 @@ describe('PatchingPatches.vue', () => {
     let pinia: any;
 
     const mockWorkspace = {
-        patches: {
-            patch1: {
+        patches: [
+            {
                 name: 'patch1',
-                type: 'upgrade',
-                vulnerability: 'CVE-2021-1234'
+                TopLevelVulnerable: false,
+                IsPatchable: PatchType.Full,
+                Unpatchable: [],
+                Patchable: [],
+                Introduced: [],
+                Patches: {},
+                Update: {
+                    Major: 1,
+                    Minor: 2,
+                    Patch: 3,
+                    PreReleaseTag: '',
+                    MetaData: ''
+                }
             },
-            patch2: {
+            {
                 name: 'patch2',
-                type: 'patch',
-                vulnerability: 'CVE-2021-5678'
+                TopLevelVulnerable: true,
+                IsPatchable: PatchType.Partial,
+                Unpatchable: [],
+                Patchable: [],
+                Introduced: [],
+                Patches: {},
+                Update: {
+                    Major: 2,
+                    Minor: 0,
+                    Patch: 0,
+                    PreReleaseTag: '',
+                    MetaData: ''
+                }
             }
-        }
+        ]
     };
 
     const mockPatchedManifestData = new PatchedManifestData();
     mockPatchedManifestData.patched_manifest = {
         name: 'test-package',
         version: '1.0.0',
+        description: 'Test package description',
         dependencies: {
-            'vulnerable-dep': {
-                vulnerable: true,
-                patch_type: 'FULL',
-                original_constraint: '^1.0.0',
-                upgrade_to: '^2.0.0'
-            },
-            'safe-dep': {
-                vulnerable: false,
-                original_constraint: '^3.0.0'
-            },
-            'partial-patch': {
-                vulnerable: true,
-                patch_type: 'PARTIAL',
-                original_constraint: '^1.5.0',
-                upgrade_to: '^1.8.0'
-            },
-            'no-patch': {
-                vulnerable: true,
-                patch_type: 'NONE',
-                original_constraint: '^0.9.0'
-            }
+            vulnerable: true,
+            upgrade_to_installed_ver: false,
+            upgrade_to: '^2.0.0',
+            original_constraint: '^1.0.0',
+            potential_breaking_changes: false,
+            patch_type: PatchType.Full
         }
     };
     mockPatchedManifestData.other_info = {
@@ -247,7 +255,7 @@ describe('PatchingPatches.vue', () => {
             wrapper = createWrapper();
             await flushPromises();
 
-            expect(wrapper.vm.patches).toEqual(Object.values(mockWorkspace.patches));
+            expect(wrapper.vm.patches).toEqual(mockWorkspace.patches);
         });
     });
 

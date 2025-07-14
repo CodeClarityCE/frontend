@@ -90,7 +90,15 @@ describe('ResultsSBOMDetails.vue', () => {
 
     const mockAnalysis = new Analysis();
     mockAnalysis.id = 'test-analysis-id';
-    mockAnalysis.project_id = 'test-project-id';
+    mockAnalysis.created_on = new Date();
+    mockAnalysis.analyzer = {
+        id: 'analyzer-id',
+        name: 'test-analyzer',
+        version: '1.0.0'
+    } as any;
+    mockAnalysis.status = 'COMPLETED' as any;
+    mockAnalysis.steps = [];
+    mockAnalysis.branch = 'main';
 
     beforeEach(() => {
         // Reset mocks
@@ -122,7 +130,7 @@ describe('ResultsSBOMDetails.vue', () => {
             } as DataResponse<Project>)
         };
         mockAnalysisRepository = {
-            getProjectById: vi.fn().mockResolvedValue({
+            getAnalysisById: vi.fn().mockResolvedValue({
                 data: mockAnalysis
             } as DataResponse<Analysis>)
         };
@@ -147,8 +155,8 @@ describe('ResultsSBOMDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.projectID).toBe('test-project-id');
-            expect(wrapper.vm.analysisID).toBe('test-analysis-id');
+            expect((wrapper.vm as any).projectID.value).toBe('test-project-id');
+            expect((wrapper.vm as any).analysisID.value).toBe('test-analysis-id');
         });
 
         it('should fetch project and analysis data on init', async () => {
@@ -162,7 +170,7 @@ describe('ResultsSBOMDetails.vue', () => {
                 handleBusinessErrors: true
             });
 
-            expect(mockAnalysisRepository.getProjectById).toHaveBeenCalledWith({
+            expect(mockAnalysisRepository.getAnalysisById).toHaveBeenCalledWith({
                 orgId: 'test-org-id',
                 projectId: 'test-project-id',
                 analysisId: 'test-analysis-id',
@@ -244,7 +252,7 @@ describe('ResultsSBOMDetails.vue', () => {
         });
 
         it('should handle analysis fetch errors', async () => {
-            mockAnalysisRepository.getProjectById.mockRejectedValue(
+            mockAnalysisRepository.getAnalysisById.mockRejectedValue(
                 new Error('Analysis fetch failed')
             );
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -256,7 +264,8 @@ describe('ResultsSBOMDetails.vue', () => {
         });
 
         it('should handle missing default org', async () => {
-            mockUserStore.getDefaultOrg = null;
+            const originalGetDefaultOrg = mockUserStore.getDefaultOrg;
+            mockUserStore.getDefaultOrg = null as any;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();
@@ -265,11 +274,12 @@ describe('ResultsSBOMDetails.vue', () => {
             expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
 
             // Restore for next tests
-            mockUserStore.getDefaultOrg = { id: 'test-org-id', name: 'Test Org' };
+            mockUserStore.getDefaultOrg = originalGetDefaultOrg;
         });
 
         it('should handle missing auth token', async () => {
-            mockAuthStore.getToken = null;
+            const originalGetToken = mockAuthStore.getToken;
+            mockAuthStore.getToken = null as any;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();
@@ -278,7 +288,7 @@ describe('ResultsSBOMDetails.vue', () => {
             expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
 
             // Restore for next tests
-            mockAuthStore.getToken = 'test-token';
+            mockAuthStore.getToken = originalGetToken;
         });
     });
 
@@ -298,14 +308,14 @@ describe('ResultsSBOMDetails.vue', () => {
             await wrapper.vm.$nextTick();
 
             // Set initial values
-            wrapper.vm.finding = { id: 'test' };
-            wrapper.vm.details = true;
+            (wrapper.vm as any).finding.value = { id: 'test' };
+            (wrapper.vm as any).details.value = true;
 
             const detailsComponent = wrapper.findComponent({ name: 'Details' });
             await detailsComponent.vm.$emit('close');
 
-            expect(wrapper.vm.finding).toEqual({});
-            expect(wrapper.vm.details).toBe(false);
+            expect((wrapper.vm as any).finding.value).toEqual({});
+            expect((wrapper.vm as any).details.value).toBe(false);
         });
     });
 
@@ -314,25 +324,25 @@ describe('ResultsSBOMDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.only_details).toBe(false);
-            expect(wrapper.vm.active_tab).toBe('List');
-            expect(wrapper.vm.finding).toEqual({});
-            expect(wrapper.vm.details).toBe(false);
+            expect((wrapper.vm as any).only_details.value).toBe(false);
+            expect((wrapper.vm as any).active_tab.value).toBe('List');
+            expect((wrapper.vm as any).finding.value).toEqual({});
+            expect((wrapper.vm as any).details.value).toBe(false);
         });
 
         it('should reset scroll position when tab changes', async () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            wrapper.vm.y_position = 100;
-            wrapper.vm.reference_click_element = 'test-element';
+            (wrapper.vm as any).y_position = 100;
+            (wrapper.vm as any).reference_click_element.value = 'test-element';
 
             // Change active tab
-            wrapper.vm.active_tab = 'Details';
+            (wrapper.vm as any).active_tab.value = 'Details';
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.y_position).toBe(0);
-            expect(wrapper.vm.reference_click_element).toBe('');
+            expect((wrapper.vm as any).y_position).toBe(0);
+            expect((wrapper.vm as any).reference_click_element.value).toBe('');
         });
 
         it('should restore scroll position after delay', async () => {
@@ -341,8 +351,8 @@ describe('ResultsSBOMDetails.vue', () => {
             vi.spyOn(document, 'getElementsByClassName').mockReturnValue([mockContainer] as any);
 
             wrapper = createWrapper();
-            wrapper.vm.y_position = 200;
-            wrapper.vm.details = false;
+            (wrapper.vm as any).y_position = 200;
+            (wrapper.vm as any).details = false;
 
             wrapper.vm.$forceUpdate();
             await wrapper.vm.$nextTick();

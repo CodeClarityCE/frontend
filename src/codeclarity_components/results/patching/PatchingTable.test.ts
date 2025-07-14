@@ -15,6 +15,7 @@ vi.mock('@/stores/auth', () => ({
     }))
 }));
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { PatchType } from '@/codeclarity_components/results/patching/Patching';
 
 // Mock child components
 vi.mock('@/base_components/filters/SearchBar.vue', () => ({
@@ -114,10 +115,54 @@ describe('PatchingTable.vue', () => {
 
     const mockWorkspace = {
         patches: [
-            { name: 'patch1', type: 'upgrade', vulnerability: 'CVE-2021-1234' },
-            { name: 'patch2', type: 'patch', vulnerability: 'CVE-2021-5678' }
+            {
+                TopLevelVulnerable: false,
+                IsPatchable: PatchType.Full,
+                Unpatchable: [],
+                Patchable: [],
+                Introduced: [],
+                Patches: {},
+                Update: {
+                    Major: 1,
+                    Minor: 2,
+                    Patch: 3,
+                    PreReleaseTag: '',
+                    MetaData: ''
+                }
+            },
+            {
+                TopLevelVulnerable: true,
+                IsPatchable: PatchType.Partial,
+                Unpatchable: [],
+                Patchable: [],
+                Introduced: [],
+                Patches: {},
+                Update: {
+                    Major: 2,
+                    Minor: 0,
+                    Patch: 0,
+                    PreReleaseTag: '',
+                    MetaData: ''
+                }
+            }
         ],
-        dev_patches: [{ name: 'dev-patch1', type: 'upgrade', vulnerability: 'CVE-2021-9999' }]
+        dev_patches: [
+            {
+                TopLevelVulnerable: false,
+                IsPatchable: PatchType.Full,
+                Unpatchable: [],
+                Patchable: [],
+                Introduced: [],
+                Patches: {},
+                Update: {
+                    Major: 1,
+                    Minor: 0,
+                    Patch: 0,
+                    PreReleaseTag: '',
+                    MetaData: ''
+                }
+            }
+        ]
     };
 
     const mockPatchedManifestData = {

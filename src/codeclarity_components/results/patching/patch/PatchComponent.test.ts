@@ -2,13 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PatchComponent from './PatchComponent.vue';
 import type { PatchInfo } from '@/codeclarity_components/results/patching/Patching';
+import { SeverityType, Impact } from '@/codeclarity_components/results/patching/Patching';
 
 // Mock child components
 vi.mock('./PatchInformation.vue', () => ({
     default: {
         name: 'PatchInformation',
         template:
-            '<div data-testid="patch-information" :data-patch-type="patch.Vulnerability?.Severity?.Impact">{{ patch.DependencyName }}</div>',
+            '<div data-testid="patch-information" :data-patch-type="patch.Vulnerability?.Severity?.ConfidentialityImpact">{{ patch.DependencyName }}</div>',
         props: ['patch', 'patchInfo']
     }
 }));
@@ -82,8 +83,7 @@ describe('PatchComponent.vue', () => {
     let wrapper: any;
 
     const mockPatchInfo: PatchInfo = {
-        vulnerability_id: 'CVE-2021-1234',
-        affected_deps: ['express', 'lodash'],
+        TopLevelVulnerable: false,
         IsPatchable: 'FULL',
         Patchable: [
             {
@@ -91,9 +91,47 @@ describe('PatchComponent.vue', () => {
                 DependencyVersion: '4.17.0',
                 Path: ['node_modules', 'express'],
                 Vulnerability: {
+                    Id: 'vuln-id-1',
+                    Sources: [],
+                    AffectedDependency: 'express',
+                    AffectedVersion: '4.17.0',
                     VulnerabilityId: 'CVE-2021-1234',
                     Severity: {
-                        Impact: 'HIGH'
+                        Severity: 7.5,
+                        SeverityType: SeverityType.CvssV3,
+                        Vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N',
+                        Impact: 7.5,
+                        Exploitability: 8.6,
+                        ConfidentialityImpact: Impact.High,
+                        IntegrityImpact: Impact.None,
+                        AvailabilityImpact: Impact.None
+                    },
+                    Weaknesses: [],
+                    OSVMatch: {
+                        Vulnerability: null,
+                        Dependency: null,
+                        AffectedInfo: null,
+                        VulnerableEvidenceRange: null,
+                        VulnerableEvidenceExact: null,
+                        VulnerableEvidenceUniversal: null,
+                        VulnerableEvidenceType: null,
+                        Vulnerable: null,
+                        ConflictFlag: null,
+                        Severity: null,
+                        SeverityType: null
+                    },
+                    NVDMatch: {
+                        Vulnerability: null,
+                        Dependency: null,
+                        AffectedInfo: null,
+                        VulnerableEvidenceRange: null,
+                        VulnerableEvidenceExact: null,
+                        VulnerableEvidenceUniversal: null,
+                        VulnerableEvidenceType: null,
+                        Vulnerable: null,
+                        ConflictFlag: null,
+                        Severity: null,
+                        SeverityType: null
                     }
                 }
             }
@@ -104,20 +142,67 @@ describe('PatchComponent.vue', () => {
                 DependencyVersion: '4.17.20',
                 Path: ['node_modules', 'lodash'],
                 Vulnerability: {
+                    Id: 'vuln-id-2',
+                    Sources: [],
+                    AffectedDependency: 'lodash',
+                    AffectedVersion: '4.17.20',
                     VulnerabilityId: 'CVE-2021-5678',
                     Severity: {
-                        Impact: 'MEDIUM'
+                        Severity: 5.5,
+                        SeverityType: SeverityType.CvssV3,
+                        Vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
+                        Impact: 5.5,
+                        Exploitability: 8.6,
+                        ConfidentialityImpact: Impact.Low,
+                        IntegrityImpact: Impact.None,
+                        AvailabilityImpact: Impact.None
+                    },
+                    Weaknesses: [],
+                    OSVMatch: {
+                        Vulnerability: null,
+                        Dependency: null,
+                        AffectedInfo: null,
+                        VulnerableEvidenceRange: null,
+                        VulnerableEvidenceExact: null,
+                        VulnerableEvidenceUniversal: null,
+                        VulnerableEvidenceType: null,
+                        Vulnerable: null,
+                        ConflictFlag: null,
+                        Severity: null,
+                        SeverityType: null
+                    },
+                    NVDMatch: {
+                        Vulnerability: null,
+                        Dependency: null,
+                        AffectedInfo: null,
+                        VulnerableEvidenceRange: null,
+                        VulnerableEvidenceExact: null,
+                        VulnerableEvidenceUniversal: null,
+                        VulnerableEvidenceType: null,
+                        Vulnerable: null,
+                        ConflictFlag: null,
+                        Severity: null,
+                        SeverityType: null
                     }
                 }
             }
         ],
+        Introduced: [],
         Patches: {
             'express@4.17.0': {
-                version: '4.18.0',
-                major: 4,
-                minor: 18,
-                patch: 0
+                Major: 4,
+                Minor: 18,
+                Patch: 0,
+                PreReleaseTag: '',
+                MetaData: ''
             }
+        },
+        Update: {
+            Major: 1,
+            Minor: 0,
+            Patch: 0,
+            PreReleaseTag: '',
+            MetaData: ''
         }
     };
 

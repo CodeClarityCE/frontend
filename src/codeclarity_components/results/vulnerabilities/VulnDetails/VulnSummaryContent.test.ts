@@ -85,18 +85,18 @@ describe('VulnSummaryContent.vue', () => {
                 patched_versions_string: '>= 2.0.0',
                 versions: []
             }
-        };
+        } as any;
         finding.weaknesses = [
             {
-                name: 'Cross-site Scripting (XSS)',
                 id: 'CWE-79',
+                name: 'Cross-site Scripting (XSS)',
                 description: 'XSS vulnerability description'
             }
-        ];
+        ] as any;
         finding.owasp_top_10 = {
             name: 'A03:2021 – Injection',
             description: 'OWASP Top 10 description'
-        };
+        } as any;
 
         return Object.assign(finding, overrides);
     };
@@ -105,7 +105,11 @@ describe('VulnSummaryContent.vue', () => {
         return mount(VulnSummaryContent, {
             props: {
                 finding,
-                readMeModalRef: vi.fn(),
+                readMeModalRef: {
+                    show: vi.fn(),
+                    hide: vi.fn(),
+                    toggle: vi.fn()
+                },
                 readme: 'Test readme content',
                 activeView: 'patches',
                 ...props

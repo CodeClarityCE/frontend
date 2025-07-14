@@ -35,14 +35,14 @@ describe('VulnDetailsHeader.vue', () => {
                 patched_versions_string: '>= 2.0.0',
                 versions: []
             }
-        };
+        } as any;
         finding.weaknesses = [
             {
-                name: 'Cross-site Scripting (XSS)',
                 id: 'CWE-79',
+                name: 'Cross-site Scripting (XSS)',
                 description: 'Cross-site scripting vulnerability description'
             }
-        ];
+        ] as any;
         finding.dependency_info = {
             name: 'test-package',
             version: '1.5.0',
@@ -50,7 +50,7 @@ describe('VulnDetailsHeader.vue', () => {
             description: '',
             keywords: [],
             package_manager_links: []
-        };
+        } as any;
 
         return Object.assign(finding, overrides);
     };
@@ -59,7 +59,11 @@ describe('VulnDetailsHeader.vue', () => {
         return mount(VulnDetailsHeader, {
             props: {
                 finding,
-                versionsModalRef: { value: vi.fn() }
+                versionsModalRef: {
+                    show: vi.fn(),
+                    hide: vi.fn(),
+                    toggle: vi.fn()
+                }
             }
         });
     };
@@ -169,13 +173,13 @@ describe('VulnDetailsHeader.vue', () => {
             const finding = createMockFinding({
                 weaknesses: [
                     {
-                        name: 'Cross-site Scripting (XSS)',
                         id: 'CWE-79',
+                        name: 'Cross-site Scripting (XSS)',
                         description: 'XSS vulnerability description'
                     },
                     {
-                        name: 'SQL Injection',
                         id: 'CWE-89',
+                        name: 'SQL Injection',
                         description: 'SQL injection vulnerability description'
                     }
                 ]

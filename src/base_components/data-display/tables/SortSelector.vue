@@ -12,7 +12,7 @@ import type { TableHeader } from '@/base_components/data-display/tables/Sortable
 // Props
 const props = defineProps<{
     sortOptions: SortOption[] | TableHeader[];
-    sortKey: string;
+    sortKey?: string;
     sortDirection: SortDirection;
     sortByLabel?: string;
 }>();

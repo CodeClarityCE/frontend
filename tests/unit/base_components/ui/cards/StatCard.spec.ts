@@ -18,8 +18,9 @@ vi.mock('@/shadcn/ui/card', () => ({
 vi.mock('@iconify/vue', () => ({
   Icon: {
     name: 'Icon',
-    template: '<span data-testid="icon" class="icon" :class="$attrs.class" />',
-    props: ['icon']
+    template: '<span data-testid="icon" class="icon" :class="$attrs.class" :data-icon="icon">{{ icon || "mock-icon" }}</span>',
+    props: ['icon', 'class', 'width', 'height', 'style'],
+    inheritAttrs: false
   }
 }))
 

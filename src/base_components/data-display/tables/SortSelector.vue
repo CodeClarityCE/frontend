@@ -42,7 +42,9 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
             style="padding: 5px; height: fit-content; margin: 0px"
         >
             <option
-                v-for="(sort_option, index) in sortOptions.filter((option: SortOption | TableHeader) => option.key != null)"
+                v-for="(sort_option, index) in sortOptions.filter(
+                    (option: SortOption | TableHeader) => option.key != null
+                )"
                 :key="index"
                 :value="sort_option.key"
                 :selected="sortKey == sort_option.key"

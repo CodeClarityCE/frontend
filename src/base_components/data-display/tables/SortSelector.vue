@@ -58,13 +58,13 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
                 v-if="sortDirection == SortDirection.DESC"
                 icon="iconoir:sort-down"
                 style="font-size: 2em"
-                @click="updateSort(sortKey, SortDirection.ASC)"
+                @click="updateSort(sortKey || null, SortDirection.ASC)"
             />
             <Icon
                 v-else
                 icon="iconoir:sort-up"
                 style="font-size: 2em"
-                @click="updateSort(sortKey, SortDirection.DESC)"
+                @click="updateSort(sortKey || null, SortDirection.DESC)"
             />
         </div>
     </div>

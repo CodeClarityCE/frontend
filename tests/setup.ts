@@ -51,6 +51,31 @@ Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
 })
 
+// Mock Web Animations API for auto-animate
+if (typeof Element !== 'undefined') {
+  Element.prototype.animate = vi.fn().mockReturnValue({
+    cancel: vi.fn(),
+    finish: vi.fn(),
+    pause: vi.fn(),
+    play: vi.fn(),
+    reverse: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+    finished: Promise.resolve(),
+    ready: Promise.resolve(),
+    playState: 'finished',
+    playbackRate: 1,
+    currentTime: 0,
+    startTime: 0,
+    timeline: null,
+    effect: null,
+    id: '',
+    pending: false,
+    replaceState: 'active'
+  })
+}
+
 // Mock router
 vi.mock('vue-router', async (importOriginal) => {
   const actual = await importOriginal() as any

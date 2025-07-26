@@ -30,3 +30,5 @@ coverage
 
 # CodeClarity
 package-lock.json
+tmp
+styker.log

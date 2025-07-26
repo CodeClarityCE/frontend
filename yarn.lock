@@ -2325,7 +2325,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/client@npm:1.31.1":
+"@percy/client@npm:1.31.1, @percy/client@npm:^1.31.1":
   version: 1.31.1
   resolution: "@percy/client@npm:1.31.1"
   dependencies:
@@ -2337,7 +2337,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/config@npm:1.31.1":
+"@percy/config@npm:1.31.1, @percy/config@npm:^1.31.1":
   version: 1.31.1
   resolution: "@percy/config@npm:1.31.1"
   dependencies:
@@ -8036,6 +8036,8 @@ __metadata:
     "@iconify/vue": "npm:5.0.0"
     "@internationalized/date": "npm:3.8.2"
     "@percy/cli": "npm:^1.31.1"
+    "@percy/client": "npm:^1.31.1"
+    "@percy/config": "npm:^1.31.1"
     "@percy/cypress": "npm:^3.1.6"
     "@popperjs/core": "npm:2.11.8"
     "@rushstack/eslint-patch": "npm:1.12.0"

@@ -33,6 +33,8 @@ const RAW_RUNTIME_STATE =
           ["@iconify/vue", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:5.0.0"],\
           ["@internationalized/date", "npm:3.8.2"],\
           ["@percy/cli", "npm:1.31.1"],\
+          ["@percy/client", "npm:1.31.1"],\
+          ["@percy/config", "npm:1.31.1"],\
           ["@percy/cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.6"],\
           ["@popperjs/core", "npm:2.11.8"],\
           ["@rushstack/eslint-patch", "npm:1.12.0"],\
@@ -10498,6 +10500,8 @@ const RAW_RUNTIME_STATE =
           ["@iconify/vue", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:5.0.0"],\
           ["@internationalized/date", "npm:3.8.2"],\
           ["@percy/cli", "npm:1.31.1"],\
+          ["@percy/client", "npm:1.31.1"],\
+          ["@percy/config", "npm:1.31.1"],\
           ["@percy/cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.6"],\
           ["@popperjs/core", "npm:2.11.8"],\
           ["@rushstack/eslint-patch", "npm:1.12.0"],\

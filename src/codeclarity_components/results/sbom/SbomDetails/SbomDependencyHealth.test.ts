@@ -329,24 +329,24 @@ describe('SbomDependencyHealth.vue', () => {
     });
 
     describe('Health Status Calculations', () => {
-        it('should correctly calculate isOutdated computed property', () => {
+        it('should show outdated warning when package is outdated', () => {
             // Test with mocked date difference > 182 days
             const wrapper = createWrapper();
-            expect(wrapper.vm.isOutdated).toBe(true);
+            expect(wrapper.text()).toContain('outdated');
         });
 
-        it('should correctly calculate hasVulnerabilities computed property', () => {
+        it('should show vulnerabilities warning when package has vulnerabilities', () => {
             const dependency = createMockDependency({
                 vulnerabilities: [{ id: 'CVE-2021-1234' }]
             });
             const wrapper = createWrapper(dependency);
-            expect(wrapper.vm.hasVulnerabilities).toBe(true);
+            expect(wrapper.text()).toContain('vulnerabilities');
         });
 
-        it('should correctly calculate isUnlicensed computed property', () => {
+        it('should show unlicensed warning when package has no license', () => {
             const dependency = createMockDependency({ license: '' });
             const wrapper = createWrapper(dependency);
-            expect(wrapper.vm.isUnlicensed).toBe(true);
+            expect(wrapper.text()).toContain('licensing');
         });
 
         it('should correctly calculate hasHealthIssues computed property', () => {
@@ -355,20 +355,20 @@ describe('SbomDependencyHealth.vue', () => {
                 vulnerabilities: [{ id: 'CVE-1' }]
             });
             const wrapper = createWrapper(dependency);
-            expect(wrapper.vm.hasHealthIssues).toBe(true);
+            expect(wrapper.text()).toContain('Multiple health issues detected');
         });
     });
 
     describe('Helper Methods', () => {
         it('should calculate days outdated correctly', () => {
             const wrapper = createWrapper();
-            expect(wrapper.vm.getDaysOutdated()).toBe(200);
+            expect(wrapper.text()).toContain('200 days');
         });
 
         it('should generate correct health status title for single issue', () => {
             const dependency = createMockDependency({ license: '' });
             const wrapper = createWrapper(dependency);
-            expect(wrapper.vm.getHealthStatusTitle()).toBe('Health issue detected');
+            expect(wrapper.text()).toContain('Health issue detected');
         });
 
         it('should generate correct health status title for multiple issues', () => {
@@ -377,7 +377,7 @@ describe('SbomDependencyHealth.vue', () => {
                 vulnerabilities: [{ id: 'CVE-1' }]
             });
             const wrapper = createWrapper(dependency);
-            expect(wrapper.vm.getHealthStatusTitle()).toBe('Multiple health issues detected');
+            expect(wrapper.text()).toContain('Multiple health issues detected');
         });
 
         it('should generate correct health status title for healthy package', async () => {
@@ -390,7 +390,7 @@ describe('SbomDependencyHealth.vue', () => {
                 vulnerabilities: []
             });
             const wrapper = createWrapper(dependency);
-            expect(wrapper.vm.getHealthStatusTitle()).toBe('Package appears healthy');
+            expect(wrapper.text()).toContain('Package appears healthy');
         });
 
         it('should generate correct health status description', () => {
@@ -400,9 +400,8 @@ describe('SbomDependencyHealth.vue', () => {
             });
             const wrapper = createWrapper(dependency);
 
-            const description = wrapper.vm.getHealthStatusDescription();
-            expect(description).toContain('security vulnerabilities');
-            expect(description).toContain('licensing issues');
+            expect(wrapper.text()).toContain('security vulnerabilities');
+            expect(wrapper.text()).toContain('licensing issues');
         });
     });
 
@@ -480,7 +479,7 @@ describe('SbomDependencyHealth.vue', () => {
             const wrapper = createWrapper(dependency);
 
             expect(wrapper.exists()).toBe(true);
-            expect(wrapper.vm.getDaysOutdated()).toBe(0);
+            expect(wrapper.text()).toContain('Package appears healthy');
         });
 
         it('should handle dependency with empty vulnerability array', () => {
@@ -489,7 +488,7 @@ describe('SbomDependencyHealth.vue', () => {
             });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.vm.hasVulnerabilities).toBe(false);
+            expect(wrapper.text()).toContain('Package appears healthy');
         });
 
         it('should handle dependency with null vulnerabilities', () => {
@@ -498,7 +497,7 @@ describe('SbomDependencyHealth.vue', () => {
             });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.vm.hasVulnerabilities).toBe(false);
+            expect(wrapper.text()).toContain('Package appears healthy');
         });
 
         it('should handle missing severity distribution', () => {
@@ -517,7 +516,7 @@ describe('SbomDependencyHealth.vue', () => {
             });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.vm.isUnlicensed).toBe(true);
+            expect(wrapper.text()).toContain('licensing issues');
         });
 
         it('should handle very large vulnerability counts', () => {

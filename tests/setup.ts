@@ -9,6 +9,11 @@ config.global.stubs = {
     name: 'Icon',
     props: ['icon', 'class', 'width', 'height', 'style'],
     template: '<span class="mock-icon" :class="$props.class">{{ icon }}</span>'
+  },
+  tippy: {
+    name: 'tippy',
+    props: ['content', 'placement', 'trigger'],
+    template: '<div class="mock-tippy"><slot /></div>'
   }
 }
 
@@ -47,27 +52,31 @@ Object.defineProperty(window, 'scrollTo', {
 })
 
 // Mock router
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    go: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-  }),
-  useRoute: () => ({
-    params: {},
-    query: {},
-    path: '/',
-    name: '',
-    meta: {},
-  }),
-  RouterLink: {
-    name: 'RouterLink',
-    template: '<a v-bind="$attrs"><slot /></a>',
-    props: ['to']
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal() as any
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      go: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+    }),
+    useRoute: () => ({
+      params: {},
+      query: {},
+      path: '/',
+      name: '',
+      meta: {},
+    }),
+    RouterLink: {
+      name: 'RouterLink',
+      template: '<a v-bind="$attrs"><slot /></a>',
+      props: ['to']
+    }
   }
-}))
+})
 
 // Mock Pinia
 vi.mock('pinia', () => ({
@@ -75,3 +84,18 @@ vi.mock('pinia', () => ({
   defineStore: vi.fn(),
   setActivePinia: vi.fn(),
 }))
+
+// Mock VueCookies plugin
+vi.mock('vue-cookies', () => ({
+  default: {
+    install: vi.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+    isKey: vi.fn(),
+    keys: vi.fn(),
+  }
+}))
+
+// Configure global plugins to avoid "plugin must be a function" warnings
+config.global.plugins = []

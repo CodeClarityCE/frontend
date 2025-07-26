@@ -284,7 +284,7 @@ describe('PatchingTable.vue', () => {
 
             const prodPatches = wrapper
                 .findAllComponents({ name: 'PatchComponent' })
-                .filter((comp) => comp.props('type') === 'prod');
+                .filter((comp: any) => comp.props('type') === 'prod');
             expect(prodPatches).toHaveLength(2);
             expect(prodPatches[0].props('patch')).toEqual(mockWorkspace.patches[0]);
         });
@@ -295,7 +295,7 @@ describe('PatchingTable.vue', () => {
 
             const devPatches = wrapper
                 .findAllComponents({ name: 'PatchComponent' })
-                .filter((comp) => comp.props('type') === 'dev');
+                .filter((comp: any) => comp.props('type') === 'dev');
             expect(devPatches).toHaveLength(1);
             expect(devPatches[0].props('patch')).toEqual(mockWorkspace.dev_patches[0]);
         });

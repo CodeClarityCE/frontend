@@ -58,15 +58,18 @@ describe('SbomImportPaths.vue', () => {
 
     const createMockGraphData = (): GraphDependency[] => [
         {
-            name: 'root-package',
-            version: '1.0.0',
-            children: [
-                {
-                    name: 'test-package',
-                    version: '1.2.3',
-                    children: []
-                }
-            ]
+            id: 'root-package',
+            prod: true,
+            dev: false,
+            parentIds: [],
+            childrenIds: ['test-package']
+        },
+        {
+            id: 'test-package',
+            prod: true,
+            dev: false,
+            parentIds: ['root-package'],
+            childrenIds: []
         }
     ];
 

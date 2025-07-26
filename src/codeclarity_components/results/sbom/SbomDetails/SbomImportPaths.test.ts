@@ -274,7 +274,7 @@ describe('SbomImportPaths.vue', () => {
 
     describe('Store Integration', () => {
         it('should handle missing default org', async () => {
-            mockUserStore.getDefaultOrg = null;
+            (mockUserStore as any).getDefaultOrg = undefined;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             const wrapper = createWrapper();
@@ -290,7 +290,7 @@ describe('SbomImportPaths.vue', () => {
         });
 
         it('should handle missing auth token', async () => {
-            mockAuthStore.getToken = null;
+            (mockAuthStore as any).getToken = undefined;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             const wrapper = createWrapper();

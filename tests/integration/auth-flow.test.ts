@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore, loadAuthStoreFromLocalStorage } from '@/stores/auth'
 import { useUserStore } from '@/stores/user'
 
 // Mock the auth repository
@@ -68,7 +68,7 @@ describe('Authentication Flow Integration', () => {
       authStore.setAuthenticated(true)
       userStore.setUser(mockUser)
 
-      expect(authStore.isAuthenticated).toBe(true)
+      expect(authStore.getAuthenticated).toBe(true)
       expect(authStore.getToken).toBe(mockToken)
       expect(userStore.getUser).toEqual(mockUser)
     })
@@ -84,8 +84,8 @@ describe('Authentication Flow Integration', () => {
       try {
         throw new Error('Invalid credentials')
       } catch {
-        expect(authStore.isAuthenticated).toBe(false)
-        expect(authStore.getToken).toBe('')
+        expect(authStore.getAuthenticated).toBe(false)
+        expect(authStore.getToken).toBeUndefined()
       }
     })
   })
@@ -101,7 +101,7 @@ describe('Authentication Flow Integration', () => {
       authStore.setToken(newToken)
 
       expect(authStore.getToken).toBe(newToken)
-      expect(authStore.isAuthenticated).toBe(true)
+      expect(authStore.getAuthenticated).toBe(true)
     })
 
     it('should handle token expiration', async () => {
@@ -110,10 +110,10 @@ describe('Authentication Flow Integration', () => {
       authStore.setAuthenticated(true)
 
       // Simulate token expiration
-      authStore.logout()
+      authStore.$reset()
 
-      expect(authStore.isAuthenticated).toBe(false)
-      expect(authStore.getToken).toBe('')
+      expect(authStore.getAuthenticated).toBe(false)
+      expect(authStore.getToken).toBeUndefined()
     })
   })
 
@@ -129,12 +129,12 @@ describe('Authentication Flow Integration', () => {
       })
 
       // Perform logout
-      authStore.logout()
-      userStore.clearUser()
+      authStore.$reset()
+      userStore.$reset()
 
-      expect(authStore.isAuthenticated).toBe(false)
-      expect(authStore.getToken).toBe('')
-      expect(userStore.getUser).toBeNull()
+      expect(authStore.getAuthenticated).toBe(false)
+      expect(authStore.getToken).toBeUndefined()
+      expect(userStore.getUser).toBeUndefined()
     })
   })
 
@@ -172,36 +172,36 @@ describe('Authentication Flow Integration', () => {
       const oauthState = 'random-state-string'
       
       // Store OAuth state
-      authStore.setOAuthState(oauthState)
+      authStore.setSocialAuthState(oauthState)
       
-      expect(authStore.getOAuthState).toBe(oauthState)
+      expect(authStore.getSocialAuthState).toBe(oauthState)
     })
 
     it('should handle OAuth callback with valid state', async () => {
       const state = 'valid-state'
       
       // Set OAuth state
-      authStore.setOAuthState(state)
+      authStore.setSocialAuthState(state)
       
       // Simulate successful OAuth callback
-      if (authStore.getOAuthState === state) {
-        authStore.setToken('oauth-token')
+      if (authStore.getSocialAuthState === state) {
+        authStore.setRefreshToken('oauth-token')
         authStore.setAuthenticated(true)
-        authStore.clearOAuthState()
+        authStore.setSocialAuthState('')
       }
       
-      expect(authStore.isAuthenticated).toBe(true)
-      expect(authStore.getOAuthState).toBe('')
+      expect(authStore.getAuthenticated).toBe(true)
+      expect(authStore.getSocialAuthState).toBe('')
     })
 
     it('should reject OAuth callback with invalid state', async () => {
       const validState = 'valid-state'
       const invalidState = 'invalid-state'
       
-      authStore.setOAuthState(validState)
+      authStore.setSocialAuthState(validState)
       
       // Simulate OAuth callback with wrong state
-      if (authStore.getOAuthState !== invalidState) {
+      if (authStore.getSocialAuthState !== invalidState) {
         // Should not authenticate
         expect(authStore.isAuthenticated).toBe(false)
       }
@@ -220,7 +220,7 @@ describe('Authentication Flow Integration', () => {
       })
 
       const token = 'persistent-token'
-      authStore.setToken(token)
+      authStore.setRefreshToken(token)
       
       // Should save to localStorage
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
@@ -232,8 +232,8 @@ describe('Authentication Flow Integration', () => {
     it('should restore authentication state from localStorage', async () => {
       const mockLocalStorage = {
         getItem: vi.fn().mockReturnValue(JSON.stringify({
-          isAuthenticated: true,
-          token: 'stored-token'
+          authenticated: true,
+          refreshToken: 'stored-token'
         })),
         setItem: vi.fn(),
         removeItem: vi.fn()
@@ -243,9 +243,9 @@ describe('Authentication Flow Integration', () => {
       })
 
       // Simulate loading from localStorage
-      authStore.loadFromStorage()
+      loadAuthStoreFromLocalStorage()
       
-      expect(authStore.isAuthenticated).toBe(true)
+      expect(authStore.getAuthenticated).toBe(true)
       expect(authStore.getToken).toBe('stored-token')
     })
   })

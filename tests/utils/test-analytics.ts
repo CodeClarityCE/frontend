@@ -82,7 +82,7 @@ export class TestAnalyticsCollector {
   /**
    * Start tracking a test
    */
-  startTest(testName: string, suiteName: string, filePath: string): void {
+  startTest(testName: string, suiteName: string): void {
     const key = `${suiteName}:${testName}`;
     this.testStartTimes.set(key, performance.now());
   }

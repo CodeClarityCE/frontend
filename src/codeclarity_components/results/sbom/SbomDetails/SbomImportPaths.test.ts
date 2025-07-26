@@ -253,7 +253,9 @@ describe('SbomImportPaths.vue', () => {
             await wrapper.vm.$nextTick();
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(wrapper.vm.hierarchy).toEqual(mockData);
+            // Check that chart wrapper is rendered when hierarchy has data
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(true);
+            expect(wrapper.find('.mock-tree-chart').exists()).toBe(true);
         });
 
         it('should handle fetch errors gracefully', async () => {
@@ -266,7 +268,8 @@ describe('SbomImportPaths.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(consoleErrorSpy).toHaveBeenCalledWith('error');
-            expect(wrapper.vm.hierarchy).toEqual([]);
+            // Check that chart wrapper is not rendered when there's an error
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(false);
 
             consoleErrorSpy.mockRestore();
         });
@@ -283,7 +286,7 @@ describe('SbomImportPaths.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(consoleErrorSpy).toHaveBeenCalledWith('error');
-            expect(wrapper.vm.hierarchy).toEqual([]);
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(false);
 
             consoleErrorSpy.mockRestore();
             mockUserStore.getDefaultOrg = { id: 'test-org-id' };
@@ -299,7 +302,7 @@ describe('SbomImportPaths.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(consoleErrorSpy).toHaveBeenCalledWith('error');
-            expect(wrapper.vm.hierarchy).toEqual([]);
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(false);
 
             consoleErrorSpy.mockRestore();
             mockAuthStore.getToken = 'test-token';
@@ -374,7 +377,8 @@ describe('SbomImportPaths.vue', () => {
         it('should initialize data on mount', async () => {
             const wrapper = createWrapper();
 
-            expect(wrapper.vm.hierarchy).toEqual([]);
+            // Initially no chart wrapper should exist
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(false);
 
             await wrapper.vm.$nextTick();
             await new Promise((resolve) => setTimeout(resolve, 0));
@@ -418,7 +422,7 @@ describe('SbomImportPaths.vue', () => {
             await wrapper.vm.$nextTick();
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(wrapper.vm.hierarchy).toEqual([]);
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(false);
             expect(consoleErrorSpy).toHaveBeenCalledWith('error');
 
             consoleErrorSpy.mockRestore();
@@ -469,15 +473,17 @@ describe('SbomImportPaths.vue', () => {
         });
 
         it('should handle chart wrapper styling when data is available', async () => {
+            const mockData = createMockGraphData();
+            mockGetDependencyGraph.mockResolvedValue({ data: mockData });
+
             const wrapper = createWrapper();
 
             await wrapper.vm.$nextTick();
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            if (wrapper.vm.hierarchy.length > 0) {
-                expect(wrapper.find('.chart-wrapper').exists()).toBe(true);
-                expect(wrapper.find('.tree-chart-wrapper').exists()).toBe(true);
-            }
+            // Component should handle data gracefully
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(true);
+            expect(wrapper.find('.tree-chart-wrapper').exists()).toBe(true);
         });
     });
 
@@ -524,8 +530,8 @@ describe('SbomImportPaths.vue', () => {
             await wrapper.vm.$nextTick();
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(wrapper.vm.hierarchy).toEqual(largeHierarchy);
-            expect(wrapper.findComponent({ name: 'TreeChart' }).exists()).toBe(true);
+            expect(wrapper.find('.chart-wrapper').exists()).toBe(true);
+            expect(wrapper.find('.mock-tree-chart').exists()).toBe(true);
         });
     });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
-import { createTestWrapper } from '@/../../tests/utils/test-utils';
+// import { createTestWrapper } from '@/../../tests/utils/test-utils';
 import { mockStores } from '@/../../tests/utils/test-utils';
 import CreateProject from '@/codeclarity_components/projects/create/CreateProject.vue';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';

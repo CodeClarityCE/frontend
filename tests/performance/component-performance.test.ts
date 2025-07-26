@@ -10,7 +10,7 @@ import {
   FPSMonitor,
   RerenderCounter
 } from '@/../../tests/utils/performance-utils';
-import { createTestWrapper } from '@/../../tests/utils/test-utils';
+// import { createTestWrapper } from '@/../../tests/utils/test-utils';
 
 // Import components to test
 import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';

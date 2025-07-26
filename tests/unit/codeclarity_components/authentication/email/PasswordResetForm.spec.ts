@@ -96,13 +96,12 @@ vi.mock('@/shadcn/ui/alert/AlertDescription.vue', () => ({
   })
 }));
 
-vi.mock('vue-router', () => ({
-  RouterLink: defineComponent({
-    name: 'RouterLink',
-    props: ['to'],
-    template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
-  })
-}));
+
+const RouterLinkMock = defineComponent({
+  name: 'RouterLink',
+  props: ['to'],
+  template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
+});
 
 describe('PasswordResetForm', () => {
   let originalLocation: Location;
@@ -126,14 +125,26 @@ describe('PasswordResetForm', () => {
 
   describe('Component Structure', () => {
     it('should render the main container', () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       
       const container = wrapper.find('.password-reset-wrapper');
       expect(container.exists()).toBe(true);
     });
 
     it('should render form elements when not in success state', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const title = wrapper.find('.title');
@@ -149,7 +160,13 @@ describe('PasswordResetForm', () => {
     });
 
     it('should render submit button', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const submitButton = wrapper.find('[data-testid="submit-button"]');
@@ -160,7 +177,13 @@ describe('PasswordResetForm', () => {
 
   describe('URL Parameter Handling', () => {
     it('should extract token and userid from URL parameters', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -174,7 +197,13 @@ describe('PasswordResetForm', () => {
         search: '?userid=test-userid'
       } as Location;
       
-      mount(PasswordResetForm);
+      mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       expect(router.push).toHaveBeenCalledWith('/login');
@@ -186,7 +215,13 @@ describe('PasswordResetForm', () => {
         search: '?token=test-token'
       } as Location;
       
-      mount(PasswordResetForm);
+      mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       expect(router.push).toHaveBeenCalledWith('/login');
@@ -198,7 +233,13 @@ describe('PasswordResetForm', () => {
         search: ''
       } as Location;
       
-      mount(PasswordResetForm);
+      mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       expect(router.push).toHaveBeenCalledWith('/login');
@@ -207,7 +248,13 @@ describe('PasswordResetForm', () => {
 
   describe('Form Submission', () => {
     it('should call resetPassword with correct parameters', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const passwordInput = wrapper.find('[data-testid="new_password-input"]');
@@ -231,7 +278,13 @@ describe('PasswordResetForm', () => {
     });
 
     it('should show success state after successful submission', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const passwordInput = wrapper.find('[data-testid="new_password-input"]');
@@ -250,7 +303,13 @@ describe('PasswordResetForm', () => {
     });
 
     it('should handle button loading state during submission', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const loadingButton = wrapper.findComponent('[data-testid="submit-button"]');
@@ -272,7 +331,13 @@ describe('PasswordResetForm', () => {
       const validationError = new ValidationError('validation-error', { new_password: ['Too short'] });
       mockAuthRepository.resetPassword.mockRejectedValue(validationError);
       
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -288,7 +353,13 @@ describe('PasswordResetForm', () => {
       const businessError = new BusinessLogicError(APIErrors.PasswordsDoNotMatch);
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
       
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -303,7 +374,13 @@ describe('PasswordResetForm', () => {
       const businessError = new BusinessLogicError(APIErrors.PasswordResetTokenInvalidOrExpired);
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
       
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -322,7 +399,13 @@ describe('PasswordResetForm', () => {
       const businessError = new BusinessLogicError(APIErrors.InternalError);
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
       
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -337,7 +420,13 @@ describe('PasswordResetForm', () => {
     it('should reset error state on new submission', async () => {
       mockAuthRepository.resetPassword.mockRejectedValueOnce(new Error('Error'));
       
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -358,7 +447,13 @@ describe('PasswordResetForm', () => {
 
   describe('State Management', () => {
     it('should show only form when neither success nor non-recoverable error', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -371,7 +466,13 @@ describe('PasswordResetForm', () => {
     });
 
     it('should hide form in success state', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -388,11 +489,7 @@ describe('PasswordResetForm', () => {
       const wrapper = mount(PasswordResetForm, {
         global: {
           components: {
-            RouterLink: defineComponent({
-              name: 'RouterLink',
-              props: ['to'],
-              template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
-            })
+            RouterLink: RouterLinkMock
           }
         }
       });
@@ -414,11 +511,7 @@ describe('PasswordResetForm', () => {
       const wrapper = mount(PasswordResetForm, {
         global: {
           components: {
-            RouterLink: defineComponent({
-              name: 'RouterLink',
-              props: ['to'],
-              template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
-            })
+            RouterLink: RouterLinkMock
           }
         }
       });
@@ -437,7 +530,13 @@ describe('PasswordResetForm', () => {
 
   describe('Form Validation', () => {
     it('should update password values when inputs change', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const passwordInput = wrapper.find('[data-testid="new_password-input"]');
@@ -451,7 +550,13 @@ describe('PasswordResetForm', () => {
     });
 
     it('should have proper input types for password fields', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const passwordInput = wrapper.find('[data-testid="new_password-input"]');
@@ -464,7 +569,13 @@ describe('PasswordResetForm', () => {
 
   describe('Accessibility', () => {
     it('should have proper form structure', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const form = wrapper.find('[data-testid="password-reset-form"]');
@@ -479,7 +590,13 @@ describe('PasswordResetForm', () => {
     });
 
     it('should have descriptive placeholders', async () => {
-      const wrapper = mount(PasswordResetForm);
+      const wrapper = mount(PasswordResetForm, {
+        global: {
+          components: {
+            RouterLink: RouterLinkMock
+          }
+        }
+      });
       await nextTick();
       
       const passwordInput = wrapper.find('[data-testid="new_password-input"]');

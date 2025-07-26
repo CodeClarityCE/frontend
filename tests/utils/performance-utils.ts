@@ -246,7 +246,7 @@ export async function analyzeBundleSize(): Promise<BundleMetrics> {
 /**
  * Lighthouse performance audit
  */
-export async function runLighthouseAudit(url: string): Promise<LighthouseMetrics> {
+export async function runLighthouseAudit(): Promise<LighthouseMetrics> {
   // This would run actual Lighthouse audit
   // For now, return mock data structure
   return {

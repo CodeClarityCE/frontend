@@ -46,11 +46,21 @@ describe('SbomInformation.vue', () => {
             package_manager: 'NPM',
             transitive: false,
             license: 'MIT',
-            release_date: '2023-01-01',
-            lastest_release_date: '2023-06-01',
+            release_date: new Date('2023-01-01'),
+            lastest_release_date: new Date('2023-06-01'),
             engines: {
                 node: '>=14.0.0',
                 npm: '>=6.0.0'
+            },
+            dependencies: {},
+            dev_dependencies: {},
+            vulnerabilities: [],
+            severity_dist: {
+                critical: 0,
+                high: 0,
+                medium: 0,
+                low: 0,
+                none: 0
             },
             ...overrides
         } as DependencyDetails;
@@ -194,7 +204,7 @@ describe('SbomInformation.vue', () => {
             expect(wrapper.text()).toContain('solar:clock-circle-bold');
         });
 
-        it('should show current version status when up to date', () => {
+        it('should show current version status when up to date', async () => {
             // Mock the date difference to be less than 182 days
             vi.mocked(vi.fn()).mockReturnValue(100); // 100 days
             const { calculateDateDifference } = await import('@/utils/dateUtils');
@@ -455,7 +465,7 @@ describe('SbomInformation.vue', () => {
             expect(wrapper.text()).toContain('Apache-2.0');
         });
 
-        it('should handle very old packages', () => {
+        it('should handle very old packages', async () => {
             // Mock very old package (>2 years)
             vi.mocked(vi.fn()).mockReturnValue(800); // 800 days
             const { calculateDateDifference } = await import('@/utils/dateUtils');

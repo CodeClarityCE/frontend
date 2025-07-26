@@ -44,7 +44,7 @@ describe('SearchBar User Interaction Tests', () => {
       mountComponent();
       
       // Icon is stubbed as true, so find the stub
-      const icon = wrapper.find('[data-testid="icon-stub"]') || wrapper.findComponent('[name="Icon"]');
+      // const icon = wrapper.find('[data-testid="icon-stub"]') || wrapper.findComponent('[name="Icon"]');
       expect(wrapper.html()).toContain('Icon'); // Icon component should be present
     });
 
@@ -118,7 +118,7 @@ describe('SearchBar User Interaction Tests', () => {
 
   describe('Keyboard Interactions', () => {
     it('should respond to Enter key', async () => {
-      const onSearch = vi.fn();
+      // const onSearch = vi.fn();
       mountComponent();
       wrapper.vm.$emit = vi.fn();
       

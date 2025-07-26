@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
-import { createTestWrapper } from '@/../../tests/utils/test-utils';
+// import { createTestWrapper } from '@/../../tests/utils/test-utils';
 import { mockStores } from '@/../../tests/utils/test-utils';
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
@@ -296,7 +296,7 @@ describe('UserAuthForm Integration Tests', () => {
       
       const emailInput = wrapper.find('input[name="email"]');
       const passwordInput = wrapper.find('input[name="password"]');
-      const submitButton = wrapper.find('button[type="submit"]');
+      // const submitButton = wrapper.find('button[type="submit"]');
       
       // Test tab order
       await emailInput.trigger('focus');

@@ -4,7 +4,7 @@
  * Utilities for component-level visual regression testing using Vitest and Playwright
  */
 
-import { type Page } from '@playwright/test';
+// import { type Page } from '@playwright/test';
 import type { VueWrapper } from '@vue/test-utils';
 
 /**

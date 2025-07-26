@@ -1,11 +1,14 @@
-describe('Dashboard page', () => {
-	
+// Basic dashboard test - replaced by comprehensive dashboard-flow.cy.ts
+// This file is kept for backward compatibility
+
+describe('Dashboard Basic Test', () => {
   beforeEach(() => {
     cy.login()
   })
-	
-  it('should actually be accessible', () => {
+  
+  it('should be accessible', () => {
     cy.visit('/')
+    cy.checkA11y()
   })
 
   it('should have the correct page title', () => {
@@ -13,4 +16,9 @@ describe('Dashboard page', () => {
     cy.get('h3').should('contain', 'Vulnerability Exposure Overview')
   })
   
+  it('should redirect to comprehensive dashboard tests', () => {
+    // Note: See dashboard-flow.cy.ts for comprehensive dashboard testing
+    cy.visit('/dashboard')
+    cy.getByCy('dashboard-header').should('exist')
+  })
 })

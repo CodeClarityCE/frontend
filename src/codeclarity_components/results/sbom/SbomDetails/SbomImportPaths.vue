@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { ref, type PropType, type Ref, onMounted } from 'vue';
+import { Icon } from '@iconify/vue';
 
 // Import stores
 import { useUserStore } from '@/stores/user';

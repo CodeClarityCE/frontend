@@ -1,6 +1,16 @@
 import 'reflect-metadata'
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
+import { config } from '@vue/test-utils'
+
+// Mock Icon component globally for tests
+config.global.stubs = {
+  Icon: {
+    name: 'Icon',
+    props: ['icon', 'class', 'width', 'height', 'style'],
+    template: '<span class="mock-icon" :class="$props.class">{{ icon }}</span>'
+  }
+}
 
 // Mock global objects
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

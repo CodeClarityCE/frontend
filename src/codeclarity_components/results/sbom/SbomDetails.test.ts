@@ -143,7 +143,8 @@ describe('SbomDetails.vue', () => {
         critical: 1,
         high: 1,
         medium: 0,
-        low: 0
+        low: 0,
+        none: 0
     };
     mockDependency.transitive = false;
     mockDependency.release_date = new Date('2023-01-01');
@@ -162,9 +163,9 @@ describe('SbomDetails.vue', () => {
                 }) as any
         );
 
-        // Mock router.back
+        // Mock router.go
         const { default: router } = await vi.importMock('@/router');
-        routerBackSpy = vi.spyOn(router, 'back');
+        routerBackSpy = vi.spyOn(router, 'go');
 
         // Mock repository responses
         mockResultsRepository = {
@@ -488,7 +489,7 @@ describe('SbomDetails.vue', () => {
         });
 
         it('should handle missing default org', async () => {
-            mockUserStore.getDefaultOrg = null;
+            mockUserStore.getDefaultOrg = undefined;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();
@@ -502,7 +503,7 @@ describe('SbomDetails.vue', () => {
         });
 
         it('should handle missing auth token', async () => {
-            mockAuthStore.getToken = null;
+            mockAuthStore.getToken = undefined;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();

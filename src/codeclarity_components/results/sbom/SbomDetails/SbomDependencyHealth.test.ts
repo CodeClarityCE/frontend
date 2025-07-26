@@ -38,15 +38,20 @@ describe('SbomDependencyHealth.vue', () => {
         return {
             name: 'test-package',
             version: '1.2.3',
+            latest_version: '1.3.0',
+            dependencies: {},
+            dev_dependencies: {},
+            package_manager: 'npm',
             license: 'MIT',
-            release_date: '2023-01-01',
-            lastest_release_date: '2023-06-01',
+            release_date: new Date('2023-01-01'),
+            lastest_release_date: new Date('2023-06-01'),
             vulnerabilities: [],
             severity_dist: {
                 critical: 0,
                 high: 0,
                 medium: 0,
-                low: 0
+                low: 0,
+                none: 0
             },
             transitive: false,
             ...overrides

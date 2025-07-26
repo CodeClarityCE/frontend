@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
-// import { createTestWrapper } from '@/../../tests/utils/test-utils';
-import { mockStores } from '@/../../tests/utils/test-utils';
+// import { createTestWrapper } from '../../utils/test-utils';
+import { mockStores } from '../../utils/test-utils';
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
@@ -14,10 +14,9 @@ vi.mock('@/codeclarity_components/authentication/auth.repository');
 const mockAuthRepository = vi.mocked(AuthRepository);
 
 // Mock router
-const mockPush = vi.fn();
 vi.mock('@/router', () => ({
   default: {
-    push: mockPush
+    push: vi.fn()
   }
 }));
 

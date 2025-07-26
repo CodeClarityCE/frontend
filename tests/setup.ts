@@ -14,6 +14,11 @@ config.global.stubs = {
     name: 'tippy',
     props: ['content', 'placement', 'trigger'],
     template: '<div class="mock-tippy"><slot /></div>'
+  },
+  RouterLink: {
+    name: 'RouterLink',
+    template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name || to.path || \'#\')"><slot /></a>',
+    props: ['to', 'replace', 'activeClass', 'exactActiveClass', 'custom', 'ariaCurrentValue', 'viewTransition']
   }
 }
 
@@ -97,8 +102,8 @@ vi.mock('vue-router', async (importOriginal) => {
     }),
     RouterLink: {
       name: 'RouterLink',
-      template: '<a v-bind="$attrs"><slot /></a>',
-      props: ['to']
+      template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name || to.path || \'#\')"><slot /></a>',
+      props: ['to', 'replace', 'activeClass', 'exactActiveClass', 'custom', 'ariaCurrentValue', 'viewTransition']
     }
   }
 })
@@ -218,18 +223,57 @@ vi.mock('@/codeclarity_components/results/licenses/LicenseRepository', () => ({
 // Mock common stores with better defaults
 vi.mock('@/stores/user', () => ({
   useUserStore: vi.fn(() => ({
+    // State
+    user: { id: 'test-user-id', email: 'test@example.com', name: 'Test User' },
+    organizations: [{ id: 'test-org-id', name: 'Test Org' }],
+    defaultOrg: { id: 'test-org-id', name: 'Test Org' },
+    
+    // Getters
+    getUser: { id: 'test-user-id', email: 'test@example.com', name: 'Test User' },
     getDefaultOrg: { id: 'test-org-id', name: 'Test Org' },
-    user: { id: 'test-user-id', email: 'test@example.com' },
-    organizations: []
+    getOrganizations: [{ id: 'test-org-id', name: 'Test Org' }],
+    
+    // Actions
+    setUser: vi.fn(),
+    setDefaultOrg: vi.fn(),
+    setOrganizations: vi.fn(),
+    $reset: vi.fn(),
+    $patch: vi.fn()
   }))
 }))
 
 vi.mock('@/stores/auth', () => ({
   useAuthStore: vi.fn(() => ({
+    // State
+    initialized: true,
+    token: 'test-token',
+    tokenExpiry: new Date(Date.now() + 3600000),
+    refreshToken: 'test-refresh-token',
+    refreshTokenExpiry: new Date(Date.now() + 7200000),
+    authenticated: true,
+    socialAuthState: 'test-social-state',
+    
+    // Getters
     getToken: 'test-token',
-    isAuthenticated: true,
-    user: { id: 'test-user-id' }
-  }))
+    getRefreshToken: 'test-refresh-token',
+    getTokenExpiry: new Date(Date.now() + 3600000),
+    getRefreshTokenExpiry: new Date(Date.now() + 7200000),
+    getAuthenticated: true,
+    getInitialized: true,
+    getSocialAuthState: 'test-social-state',
+    
+    // Actions
+    setToken: vi.fn(),
+    setRefreshToken: vi.fn(),
+    setTokenExpiry: vi.fn(),
+    setRefreshTokenExpiry: vi.fn(),
+    setAuthenticated: vi.fn(),
+    setInitialized: vi.fn(),
+    setSocialAuthState: vi.fn(),
+    $reset: vi.fn(),
+    $patch: vi.fn()
+  })),
+  loadAuthStoreFromLocalStorage: vi.fn()
 }))
 
 vi.mock('@/stores/state', () => ({

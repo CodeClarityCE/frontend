@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
+import { nextTick, h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
 
@@ -243,11 +243,11 @@ describe('DataTable User Interaction Tests', () => {
       await nextTick();
       
       // Set initial sorting
-      await wrapper.setData({ sorting: [{ id: 'name', desc: false }] });
+      await wrapper.setProps({ sorting: [{ id: 'name', desc: false }] });
       await nextTick();
       
       // Clear sorting
-      await wrapper.setData({ sorting: [] });
+      await wrapper.setProps({ sorting: [] });
       await nextTick();
       
       expect(wrapper.vm.sorting).toEqual([]);
@@ -322,7 +322,7 @@ describe('DataTable User Interaction Tests', () => {
       expect(pageSizeSelect.exists()).toBe(true);
       
       // Simulate page size change
-      await wrapper.setData({ pageLimitSelected: 25 });
+      await wrapper.setProps({ pageLimitSelected: 25 });
       await nextTick();
       
       expect(wrapper.vm.pageLimitSelected).toBe(25);
@@ -388,7 +388,7 @@ describe('DataTable User Interaction Tests', () => {
       
       // Set initial column visibility
       const initialVisibility = { name: false, version: true };
-      await wrapper.setData({ columnVisibility: initialVisibility });
+      await wrapper.setProps({ columnVisibility: initialVisibility });
       await nextTick();
       
       expect(wrapper.vm.columnVisibility).toEqual(initialVisibility);
@@ -433,11 +433,11 @@ describe('DataTable User Interaction Tests', () => {
       await nextTick();
       
       // Set some selection
-      await wrapper.setData({ rowSelection: { '0': true, '1': true } });
+      await wrapper.setProps({ rowSelection: { '0': true, '1': true } });
       await nextTick();
       
       // Clear selection
-      await wrapper.setData({ rowSelection: {} });
+      await wrapper.setProps({ rowSelection: {} });
       await nextTick();
       
       expect(Object.keys(wrapper.vm.rowSelection).length).toBe(0);
@@ -469,9 +469,9 @@ describe('DataTable User Interaction Tests', () => {
       
       // Perform multiple operations simultaneously
       await Promise.all([
-        wrapper.setData({ searchKey: 'vue' }),
-        wrapper.setData({ sorting: [{ id: 'name', desc: false }] }),
-        wrapper.setData({ pageLimitSelected: 25 })
+        wrapper.setProps({ searchKey: 'vue' }),
+        wrapper.setProps({ sorting: [{ id: 'name', desc: false }] }),
+        wrapper.setProps({ pageLimitSelected: 25 })
       ]);
       
       await nextTick();
@@ -571,17 +571,17 @@ describe('DataTable User Interaction Tests', () => {
       const originalDataLength = wrapper.vm.data.length;
       
       // Perform various operations
-      await wrapper.setData({ searchKey: 'react' });
-      await wrapper.setData({ sorting: [{ id: 'name', desc: false }] });
-      await wrapper.setData({ pageLimitSelected: 10 });
+      await wrapper.setProps({ searchKey: 'react' });
+      await wrapper.setProps({ sorting: [{ id: 'name', desc: false }] });
+      await wrapper.setProps({ pageLimitSelected: 10 });
       await nextTick();
       
       // Original data should not be modified
       expect(wrapper.vm.data.length).toBe(originalDataLength);
       
       // Clear operations
-      await wrapper.setData({ searchKey: '' });
-      await wrapper.setData({ sorting: [] });
+      await wrapper.setProps({ searchKey: '' });
+      await wrapper.setProps({ sorting: [] });
       await nextTick();
       
       // Should return to original state

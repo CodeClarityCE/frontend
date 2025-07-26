@@ -165,7 +165,7 @@ describe('SbomDetails.vue', () => {
 
         // Mock router.go
         const { default: router } = await vi.importMock('@/router');
-        routerBackSpy = vi.spyOn(router, 'go');
+        routerBackSpy = vi.spyOn(router as any, 'back');
 
         // Mock repository responses
         mockResultsRepository = {
@@ -489,7 +489,7 @@ describe('SbomDetails.vue', () => {
         });
 
         it('should handle missing default org', async () => {
-            mockUserStore.getDefaultOrg = undefined;
+            (mockUserStore as any).getDefaultOrg = null;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();
@@ -503,7 +503,7 @@ describe('SbomDetails.vue', () => {
         });
 
         it('should handle missing auth token', async () => {
-            mockAuthStore.getToken = undefined;
+            mockAuthStore.getToken = '';
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();

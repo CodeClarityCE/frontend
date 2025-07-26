@@ -3,7 +3,6 @@ import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import type { Component } from 'vue'
 import { vi } from 'vitest'
-import { createMockUserStore, createMockAuthStore, createMockRouter } from './data-factories'
 
 // Basic router for testing
 const router = createRouter({
@@ -61,9 +60,34 @@ export function renderWithProviders(
 
 // Global mocks that can be used across tests
 export const mockStores = {
-  user: createMockUserStore(),
-  auth: createMockAuthStore(),
-  router: createMockRouter()
+  user: {
+    getUser: { id: 'test-user', email: 'test@example.com', name: 'Test User' },
+    getDefaultOrg: { id: 'test-org', name: 'Test Org' },
+    setUser: vi.fn(),
+    setDefaultOrg: vi.fn()
+  },
+  auth: {
+    getToken: 'mock-token',
+    initialized: true,
+    authenticated: true,
+    token: 'mock-token',
+    refreshToken: 'mock-refresh-token'
+  },
+  router: {
+    push: vi.fn(),
+    replace: vi.fn(),
+    go: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    currentRoute: {
+      value: {
+        path: '/',
+        params: {},
+        query: {},
+        name: 'home'
+      }
+    }
+  }
 }
 
 // Helper to create component wrapper with common mocks
@@ -93,9 +117,9 @@ export const createRepositoryMock = <T extends Record<string, any>>(methods: Par
     }
   }
   
-  return mockRepo as jest.Mocked<T>
+  return mockRepo as any
 }
 
 export * from '@testing-library/vue'
 export { userEvent } from '@testing-library/user-event'
-export * from './data-factories'
+// Test utilities ready for use

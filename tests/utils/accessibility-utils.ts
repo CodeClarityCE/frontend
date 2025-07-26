@@ -6,54 +6,6 @@ import type { AxeResults, Result, RunOptions } from 'axe-core';
  * Default axe configuration for CodeClarity accessibility testing
  */
 export const defaultAxeConfig: RunOptions = {
-  rules: {
-    // Color contrast requirements (WCAG AA)
-    'color-contrast': { enabled: true },
-    'color-contrast-enhanced': { enabled: false }, // WCAG AAA - too strict for most UIs
-    
-    // Keyboard accessibility
-    'keyboard-navigation': { enabled: true },
-    'focus-order-semantics': { enabled: true },
-    
-    // Screen reader compatibility
-    'label': { enabled: true },
-    'form-field-multiple-labels': { enabled: true },
-    'aria-required-children': { enabled: true },
-    'aria-required-parent': { enabled: true },
-    'aria-roles': { enabled: true },
-    'aria-valid-attr': { enabled: true },
-    'aria-valid-attr-value': { enabled: true },
-    
-    // HTML semantics
-    'heading-order': { enabled: true },
-    'landmark-no-duplicate-banner': { enabled: true },
-    'landmark-no-duplicate-contentinfo': { enabled: true },
-    'landmark-one-main': { enabled: true },
-    'landmark-unique': { enabled: true },
-    
-    // Interactive elements
-    'button-name': { enabled: true },
-    'link-name': { enabled: true },
-    'interactive-supports-focus': { enabled: true },
-    
-    // Images and media
-    'image-alt': { enabled: true },
-    'area-alt': { enabled: true },
-    
-    // Tables
-    'table-header': { enabled: true },
-    'td-headers-attr': { enabled: true },
-    'th-has-data-cells': { enabled: true },
-    
-    // Language
-    'html-has-lang': { enabled: true },
-    'html-lang-valid': { enabled: true },
-    'valid-lang': { enabled: true },
-    
-    // Page structure
-    'page-has-heading-one': { enabled: true },
-    'bypass': { enabled: true }
-  },
   tags: ['wcag2a', 'wcag2aa', 'wcag21aa', 'best-practice']
 };
 
@@ -61,30 +13,14 @@ export const defaultAxeConfig: RunOptions = {
  * Custom axe configuration for form components
  */
 export const formAxeConfig: RunOptions = {
-  ...defaultAxeConfig,
-  rules: {
-    ...defaultAxeConfig.rules,
-    // Additional form-specific rules
-    'label-title-only': { enabled: true },
-    'label-content-name-mismatch': { enabled: true },
-    'form-field-multiple-labels': { enabled: true },
-    'required-attr': { enabled: true },
-    'aria-required-attr': { enabled: true }
-  }
+  ...defaultAxeConfig
 };
 
 /**
  * Custom axe configuration for modal/dialog components
  */
 export const modalAxeConfig: RunOptions = {
-  ...defaultAxeConfig,
-  rules: {
-    ...defaultAxeConfig.rules,
-    // Modal-specific accessibility rules
-    'focus-trap': { enabled: true },
-    'aria-dialog-name': { enabled: true },
-    'aria-modal': { enabled: true }
-  }
+  ...defaultAxeConfig
 };
 
 /**

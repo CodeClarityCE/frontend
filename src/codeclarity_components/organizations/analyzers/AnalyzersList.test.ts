@@ -19,6 +19,18 @@ vi.mock('@/stores/auth', () => ({
     }))
 }));
 
+// Mock BaseRepository to avoid dependency issues
+vi.mock('@/utils/api/BaseRepository', () => ({
+    BaseRepository: class MockBaseRepository {
+        constructor() {}
+    },
+    BusinessLogicError: class MockBusinessLogicError extends Error {
+        constructor(public error_code: string) {
+            super();
+        }
+    }
+}));
+
 // Mock analyzer repository
 const mockAnalyzerRepo = {
     getAnalyzers: vi.fn(),
@@ -50,7 +62,7 @@ vi.mock('@/base_components/ui/loaders/BoxLoader.vue', () => ({
 vi.mock('@/base_components/ui/cards/InfoCard.vue', () => ({
     default: {
         name: 'InfoCard',
-        template: '<div data-testid="info-card"><slot></slot><slot name="actions"></slot></div>',
+        template: '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
         props: ['title', 'description', 'icon', 'variant']
     }
 }));
@@ -211,6 +223,11 @@ describe('AnalyzersList', () => {
     });
 
     it('shows loading state when loading is true', async () => {
+        // Mock getAnalyzers to delay response so we can test loading state
+        mockAnalyzerRepo.getAnalyzers.mockReturnValue(new Promise(resolve => 
+            setTimeout(() => resolve({ data: mockAnalyzers }), 100)
+        ));
+
         wrapper = mount(AnalyzersList, {
             props: {
                 orgId: 'test-org-id'
@@ -222,10 +239,11 @@ describe('AnalyzersList', () => {
             }
         });
 
-        wrapper.vm.loading = true;
-        wrapper.vm.orgInfo = { id: 'test-org', role: MemberRole.ADMIN };
+        // Set org info to trigger the UI to show
+        wrapper.vm.setOrgInfo({ id: 'test-org', role: MemberRole.ADMIN });
         await wrapper.vm.$nextTick();
 
+        // Should show loading state while fetching
         const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
         expect(boxLoaders.length).toBeGreaterThan(0);
     });
@@ -242,17 +260,21 @@ describe('AnalyzersList', () => {
             }
         });
 
-        wrapper.vm.orgInfo = { id: 'test-org', role: MemberRole.ADMIN };
-        wrapper.vm.loading = false;
-        wrapper.vm.error = false;
-        wrapper.vm.analyzers = mockAnalyzers;
-
+        // Set org info and wait for async operations to complete
+        wrapper.vm.setOrgInfo({ id: 'test-org', role: MemberRole.ADMIN });
+        await wrapper.vm.$nextTick();
+        
+        // Wait for the API call to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.html()).toContain('Analyzers Management');
+        expect(wrapper.html()).toContain('Analyzer Workflows');
     });
 
     it('shows error state when error is true', async () => {
+        // Mock getAnalyzers to reject with an error
+        mockAnalyzerRepo.getAnalyzers.mockRejectedValue(new Error('Network error'));
+
         wrapper = mount(AnalyzersList, {
             props: {
                 orgId: 'test-org-id'
@@ -264,14 +286,15 @@ describe('AnalyzersList', () => {
             }
         });
 
-        wrapper.vm.orgInfo = { id: 'test-org', role: MemberRole.ADMIN };
-        wrapper.vm.loading = false;
-        wrapper.vm.error = true;
-        wrapper.vm.errorCode = 'NETWORK_ERROR';
-
+        // Set org info and wait for async operations
+        wrapper.vm.setOrgInfo({ id: 'test-org', role: MemberRole.ADMIN });
+        await wrapper.vm.$nextTick();
+        
+        // Wait for the API call to fail
+        await new Promise(resolve => setTimeout(resolve, 100));
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.html()).toContain('We failed to retrieve the analyzers');
+        expect(wrapper.html()).toContain('We encountered an error while processing the request');
     });
 
     it('fetches analyzers on mount', async () => {

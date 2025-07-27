@@ -27,6 +27,44 @@ vi.mock('@/base_components/ui/loaders/LoadingComponent.vue', () => ({
     }
 }));
 
+// Mock Vue's defineAsyncComponent to return sync components
+vi.mock('vue', async () => {
+    const actual = await vi.importActual('vue');
+    return {
+        ...actual,
+        defineAsyncComponent: (options: any) => {
+            // Return the mock component directly based on the loader path
+            const loaderStr = options.loader?.toString();
+            if (loaderStr?.includes('AnalyzersList')) {
+                return {
+                    name: 'OrgAnalyzersList',
+                    template: '<div data-testid="analyzers-list">Analyzers List</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            if (loaderStr?.includes('AnalyzerEdit')) {
+                return {
+                    name: 'OrgAnalyzerEdit',
+                    template: '<div data-testid="analyzer-edit">Analyzer Edit</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            if (loaderStr?.includes('AnalyzerCreate')) {
+                return {
+                    name: 'OrgAnalyzerCreate',
+                    template: '<div data-testid="analyzer-create">Analyzer Create</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            // Fallback
+            return {
+                name: 'AsyncComponent',
+                template: '<div>Loading...</div>'
+            };
+        }
+    };
+});
+
 // Mock the dynamic imports
 vi.mock('./AnalyzersList.vue', () => ({
     default: {

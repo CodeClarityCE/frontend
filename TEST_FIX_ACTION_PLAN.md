@@ -5,9 +5,9 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 
 ## Current Status
 - **Before fixes**: 51 failed test files, 423 failed tests
-- **Current state**: 43 failed test files, 392 failed tests  
-- **Tests passing**: 2396/2788 (85.9%)
-- **Improvement**: Fixed 8 test files, reduced failures by 31 tests
+- **Current state**: 43 failed test files, 388 failed tests  
+- **Tests passing**: 2400/2788 (86.1%)
+- **Improvement**: Fixed 8+ test files, reduced failures by 35 tests
 
 ## Completed Fixes
 ✅ VulnerabilitySeverities Component - Fixed prop validation errors  
@@ -19,6 +19,8 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 ✅ UtilitiesSort Component - Fixed role="button" attribute on Icon components
 ✅ OwaspTopTen Component - Fixed test data setup issues with default values
 ✅ OrganizationView Component - Fixed async component mocking with defineAsyncComponent
+✅ AnalyzersView Component - Fixed async component mocking using same pattern
+🔄 AnalyzersList Component - Partially fixed reactive refs and BusinessLogicError mock
 
 ## Action Plan
 

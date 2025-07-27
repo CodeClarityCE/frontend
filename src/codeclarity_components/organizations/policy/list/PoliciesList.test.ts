@@ -24,7 +24,19 @@ const mockLicensePolicyRepo = {
 };
 
 vi.mock('@/codeclarity_components/organizations/policy/license_policy.repository', () => ({
-    LicensePolicyRepository: vi.fn().mockImplementation(() => mockLicensePolicyRepo)
+    LicensePolicyRepository: vi.fn().mockImplementation(() => mockLicensePolicyRepo),
+    BusinessLogicError: class BusinessLogicError extends Error {
+        constructor(message: string, public error_code?: string) {
+            super(message);
+            this.name = 'BusinessLogicError';
+        }
+    },
+    ValidationError: class ValidationError extends Error {
+        constructor(message: string, public error_code?: string) {
+            super(message);
+            this.name = 'ValidationError';
+        }
+    }
 }));
 
 // Mock child components
@@ -177,6 +189,11 @@ describe('PoliciesList', () => {
     });
 
     it('shows loading state when loading is true', async () => {
+        // Mock the repository to delay response so we can see loading state
+        mockLicensePolicyRepo.getLicensePolicies.mockImplementation(() => 
+            new Promise(resolve => setTimeout(() => resolve({ data: [] }), 100))
+        );
+
         wrapper = mount(PoliciesList, {
             props: {
                 page: 'policies',
@@ -189,10 +206,7 @@ describe('PoliciesList', () => {
             }
         });
 
-        wrapper.vm.loading = true;
-        wrapper.vm.orgInfo = { id: 'test-org', role: MemberRole.ADMIN };
-        await wrapper.vm.$nextTick();
-
+        // Initially loading should be true while fetchPolicies is running
         const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
         expect(boxLoaders.length).toBeGreaterThan(0);
     });
@@ -240,7 +254,7 @@ describe('PoliciesList', () => {
 
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.html()).toContain('We failed to retrieve the policies');
+        expect(wrapper.html()).toContain('Failed to fetch license policies');
     });
 
     it('fetches policies on mount', async () => {
@@ -354,7 +368,8 @@ describe('PoliciesList', () => {
         });
 
         expect(wrapper.vm.licensePolicies).toEqual([]);
-        expect(wrapper.vm.loading).toBe(false);
+        // Loading starts as true because fetchPolicies() is called on mount
+        expect(wrapper.vm.loading).toBe(true);
         expect(wrapper.vm.error).toBe(false);
         expect(wrapper.vm.errorCode).toBeUndefined();
     });
@@ -414,7 +429,8 @@ describe('PoliciesList', () => {
 
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.html()).toContain('No policies configured');
+        // Component shows add new policy card when no policies exist
+        expect(wrapper.html()).toContain('Add License Policy');
     });
 
     it('handles refresh action correctly', async () => {

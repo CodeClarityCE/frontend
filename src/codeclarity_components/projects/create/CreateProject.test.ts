@@ -15,9 +15,22 @@ vi.mock('@/stores/user', () => ({
     useUserStore: vi.fn(() => ({
         getUser: {
             default_org: { id: 'test-org-id' }
-        }
+        },
+        defaultOrg: { value: { id: 'test-org-id' } }
     }))
 }));
+
+// Mock storeToRefs with proper ref
+vi.mock('pinia', async () => {
+    const actual = await vi.importActual('pinia');
+    const { ref } = await vi.importActual('vue');
+    return {
+        ...actual,
+        storeToRefs: vi.fn((store) => ({
+            defaultOrg: ref({ id: 'test-org-id' })
+        }))
+    };
+});
 
 vi.mock('@/stores/auth', () => ({
     useAuthStore: vi.fn(() => ({

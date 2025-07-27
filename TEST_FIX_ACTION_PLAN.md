@@ -5,9 +5,9 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 
 ## Current Status
 - **Before fixes**: 51 failed test files, 423 failed tests
-- **Current state**: 43 failed test files, 388 failed tests  
-- **Tests passing**: 2400/2788 (86.1%)
-- **Improvement**: Fixed 8+ test files, reduced failures by 35 tests
+- **Current state**: 43 failed test files, 383 failed tests  
+- **Tests passing**: 2405/2788 (86.3%)
+- **Improvement**: Fixed 8+ test files, reduced failures by 40 tests
 
 ## Completed Fixes
 ✅ VulnerabilitySeverities Component - Fixed prop validation errors  
@@ -20,7 +20,10 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 ✅ OwaspTopTen Component - Fixed test data setup issues with default values
 ✅ OrganizationView Component - Fixed async component mocking with defineAsyncComponent
 ✅ AnalyzersView Component - Fixed async component mocking using same pattern
+✅ IntegrationsList Component - Fixed reactive refs, async operations, and error handling  
+✅ CreateProject Component - Fixed pinia storeToRefs watch source issue
 🔄 AnalyzersList Component - Partially fixed reactive refs and BusinessLogicError mock
+🔄 LicensesComponent Component - Improved Icon mocking, some vnode issues remain
 
 ## Action Plan
 

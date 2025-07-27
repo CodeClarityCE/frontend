@@ -286,7 +286,7 @@ describe('OAuth2Callback', () => {
       });
       await nextTick();
       
-      expect(mockRouter.push).toHaveBeenCalledWith({
+      expect(router.push).toHaveBeenCalledWith({
         name: 'signup',
         query: { provider: SocialProvider.GITLAB }
       });
@@ -322,7 +322,7 @@ describe('OAuth2Callback', () => {
       });
       await nextTick();
       
-      expect(mockRouter.push).toHaveBeenCalledWith({
+      expect(router.push).toHaveBeenCalledWith({
         name: 'signup',
         query: { provider: SocialProvider.GITHUB }
       });

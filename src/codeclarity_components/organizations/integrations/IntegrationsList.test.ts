@@ -7,7 +7,8 @@ import { IntegrationProvider } from '@/codeclarity_components/organizations/inte
 // Mock router
 vi.mock('@/router', () => ({
     default: {
-        push: vi.fn()
+        push: vi.fn(),
+        go: vi.fn()
     }
 }));
 

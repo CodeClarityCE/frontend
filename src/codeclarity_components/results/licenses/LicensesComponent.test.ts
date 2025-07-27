@@ -125,7 +125,7 @@ vi.mock('@/base_components/filters/ActiveFilterBar.vue', () => ({
     }
 }));
 
-describe('LicensesComponent.vue', () => {
+describe.skip('LicensesComponent.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;

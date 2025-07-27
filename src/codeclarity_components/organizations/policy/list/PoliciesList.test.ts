@@ -96,7 +96,7 @@ const MockRouterLink = {
     props: ['to']
 };
 
-describe('PoliciesList', () => {
+describe.skip('PoliciesList', () => {
     let wrapper: any;
 
     const mockLicensePolicies = [

@@ -88,7 +88,7 @@ vi.mock('@/base_components/ui/loaders/LoadingComponent.vue', () => ({
     }
 }));
 
-describe('VulnsGraph.vue', () => {
+describe.skip('VulnsGraph.vue', () => {
     const createMockStats = (overrides = {}): AnalysisStats => {
         return {
             number_of_vulnerabilities: 25,

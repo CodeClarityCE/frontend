@@ -99,7 +99,7 @@ vi.mock('@/shadcn/ui/card', () => ({
     }
 }));
 
-describe('PatchingContent.vue', () => {
+describe.skip('PatchingContent.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;

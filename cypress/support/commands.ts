@@ -38,14 +38,14 @@ Cypress.Commands.add('getByTestId', (selector: string, ...args: any[]) => {
 })
 
 // API Mocking Commands
-Cypress.Commands.add('mockApi', (method: string, url: string, response: any, statusCode = 200) => {
+Cypress.Commands.add('mockApi', (method: Cypress.HttpMethod, url: string, response: any, statusCode = 200) => {
   cy.intercept(method, url, {
     statusCode,
     body: response
   }).as(`api${method}${url.replace(/[^a-zA-Z0-9]/g, '')}`)
 })
 
-Cypress.Commands.add('mockApiError', (method: string, url: string, statusCode = 500, message = 'Server Error') => {
+Cypress.Commands.add('mockApiError', (method: Cypress.HttpMethod, url: string, statusCode = 500, message = 'Server Error') => {
   cy.intercept(method, url, {
     statusCode,
     body: { error: message }
@@ -93,7 +93,7 @@ Cypress.Commands.add('waitForPageLoad', () => {
 })
 
 // Accessibility Commands
-Cypress.Commands.add('checkA11y', (context?: string, options?: any) => {
+Cypress.Commands.add('checkPageA11y', (context?: string, options?: any) => {
   cy.injectAxe()
   cy.checkA11y(context, options)
 })
@@ -125,11 +125,7 @@ Cypress.Commands.add('setLocalStorage', (key: string, value: string) => {
   })
 })
 
-Cypress.Commands.add('clearLocalStorage', () => {
-  cy.window().then((win) => {
-    win.localStorage.clear()
-  })
-})
+// clearLocalStorage is already a built-in Cypress command, no need to override
 
 // Custom assertions
 Cypress.Commands.add('shouldBeVisible', { prevSubject: 'element' }, (subject) => {
@@ -166,8 +162,8 @@ declare global {
       getByTestId(selector: string, ...args: any[]): Chainable<JQuery<HTMLElement>>
       
       // API mocking
-      mockApi(method: string, url: string, response: any, statusCode?: number): Chainable<void>
-      mockApiError(method: string, url: string, statusCode?: number, message?: string): Chainable<void>
+      mockApi(method: Cypress.HttpMethod, url: string, response: any, statusCode?: number): Chainable<void>
+      mockApiError(method: Cypress.HttpMethod, url: string, statusCode?: number, message?: string): Chainable<void>
       
       // Navigation
       visitWithAuth(url: string, user?: { email: string; password: string }): Chainable<void>
@@ -185,7 +181,7 @@ declare global {
       waitForPageLoad(): Chainable<void>
       
       // Accessibility
-      checkA11y(context?: string, options?: any): Chainable<void>
+      checkPageA11y(context?: string, options?: any): Chainable<void>
       testKeyboardNavigation(startSelector: string, expectedSelectors: string[]): Chainable<void>
       
       // File upload
@@ -193,7 +189,7 @@ declare global {
       
       // Local storage
       setLocalStorage(key: string, value: string): Chainable<void>
-      clearLocalStorage(): Chainable<void>
+      // clearLocalStorage is a built-in Cypress command
       
       // Custom assertions
       shouldBeVisible(): Chainable<JQuery<HTMLElement>>

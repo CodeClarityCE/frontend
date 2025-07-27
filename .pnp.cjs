@@ -71,7 +71,7 @@ const RAW_RUNTIME_STATE =
           ["class-validator", "npm:0.14.2"],\
           ["class-variance-authority", "npm:0.7.1"],\
           ["clsx", "npm:2.1.1"],\
-          ["cypress", "npm:14.5.1"],\
+          ["cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1"],\
           ["cypress-axe", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:1.6.0"],\
           ["cypress-real-events", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:1.14.0"],\
           ["d3", "npm:7.9.0"],\
@@ -3489,7 +3489,7 @@ const RAW_RUNTIME_STATE =
           ["@percy/cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.6"],\
           ["@percy/sdk-utils", "npm:1.30.9"],\
           ["@types/cypress", null],\
-          ["cypress", "npm:14.5.1"]\
+          ["cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1"]\
         ],\
         "packagePeers": [\
           "@types/cypress",\
@@ -8289,10 +8289,18 @@ const RAW_RUNTIME_STATE =
     ]],\
     ["cypress", [\
       ["npm:14.5.1", {\
-        "packageLocation": "./.yarn/unplugged/cypress-npm-14.5.1-054aad4d07/node_modules/cypress/",\
+        "packageLocation": "./.yarn/unplugged/cypress-virtual-17dc9e7cde/node_modules/cypress/",\
+        "packageDependencies": [\
+          ["cypress", "npm:14.5.1"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1", {\
+        "packageLocation": "./.yarn/unplugged/cypress-virtual-17dc9e7cde/node_modules/cypress/",\
         "packageDependencies": [\
           ["@cypress/request", "npm:3.0.8"],\
           ["@cypress/xvfb", "npm:1.2.4"],\
+          ["@types/node", "npm:24.0.10"],\
           ["@types/sinonjs__fake-timers", "npm:8.1.1"],\
           ["@types/sizzle", "npm:2.3.9"],\
           ["arch", "npm:2.2.0"],\
@@ -8307,9 +8315,9 @@ const RAW_RUNTIME_STATE =
           ["cli-table3", "npm:0.6.1"],\
           ["commander", "npm:6.2.1"],\
           ["common-tags", "npm:1.8.2"],\
-          ["cypress", "npm:14.5.1"],\
+          ["cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1"],\
           ["dayjs", "npm:1.11.13"],\
-          ["debug", "virtual:054aad4d07135afb319063297cb6c589eb984ffde7ee022960a75f4627ee03f01bc3b4c8a3e00a3fc49726421950275af46cd08eea7fb44bfdaabb85770e2d2e#npm:4.4.0"],\
+          ["debug", "virtual:17dc9e7cde91d64688cd5e4b14b3f0b91adfcde2958be91716f9a18eb95da0f34fc83fbf1ed6b766eceb1921875156c3425280e83eec851a963987fb7f5698c2#npm:4.4.0"],\
           ["enquirer", "npm:2.4.1"],\
           ["eventemitter2", "npm:6.4.7"],\
           ["execa", "npm:4.1.0"],\
@@ -8321,7 +8329,7 @@ const RAW_RUNTIME_STATE =
           ["hasha", "npm:5.2.2"],\
           ["is-installed-globally", "npm:0.4.0"],\
           ["lazy-ass", "npm:1.6.0"],\
-          ["listr2", "virtual:054aad4d07135afb319063297cb6c589eb984ffde7ee022960a75f4627ee03f01bc3b4c8a3e00a3fc49726421950275af46cd08eea7fb44bfdaabb85770e2d2e#npm:3.14.0"],\
+          ["listr2", "virtual:17dc9e7cde91d64688cd5e4b14b3f0b91adfcde2958be91716f9a18eb95da0f34fc83fbf1ed6b766eceb1921875156c3425280e83eec851a963987fb7f5698c2#npm:3.14.0"],\
           ["lodash", "npm:4.17.21"],\
           ["log-symbols", "npm:4.1.0"],\
           ["minimist", "npm:1.2.8"],\
@@ -8336,6 +8344,9 @@ const RAW_RUNTIME_STATE =
           ["tree-kill", "npm:1.2.2"],\
           ["untildify", "npm:4.0.0"],\
           ["yauzl", "npm:2.10.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/node"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -8354,7 +8365,7 @@ const RAW_RUNTIME_STATE =
           ["@types/axe-core", null],\
           ["@types/cypress", null],\
           ["axe-core", "npm:4.10.3"],\
-          ["cypress", "npm:14.5.1"],\
+          ["cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1"],\
           ["cypress-axe", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:1.6.0"]\
         ],\
         "packagePeers": [\
@@ -8378,7 +8389,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/cypress-real-events-virtual-c4c833f6d6/0/cache/cypress-real-events-npm-1.14.0-988084002c-0bbdb1610e.zip/node_modules/cypress-real-events/",\
         "packageDependencies": [\
           ["@types/cypress", null],\
-          ["cypress", "npm:14.5.1"],\
+          ["cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1"],\
           ["cypress-real-events", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:1.14.0"]\
         ],\
         "packagePeers": [\
@@ -8897,11 +8908,11 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:054aad4d07135afb319063297cb6c589eb984ffde7ee022960a75f4627ee03f01bc3b4c8a3e00a3fc49726421950275af46cd08eea7fb44bfdaabb85770e2d2e#npm:4.4.0", {\
-        "packageLocation": "./.yarn/__virtual__/debug-virtual-76a5cb4200/0/cache/debug-npm-4.4.0-f6efe76023-1847944c2e.zip/node_modules/debug/",\
+      ["virtual:17dc9e7cde91d64688cd5e4b14b3f0b91adfcde2958be91716f9a18eb95da0f34fc83fbf1ed6b766eceb1921875156c3425280e83eec851a963987fb7f5698c2#npm:4.4.0", {\
+        "packageLocation": "./.yarn/__virtual__/debug-virtual-b505d994b0/0/cache/debug-npm-4.4.0-f6efe76023-1847944c2e.zip/node_modules/debug/",\
         "packageDependencies": [\
           ["@types/supports-color", null],\
-          ["debug", "virtual:054aad4d07135afb319063297cb6c589eb984ffde7ee022960a75f4627ee03f01bc3b4c8a3e00a3fc49726421950275af46cd08eea7fb44bfdaabb85770e2d2e#npm:4.4.0"],\
+          ["debug", "virtual:17dc9e7cde91d64688cd5e4b14b3f0b91adfcde2958be91716f9a18eb95da0f34fc83fbf1ed6b766eceb1921875156c3425280e83eec851a963987fb7f5698c2#npm:4.4.0"],\
           ["ms", "npm:2.1.3"],\
           ["supports-color", "npm:8.1.1"]\
         ],\
@@ -10538,7 +10549,7 @@ const RAW_RUNTIME_STATE =
           ["class-validator", "npm:0.14.2"],\
           ["class-variance-authority", "npm:0.7.1"],\
           ["clsx", "npm:2.1.1"],\
-          ["cypress", "npm:14.5.1"],\
+          ["cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:14.5.1"],\
           ["cypress-axe", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:1.6.0"],\
           ["cypress-real-events", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:1.14.0"],\
           ["d3", "npm:7.9.0"],\
@@ -12340,14 +12351,14 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:054aad4d07135afb319063297cb6c589eb984ffde7ee022960a75f4627ee03f01bc3b4c8a3e00a3fc49726421950275af46cd08eea7fb44bfdaabb85770e2d2e#npm:3.14.0", {\
-        "packageLocation": "./.yarn/__virtual__/listr2-virtual-158c9e0a25/0/cache/listr2-npm-3.14.0-446f504112-cebbd69233.zip/node_modules/listr2/",\
+      ["virtual:17dc9e7cde91d64688cd5e4b14b3f0b91adfcde2958be91716f9a18eb95da0f34fc83fbf1ed6b766eceb1921875156c3425280e83eec851a963987fb7f5698c2#npm:3.14.0", {\
+        "packageLocation": "./.yarn/__virtual__/listr2-virtual-0336712dbd/0/cache/listr2-npm-3.14.0-446f504112-cebbd69233.zip/node_modules/listr2/",\
         "packageDependencies": [\
           ["@types/enquirer", null],\
           ["cli-truncate", "npm:2.1.0"],\
           ["colorette", "npm:2.0.20"],\
           ["enquirer", "npm:2.4.1"],\
-          ["listr2", "virtual:054aad4d07135afb319063297cb6c589eb984ffde7ee022960a75f4627ee03f01bc3b4c8a3e00a3fc49726421950275af46cd08eea7fb44bfdaabb85770e2d2e#npm:3.14.0"],\
+          ["listr2", "virtual:17dc9e7cde91d64688cd5e4b14b3f0b91adfcde2958be91716f9a18eb95da0f34fc83fbf1ed6b766eceb1921875156c3425280e83eec851a963987fb7f5698c2#npm:3.14.0"],\
           ["log-update", "npm:4.0.0"],\
           ["p-map", "npm:4.0.0"],\
           ["rfdc", "npm:1.4.1"],\

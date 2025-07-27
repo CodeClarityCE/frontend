@@ -97,6 +97,16 @@ describe('VulnSummaryContent.vue', () => {
             name: 'A03:2021 – Injection',
             description: 'OWASP Top 10 description'
         } as any;
+        finding.common_consequences = {
+            'CWE-79': [
+                {
+                    consequence: 'Common consequences for XSS vulnerabilities'
+                }
+            ]
+        } as any;
+        finding.other = {
+            package_manager: 'NPM'
+        } as any;
 
         return Object.assign(finding, overrides);
     };

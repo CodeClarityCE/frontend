@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-// Pinia imports removed to prevent plugin duplication warnings
+import { createPinia } from 'pinia';
 import PatchingContent from './PatchingContent.vue';
 import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
 import { useUserStore } from '@/stores/user';
@@ -10,8 +10,12 @@ import type { DataResponse } from '@/utils/api/responses/DataResponse';
 
 // Mock modules
 vi.mock('../results.repository');
-vi.mock('@/stores/user');
-vi.mock('@/stores/auth');
+vi.mock('@/stores/user', () => ({
+    useUserStore: vi.fn()
+}));
+vi.mock('@/stores/auth', () => ({
+    useAuthStore: vi.fn()
+}));
 
 // Mock child components
 vi.mock('./PatchingPatches.vue', () => ({
@@ -99,8 +103,10 @@ describe('PatchingContent.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;
+    let pinia: any;
 
     beforeEach(() => {
+        pinia = createPinia();
         // setActivePinia removed to prevent plugin duplication warnings
 
         mockUserStore = {

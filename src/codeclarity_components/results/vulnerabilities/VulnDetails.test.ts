@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-// Pinia imports removed to prevent plugin duplication warnings
+import { createPinia } from 'pinia';
 import VulnDetails from './VulnDetails.vue';
 import { VulnerabilityDetails } from './VulnDetails/VulnDetails';
 import { useUserStore } from '@/stores/user';
@@ -16,8 +16,12 @@ vi.mock('@/router.ts', () => ({
 }));
 
 vi.mock('../results.repository');
-vi.mock('@/stores/user');
-vi.mock('@/stores/auth');
+vi.mock('@/stores/user', () => ({
+    useUserStore: vi.fn()
+}));
+vi.mock('@/stores/auth', () => ({
+    useAuthStore: vi.fn()
+}));
 
 // Mock child components
 vi.mock('./VulnDetails/VulnDetailsHeader.vue', () => ({
@@ -127,9 +131,10 @@ describe('VulnDetails.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;
+    let pinia: any;
 
     beforeEach(() => {
-        // setActivePinia removed to prevent plugin duplication warnings
+        pinia = createPinia();
 
         mockUserStore = {
             getDefaultOrg: { id: 'org-123' }

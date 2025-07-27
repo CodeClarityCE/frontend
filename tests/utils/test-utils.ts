@@ -64,14 +64,16 @@ export const mockStores = {
     getUser: { id: 'test-user', email: 'test@example.com', name: 'Test User' },
     getDefaultOrg: { id: 'test-org', name: 'Test Org' },
     setUser: vi.fn(),
-    setDefaultOrg: vi.fn()
+    setDefaultOrg: vi.fn(),
+    $reset: vi.fn()
   },
   auth: {
     getToken: 'mock-token',
     initialized: true,
     authenticated: true,
     token: 'mock-token',
-    refreshToken: 'mock-refresh-token'
+    refreshToken: 'mock-refresh-token',
+    $reset: vi.fn()
   },
   router: {
     push: vi.fn(),

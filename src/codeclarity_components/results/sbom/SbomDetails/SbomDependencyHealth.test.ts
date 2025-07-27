@@ -24,7 +24,8 @@ vi.mock('@/shadcn/ui/badge/Badge.vue', () => ({
 
 // Mock date utils
 vi.mock('@/utils/dateUtils', () => ({
-    calculateDateDifference: vi.fn((_date1, _date2, _unit) => {
+    calculateDateDifference: vi.fn((date1, date2, unit) => {
+        console.log('Mock calculateDateDifference called with:', { date1, date2, unit });
         // Mock different scenarios
         return 200; // Default 200 days difference
     }),
@@ -44,7 +45,7 @@ describe('SbomDependencyHealth.vue', () => {
             package_manager: 'npm',
             license: 'MIT',
             release_date: new Date('2023-01-01'),
-            lastest_release_date: new Date('2023-06-01'),
+            lastest_release_date: new Date('2023-08-01'),
             vulnerabilities: [],
             severity_dist: {
                 critical: 0,
@@ -158,11 +159,13 @@ describe('SbomDependencyHealth.vue', () => {
         it('should detect outdated packages', () => {
             // Mock returns 200 days by default, which is > 182 days
             const dependency = createMockDependency({
-                release_date: '2023-01-01',
-                lastest_release_date: '2023-08-01'
+                release_date: new Date('2023-01-01'),
+                lastest_release_date: new Date('2023-08-01')
             });
             const wrapper = createWrapper(dependency);
 
+            console.log('HTML:', wrapper.html());
+            console.log('Classes found:', wrapper.findAll('[class*="health"]').map(el => el.classes()));
             expect(wrapper.find('.health-summary.warning').exists()).toBe(true);
             expect(wrapper.text()).toContain('Health issue detected');
             expect(wrapper.text()).toContain('solar:danger-triangle-bold');
@@ -205,7 +208,12 @@ describe('SbomDependencyHealth.vue', () => {
     describe('Outdated Package Issue Card', () => {
         it('should render outdated package card when package is outdated', () => {
             // Mock returns 200 days, which is > 182 days (outdated)
-            const wrapper = createWrapper();
+            // Create dependency with explicit outdated dates
+            const dependency = createMockDependency({
+                release_date: new Date('2022-01-01'),
+                lastest_release_date: new Date('2023-01-01')
+            });
+            const wrapper = createWrapper(dependency);
 
             expect(wrapper.find('.health-issue-card.outdated').exists()).toBe(true);
             expect(wrapper.text()).toContain('Outdated Package');
@@ -214,7 +222,11 @@ describe('SbomDependencyHealth.vue', () => {
         });
 
         it('should show correct days behind calculation', () => {
-            const wrapper = createWrapper();
+            const dependency = createMockDependency({
+                release_date: new Date('2022-01-01'),
+                lastest_release_date: new Date('2023-01-01')
+            });
+            const wrapper = createWrapper(dependency);
 
             expect(wrapper.text()).toContain('This package is 200 days behind the latest release');
         });
@@ -361,7 +373,11 @@ describe('SbomDependencyHealth.vue', () => {
 
     describe('Helper Methods', () => {
         it('should calculate days outdated correctly', () => {
-            const wrapper = createWrapper();
+            const dependency = createMockDependency({
+                release_date: new Date('2022-01-01'),
+                lastest_release_date: new Date('2023-01-01')
+            });
+            const wrapper = createWrapper(dependency);
             expect(wrapper.text()).toContain('200 days');
         });
 

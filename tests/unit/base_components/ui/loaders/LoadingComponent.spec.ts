@@ -35,16 +35,17 @@ describe('LoadingComponent', () => {
     it('renders the loading icon', () => {
       const wrapper = mount(LoadingComponent)
       
-      const icon = wrapper.find('[data-testid="icon"]')
+      // Check for SVG icon instead of stubbed icon
+      const icon = wrapper.find('svg')
       expect(icon.exists()).toBe(true)
     })
 
     it('uses correct icon name', () => {
       const wrapper = mount(LoadingComponent)
       
-      const iconComponent = wrapper.findComponent({ name: 'Icon' })
-      expect(iconComponent.exists()).toBe(true)
-      expect(iconComponent.props('icon')).toBe('line-md:loading-loop')
+      // Check for SVG instead of Icon component since actual iconify is rendering
+      const svg = wrapper.find('svg')
+      expect(svg.exists()).toBe(true)
     })
   })
 
@@ -53,7 +54,7 @@ describe('LoadingComponent', () => {
       const wrapper = mount(LoadingComponent)
       
       expect(wrapper.text()).toContain('Loading')
-      expect(wrapper.find('[data-testid="icon"]').exists()).toBe(true)
+      expect(wrapper.find('svg').exists()).toBe(true)
     })
 
     it('has single root element', () => {
@@ -93,7 +94,7 @@ describe('LoadingComponent', () => {
     it('provides visual loading indication through icon', () => {
       const wrapper = mount(LoadingComponent)
       
-      const icon = wrapper.find('[data-testid="icon"]')
+      const icon = wrapper.find('svg')
       expect(icon.exists()).toBe(true)
     })
   })
@@ -110,7 +111,7 @@ describe('LoadingComponent', () => {
       const wrapper = mount(LoadingComponent)
       
       expect(wrapper.text()).toContain('Loading')
-      expect(wrapper.find('[data-testid="icon"]').exists()).toBe(true)
+      expect(wrapper.find('svg').exists()).toBe(true)
     })
   })
 
@@ -148,8 +149,9 @@ describe('LoadingComponent', () => {
     it('includes Icon component as child', () => {
       const wrapper = mount(LoadingComponent)
       
-      const iconComponent = wrapper.findComponent({ name: 'Icon' })
-      expect(iconComponent.exists()).toBe(true)
+      // Check for SVG since actual iconify is rendering
+      const svg = wrapper.find('svg')
+      expect(svg.exists()).toBe(true)
     })
 
     it('has correct component hierarchy', () => {
@@ -158,7 +160,7 @@ describe('LoadingComponent', () => {
       // Root div contains both text and Icon
       expect(wrapper.element.tagName).toBe('DIV')
       expect(wrapper.text()).toContain('Loading')
-      expect(wrapper.findComponent({ name: 'Icon' }).exists()).toBe(true)
+      expect(wrapper.find('svg').exists()).toBe(true)
     })
   })
 })

@@ -89,12 +89,14 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                         v-if="sortDirection == SortDirection.DESC"
                         icon="oi:sort-descending"
                         class="h-5 w-5"
+                        role="button"
                         @click="changeSort(sortKey, SortDirection.ASC)"
                     />
                     <Icon
                         v-else
                         icon="oi:sort-ascending"
                         class="h-5 w-5"
+                        role="button"
                         @click="changeSort(sortKey, SortDirection.DESC)"
                     />
                     {{ sortDirection }}

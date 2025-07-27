@@ -7,7 +7,7 @@ import { SortDirection } from '../../../../src/utils/api/PaginatedRequestOptions
 vi.mock('@iconify/vue', () => ({
     Icon: {
         name: 'Icon',
-        template: '<div data-testid="icon" :class="[icon, $attrs.class]" @click="$emit(\'click\')" role="button">{{ icon }}</div>',
+        template: '<div data-testid="icon" :class="[$attrs.class, icon]" @click="$emit(\'click\')">{{ icon }}</div>',
         props: ['icon'],
         emits: ['click']
     }
@@ -275,7 +275,7 @@ describe('UtilitiesSort', () => {
             });
 
             const icon = wrapper.find('[data-testid="icon"]');
-            expect(icon.classes()).toContain('oi:sort-descending');
+            expect(icon.text()).toBe('oi:sort-descending');
         });
 
         it('displays ascending icon when sort direction is ASC', () => {
@@ -284,7 +284,7 @@ describe('UtilitiesSort', () => {
             });
 
             const icon = wrapper.find('[data-testid="icon"]');
-            expect(icon.classes()).toContain('oi:sort-ascending');
+            expect(icon.text()).toBe('oi:sort-ascending');
         });
 
         it('applies correct CSS classes to icons', () => {

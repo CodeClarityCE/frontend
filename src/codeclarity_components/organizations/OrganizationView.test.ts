@@ -35,6 +35,84 @@ vi.mock('@/base_components/layout/PageHeader.vue', () => ({
     }
 }));
 
+// Mock Vue's defineAsyncComponent to return sync components
+vi.mock('vue', async () => {
+    const actual = await vi.importActual('vue');
+    return {
+        ...actual,
+        defineAsyncComponent: (options: any) => {
+            // Return the mock component directly based on the loader path
+            const loaderStr = options.loader?.toString();
+            if (loaderStr?.includes('OrganizationsList')) {
+                return {
+                    name: 'OrganizationsList',
+                    template: '<div data-testid="organizations-list">Organizations List</div>'
+                };
+            }
+            if (loaderStr?.includes('OrganizationCreate')) {
+                return {
+                    name: 'OrganizationCreate',
+                    template: '<div data-testid="organization-create">Create Organization</div>'
+                };
+            }
+            if (loaderStr?.includes('PoliciesView')) {
+                return {
+                    name: 'PoliciesView',
+                    template: '<div data-testid="policies-view">Policies</div>',
+                    props: ['page', 'orgId', 'action']
+                };
+            }
+            if (loaderStr?.includes('ManageAuditLogs')) {
+                return {
+                    name: 'ManageAuditLogs',
+                    template: '<div data-testid="manage-audit-logs">Audit Logs</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            if (loaderStr?.includes('ManageMembers')) {
+                return {
+                    name: 'ManageMembers',
+                    template: '<div data-testid="manage-members">Manage Members</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            if (loaderStr?.includes('ManageInvites')) {
+                return {
+                    name: 'ManageInvites',
+                    template: '<div data-testid="manage-invites">Manage Invites</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            if (loaderStr?.includes('IntegrationsView')) {
+                return {
+                    name: 'IntegrationsView',
+                    template: '<div data-testid="integrations-view">Integrations</div>',
+                    props: ['page', 'orgId', 'action']
+                };
+            }
+            if (loaderStr?.includes('AnalyzersView')) {
+                return {
+                    name: 'AnalyzersView',
+                    template: '<div data-testid="analyzers-view">Analyzers</div>',
+                    props: ['page', 'orgId', 'action']
+                };
+            }
+            if (loaderStr?.includes('OrganizationManage')) {
+                return {
+                    name: 'OrganizationManage',
+                    template: '<div data-testid="organization-manage">Organization Manage</div>',
+                    props: ['page', 'orgId']
+                };
+            }
+            // Fallback
+            return {
+                name: 'AsyncComponent',
+                template: '<div>Loading...</div>'
+            };
+        }
+    };
+});
+
 // Mock the dynamic imports
 vi.mock('@/codeclarity_components/organizations/list/OrganizationsList.vue', () => ({
     default: {

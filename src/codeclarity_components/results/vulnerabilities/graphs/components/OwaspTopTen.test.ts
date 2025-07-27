@@ -106,6 +106,13 @@ describe('OwaspTopTen.vue', () => {
                 number_of_owasp_top_10_2021_a1: 5,
                 number_of_owasp_top_10_2021_a2: 3,
                 number_of_owasp_top_10_2021_a3: 2,
+                number_of_owasp_top_10_2021_a4: 0,
+                number_of_owasp_top_10_2021_a5: 0,
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 15 // 10 categorized + 5 uncategorized
             });
             const wrapper = createWrapper(stats);
@@ -123,6 +130,13 @@ describe('OwaspTopTen.vue', () => {
                 number_of_owasp_top_10_2021_a1: 5,
                 number_of_owasp_top_10_2021_a2: 3,
                 number_of_owasp_top_10_2021_a3: 2,
+                number_of_owasp_top_10_2021_a4: 0,
+                number_of_owasp_top_10_2021_a5: 0,
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 10 // exactly matches categorized count
             });
             const wrapper = createWrapper(stats);
@@ -137,8 +151,15 @@ describe('OwaspTopTen.vue', () => {
         it('should use correct OWASP labels', () => {
             const stats = createMockStats({
                 number_of_owasp_top_10_2021_a1: 1,
+                number_of_owasp_top_10_2021_a2: 0,
                 number_of_owasp_top_10_2021_a3: 1,
+                number_of_owasp_top_10_2021_a4: 0,
                 number_of_owasp_top_10_2021_a5: 1,
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 3
             });
             const wrapper = createWrapper(stats);
@@ -159,6 +180,14 @@ describe('OwaspTopTen.vue', () => {
             const stats = createMockStats({
                 number_of_owasp_top_10_2021_a1: 1,
                 number_of_owasp_top_10_2021_a2: 1,
+                number_of_owasp_top_10_2021_a3: 0,
+                number_of_owasp_top_10_2021_a4: 0,
+                number_of_owasp_top_10_2021_a5: 0,
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 3
             });
             const wrapper = createWrapper(stats);
@@ -266,6 +295,14 @@ describe('OwaspTopTen.vue', () => {
             const stats = createMockStats({
                 number_of_owasp_top_10_2021_a1: 9999,
                 number_of_owasp_top_10_2021_a2: 8888,
+                number_of_owasp_top_10_2021_a3: 0,
+                number_of_owasp_top_10_2021_a4: 0,
+                number_of_owasp_top_10_2021_a5: 0,
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 20000
             });
             const wrapper = createWrapper(stats);
@@ -284,6 +321,14 @@ describe('OwaspTopTen.vue', () => {
             const stats = createMockStats({
                 number_of_owasp_top_10_2021_a1: 10,
                 number_of_owasp_top_10_2021_a2: 5,
+                number_of_owasp_top_10_2021_a3: 0,
+                number_of_owasp_top_10_2021_a4: 0,
+                number_of_owasp_top_10_2021_a5: 0,
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 10 // less than categorized total
             });
             const wrapper = createWrapper(stats);
@@ -321,6 +366,11 @@ describe('OwaspTopTen.vue', () => {
                 number_of_owasp_top_10_2021_a3: 1, // second color
                 number_of_owasp_top_10_2021_a4: 0, // skip
                 number_of_owasp_top_10_2021_a5: 1, // third color
+                number_of_owasp_top_10_2021_a6: 0,
+                number_of_owasp_top_10_2021_a7: 0,
+                number_of_owasp_top_10_2021_a8: 0,
+                number_of_owasp_top_10_2021_a9: 0,
+                number_of_owasp_top_10_2021_a10: 0,
                 number_of_vulnerabilities: 4
             });
             const wrapper = createWrapper(stats);

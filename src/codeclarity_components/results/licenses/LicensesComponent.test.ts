@@ -25,6 +25,15 @@ vi.mock('@/utils/api/BaseRepository', () => ({
     }
 }));
 
+// Mock Icon component
+vi.mock('@iconify/vue', () => ({
+    Icon: {
+        name: 'Icon',
+        template: '<div data-testid="icon" :data-icon="icon">{{ icon }}</div>',
+        props: ['icon', 'class']
+    }
+}));
+
 // Mock child components
 vi.mock('@/base_components/filters/SearchBar.vue', () => ({
     default: {

@@ -5,9 +5,9 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 
 ## Current Status
 - **Before fixes**: 51 failed test files, 423 failed tests
-- **After implementing action plan**: 47 failed test files, 409 failed tests  
-- **Tests passing**: 2379/2788 (85.3%)
-- **Improvement**: Fixed 4 test files, reduced failures by 14 tests
+- **Current state**: 43 failed test files, 392 failed tests  
+- **Tests passing**: 2396/2788 (85.9%)
+- **Improvement**: Fixed 8 test files, reduced failures by 31 tests
 
 ## Completed Fixes
 ✅ VulnerabilitySeverities Component - Fixed prop validation errors  
@@ -16,6 +16,9 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 ✅ DataTableDropDown Component - Fixed RouterLink attribute vs props issues
 ✅ VulnSecurityAnalysis Component - Fixed null safety and icon count assertions
 ✅ SbomImportPaths Component - Fixed hierarchy null checks and prop mapping
+✅ UtilitiesSort Component - Fixed role="button" attribute on Icon components
+✅ OwaspTopTen Component - Fixed test data setup issues with default values
+✅ OrganizationView Component - Fixed async component mocking with defineAsyncComponent
 
 ## Action Plan
 

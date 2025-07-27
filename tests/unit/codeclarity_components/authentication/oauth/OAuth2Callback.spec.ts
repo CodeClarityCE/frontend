@@ -285,6 +285,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       expect(router.push).toHaveBeenCalledWith({
         name: 'signup',
@@ -321,6 +322,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       expect(router.push).toHaveBeenCalledWith({
         name: 'signup',
@@ -337,6 +339,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       expect(mockAuthStore.setToken).toHaveBeenCalledWith('test-token');
       expect(mockAuthStore.setTokenExpiry).toHaveBeenCalledWith(3600);
@@ -353,6 +356,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       expect(router.push).toHaveBeenCalledWith('/');
     });
@@ -398,6 +402,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       const errorMessage = wrapper.text();
       expect(errorMessage).toContain('Whoops');
@@ -414,6 +419,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       expect(wrapper.text()).toContain('Error code:');
       expect(wrapper.text()).toContain(APIErrors.FailedToAuthenticateSocialAccount);
@@ -429,6 +435,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       expect(wrapper.text()).toContain('A user with that email already exists');
     });
@@ -443,6 +450,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       const loadingIcon = wrapper.find('[data-icon="tabler:loader-2"]');
       expect(loadingIcon.exists()).toBe(false);
@@ -460,6 +468,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       const button = wrapper.find('[data-testid="button"]');
       await button.trigger('click');
@@ -479,6 +488,7 @@ describe('OAuth2Callback', () => {
         }
       });
       await nextTick();
+      await nextTick(); // Wait for onMounted async operations
       
       const button = wrapper.find('[data-testid="button"]');
       await button.trigger('click');

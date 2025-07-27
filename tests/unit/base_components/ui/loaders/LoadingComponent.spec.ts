@@ -1,15 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue'
-
-// Mock the Icon component from @iconify/vue
-vi.mock('@iconify/vue', () => ({
-  Icon: {
-    name: 'Icon',
-    template: '<span data-testid="loading-icon"></span>',
-    props: ['icon']
-  }
-}))
 
 describe('LoadingComponent', () => {
   describe('Component Rendering', () => {
@@ -44,7 +35,7 @@ describe('LoadingComponent', () => {
     it('renders the loading icon', () => {
       const wrapper = mount(LoadingComponent)
       
-      const icon = wrapper.find('[data-testid="loading-icon"]')
+      const icon = wrapper.find('[data-testid="icon"]')
       expect(icon.exists()).toBe(true)
     })
 
@@ -62,7 +53,7 @@ describe('LoadingComponent', () => {
       const wrapper = mount(LoadingComponent)
       
       expect(wrapper.text()).toContain('Loading')
-      expect(wrapper.find('[data-testid="loading-icon"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="icon"]').exists()).toBe(true)
     })
 
     it('has single root element', () => {
@@ -102,7 +93,7 @@ describe('LoadingComponent', () => {
     it('provides visual loading indication through icon', () => {
       const wrapper = mount(LoadingComponent)
       
-      const icon = wrapper.find('[data-testid="loading-icon"]')
+      const icon = wrapper.find('[data-testid="icon"]')
       expect(icon.exists()).toBe(true)
     })
   })
@@ -119,7 +110,7 @@ describe('LoadingComponent', () => {
       const wrapper = mount(LoadingComponent)
       
       expect(wrapper.text()).toContain('Loading')
-      expect(wrapper.find('[data-testid="loading-icon"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="icon"]').exists()).toBe(true)
     })
   })
 

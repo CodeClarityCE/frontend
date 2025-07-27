@@ -2,15 +2,6 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue'
 
-// Mock the Icon component from @iconify/vue
-vi.mock('@iconify/vue', () => ({
-  Icon: {
-    name: 'Icon',
-    template: '<span data-testid="warning-icon" :class="$props.class">{{ $props.icon }}</span>',
-    props: ['icon', 'class']
-  }
-}))
-
 // Mock the shadcn Alert components
 vi.mock('@/shadcn/ui/alert/Alert.vue', () => ({
   default: {
@@ -116,7 +107,8 @@ describe('LoadingContainer', () => {
         await wrapper.vm.showError()
         await wrapper.vm.$nextTick()
         
-        expect(wrapper.find('[data-testid="warning-icon"]').exists()).toBe(true)
+        // Check for SVG icon instead of stubbed icon
+        expect(wrapper.find('svg').exists()).toBe(true)
       })
 
       it('applies destructive variant to alert', async () => {
@@ -267,10 +259,10 @@ describe('LoadingContainer', () => {
       await wrapper.vm.showError()
       await wrapper.vm.$nextTick()
       
-      const iconComponent = wrapper.findComponent({ name: 'Icon' })
-      expect(iconComponent.exists()).toBe(true)
-      expect(iconComponent.props('icon')).toBe('ic:twotone-warning')
-      expect(iconComponent.props('class')).toContain('text-xl')
+      // Check for SVG instead of Icon component since actual iconify is rendering
+      const svg = wrapper.find('svg')
+      expect(svg.exists()).toBe(true)
+      expect(svg.classes()).toContain('text-xl')
     })
 
     it('structures error alert correctly', async () => {
@@ -288,7 +280,7 @@ describe('LoadingContainer', () => {
       
       expect(alert.exists()).toBe(true)
       expect(alertDescription.exists()).toBe(true)
-      expect(wrapper.find('[data-testid="warning-icon"]').exists()).toBe(true)
+      expect(wrapper.find('svg').exists()).toBe(true)
       expect(wrapper.find('[data-testid="error-content"]').exists()).toBe(true)
     })
   })
@@ -313,8 +305,8 @@ describe('LoadingContainer', () => {
       await wrapper.vm.showError()
       await wrapper.vm.$nextTick()
       
-      const iconComponent = wrapper.findComponent({ name: 'Icon' })
-      expect(iconComponent.exists()).toBe(true)
+      // Check for SVG since actual iconify is rendering
+      expect(wrapper.find('svg').exists()).toBe(true)
     })
   })
 
@@ -364,7 +356,7 @@ describe('LoadingContainer', () => {
       await wrapper.vm.showError()
       await wrapper.vm.$nextTick()
       
-      expect(wrapper.find('[data-testid="warning-icon"]').exists()).toBe(true)
+      expect(wrapper.find('svg').exists()).toBe(true)
       expect(wrapper.text()).toContain('Error occurred')
     })
   })

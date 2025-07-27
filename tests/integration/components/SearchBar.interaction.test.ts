@@ -43,9 +43,9 @@ describe('SearchBar User Interaction Tests', () => {
     it('should display search icon', () => {
       mountComponent();
       
-      // Icon is stubbed as true, so find the stub
-      // const icon = wrapper.find('[data-testid="icon-stub"]') || wrapper.findComponent('[name="Icon"]');
-      expect(wrapper.html()).toContain('Icon'); // Icon component should be present
+      // Check for SVG icon instead of Icon component text
+      const icon = wrapper.find('svg');
+      expect(icon.exists()).toBe(true);
     });
 
     it('should have proper styling and layout', () => {
@@ -418,8 +418,9 @@ describe('SearchBar User Interaction Tests', () => {
       expect(input.attributes('placeholder')).toBe('Search for packages');
       
       // Icon should not interfere with screen reader functionality
-      // Icon is stubbed, so just verify component structure
-      expect(wrapper.html()).toContain('Icon');
+      // Check for SVG icon instead of Icon component text
+      const icon = wrapper.find('svg');
+      expect(icon.exists()).toBe(true);
     });
   });
 

@@ -287,7 +287,7 @@ describe('PasswordResetRequestForm', () => {
       await nextTick();
       
       const successTitle = wrapper.find('.text-4xl.font-semibold');
-      const backToLoginLink = wrapper.find('[data-testid="router-link"]');
+      const backToLoginLink = wrapper.find('a[href="login"]');
       
       expect(successTitle.exists()).toBe(true);
       expect(successTitle.text()).toBe('Success');

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-// Pinia imports removed to prevent plugin duplication warnings
+import { createPinia } from 'pinia';
 import PatchingPatches from './PatchingPatches.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -91,6 +91,7 @@ Object.assign(navigator, {
 
 describe('PatchingPatches.vue', () => {
     let wrapper: any;
+    let pinia: any;
 
     const mockWorkspace = {
         patches: [
@@ -154,6 +155,7 @@ describe('PatchingPatches.vue', () => {
     };
 
     beforeEach(() => {
+        pinia = createPinia();
 
         // Mock successful API responses
         mockResultsRepository.getPatches.mockResolvedValue({

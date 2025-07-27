@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-// Pinia imports removed to prevent plugin duplication warnings
+import { createPinia } from 'pinia';
 import PatchingTable from './PatchingTable.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -109,8 +109,22 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
     ResultsRepository: vi.fn(() => mockResultsRepository)
 }));
 
+vi.mock('@/codeclarity_components/projects/project.repository', () => ({
+    ProjectsSortInterface: {
+        PATCH_TYPE: 'patch_type'
+    }
+}));
+
+vi.mock('@/utils/api/PaginatedRequestOptions', () => ({
+    SortDirection: {
+        DESC: 'DESC',
+        ASC: 'ASC'
+    }
+}));
+
 describe('PatchingTable.vue', () => {
     let wrapper: any;
+    let pinia: any;
 
     const mockWorkspace = {
         patches: [
@@ -170,6 +184,7 @@ describe('PatchingTable.vue', () => {
     };
 
     beforeEach(() => {
+        pinia = createPinia();
 
         // Mock successful API responses
         mockResultsRepository.getPatches.mockResolvedValue({

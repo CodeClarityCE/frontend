@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { createPinia } from 'pinia';
 import ResultsSBOM from './ResultsSBOM.vue';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
@@ -41,6 +42,12 @@ Object.defineProperty(document, 'getElementById', {
 
 describe('ResultsSBOM', () => {
     let wrapper: any;
+    let pinia: any;
+
+    beforeEach(() => {
+        pinia = createPinia();
+        vi.clearAllMocks();
+    });
 
     const mockProject = {
         id: 'project-1',
@@ -79,9 +86,6 @@ describe('ResultsSBOM', () => {
         branch: 'main'
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
 
     afterEach(() => {
         if (wrapper) {

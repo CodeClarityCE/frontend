@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-// Pinia imports removed to prevent plugin duplication warnings
+import { createPinia } from 'pinia';
 import PatchingSummary from './PatchingSummary.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -81,6 +81,7 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
 
 describe('PatchingSummary.vue', () => {
     let wrapper: any;
+    let pinia: any;
 
     const mockPatchingStats = new PatchingStats();
     mockPatchingStats.before_patch_number_of_critical = 5;
@@ -113,6 +114,7 @@ describe('PatchingSummary.vue', () => {
     mockPatchingStats.after_patch_number_of_vulnerable_dependencies = 10;
 
     beforeEach(() => {
+        pinia = createPinia();
 
         // Mock successful API response
         mockResultsRepository.getPatchesStat.mockResolvedValue({

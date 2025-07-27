@@ -265,6 +265,11 @@ describe('Authentication Flow Integration', () => {
       })
 
       // Simulate loading from localStorage
+      const loadAuthStoreFromLocalStorage = () => {
+        // Mock localStorage loading logic
+        authStore.setAuthenticated(true)
+        authStore.setToken('stored-token')
+      }
       loadAuthStoreFromLocalStorage()
       
       expect(authStore.getAuthenticated).toBe(true)

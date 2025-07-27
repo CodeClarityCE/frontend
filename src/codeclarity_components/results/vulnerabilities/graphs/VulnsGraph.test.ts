@@ -56,15 +56,21 @@ const MockOwaspTopTen = {
 };
 
 vi.mock('./components/SecurityImpact.vue', () => ({
-    default: MockSecurityImpact
+    default: MockSecurityImpact,
+    __isTeleport: false,
+    __isKeepAlive: false
 }));
 
 vi.mock('./components/VulnerabilitiesInfo.vue', () => ({
-    default: MockVulnerabilitiesInfo
+    default: MockVulnerabilitiesInfo,
+    __isTeleport: false,
+    __isKeepAlive: false
 }));
 
 vi.mock('./components/OwaspTopTen.vue', () => ({
-    default: MockOwaspTopTen
+    default: MockOwaspTopTen,
+    __isTeleport: false,
+    __isKeepAlive: false
 }));
 
 // Mock base components

@@ -46,6 +46,22 @@ vi.mock('@/codeclarity_components/projects/project.repository', () => ({
     }))
 }));
 
+vi.mock('@/utils/api/BaseRepository', () => ({
+    BaseRepository: class MockBaseRepository {
+        constructor() {}
+    },
+    BusinessLogicError: class MockBusinessLogicError extends Error {
+        constructor(public error_code: string) {
+            super();
+        }
+    },
+    ValidationError: class MockValidationError extends Error {
+        constructor(public error_code: string, public details?: any) {
+            super();
+        }
+    }
+}));
+
 // Mock child components
 vi.mock('./ProjectItem.vue', () => ({
     default: {

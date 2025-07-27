@@ -35,7 +35,9 @@ vi.mock('@/codeclarity_components/authentication/oauth/OAuth2Callback.vue', () =
     name: 'OAuth2Callback',
     props: ['provider'],
     template: '<div data-testid="oauth2-callback" :data-provider="provider">OAuth2 Callback Component</div>'
-  })
+  }),
+  __isTeleport: false,
+  __isKeepAlive: false
 }));
 
 describe('OAuthCallbackView', () => {

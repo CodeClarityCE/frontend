@@ -28,55 +28,69 @@ describe('ProjectsListHeader', () => {
     it('renders correctly', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortBy: 'name',
-                sortDirection: SortDirection.ASC
+                sortKey: 'name',
+                sortDirection: SortDirection.ASC,
+                pageLimitSelected: 10,
+                searchKey: ''
             }
         });
 
         expect(wrapper.exists()).toBe(true);
     });
 
-    it('accepts sortBy prop correctly', () => {
+    it('accepts sortKey prop correctly', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortBy: 'created_on',
-                sortDirection: SortDirection.DESC
+                sortKey: 'created_on',
+                sortDirection: SortDirection.DESC,
+                pageLimitSelected: 10,
+                searchKey: ''
             }
         });
 
-        expect(wrapper.props().sortBy).toBe('created_on');
+        expect(wrapper.props().sortKey).toBe('created_on');
         expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 
     it('emits sort change events', async () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortBy: 'name',
-                sortDirection: SortDirection.ASC
+                sortKey: 'name',
+                sortDirection: SortDirection.ASC,
+                pageLimitSelected: 10,
+                searchKey: ''
             }
         });
 
         // Simulate sort change (this would depend on actual implementation)
-        await wrapper.vm.$emit('update:sortBy', 'created_on');
+        await wrapper.vm.$emit('update:sortKey', 'created_on');
         await wrapper.vm.$emit('update:sortDirection', 'desc');
 
-        expect(wrapper.emitted('update:sortBy')).toBeTruthy();
+        expect(wrapper.emitted('update:sortKey')).toBeTruthy();
         expect(wrapper.emitted('update:sortDirection')).toBeTruthy();
-        expect(wrapper.emitted('update:sortBy')?.[0]).toEqual(['created_on']);
+        expect(wrapper.emitted('update:sortKey')?.[0]).toEqual(['created_on']);
         expect(wrapper.emitted('update:sortDirection')?.[0]).toEqual(['desc']);
     });
 
-    it('validates required props', () => {
-        expect(() => {
-            mount(ProjectsListHeader);
-        }).toThrow();
+    it('validates default props', () => {
+        // The component should work without props since it has defaults
+        wrapper = mount(ProjectsListHeader);
+        
+        expect(wrapper.exists()).toBe(true);
+        // Component uses defineModel which means it can work without explicit props
+        expect(wrapper.vm.pageLimitSelected).toBe(10);
+        expect(wrapper.vm.sortKey).toBe('imported_on');
+        expect(wrapper.vm.sortDirection).toBe(SortDirection.DESC);
+        expect(wrapper.vm.searchKey).toBe('');
     });
 
     it('handles different sort directions', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortBy: 'name',
-                sortDirection: SortDirection.DESC
+                sortKey: 'name',
+                sortDirection: SortDirection.DESC,
+                pageLimitSelected: 10,
+                searchKey: ''
             }
         });
 
@@ -86,29 +100,33 @@ describe('ProjectsListHeader', () => {
     it('handles different sort fields', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortBy: 'updated_on',
-                sortDirection: SortDirection.ASC
+                sortKey: 'updated_on',
+                sortDirection: SortDirection.ASC,
+                pageLimitSelected: 10,
+                searchKey: ''
             }
         });
 
-        expect(wrapper.props().sortBy).toBe('updated_on');
+        expect(wrapper.props().sortKey).toBe('updated_on');
     });
 
     it('maintains consistent state', async () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortBy: 'name',
-                sortDirection: SortDirection.ASC
+                sortKey: 'name',
+                sortDirection: SortDirection.ASC,
+                pageLimitSelected: 10,
+                searchKey: ''
             }
         });
 
         // Change props
         await wrapper.setProps({
-            sortBy: 'created_on',
+            sortKey: 'created_on',
             sortDirection: SortDirection.DESC
         });
 
-        expect(wrapper.props().sortBy).toBe('created_on');
+        expect(wrapper.props().sortKey).toBe('created_on');
         expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 });

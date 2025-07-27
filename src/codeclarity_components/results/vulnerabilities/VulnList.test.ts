@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 
 // Mock BaseRepository before any imports that depend on it
 vi.mock('@/base_repository/base.repository', () => ({
@@ -295,10 +294,8 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
 
 describe('VulnList', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -314,9 +311,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -330,9 +324,6 @@ describe('VulnList', () => {
                 forceOpenNewTab: true,
                 analysisID: 'analysis-456',
                 projectID: 'project-789'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -348,9 +339,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -368,9 +356,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -386,9 +371,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -405,9 +387,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -420,9 +399,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -435,9 +411,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -461,9 +434,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -490,9 +460,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -509,9 +476,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -533,9 +497,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -557,9 +518,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -589,9 +547,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -608,9 +563,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -625,9 +577,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: '',
                 projectID: ''
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -642,9 +591,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -667,9 +613,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -684,9 +627,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -701,9 +641,6 @@ describe('VulnList', () => {
         wrapper = mount(VulnList, {
             props: {
                 highlightElem: 'test'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -718,9 +655,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -734,9 +668,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -750,9 +681,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -768,9 +696,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 
@@ -796,9 +721,6 @@ describe('VulnList', () => {
                 highlightElem: '',
                 analysisID: 'analysis-123',
                 projectID: 'project-123'
-            },
-            global: {
-                plugins: [pinia]
             }
         });
 

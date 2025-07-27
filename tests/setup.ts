@@ -1,7 +1,8 @@
 import 'reflect-metadata'
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 import { config } from '@vue/test-utils'
+import { getPiniaMock, resetPiniaMock } from './test-utils/setup.js'
 
 // Mock Icon component globally for tests
 config.global.stubs = {
@@ -108,21 +109,14 @@ vi.mock('vue-router', async (importOriginal) => {
   }
 })
 
-// Mock Pinia - create a proper mock that works as a plugin
-const mockPinia = {
-  install: vi.fn(),
-  state: vi.fn(),
-  _p: [],
-  _a: null,
-  _e: null,
-  _s: new Map(),
-  use: vi.fn(),
-}
+// Mock Pinia with singleton instance
+const mockPinia = getPiniaMock()
 
 vi.mock('pinia', () => ({
   createPinia: vi.fn(() => mockPinia),
   defineStore: vi.fn(),
   setActivePinia: vi.fn(),
+  storeToRefs: vi.fn((store) => store),
 }))
 
 // Mock VueCookies plugin with proper install function
@@ -139,14 +133,14 @@ vi.mock('vue-cookies', () => ({
   default: mockVueCookies
 }))
 
-// Configure global plugins with proper mock plugins - only set if not already set
-if (!config.global.plugins) {
-  config.global.plugins = []
-}
-// Only add pinia if not already present
-if (!config.global.plugins.some(p => p === mockPinia)) {
-  config.global.plugins.push(mockPinia)
-}
+// Configure global plugins - clear first to prevent duplicates
+config.global.plugins = []
+config.global.plugins.push(mockPinia)
+
+// Reset pinia between tests
+beforeEach(() => {
+  resetPiniaMock()
+})
 
 // Mock all repository classes to prevent "is not a function" errors
 vi.mock('@/utils/api/BaseRepository', () => ({
@@ -282,6 +276,18 @@ vi.mock('@/stores/state', () => ({
     page: 'test-page',
     loading: false,
     error: null
+  }))
+}))
+
+vi.mock('@/stores/StateStore', () => ({
+  useProjectsMainStore: vi.fn(() => ({
+    projectsResponse: {
+      entries_per_page: 10,
+      total_entries: 100,
+      data: []
+    },
+    $reset: vi.fn(),
+    $patch: vi.fn()
   }))
 }))
 

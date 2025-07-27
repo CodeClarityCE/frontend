@@ -89,6 +89,10 @@ export const mockStores = {
         name: 'home'
       }
     }
+  },
+  state: {
+    page: 'projects',
+    $reset: vi.fn()
   }
 }
 

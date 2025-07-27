@@ -100,7 +100,8 @@ describe('VulnSummaryContent.vue', () => {
         finding.common_consequences = {
             'CWE-79': [
                 {
-                    consequence: 'Common consequences for XSS vulnerabilities'
+                    consequence: 'Common consequences for XSS vulnerabilities',
+                    impact: ['Confidentiality', 'Integrity']
                 }
             ]
         } as any;

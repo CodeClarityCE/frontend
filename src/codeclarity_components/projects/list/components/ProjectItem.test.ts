@@ -58,6 +58,7 @@ vi.mock('@/base_components/ui/modals/CenteredModal.vue', () => ({
         name: 'CenteredModal',
         template: '<div data-testid="centered-modal"><slot></slot></div>',
         methods: {
+            toggle: vi.fn(),
             openModal: vi.fn(),
             closeModal: vi.fn()
         }

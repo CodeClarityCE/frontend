@@ -37,6 +37,18 @@ vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
   AuthRepository: vi.fn(() => mockAuthRepository)
 }));
 
+// Mock BaseRepository with error classes
+vi.mock('@/utils/api/BaseRepository', () => ({
+  BaseRepository: class MockBaseRepository {
+    constructor() {}
+  },
+  BusinessLogicError: class MockBusinessLogicError extends Error {
+    constructor(public error_code: string) {
+      super();
+    }
+  }
+}));
+
 vi.mock('@/router', () => ({
   default: {
     push: vi.fn()
@@ -55,7 +67,7 @@ vi.mock('@iconify/vue', () => ({
   Icon: defineComponent({
     name: 'Icon',
     props: ['icon', 'class'],
-    template: '<span :data-icon="icon" :class="class">Icon</span>'
+    template: '<span :data-icon="icon" :class="class"></span>'
   })
 }));
 

@@ -41,7 +41,7 @@ vi.mock('@iconify/vue', () => ({
   Icon: defineComponent({
     name: 'Icon',
     props: ['icon'],
-    template: '<span :data-icon="icon">Icon</span>'
+    template: '<span :data-icon="icon"></span>'
   })
 }));
 

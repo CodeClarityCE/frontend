@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { h } from 'vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 
 // Mock shadcn/ui card components
@@ -31,7 +32,12 @@ vi.mock('@iconify/vue', () => ({
     Icon: {
         name: 'Icon',
         props: ['icon'],
-        template: '<span class="iconify-icon" :data-icon="icon"></span>'
+        setup(props: any) {
+            return () => h('span', { 
+                class: 'iconify-icon', 
+                'data-icon': props.icon 
+            }, props.icon);
+        }
     }
 }));
 
@@ -158,7 +164,7 @@ describe('InfoCard', () => {
                 }
             });
 
-            const iconElement = wrapper.find('.iconify-icon');
+            const iconElement = wrapper.find('[data-icon="mdi:user"]');
             expect(iconElement.exists()).toBe(true);
         });
     });
@@ -276,7 +282,7 @@ describe('InfoCard', () => {
             expect(content.exists()).toBe(true);
             
             // Verify icon, title, description, and actions are all present
-            expect(wrapper.find('.iconify-icon').exists()).toBe(true);
+            expect(wrapper.find('[data-icon="mdi:file-tree"]').exists()).toBe(true);
             expect(wrapper.find('.card-title').exists()).toBe(true);
             expect(wrapper.find('.card-description').exists()).toBe(true);
             expect(wrapper.find('button').exists()).toBe(true);

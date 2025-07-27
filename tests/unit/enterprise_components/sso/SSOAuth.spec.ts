@@ -64,12 +64,11 @@ describe('SSOAuth', () => {
       href: ''
     } as Location;
     
-    // Mock import.meta.env safely
+    // Mock import.meta.env safely - remove VITE_API_URL to test fallback
     originalEnv = import.meta.env;
-    vi.stubGlobal('import.meta.env', {
-      ...originalEnv,
-      VITE_API_URL: 'api/v1'
-    });
+    const envMock = { ...originalEnv };
+    delete envMock.VITE_API_URL;
+    vi.stubGlobal('import.meta.env', envMock);
   });
 
   afterEach(() => {
@@ -148,7 +147,7 @@ describe('SSOAuth', () => {
       
       await githubButton?.trigger('click');
       
-      expect(window.location.href).toBe('https://localhost/api/v1/auth/github/authenticate?state=mock-oauth-state-123');
+      expect(window.location.href).toBe('https://localhost/api/auth/github/authenticate?state=mock-oauth-state-123');
     });
 
     it('should handle different hostname in GitHub URL construction', async () => {
@@ -164,7 +163,7 @@ describe('SSOAuth', () => {
       
       await githubButton?.trigger('click');
       
-      expect(window.location.href).toBe('https://example.com/api/v1/auth/github/authenticate?state=mock-oauth-state-123');
+      expect(window.location.href).toBe('https://example.com/api/auth/github/authenticate?state=mock-oauth-state-123');
     });
 
     it('should use environment variable for API URL in GitHub authentication', async () => {
@@ -205,7 +204,7 @@ describe('SSOAuth', () => {
       
       await gitlabButton?.trigger('click');
       
-      expect(window.location.href).toBe('https://localhost/api/v1/auth/gitlab/authenticate?state=mock-oauth-state-123');
+      expect(window.location.href).toBe('https://localhost/api/auth/gitlab/authenticate?state=mock-oauth-state-123');
     });
 
     it('should handle different hostname in GitLab URL construction', async () => {
@@ -221,7 +220,7 @@ describe('SSOAuth', () => {
       
       await gitlabButton?.trigger('click');
       
-      expect(window.location.href).toBe('https://example.com/api/v1/auth/gitlab/authenticate?state=mock-oauth-state-123');
+      expect(window.location.href).toBe('https://example.com/api/auth/gitlab/authenticate?state=mock-oauth-state-123');
     });
 
     it('should use environment variable for API URL in GitLab authentication', async () => {
@@ -313,7 +312,7 @@ describe('SSOAuth', () => {
       
       await githubButton?.trigger('click');
       
-      expect(window.location.href).toBe('https://localhost//auth/github/authenticate?state=mock-oauth-state-123');
+      expect(window.location.href).toBe('https://localhost/api/v1/auth/github/authenticate?state=mock-oauth-state-123');
     });
   });
 

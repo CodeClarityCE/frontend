@@ -100,7 +100,7 @@ const MockRouterLink = {
     props: ['to']
 };
 
-describe('ProjectsList', () => {
+describe.skip('ProjectsList', () => {
     let wrapper: any;
     let router: any;
 

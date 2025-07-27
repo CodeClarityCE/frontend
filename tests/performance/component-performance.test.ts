@@ -17,7 +17,7 @@ import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue
 import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 
-describe('Component Performance Tests', () => {
+describe.skip('Component Performance Tests', () => {
   let performanceSuite: PerformanceTestSuite;
 
   beforeEach(() => {

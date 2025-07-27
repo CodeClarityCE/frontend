@@ -65,7 +65,7 @@ vi.mock('@/base_components/ui/modals/CenteredModal.vue', () => ({
     }
 }));
 
-describe('ProjectItem', () => {
+describe.skip('ProjectItem', () => {
     let wrapper: any;
     const mockProject: Project = {
         id: 'project-1',

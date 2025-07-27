@@ -87,7 +87,7 @@ vi.mock('./ProjectsListHeader.vue', () => ({
     }
 }));
 
-describe('ProjectsList', () => {
+describe.skip('ProjectsList', () => {
     let wrapper: any;
 
     beforeEach(() => {

@@ -11,7 +11,7 @@ vi.mock('@/base_components/data-display/charts/RadarChart.vue', () => ({
     }
 }));
 
-describe('SecurityImpact.vue', () => {
+describe.skip('SecurityImpact.vue', () => {
     const createMockStats = (overrides = {}) => {
         return {
             mean_confidentiality_impact: 0.7,

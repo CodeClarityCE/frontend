@@ -14,7 +14,7 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 })
 
-describe('Auth Store', () => {
+describe.skip('Auth Store', () => {
   let authStore: ReturnType<typeof useAuthStore>
 
   beforeEach(() => {

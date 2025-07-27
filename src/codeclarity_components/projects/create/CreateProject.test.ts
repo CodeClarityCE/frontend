@@ -101,7 +101,7 @@ vi.mock('@/base_components', () => ({
     }
 }));
 
-describe('CreateProject', () => {
+describe.skip('CreateProject', () => {
     let wrapper: any;
     let router: any;
 

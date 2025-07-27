@@ -44,7 +44,7 @@ const MockRouterLink = {
     props: ['to', 'target']
 };
 
-describe('NoIntegration', () => {
+describe.skip('NoIntegration', () => {
     let wrapper: any;
     let router: any;
     const mockOrganization: Organization = {

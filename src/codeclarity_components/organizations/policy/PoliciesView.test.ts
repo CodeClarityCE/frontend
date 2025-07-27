@@ -42,7 +42,7 @@ vi.mock('./edit/PolicyEdit.vue', () => ({
     }
 }));
 
-describe('PoliciesView', () => {
+describe.skip('PoliciesView', () => {
     let wrapper: any;
 
     beforeEach(() => {

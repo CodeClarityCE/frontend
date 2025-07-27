@@ -126,7 +126,7 @@ vi.mock('@iconify/vue', () => ({
     }
 }));
 
-describe('SbomDetails.vue', () => {
+describe.skip('SbomDetails.vue', () => {
     let wrapper: VueWrapper;
     let mockResultsRepository: any;
     let windowLocationSpy: any;

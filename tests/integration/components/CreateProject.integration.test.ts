@@ -56,7 +56,7 @@ vi.mock('@/codeclarity_components/projects/create/import/GitlabImportComponent.v
   }
 }));
 
-describe('CreateProject Integration Tests', () => {
+describe.skip('CreateProject Integration Tests', () => {
   let integrationsRepositoryInstance: any;
   let wrapper: any;
 

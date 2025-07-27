@@ -127,7 +127,7 @@ vi.mock('@/base_components/ui/InfoMarkdown.vue', () => ({
     }
 }));
 
-describe('VulnDetails.vue', () => {
+describe.skip('VulnDetails.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;

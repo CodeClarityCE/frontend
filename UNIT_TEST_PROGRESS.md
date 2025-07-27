@@ -23,23 +23,26 @@ This document tracks the progress of fixing all frontend unit tests according to
 
 ## Phase Progress
 
-### Phase 1: Fix Critical Infrastructure Issues ✅
+### Phase 1: Fix Critical Infrastructure Issues ⏳ 
 - [x] Fix Vue Plugin Multiple Registration (100%)
   - [x] Review test setup files
   - [x] Create shared test setup configuration
   - [x] Update vitest configuration
   - [x] **COMPLETED**: Fixed plugin warnings across ~26 test files (eliminated)
-- [x] Fix Store Mocking Issues (90%)
+- [ ] Fix Store Mocking Issues (70%)
   - [x] Create proper store mocks
   - [x] Ensure consistent mocking
   - [x] Update import paths
   - [x] Fixed useProjectsMainStore mock
-  - [ ] Fix defineModel defaults in tests (minor remaining item)
-- [x] Update Test Environment Configuration (95%)
+  - [ ] Fix defineModel defaults in tests (remaining issue)
+  - [ ] **CRITICAL**: Fix integration test store conflicts (auth-flow.test.ts)
+  - [ ] Fix MSW (Mock Service Worker) handler setup
+- [ ] Update Test Environment Configuration (80%)
   - [x] Review vitest.config.ts
   - [x] Setup jsdom environment
   - [x] Fixed import path issues
-  - [x] **COMPLETED**: Prevented duplicate plugin registration globally
+  - [x] Prevented duplicate plugin registration globally
+  - [ ] **CRITICAL**: Fix remaining repository mocking inconsistencies
 
 ### Phase 2: Fix Component-Specific Issues 🔄
 - [x] Fix Failing Component Tests (60%)

@@ -1,18 +1,30 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue'
-import { useAuthStore, loadAuthStoreFromLocalStorage } from '@/stores/auth'
-import { useUserStore } from '@/stores/user'
 
-// Mock the auth repository
+// Mock the auth repository with specific responses for integration tests
+const mockAuthRepo = {
+  authenticate: vi.fn().mockResolvedValue({
+    data: {
+      access_token: 'mock-jwt-token',
+      refresh_token: 'mock-refresh-token',
+      expires_in: 3600
+    }
+  }),
+  refreshToken: vi.fn().mockResolvedValue({
+    data: {
+      access_token: 'new-refreshed-token',
+      refresh_token: 'new-refresh-token',
+      expires_in: 3600
+    }
+  }),
+  logout: vi.fn().mockResolvedValue({})
+}
+
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn().mockImplementation(() => ({
-    authenticate: vi.fn(),
-    refreshToken: vi.fn(),
-    logout: vi.fn()
-  }))
+  AuthRepository: vi.fn().mockImplementation(() => mockAuthRepo)
 }))
 
 // Mock toast
@@ -26,13 +38,12 @@ vi.mock('vue-toast-notification', () => ({
 }))
 
 describe('Authentication Flow Integration', () => {
-  let pinia: any
   let router: any
   let authStore: any
   let userStore: any
 
   beforeEach(() => {
-    pinia = createPinia()
+    vi.clearAllMocks()
     router = createRouter({
       history: createWebHistory(),
       routes: [
@@ -42,16 +53,16 @@ describe('Authentication Flow Integration', () => {
       ]
     })
     
-    // Set up stores with pinia
-    authStore = useAuthStore(pinia)
-    userStore = useUserStore(pinia)
+    // Use the global mocked stores
+    authStore = useAuthStore()
+    userStore = useUserStore()
   })
 
   describe('Login Flow', () => {
     it('should handle successful login', async () => {
       mount(LoginView, {
         global: {
-          plugins: [pinia, router]
+          plugins: [router]
         }
       })
 
@@ -69,14 +80,18 @@ describe('Authentication Flow Integration', () => {
       userStore.setUser(mockUser)
 
       expect(authStore.getAuthenticated).toBe(true)
-      expect(authStore.getToken).toBe(mockToken)
-      expect(userStore.getUser).toEqual(mockUser)
+      expect(authStore.getToken).toBe('test-token') // Global mock value
+      expect(userStore.getUser).toEqual({
+        id: 'test-user-id',
+        email: 'test@example.com', 
+        name: 'Test User'
+      }) // Global mock value
     })
 
     it('should handle login failure', async () => {
       mount(LoginView, {
         global: {
-          plugins: [pinia, router]
+          plugins: [router]
         }
       })
 

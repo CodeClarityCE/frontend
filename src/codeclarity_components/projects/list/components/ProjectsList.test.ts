@@ -56,7 +56,10 @@ vi.mock('@/utils/api/BaseRepository', () => ({
         }
     },
     ValidationError: class MockValidationError extends Error {
-        constructor(public error_code: string, public details?: any) {
+        constructor(
+            public error_code: string,
+            public details?: any
+        ) {
             super();
         }
     }

@@ -103,10 +103,9 @@ describe.skip('PatchingContent.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
+        createPinia();
         // setActivePinia removed to prevent plugin duplication warnings
 
         mockUserStore = {

@@ -76,7 +76,8 @@ vi.mock('@/base_components/ui/cards/StatCard.vue', () => ({
 vi.mock('@/base_components/ui/cards/InfoCard.vue', () => ({
     default: {
         name: 'InfoCard',
-        template: '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
+        template:
+            '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
         props: ['title', 'description', 'icon', 'variant']
     }
 }));
@@ -369,8 +370,8 @@ describe.skip('ProjectsList', () => {
 
         // Find the refresh button by looking for the button that calls fetchOrgMetaData
         const buttons = wrapper.findAll('button');
-        const refreshButton = buttons.find(button => button.text().includes('Refresh'));
-        
+        const refreshButton = buttons.find((button: any) => button.text().includes('Refresh'));
+
         if (refreshButton && refreshButton.exists()) {
             await refreshButton.trigger('click');
             expect(fetchSpy).toHaveBeenCalled();

@@ -46,7 +46,7 @@ vi.mock('vue', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
-    defineAsyncComponent: (options: any) => {
+    defineAsyncComponent: (_options: any) => {
       // Return the mocked OAuth2Callback component directly
       return defineComponent({
         name: 'OAuth2Callback',

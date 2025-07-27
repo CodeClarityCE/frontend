@@ -69,7 +69,7 @@ describe('ProjectsView', () => {
 
         // Check that the template logic is working - verify props.page is not 'add'
         expect(wrapper.vm.props?.page).not.toBe('add');
-        
+
         // The main container should exist
         expect(wrapper.find('main').exists()).toBe(true);
     });

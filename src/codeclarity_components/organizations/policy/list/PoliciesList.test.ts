@@ -26,13 +26,19 @@ const mockLicensePolicyRepo = {
 vi.mock('@/codeclarity_components/organizations/policy/license_policy.repository', () => ({
     LicensePolicyRepository: vi.fn().mockImplementation(() => mockLicensePolicyRepo),
     BusinessLogicError: class BusinessLogicError extends Error {
-        constructor(message: string, public error_code?: string) {
+        constructor(
+            message: string,
+            public error_code?: string
+        ) {
             super(message);
             this.name = 'BusinessLogicError';
         }
     },
     ValidationError: class ValidationError extends Error {
-        constructor(message: string, public error_code?: string) {
+        constructor(
+            message: string,
+            public error_code?: string
+        ) {
             super(message);
             this.name = 'ValidationError';
         }
@@ -190,8 +196,8 @@ describe.skip('PoliciesList', () => {
 
     it('shows loading state when loading is true', async () => {
         // Mock the repository to delay response so we can see loading state
-        mockLicensePolicyRepo.getLicensePolicies.mockImplementation(() => 
-            new Promise(resolve => setTimeout(() => resolve({ data: [] }), 100))
+        mockLicensePolicyRepo.getLicensePolicies.mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({ data: [] }), 100))
         );
 
         wrapper = mount(PoliciesList, {

@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import ProjectsListHeader from './ProjectsListHeader.vue';
+import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 
 // Mock all dependencies
 vi.mock('@/codeclarity_components/projects/project.repository', () => ({
     ProjectsSortInterface: {
         NAME: 'name',
-        CREATED_ON: 'created_on',
-        UPDATED_ON: 'updated_on'
+        IMPORTED_ON: 'imported_on'
     }
 }));
 
@@ -28,7 +28,7 @@ describe('ProjectsListHeader', () => {
     it('renders correctly', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortKey: 'name',
+                sortKey: ProjectsSortInterface.NAME,
                 sortDirection: SortDirection.ASC,
                 pageLimitSelected: 10,
                 searchKey: ''
@@ -41,21 +41,21 @@ describe('ProjectsListHeader', () => {
     it('accepts sortKey prop correctly', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortKey: 'created_on',
+                sortKey: ProjectsSortInterface.IMPORTED_ON,
                 sortDirection: SortDirection.DESC,
                 pageLimitSelected: 10,
                 searchKey: ''
             }
         });
 
-        expect(wrapper.props().sortKey).toBe('created_on');
+        expect(wrapper.props().sortKey).toBe(ProjectsSortInterface.IMPORTED_ON);
         expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 
     it('emits sort change events', async () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortKey: 'name',
+                sortKey: ProjectsSortInterface.NAME,
                 sortDirection: SortDirection.ASC,
                 pageLimitSelected: 10,
                 searchKey: ''
@@ -63,25 +63,25 @@ describe('ProjectsListHeader', () => {
         });
 
         // Simulate sort change (this would depend on actual implementation)
-        await wrapper.vm.$emit('update:sortKey', 'created_on');
+        await wrapper.vm.$emit('update:sortKey', ProjectsSortInterface.IMPORTED_ON);
         await wrapper.vm.$emit('update:sortDirection', 'desc');
 
         expect(wrapper.emitted('update:sortKey')).toBeTruthy();
         expect(wrapper.emitted('update:sortDirection')).toBeTruthy();
-        expect(wrapper.emitted('update:sortKey')?.[0]).toEqual(['created_on']);
+        expect(wrapper.emitted('update:sortKey')?.[0]).toEqual([ProjectsSortInterface.IMPORTED_ON]);
         expect(wrapper.emitted('update:sortDirection')?.[0]).toEqual(['desc']);
     });
 
     it('validates default behavior', () => {
         // The component should work without props since it has defaults
         wrapper = mount(ProjectsListHeader);
-        
+
         expect(wrapper.exists()).toBe(true);
-        
+
         // Check that the component renders its child components correctly
         expect(wrapper.findComponent({ name: 'SearchBar' }).exists()).toBe(true);
         expect(wrapper.findComponent({ name: 'UtilitiesSort' }).exists()).toBe(true);
-        
+
         // Check that the component doesn't throw errors when using default values
         expect(wrapper.text()).toContain(''); // Should render without errors
     });
@@ -89,7 +89,7 @@ describe('ProjectsListHeader', () => {
     it('handles different sort directions', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortKey: 'name',
+                sortKey: ProjectsSortInterface.NAME,
                 sortDirection: SortDirection.DESC,
                 pageLimitSelected: 10,
                 searchKey: ''
@@ -102,20 +102,20 @@ describe('ProjectsListHeader', () => {
     it('handles different sort fields', () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortKey: 'updated_on',
+                sortKey: ProjectsSortInterface.IMPORTED_ON,
                 sortDirection: SortDirection.ASC,
                 pageLimitSelected: 10,
                 searchKey: ''
             }
         });
 
-        expect(wrapper.props().sortKey).toBe('updated_on');
+        expect(wrapper.props().sortKey).toBe(ProjectsSortInterface.IMPORTED_ON);
     });
 
     it('maintains consistent state', async () => {
         wrapper = mount(ProjectsListHeader, {
             props: {
-                sortKey: 'name',
+                sortKey: ProjectsSortInterface.NAME,
                 sortDirection: SortDirection.ASC,
                 pageLimitSelected: 10,
                 searchKey: ''
@@ -124,11 +124,11 @@ describe('ProjectsListHeader', () => {
 
         // Change props
         await wrapper.setProps({
-            sortKey: 'created_on',
+            sortKey: ProjectsSortInterface.IMPORTED_ON,
             sortDirection: SortDirection.DESC
         });
 
-        expect(wrapper.props().sortKey).toBe('created_on');
+        expect(wrapper.props().sortKey).toBe(ProjectsSortInterface.IMPORTED_ON);
         expect(wrapper.props().sortDirection).toBe(SortDirection.DESC);
     });
 });

@@ -131,10 +131,9 @@ describe.skip('VulnDetails.vue', () => {
     let mockUserStore: any;
     let mockAuthStore: any;
     let mockResultsRepository: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
+        createPinia();
 
         mockUserStore = {
             getDefaultOrg: { id: 'org-123' }
@@ -301,7 +300,7 @@ describe.skip('VulnDetails.vue', () => {
             expect(mockResultsRepository.getFinding).toHaveBeenCalled();
         });
 
-        // Set render state and finding data manually to simulate successful data load  
+        // Set render state and finding data manually to simulate successful data load
         wrapper.vm.render = true;
         wrapper.vm.finding = mockVuln;
         await wrapper.vm.$nextTick();

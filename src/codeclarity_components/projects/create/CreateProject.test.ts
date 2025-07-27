@@ -23,10 +23,10 @@ vi.mock('@/stores/user', () => ({
 // Mock storeToRefs with proper ref
 vi.mock('pinia', async () => {
     const actual = await vi.importActual('pinia');
-    const { ref } = await vi.importActual('vue');
+    const { ref } = (await vi.importActual('vue')) as any;
     return {
         ...actual,
-        storeToRefs: vi.fn((store) => ({
+        storeToRefs: vi.fn((_store) => ({
             defaultOrg: ref({ id: 'test-org-id' })
         }))
     };

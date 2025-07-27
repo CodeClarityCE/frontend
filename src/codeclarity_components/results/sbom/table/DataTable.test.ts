@@ -252,16 +252,16 @@ interface TestDependency {
 describe('DataTable.vue', () => {
     let wrapper: any;
 
-    const mockColumns: ColumnDef<TestDependency, any>[] = [
+    const mockColumns: ColumnDef<unknown, unknown>[] = [
         {
             id: 'name',
             header: 'Name',
-            cell: ({ row }) => row.original.name
+            cell: ({ row }) => (row.original as any).name
         },
         {
             id: 'version',
             header: 'Version',
-            cell: ({ row }) => row.original.version
+            cell: ({ row }) => (row.original as any).version
         }
     ];
 

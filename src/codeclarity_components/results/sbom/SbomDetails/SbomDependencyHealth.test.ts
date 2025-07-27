@@ -165,7 +165,10 @@ describe.skip('SbomDependencyHealth.vue', () => {
             const wrapper = createWrapper(dependency);
 
             console.log('HTML:', wrapper.html());
-            console.log('Classes found:', wrapper.findAll('[class*="health"]').map(el => el.classes()));
+            console.log(
+                'Classes found:',
+                wrapper.findAll('[class*="health"]').map((el) => el.classes())
+            );
             expect(wrapper.find('.health-summary.warning').exists()).toBe(true);
             expect(wrapper.text()).toContain('Health issue detected');
             expect(wrapper.text()).toContain('solar:danger-triangle-bold');

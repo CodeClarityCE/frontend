@@ -90,7 +90,6 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
 
     const mockAnalysis = new Analysis();
     mockAnalysis.id = 'test-analysis-id';
-    mockAnalysis.project_id = 'test-project-id';
 
     beforeEach(() => {
         // Reset mocks
@@ -147,8 +146,8 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.projectID).toBe('test-project-id');
-            expect(wrapper.vm.analysisID).toBe('test-analysis-id');
+            expect(wrapper.vm.projectID.value).toBe('test-project-id');
+            expect(wrapper.vm.analysisID.value).toBe('test-analysis-id');
         });
 
         it('should fetch project and analysis data on init', async () => {

@@ -22,7 +22,8 @@ vi.mock('@/base_components/data-display/charts/TreeChart.vue', () => ({
             data: Array,
             targetDependency: String
         },
-        template: '<div class="mock-tree-chart" :id="id">TreeChart: {{ data?.length || 0 }} items</div>'
+        template:
+            '<div class="mock-tree-chart" :id="id">TreeChart: {{ data?.length || 0 }} items</div>'
     }
 }));
 

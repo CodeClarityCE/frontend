@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils';
 import ResultsVulnerabilities from './ResultsVulnerabilities.vue';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import { Project } from '@/codeclarity_components/projects/project.entity';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 
 // Mock child components
 vi.mock('./VulnList.vue', () => ({
@@ -110,12 +111,11 @@ describe('ResultsVulnerabilities', () => {
         // Create mock Analysis
         mockAnalysis = {
             id: 'analysis-123',
-            name: 'Test Analysis',
-            status: 'COMPLETED',
-            created_at: new Date(),
-            updated_at: new Date(),
-            project_id: 'project-123',
-            organization_id: 'org-123'
+            created_on: new Date(),
+            analyzer: { id: 'analyzer-123', name: 'Test Analyzer' } as any,
+            status: 'COMPLETED' as any,
+            steps: [],
+            branch: 'main'
         } as Analysis;
 
         // Create mock Project
@@ -125,9 +125,9 @@ describe('ResultsVulnerabilities', () => {
             description: 'Test project description',
             organization_id: 'org-123',
             integration_id: 'integration-123',
-            type: 'git',
+            type: IntegrationProvider.GITHUB,
             url: 'https://github.com/test/repo',
-            upload_id: null,
+            upload_id: 'upload-123',
             added_on: new Date()
         } as Project;
 

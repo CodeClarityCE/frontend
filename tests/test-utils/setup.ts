@@ -63,7 +63,7 @@ export function mountWithSetup(component: any, options: any = {}) {
       }
       
       // Import mount function
-      const { mount } = require('@vue/test-utils')
+      const { mount } = await import('@vue/test-utils')
       this.wrapper = mount(component, finalOptions)
       return this.wrapper
     }

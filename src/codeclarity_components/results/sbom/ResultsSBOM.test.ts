@@ -86,7 +86,6 @@ describe('ResultsSBOM', () => {
         branch: 'main'
     };
 
-
     afterEach(() => {
         if (wrapper) {
             wrapper.unmount();

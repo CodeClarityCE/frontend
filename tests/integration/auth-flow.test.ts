@@ -219,7 +219,6 @@ describe('Authentication Flow Integration', () => {
 
     it('should reject OAuth callback with invalid state', async () => {
       const validState = 'valid-state'
-      const invalidState = 'invalid-state'
       
       authStore.setSocialAuthState(validState)
       

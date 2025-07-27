@@ -100,7 +100,6 @@ describe.skip('ResultsCodeQL.vue', () => {
     let mockResultsRepository: any;
 
     beforeEach(() => {
-
         mockUserStore = {
             getDefaultOrg: { id: 'org-123' }
         };

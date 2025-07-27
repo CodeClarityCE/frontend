@@ -511,7 +511,8 @@ describe('SbomInformation.vue', () => {
 
             // Check that cards have either info-card or detail-card class
             cards.forEach((card) => {
-                const hasCorrectClass = card.classes().includes('info-card') || card.classes().includes('detail-card');
+                const hasCorrectClass =
+                    card.classes().includes('info-card') || card.classes().includes('detail-card');
                 expect(hasCorrectClass).toBe(true);
             });
         });

@@ -168,7 +168,7 @@ describe.skip('PatchingPatches.vue', () => {
                 upgrade_to_installed_ver: true,
                 potential_breaking_changes: false
             }
-        }
+        } as any
     };
     mockPatchedManifestData.other_info = {
         relative_package_file: 'package.json',
@@ -178,9 +178,9 @@ describe.skip('PatchingPatches.vue', () => {
         name: 'test-package',
         version: '1.0.0',
         dependencies: {
-            'vulnerable-dep': '^2.0.0',  // patched version
+            'vulnerable-dep': '^2.0.0', // patched version
             'safe-dep': '^1.5.0',
-            'partial-patch': '^1.2.0', 
+            'partial-patch': '^1.2.0',
             'no-patch': '^1.0.0'
         }
     };

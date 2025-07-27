@@ -62,7 +62,8 @@ vi.mock('@/base_components/ui/loaders/BoxLoader.vue', () => ({
 vi.mock('@/base_components/ui/cards/InfoCard.vue', () => ({
     default: {
         name: 'InfoCard',
-        template: '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
+        template:
+            '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
         props: ['title', 'description', 'icon', 'variant']
     }
 }));
@@ -224,9 +225,9 @@ describe.skip('AnalyzersList', () => {
 
     it('shows loading state when loading is true', async () => {
         // Mock getAnalyzers to delay response so we can test loading state
-        mockAnalyzerRepo.getAnalyzers.mockReturnValue(new Promise(resolve => 
-            setTimeout(() => resolve({ data: mockAnalyzers }), 100)
-        ));
+        mockAnalyzerRepo.getAnalyzers.mockReturnValue(
+            new Promise((resolve) => setTimeout(() => resolve({ data: mockAnalyzers }), 100))
+        );
 
         wrapper = mount(AnalyzersList, {
             props: {
@@ -263,9 +264,9 @@ describe.skip('AnalyzersList', () => {
         // Set org info and wait for async operations to complete
         wrapper.vm.setOrgInfo({ id: 'test-org', role: MemberRole.ADMIN });
         await wrapper.vm.$nextTick();
-        
+
         // Wait for the API call to complete
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await wrapper.vm.$nextTick();
 
         expect(wrapper.html()).toContain('Analyzer Workflows');
@@ -289,9 +290,9 @@ describe.skip('AnalyzersList', () => {
         // Set org info and wait for async operations
         wrapper.vm.setOrgInfo({ id: 'test-org', role: MemberRole.ADMIN });
         await wrapper.vm.$nextTick();
-        
+
         // Wait for the API call to fail
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await wrapper.vm.$nextTick();
 
         expect(wrapper.html()).toContain('We encountered an error while processing the request');

@@ -120,7 +120,7 @@ describe('VulnSummaryContent.vue', () => {
                     show: vi.fn(),
                     hide: vi.fn(),
                     toggle: vi.fn()
-                },
+                } as any,
                 readme: 'Test readme content',
                 activeView: 'patches',
                 ...props

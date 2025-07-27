@@ -146,8 +146,8 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.projectID.value).toBe('test-project-id');
-            expect(wrapper.vm.analysisID.value).toBe('test-analysis-id');
+            expect((wrapper.vm as any).projectID.value).toBe('test-project-id');
+            expect((wrapper.vm as any).analysisID.value).toBe('test-analysis-id');
         });
 
         it('should fetch project and analysis data on init', async () => {
@@ -255,7 +255,7 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
         });
 
         it('should handle missing default org', async () => {
-            mockUserStore.getDefaultOrg = null;
+            (mockUserStore as any).getDefaultOrg = null;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();
@@ -268,7 +268,7 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
         });
 
         it('should handle missing auth token', async () => {
-            mockAuthStore.getToken = null;
+            (mockAuthStore as any).getToken = null;
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             wrapper = createWrapper();
@@ -297,14 +297,14 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             await wrapper.vm.$nextTick();
 
             // Set initial values
-            wrapper.vm.finding = { id: 'test-vuln' };
-            wrapper.vm.details = true;
+            (wrapper.vm as any).finding = { id: 'test-vuln' };
+            (wrapper.vm as any).details = true;
 
             const detailsComponent = wrapper.findComponent({ name: 'Details' });
             await detailsComponent.vm.$emit('close');
 
-            expect(wrapper.vm.finding).toEqual({});
-            expect(wrapper.vm.details).toBe(false);
+            expect((wrapper.vm as any).finding).toEqual({});
+            expect((wrapper.vm as any).details).toBe(false);
         });
     });
 
@@ -313,10 +313,10 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.only_details).toBe(false);
-            expect(wrapper.vm.active_tab).toBe('List');
-            expect(wrapper.vm.finding).toEqual({});
-            expect(wrapper.vm.details).toBe(false);
+            expect((wrapper.vm as any).only_details).toBe(false);
+            expect((wrapper.vm as any).active_tab).toBe('List');
+            expect((wrapper.vm as any).finding).toEqual({});
+            expect((wrapper.vm as any).details).toBe(false);
         });
 
         it('should reset view state when resetView is called', async () => {
@@ -324,14 +324,14 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             await wrapper.vm.$nextTick();
 
             // Set some values
-            wrapper.vm.finding = { id: 'test-vuln', severity: 'high' };
-            wrapper.vm.details = true;
+            (wrapper.vm as any).finding = { id: 'test-vuln', severity: 'high' };
+            (wrapper.vm as any).details = true;
 
             // Call resetView
-            wrapper.vm.resetView();
+            (wrapper.vm as any).resetView();
 
-            expect(wrapper.vm.finding).toEqual({});
-            expect(wrapper.vm.details).toBe(false);
+            expect((wrapper.vm as any).finding).toEqual({});
+            expect((wrapper.vm as any).details).toBe(false);
         });
     });
 
@@ -340,15 +340,15 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            wrapper.vm.y_position = 100;
-            wrapper.vm.reference_click_element = 'test-element';
+            (wrapper.vm as any).y_position = 100;
+            (wrapper.vm as any).reference_click_element = 'test-element';
 
             // Change active tab
-            wrapper.vm.active_tab = 'Details';
+            (wrapper.vm as any).active_tab = 'Details';
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.y_position).toBe(0);
-            expect(wrapper.vm.reference_click_element).toBe('');
+            expect((wrapper.vm as any).y_position).toBe(0);
+            expect((wrapper.vm as any).reference_click_element).toBe('');
         });
 
         it('should restore scroll position after delay when not in details view', async () => {
@@ -357,8 +357,8 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             vi.spyOn(document, 'getElementsByClassName').mockReturnValue([mockContainer] as any);
 
             wrapper = createWrapper();
-            wrapper.vm.y_position = 200;
-            wrapper.vm.details = false;
+            (wrapper.vm as any).y_position = 200;
+            (wrapper.vm as any).details = false;
 
             wrapper.vm.$forceUpdate();
             await wrapper.vm.$nextTick();
@@ -375,8 +375,8 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             vi.spyOn(document, 'getElementsByClassName').mockReturnValue([mockContainer] as any);
 
             wrapper = createWrapper();
-            wrapper.vm.y_position = 200;
-            wrapper.vm.details = true;
+            (wrapper.vm as any).y_position = 200;
+            (wrapper.vm as any).details = true;
 
             wrapper.vm.$forceUpdate();
             await wrapper.vm.$nextTick();
@@ -401,11 +401,11 @@ describe.skip('ResultsVulnerabilitiesDetails.vue', () => {
             wrapper = createWrapper();
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.project).toBeInstanceOf(Project);
-            expect(wrapper.vm.analysis).toBeInstanceOf(Analysis);
+            expect((wrapper.vm as any).project).toBeInstanceOf(Project);
+            expect((wrapper.vm as any).analysis).toBeInstanceOf(Analysis);
             // Repository instances are mocked, so check they exist
-            expect(wrapper.vm.projectRepository).toBeDefined();
-            expect(wrapper.vm.analysisRepository).toBeDefined();
+            expect((wrapper.vm as any).projectRepository).toBeDefined();
+            expect((wrapper.vm as any).analysisRepository).toBeDefined();
         });
     });
 

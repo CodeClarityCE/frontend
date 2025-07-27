@@ -301,13 +301,13 @@ describe.skip('VulnDetails.vue', () => {
         });
 
         // Set render state and finding data manually to simulate successful data load
-        wrapper.vm.render = true;
-        wrapper.vm.finding = mockVuln;
+        (wrapper.vm as any).render = true;
+        (wrapper.vm as any).finding = mockVuln;
         await wrapper.vm.$nextTick();
 
         console.log('HTML:', wrapper.html());
-        console.log('render:', wrapper.vm.render);
-        console.log('finding:', wrapper.vm.finding ? 'exists' : 'null');
+        console.log('render:', (wrapper.vm as any).render);
+        console.log('finding:', (wrapper.vm as any).finding ? 'exists' : 'null');
         expect(wrapper.find('.content-wrapper').exists()).toBe(true);
     });
 
@@ -706,7 +706,7 @@ describe.skip('VulnDetails.vue', () => {
         };
 
         // Mock the template ref
-        wrapper.vm.cvss_field_info_modal_ref = { show: vi.fn() };
+        (wrapper.vm as any).cvss_field_info_modal_ref = { show: vi.fn() };
 
         wrapper.vm.openModal(mockData);
 

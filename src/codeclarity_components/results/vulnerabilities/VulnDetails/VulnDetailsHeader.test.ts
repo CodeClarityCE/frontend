@@ -63,7 +63,7 @@ describe('VulnDetailsHeader.vue', () => {
                     show: vi.fn(),
                     hide: vi.fn(),
                     toggle: vi.fn()
-                }
+                } as any
             }
         });
     };

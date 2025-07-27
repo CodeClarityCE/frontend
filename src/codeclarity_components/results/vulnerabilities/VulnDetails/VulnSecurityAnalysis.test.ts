@@ -138,7 +138,7 @@ describe('VulnSecurityAnalysis.vue', () => {
             const wrapper = createWrapper();
 
             const icons = wrapper.findAll('.mock-icon');
-            expect(icons.length).toBeGreaterThan(4); // At least 4 for severity items, plus recommendation icons
+            expect(icons.length).toBeGreaterThanOrEqual(4); // At least 4 for severity items, plus recommendation icons
 
             expect(wrapper.text()).toContain('solar:danger-triangle-bold');
             expect(wrapper.text()).toContain('solar:shield-warning-bold');

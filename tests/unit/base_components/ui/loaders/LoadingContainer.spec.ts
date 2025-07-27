@@ -6,7 +6,7 @@ import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue'
 vi.mock('@iconify/vue', () => ({
   Icon: {
     name: 'Icon',
-    template: '<span data-testid="warning-icon"></span>',
+    template: '<span data-testid="warning-icon" :class="$props.class">{{ $props.icon }}</span>',
     props: ['icon', 'class']
   }
 }))
@@ -107,7 +107,11 @@ describe('LoadingContainer', () => {
       })
 
       it('shows warning icon in error state', async () => {
-        const wrapper = mount(LoadingContainer)
+        const wrapper = mount(LoadingContainer, {
+          slots: {
+            error: '<div>Error occurred</div>'
+          }
+        })
         
         await wrapper.vm.showError()
         await wrapper.vm.$nextTick()

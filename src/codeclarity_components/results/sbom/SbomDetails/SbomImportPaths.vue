@@ -80,7 +80,7 @@ onMounted(() => {
             </div>
 
             <div class="tree-chart-container">
-                <div v-if="hierarchy.length > 0" class="chart-wrapper">
+                <div v-if="hierarchy && hierarchy.length > 0" class="chart-wrapper">
                     <div class="tree-chart-wrapper">
                         <TreeChart
                             id="sbom-import-paths-tree-chart"

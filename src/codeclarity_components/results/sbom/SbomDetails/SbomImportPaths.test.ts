@@ -17,8 +17,12 @@ vi.mock('@iconify/vue', () => ({
 vi.mock('@/base_components/data-display/charts/TreeChart.vue', () => ({
     default: {
         name: 'TreeChart',
-        props: ['id', 'data', 'target-dependency'],
-        template: '<div class="mock-tree-chart" :id="id">TreeChart: {{ data.length }} items</div>'
+        props: {
+            id: String,
+            data: Array,
+            targetDependency: String
+        },
+        template: '<div class="mock-tree-chart" :id="id">TreeChart: {{ data?.length || 0 }} items</div>'
     }
 }));
 
@@ -168,7 +172,7 @@ describe('SbomImportPaths.vue', () => {
             const treeChart = wrapper.findComponent({ name: 'TreeChart' });
             if (treeChart.exists()) {
                 expect(treeChart.props('id')).toBe('sbom-import-paths-tree-chart');
-                expect(treeChart.props('target-dependency')).toBe('my-package@2.0.0');
+                expect(treeChart.props('targetDependency')).toBe('my-package@2.0.0');
             }
         });
 
@@ -351,7 +355,7 @@ describe('SbomImportPaths.vue', () => {
 
             const treeChart = wrapper.findComponent({ name: 'TreeChart' });
             if (treeChart.exists()) {
-                expect(treeChart.props('target-dependency')).toBe('@scope/package@1.0.0-beta');
+                expect(treeChart.props('targetDependency')).toBe('@scope/package@1.0.0-beta');
             }
         });
 

@@ -73,8 +73,9 @@ vi.mock('lucide-vue-next', () => ({
 // Mock RouterLink
 const mockRouterLink = {
     name: 'RouterLink',
-    template: '<a data-testid="router-link" :href="to.name" :title="title"><slot></slot></a>',
-    props: ['to', 'title']
+    template: '<a data-testid="router-link" :href="to.name" v-bind="$attrs"><slot></slot></a>',
+    props: ['to', 'title'],
+    inheritAttrs: true
 };
 
 describe('DataTableDropDown.vue', () => {
@@ -201,7 +202,7 @@ describe('DataTableDropDown.vue', () => {
 
             const routerLink = wrapper.findComponent({ name: 'RouterLink' });
             expect(routerLink.exists()).toBe(true);
-            expect(routerLink.props('title')).toBe('View dependency details');
+            expect(routerLink.attributes('title')).toBe('View dependency details');
         });
     });
 
@@ -351,7 +352,7 @@ describe('DataTableDropDown.vue', () => {
             wrapper = createWrapper();
 
             const routerLink = wrapper.findComponent({ name: 'RouterLink' });
-            expect(routerLink.props('title')).toBe('View dependency details');
+            expect(routerLink.attributes('title')).toBe('View dependency details');
         });
     });
 

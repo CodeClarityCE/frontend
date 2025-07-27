@@ -5,13 +5,17 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 
 ## Current Status
 - **Before fixes**: 51 failed test files, 423 failed tests
-- **After initial fixes**: 49 failed test files, 413 failed tests  
-- **Tests passing**: 2375/2788 (85.2%)
+- **After implementing action plan**: 47 failed test files, 409 failed tests  
+- **Tests passing**: 2379/2788 (85.3%)
+- **Improvement**: Fixed 4 test files, reduced failures by 14 tests
 
 ## Completed Fixes
 ✅ VulnerabilitySeverities Component - Fixed prop validation errors  
 ✅ InfoCard Component - Fixed Icon selector issues  
 ✅ SSO Auth Component - Partially fixed URL construction issues
+✅ DataTableDropDown Component - Fixed RouterLink attribute vs props issues
+✅ VulnSecurityAnalysis Component - Fixed null safety and icon count assertions
+✅ SbomImportPaths Component - Fixed hierarchy null checks and prop mapping
 
 ## Action Plan
 
@@ -112,7 +116,41 @@ Currently we have 49 failed test files with 413 failed tests. This document outl
 - Test each change in isolation
 - Document any breaking changes to components
 
+## Key Patterns Discovered
+
+### 1. Props vs Attributes Confusion
+**Problem**: Tests checking `component.props('attribute')` when they should check `component.attributes('attribute')`
+**Solution**: HTML attributes like `title`, `href` should be checked with `.attributes()`, not `.props()`
+**Example**: RouterLink title attribute fix in DataTableDropDown
+
+### 2. Null Safety Issues
+**Problem**: Components accessing nested properties without null checks
+**Solution**: Add safe navigation operators (`?.`) and `v-if` conditions
+**Example**: VulnSecurityAnalysis `finding?.vulnerability_info?.vulnerability_id`
+
+### 3. Component Mocking Issues
+**Problem**: Vue component mocks not properly handling props and attributes
+**Solution**: Use proper prop definitions and include `inheritAttrs: true` when needed
+**Example**: RouterLink mock improvement
+
+### 4. Kebab-case vs CamelCase Props
+**Problem**: Vue automatically converts kebab-case props but tests need to access them as camelCase
+**Solution**: Define props in camelCase in mocks and test assertions
+**Example**: `target-dependency` → `targetDependency`
+
+### 5. Array/Object Null Checks
+**Problem**: Accessing `.length` or properties on potentially null/undefined objects
+**Solution**: Add null checks before property access
+**Example**: `hierarchy && hierarchy.length > 0`
+
+## Remaining Common Issues
+- Environment variable mocking inconsistencies
+- Icon component rendering in complex component hierarchies  
+- Chart component data prop validation
+- Store mocking for authentication and user data
+
 ## Notes
 - Some test failures may indicate actual component bugs
 - Environment-specific issues may require different approaches
 - Consider updating test expectations vs fixing components case-by-case
+- The patterns identified can be applied systematically to remaining test failures

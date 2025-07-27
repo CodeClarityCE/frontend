@@ -30,6 +30,7 @@ vi.mock('@/base_components/ui/loaders/LoadingComponent.vue', () => ({
   })
 }));
 
+// Mock the async component import to be synchronous
 vi.mock('@/codeclarity_components/authentication/oauth/OAuth2Callback.vue', () => ({
   default: defineComponent({
     name: 'OAuth2Callback',
@@ -39,6 +40,22 @@ vi.mock('@/codeclarity_components/authentication/oauth/OAuth2Callback.vue', () =
   __isTeleport: false,
   __isKeepAlive: false
 }));
+
+// Mock defineAsyncComponent to return the component immediately (synchronously)
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    defineAsyncComponent: (options: any) => {
+      // Return the mocked OAuth2Callback component directly
+      return defineComponent({
+        name: 'OAuth2Callback',
+        props: ['provider'],
+        template: '<div data-testid="oauth2-callback" :data-provider="provider">OAuth2 Callback Component</div>'
+      });
+    }
+  };
+});
 
 describe('OAuthCallbackView', () => {
   beforeEach(() => {
@@ -99,9 +116,9 @@ describe('OAuthCallbackView', () => {
         }
       });
       
-      expect(mockStateStore.$reset).toHaveBeenCalledBefore(
-        vi.fn() // Check that reset is called during setup
-      );
+      // Verify that both operations happened in the component setup
+      expect(mockStateStore.$reset).toHaveBeenCalledOnce();
+      expect(mockStateStore.page).toBe('main');
     });
   });
 

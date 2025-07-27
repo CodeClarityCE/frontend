@@ -136,12 +136,10 @@ describe('PatchingPatches.vue', () => {
         version: '1.0.0',
         description: 'Test package description',
         dependencies: {
-            vulnerable: true,
-            upgrade_to_installed_ver: false,
-            upgrade_to: '^2.0.0',
-            original_constraint: '^1.0.0',
-            potential_breaking_changes: false,
-            patch_type: PatchType.Full
+            'vulnerable-dep': '^2.0.0',  // patched version
+            'safe-dep': '^1.5.0',
+            'partial-patch': '^1.2.0',
+            'no-patch': '^1.0.0'
         }
     };
     mockPatchedManifestData.other_info = {
@@ -151,7 +149,12 @@ describe('PatchingPatches.vue', () => {
     mockPatchedManifestData.patched_manifest_raw = {
         name: 'test-package',
         version: '1.0.0',
-        dependencies: mockPatchedManifestData.patched_manifest.dependencies
+        dependencies: {
+            'vulnerable-dep': '^2.0.0',  // patched version
+            'safe-dep': '^1.5.0',
+            'partial-patch': '^1.2.0', 
+            'no-patch': '^1.0.0'
+        }
     };
 
     beforeEach(() => {

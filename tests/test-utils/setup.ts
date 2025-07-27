@@ -50,7 +50,7 @@ export function mountWithSetup(component: any, options: any = {}) {
   return {
     wrapper: null as any,
     pinia,
-    mount(mountOptions: any = {}) {
+    async mount(mountOptions: any = {}) {
       // Merge options
       const finalOptions = {
         ...options,

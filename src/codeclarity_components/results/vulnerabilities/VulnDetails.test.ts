@@ -147,7 +147,7 @@ describe('VulnDetails.vue', () => {
         vi.mocked(useAuthStore).mockReturnValue(mockAuthStore);
 
         mockResultsRepository = {
-            getFinding: vi.fn()
+            getFinding: vi.fn().mockResolvedValue({ data: null })
         };
         vi.mocked(ResultsRepository).mockImplementation(() => mockResultsRepository);
 
@@ -702,6 +702,9 @@ describe('VulnDetails.vue', () => {
             cvss_field_version: '3.1',
             cvss_info: { AV: { full_name: 'Attack Vector' } }
         };
+
+        // Mock the template ref
+        wrapper.vm.cvss_field_info_modal_ref = { show: vi.fn() };
 
         wrapper.vm.openModal(mockData);
 

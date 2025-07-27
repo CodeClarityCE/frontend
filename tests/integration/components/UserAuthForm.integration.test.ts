@@ -9,6 +9,23 @@ import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository'
 import type { Token } from '@/codeclarity_components/authentication/token.entity';
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
 
+// Mock BaseRepository with error classes
+vi.mock('@/utils/api/BaseRepository', () => ({
+  BaseRepository: class MockBaseRepository {
+    constructor() {}
+  },
+  BusinessLogicError: class MockBusinessLogicError extends Error {
+    constructor(public error_code: string) {
+      super();
+    }
+  },
+  ValidationError: class MockValidationError extends Error {
+    constructor(public error_code: string, public details?: any) {
+      super();
+    }
+  }
+}));
+
 // Mock the AuthRepository
 vi.mock('@/codeclarity_components/authentication/auth.repository');
 const mockAuthRepository = vi.mocked(AuthRepository);
@@ -19,6 +36,9 @@ vi.mock('@/router', () => ({
     push: vi.fn()
   }
 }));
+
+import router from '@/router';
+const mockPush = vi.mocked(router.push);
 
 describe('UserAuthForm Integration Tests', () => {
   let authRepositoryInstance: any;

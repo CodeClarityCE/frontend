@@ -8,6 +8,23 @@ import { IntegrationsRepository } from '@/codeclarity_components/organizations/i
 import { VCS, IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 
+// Mock BaseRepository with error classes
+vi.mock('@/utils/api/BaseRepository', () => ({
+  BaseRepository: class MockBaseRepository {
+    constructor() {}
+  },
+  BusinessLogicError: class MockBusinessLogicError extends Error {
+    constructor(public error_code: string) {
+      super();
+    }
+  },
+  ValidationError: class MockValidationError extends Error {
+    constructor(public error_code: string, public details?: any) {
+      super();
+    }
+  }
+}));
+
 // Mock repositories
 vi.mock('@/codeclarity_components/organizations/integrations/IntegrationsRepository');
 const mockIntegrationsRepository = vi.mocked(IntegrationsRepository);
@@ -18,6 +35,9 @@ vi.mock('@/router', () => ({
     push: vi.fn()
   }
 }));
+
+import router from '@/router';
+const mockPush = vi.mocked(router.push);
 
 // Mock child components
 vi.mock('@/codeclarity_components/projects/create/import/GithubImportComponent.vue', () => ({
@@ -193,7 +213,7 @@ describe('CreateProject Integration Tests', () => {
       await wrapper.vm.$nextTick();
 
       // Select GitHub VCS
-      await wrapper.setData({ selectedVCS: mockVcsIntegrations[0] });
+      await wrapper.vm.onSelectedVCS( mockVcsIntegrations[0]);
       await nextTick();
 
       expect(wrapper.find('[data-testid="github-import"]').exists()).toBe(true);
@@ -206,7 +226,7 @@ describe('CreateProject Integration Tests', () => {
       await wrapper.vm.$nextTick();
 
       // Select GitLab VCS
-      await wrapper.setData({ selectedVCS: mockVcsIntegrations[1] });
+      await wrapper.vm.onSelectedVCS( mockVcsIntegrations[1]);
       await nextTick();
 
       expect(wrapper.find('[data-testid="gitlab-import"]').exists()).toBe(true);
@@ -219,7 +239,7 @@ describe('CreateProject Integration Tests', () => {
       await wrapper.vm.$nextTick();
 
       // Select GitHub VCS
-      await wrapper.setData({ selectedVCS: mockVcsIntegrations[0] });
+      await wrapper.vm.onSelectedVCS( mockVcsIntegrations[0]);
       await nextTick();
 
       const githubComponent = wrapper.findComponent('[data-testid="github-import"]');
@@ -244,7 +264,7 @@ describe('CreateProject Integration Tests', () => {
       await wrapper.vm.$nextTick();
 
       // Select GitHub VCS
-      await wrapper.setData({ selectedVCS: mockVcsIntegrations[0] });
+      await wrapper.vm.onSelectedVCS( mockVcsIntegrations[0]);
       await nextTick();
 
       const githubComponent = wrapper.findComponent('[data-testid="github-import"]');
@@ -365,7 +385,7 @@ describe('CreateProject Integration Tests', () => {
       expect(mockStores.state.page).toBe('projects');
       
       // Select a VCS
-      await wrapper.setData({ selectedVCS: mockVcsIntegrations[0] });
+      await wrapper.vm.onSelectedVCS( mockVcsIntegrations[0]);
       
       // Page state should remain consistent
       expect(mockStores.state.page).toBe('projects');

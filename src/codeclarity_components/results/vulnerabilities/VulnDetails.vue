@@ -100,11 +100,11 @@ async function getFinding(projectID: string, analysisID: string) {
             workspace: '.'
         });
         finding.value = res.data;
-        if (finding.value.severities.cvss_31 != null) {
+        if (finding.value?.severities?.cvss_31 != null) {
             chart_version.value = 'cvss31';
-        } else if (finding.value.severities.cvss_3 != null) {
+        } else if (finding.value?.severities?.cvss_3 != null) {
             chart_version.value = 'cvss3';
-        } else if (finding.value.severities.cvss_2 != null) {
+        } else if (finding.value?.severities?.cvss_2 != null) {
             chart_version.value = 'cvss2';
         }
         render.value = true;

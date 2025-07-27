@@ -121,7 +121,7 @@ describe('PatchingContent.vue', () => {
         vi.mocked(useAuthStore).mockReturnValue(mockAuthStore);
 
         mockResultsRepository = {
-            getPatchesStat: vi.fn()
+            getPatchesStat: vi.fn().mockResolvedValue({ data: null })
         };
         vi.mocked(ResultsRepository).mockImplementation(() => mockResultsRepository);
     });

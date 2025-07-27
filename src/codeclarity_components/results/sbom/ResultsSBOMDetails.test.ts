@@ -132,7 +132,10 @@ describe('ResultsSBOMDetails.vue', () => {
         mockAnalysisRepository = {
             getAnalysisById: vi.fn().mockResolvedValue({
                 data: mockAnalysis
-            } as DataResponse<Analysis>)
+            } as DataResponse<Analysis>),
+            getProjectById: vi.fn().mockResolvedValue({
+                data: mockProject
+            } as DataResponse<Project>)
         };
 
         (ProjectRepository as Mock).mockImplementation(() => mockProjectRepository);

@@ -14,7 +14,9 @@ vi.mock('@/stores/StateStore', () => ({
         orgId: 'test-org-id',
         setSortBy: vi.fn(),
         setSortDirection: vi.fn(),
-        fetchProjects: vi.fn()
+        fetchProjects: vi.fn(),
+        setReposLoading: vi.fn(),
+        setReposFetchError: vi.fn()
     }))
 }));
 

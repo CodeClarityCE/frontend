@@ -72,7 +72,7 @@ vi.mock('@iconify/vue', () => ({
 
 // Mock ResultsRepository
 const mockResultsRepository = {
-    getPatchesStat: vi.fn()
+    getPatchesStat: vi.fn().mockResolvedValue({ data: null })
 };
 
 vi.mock('@/codeclarity_components/results/results.repository', () => ({

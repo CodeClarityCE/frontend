@@ -108,7 +108,7 @@ const mockSbomStats = {
 
 vi.mock('@/codeclarity_components/results/results.repository', () => ({
     ResultsRepository: vi.fn().mockImplementation(() => ({
-        getSbomStats: vi.fn().mockResolvedValue({
+        getSbomStat: vi.fn().mockResolvedValue({
             data: mockSbomStats
         })
     }))

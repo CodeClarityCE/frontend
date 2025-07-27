@@ -3,6 +3,8 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 
 // Mock the auth repository with specific responses for integration tests
 const mockAuthRepo = {
@@ -44,6 +46,11 @@ describe('Authentication Flow Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    
+    // Create and set up pinia
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    
     router = createRouter({
       history: createWebHistory(),
       routes: [

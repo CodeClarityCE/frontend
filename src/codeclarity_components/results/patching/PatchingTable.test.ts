@@ -101,8 +101,8 @@ vi.mock('@/base_components/filters/ActiveFilterBar.vue', () => ({
 
 // Mock ResultsRepository
 const mockResultsRepository = {
-    getPatches: vi.fn(),
-    getPatchesManifest: vi.fn()
+    getPatches: vi.fn().mockResolvedValue({ data: null }),
+    getPatchesManifest: vi.fn().mockResolvedValue({ data: null })
 };
 
 vi.mock('@/codeclarity_components/results/results.repository', () => ({

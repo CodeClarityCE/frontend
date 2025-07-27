@@ -112,7 +112,7 @@ describe('ResultsCodeQL.vue', () => {
         vi.mocked(useAuthStore).mockReturnValue(mockAuthStore);
 
         mockResultsRepository = {
-            getResultByType: vi.fn()
+            getResultByType: vi.fn().mockResolvedValue({ data: null })
         };
         vi.mocked(ResultsRepository).mockImplementation(() => mockResultsRepository);
     });

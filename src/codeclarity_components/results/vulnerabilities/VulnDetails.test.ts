@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+// Pinia imports removed to prevent plugin duplication warnings
 import VulnDetails from './VulnDetails.vue';
 import { VulnerabilityDetails } from './VulnDetails/VulnDetails';
 import { useUserStore } from '@/stores/user';
@@ -129,7 +129,7 @@ describe('VulnDetails.vue', () => {
     let mockResultsRepository: any;
 
     beforeEach(() => {
-        setActivePinia(createPinia());
+        // setActivePinia removed to prevent plugin duplication warnings
 
         mockUserStore = {
             getDefaultOrg: { id: 'org-123' }

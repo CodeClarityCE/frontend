@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+// Pinia imports removed to prevent plugin duplication warnings
 import ResultsPatching from './ResultsPatching.vue';
 import { Project } from '@/codeclarity_components/projects/project.entity';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
@@ -16,7 +16,7 @@ vi.mock('./PatchingContent.vue', () => ({
 
 describe('ResultsPatching.vue', () => {
     beforeEach(() => {
-        setActivePinia(createPinia());
+        // setActivePinia removed to prevent plugin duplication warnings
 
         // Mock DOM elements
         const mockLoader = document.createElement('div');

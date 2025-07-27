@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import SbomContent from './SbomContent.vue';
 
 // Mock stores
@@ -117,10 +116,8 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
 
 describe('SbomContent', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -133,7 +130,7 @@ describe('SbomContent', () => {
     it('renders correctly with default props', () => {
         wrapper = mount(SbomContent, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -147,7 +144,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -163,7 +160,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -178,7 +175,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -189,7 +186,7 @@ describe('SbomContent', () => {
     it('has correct default prop values', () => {
         wrapper = mount(SbomContent, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -200,7 +197,7 @@ describe('SbomContent', () => {
     it('initializes with correct default state', () => {
         wrapper = mount(SbomContent, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -217,7 +214,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -234,7 +231,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -250,7 +247,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -269,7 +266,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -289,7 +286,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -304,7 +301,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -321,7 +318,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -338,7 +335,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -355,7 +352,7 @@ describe('SbomContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

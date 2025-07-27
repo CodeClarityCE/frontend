@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import IntegrationsList from './IntegrationsList.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
@@ -98,7 +97,6 @@ const MockRouterLink = {
 
 describe('IntegrationsList', () => {
     let wrapper: any;
-    let pinia: any;
 
     const mockVcsIntegrations = [
         {
@@ -118,7 +116,6 @@ describe('IntegrationsList', () => {
     ];
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
 
         mockIntegrationRepo.getVCS.mockResolvedValue({
@@ -139,7 +136,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -155,7 +151,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -173,7 +168,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -194,7 +188,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -217,7 +210,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -240,7 +232,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -268,7 +259,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -291,7 +281,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -315,7 +304,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -338,7 +326,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -357,7 +344,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -380,7 +366,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -408,7 +393,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -427,7 +411,6 @@ describe('IntegrationsList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }

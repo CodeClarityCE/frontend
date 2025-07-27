@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import ResultsView from './ResultsView.vue';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
@@ -130,11 +129,9 @@ vi.mock('@/shadcn/ui/tabs', () => ({
 
 describe('ResultsView', () => {
     let wrapper: any;
-    let pinia: any;
     let windowLocation: Location;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
 
         // Save original window.location
@@ -164,7 +161,7 @@ describe('ResultsView', () => {
     it('renders correctly', async () => {
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -185,7 +182,7 @@ describe('ResultsView', () => {
     it('displays project name after loading', async () => {
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -205,7 +202,7 @@ describe('ResultsView', () => {
     it('shows tabs based on successful analysis steps', async () => {
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -232,7 +229,7 @@ describe('ResultsView', () => {
                 page: 'vulnerabilities_details'
             },
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -259,7 +256,7 @@ describe('ResultsView', () => {
                 page: 'sbom_details'
             },
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: {
@@ -283,7 +280,7 @@ describe('ResultsView', () => {
     it('validates component initialization', async () => {
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -305,7 +302,7 @@ describe('ResultsView', () => {
     it('resets state store on mount', () => {
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -343,7 +340,7 @@ describe('ResultsView', () => {
 
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,
@@ -388,7 +385,7 @@ describe('ResultsView', () => {
 
         wrapper = mount(ResultsView, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     ResultsSBOM: true,
                     ResultsSBOMDetails: true,

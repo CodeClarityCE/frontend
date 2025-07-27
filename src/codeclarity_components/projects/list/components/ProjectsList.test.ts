@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import ProjectsList from './ProjectsList.vue';
 
 // Mock all dependencies
@@ -34,6 +33,17 @@ vi.mock('@/stores/auth', () => ({
     }))
 }));
 
+vi.mock('@/codeclarity_components/projects/project.repository', () => ({
+    ProjectsSortInterface: {
+        NAME: 'name',
+        CREATED_ON: 'created_on',
+        UPDATED_ON: 'updated_on'
+    },
+    ProjectRepository: vi.fn().mockImplementation(() => ({
+        getProjects: vi.fn().mockResolvedValue({ data: [] })
+    }))
+}));
+
 // Mock child components
 vi.mock('./ProjectItem.vue', () => ({
     default: {
@@ -61,10 +71,8 @@ vi.mock('./ProjectsListHeader.vue', () => ({
 
 describe('ProjectsList', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -77,7 +85,7 @@ describe('ProjectsList', () => {
     it('renders correctly', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -87,7 +95,7 @@ describe('ProjectsList', () => {
     it('shows projects list header', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -104,7 +112,7 @@ describe('ProjectsList', () => {
 
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -119,7 +127,7 @@ describe('ProjectsList', () => {
     it('shows no projects component when no projects', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -135,7 +143,7 @@ describe('ProjectsList', () => {
     it('handles loading state', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -145,7 +153,7 @@ describe('ProjectsList', () => {
     it('handles error state', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -156,7 +164,7 @@ describe('ProjectsList', () => {
     it('handles sort changes from header', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -171,7 +179,7 @@ describe('ProjectsList', () => {
     it('handles sort direction changes from header', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -186,7 +194,7 @@ describe('ProjectsList', () => {
     it('fetches projects on mount', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -196,7 +204,7 @@ describe('ProjectsList', () => {
     it('passes correct props to header', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -216,7 +224,7 @@ describe('ProjectsList', () => {
 
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -233,7 +241,7 @@ describe('ProjectsList', () => {
     it('renders projects container with correct structure', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -243,7 +251,7 @@ describe('ProjectsList', () => {
     it('maintains consistent component state', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

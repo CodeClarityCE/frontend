@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
 import ProjectItem from './ProjectItem.vue';
@@ -67,7 +66,6 @@ vi.mock('@/base_components/ui/modals/CenteredModal.vue', () => ({
 
 describe('ProjectItem', () => {
     let wrapper: any;
-    let pinia: any;
     const mockProject: Project = {
         id: 'project-1',
         name: 'Test Project',
@@ -82,7 +80,6 @@ describe('ProjectItem', () => {
     };
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -98,7 +95,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -112,7 +109,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -126,7 +123,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -139,7 +136,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -154,7 +151,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -167,7 +164,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -182,7 +179,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -200,7 +197,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -219,7 +216,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -238,7 +235,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -254,7 +251,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -272,7 +269,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -290,7 +287,7 @@ describe('ProjectItem', () => {
                 project: gitlabProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -301,7 +298,7 @@ describe('ProjectItem', () => {
         expect(() => {
             mount(ProjectItem, {
                 global: {
-                    plugins: [pinia]
+                    plugins: []
                 }
             });
         }).toThrow();
@@ -313,7 +310,7 @@ describe('ProjectItem', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+// Pinia imports removed to prevent plugin duplication warnings
 import PatchingContent from './PatchingContent.vue';
 import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
 import { useUserStore } from '@/stores/user';
@@ -101,7 +101,7 @@ describe('PatchingContent.vue', () => {
     let mockResultsRepository: any;
 
     beforeEach(() => {
-        setActivePinia(createPinia());
+        // setActivePinia removed to prevent plugin duplication warnings
 
         mockUserStore = {
             getDefaultOrg: { id: 'org-123' }

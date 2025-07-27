@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import { createRouter, createWebHistory } from 'vue-router';
 import CreateProject from './CreateProject.vue';
 
@@ -91,11 +90,9 @@ vi.mock('@/base_components', () => ({
 
 describe('CreateProject', () => {
     let wrapper: any;
-    let pinia: any;
     let router: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         router = createRouter({
             history: createWebHistory(),
             routes: [
@@ -115,7 +112,7 @@ describe('CreateProject', () => {
     it('renders correctly', () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -128,7 +125,7 @@ describe('CreateProject', () => {
     it('shows page header with correct props', async () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -147,7 +144,7 @@ describe('CreateProject', () => {
     it('shows loading state initially', () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -157,7 +154,7 @@ describe('CreateProject', () => {
     it('handles VCS integration selection', async () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -179,7 +176,7 @@ describe('CreateProject', () => {
     it('refreshes integrations when requested', async () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -194,7 +191,7 @@ describe('CreateProject', () => {
     it('sets page state correctly', () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -205,7 +202,7 @@ describe('CreateProject', () => {
     it('initializes VCS integrations on mount', async () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -222,7 +219,7 @@ describe('CreateProject', () => {
 
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 
@@ -241,7 +238,7 @@ describe('CreateProject', () => {
     it('handles single VCS auto-selection', async () => {
         wrapper = mount(CreateProject, {
             global: {
-                plugins: [pinia, router]
+                plugins: [router]
             }
         });
 

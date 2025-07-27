@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import ResultsSBOM from './ResultsSBOM.vue';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
@@ -42,7 +41,6 @@ Object.defineProperty(document, 'getElementById', {
 
 describe('ResultsSBOM', () => {
     let wrapper: any;
-    let pinia: any;
 
     const mockProject = {
         id: 'project-1',
@@ -82,7 +80,6 @@ describe('ResultsSBOM', () => {
     };
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -99,7 +96,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -114,7 +111,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -131,7 +128,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -150,7 +147,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -165,7 +162,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -183,7 +180,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -198,7 +195,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -216,7 +213,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -233,7 +230,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -263,7 +260,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -299,7 +296,7 @@ describe('ResultsSBOM', () => {
                 analysis: mockAnalysis
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

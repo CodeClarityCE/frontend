@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import ResultsVulnerabilities from './ResultsVulnerabilities.vue';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import { Project } from '@/codeclarity_components/projects/project.entity';
@@ -102,12 +101,10 @@ vi.mock('@/shadcn/ui/alert', () => ({
 
 describe('ResultsVulnerabilities', () => {
     let wrapper: any;
-    let pinia: any;
     let mockAnalysis: Analysis;
     let mockProject: Project;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
 
         // Create mock Analysis
@@ -172,7 +169,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -186,7 +183,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -201,7 +198,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -218,7 +215,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -235,7 +232,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -250,7 +247,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -265,7 +262,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -282,7 +279,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -298,7 +295,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -316,7 +313,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -333,7 +330,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -351,7 +348,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -377,7 +374,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -401,7 +398,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -419,7 +416,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -437,7 +434,7 @@ describe('ResultsVulnerabilities', () => {
                 project: mockProject
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import VulnContent from './VulnContent.vue';
 
 // Mock stores
@@ -95,10 +94,8 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
 
 describe('VulnContent', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -111,7 +108,7 @@ describe('VulnContent', () => {
     it('renders correctly with default props', () => {
         wrapper = mount(VulnContent, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -125,7 +122,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -141,7 +138,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -152,7 +149,7 @@ describe('VulnContent', () => {
     it('has correct default prop values', () => {
         wrapper = mount(VulnContent, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -163,7 +160,7 @@ describe('VulnContent', () => {
     it('initializes with correct default state', () => {
         wrapper = mount(VulnContent, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -180,7 +177,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -195,7 +192,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -210,7 +207,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -226,7 +223,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -241,7 +238,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -256,7 +253,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -280,7 +277,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -302,7 +299,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -323,7 +320,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -347,7 +344,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -365,7 +362,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -387,7 +384,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -404,7 +401,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -422,7 +419,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -445,7 +442,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -461,7 +458,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -481,7 +478,7 @@ describe('VulnContent', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

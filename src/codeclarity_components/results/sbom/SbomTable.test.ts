@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import SbomTable from './SbomTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 
@@ -110,10 +109,8 @@ vi.mock('@tanstack/vue-table', () => ({
 
 describe('SbomTable', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -126,7 +123,7 @@ describe('SbomTable', () => {
     it('renders correctly', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -141,7 +138,7 @@ describe('SbomTable', () => {
     it('renders DataTable component when render is true', async () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: {
                         name: 'DataTable',
@@ -164,7 +161,7 @@ describe('SbomTable', () => {
     it('renders PaginationComponent', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: {
@@ -183,7 +180,7 @@ describe('SbomTable', () => {
     it('initializes with correct default state', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -204,7 +201,7 @@ describe('SbomTable', () => {
     it('initializes with correct sorting defaults', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -221,7 +218,7 @@ describe('SbomTable', () => {
     it('has correct column visibility defaults', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -238,7 +235,7 @@ describe('SbomTable', () => {
     it('has search functionality', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -260,7 +257,7 @@ describe('SbomTable', () => {
                 selected_workspace: 'test-workspace'
             },
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -275,7 +272,7 @@ describe('SbomTable', () => {
     it('handles authentication requirements', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -293,7 +290,7 @@ describe('SbomTable', () => {
     it('has proper data structure for dependencies', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -310,7 +307,7 @@ describe('SbomTable', () => {
     it('handles pagination state correctly', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -328,7 +325,7 @@ describe('SbomTable', () => {
     it('handles column filters state correctly', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,
@@ -346,7 +343,7 @@ describe('SbomTable', () => {
         expect(() => {
             wrapper = mount(SbomTable, {
                 global: {
-                    plugins: [pinia],
+                    plugins: [],
                     stubs: {
                         DataTable: true,
                         PaginationComponent: true,
@@ -362,7 +359,7 @@ describe('SbomTable', () => {
     it('has correct component structure', () => {
         wrapper = mount(SbomTable, {
             global: {
-                plugins: [pinia],
+                plugins: [],
                 stubs: {
                     DataTable: true,
                     PaginationComponent: true,

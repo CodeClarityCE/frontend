@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createRouter, createWebHistory } from 'vue-router';
-import { createPinia } from 'pinia';
 import ManageMembers from './ManageMembers.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { APIErrors } from '@/utils/api/ApiErrors';
@@ -130,11 +129,9 @@ vi.mock('@/utils/searchUtils', () => ({
 
 describe('ManageMembers', () => {
     let wrapper: any;
-    let pinia: any;
     let router: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         router = createRouter({
             history: createWebHistory(),
             routes: [
@@ -183,7 +180,7 @@ describe('ManageMembers', () => {
     it('renders correctly', () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -196,7 +193,7 @@ describe('ManageMembers', () => {
     it('shows HeaderItem component with correct orgId', () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -211,7 +208,7 @@ describe('ManageMembers', () => {
     it('shows loading state when loadingMembers is true', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -229,7 +226,7 @@ describe('ManageMembers', () => {
     it('displays members list when data is loaded', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -258,7 +255,7 @@ describe('ManageMembers', () => {
     it('shows error state when errorMembers is true', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -279,7 +276,7 @@ describe('ManageMembers', () => {
     it('shows related actions for authorized users', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -302,7 +299,7 @@ describe('ManageMembers', () => {
     it('hides related actions for unauthorized users', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -323,7 +320,7 @@ describe('ManageMembers', () => {
     it('calls fetchOrganizationMembers on mount', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -336,7 +333,7 @@ describe('ManageMembers', () => {
     it('handles sort changes correctly', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -360,7 +357,7 @@ describe('ManageMembers', () => {
     it('shows no members message when no data and no search', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -381,7 +378,7 @@ describe('ManageMembers', () => {
     it('shows no search results message when no data with search', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -402,7 +399,7 @@ describe('ManageMembers', () => {
     it('redirects unauthorized users to org overview', () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -424,7 +421,7 @@ describe('ManageMembers', () => {
     it('handles pagination changes', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -443,7 +440,7 @@ describe('ManageMembers', () => {
     it('initializes with correct default values', () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -461,7 +458,7 @@ describe('ManageMembers', () => {
     it('handles refresh action', async () => {
         wrapper = mount(ManageMembers, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }

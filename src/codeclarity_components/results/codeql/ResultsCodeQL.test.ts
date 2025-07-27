@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+// Pinia imports removed to prevent plugin duplication warnings
 import ResultsCodeQL from './ResultsCodeQL.vue';
 import { Project } from '@/codeclarity_components/projects/project.entity';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
@@ -100,7 +100,6 @@ describe('ResultsCodeQL.vue', () => {
     let mockResultsRepository: any;
 
     beforeEach(() => {
-        setActivePinia(createPinia());
 
         mockUserStore = {
             getDefaultOrg: { id: 'org-123' }

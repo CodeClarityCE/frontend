@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import SelectWorkspace from './SelectWorkspace.vue';
 import { WorkspacesOutput } from './workspace.entity';
 import { ResultsRepository } from './results.repository';
@@ -80,10 +79,8 @@ vi.mock('@/shadcn/ui/select', () => ({
 
 describe('SelectWorkspace', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -96,7 +93,7 @@ describe('SelectWorkspace', () => {
     it('renders correctly with default props', async () => {
         wrapper = mount(SelectWorkspace, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -112,7 +109,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -127,7 +124,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -147,7 +144,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -161,7 +158,7 @@ describe('SelectWorkspace', () => {
     it('displays placeholder text', () => {
         wrapper = mount(SelectWorkspace, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -173,7 +170,7 @@ describe('SelectWorkspace', () => {
     it('has correct CSS classes on trigger', () => {
         wrapper = mount(SelectWorkspace, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -196,7 +193,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -228,7 +225,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -257,7 +254,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -283,7 +280,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -308,7 +305,7 @@ describe('SelectWorkspace', () => {
                 }
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -327,7 +324,7 @@ describe('SelectWorkspace', () => {
                 analysisID: 'analysis-456'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -342,7 +339,7 @@ describe('SelectWorkspace', () => {
     it('has correct default values for props', () => {
         wrapper = mount(SelectWorkspace, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -353,7 +350,7 @@ describe('SelectWorkspace', () => {
     it('initializes workspaces as empty WorkspacesOutput', () => {
         wrapper = mount(SelectWorkspace, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -364,7 +361,7 @@ describe('SelectWorkspace', () => {
     it('has correct model defaults', () => {
         wrapper = mount(SelectWorkspace, {
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import PoliciesList from './PoliciesList.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 
@@ -87,7 +86,6 @@ const MockRouterLink = {
 
 describe('PoliciesList', () => {
     let wrapper: any;
-    let pinia: any;
 
     const mockLicensePolicies = [
         {
@@ -107,7 +105,6 @@ describe('PoliciesList', () => {
     ];
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
 
         mockLicensePolicyRepo.getLicensePolicies.mockResolvedValue({
@@ -128,7 +125,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -146,7 +142,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -165,7 +160,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -189,7 +183,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -211,7 +204,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -235,7 +227,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -259,7 +250,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -287,7 +277,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -311,7 +300,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -340,7 +328,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -360,7 +347,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -381,7 +367,6 @@ describe('PoliciesList', () => {
                 action: 'test-action'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -400,7 +385,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -418,7 +402,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -441,7 +424,6 @@ describe('PoliciesList', () => {
                 orgId: 'test-org-id'
             },
             global: {
-                plugins: [pinia],
                 components: {
                     RouterLink: MockRouterLink
                 }

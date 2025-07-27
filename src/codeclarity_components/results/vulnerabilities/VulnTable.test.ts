@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 
 // Mock BaseRepository before any imports that depend on it
 vi.mock('@/base_repository/base.repository', () => ({
@@ -261,10 +260,8 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
 
 describe('VulnTable', () => {
     let wrapper: any;
-    let pinia: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         vi.clearAllMocks();
     });
 
@@ -282,7 +279,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -298,7 +295,7 @@ describe('VulnTable', () => {
                 projectID: 'project-789'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -316,7 +313,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -337,7 +334,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -357,7 +354,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -383,7 +380,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -402,7 +399,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -428,7 +425,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -460,7 +457,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -483,7 +480,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -507,7 +504,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -526,7 +523,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -548,7 +545,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -567,7 +564,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -584,7 +581,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -603,7 +600,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -620,7 +617,7 @@ describe('VulnTable', () => {
                 projectID: ''
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -637,7 +634,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -662,7 +659,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -678,7 +675,7 @@ describe('VulnTable', () => {
                 highlightElem: 'test'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 
@@ -695,7 +692,7 @@ describe('VulnTable', () => {
                 projectID: 'project-123'
             },
             global: {
-                plugins: [pinia]
+                plugins: []
             }
         });
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
 import { createRouter, createWebHistory } from 'vue-router';
 import ProjectsList from './ProjectsList.vue';
 
@@ -79,11 +78,9 @@ const MockRouterLink = {
 
 describe('ProjectsList', () => {
     let wrapper: any;
-    let pinia: any;
     let router: any;
 
     beforeEach(() => {
-        pinia = createPinia();
         router = createRouter({
             history: createWebHistory(),
             routes: [
@@ -112,7 +109,7 @@ describe('ProjectsList', () => {
     it('renders correctly', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -127,7 +124,7 @@ describe('ProjectsList', () => {
     it('displays page header correctly', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -141,7 +138,7 @@ describe('ProjectsList', () => {
     it('shows loading state initially', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -155,7 +152,7 @@ describe('ProjectsList', () => {
     it('displays statistics when projects exist', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -186,7 +183,7 @@ describe('ProjectsList', () => {
     it('calculates completed analyses count correctly', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -211,7 +208,7 @@ describe('ProjectsList', () => {
     it('calculates running analyses count correctly', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -236,7 +233,7 @@ describe('ProjectsList', () => {
     it('formats last activity time correctly', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -260,7 +257,7 @@ describe('ProjectsList', () => {
     it('shows no integrations state', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -282,7 +279,7 @@ describe('ProjectsList', () => {
     it('shows no projects state', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -304,7 +301,7 @@ describe('ProjectsList', () => {
     it('handles error state', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -323,7 +320,7 @@ describe('ProjectsList', () => {
     it('refreshes data when refresh button clicked', async () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }
@@ -342,7 +339,7 @@ describe('ProjectsList', () => {
     it('resets view state on unmount', () => {
         wrapper = mount(ProjectsList, {
             global: {
-                plugins: [pinia, router],
+                plugins: [router],
                 components: {
                     RouterLink: MockRouterLink
                 }

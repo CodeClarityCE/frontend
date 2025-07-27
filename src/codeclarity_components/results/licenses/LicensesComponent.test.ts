@@ -7,16 +7,35 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 
-// Mock modules
+// Mock modules with proper default values
 vi.mock('@/stores/user', () => ({
-    useUserStore: vi.fn()
+    useUserStore: vi.fn(() => ({
+        getDefaultOrg: { id: 'default-org-id' }
+    }))
 }));
 
 vi.mock('@/stores/auth', () => ({
-    useAuthStore: vi.fn()
+    useAuthStore: vi.fn(() => ({
+        getToken: 'default-token'
+    }))
 }));
 
 vi.mock('@/codeclarity_components/results/results.repository');
+
+// Mock the projects repository to provide ProjectsSortInterface
+vi.mock('@/codeclarity_components/projects/project.repository', () => ({
+    ProjectsSortInterface: {
+        LICENSE_TYPE: 'type'
+    }
+}));
+
+// Mock SortDirection enum
+vi.mock('@/utils/api/PaginatedRequestOptions', () => ({
+    SortDirection: {
+        DESC: 'DESC',
+        ASC: 'ASC'
+    }
+}));
 
 // Mock BaseRepository to avoid dependency issues
 vi.mock('@/utils/api/BaseRepository', () => ({
@@ -121,6 +140,7 @@ describe('LicensesComponent.vue', () => {
             getToken: 'mock-token'
         };
 
+        // Reset the mocked functions to use the test-specific stores
         vi.mocked(useUserStore).mockReturnValue(mockUserStore);
         vi.mocked(useAuthStore).mockReturnValue(mockAuthStore);
 

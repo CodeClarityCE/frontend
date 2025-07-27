@@ -16,6 +16,23 @@ vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
   AuthRepository: vi.fn(() => mockAuthRepository)
 }));
 
+// Mock BaseRepository with error classes
+vi.mock('@/utils/api/BaseRepository', () => ({
+  BaseRepository: class MockBaseRepository {
+    constructor() {}
+  },
+  BusinessLogicError: class MockBusinessLogicError extends Error {
+    constructor(public error_code: string) {
+      super();
+    }
+  },
+  ValidationError: class MockValidationError extends Error {
+    constructor(public error_code: string, public details?: any) {
+      super();
+    }
+  }
+}));
+
 vi.mock('@iconify/vue', () => ({
   Icon: defineComponent({
     name: 'Icon',

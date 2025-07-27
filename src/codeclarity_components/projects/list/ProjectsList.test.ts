@@ -29,6 +29,18 @@ vi.mock('@/stores/auth', () => ({
     }))
 }));
 
+// Mock AnalysisStatus enum with correct lowercase values
+vi.mock('@/codeclarity_components/analyses/analysis.entity', () => ({
+    AnalysisStatus: {
+        COMPLETED: 'completed',
+        FINISHED: 'finished',
+        STARTED: 'started',
+        REQUESTED: 'requested',
+        ONGOING: 'ongoing',
+        UPDATING_DB: 'updating_db'
+    }
+}));
+
 vi.mock('@/codeclarity_components/organizations/organization.repository', () => ({
     OrgRepository: vi.fn().mockImplementation(() => ({
         getOrgMetaData: vi.fn().mockResolvedValue({
@@ -64,8 +76,20 @@ vi.mock('@/base_components/ui/cards/StatCard.vue', () => ({
 vi.mock('@/base_components/ui/cards/InfoCard.vue', () => ({
     default: {
         name: 'InfoCard',
-        template: '<div data-testid="info-card"><slot></slot><slot name="actions"></slot></div>',
+        template: '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
         props: ['title', 'description', 'icon', 'variant']
+    }
+}));
+
+// Mock BusinessLogicError
+vi.mock('@/utils/api/BaseRepository', () => ({
+    BaseRepository: class MockBaseRepository {
+        constructor() {}
+    },
+    BusinessLogicError: class MockBusinessLogicError extends Error {
+        constructor(public error_code: string) {
+            super();
+        }
     }
 }));
 
@@ -190,7 +214,7 @@ describe('ProjectsList', () => {
             }
         });
 
-        // Set data directly
+        // Set data directly with correct enum values
         wrapper.vm.orgMetaData = {
             projects: [
                 {
@@ -219,7 +243,7 @@ describe('ProjectsList', () => {
             }
         });
 
-        // Set data directly
+        // Set data directly with correct enum values
         wrapper.vm.orgMetaData = {
             projects: [
                 {
@@ -272,12 +296,14 @@ describe('ProjectsList', () => {
             }
         });
 
+        // Set state that shows integrations InfoCard
         wrapper.vm.orgMetaData = {
             id: 'test-org',
             projects: [],
-            integrations: []
+            integrations: [] // Empty integrations triggers the InfoCard
         };
         wrapper.vm.orgMetaDataLoading = false;
+        wrapper.vm.orgMetaDataError = false;
 
         await wrapper.vm.$nextTick();
 
@@ -295,12 +321,14 @@ describe('ProjectsList', () => {
             }
         });
 
+        // Set state that shows projects InfoCard (projects empty but integrations exist)
         wrapper.vm.orgMetaData = {
             id: 'test-org',
-            projects: [],
-            integrations: [{ id: 'integration-1' }]
+            projects: [], // Empty projects triggers the InfoCard
+            integrations: [{ id: 'integration-1' }] // Has integrations so it shows projects card instead
         };
         wrapper.vm.orgMetaDataLoading = false;
+        wrapper.vm.orgMetaDataError = false;
 
         await wrapper.vm.$nextTick();
 

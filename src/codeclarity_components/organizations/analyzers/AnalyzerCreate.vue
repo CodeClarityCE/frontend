@@ -27,8 +27,8 @@ import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { retrieveWorkflowSteps, layoutNodes, createEdgesFromNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
-import AnalyzerNodeComponent from '@/components/flow/AnalyzerNode.vue';
-import ConfigNodeComponent from '@/components/flow/ConfigNode.vue';
+import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
+import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { Icon } from '@iconify/vue';
 

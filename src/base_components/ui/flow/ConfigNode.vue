@@ -48,7 +48,7 @@
             :id="data.configKey"
             type="source" 
             :position="Position.Right"
-            :style="{ backgroundColor: '#9ca3af' }"
+            :style="{ backgroundColor: 'white', border: '2px solid black', width: '16px', height: '16px' }"
         />
     </div>
 </template>

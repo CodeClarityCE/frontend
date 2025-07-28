@@ -6,7 +6,7 @@
             :id="dependency"
             type="target" 
             :position="Position.Left"
-            :style="{ top: `${20 + index * 20}px`, backgroundColor: getColor(dependency) }"
+            :style="{ top: `${20 + index * 20}px`, backgroundColor: 'white', border: '2px solid black', width: '16px', height: '16px' }"
         />
         
         
@@ -24,7 +24,7 @@
             :id="data.label"
             type="source" 
             :position="Position.Right"
-            :style="{ backgroundColor: getColor(data.label) }"
+            :style="{ backgroundColor: 'white', border: '2px solid black', width: '16px', height: '16px' }"
         />
     </div>
 </template>

@@ -5,7 +5,7 @@ import {
     Organization
 } from '@/codeclarity_components/organizations/organization.entity';
 import router from '@/router';
-import { onMounted, ref, type Ref } from 'vue';
+import { onMounted, onUnmounted, ref, computed, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
@@ -26,7 +26,7 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { createAnalyzerNodes, retrieveWorkflowSteps, layoutNodes, createEdgesFromNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
+import { retrieveWorkflowSteps, layoutNodes, createEdgesFromNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
 import AnalyzerNodeComponent from '@/components/flow/AnalyzerNode.vue';
 import ConfigNodeComponent from '@/components/flow/ConfigNode.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
@@ -55,7 +55,19 @@ const description: Ref<string> = ref('');
 const plugins: Ref<Array<Plugin>> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
-const { fitView } = useVueFlow();
+const selectedNodes: Ref<any[]> = ref([]);
+
+// Try to get VueFlow instance with selected nodes
+let vueFlowInstance: any = null;
+try {
+    const vueFlow = useVueFlow();
+    vueFlowInstance = vueFlow;
+    console.log('VueFlow instance:', vueFlow);
+} catch (error) {
+    console.log('Could not get VueFlow instance:', error);
+}
+
+const { fitView } = vueFlowInstance || { fitView: () => {} };
 
 // Form Validation
 const formValidationSchema = toTypedSchema(
@@ -141,21 +153,27 @@ const nodeTypes = {
 // Context menu for adding nodes
 const showContextMenu = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
-const availablePlugins = ref<Plugin[]>([]);
 
-function onPaneContextMenu(event: MouseEvent) {
-    event.preventDefault();
-    contextMenuPosition.value = { x: event.clientX, y: event.clientY };
-    
-    // Show only plugins not already in the graph
+// Computed property that dynamically shows available plugins
+const availablePlugins = computed(() => {
     const existingPluginNames = nodes.value
         .filter((n): n is AnalyzerNode => n.type === 'analyzer')
         .map(n => n.data.plugin.name);
     
-    availablePlugins.value = plugins.value.filter(
+    console.log('Computing available plugins. Current nodes:', existingPluginNames);
+    console.log('All plugins:', plugins.value.map(p => p.name));
+    
+    const available = plugins.value.filter(
         plugin => !existingPluginNames.includes(plugin.name) && !plugin.name.includes('notifier')
     );
     
+    console.log('Available plugins:', available.map(p => p.name));
+    return available;
+});
+
+function onPaneContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    contextMenuPosition.value = { x: event.clientX, y: event.clientY };
     showContextMenu.value = true;
 }
 
@@ -183,7 +201,9 @@ function addNodeToGraph(plugin: Plugin) {
             description: plugin.description
         },
         targetPosition: Position.Left,
-        sourcePosition: Position.Right
+        sourcePosition: Position.Right,
+        selectable: true,
+        deletable: true
     };
     
     console.log('Adding node:', newNode);
@@ -207,26 +227,190 @@ function closeContextMenu() {
     showContextMenu.value = false;
 }
 
-// Add delete functionality
-function onNodeContextMenu(event: MouseEvent, node: any) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Remove node and its edges
-    nodes.value = nodes.value.filter(n => n.id !== node.id);
-    edges.value = edges.value.filter(e => e.source !== node.id && e.target !== node.id);
-    
-    // Recreate edges for remaining nodes
-    const remainingNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
-    
-    if (remainingNodes.length > 0) {
-        edges.value = createEdgesFromNodes(remainingNodes);
-        nodes.value = layoutNodes(nodes.value);
-        setTimeout(() => {
-            fitView({ padding: 0.1 });
-        }, 100);
+// Handle keyboard delete
+function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+        event.preventDefault();
+        
+        console.log('Delete key pressed');
+        console.log('Our tracked selected nodes:', selectedNodes.value);
+        
+        // Try multiple ways to get selected nodes
+        let nodesToDelete: any[] = [];
+        
+        // Method 1: Our manual tracking
+        if (selectedNodes.value.length > 0) {
+            nodesToDelete = selectedNodes.value;
+            console.log('Using manually tracked nodes:', nodesToDelete.length);
+        }
+        
+        // Method 2: Try VueFlow instance
+        if (nodesToDelete.length === 0 && vueFlowInstance) {
+            try {
+                const vueFlowSelected = vueFlowInstance.getSelectedNodes?.value || vueFlowInstance.selectedNodes?.value || [];
+                if (vueFlowSelected.length > 0) {
+                    nodesToDelete = vueFlowSelected;
+                    console.log('Using VueFlow selected nodes:', nodesToDelete.length);
+                }
+            } catch (error) {
+                console.log('Could not get VueFlow selected nodes:', error);
+            }
+        }
+        
+        // Method 3: Check nodes array for selected property
+        if (nodesToDelete.length === 0) {
+            const selectedFromArray = nodes.value.filter((n: any) => n.selected === true);
+            if (selectedFromArray.length > 0) {
+                nodesToDelete = selectedFromArray;
+                console.log('Using nodes with selected=true:', nodesToDelete.length);
+            }
+        }
+        
+        console.log('Final nodes to delete:', nodesToDelete);
+        
+        if (nodesToDelete.length > 0) {
+            nodesToDelete.forEach(node => {
+                deleteNode(node);
+            });
+            selectedNodes.value = []; // Clear selection after deletion
+        } else {
+            console.log('No nodes selected for deletion by any method');
+        }
     }
 }
+
+// Handle selection changes
+function onSelectionChange(selection: any) {
+    try {
+        console.log('Selection change event:', selection);
+        const selectedNodesList = selection?.nodes || [];
+        selectedNodes.value = selectedNodesList;
+        console.log('Selection changed:', selectedNodesList.map((n: any) => n?.data?.plugin?.name || n?.id || 'unknown'));
+    } catch (error) {
+        console.error('Error in onSelectionChange:', error);
+        console.log('Selection object:', selection);
+    }
+}
+
+// Handle node clicks - Vue Flow uses single argument pattern
+function onNodeClick(eventData: any) {
+    try {
+        console.log('Node click event data:', eventData);
+        
+        // Vue Flow might pass { event, node } or just the node
+        let node = null;
+        
+        if (eventData.node) {
+            // Pattern: { event, node }
+            node = eventData.node;
+            console.log('Found node in .node property:', node);
+        } else if (eventData.data) {
+            // Pattern: node directly
+            node = eventData;
+            console.log('Event data is the node directly:', node);
+        } else if (eventData.id) {
+            // Pattern: node with id property
+            node = eventData;
+            console.log('Event data has id, treating as node:', node);
+        }
+        
+        if (node?.id) {
+            console.log('Processing node click:', node.data?.plugin?.name || node.id);
+            
+            // Manual selection tracking - clear all selections first
+            nodes.value.forEach((n: any) => {
+                if ('selected' in n) n.selected = false;
+            });
+            
+            // Find and select the clicked node
+            const foundNode = nodes.value.find(n => n.id === node.id) as any;
+            if (foundNode) {
+                foundNode.selected = true;
+                selectedNodes.value = [foundNode];
+                console.log('Manually selected node:', foundNode.type === 'analyzer' ? foundNode.data.plugin.name : foundNode.id);
+            } else {
+                console.log('Could not find node in nodes array');
+            }
+        } else {
+            console.log('No valid node found in event data');
+        }
+    } catch (error) {
+        console.error('Error in onNodeClick:', error);
+        console.log('Event data:', eventData);
+    }
+}
+
+function deleteNode(node: any) {
+    try {
+        console.log('Deleting node:', node?.data?.plugin?.name || 'unknown', 'ID:', node?.id);
+        console.log('Node object:', node);
+        console.log('Nodes before deletion:', nodes.value.length);
+        
+        if (!node?.id) {
+            console.error('Cannot delete node: missing ID');
+            return;
+        }
+        
+        // Remove node and its edges
+        const oldNodesLength = nodes.value.length;
+        nodes.value = nodes.value.filter(n => n.id !== node.id);
+        console.log('Nodes after deletion:', nodes.value.length, 'Removed:', oldNodesLength - nodes.value.length);
+        
+        edges.value = edges.value.filter(e => e.source !== node.id && e.target !== node.id);
+        
+        // Recreate edges for remaining nodes
+        const remainingNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
+        console.log('Remaining analyzer nodes:', remainingNodes.map(n => n?.data?.plugin?.name || 'unknown'));
+        
+        if (remainingNodes.length > 0) {
+            edges.value = createEdgesFromNodes(remainingNodes);
+            nodes.value = layoutNodes(nodes.value);
+            setTimeout(() => {
+                fitView({ padding: 0.1 });
+            }, 100);
+        }
+        
+        console.log('Node deleted successfully');
+    } catch (error) {
+        console.error('Error in deleteNode:', error);
+        console.log('Failed to delete node:', node);
+    }
+}
+
+// Right-click delete functionality  
+function onNodeContextMenu(event: any) {
+    try {
+        console.log('Node context menu event raw:', event);
+        const mouseEvent = event.event || event;
+        const node = event.node || (event.target ? event : null);
+        
+        if (mouseEvent?.preventDefault) {
+            mouseEvent.preventDefault();
+            mouseEvent.stopPropagation();
+        }
+        
+        console.log('Right-click on node:', node?.data?.plugin?.name || 'unknown');
+        
+        if (node) {
+            deleteNode(node);
+        } else {
+            console.error('No node found in context menu event');
+        }
+    } catch (error) {
+        console.error('Error in onNodeContextMenu:', error);
+        console.log('Context menu event:', event);
+    }
+}
+
+// Add keyboard event listener
+onMounted(() => {
+    document.addEventListener('keydown', handleKeyDown);
+});
+
+// Clean up event listener
+onUnmounted(() => {
+    document.removeEventListener('keydown', handleKeyDown);
+});
 
 </script>
 <template>
@@ -429,8 +613,12 @@ function onNodeContextMenu(event: MouseEvent, node: any) {
                                     :default-viewport="{ zoom: 0.8 }"
                                     :min-zoom="0.2"
                                     :max-zoom="4"
+                                    :nodes-selectable="true"
+                                    :multi-selection-key-code="['Control', 'Meta']"
                                     @pane-context-menu="onPaneContextMenu"
                                     @node-context-menu="onNodeContextMenu"
+                                    @selection-change="onSelectionChange"
+                                    @node-click="onNodeClick"
                                 >
                                     <Background pattern-color="#aaa" :gap="16" />
                                     <Controls />
@@ -583,7 +771,7 @@ function onNodeContextMenu(event: MouseEvent, node: any) {
                                         class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
                                     >
                                         <div class="text-xs text-theme-gray">
-                                            Right-click canvas to add • Right-click nodes to remove • Auto-connected by dependencies
+                                            Right-click canvas to add • Select & Delete key to remove • Auto-connected by dependencies
                                         </div>
                                     </div>
                                 </div>

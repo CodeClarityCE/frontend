@@ -11,6 +11,9 @@ export interface AnalyzerNode extends Node {
         version: string;
         description: string;
     };
+    selectable?: boolean;
+    deletable?: boolean;
+    selected?: boolean;
 }
 
 export interface ConfigNode extends Node {

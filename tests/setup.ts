@@ -30,6 +30,20 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }))
 
+// Mock process.env for reka-ui
+process.env.NODE_ENV = 'test'
+
+// Mock import.meta.env for Vite compatibility
+Object.defineProperty(global, 'import', {
+  value: {
+    meta: {
+      env: { MODE: 'test', DEV: false, PROD: false }
+    }
+  },
+  configurable: true
+})
+
+
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
@@ -56,6 +70,11 @@ Object.defineProperty(window, 'scrollTo', {
   writable: true,
   value: vi.fn(),
 })
+
+// Mock scrollIntoView on Element prototype
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView = vi.fn()
+}
 
 // Mock Web Animations API for auto-animate
 if (typeof Element !== 'undefined') {

@@ -524,110 +524,6 @@ onUnmounted(() => {
 
         <!-- Main Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Page Header -->
-            <InfoCard
-                title="Analyzer Configuration"
-                description="Build a custom analyzer workflow by configuring analysis steps and their dependencies"
-                icon="solar:chart-square-bold"
-                variant="primary"
-                class="mb-8 shadow-lg"
-            />
-
-            <!-- Quick Setup Instructions at Top -->
-            <InfoCard
-                title="Quick Setup"
-                description="Follow these steps to create your analyzer workflow"
-                icon="solar:magic-stick-bold"
-                variant="primary"
-                class="shadow-md mb-8"
-            >
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="bg-white border border-slate-200/60 rounded-lg p-4 shadow-sm">
-                        <div class="flex items-center gap-2 mb-3">
-                            <div
-                                class="w-5 h-5 bg-theme-primary rounded-full flex items-center justify-center"
-                            >
-                                <Icon icon="solar:list-check-bold" class="text-white text-xs" />
-                            </div>
-                            <h4 class="font-semibold text-theme-black">Steps to follow:</h4>
-                        </div>
-
-                        <ol class="space-y-2 text-sm">
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="flex-shrink-0 w-4 h-4 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
-                                    >1</span
-                                >
-                                <span class="text-theme-gray"
-                                    >Fill in analyzer name and description</span
-                                >
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="flex-shrink-0 w-4 h-4 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                                    >2</span
-                                >
-                                <span class="text-theme-gray">Right-click canvas → Add nodes</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="flex-shrink-0 w-4 h-4 bg-green-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                                    >3</span
-                                >
-                                <span class="text-theme-gray"
-                                    >Nodes auto-connect by dependencies</span
-                                >
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="flex-shrink-0 w-4 h-4 bg-purple-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                                    >4</span
-                                >
-                                <span class="text-theme-gray">Create analyzer when ready</span>
-                            </li>
-                        </ol>
-                    </div>
-
-                    <!-- Available Components -->
-                    <div class="bg-white border border-slate-200/60 rounded-lg p-4 shadow-sm">
-                        <div class="flex items-center gap-2 mb-3">
-                            <div
-                                class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
-                            >
-                                <Icon icon="solar:widget-bold" class="text-white text-xs" />
-                            </div>
-                            <h4 class="font-semibold text-theme-black">Available components:</h4>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <span
-                                class="inline-flex items-center gap-1 px-3 py-1 bg-theme-primary/10 border border-theme-primary/20 rounded-full text-xs text-theme-primary"
-                            >
-                                <Icon icon="solar:code-bold" class="w-3 h-3" />
-                                JS Analyzer
-                            </span>
-                            <span
-                                class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200 rounded-full text-xs text-green-600"
-                            >
-                                <Icon icon="solar:document-text-bold" class="w-3 h-3" />
-                                SBOM Generator
-                            </span>
-                            <span
-                                class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 border border-purple-200 rounded-full text-xs text-purple-600"
-                            >
-                                <Icon icon="solar:shield-search-bold" class="w-3 h-3" />
-                                Vuln Scanner
-                            </span>
-                            <span
-                                class="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 border border-orange-200 rounded-full text-xs text-orange-600"
-                            >
-                                <Icon icon="solar:file-check-bold" class="w-3 h-3" />
-                                License Check
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </InfoCard>
-
             <!-- Unified Analyzer Creation Card -->
             <InfoCard
                 title="Create Analyzer"
@@ -705,9 +601,7 @@ onUnmounted(() => {
                             </div>
                         </div>
 
-                        <div
-                            class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200/60 p-6 shadow-sm"
-                        >
+                        <div>
                             <div class="relative w-full h-[700px]">
                                 <VueFlow
                                     :nodes="nodes"
@@ -777,75 +671,6 @@ onUnmounted(() => {
                                     @click="closeContextMenu"
                                 ></div>
 
-                                <!-- Enhanced Status Bar -->
-                                <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                                    <div
-                                        class="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-slate-200/60"
-                                    >
-                                        <div class="flex items-center gap-2">
-                                            <div
-                                                class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                                            ></div>
-                                            <span class="text-xs font-medium text-theme-black"
-                                                >Workflow Active</span
-                                            >
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="bg-theme-primary/10 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-theme-primary/20"
-                                    >
-                                        <div class="flex items-center gap-2">
-                                            <Icon
-                                                icon="solar:diagram-up-bold"
-                                                class="w-3 h-3 text-theme-primary"
-                                            />
-                                            <span class="text-xs text-theme-primary"
-                                                >Right-click canvas to add nodes</span
-                                            >
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Quick Actions -->
-                                <div class="absolute top-4 right-4">
-                                    <div
-                                        class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
-                                    >
-                                        <div class="flex items-center gap-4">
-                                            <button
-                                                class="flex items-center gap-1 text-xs text-theme-gray hover:text-theme-primary transition-colors"
-                                            >
-                                                <Icon icon="solar:refresh-bold" class="w-3 h-3" />
-                                                Reset
-                                            </button>
-                                            <div class="w-px h-3 bg-slate-300/60"></div>
-                                            <button
-                                                class="flex items-center gap-1 text-xs text-theme-gray hover:text-theme-primary transition-colors"
-                                            >
-                                                <Icon icon="solar:maximize-bold" class="w-3 h-3" />
-                                                Auto-arrange
-                                            </button>
-                                            <div class="w-px h-3 bg-slate-300/60"></div>
-                                            <button
-                                                class="flex items-center gap-1 text-xs text-theme-gray hover:text-theme-primary transition-colors"
-                                            >
-                                                <Icon icon="solar:eye-bold" class="w-3 h-3" />
-                                                Zoom fit
-                                            </button>
-                                            <div class="w-px h-3 bg-slate-300/60"></div>
-                                            <button
-                                                class="flex items-center gap-1 text-xs text-theme-gray hover:text-theme-primary transition-colors"
-                                            >
-                                                <Icon
-                                                    icon="solar:save-floppy-disk-bold"
-                                                    class="w-3 h-3"
-                                                />
-                                                Save Layout
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <!-- Status Info -->
                                 <div class="absolute bottom-4 left-4 z-10">
                                     <div
@@ -875,13 +700,6 @@ onUnmounted(() => {
                                                 />
                                                 <span>{{ edges.length }} connections</span>
                                             </span>
-                                            <span class="flex items-center gap-1">
-                                                <Icon
-                                                    icon="solar:cpu-bolt-bold"
-                                                    class="w-3 h-3 text-green-600"
-                                                />
-                                                <span>Ready to build</span>
-                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -893,77 +711,9 @@ onUnmounted(() => {
                                     >
                                         <div class="text-xs text-theme-gray">
                                             Right-click canvas to add • Select & Delete key to
-                                            remove • Auto-connected by dependencies
+                                            remove
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Workflow Tips -->
-                            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-3">
-                                <div
-                                    class="bg-white rounded-lg p-3 border border-slate-200/60 shadow-sm"
-                                >
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <Icon
-                                            icon="solar:lightbulb-bold"
-                                            class="w-4 h-4 text-amber-500"
-                                        />
-                                        <span class="text-sm font-medium text-theme-black"
-                                            >Quick Start</span
-                                        >
-                                    </div>
-                                    <p class="text-xs text-theme-gray">
-                                        Begin with JS Analyzer for JavaScript projects
-                                    </p>
-                                </div>
-                                <div
-                                    class="bg-white rounded-lg p-3 border border-slate-200/60 shadow-sm"
-                                >
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <Icon
-                                            icon="solar:routing-bold"
-                                            class="w-4 h-4 text-theme-primary"
-                                        />
-                                        <span class="text-sm font-medium text-theme-black"
-                                            >Common Flow</span
-                                        >
-                                    </div>
-                                    <p class="text-xs text-theme-gray">
-                                        Analyzer → SBOM → Security Checks
-                                    </p>
-                                </div>
-                                <div
-                                    class="bg-white rounded-lg p-3 border border-slate-200/60 shadow-sm"
-                                >
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <Icon
-                                            icon="solar:settings-bold"
-                                            class="w-4 h-4 text-green-600"
-                                        />
-                                        <span class="text-sm font-medium text-theme-black"
-                                            >Configuration</span
-                                        >
-                                    </div>
-                                    <p class="text-xs text-theme-gray">
-                                        Double-click nodes to configure settings
-                                    </p>
-                                </div>
-                                <div
-                                    class="bg-white rounded-lg p-3 border border-slate-200/60 shadow-sm"
-                                >
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <Icon
-                                            icon="solar:rocket-bold"
-                                            class="w-4 h-4 text-purple-600"
-                                        />
-                                        <span class="text-sm font-medium text-theme-black"
-                                            >Best Practice</span
-                                        >
-                                    </div>
-                                    <p class="text-xs text-theme-gray">
-                                        Test workflows before deploying to production
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -971,20 +721,6 @@ onUnmounted(() => {
 
                     <!-- Security Note and Submit Buttons -->
                     <div class="space-y-4">
-                        <div
-                            class="flex items-start gap-2 p-3 bg-theme-primary/10 border border-theme-primary/20 rounded-lg"
-                        >
-                            <Icon
-                                icon="solar:shield-check-bold"
-                                class="text-theme-primary mt-0.5 flex-shrink-0"
-                            />
-                            <div class="text-xs text-theme-primary">
-                                <strong>Security Note:</strong> Your analyzer configuration is
-                                stored securely and will be used to create automated security
-                                analysis workflows.
-                            </div>
-                        </div>
-
                         <div class="flex justify-end space-x-3">
                             <button
                                 type="button"

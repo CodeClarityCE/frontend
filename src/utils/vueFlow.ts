@@ -108,6 +108,41 @@ export function createAnalyzerNodes(plugins: Plugin[]): { nodes: (AnalyzerNode |
     return { nodes, edges };
 }
 
+export function createEdgesFromNodes(analyzerNodes: AnalyzerNode[]): Edge[] {
+    const edges: Edge[] = [];
+    const nodeMap = new Map<string, string>();
+    
+    // Build node map
+    analyzerNodes.forEach(node => {
+        nodeMap.set(node.data.plugin.name, node.id);
+    });
+    
+    // Create dependency edges between analyzer nodes
+    analyzerNodes.forEach(node => {
+        const plugin = node.data.plugin;
+        const targetNodeId = node.id;
+        
+        plugin.depends_on.forEach((dependency, index) => {
+            const sourceNodeId = nodeMap.get(dependency);
+            if (sourceNodeId) {
+                edges.push({
+                    id: `edge-${sourceNodeId}-${targetNodeId}-${index}`,
+                    source: sourceNodeId,
+                    target: targetNodeId,
+                    style: { 
+                        stroke: '#008491', 
+                        strokeWidth: 3
+                    },
+                    type: 'smoothstep',
+                    animated: true
+                });
+            }
+        });
+    });
+    
+    return edges;
+}
+
 export function retrieveWorkflowSteps(nodes: (AnalyzerNode | ConfigNode)[], edges: Edge[]): any[][] {
     const analyzerNodes = nodes.filter((node): node is AnalyzerNode => node.type === 'analyzer');
     const dependencyMap = new Map<string, string[]>();

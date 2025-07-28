@@ -18,7 +18,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
+import { VueFlow, useVueFlow, Position, type Node, type Edge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
@@ -26,7 +26,7 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { createAnalyzerNodes, retrieveWorkflowSteps, layoutNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
+import { createAnalyzerNodes, retrieveWorkflowSteps, layoutNodes, createEdgesFromNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
 import AnalyzerNodeComponent from '@/components/flow/AnalyzerNode.vue';
 import ConfigNodeComponent from '@/components/flow/ConfigNode.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
@@ -120,13 +120,9 @@ async function init() {
             bearerToken: authStore.getToken
         });
         plugins.value = resp.data;
-        const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(plugins.value);
-        nodes.value = layoutNodes(flowNodes);
-        edges.value = flowEdges;
-        
-        setTimeout(() => {
-            fitView({ padding: 0.1 });
-        }, 100);
+        // Start with empty graph - user can add nodes via right-click
+        nodes.value = [];
+        edges.value = [];
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -141,6 +137,96 @@ const nodeTypes = {
     analyzer: AnalyzerNodeComponent,
     config: ConfigNodeComponent
 };
+
+// Context menu for adding nodes
+const showContextMenu = ref(false);
+const contextMenuPosition = ref({ x: 0, y: 0 });
+const availablePlugins = ref<Plugin[]>([]);
+
+function onPaneContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    contextMenuPosition.value = { x: event.clientX, y: event.clientY };
+    
+    // Show only plugins not already in the graph
+    const existingPluginNames = nodes.value
+        .filter((n): n is AnalyzerNode => n.type === 'analyzer')
+        .map(n => n.data.plugin.name);
+    
+    availablePlugins.value = plugins.value.filter(
+        plugin => !existingPluginNames.includes(plugin.name) && !plugin.name.includes('notifier')
+    );
+    
+    showContextMenu.value = true;
+}
+
+function addNodeToGraph(plugin: Plugin) {
+    const nodeId = `analyzer-${plugin.name}`;
+    
+    // Get canvas position relative to the flow
+    const flowElement = document.querySelector('.vue-flow');
+    const flowRect = flowElement?.getBoundingClientRect();
+    
+    const canvasX = flowRect ? contextMenuPosition.value.x - flowRect.left : 200;
+    const canvasY = flowRect ? contextMenuPosition.value.y - flowRect.top : 200;
+    
+    const newNode: AnalyzerNode = {
+        id: nodeId,
+        type: 'analyzer',
+        position: { 
+            x: canvasX, 
+            y: canvasY 
+        },
+        data: {
+            label: plugin.name,
+            plugin,
+            version: plugin.version,
+            description: plugin.description
+        },
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right
+    };
+    
+    console.log('Adding node:', newNode);
+    nodes.value.push(newNode);
+    
+    // Create edges and re-layout
+    const currentNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
+    console.log('Current nodes after add:', currentNodes.map(n => n.data.plugin.name));
+    
+    edges.value = createEdgesFromNodes(currentNodes);
+    nodes.value = layoutNodes(nodes.value);
+    
+    setTimeout(() => {
+        fitView({ padding: 0.1 });
+    }, 100);
+    
+    showContextMenu.value = false;
+}
+
+function closeContextMenu() {
+    showContextMenu.value = false;
+}
+
+// Add delete functionality
+function onNodeContextMenu(event: MouseEvent, node: any) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Remove node and its edges
+    nodes.value = nodes.value.filter(n => n.id !== node.id);
+    edges.value = edges.value.filter(e => e.source !== node.id && e.target !== node.id);
+    
+    // Recreate edges for remaining nodes
+    const remainingNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
+    
+    if (remainingNodes.length > 0) {
+        edges.value = createEdgesFromNodes(remainingNodes);
+        nodes.value = layoutNodes(nodes.value);
+        setTimeout(() => {
+            fitView({ padding: 0.1 });
+        }, 100);
+    }
+}
 
 </script>
 <template>
@@ -343,11 +429,51 @@ const nodeTypes = {
                                     :default-viewport="{ zoom: 0.8 }"
                                     :min-zoom="0.2"
                                     :max-zoom="4"
+                                    @pane-context-menu="onPaneContextMenu"
+                                    @node-context-menu="onNodeContextMenu"
                                 >
                                     <Background pattern-color="#aaa" :gap="16" />
                                     <Controls />
                                     <MiniMap />
                                 </VueFlow>
+                                
+                                <!-- Context Menu -->
+                                <div 
+                                    v-if="showContextMenu"
+                                    class="fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
+                                    :style="{ 
+                                        left: contextMenuPosition.x + 'px', 
+                                        top: contextMenuPosition.y + 'px' 
+                                    }"
+                                >
+                                    <div class="px-3 py-2 text-sm font-medium text-gray-700 border-b">
+                                        Add Plugin
+                                    </div>
+                                    <div class="max-h-48 overflow-y-auto">
+                                        <button
+                                            v-for="plugin in availablePlugins"
+                                            :key="plugin.name"
+                                            @click="addNodeToGraph(plugin)"
+                                            class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                                        >
+                                            <Icon icon="solar:cpu-bolt-bold" class="w-4 h-4 text-teal-600" />
+                                            <div>
+                                                <div class="font-medium">{{ plugin.name }}</div>
+                                                <div class="text-xs text-gray-500 truncate">{{ plugin.description }}</div>
+                                            </div>
+                                        </button>
+                                        <div v-if="availablePlugins.length === 0" class="px-3 py-2 text-sm text-gray-500">
+                                            All plugins already added
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Backdrop to close context menu -->
+                                <div 
+                                    v-if="showContextMenu"
+                                    class="fixed inset-0 z-40"
+                                    @click="closeContextMenu"
+                                ></div>
 
                                 <!-- Enhanced Status Bar -->
                                 <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
@@ -372,7 +498,7 @@ const nodeTypes = {
                                                 class="w-3 h-3 text-theme-primary"
                                             />
                                             <span class="text-xs text-theme-primary"
-                                                >Drag nodes to arrange workflow</span
+                                                >Right-click canvas to add nodes</span
                                             >
                                         </div>
                                     </div>
@@ -457,8 +583,7 @@ const nodeTypes = {
                                         class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
                                     >
                                         <div class="text-xs text-theme-gray">
-                                            Drag nodes to arrange • Auto-connected by dependencies •
-                                            Edit config values in gray nodes
+                                            Right-click canvas to add • Right-click nodes to remove • Auto-connected by dependencies
                                         </div>
                                     </div>
                                 </div>

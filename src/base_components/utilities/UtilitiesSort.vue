@@ -41,7 +41,7 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                 <Select
                     v-bind="pageLimitSelected.toString"
                     @update:model-value="
-                        (e) => {
+                        (e: string) => {
                             pageLimitSelected = parseInt(e as string);
                         }
                     "

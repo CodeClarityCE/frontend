@@ -176,7 +176,7 @@ function toggleFilter(filterType: string) {
                         <DropdownMenuCheckboxItem
                             v-for="column in table
                                 .getAllColumns()
-                                .filter((column) => column.getCanHide())"
+                                .filter((column: any) => column.getCanHide())"
                             :key="column.id"
                             class="capitalize"
                             :checked="column.getIsVisible()"

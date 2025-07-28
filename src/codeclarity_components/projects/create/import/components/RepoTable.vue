@@ -360,7 +360,7 @@ defineExpose({
                     <div
                         v-if="
                             repos &&
-                            repos.filter((repo) =>
+                            repos.filter((repo: any) =>
                                 activeFilters.includes('only_non_imported')
                                     ? !repo.imported_already
                                     : true
@@ -385,7 +385,7 @@ defineExpose({
                     <div
                         v-else-if="
                             repos &&
-                            repos.filter((repo) =>
+                            repos.filter((repo: any) =>
                                 activeFilters.includes('only_non_imported')
                                     ? !repo.imported_already
                                     : true
@@ -406,7 +406,7 @@ defineExpose({
                                 </div>
                                 <div class="text-gray-600 text-xs mt-1">
                                     {{
-                                        repos?.filter((repo) =>
+                                        repos?.filter((repo: any) =>
                                             activeFilters.includes('only_non_imported')
                                                 ? !repo.imported_already
                                                 : true
@@ -472,7 +472,7 @@ defineExpose({
                                     class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150"
                                     :class="{
                                         'bg-blue-50/30 border-blue-200': selectedRepos
-                                            .map((x) => x.id)
+                                            .map((x: any) => x.id)
                                             .includes(repo.id)
                                     }"
                                 >
@@ -480,7 +480,9 @@ defineExpose({
                                         <input
                                             type="checkbox"
                                             :checked="
-                                                selectedRepos.map((x) => x.id).includes(repo.id)
+                                                selectedRepos
+                                                    .map((x: any) => x.id)
+                                                    .includes(repo.id)
                                             "
                                             class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                                             @click="selectRepo(repo)"

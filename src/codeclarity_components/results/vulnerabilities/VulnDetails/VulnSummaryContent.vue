@@ -229,7 +229,7 @@ defineProps<{
                                                     <span
                                                         >{{
                                                             finding.common_consequences[weakness.id]
-                                                                .map((conseq) =>
+                                                                .map((conseq: any) =>
                                                                     conseq.impact.join(', ')
                                                                 )
                                                                 .join('; ')

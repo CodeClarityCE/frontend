@@ -104,7 +104,7 @@ fetchPolicies();
 
                     <StatCard
                         label="License Types"
-                        :value="new Set(licensePolicies.flatMap((p) => p.content || [])).size"
+                        :value="new Set(licensePolicies.flatMap((p: any) => p.content || [])).size"
                         icon="solar:document-text-bold"
                         variant="primary"
                         subtitle="Unique licenses"

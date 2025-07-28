@@ -132,9 +132,76 @@ async function init() {
             bearerToken: authStore.getToken
         });
         plugins.value = resp.data;
-        // Start with empty graph - user can add nodes via right-click
-        nodes.value = [];
-        edges.value = [];
+        
+        // Start with SBOM and vulnerability plugins by default
+        const defaultNodes: AnalyzerNode[] = [];
+        
+        // Add SBOM plugin
+        const sbomPlugin = plugins.value.find(p => p.name.includes('sbom') || p.name.includes('js-sbom'));
+        if (sbomPlugin) {
+            const sbomNodeId = `analyzer-${sbomPlugin.name}`;
+            const sbomNode: AnalyzerNode = {
+                id: sbomNodeId,
+                type: 'analyzer',
+                position: { x: 0, y: 0 }, // Will be positioned by layoutNodes
+                data: {
+                    label: sbomPlugin.name,
+                    plugin: sbomPlugin,
+                    version: sbomPlugin.version,
+                    description: sbomPlugin.description
+                },
+                targetPosition: Position.Left,
+                sourcePosition: Position.Right,
+                selectable: true,
+                deletable: true
+            };
+            defaultNodes.push(sbomNode);
+            console.log('Added SBOM plugin by default:', sbomPlugin.name);
+        }
+        
+        // Add vulnerability plugin
+        const vulnPlugin = plugins.value.find(p => 
+            p.name.includes('vuln') || 
+            p.name.includes('vulnerability') || 
+            p.name.includes('js-vuln-finder')
+        );
+        if (vulnPlugin) {
+            const vulnNodeId = `analyzer-${vulnPlugin.name}`;
+            const vulnNode: AnalyzerNode = {
+                id: vulnNodeId,
+                type: 'analyzer',
+                position: { x: 0, y: 0 }, // Will be positioned by layoutNodes
+                data: {
+                    label: vulnPlugin.name,
+                    plugin: vulnPlugin,
+                    version: vulnPlugin.version,
+                    description: vulnPlugin.description
+                },
+                targetPosition: Position.Left,
+                sourcePosition: Position.Right,
+                selectable: true,
+                deletable: true
+            };
+            defaultNodes.push(vulnNode);
+            console.log('Added vulnerability plugin by default:', vulnPlugin.name);
+        }
+        
+        if (defaultNodes.length > 0) {
+            nodes.value = defaultNodes;
+            edges.value = createEdgesFromNodes(defaultNodes);
+            nodes.value = layoutNodes(nodes.value);
+            
+            setTimeout(() => {
+                fitView({ padding: 0.1 });
+            }, 100);
+            
+            console.log('Added default plugins:', defaultNodes.map(n => n.data.plugin.name));
+        } else {
+            // Start with empty graph if no default plugins found
+            nodes.value = [];
+            edges.value = [];
+            console.log('No default plugins found, starting with empty graph');
+        }
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {

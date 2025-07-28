@@ -262,9 +262,54 @@ function onPaneContextMenu(event: MouseEvent) {
 }
 
 function addNodeToGraph(plugin: Plugin) {
+    // First, recursively add all dependencies
+    addPluginWithDependencies(plugin);
+
+    // Create edges and re-layout
+    const currentNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
+    console.log(
+        'Current nodes after add:',
+        currentNodes.map((n) => n.data.plugin.name)
+    );
+
+    edges.value = createEdgesFromNodes(currentNodes);
+    nodes.value = layoutNodes(nodes.value);
+
+    setTimeout(() => {
+        fitView({ padding: 0.1 });
+    }, 100);
+
+    showContextMenu.value = false;
+}
+
+function addPluginWithDependencies(plugin: Plugin, processedPlugins = new Set<string>()) {
+    // Avoid circular dependencies
+    if (processedPlugins.has(plugin.name)) {
+        return;
+    }
+    processedPlugins.add(plugin.name);
+
+    // Check if plugin is already added
+    const existingPluginNames = nodes.value
+        .filter((n): n is AnalyzerNode => n.type === 'analyzer')
+        .map((n) => n.data.plugin.name);
+
+    if (existingPluginNames.includes(plugin.name)) {
+        return;
+    }
+
+    // First, add all dependencies recursively
+    plugin.depends_on.forEach((dependencyName) => {
+        const dependencyPlugin = plugins.value.find((p) => p.name === dependencyName);
+        if (dependencyPlugin) {
+            addPluginWithDependencies(dependencyPlugin, new Set(processedPlugins));
+        }
+    });
+
+    // Then add the plugin itself
     const nodeId = `analyzer-${plugin.name}`;
 
-    // Get canvas position relative to the flow
+    // Get canvas position relative to the flow (only for the main plugin, dependencies will be layouted)
     const flowElement = document.querySelector('.vue-flow');
     const flowRect = flowElement?.getBoundingClientRect();
 
@@ -292,22 +337,6 @@ function addNodeToGraph(plugin: Plugin) {
 
     console.log('Adding node:', newNode);
     nodes.value.push(newNode);
-
-    // Create edges and re-layout
-    const currentNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
-    console.log(
-        'Current nodes after add:',
-        currentNodes.map((n) => n.data.plugin.name)
-    );
-
-    edges.value = createEdgesFromNodes(currentNodes);
-    nodes.value = layoutNodes(nodes.value);
-
-    setTimeout(() => {
-        fitView({ padding: 0.1 });
-    }, 100);
-
-    showContextMenu.value = false;
 }
 
 function closeContextMenu() {
@@ -635,7 +664,10 @@ onUnmounted(() => {
                                         class="px-4 py-3 text-sm font-semibold text-theme-black border-b border-slate-200/60 bg-slate-50/50"
                                     >
                                         <div class="flex items-center gap-2">
-                                            <Icon icon="solar:add-circle-bold" class="w-4 h-4 text-theme-primary" />
+                                            <Icon
+                                                icon="solar:add-circle-bold"
+                                                class="w-4 h-4 text-theme-primary"
+                                            />
                                             Add Plugin
                                         </div>
                                     </div>
@@ -646,15 +678,23 @@ onUnmounted(() => {
                                             class="w-full px-4 py-3 text-left text-sm hover:bg-theme-primary/5 hover:border-l-4 hover:border-l-theme-primary flex items-center gap-3 transition-all duration-200 border-l-4 border-l-transparent group"
                                             @click="addNodeToGraph(plugin)"
                                         >
-                                            <div class="flex-shrink-0 w-8 h-8 bg-theme-primary/10 rounded-lg flex items-center justify-center group-hover:bg-theme-primary/20 transition-colors duration-200">
+                                            <div
+                                                class="flex-shrink-0 w-8 h-8 bg-theme-primary/10 rounded-lg flex items-center justify-center group-hover:bg-theme-primary/20 transition-colors duration-200"
+                                            >
                                                 <Icon
                                                     icon="solar:cpu-bolt-bold"
                                                     class="w-4 h-4 text-theme-primary"
                                                 />
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <div class="font-semibold text-theme-black group-hover:text-theme-primary transition-colors duration-200">{{ plugin.name }}</div>
-                                                <div class="text-xs text-theme-gray truncate mt-0.5">
+                                                <div
+                                                    class="font-semibold text-theme-black group-hover:text-theme-primary transition-colors duration-200"
+                                                >
+                                                    {{ plugin.name }}
+                                                </div>
+                                                <div
+                                                    class="text-xs text-theme-gray truncate mt-0.5"
+                                                >
                                                     {{ plugin.description }}
                                                 </div>
                                             </div>
@@ -663,7 +703,10 @@ onUnmounted(() => {
                                             v-if="availablePlugins.length === 0"
                                             class="px-4 py-6 text-sm text-theme-gray text-center"
                                         >
-                                            <Icon icon="solar:box-bold" class="w-8 h-8 text-theme-gray/50 mx-auto mb-2" />
+                                            <Icon
+                                                icon="solar:box-bold"
+                                                class="w-8 h-8 text-theme-gray/50 mx-auto mb-2"
+                                            />
                                             <div>All plugins already added</div>
                                         </div>
                                     </div>

@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import AnalyzerFormFields from './shared/AnalyzerFormFields.vue';
+import WorkflowDesigner from './shared/WorkflowDesigner.vue';
+import { analyzerValidationSchema } from './shared/analyzerValidation';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
@@ -13,17 +16,9 @@ import { AnalyzerRepository } from '@/codeclarity_components/organizations/analy
 import { PluginRepository } from '@/codeclarity_components/organizations/analyzers/PluginRepository';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { Form } from 'vee-validate';
-import * as z from 'zod';
-import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
-import FormTextField from '@/base_components/forms/FormTextField.vue';
-import { VueFlow, useVueFlow, type Edge } from '@vue-flow/core';
-import { Background } from '@vue-flow/background';
-import { Controls } from '@vue-flow/controls';
-import { MiniMap } from '@vue-flow/minimap';
-import '@vue-flow/core/dist/style.css';
-import '@vue-flow/core/dist/theme-default.css';
+import type { Edge } from '@vue-flow/core';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import {
@@ -33,8 +28,6 @@ import {
     type AnalyzerNode,
     type ConfigNode
 } from '@/utils/vueFlow';
-import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
-import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 
 const analyzer_id: Ref<string> = ref('');
 const orgId: Ref<string> = ref('');
@@ -60,15 +53,8 @@ const description: Ref<string> = ref('');
 const plugins: Ref<Array<Plugin>> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
-const { fitView } = useVueFlow();
-
 // Form Validation
-const formValidationSchema = toTypedSchema(
-    z.object({
-        name: z.string().min(5, 'Please enter a name (minimum 5 characters)'),
-        description: z.string().min(10, 'Please enter a description (minimum 10 characters)')
-    })
-);
+const formValidationSchema = analyzerValidationSchema;
 
 function setOrgInfo(_orgInfo: Organization) {
     orgInfo.value = _orgInfo;
@@ -124,10 +110,6 @@ async function init() {
         const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(plugins.value);
         nodes.value = layoutNodes(flowNodes);
         edges.value = flowEdges;
-
-        setTimeout(() => {
-            fitView({ padding: 0.1 });
-        }, 100);
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -153,11 +135,6 @@ async function init() {
 }
 
 init();
-
-const nodeTypes = {
-    analyzer: AnalyzerNodeComponent,
-    config: ConfigNodeComponent
-};
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">
@@ -170,41 +147,14 @@ const nodeTypes = {
                 :validation-schema="formValidationSchema"
                 @submit="submit"
             >
-                <FormTextField
-                    v-model="name"
-                    :placeholder="'Enter a name'"
-                    :type="'text'"
-                    :name="'name'"
-                >
-                    <template #name>Name</template>
-                </FormTextField>
+                <AnalyzerFormFields v-model:name="name" v-model:description="description" />
 
-                <FormTextField
-                    v-model="description"
-                    :placeholder="'Enter a description'"
-                    :type="'text'"
-                    :name="'description'"
-                >
-                    <template #name>Description</template>
-                </FormTextField>
-
-                <div class="flex justify-center">
-                    <div class="w-full h-[500px] rounded-lg border-2 border-slate-300/60">
-                        <VueFlow
-                            :nodes="nodes"
-                            :edges="edges"
-                            :node-types="nodeTypes"
-                            class="w-full h-full rounded-lg bg-white"
-                            :default-viewport="{ zoom: 0.8 }"
-                            :min-zoom="0.2"
-                            :max-zoom="4"
-                        >
-                            <Background pattern-color="#aaa" :gap="16" />
-                            <Controls />
-                            <MiniMap />
-                        </VueFlow>
-                    </div>
-                </div>
+                <WorkflowDesigner
+                    v-model:nodes="nodes"
+                    v-model:edges="edges"
+                    :plugins="plugins"
+                    :readonly="true"
+                />
 
                 <LoadingSubmitButton ref="loadingButtonRef">
                     <span>Create</span>

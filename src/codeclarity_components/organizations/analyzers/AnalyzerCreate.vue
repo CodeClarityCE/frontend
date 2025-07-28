@@ -21,7 +21,6 @@ import FormTextField from '@/base_components/forms/FormTextField.vue';
 import { VueFlow, useVueFlow, Position, type Edge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
-import { MiniMap } from '@vue-flow/minimap';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
@@ -620,46 +619,52 @@ onUnmounted(() => {
                                 >
                                     <Background pattern-color="#aaa" :gap="16" />
                                     <Controls />
-                                    <MiniMap />
+                                    <!-- <MiniMap /> -->
                                 </VueFlow>
 
                                 <!-- Context Menu -->
                                 <div
                                     v-if="showContextMenu"
-                                    class="fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
+                                    class="fixed bg-white/95 backdrop-blur-md border border-slate-200/60 rounded-xl shadow-2xl shadow-slate-900/10 py-1 z-50 min-w-[280px]"
                                     :style="{
                                         left: contextMenuPosition.x + 'px',
                                         top: contextMenuPosition.y + 'px'
                                     }"
                                 >
                                     <div
-                                        class="px-3 py-2 text-sm font-medium text-gray-700 border-b"
+                                        class="px-4 py-3 text-sm font-semibold text-theme-black border-b border-slate-200/60 bg-slate-50/50"
                                     >
-                                        Add Plugin
+                                        <div class="flex items-center gap-2">
+                                            <Icon icon="solar:add-circle-bold" class="w-4 h-4 text-theme-primary" />
+                                            Add Plugin
+                                        </div>
                                     </div>
-                                    <div class="max-h-48 overflow-y-auto">
+                                    <div class="max-h-48 overflow-y-auto py-1">
                                         <button
                                             v-for="plugin in availablePlugins"
                                             :key="plugin.name"
-                                            class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                                            class="w-full px-4 py-3 text-left text-sm hover:bg-theme-primary/5 hover:border-l-4 hover:border-l-theme-primary flex items-center gap-3 transition-all duration-200 border-l-4 border-l-transparent group"
                                             @click="addNodeToGraph(plugin)"
                                         >
-                                            <Icon
-                                                icon="solar:cpu-bolt-bold"
-                                                class="w-4 h-4 text-teal-600"
-                                            />
-                                            <div>
-                                                <div class="font-medium">{{ plugin.name }}</div>
-                                                <div class="text-xs text-gray-500 truncate">
+                                            <div class="flex-shrink-0 w-8 h-8 bg-theme-primary/10 rounded-lg flex items-center justify-center group-hover:bg-theme-primary/20 transition-colors duration-200">
+                                                <Icon
+                                                    icon="solar:cpu-bolt-bold"
+                                                    class="w-4 h-4 text-theme-primary"
+                                                />
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-semibold text-theme-black group-hover:text-theme-primary transition-colors duration-200">{{ plugin.name }}</div>
+                                                <div class="text-xs text-theme-gray truncate mt-0.5">
                                                     {{ plugin.description }}
                                                 </div>
                                             </div>
                                         </button>
                                         <div
                                             v-if="availablePlugins.length === 0"
-                                            class="px-3 py-2 text-sm text-gray-500"
+                                            class="px-4 py-6 text-sm text-theme-gray text-center"
                                         >
-                                            All plugins already added
+                                            <Icon icon="solar:box-bold" class="w-8 h-8 text-theme-gray/50 mx-auto mb-2" />
+                                            <div>All plugins already added</div>
                                         </div>
                                     </div>
                                 </div>
@@ -752,120 +757,6 @@ onUnmounted(() => {
                     </div>
                 </Form>
             </InfoCard>
-
-            <!-- Bottom Section - Examples and Advanced Tips -->
-            <div class="grid lg:grid-cols-2 gap-8 mt-8">
-                <!-- Example Workflow -->
-                <InfoCard
-                    title="Example Workflow"
-                    description="A typical security analysis pipeline"
-                    icon="solar:flow-bold"
-                    variant="default"
-                    class="shadow-sm"
-                >
-                    <div class="space-y-4">
-                        <div
-                            class="flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200"
-                        >
-                            <div
-                                class="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
-                            >
-                                <Icon icon="solar:arrow-right-bold" class="text-white text-sm" />
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-theme-black mb-1">
-                                    Recommended Flow
-                                </h4>
-                                <p class="text-sm text-theme-gray">
-                                    JS Analyzer → SBOM Generator → License Checker + Vulnerability
-                                    Scanner → Patching
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-slate-200/60 rounded-lg p-4">
-                            <h5 class="font-medium text-theme-black mb-2">Why this works:</h5>
-                            <ul class="space-y-2 text-sm text-theme-gray">
-                                <li class="flex items-start gap-2">
-                                    <Icon
-                                        icon="solar:check-circle-bold"
-                                        class="text-green-500 mt-0.5 flex-shrink-0"
-                                    />
-                                    <span>JS Analyzer identifies all JavaScript dependencies</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <Icon
-                                        icon="solar:check-circle-bold"
-                                        class="text-green-500 mt-0.5 flex-shrink-0"
-                                    />
-                                    <span>SBOM Generator creates a complete bill of materials</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <Icon
-                                        icon="solar:check-circle-bold"
-                                        class="text-green-500 mt-0.5 flex-shrink-0"
-                                    />
-                                    <span
-                                        >Parallel license and vulnerability checking for
-                                        efficiency</span
-                                    >
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <Icon
-                                        icon="solar:check-circle-bold"
-                                        class="text-green-500 mt-0.5 flex-shrink-0"
-                                    />
-                                    <span
-                                        >Automatic patching recommendations based on findings</span
-                                    >
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </InfoCard>
-
-                <!-- Advanced Configuration -->
-                <InfoCard
-                    title="Advanced Configuration"
-                    description="Tips for complex analyzer setups"
-                    icon="solar:settings-minimalistic-bold"
-                    variant="default"
-                    class="shadow-sm"
-                >
-                    <div class="space-y-4">
-                        <div
-                            class="flex items-start gap-3 p-4 bg-orange-50 rounded-lg border border-orange-200"
-                        >
-                            <div
-                                class="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center"
-                            >
-                                <Icon icon="solar:settings-bold" class="text-white text-sm" />
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-theme-black mb-1">
-                                    Custom Workflows
-                                </h4>
-                                <p class="text-sm text-theme-gray">
-                                    Create specialized analysis pipelines for different project
-                                    types and security requirements.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-3">
-                            <div class="text-sm">
-                                <h5 class="font-medium text-theme-black mb-2">Pro Tips:</h5>
-                                <ul class="space-y-1 text-theme-gray pl-4">
-                                    <li>• Use multiple analyzers for polyglot projects</li>
-                                    <li>• Parallel processing for independent checks</li>
-                                    <li>• Connect outputs to inputs for data flow</li>
-                                    <li>• Test your workflow before deployment</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </InfoCard>
-            </div>
         </div>
     </div>
 </template>

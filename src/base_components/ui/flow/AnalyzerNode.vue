@@ -49,7 +49,7 @@ defineProps<Props>()
 
 <style scoped>
 .analyzer-node {
-    @apply relative bg-[#008491] text-white border border-[#006d75] rounded-lg p-4 shadow-lg;
+    @apply relative bg-black text-white border border-gray-700 rounded-lg p-4 shadow-lg;
     min-width: 280px;
     max-width: 320px;
 }

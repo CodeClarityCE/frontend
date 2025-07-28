@@ -69,9 +69,9 @@ export function createAnalyzerNodes(plugins: Plugin[]): { nodes: (AnalyzerNode |
             targetPosition: Position.Left,
             sourcePosition: Position.Right,
             style: {
-                backgroundColor: '#008491',
+                backgroundColor: 'black',
                 color: 'white',
-                border: '1px solid #006d75',
+                border: '1px solid #374151',
                 borderRadius: '8px',
                 padding: '10px',
                 minWidth: '150px'
@@ -98,7 +98,7 @@ export function createAnalyzerNodes(plugins: Plugin[]): { nodes: (AnalyzerNode |
                     source: sourceNodeId,
                     target: targetNodeId,
                     style: { 
-                        stroke: '#008491', 
+                        stroke: 'black', 
                         strokeWidth: 3
                     },
                     type: 'smoothstep',
@@ -133,7 +133,7 @@ export function createEdgesFromNodes(analyzerNodes: AnalyzerNode[]): Edge[] {
                     source: sourceNodeId,
                     target: targetNodeId,
                     style: { 
-                        stroke: '#008491', 
+                        stroke: 'black', 
                         strokeWidth: 3
                     },
                     type: 'smoothstep',

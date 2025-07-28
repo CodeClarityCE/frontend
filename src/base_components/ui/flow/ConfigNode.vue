@@ -87,10 +87,10 @@ defineProps<Props>()
 }
 
 .config-input {
-    @apply w-full text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500;
+    @apply w-full text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-black focus:border-black;
 }
 
 .config-input:focus {
-    @apply border-blue-500 ring-1 ring-blue-500;
+    @apply border-black ring-1 ring-black;
 }
 </style>

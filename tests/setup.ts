@@ -301,3 +301,41 @@ vi.mock('@/router', () => ({
     currentRoute: { value: { params: {}, query: {} } }
   }
 }))
+
+// Mock @vueuse/core
+vi.mock('@vueuse/core', () => ({
+  useCurrentElement: () => ({ value: null }),
+  useElementSize: () => ({ width: 0, height: 0 }),
+  useResizeObserver: vi.fn(),
+  useIntersectionObserver: vi.fn(),
+  useEventListener: vi.fn(),
+  useDebounceFn: vi.fn(),
+  useThrottleFn: vi.fn(),
+  useLocalStorage: vi.fn(() => ({ value: null })),
+  useSessionStorage: vi.fn(() => ({ value: null })),
+  useToggle: vi.fn(() => [false, vi.fn()]),
+  useVModel: vi.fn(),
+  watchEffect: vi.fn(),
+  watch: vi.fn(),
+  computed: vi.fn(),
+  ref: vi.fn(),
+  reactive: vi.fn()
+}))
+
+// Mock lucide-vue-next icons
+vi.mock('lucide-vue-next', () => ({
+  Search: { name: 'Search', template: '<svg data-testid="search-icon"><path/></svg>' },
+  User: { name: 'User', template: '<svg data-testid="user-icon"><path/></svg>' },
+  Settings: { name: 'Settings', template: '<svg data-testid="settings-icon"><path/></svg>' },
+  ChevronDown: { name: 'ChevronDown', template: '<svg data-testid="chevron-down-icon"><path/></svg>' },
+  Plus: { name: 'Plus', template: '<svg data-testid="plus-icon"><path/></svg>' },
+  X: { name: 'X', template: '<svg data-testid="x-icon"><path/></svg>' },
+  Menu: { name: 'Menu', template: '<svg data-testid="menu-icon"><path/></svg>' },
+  Home: { name: 'Home', template: '<svg data-testid="home-icon"><path/></svg>' },
+  LogOut: { name: 'LogOut', template: '<svg data-testid="logout-icon"><path/></svg>' },
+  Bell: { name: 'Bell', template: '<svg data-testid="bell-icon"><path/></svg>' },
+  Check: { name: 'Check', template: '<svg data-testid="check-icon"><path/></svg>' },
+  AlertTriangle: { name: 'AlertTriangle', template: '<svg data-testid="alert-triangle-icon"><path/></svg>' },
+  Info: { name: 'Info', template: '<svg data-testid="info-icon"><path/></svg>' },
+  ExternalLink: { name: 'ExternalLink', template: '<svg data-testid="external-link-icon"><path/></svg>' }
+}))

@@ -18,7 +18,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import { VueFlow, useVueFlow, Position, type Node, type Edge } from '@vue-flow/core';
+import { VueFlow, useVueFlow, Position, type Edge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
@@ -26,7 +26,13 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { retrieveWorkflowSteps, layoutNodes, createEdgesFromNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
+import {
+    retrieveWorkflowSteps,
+    layoutNodes,
+    createEdgesFromNodes,
+    type AnalyzerNode,
+    type ConfigNode
+} from '@/utils/vueFlow';
 import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
 import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
@@ -132,12 +138,14 @@ async function init() {
             bearerToken: authStore.getToken
         });
         plugins.value = resp.data;
-        
+
         // Start with SBOM and vulnerability plugins by default
         const defaultNodes: AnalyzerNode[] = [];
-        
+
         // Add SBOM plugin
-        const sbomPlugin = plugins.value.find(p => p.name.includes('sbom') || p.name.includes('js-sbom'));
+        const sbomPlugin = plugins.value.find(
+            (p) => p.name.includes('sbom') || p.name.includes('js-sbom')
+        );
         if (sbomPlugin) {
             const sbomNodeId = `analyzer-${sbomPlugin.name}`;
             const sbomNode: AnalyzerNode = {
@@ -158,12 +166,13 @@ async function init() {
             defaultNodes.push(sbomNode);
             console.log('Added SBOM plugin by default:', sbomPlugin.name);
         }
-        
+
         // Add vulnerability plugin
-        const vulnPlugin = plugins.value.find(p => 
-            p.name.includes('vuln') || 
-            p.name.includes('vulnerability') || 
-            p.name.includes('js-vuln-finder')
+        const vulnPlugin = plugins.value.find(
+            (p) =>
+                p.name.includes('vuln') ||
+                p.name.includes('vulnerability') ||
+                p.name.includes('js-vuln-finder')
         );
         if (vulnPlugin) {
             const vulnNodeId = `analyzer-${vulnPlugin.name}`;
@@ -185,17 +194,20 @@ async function init() {
             defaultNodes.push(vulnNode);
             console.log('Added vulnerability plugin by default:', vulnPlugin.name);
         }
-        
+
         if (defaultNodes.length > 0) {
             nodes.value = defaultNodes;
             edges.value = createEdgesFromNodes(defaultNodes);
             nodes.value = layoutNodes(nodes.value);
-            
+
             setTimeout(() => {
                 fitView({ padding: 0.1 });
             }, 100);
-            
-            console.log('Added default plugins:', defaultNodes.map(n => n.data.plugin.name));
+
+            console.log(
+                'Added default plugins:',
+                defaultNodes.map((n) => n.data.plugin.name)
+            );
         } else {
             // Start with empty graph if no default plugins found
             nodes.value = [];
@@ -225,16 +237,22 @@ const contextMenuPosition = ref({ x: 0, y: 0 });
 const availablePlugins = computed(() => {
     const existingPluginNames = nodes.value
         .filter((n): n is AnalyzerNode => n.type === 'analyzer')
-        .map(n => n.data.plugin.name);
-    
+        .map((n) => n.data.plugin.name);
+
     console.log('Computing available plugins. Current nodes:', existingPluginNames);
-    console.log('All plugins:', plugins.value.map(p => p.name));
-    
-    const available = plugins.value.filter(
-        plugin => !existingPluginNames.includes(plugin.name) && !plugin.name.includes('notifier')
+    console.log(
+        'All plugins:',
+        plugins.value.map((p) => p.name)
     );
-    
-    console.log('Available plugins:', available.map(p => p.name));
+
+    const available = plugins.value.filter(
+        (plugin) => !existingPluginNames.includes(plugin.name) && !plugin.name.includes('notifier')
+    );
+
+    console.log(
+        'Available plugins:',
+        available.map((p) => p.name)
+    );
     return available;
 });
 
@@ -246,20 +264,20 @@ function onPaneContextMenu(event: MouseEvent) {
 
 function addNodeToGraph(plugin: Plugin) {
     const nodeId = `analyzer-${plugin.name}`;
-    
+
     // Get canvas position relative to the flow
     const flowElement = document.querySelector('.vue-flow');
     const flowRect = flowElement?.getBoundingClientRect();
-    
+
     const canvasX = flowRect ? contextMenuPosition.value.x - flowRect.left : 200;
     const canvasY = flowRect ? contextMenuPosition.value.y - flowRect.top : 200;
-    
+
     const newNode: AnalyzerNode = {
         id: nodeId,
         type: 'analyzer',
-        position: { 
-            x: canvasX, 
-            y: canvasY 
+        position: {
+            x: canvasX,
+            y: canvasY
         },
         data: {
             label: plugin.name,
@@ -272,21 +290,24 @@ function addNodeToGraph(plugin: Plugin) {
         selectable: true,
         deletable: true
     };
-    
+
     console.log('Adding node:', newNode);
     nodes.value.push(newNode);
-    
+
     // Create edges and re-layout
     const currentNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
-    console.log('Current nodes after add:', currentNodes.map(n => n.data.plugin.name));
-    
+    console.log(
+        'Current nodes after add:',
+        currentNodes.map((n) => n.data.plugin.name)
+    );
+
     edges.value = createEdgesFromNodes(currentNodes);
     nodes.value = layoutNodes(nodes.value);
-    
+
     setTimeout(() => {
         fitView({ padding: 0.1 });
     }, 100);
-    
+
     showContextMenu.value = false;
 }
 
@@ -298,23 +319,26 @@ function closeContextMenu() {
 function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
-        
+
         console.log('Delete key pressed');
         console.log('Our tracked selected nodes:', selectedNodes.value);
-        
+
         // Try multiple ways to get selected nodes
         let nodesToDelete: any[] = [];
-        
+
         // Method 1: Our manual tracking
         if (selectedNodes.value.length > 0) {
             nodesToDelete = selectedNodes.value;
             console.log('Using manually tracked nodes:', nodesToDelete.length);
         }
-        
+
         // Method 2: Try VueFlow instance
         if (nodesToDelete.length === 0 && vueFlowInstance) {
             try {
-                const vueFlowSelected = vueFlowInstance.getSelectedNodes?.value || vueFlowInstance.selectedNodes?.value || [];
+                const vueFlowSelected =
+                    vueFlowInstance.getSelectedNodes?.value ||
+                    vueFlowInstance.selectedNodes?.value ||
+                    [];
                 if (vueFlowSelected.length > 0) {
                     nodesToDelete = vueFlowSelected;
                     console.log('Using VueFlow selected nodes:', nodesToDelete.length);
@@ -323,7 +347,7 @@ function handleKeyDown(event: KeyboardEvent) {
                 console.log('Could not get VueFlow selected nodes:', error);
             }
         }
-        
+
         // Method 3: Check nodes array for selected property
         if (nodesToDelete.length === 0) {
             const selectedFromArray = nodes.value.filter((n: any) => n.selected === true);
@@ -332,11 +356,11 @@ function handleKeyDown(event: KeyboardEvent) {
                 console.log('Using nodes with selected=true:', nodesToDelete.length);
             }
         }
-        
+
         console.log('Final nodes to delete:', nodesToDelete);
-        
+
         if (nodesToDelete.length > 0) {
-            nodesToDelete.forEach(node => {
+            nodesToDelete.forEach((node) => {
                 deleteNode(node);
             });
             selectedNodes.value = []; // Clear selection after deletion
@@ -352,7 +376,10 @@ function onSelectionChange(selection: any) {
         console.log('Selection change event:', selection);
         const selectedNodesList = selection?.nodes || [];
         selectedNodes.value = selectedNodesList;
-        console.log('Selection changed:', selectedNodesList.map((n: any) => n?.data?.plugin?.name || n?.id || 'unknown'));
+        console.log(
+            'Selection changed:',
+            selectedNodesList.map((n: any) => n?.data?.plugin?.name || n?.id || 'unknown')
+        );
     } catch (error) {
         console.error('Error in onSelectionChange:', error);
         console.log('Selection object:', selection);
@@ -363,10 +390,10 @@ function onSelectionChange(selection: any) {
 function onNodeClick(eventData: any) {
     try {
         console.log('Node click event data:', eventData);
-        
+
         // Vue Flow might pass { event, node } or just the node
         let node = null;
-        
+
         if (eventData.node) {
             // Pattern: { event, node }
             node = eventData.node;
@@ -380,21 +407,24 @@ function onNodeClick(eventData: any) {
             node = eventData;
             console.log('Event data has id, treating as node:', node);
         }
-        
+
         if (node?.id) {
             console.log('Processing node click:', node.data?.plugin?.name || node.id);
-            
+
             // Manual selection tracking - clear all selections first
             nodes.value.forEach((n: any) => {
                 if ('selected' in n) n.selected = false;
             });
-            
+
             // Find and select the clicked node
-            const foundNode = nodes.value.find(n => n.id === node.id) as any;
+            const foundNode = nodes.value.find((n) => n.id === node.id) as any;
             if (foundNode) {
                 foundNode.selected = true;
                 selectedNodes.value = [foundNode];
-                console.log('Manually selected node:', foundNode.type === 'analyzer' ? foundNode.data.plugin.name : foundNode.id);
+                console.log(
+                    'Manually selected node:',
+                    foundNode.type === 'analyzer' ? foundNode.data.plugin.name : foundNode.id
+                );
             } else {
                 console.log('Could not find node in nodes array');
             }
@@ -412,23 +442,31 @@ function deleteNode(node: any) {
         console.log('Deleting node:', node?.data?.plugin?.name || 'unknown', 'ID:', node?.id);
         console.log('Node object:', node);
         console.log('Nodes before deletion:', nodes.value.length);
-        
+
         if (!node?.id) {
             console.error('Cannot delete node: missing ID');
             return;
         }
-        
+
         // Remove node and its edges
         const oldNodesLength = nodes.value.length;
-        nodes.value = nodes.value.filter(n => n.id !== node.id);
-        console.log('Nodes after deletion:', nodes.value.length, 'Removed:', oldNodesLength - nodes.value.length);
-        
-        edges.value = edges.value.filter(e => e.source !== node.id && e.target !== node.id);
-        
+        nodes.value = nodes.value.filter((n) => n.id !== node.id);
+        console.log(
+            'Nodes after deletion:',
+            nodes.value.length,
+            'Removed:',
+            oldNodesLength - nodes.value.length
+        );
+
+        edges.value = edges.value.filter((e) => e.source !== node.id && e.target !== node.id);
+
         // Recreate edges for remaining nodes
         const remainingNodes = nodes.value.filter((n): n is AnalyzerNode => n.type === 'analyzer');
-        console.log('Remaining analyzer nodes:', remainingNodes.map(n => n?.data?.plugin?.name || 'unknown'));
-        
+        console.log(
+            'Remaining analyzer nodes:',
+            remainingNodes.map((n) => n?.data?.plugin?.name || 'unknown')
+        );
+
         if (remainingNodes.length > 0) {
             edges.value = createEdgesFromNodes(remainingNodes);
             nodes.value = layoutNodes(nodes.value);
@@ -436,7 +474,7 @@ function deleteNode(node: any) {
                 fitView({ padding: 0.1 });
             }, 100);
         }
-        
+
         console.log('Node deleted successfully');
     } catch (error) {
         console.error('Error in deleteNode:', error);
@@ -444,20 +482,20 @@ function deleteNode(node: any) {
     }
 }
 
-// Right-click delete functionality  
+// Right-click delete functionality
 function onNodeContextMenu(event: any) {
     try {
         console.log('Node context menu event raw:', event);
         const mouseEvent = event.event || event;
         const node = event.node || (event.target ? event : null);
-        
+
         if (mouseEvent?.preventDefault) {
             mouseEvent.preventDefault();
             mouseEvent.stopPropagation();
         }
-        
+
         console.log('Right-click on node:', node?.data?.plugin?.name || 'unknown');
-        
+
         if (node) {
             deleteNode(node);
         } else {
@@ -478,7 +516,6 @@ onMounted(() => {
 onUnmounted(() => {
     document.removeEventListener('keydown', handleKeyDown);
 });
-
 </script>
 <template>
     <div class="min-h-screen bg-slate-50">
@@ -691,40 +728,50 @@ onUnmounted(() => {
                                     <Controls />
                                     <MiniMap />
                                 </VueFlow>
-                                
+
                                 <!-- Context Menu -->
-                                <div 
+                                <div
                                     v-if="showContextMenu"
                                     class="fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
-                                    :style="{ 
-                                        left: contextMenuPosition.x + 'px', 
-                                        top: contextMenuPosition.y + 'px' 
+                                    :style="{
+                                        left: contextMenuPosition.x + 'px',
+                                        top: contextMenuPosition.y + 'px'
                                     }"
                                 >
-                                    <div class="px-3 py-2 text-sm font-medium text-gray-700 border-b">
+                                    <div
+                                        class="px-3 py-2 text-sm font-medium text-gray-700 border-b"
+                                    >
                                         Add Plugin
                                     </div>
                                     <div class="max-h-48 overflow-y-auto">
                                         <button
                                             v-for="plugin in availablePlugins"
                                             :key="plugin.name"
-                                            @click="addNodeToGraph(plugin)"
                                             class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                                            @click="addNodeToGraph(plugin)"
                                         >
-                                            <Icon icon="solar:cpu-bolt-bold" class="w-4 h-4 text-teal-600" />
+                                            <Icon
+                                                icon="solar:cpu-bolt-bold"
+                                                class="w-4 h-4 text-teal-600"
+                                            />
                                             <div>
                                                 <div class="font-medium">{{ plugin.name }}</div>
-                                                <div class="text-xs text-gray-500 truncate">{{ plugin.description }}</div>
+                                                <div class="text-xs text-gray-500 truncate">
+                                                    {{ plugin.description }}
+                                                </div>
                                             </div>
                                         </button>
-                                        <div v-if="availablePlugins.length === 0" class="px-3 py-2 text-sm text-gray-500">
+                                        <div
+                                            v-if="availablePlugins.length === 0"
+                                            class="px-3 py-2 text-sm text-gray-500"
+                                        >
                                             All plugins already added
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Backdrop to close context menu -->
-                                <div 
+                                <div
                                     v-if="showContextMenu"
                                     class="fixed inset-0 z-40"
                                     @click="closeContextMenu"
@@ -812,7 +859,14 @@ onUnmounted(() => {
                                                     icon="solar:widget-bold"
                                                     class="w-3 h-3 text-theme-primary"
                                                 />
-                                                <span>{{ nodes.filter((n: any) => n.type === 'analyzer').length }} nodes</span>
+                                                <span
+                                                    >{{
+                                                        nodes.filter(
+                                                            (n: any) => n.type === 'analyzer'
+                                                        ).length
+                                                    }}
+                                                    nodes</span
+                                                >
                                             </span>
                                             <span class="flex items-center gap-1">
                                                 <Icon
@@ -838,7 +892,8 @@ onUnmounted(() => {
                                         class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
                                     >
                                         <div class="text-xs text-theme-gray">
-                                            Right-click canvas to add • Select & Delete key to remove • Auto-connected by dependencies
+                                            Right-click canvas to add • Select & Delete key to
+                                            remove • Auto-connected by dependencies
                                         </div>
                                     </div>
                                 </div>

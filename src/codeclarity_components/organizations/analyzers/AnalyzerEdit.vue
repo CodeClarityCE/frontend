@@ -5,7 +5,7 @@ import {
     Organization
 } from '@/codeclarity_components/organizations/organization.entity';
 import router from '@/router';
-import { onMounted, ref, type Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
@@ -18,7 +18,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
+import { VueFlow, useVueFlow, type Edge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
@@ -26,7 +26,13 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { createAnalyzerNodes, retrieveWorkflowSteps, layoutNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
+import {
+    createAnalyzerNodes,
+    retrieveWorkflowSteps,
+    layoutNodes,
+    type AnalyzerNode,
+    type ConfigNode
+} from '@/utils/vueFlow';
 import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
 import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 
@@ -118,7 +124,7 @@ async function init() {
         const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(plugins.value);
         nodes.value = layoutNodes(flowNodes);
         edges.value = flowEdges;
-        
+
         setTimeout(() => {
             fitView({ padding: 0.1 });
         }, 100);
@@ -152,7 +158,6 @@ const nodeTypes = {
     analyzer: AnalyzerNodeComponent,
     config: ConfigNodeComponent
 };
-
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">

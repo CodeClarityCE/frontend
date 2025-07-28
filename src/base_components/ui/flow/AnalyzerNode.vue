@@ -1,50 +1,59 @@
 <template>
     <div class="analyzer-node">
-        <Handle 
-            v-for="(dependency, index) in data.plugin.depends_on" 
-            :key="`input-${dependency}-${index}`"
+        <Handle
+            v-for="(dependency, index) in data.plugin.depends_on"
             :id="dependency"
-            type="target" 
+            :key="`input-${dependency}-${index}`"
+            type="target"
             :position="Position.Left"
-            :style="{ top: `${20 + index * 20}px`, backgroundColor: 'white', border: '2px solid black', width: '16px', height: '16px' }"
+            :style="{
+                top: `${20 + index * 20}px`,
+                backgroundColor: 'white',
+                border: '2px solid black',
+                width: '16px',
+                height: '16px'
+            }"
         />
-        
-        
+
         <div class="node-header">
             <Icon icon="solar:cpu-bolt-bold" class="text-white" />
             <h3 class="node-title">{{ data.label }}</h3>
         </div>
-        
+
         <div class="node-content">
             <p class="node-description">{{ data.description }}</p>
             <div class="node-version">{{ data.version }}</div>
         </div>
-        
-        <Handle 
+
+        <Handle
             :id="data.label"
-            type="source" 
+            type="source"
             :position="Position.Right"
-            :style="{ backgroundColor: 'white', border: '2px solid black', width: '16px', height: '16px' }"
+            :style="{
+                backgroundColor: 'white',
+                border: '2px solid black',
+                width: '16px',
+                height: '16px'
+            }"
         />
     </div>
 </template>
 
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
-import { Icon } from '@iconify/vue'
-import { getColor } from '@/utils/vueFlow'
-import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin'
+import { Handle, Position } from '@vue-flow/core';
+import { Icon } from '@iconify/vue';
+import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 
 interface Props {
     data: {
-        label: string
-        plugin: Plugin
-        version: string
-        description: string
-    }
+        label: string;
+        plugin: Plugin;
+        version: string;
+        description: string;
+    };
 }
 
-defineProps<Props>()
+defineProps<Props>();
 </script>
 
 <style scoped>

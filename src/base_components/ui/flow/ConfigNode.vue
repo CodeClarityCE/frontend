@@ -4,69 +4,85 @@
             <Icon icon="solar:settings-bold" class="text-gray-600" />
             <h4 class="config-title">{{ data.label }}</h4>
         </div>
-        
+
         <div class="config-content">
-            <input 
+            <input
                 v-if="data.configType === 'string'"
-                v-model="data.value"
+                v-model="localValue"
                 type="text"
                 class="config-input"
                 :placeholder="`Enter ${data.label}...`"
             />
-            <input 
+            <input
                 v-else-if="data.configType === 'number'"
-                v-model.number="data.value"
+                v-model.number="localValue"
                 type="number"
                 class="config-input"
                 :placeholder="`Enter ${data.label}...`"
             />
-            <textarea 
+            <textarea
                 v-else-if="data.configType === 'array' || data.configType === 'Array<string>'"
-                v-model="data.value"
+                v-model="localValue"
                 class="config-input"
                 rows="2"
                 :placeholder="`Enter ${data.label} (one per line)...`"
             />
-            <select 
+            <select
                 v-else-if="data.configType === 'boolean'"
-                v-model="data.value"
+                v-model="localValue"
                 class="config-input"
             >
                 <option value="true">True</option>
                 <option value="false">False</option>
             </select>
-            <input 
+            <input
                 v-else
-                v-model="data.value"
+                v-model="localValue"
                 type="text"
                 class="config-input"
                 :placeholder="`Enter ${data.label}...`"
             />
         </div>
-        
-        <Handle 
+
+        <Handle
             :id="data.configKey"
-            type="source" 
+            type="source"
             :position="Position.Right"
-            :style="{ backgroundColor: 'white', border: '2px solid black', width: '16px', height: '16px' }"
+            :style="{
+                backgroundColor: 'white',
+                border: '2px solid black',
+                width: '16px',
+                height: '16px'
+            }"
         />
     </div>
 </template>
 
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
-import { Icon } from '@iconify/vue'
+import { Handle, Position } from '@vue-flow/core';
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
 
 interface Props {
     data: {
-        label: string
-        configKey: string
-        configType: string
-        value: any
-    }
+        label: string;
+        configKey: string;
+        configType: string;
+        value: any;
+    };
 }
 
-defineProps<Props>()
+const props = defineProps<Props>();
+const emit = defineEmits<{
+    'update:data': [value: any];
+}>();
+
+const localValue = computed({
+    get: () => props.data.value,
+    set: (value) => {
+        emit('update:data', { ...props.data, value });
+    }
+});
 </script>
 
 <style scoped>

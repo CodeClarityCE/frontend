@@ -18,11 +18,17 @@ import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import * as lite from 'litegraph.js';
-import 'litegraph.js/css/litegraph.css';
+import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
+import { Background } from '@vue-flow/background';
+import { Controls } from '@vue-flow/controls';
+import { MiniMap } from '@vue-flow/minimap';
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { createNode, getWidth, retrieveResult } from '@/utils/liteGraph';
+import { createAnalyzerNodes, retrieveWorkflowSteps, layoutNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
+import AnalyzerNodeComponent from '@/components/flow/AnalyzerNode.vue';
+import ConfigNodeComponent from '@/components/flow/ConfigNode.vue';
 
 const analyzer_id: Ref<string> = ref('');
 const orgId: Ref<string> = ref('');
@@ -45,12 +51,10 @@ const errorCode: Ref<string> = ref('');
 // Form Data
 const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
-const graph: Ref<lite.LGraph | undefined> = ref();
 const plugins: Ref<Array<Plugin>> = ref([]);
-
-// Graph data
-const nodes = new Map<string, lite.LGraphNode>();
-const nodes_to_link = new Map<string, string[]>();
+const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
+const edges: Ref<Edge[]> = ref([]);
+const { fitView } = useVueFlow();
 
 // Form Validation
 const formValidationSchema = toTypedSchema(
@@ -69,12 +73,7 @@ function setOrgInfo(_orgInfo: Organization) {
 
 // Methods
 async function submit() {
-    if (!graph.value) {
-        return;
-    }
-    const serialized = graph.value.serialize().nodes;
-    const links = graph.value.links;
-    const arr = retrieveResult(serialized, links, graph.value, plugins.value, nodes);
+    const arr = retrieveWorkflowSteps(nodes.value, edges.value);
     try {
         await analyzerRepo.updateAnalyzer({
             orgId: defaultOrg!.value!.id,
@@ -116,8 +115,13 @@ async function init() {
             bearerToken: authStore.getToken ?? ''
         });
         plugins.value = resp.data;
-        addPluginsToGraph();
-        graph.value?.start();
+        const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(plugins.value);
+        nodes.value = layoutNodes(flowNodes);
+        edges.value = flowEdges;
+        
+        setTimeout(() => {
+            fitView({ padding: 0.1 });
+        }, 100);
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -144,54 +148,11 @@ async function init() {
 
 init();
 
-function addPluginsToGraph() {
-    for (let index = 0; index < plugins.value.length; index++) {
-        const element = plugins.value[index];
-        const title = element.name;
+const nodeTypes = {
+    analyzer: AnalyzerNodeComponent,
+    config: ConfigNodeComponent
+};
 
-        const new_type = createNode(title, element, graph, nodes, nodes_to_link);
-
-        lite.LiteGraph.registerNodeType('codeclarity/' + title, new_type);
-
-        // Create nodes
-        const new_node = lite.LiteGraph.createNode('codeclarity/' + title);
-        new_node.boxcolor = '#008491';
-        // new_node.pos = [100, 100];
-        graph.value?.add(new_node);
-
-        nodes.set(title, new_node);
-        for (let index = 0; index < element.depends_on.length; index++) {
-            const dependency_name = element.depends_on[index];
-            if (!nodes_to_link.has(title)) {
-                nodes_to_link.set(title, [dependency_name]);
-            } else {
-                nodes_to_link.get(title)?.push(dependency_name);
-            }
-        }
-    }
-
-    // Connect nodes
-    for (const [key, value] of nodes_to_link) {
-        const node = nodes.get(key);
-        if (node) {
-            for (let index = 0; index < value.length; index++) {
-                const dependency = nodes.get(value[index]);
-                if (dependency) {
-                    dependency.connect(0, node, index);
-                }
-            }
-        }
-    }
-    graph.value?.arrange();
-}
-
-onMounted(() => {
-    graph.value = new lite.LGraph();
-    // lite.LiteGraph.clearRegisteredTypes();
-    const canvas = new lite.LGraphCanvas('#mycanvas', graph.value);
-    canvas.show_info = false;
-    canvas.bgcanvas.style.backgroundColor = 'white';
-});
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">
@@ -223,12 +184,21 @@ onMounted(() => {
                 </FormTextField>
 
                 <div class="flex justify-center">
-                    <canvas
-                        id="mycanvas"
-                        class="rounded-lg"
-                        :width="getWidth()"
-                        :height="getWidth() / 2"
-                    ></canvas>
+                    <div class="w-full h-[500px] rounded-lg border-2 border-slate-300/60">
+                        <VueFlow
+                            :nodes="nodes"
+                            :edges="edges"
+                            :node-types="nodeTypes"
+                            class="w-full h-full rounded-lg bg-white"
+                            :default-viewport="{ zoom: 0.8 }"
+                            :min-zoom="0.2"
+                            :max-zoom="4"
+                        >
+                            <Background pattern-color="#aaa" :gap="16" />
+                            <Controls />
+                            <MiniMap />
+                        </VueFlow>
+                    </div>
                 </div>
 
                 <LoadingSubmitButton ref="loadingButtonRef">

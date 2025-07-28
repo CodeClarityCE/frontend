@@ -18,11 +18,17 @@ import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import * as lite from 'litegraph.js';
-import 'litegraph.js/css/litegraph.css';
+import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
+import { Background } from '@vue-flow/background';
+import { Controls } from '@vue-flow/controls';
+import { MiniMap } from '@vue-flow/minimap';
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/core/dist/theme-default.css';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { createNode, getWidth, retrieveResult } from '@/utils/liteGraph';
+import { createAnalyzerNodes, retrieveWorkflowSteps, layoutNodes, type AnalyzerNode, type ConfigNode } from '@/utils/vueFlow';
+import AnalyzerNodeComponent from '@/components/flow/AnalyzerNode.vue';
+import ConfigNodeComponent from '@/components/flow/ConfigNode.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { Icon } from '@iconify/vue';
 
@@ -46,12 +52,10 @@ const errorCode: Ref<string> = ref('');
 // Form Data
 const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
-const graph: Ref<lite.LGraph | undefined> = ref();
 const plugins: Ref<Array<Plugin>> = ref([]);
-
-// Graph data
-const nodes = new Map<string, lite.LGraphNode>();
-const nodes_to_link = new Map<string, string[]>();
+const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
+const edges: Ref<Edge[]> = ref([]);
+const { fitView } = useVueFlow();
 
 // Form Validation
 const formValidationSchema = toTypedSchema(
@@ -70,12 +74,7 @@ function setOrgInfo(_orgInfo: Organization) {
 
 // Methods
 async function submit() {
-    if (!graph.value) {
-        return;
-    }
-    const serialized = graph.value.serialize().nodes;
-    const links = graph.value.links;
-    const arr = retrieveResult(serialized, links, graph.value, plugins.value, nodes);
+    const arr = retrieveWorkflowSteps(nodes.value, edges.value);
 
     try {
         const resp = await analyzerRepo.createAnalyzer({
@@ -121,8 +120,13 @@ async function init() {
             bearerToken: authStore.getToken
         });
         plugins.value = resp.data;
-        addPluginsToGraph();
-        graph.value?.start();
+        const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(plugins.value);
+        nodes.value = layoutNodes(flowNodes);
+        edges.value = flowEdges;
+        
+        setTimeout(() => {
+            fitView({ padding: 0.1 });
+        }, 100);
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -133,58 +137,11 @@ async function init() {
 
 init();
 
-function addPluginsToGraph() {
-    for (let index = 0; index < plugins.value.length; index++) {
-        const element = plugins.value[index];
-        const title = element.name;
+const nodeTypes = {
+    analyzer: AnalyzerNodeComponent,
+    config: ConfigNodeComponent
+};
 
-        if (title.includes('notifier')) {
-            continue;
-        }
-
-        const new_type = createNode(title, element, graph, nodes, nodes_to_link);
-
-        lite.LiteGraph.registerNodeType('codeclarity/' + title, new_type);
-
-        // Create nodes
-        const new_node = lite.LiteGraph.createNode('codeclarity/' + title);
-        new_node.boxcolor = '#008491';
-        // new_node.pos = [100, 100];
-        graph.value?.add(new_node);
-
-        nodes.set(title, new_node);
-        for (let index = 0; index < element.depends_on.length; index++) {
-            const dependency_name = element.depends_on[index];
-            if (!nodes_to_link.has(title)) {
-                nodes_to_link.set(title, [dependency_name]);
-            } else {
-                nodes_to_link.get(title)?.push(dependency_name);
-            }
-        }
-    }
-
-    // Connect nodes
-    for (const [key, value] of nodes_to_link) {
-        const node = nodes.get(key);
-        if (node) {
-            for (let index = 0; index < value.length; index++) {
-                const dependency = nodes.get(value[index]);
-                if (dependency) {
-                    dependency.connect(0, node, index);
-                }
-            }
-        }
-    }
-    graph.value?.arrange();
-}
-
-onMounted(() => {
-    graph.value = new lite.LGraph();
-    // lite.LiteGraph.clearRegisteredTypes();
-    const canvas = new lite.LGraphCanvas('#mycanvas', graph.value);
-    canvas.show_info = false;
-    canvas.bgcanvas.style.backgroundColor = 'white';
-});
 </script>
 <template>
     <div class="min-h-screen bg-slate-50">
@@ -377,16 +334,23 @@ onMounted(() => {
                         <div
                             class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200/60 p-6 shadow-sm"
                         >
-                            <div class="relative w-full">
-                                <canvas
-                                    id="mycanvas"
-                                    class="w-full rounded-lg border-2 border-slate-300/60 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300"
-                                    :width="Math.max(1200, getWidth() * 0.98)"
-                                    :height="700"
-                                ></canvas>
+                            <div class="relative w-full h-[700px]">
+                                <VueFlow
+                                    :nodes="nodes"
+                                    :edges="edges"
+                                    :node-types="nodeTypes"
+                                    class="w-full h-full rounded-lg border-2 border-slate-300/60 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300"
+                                    :default-viewport="{ zoom: 0.8 }"
+                                    :min-zoom="0.2"
+                                    :max-zoom="4"
+                                >
+                                    <Background pattern-color="#aaa" :gap="16" />
+                                    <Controls />
+                                    <MiniMap />
+                                </VueFlow>
 
                                 <!-- Enhanced Status Bar -->
-                                <div class="absolute top-4 left-4 flex flex-col gap-2">
+                                <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
                                     <div
                                         class="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-slate-200/60"
                                     >
@@ -404,11 +368,11 @@ onMounted(() => {
                                     >
                                         <div class="flex items-center gap-2">
                                             <Icon
-                                                icon="solar:mouse-minimalistic-bold"
+                                                icon="solar:diagram-up-bold"
                                                 class="w-3 h-3 text-theme-primary"
                                             />
                                             <span class="text-xs text-theme-primary"
-                                                >Right-click to add nodes</span
+                                                >Drag nodes to arrange workflow</span
                                             >
                                         </div>
                                     </div>
@@ -455,7 +419,7 @@ onMounted(() => {
                                 </div>
 
                                 <!-- Status Info -->
-                                <div class="absolute bottom-4 left-4">
+                                <div class="absolute bottom-4 left-4 z-10">
                                     <div
                                         class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
                                     >
@@ -467,14 +431,14 @@ onMounted(() => {
                                                     icon="solar:widget-bold"
                                                     class="w-3 h-3 text-theme-primary"
                                                 />
-                                                <span id="nodeCount">0 nodes</span>
+                                                <span>{{ nodes.filter((n: any) => n.type === 'analyzer').length }} nodes</span>
                                             </span>
                                             <span class="flex items-center gap-1">
                                                 <Icon
                                                     icon="solar:link-bold"
                                                     class="w-3 h-3 text-theme-primary"
                                                 />
-                                                <span id="connectionCount">0 connections</span>
+                                                <span>{{ edges.length }} connections</span>
                                             </span>
                                             <span class="flex items-center gap-1">
                                                 <Icon
@@ -488,13 +452,13 @@ onMounted(() => {
                                 </div>
 
                                 <!-- Help Text -->
-                                <div class="absolute bottom-4 right-4">
+                                <div class="absolute bottom-4 right-4 z-10">
                                     <div
                                         class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
                                     >
                                         <div class="text-xs text-theme-gray">
-                                            Drag nodes to arrange • Connect outputs to inputs •
-                                            Double-click to configure
+                                            Drag nodes to arrange • Auto-connected by dependencies •
+                                            Edit config values in gray nodes
                                         </div>
                                     </div>
                                 </div>

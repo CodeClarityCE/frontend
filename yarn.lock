@@ -3316,6 +3316,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/web-bluetooth@npm:^0.0.20":
+  version: 0.0.20
+  resolution: "@types/web-bluetooth@npm:0.0.20"
+  checksum: 10/2faa323e5c994e9468fff4675e3b6d35f3730eb4dc7c761d02267fb6246dbfd659fd8f3583db0872aae05b3ee139799c25655bbe79bf1b56c08c06e665db814b
+  languageName: node
+  linkType: hard
+
 "@types/web-bluetooth@npm:^0.0.21":
   version: 0.0.21
   resolution: "@types/web-bluetooth@npm:0.0.21"
@@ -3701,6 +3708,54 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vue-flow/background@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "@vue-flow/background@npm:1.3.2"
+  peerDependencies:
+    "@vue-flow/core": ^1.23.0
+    vue: ^3.3.0
+  checksum: 10/e5e98177c8871c1b33ac077663d73f0ba002aab40f9aef7c49abe1a05d552ca595ce3fda19b6bb1723af22d84fd419f49d9bfed774d88a925564394e1becdee0
+  languageName: node
+  linkType: hard
+
+"@vue-flow/controls@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@vue-flow/controls@npm:1.1.2"
+  peerDependencies:
+    "@vue-flow/core": ^1.23.0
+    vue: ^3.3.0
+  checksum: 10/e22fd2716f631823f864b0bdf38aaa3fc8b539cddfec1cec9904d5ee38d0816118e9f3ef0eaaa205e5e3af6ac29be2d3941b82ebc1fa06814982d7754929579b
+  languageName: node
+  linkType: hard
+
+"@vue-flow/core@npm:^1.45.0":
+  version: 1.45.0
+  resolution: "@vue-flow/core@npm:1.45.0"
+  dependencies:
+    "@vueuse/core": "npm:^10.5.0"
+    d3-drag: "npm:^3.0.0"
+    d3-interpolate: "npm:^3.0.1"
+    d3-selection: "npm:^3.0.0"
+    d3-zoom: "npm:^3.0.0"
+  peerDependencies:
+    vue: ^3.3.0
+  checksum: 10/7f4f98796cff63968ceef6c546cdc2454c79d109c6f075ad887015476042470ee549c5dbb90c3f7bc15e0bbefa3b99f40ac67aab38ae5717c75914107e65385e
+  languageName: node
+  linkType: hard
+
+"@vue-flow/minimap@npm:^1.5.3":
+  version: 1.5.3
+  resolution: "@vue-flow/minimap@npm:1.5.3"
+  dependencies:
+    d3-selection: "npm:^3.0.0"
+    d3-zoom: "npm:^3.0.0"
+  peerDependencies:
+    "@vue-flow/core": ^1.23.0
+    vue: ^3.3.0
+  checksum: 10/1735628bfd6724cbbcdcc8694f2b196490b10f1c8e2587c03c1f474ee359a75ba2b14592552a8469cf9781d19dbaa9b837b7e39e9682adf3bfef3f54b08b1c09
+  languageName: node
+  linkType: hard
+
 "@vue/babel-helper-vue-transform-on@npm:1.4.0":
   version: 1.4.0
   resolution: "@vue/babel-helper-vue-transform-on@npm:1.4.0"
@@ -4026,6 +4081,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vueuse/core@npm:^10.5.0":
+  version: 10.11.1
+  resolution: "@vueuse/core@npm:10.11.1"
+  dependencies:
+    "@types/web-bluetooth": "npm:^0.0.20"
+    "@vueuse/metadata": "npm:10.11.1"
+    "@vueuse/shared": "npm:10.11.1"
+    vue-demi: "npm:>=0.14.8"
+  checksum: 10/bbebdcd1ef0a77437cf2432062bb57c13e0afdadc474861ddad7ce343a8638778c5e54ad302c80e1d4351d4bdaf43501dc5937185e08d257fd000bdfea4ecb36
+  languageName: node
+  linkType: hard
+
 "@vueuse/core@npm:^12.5.0":
   version: 12.8.2
   resolution: "@vueuse/core@npm:12.8.2"
@@ -4035,6 +4102,13 @@ __metadata:
     "@vueuse/shared": "npm:12.8.2"
     vue: "npm:^3.5.13"
   checksum: 10/66af78b3164294dc08b83d9a254602cc03a84c2dd99691001719426fd06badd4b565dabd77e4cb2654214b13b49f5dc08bd71f823f928d8bb7d353f148a6fd40
+  languageName: node
+  linkType: hard
+
+"@vueuse/metadata@npm:10.11.1":
+  version: 10.11.1
+  resolution: "@vueuse/metadata@npm:10.11.1"
+  checksum: 10/20336a05eb4945c1486d5e0a81c91a8ba08137f567b86d2bc1171af36d916c56d30166163016ed64642cce904cad1af09332655f7f0178eb5f2c65e54f648b4f
   languageName: node
   linkType: hard
 
@@ -4049,6 +4123,15 @@ __metadata:
   version: 13.5.0
   resolution: "@vueuse/metadata@npm:13.5.0"
   checksum: 10/5aab75bbc4dcc26cf8ae290718f04e86a25109155051dbf1900a186729e63093cfec4d3576cf63caba4e2e29cf8f175ade03b806a79da8fd9e3ff35b52475b69
+  languageName: node
+  linkType: hard
+
+"@vueuse/shared@npm:10.11.1":
+  version: 10.11.1
+  resolution: "@vueuse/shared@npm:10.11.1"
+  dependencies:
+    vue-demi: "npm:>=0.14.8"
+  checksum: 10/5d8c28ed441a66b200c76ab44b6dbc6af152a6cecc527a1f4f645d95547e1de65e4b99e16d25f77609cb146e9e4b4961b260fe723043b08ab198e88ed1d47f4e
   languageName: node
   linkType: hard
 
@@ -5688,7 +5771,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-drag@npm:2 - 3, d3-drag@npm:3":
+"d3-drag@npm:2 - 3, d3-drag@npm:3, d3-drag@npm:^3.0.0":
   version: 3.0.0
   resolution: "d3-drag@npm:3.0.0"
   dependencies:
@@ -5769,7 +5852,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-interpolate@npm:1 - 3, d3-interpolate@npm:1.2.0 - 3, d3-interpolate@npm:3":
+"d3-interpolate@npm:1 - 3, d3-interpolate@npm:1.2.0 - 3, d3-interpolate@npm:3, d3-interpolate@npm:^3.0.1":
   version: 3.0.1
   resolution: "d3-interpolate@npm:3.0.1"
   dependencies:
@@ -5829,7 +5912,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-selection@npm:2 - 3, d3-selection@npm:3":
+"d3-selection@npm:2 - 3, d3-selection@npm:3, d3-selection@npm:^3.0.0":
   version: 3.0.0
   resolution: "d3-selection@npm:3.0.0"
   checksum: 10/0e5acfd305b31628b7be5009ba7303d84bb34817a88ed4dde9c8bd9c23528573fc5272f89fc04e5be03d2cbf5441a248d7274aaf55a8ef3dad46e16333d72298
@@ -5885,7 +5968,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-zoom@npm:3":
+"d3-zoom@npm:3, d3-zoom@npm:^3.0.0":
   version: 3.0.0
   resolution: "d3-zoom@npm:3.0.0"
   dependencies:
@@ -7427,6 +7510,10 @@ __metadata:
     "@vee-validate/zod": "npm:4.15.1"
     "@vitejs/plugin-vue": "npm:6.0.1"
     "@vitest/coverage-v8": "npm:3.2.4"
+    "@vue-flow/background": "npm:^1.3.2"
+    "@vue-flow/controls": "npm:^1.1.2"
+    "@vue-flow/core": "npm:^1.45.0"
+    "@vue-flow/minimap": "npm:^1.5.3"
     "@vue/compiler-dom": "npm:3.5.18"
     "@vue/eslint-config-prettier": "npm:10.2.0"
     "@vue/eslint-config-typescript": "npm:14.6.0"
@@ -7454,7 +7541,6 @@ __metadata:
     globals: "npm:16.3.0"
     jsdom: "npm:26.1.0"
     lighthouse: "npm:12.8.0"
-    litegraph.js: "npm:0.7.18"
     lucide-vue-next: "npm:0.527.0"
     msw: "npm:2.10.4"
     npm-run-all: "npm:4.1.5"
@@ -9052,13 +9138,6 @@ __metadata:
     enquirer:
       optional: true
   checksum: 10/cebbd692330279ea82f05468cbb0a16f5b40015a6163e0a2fb04ef168da8e2d6c54e129148e90112d92e7f9ecb85a56e6b88d867a58a8ebdf36e0c98df49ae5c
-  languageName: node
-  linkType: hard
-
-"litegraph.js@npm:0.7.18":
-  version: 0.7.18
-  resolution: "litegraph.js@npm:0.7.18"
-  checksum: 10/4768c904b547281ad39dd3f52633271eab3cbce5c490e54c6442cd346e180b38d021c7da7c538128d48596055fa90a87091cb9440c0e9b5410f599c364bd8402
   languageName: node
   linkType: hard
 
@@ -12833,7 +12912,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-demi@npm:>=0.13.0":
+"vue-demi@npm:>=0.13.0, vue-demi@npm:>=0.14.8":
   version: 0.14.10
   resolution: "vue-demi@npm:0.14.10"
   peerDependencies:

@@ -34,23 +34,23 @@ async function updateSort(key: string | null) {
 <template>
     <table class="stylized_table stylized_table_with_dividers w-full border-collapse">
         <th
-            v-for="(header, key, index) in props.headers"
+            v-for="(header, index) in props.headers"
             :key="index"
             class="header header-clickable"
             :class="{
-                'header-sortable-active': props.headers[key].key == sortKey
+                'header-sortable-active': header.key == sortKey
             }"
-            @click="updateSort(props.headers[key].key)"
+            @click="updateSort(header.key)"
         >
             <div class="header-sortable">
                 <div>
                     {{ header.label }}
                 </div>
-                <div v-if="headers[key].key != null">
+                <div v-if="header.key != null">
                     <span
                         :class="
-                            headers[key].key != sortKey ||
-                            (headers[key].key == sortKey && sortDirection == SortDirection.ASC)
+                            header.key != sortKey ||
+                            (header.key == sortKey && sortDirection == SortDirection.ASC)
                                 ? 'w-full'
                                 : 'w-10'
                         "
@@ -59,8 +59,8 @@ async function updateSort(key: string | null) {
                     </span>
                     <span
                         :class="
-                            headers[key].key != sortKey ||
-                            (headers[key].key == sortKey && sortDirection == SortDirection.DESC)
+                            header.key != sortKey ||
+                            (header.key == sortKey && sortDirection == SortDirection.DESC)
                                 ? 'w-full'
                                 : 'w-10'
                         "

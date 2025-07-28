@@ -100,11 +100,11 @@ async function getFinding(projectID: string, analysisID: string) {
             workspace: '.'
         });
         finding.value = res.data;
-        if (finding.value.severities.cvss_31 != null) {
+        if (finding.value?.severities?.cvss_31 != null) {
             chart_version.value = 'cvss31';
-        } else if (finding.value.severities.cvss_3 != null) {
+        } else if (finding.value?.severities?.cvss_3 != null) {
             chart_version.value = 'cvss3';
-        } else if (finding.value.severities.cvss_2 != null) {
+        } else if (finding.value?.severities?.cvss_2 != null) {
             chart_version.value = 'cvss2';
         }
         render.value = true;
@@ -220,11 +220,11 @@ function getPackageManagerSubtitleIcon(): string {
             </Badge>
         </div>
         <!-- Content -->
-        <div v-if="render" class="content-wrapper">
+        <div v-if="render && finding" class="content-wrapper">
             <!-- Header Section with Package Info -->
             <InfoCard
-                :title="finding.vulnerability_info.vulnerability_id || 'Vulnerability Details'"
-                :description="`Version ${finding.dependency_info?.version || 'unknown'} - Package information and external links`"
+                :title="finding?.vulnerability_info?.vulnerability_id || 'Vulnerability Details'"
+                :description="`Version ${finding?.dependency_info?.version || 'unknown'} - Package information and external links`"
                 icon="solar:bug-bold"
                 variant="primary"
                 class="header-section"

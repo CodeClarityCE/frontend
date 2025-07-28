@@ -12,7 +12,7 @@ import type { TableHeader } from '@/base_components/data-display/tables/Sortable
 // Props
 const props = defineProps<{
     sortOptions: SortOption[] | TableHeader[];
-    sortKey: string;
+    sortKey?: string;
     sortDirection: SortDirection;
     sortByLabel?: string;
 }>();
@@ -42,7 +42,9 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
             style="padding: 5px; height: fit-content; margin: 0px"
         >
             <option
-                v-for="(sort_option, index) in sortOptions.filter((option) => option.key != null)"
+                v-for="(sort_option, index) in sortOptions.filter(
+                    (option: SortOption | TableHeader) => option.key != null
+                )"
                 :key="index"
                 :value="sort_option.key"
                 :selected="sortKey == sort_option.key"
@@ -56,13 +58,13 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
                 v-if="sortDirection == SortDirection.DESC"
                 icon="iconoir:sort-down"
                 style="font-size: 2em"
-                @click="updateSort(sortKey, SortDirection.ASC)"
+                @click="updateSort(sortKey || null, SortDirection.ASC)"
             />
             <Icon
                 v-else
                 icon="iconoir:sort-up"
                 style="font-size: 2em"
-                @click="updateSort(sortKey, SortDirection.DESC)"
+                @click="updateSort(sortKey || null, SortDirection.DESC)"
             />
         </div>
     </div>

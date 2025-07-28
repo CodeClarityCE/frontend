@@ -69,6 +69,7 @@ defineProps<{
             <h3 class="breakdown-title">Vulnerability Identifier</h3>
             <div class="vulnerability-items">
                 <Badge
+                    v-if="finding?.vulnerability_info?.vulnerability_id !== undefined"
                     :key="finding.vulnerability_info.vulnerability_id"
                     variant="destructive"
                     class="vulnerability-badge"

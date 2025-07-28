@@ -305,8 +305,6 @@ export class ResultsRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        console.error(response);
-
         return Entity.unMarshal<DataResponse<Workspace>>(response, DataResponse<Workspace>);
     }
 

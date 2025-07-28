@@ -36,9 +36,8 @@ defineProps({
                 class="flex items-center justify-center gap-2 w-full p-2 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-all duration-200"
             >
                 <span
-                    >{{ isOpen ? 'Hide' : 'Show' }} {{ analyses.length - 1 }} older analysis{{
-                        analyses.length - 1 > 1 ? 'es' : ''
-                    }}</span
+                    >{{ isOpen ? 'Hide' : 'Show' }} {{ analyses.length - 1 }} older
+                    {{ analyses.length - 1 > 1 ? 'analyses' : 'analysis' }}</span
                 >
                 <Icon
                     icon="solar:chevron-down-linear"

@@ -1,0 +1,35 @@
+version: 2
+discovery:
+  allowed-hostnames:
+    - localhost
+  network-idle-timeout: 100
+snapshot:
+  widths:
+    - 375   # Mobile
+    - 768   # Tablet
+    - 1280  # Desktop
+    - 1920  # Large Desktop
+  min-height: 1024
+  percy-css: |
+    /* Hide dynamic content that changes between runs */
+    [data-percy-hide] {
+      visibility: hidden !important;
+    }
+    
+    /* Stabilize animations */
+    *, *::before, *::after {
+      animation-duration: 0ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0ms !important;
+      transition-delay: 0ms !important;
+    }
+    
+    /* Hide scrollbars for consistent screenshots */
+    ::-webkit-scrollbar {
+      display: none !important;
+    }
+    
+    /* Stabilize loading states */
+    .loading, .spinner {
+      display: none !important;
+    }

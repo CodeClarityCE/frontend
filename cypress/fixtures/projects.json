@@ -1,0 +1,40 @@
+{
+  "sampleProject": {
+    "id": "proj-123",
+    "name": "Sample Security Project",
+    "description": "A test project for security analysis",
+    "repository_url": "https://github.com/example/sample-project",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  "projectList": [
+    {
+      "id": "proj-001",
+      "name": "Frontend App",
+      "description": "Vue.js frontend application",
+      "repository_url": "https://github.com/example/frontend",
+      "status": "active",
+      "last_analysis": "2023-06-15T10:30:00Z"
+    },
+    {
+      "id": "proj-002", 
+      "name": "Backend API",
+      "description": "Node.js REST API",
+      "repository_url": "https://github.com/example/backend",
+      "status": "active",
+      "last_analysis": "2023-06-14T14:20:00Z"
+    },
+    {
+      "id": "proj-003",
+      "name": "Legacy System",
+      "description": "Legacy PHP application",
+      "repository_url": "https://github.com/example/legacy",
+      "status": "archived",
+      "last_analysis": "2023-05-01T09:15:00Z"
+    }
+  ],
+  "createProject": {
+    "name": "New Test Project",
+    "description": "Created during E2E tests",
+    "repository_url": "https://github.com/test/repo"
+  }
+}

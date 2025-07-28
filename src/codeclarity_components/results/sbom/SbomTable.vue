@@ -19,7 +19,7 @@ const authStore = useAuthStore();
 const sbomRepository: ResultsRepository = new ResultsRepository();
 
 const data: Ref<Array<Dependency>> = shallowRef([]);
-const selected_workspace = defineModel<string>('selected_workspace', { default: {} });
+const selected_workspace = defineModel<string>('selected_workspace', { default: '' });
 
 const pageNumber = ref(0);
 const pageLimitSelected = ref(15);

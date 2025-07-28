@@ -520,7 +520,7 @@ function getLimitationDescription(limitation: string): string {
                                 class="flex items-start gap-3 p-3 bg-white rounded-lg border border-emerald-100 hover:border-emerald-200 transition-colors"
                             >
                                 <Icon
-                                    :icon="getPropertyIcon(permission, 'permission')"
+                                    :icon="getPropertyIcon(permission)"
                                     class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"
                                 />
                                 <div class="flex-1">
@@ -563,7 +563,7 @@ function getLimitationDescription(limitation: string): string {
                                 class="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100 hover:border-amber-200 transition-colors"
                             >
                                 <Icon
-                                    :icon="getPropertyIcon(condition, 'condition')"
+                                    :icon="getPropertyIcon(condition)"
                                     class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
                                 />
                                 <div class="flex-1">
@@ -603,7 +603,7 @@ function getLimitationDescription(limitation: string): string {
                                 class="flex items-start gap-3 p-3 bg-white rounded-lg border border-red-100 hover:border-red-200 transition-colors"
                             >
                                 <Icon
-                                    :icon="getPropertyIcon(limitation, 'limitation')"
+                                    :icon="getPropertyIcon(limitation)"
                                     class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
                                 />
                                 <div class="flex-1">

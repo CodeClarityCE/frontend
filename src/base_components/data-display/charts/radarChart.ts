@@ -35,7 +35,7 @@ export type RadarChartOptions = {
     opacityCircles: number;
     strokeWidth: number;
     roundStrokes: boolean;
-    color: d3.ScaleOrdinal<string, unknown, never>;
+    color: d3.ScaleOrdinal<string, string>;
     format: string;
     unit: string;
     legend: boolean | { title?: string; translateX: number; translateY: number };
@@ -46,7 +46,10 @@ export const RadarChart = function RadarChart(
     data: RadarChartData,
     cfg: RadarChartOptions
 ) {
-    const wrap = (text: d3.Selection<SVGTextElement, unknown, null, undefined>, width: number) => {
+    const wrap = (
+        text: d3.Selection<SVGTextElement, string, SVGGElement, unknown>,
+        width: number
+    ) => {
         text.each(function () {
             const text = d3.select(this),
                 words = text.text().split(/\s+/).reverse(),
@@ -207,7 +210,7 @@ export const RadarChart = function RadarChart(
 
     //The radial line function
     const radarLine = d3
-        .lineRadial()
+        .lineRadial<Axis>()
         .curve(d3.curveLinearClosed)
         .radius((d) => rScale(d.value))
         .angle((_d, i) => i * angleSlice);
@@ -229,7 +232,7 @@ export const RadarChart = function RadarChart(
         .append('path')
         .attr('class', 'radarArea')
         .attr('d', (d) => radarLine(d.axes))
-        .style('fill', (_d, i) => cfg.color(i))
+        .style('fill', (_d, i) => cfg.color(i.toString()))
         .style('fill-opacity', cfg.opacityArea)
         .on('mouseover', function () {
             //Dim all blobs
@@ -254,7 +257,7 @@ export const RadarChart = function RadarChart(
             return radarLine(d.axes);
         })
         .style('stroke-width', cfg.strokeWidth + 'px')
-        .style('stroke', (d, i) => cfg.color(i))
+        .style('stroke', (d, i) => cfg.color(i.toString()))
         .style('fill', 'none');
 
     //Append the circles
@@ -267,7 +270,7 @@ export const RadarChart = function RadarChart(
         .attr('r', cfg.dotRadius)
         .attr('cx', (d, i) => rScale(d.value) * cos(angleSlice * i - HALF_PI))
         .attr('cy', (d, i) => rScale(d.value) * sin(angleSlice * i - HALF_PI))
-        .style('fill', () => cfg.color(0));
+        .style('fill', () => cfg.color('0'));
 
     /////////////////////////////////////////////////////////
     //////// Append invisible circles for tooltip ///////////
@@ -285,7 +288,7 @@ export const RadarChart = function RadarChart(
     const mouseover = function () {
         tooltip.style('opacity', 1);
     };
-    const mousemove = function (event, d) {
+    const mousemove = function (event: MouseEvent, d: Axis) {
         tooltip
             .html(Format(d.value) + cfg.unit)
             .style('left', event.x + 'px')
@@ -347,7 +350,7 @@ export const RadarChart = function RadarChart(
             .attr('cx', cfg.w - 160)
             .attr('cy', (_d, i) => i * 25 + 18)
             .attr('r', 7)
-            .style('fill', (_d, i) => cfg.color(i));
+            .style('fill', (_d, i) => cfg.color(i.toString()));
         // Create labels
         legend
             .selectAll('text')

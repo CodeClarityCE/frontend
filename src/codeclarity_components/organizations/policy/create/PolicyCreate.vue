@@ -384,7 +384,7 @@ onBeforeMount(async () => {
                                                 :columns="columns"
                                                 :data="choices"
                                                 @update:row-selection="
-                                                    (selection) => {
+                                                    (selection: any) => {
                                                         selectedLicenses = Object.keys(selection);
                                                         setValue(Object.keys(selection));
                                                     }

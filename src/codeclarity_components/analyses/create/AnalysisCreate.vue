@@ -417,7 +417,9 @@ async function createAnalysisStart() {
 
                                             <Form
                                                 class="space-y-3"
-                                                @submit="(values) => onSubmit(values, plugin.name)"
+                                                @submit="
+                                                    (values: any) => onSubmit(values, plugin.name)
+                                                "
                                             >
                                                 <FormField
                                                     v-for="config in plugin.config"

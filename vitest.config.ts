@@ -10,6 +10,10 @@ export default mergeConfig(
       exclude: [...configDefaults.exclude, 'e2e/*'],
       root: fileURLToPath(new URL('./', import.meta.url)),
       setupFiles: ['./tests/setup.ts'],
+      env: {
+        MODE: 'test',
+        NODE_ENV: 'test'
+      },
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],

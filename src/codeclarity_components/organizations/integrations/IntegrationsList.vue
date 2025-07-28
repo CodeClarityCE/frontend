@@ -130,7 +130,7 @@ init();
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard
                         label="Active Integrations"
-                        :value="vcsIntegrations.filter((v) => !v.invalid).length"
+                        :value="vcsIntegrations.filter((v: any) => !v.invalid).length"
                         icon="solar:check-circle-bold"
                         variant="success"
                         subtitle="Connected services"
@@ -138,7 +138,7 @@ init();
 
                     <StatCard
                         label="At Risk"
-                        :value="vcsIntegrations.filter((v) => isAtRisk(v)).length"
+                        :value="vcsIntegrations.filter((v: any) => isAtRisk(v)).length"
                         icon="solar:clock-circle-bold"
                         variant="primary"
                         subtitle="Expiring soon"
@@ -146,7 +146,7 @@ init();
 
                     <StatCard
                         label="Invalid"
-                        :value="vcsIntegrations.filter((v) => v.invalid).length"
+                        :value="vcsIntegrations.filter((v: any) => v.invalid).length"
                         icon="solar:close-circle-bold"
                         variant="danger"
                         subtitle="Need attention"
@@ -211,7 +211,7 @@ init();
                         <!-- GitLab Integrations -->
                         <div
                             v-for="vcs in vcsIntegrations.filter(
-                                (v) => v.integration_provider === IntegrationProvider.GITLAB
+                                (v: any) => v.integration_provider === IntegrationProvider.GITLAB
                             )"
                             :key="vcs.id"
                             class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4"
@@ -289,7 +289,7 @@ init();
                         <!-- GitHub Integrations -->
                         <div
                             v-for="vcs in vcsIntegrations.filter(
-                                (v) => v.integration_provider === IntegrationProvider.GITHUB
+                                (v: any) => v.integration_provider === IntegrationProvider.GITHUB
                             )"
                             :key="vcs.id"
                             class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4"
@@ -370,7 +370,8 @@ init();
                         <RouterLink
                             v-if="
                                 !vcsIntegrations.some(
-                                    (v) => v.integration_provider === IntegrationProvider.GITHUB
+                                    (v: any) =>
+                                        v.integration_provider === IntegrationProvider.GITHUB
                                 )
                             "
                             :to="{
@@ -410,7 +411,8 @@ init();
                         <RouterLink
                             v-if="
                                 !vcsIntegrations.some(
-                                    (v) => v.integration_provider === IntegrationProvider.GITLAB
+                                    (v: any) =>
+                                        v.integration_provider === IntegrationProvider.GITLAB
                                 )
                             "
                             :to="{

@@ -22,11 +22,16 @@ vi.mock('@iconify/vue', () => ({
   }
 }));
 
-// Mock CheckIcon
+// Mock CheckIcon and Search
 vi.mock('lucide-vue-next', () => ({
   CheckIcon: {
     name: 'CheckIcon',
     template: '<svg data-testid="check-icon" v-bind="$attrs"><path /></svg>',
+    props: ['class']
+  },
+  Search: {
+    name: 'Search',
+    template: '<svg data-testid="search-icon" v-bind="$attrs"><path /></svg>',
     props: ['class']
   }
 }));

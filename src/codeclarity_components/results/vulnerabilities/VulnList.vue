@@ -1501,7 +1501,7 @@ const exploitableCount = computed(() => {
 
                         <!-- OWASP Top 10 Information -->
                         <div
-                            v-if="report.Weaknesses?.some((w) => w.OWASPTop10Id !== '')"
+                            v-if="report.Weaknesses?.some((w: any) => w.OWASPTop10Id !== '')"
                             class="mb-3"
                         >
                             <div class="flex flex-wrap gap-2">

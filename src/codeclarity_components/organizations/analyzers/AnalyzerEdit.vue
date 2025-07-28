@@ -1,11 +1,14 @@
 <script lang="ts" setup>
+import AnalyzerFormFields from './shared/AnalyzerFormFields.vue';
+import WorkflowDesigner from './shared/WorkflowDesigner.vue';
+import { analyzerValidationSchema } from './shared/analyzerValidation';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
     Organization
 } from '@/codeclarity_components/organizations/organization.entity';
 import router from '@/router';
-import { onMounted, ref, type Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
@@ -13,16 +16,18 @@ import { AnalyzerRepository } from '@/codeclarity_components/organizations/analy
 import { PluginRepository } from '@/codeclarity_components/organizations/analyzers/PluginRepository';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { Form } from 'vee-validate';
-import * as z from 'zod';
-import { toTypedSchema } from '@vee-validate/zod';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
 import { storeToRefs } from 'pinia';
-import FormTextField from '@/base_components/forms/FormTextField.vue';
-import * as lite from 'litegraph.js';
-import 'litegraph.js/css/litegraph.css';
+import type { Edge } from '@vue-flow/core';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { createNode, getWidth, retrieveResult } from '@/utils/liteGraph';
+import {
+    createAnalyzerNodes,
+    retrieveWorkflowSteps,
+    layoutNodes,
+    type AnalyzerNode,
+    type ConfigNode
+} from '@/utils/vueFlow';
 
 const analyzer_id: Ref<string> = ref('');
 const orgId: Ref<string> = ref('');
@@ -45,20 +50,11 @@ const errorCode: Ref<string> = ref('');
 // Form Data
 const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
-const graph: Ref<lite.LGraph | undefined> = ref();
 const plugins: Ref<Array<Plugin>> = ref([]);
-
-// Graph data
-const nodes = new Map<string, lite.LGraphNode>();
-const nodes_to_link = new Map<string, string[]>();
-
+const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
+const edges: Ref<Edge[]> = ref([]);
 // Form Validation
-const formValidationSchema = toTypedSchema(
-    z.object({
-        name: z.string().min(5, 'Please enter a name (minimum 5 characters)'),
-        description: z.string().min(10, 'Please enter a description (minimum 10 characters)')
-    })
-);
+const formValidationSchema = analyzerValidationSchema;
 
 function setOrgInfo(_orgInfo: Organization) {
     orgInfo.value = _orgInfo;
@@ -69,12 +65,7 @@ function setOrgInfo(_orgInfo: Organization) {
 
 // Methods
 async function submit() {
-    if (!graph.value) {
-        return;
-    }
-    const serialized = graph.value.serialize().nodes;
-    const links = graph.value.links;
-    const arr = retrieveResult(serialized, links, graph.value, plugins.value, nodes);
+    const arr = retrieveWorkflowSteps(nodes.value, edges.value);
     try {
         await analyzerRepo.updateAnalyzer({
             orgId: defaultOrg!.value!.id,
@@ -116,8 +107,9 @@ async function init() {
             bearerToken: authStore.getToken ?? ''
         });
         plugins.value = resp.data;
-        addPluginsToGraph();
-        graph.value?.start();
+        const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(plugins.value);
+        nodes.value = layoutNodes(flowNodes);
+        edges.value = flowEdges;
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -143,55 +135,6 @@ async function init() {
 }
 
 init();
-
-function addPluginsToGraph() {
-    for (let index = 0; index < plugins.value.length; index++) {
-        const element = plugins.value[index];
-        const title = element.name;
-
-        const new_type = createNode(title, element, graph, nodes, nodes_to_link);
-
-        lite.LiteGraph.registerNodeType('codeclarity/' + title, new_type);
-
-        // Create nodes
-        const new_node = lite.LiteGraph.createNode('codeclarity/' + title);
-        new_node.boxcolor = '#008491';
-        // new_node.pos = [100, 100];
-        graph.value?.add(new_node);
-
-        nodes.set(title, new_node);
-        for (let index = 0; index < element.depends_on.length; index++) {
-            const dependency_name = element.depends_on[index];
-            if (!nodes_to_link.has(title)) {
-                nodes_to_link.set(title, [dependency_name]);
-            } else {
-                nodes_to_link.get(title)?.push(dependency_name);
-            }
-        }
-    }
-
-    // Connect nodes
-    for (const [key, value] of nodes_to_link) {
-        const node = nodes.get(key);
-        if (node) {
-            for (let index = 0; index < value.length; index++) {
-                const dependency = nodes.get(value[index]);
-                if (dependency) {
-                    dependency.connect(0, node, index);
-                }
-            }
-        }
-    }
-    graph.value?.arrange();
-}
-
-onMounted(() => {
-    graph.value = new lite.LGraph();
-    // lite.LiteGraph.clearRegisteredTypes();
-    const canvas = new lite.LGraphCanvas('#mycanvas', graph.value);
-    canvas.show_info = false;
-    canvas.bgcanvas.style.backgroundColor = 'white';
-});
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">
@@ -204,32 +147,14 @@ onMounted(() => {
                 :validation-schema="formValidationSchema"
                 @submit="submit"
             >
-                <FormTextField
-                    v-model="name"
-                    :placeholder="'Enter a name'"
-                    :type="'text'"
-                    :name="'name'"
-                >
-                    <template #name>Name</template>
-                </FormTextField>
+                <AnalyzerFormFields v-model:name="name" v-model:description="description" />
 
-                <FormTextField
-                    v-model="description"
-                    :placeholder="'Enter a description'"
-                    :type="'text'"
-                    :name="'description'"
-                >
-                    <template #name>Description</template>
-                </FormTextField>
-
-                <div class="flex justify-center">
-                    <canvas
-                        id="mycanvas"
-                        class="rounded-lg"
-                        :width="getWidth()"
-                        :height="getWidth() / 2"
-                    ></canvas>
-                </div>
+                <WorkflowDesigner
+                    v-model:nodes="nodes"
+                    v-model:edges="edges"
+                    :plugins="plugins"
+                    :readonly="true"
+                />
 
                 <LoadingSubmitButton ref="loadingButtonRef">
                     <span>Create</span>

@@ -1259,7 +1259,7 @@ watch(() => filterState.value.activeFilters, init);
                                     v-if="
                                         report.Weaknesses &&
                                         report.Weaknesses.some(
-                                            (weakness) => weakness.OWASPTop10Id != ''
+                                            (weakness: any) => weakness.OWASPTop10Id != ''
                                         )
                                     "
                                     class="flex flex-wrap gap-1"

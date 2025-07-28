@@ -100,6 +100,8 @@ export function createAnalyzerNodes(plugins: Plugin[]): {
                     id: `edge-${sourceNodeId}-${targetNodeId}-${index}`,
                     source: sourceNodeId,
                     target: targetNodeId,
+                    sourceHandle: dependency, // The source handle ID equals the source plugin name
+                    targetHandle: dependency, // Connect to the target node's input handle for this dependency
                     style: {
                         stroke: 'black',
                         strokeWidth: 3
@@ -135,6 +137,8 @@ export function createEdgesFromNodes(analyzerNodes: AnalyzerNode[]): Edge[] {
                     id: `edge-${sourceNodeId}-${targetNodeId}-${index}`,
                     source: sourceNodeId,
                     target: targetNodeId,
+                    sourceHandle: dependency, // The source handle ID equals the source plugin name
+                    targetHandle: dependency, // Connect to the target node's input handle for this dependency
                     style: {
                         stroke: 'black',
                         strokeWidth: 3

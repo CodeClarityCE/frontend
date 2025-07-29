@@ -332,75 +332,92 @@ function createDepTypeChart() {
                         <DonutLoader v-if="!render" :dimensions="donutDimensions" />
                     </div>
 
-                    <!-- Legend with theme colors -->
+                    <!-- Legend with improved readability -->
                     <div class="flex-1 space-y-3">
-                        <div v-if="render" class="space-y-2">
+                        <div v-if="render" class="space-y-3">
                             <div
-                                class="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                                class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent border border-green-100 rounded-lg hover:shadow-sm transition-shadow"
                             >
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 rounded-full bg-[#1dce79]"></div>
-                                    <span class="text-sm font-medium">Direct</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-4 h-4 rounded-full bg-[#1dce79] shadow-sm"></div>
+                                    <div>
+                                        <span class="text-sm font-semibold text-gray-900"
+                                            >Direct</span
+                                        >
+                                        <p class="text-xs text-gray-600">Explicitly added</p>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-lg font-bold text-[#1dce79]">
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-[#1dce79]">
                                         {{ stats?.number_of_direct_dependencies }}
-                                    </span>
-                                    <span class="text-xs text-gray-500">
-                                        ({{
+                                    </div>
+                                    <div class="text-xs font-medium text-gray-500">
+                                        {{
                                             Math.round(
                                                 (stats?.number_of_direct_dependencies /
                                                     stats?.number_of_dependencies) *
                                                     100
                                             )
-                                        }}%)
-                                    </span>
+                                        }}% of total
+                                    </div>
                                 </div>
                             </div>
 
                             <div
-                                class="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                                class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
                             >
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 rounded-full bg-black"></div>
-                                    <span class="text-sm font-medium">Transitive</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-4 h-4 rounded-full bg-black shadow-sm"></div>
+                                    <div>
+                                        <span class="text-sm font-semibold text-gray-900"
+                                            >Transitive</span
+                                        >
+                                        <p class="text-xs text-gray-600">
+                                            Pulled in by other packages
+                                        </p>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-lg font-bold text-black">
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-black">
                                         {{ stats?.number_of_transitive_dependencies }}
-                                    </span>
-                                    <span class="text-xs text-gray-500">
-                                        ({{
+                                    </div>
+                                    <div class="text-xs font-medium text-gray-500">
+                                        {{
                                             Math.round(
                                                 (stats?.number_of_transitive_dependencies /
                                                     stats?.number_of_dependencies) *
                                                     100
                                             )
-                                        }}%)
-                                    </span>
+                                        }}% of total
+                                    </div>
                                 </div>
                             </div>
 
                             <div
-                                class="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                                class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
                             >
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 rounded-full bg-gray-600"></div>
-                                    <span class="text-sm font-medium">Both</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-4 h-4 rounded-full bg-gray-400 shadow-sm"></div>
+                                    <div>
+                                        <span class="text-sm font-semibold text-gray-900"
+                                            >Both</span
+                                        >
+                                        <p class="text-xs text-gray-600">Direct & transitive</p>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-lg font-bold text-gray-600">
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-gray-400">
                                         {{ stats?.number_of_both_direct_transitive_dependencies }}
-                                    </span>
-                                    <span class="text-xs text-gray-500">
-                                        ({{
+                                    </div>
+                                    <div class="text-xs font-medium text-gray-500">
+                                        {{
                                             Math.round(
                                                 (stats?.number_of_both_direct_transitive_dependencies /
                                                     stats?.number_of_dependencies) *
                                                     100
                                             )
-                                        }}%)
-                                    </span>
+                                        }}% of total
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -420,68 +437,58 @@ function createDepTypeChart() {
                     icon="solar:lightning-bold"
                     variant="success"
                 >
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-3">
                         <Button
-                            class="bg-[#1dce79] hover:bg-[#17b56b] text-white flex items-center gap-2 justify-center"
+                            class="w-full bg-[#1dce79] hover:bg-[#17b56b] text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all"
                             @click="handleUpdateOutdated"
                         >
-                            <Icon icon="solar:refresh-bold" class="h-4 w-4" />
-                            Update Outdated
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <Icon icon="solar:refresh-bold" class="h-5 w-5" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold">Update Outdated</div>
+                                <div class="text-sm opacity-90">
+                                    Update {{ stats.number_of_outdated_dependencies || 0 }} outdated
+                                    packages
+                                </div>
+                            </div>
                         </Button>
+
                         <Button
                             :disabled="securityIssues === 0"
-                            class="bg-black hover:bg-gray-800 text-white flex items-center gap-2 justify-center disabled:bg-gray-300"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all disabled:bg-gray-200 disabled:text-gray-400"
                             @click="handleFixSecurity"
                         >
-                            <Icon icon="solar:shield-check-bold" class="h-4 w-4" />
-                            Fix Security Issues
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <Icon icon="solar:shield-check-bold" class="h-5 w-5" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold">Fix Security Issues</div>
+                                <div class="text-sm opacity-90">
+                                    {{
+                                        securityIssues === 0
+                                            ? 'No security issues found'
+                                            : `Address ${securityIssues} security issues`
+                                    }}
+                                </div>
+                            </div>
                         </Button>
+
                         <Button
                             variant="outline"
-                            class="border-[#1dce79] text-[#1dce79] hover:bg-[#1dce79] hover:text-white flex items-center gap-2 justify-center col-span-full"
+                            class="w-full border-2 border-gray-200 hover:border-[#1dce79] hover:bg-[#1dce79]/5 text-gray-700 hover:text-[#1dce79] flex items-center gap-3 justify-start p-4 h-auto text-left transition-all"
                             @click="handleExportReport"
                         >
-                            <Icon icon="solar:download-bold" class="h-4 w-4" />
-                            Export Report
+                            <div class="bg-gray-100 p-2 rounded-lg group-hover:bg-[#1dce79]/10">
+                                <Icon icon="solar:download-bold" class="h-5 w-5" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold">Export Report</div>
+                                <div class="text-sm text-gray-500">
+                                    Download detailed SBOM report
+                                </div>
+                            </div>
                         </Button>
-                    </div>
-                </InfoCard>
-
-                <!-- Dependency Issues -->
-                <InfoCard
-                    title="Dependency Issues"
-                    description="Issues that need attention"
-                    icon="solar:danger-triangle-bold"
-                    :variant="securityIssues > 0 ? 'danger' : 'success'"
-                >
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 rounded-full bg-black"></div>
-                                <span class="text-sm font-medium">Deprecated</span>
-                            </div>
-                            <span class="text-lg font-bold text-black">
-                                {{ stats.number_of_deprecated_dependencies ?? 0 }}
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 rounded-full bg-[#1dce79]"></div>
-                                <span class="text-sm font-medium">Unlicensed</span>
-                            </div>
-                            <span class="text-lg font-bold text-[#1dce79]">
-                                {{ stats.number_of_unlicensed_dependencies ?? 0 }}
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 rounded-full bg-gray-600"></div>
-                                <span class="text-sm font-medium">Outdated</span>
-                            </div>
-                            <span class="text-lg font-bold text-gray-600">
-                                {{ stats.number_of_outdated_dependencies ?? 0 }}
-                            </span>
-                        </div>
                     </div>
                 </InfoCard>
             </div>

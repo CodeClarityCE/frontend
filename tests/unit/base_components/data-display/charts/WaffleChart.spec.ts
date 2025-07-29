@@ -2,13 +2,51 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import WaffleChart from '@/base_components/data-display/charts/WaffleChart.vue'
 
+// Mock ResizeObserver
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}))
+
+// Mock getBoundingClientRect for tests
+Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
+  configurable: true,
+  value: vi.fn(() => ({
+    width: 800,
+    height: 400,
+    top: 0,
+    left: 0,
+    bottom: 400,
+    right: 800,
+  })),
+})
+
 // Mock components
-const mockCenteredModal = {
-  template: '<div class="mock-modal"><slot /></div>',
-  methods: {
-    showModal: vi.fn(),
-    closeModal: vi.fn()
-  }
+const mockDialog = {
+  template: '<div class="mock-dialog"><slot /></div>'
+}
+
+const mockDialogTrigger = {
+  template: '<div class="mock-dialog-trigger" @click="$emit(\'click\')"><slot /></div>',
+  props: ['asChild']
+}
+
+const mockDialogScrollContent = {
+  template: '<div class="mock-dialog-scroll-content"><slot /></div>',
+  props: ['class']
+}
+
+const mockDialogHeader = {
+  template: '<div class="mock-dialog-header"><slot /></div>'
+}
+
+const mockDialogTitle = {
+  template: '<div class="mock-dialog-title"><slot /></div>'
+}
+
+const mockDialogDescription = {
+  template: '<div class="mock-dialog-description"><slot /></div>'
 }
 
 const mockIcon = {
@@ -86,7 +124,12 @@ describe('WaffleChart', () => {
   }
 
   const globalComponents = {
-    CenteredModal: mockCenteredModal,
+    Dialog: mockDialog,
+    DialogTrigger: mockDialogTrigger,
+    DialogScrollContent: mockDialogScrollContent,
+    DialogHeader: mockDialogHeader,
+    DialogTitle: mockDialogTitle,
+    DialogDescription: mockDialogDescription,
     Icon: mockIcon,
     Button: mockButton
   }
@@ -385,14 +428,27 @@ describe('WaffleChart', () => {
     })
 
     it('includes modal for detailed view', () => {
+      // Create data with small values that will be grouped as "Others" 
+      const dataWithSmallValues: WaffleChartEntry[] = [
+        { label: 'Large A', value: 950 },
+        { label: 'Large B', value: 40 },
+        { label: 'Small C', value: 5 }, // This will be < 1% and grouped in "Others"
+        { label: 'Small D', value: 3 }, // This will be < 1% and grouped in "Others"
+        { label: 'Small E', value: 2 } // This will be < 1% and grouped in "Others"
+      ]
+
       const wrapper = mount(WaffleChart, {
-        props: defaultProps,
+        props: {
+          ...defaultProps,
+          data: dataWithSmallValues
+        },
         global: {
           components: globalComponents
         }
       })
 
-      expect(wrapper.findComponent({ name: 'CenteredModal' }).exists()).toBe(true)
+      // Check if "See others" button is rendered (which indicates modal capability)
+      expect(wrapper.html()).toContain('See others')
     })
   })
 
@@ -558,16 +614,28 @@ describe('WaffleChart', () => {
   })
 
   describe('Component Integration', () => {
-    it('integrates with CenteredModal component', () => {
+    it('integrates with Dialog component', () => {
+      // Create data with small values that will be grouped as "Others" 
+      const dataWithSmallValues: WaffleChartEntry[] = [
+        { label: 'Large A', value: 950 },
+        { label: 'Large B', value: 40 },
+        { label: 'Small C', value: 5 }, // This will be < 1% and grouped in "Others"
+        { label: 'Small D', value: 3 }, // This will be < 1% and grouped in "Others"
+        { label: 'Small E', value: 2 } // This will be < 1% and grouped in "Others"
+      ]
+
       const wrapper = mount(WaffleChart, {
-        props: defaultProps,
+        props: {
+          ...defaultProps,
+          data: dataWithSmallValues
+        },
         global: {
           components: globalComponents
         }
       })
 
-      const modal = wrapper.findComponent({ name: 'CenteredModal' })
-      expect(modal.exists()).toBe(true)
+      // Check if "See others" button is rendered (which indicates Dialog integration)
+      expect(wrapper.html()).toContain('See others')
     })
 
     it('renders waffle chart grid successfully', () => {
@@ -579,7 +647,7 @@ describe('WaffleChart', () => {
       })
 
       // Check if the waffle grid is rendered with colored squares
-      expect(wrapper.html()).toContain('grid-cols-10')
+      expect(wrapper.html()).toContain('grid-template-columns')
       expect(wrapper.html()).toContain('background-color')
     })
 

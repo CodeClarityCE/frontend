@@ -6,7 +6,7 @@ import { useDashboardData } from './composables/useDashboardData';
 import { PageHeader } from '@/base_components';
 import DashboardQuickStats from './sections/DashboardQuickStats.vue';
 import DashboardCharts from './sections/DashboardCharts.vue';
-import DashboardFooter from './layout/DashboardFooter.vue';
+// import DashboardFooter from './layout/DashboardFooter.vue';
 import DashboardEmptyState from './layout/DashboardEmptyState.vue';
 
 /**
@@ -58,7 +58,7 @@ const {
             />
             <DashboardQuickStats />
             <DashboardCharts :integration-ids="activeIntegrationIds" />
-            <DashboardFooter />
+            <!-- <DashboardFooter /> -->
         </div>
     </div>
 </template>

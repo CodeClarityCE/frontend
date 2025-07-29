@@ -119,13 +119,6 @@ const criticalAndHighCount = computed(() => {
     return (stats.value.number_of_critical || 0) + (stats.value.number_of_high || 0);
 });
 
-const vulnerabilityTrend = computed(() => {
-    const diff = stats.value.number_of_vulnerabilities_diff || 0;
-    if (diff > 0) return 'increased';
-    if (diff < 0) return 'decreased';
-    return 'stable';
-});
-
 const severityDistribution = computed(() => {
     const total = stats.value.number_of_vulnerabilities || 1;
     return {
@@ -158,22 +151,6 @@ const topOwaspCategories = computed(() => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 3);
 });
-
-// Action handlers
-function handleFixCritical() {
-    console.log('Handle fix critical vulnerabilities');
-    // Implement critical vulnerability fix logic here
-}
-
-function handleUpdateVulnerable() {
-    console.log('Handle update vulnerable dependencies');
-    // Implement vulnerable dependency update logic here
-}
-
-function handleExportSecurityReport() {
-    console.log('Handle export security report');
-    // Implement security report export logic here
-}
 </script>
 
 <template>
@@ -187,7 +164,9 @@ function handleExportSecurityReport() {
         />
 
         <!-- Key Statistics Grid -->
-        <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+        <div
+            class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 vuln-stats-grid"
+        >
             <!-- Total Vulnerabilities -->
             <StatCard
                 label="Total Vulnerabilities"
@@ -259,156 +238,75 @@ function handleExportSecurityReport() {
                           : 'solar:shield-warning-linear'
                 "
             />
+
+            <!-- Severity Overview -->
+            <InfoCard title="Severity Range" icon="solar:chart-bold" variant="default">
+                <div v-if="render" class="flex items-center justify-between gap-2">
+                    <!-- Mean -->
+                    <div class="flex-1 text-center">
+                        <p class="text-xs text-gray-500 mb-1">Mean</p>
+                        <div class="text-2xl font-bold text-theme-black">
+                            {{ stats.mean_severity?.toFixed(2) ?? '0.00' }}
+                        </div>
+                        <p
+                            v-if="stats.mean_severity_diff !== undefined"
+                            class="text-xs mt-1"
+                            :class="
+                                stats.mean_severity_diff > 0
+                                    ? 'text-red-500'
+                                    : stats.mean_severity_diff < 0
+                                      ? 'text-green-500'
+                                      : 'text-gray-500'
+                            "
+                        >
+                            {{ stats.mean_severity_diff > 0 ? '+' : ''
+                            }}{{ stats.mean_severity_diff?.toFixed(2) }}
+                        </p>
+                    </div>
+
+                    <!-- Visual separator -->
+                    <div class="w-px h-12 bg-gray-200"></div>
+
+                    <!-- Max -->
+                    <div class="flex-1 text-center">
+                        <p class="text-xs text-gray-500 mb-1">Max</p>
+                        <div class="text-2xl font-bold text-red-600">
+                            {{ stats.max_severity?.toFixed(2) ?? '0.00' }}
+                        </div>
+                        <p
+                            v-if="stats.max_severity_diff !== undefined"
+                            class="text-xs mt-1"
+                            :class="
+                                stats.max_severity_diff > 0
+                                    ? 'text-red-500'
+                                    : stats.max_severity_diff < 0
+                                      ? 'text-green-500'
+                                      : 'text-gray-500'
+                            "
+                        >
+                            {{ stats.max_severity_diff > 0 ? '+' : ''
+                            }}{{ stats.max_severity_diff?.toFixed(2) }}
+                        </p>
+                    </div>
+                </div>
+                <div v-else class="flex justify-center items-center h-20">
+                    <TextLoader />
+                </div>
+            </InfoCard>
         </div>
 
         <!-- Detailed Analysis Grid -->
-        <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        <div class="grid gap-4 grid-cols-1 lg:grid-cols-3">
             <!-- Vulnerability Distribution -->
             <InfoCard
                 title="Vulnerability Distribution"
-                description="Breakdown of vulnerabilities by severity level"
+                description="Breakdown by severity"
                 icon="solar:chart-square-bold"
                 variant="primary"
             >
-                <div v-if="render" class="space-y-4">
+                <div v-if="render" class="space-y-3">
                     <!-- Severity breakdown -->
-                    <div class="grid gap-3 grid-cols-2">
-                        <div
-                            class="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow"
-                        >
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-semibold text-gray-900">Critical</span>
-                                <span class="text-xl font-bold text-theme-black">{{
-                                    stats.number_of_critical ?? 0
-                                }}</span>
-                            </div>
-                            <div class="w-full bg-severityCriticalBg rounded-full h-2">
-                                <div
-                                    class="bg-severityCritical h-2 rounded-full transition-all duration-300"
-                                    :style="{ width: `${severityDistribution.critical}%` }"
-                                ></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">
-                                {{ severityDistribution.critical }}% of total
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow"
-                        >
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-semibold text-gray-900">High</span>
-                                <span class="text-xl font-bold text-theme-black">{{
-                                    stats.number_of_high ?? 0
-                                }}</span>
-                            </div>
-                            <div class="w-full bg-severityHighBg rounded-full h-2">
-                                <div
-                                    class="bg-severityHigh h-2 rounded-full transition-all duration-300"
-                                    :style="{ width: `${severityDistribution.high}%` }"
-                                ></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">
-                                {{ severityDistribution.high }}% of total
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow"
-                        >
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-semibold text-gray-900">Medium</span>
-                                <span class="text-xl font-bold text-theme-black">{{
-                                    stats.number_of_medium ?? 0
-                                }}</span>
-                            </div>
-                            <div class="w-full bg-severityMediumBg rounded-full h-2">
-                                <div
-                                    class="bg-severityMedium h-2 rounded-full transition-all duration-300"
-                                    :style="{ width: `${severityDistribution.medium}%` }"
-                                ></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">
-                                {{ severityDistribution.medium }}% of total
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow"
-                        >
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-semibold text-gray-900">Low</span>
-                                <span class="text-xl font-bold text-theme-black">{{
-                                    stats.number_of_low ?? 0
-                                }}</span>
-                            </div>
-                            <div class="w-full bg-severityLowBg rounded-full h-2">
-                                <div
-                                    class="bg-severityLow h-2 rounded-full transition-all duration-300"
-                                    :style="{ width: `${severityDistribution.low}%` }"
-                                ></div>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">
-                                {{ severityDistribution.low }}% of total
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else class="space-y-3">
-                    <TextLoader v-for="i in 4" :key="i" />
-                </div>
-            </InfoCard>
-
-            <!-- Vulnerability Visualization -->
-            <InfoCard
-                title="Vulnerability Trends"
-                description="Visual representation of vulnerability data"
-                icon="solar:chart-2-bold"
-                variant="default"
-            >
-                <div v-if="render" class="space-y-4">
-                    <!-- Trend Summary -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <!-- Trend Indicator -->
-                        <div class="text-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="flex items-center justify-center mb-2">
-                                <Icon
-                                    :icon="
-                                        vulnerabilityTrend === 'increased'
-                                            ? 'solar:arrow-up-bold'
-                                            : vulnerabilityTrend === 'decreased'
-                                              ? 'solar:arrow-down-bold'
-                                              : 'solar:minus-bold'
-                                    "
-                                    :class="[
-                                        'w-6 h-6',
-                                        vulnerabilityTrend === 'increased'
-                                            ? 'text-red-500'
-                                            : vulnerabilityTrend === 'decreased'
-                                              ? 'text-green-500'
-                                              : 'text-gray-500'
-                                    ]"
-                                />
-                            </div>
-                            <p class="text-sm font-semibold text-theme-black capitalize">
-                                {{ vulnerabilityTrend }}
-                            </p>
-                            <p class="text-xs text-gray-500">Since last scan</p>
-                        </div>
-
-                        <!-- Quick Stats -->
-                        <div class="text-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="text-xl font-bold text-theme-black mb-1">
-                                {{ (stats.number_of_critical || 0) + (stats.number_of_high || 0) }}
-                            </div>
-                            <p class="text-sm font-semibold text-red-600">High Priority</p>
-                            <p class="text-xs text-gray-500">Critical + High</p>
-                        </div>
-                    </div>
-
-                    <!-- Severity Progress Bars -->
-                    <div class="space-y-3">
+                    <div class="space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-sm font-medium text-gray-700">Critical</span>
                             <span class="text-sm font-bold text-theme-black">{{
@@ -418,9 +316,7 @@ function handleExportSecurityReport() {
                         <div class="w-full bg-severityCriticalBg rounded-full h-2">
                             <div
                                 class="bg-severityCritical h-2 rounded-full transition-all duration-300"
-                                :style="{
-                                    width: `${Math.min(100, (stats.number_of_critical || 0) * 25)}%`
-                                }"
+                                :style="{ width: `${severityDistribution.critical}%` }"
                             ></div>
                         </div>
 
@@ -433,24 +329,33 @@ function handleExportSecurityReport() {
                         <div class="w-full bg-severityHighBg rounded-full h-2">
                             <div
                                 class="bg-severityHigh h-2 rounded-full transition-all duration-300"
-                                :style="{
-                                    width: `${Math.min(100, (stats.number_of_high || 0) * 25)}%`
-                                }"
+                                :style="{ width: `${severityDistribution.high}%` }"
                             ></div>
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-700">Medium + Low</span>
+                            <span class="text-sm font-medium text-gray-700">Medium</span>
                             <span class="text-sm font-bold text-theme-black">{{
-                                (stats.number_of_medium || 0) + (stats.number_of_low || 0)
+                                stats.number_of_medium ?? 0
                             }}</span>
                         </div>
                         <div class="w-full bg-severityMediumBg rounded-full h-2">
                             <div
                                 class="bg-severityMedium h-2 rounded-full transition-all duration-300"
-                                :style="{
-                                    width: `${Math.min(100, ((stats.number_of_medium || 0) + (stats.number_of_low || 0)) * 25)}%`
-                                }"
+                                :style="{ width: `${severityDistribution.medium}%` }"
+                            ></div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Low</span>
+                            <span class="text-sm font-bold text-theme-black">{{
+                                stats.number_of_low ?? 0
+                            }}</span>
+                        </div>
+                        <div class="w-full bg-severityLowBg rounded-full h-2">
+                            <div
+                                class="bg-severityLow h-2 rounded-full transition-all duration-300"
+                                :style="{ width: `${severityDistribution.low}%` }"
                             ></div>
                         </div>
                     </div>
@@ -463,110 +368,64 @@ function handleExportSecurityReport() {
 
             <!-- Security Impact Analysis -->
             <InfoCard
-                title="Security Impact"
-                description="CIA triad impact assessment"
+                title="Security Impact (CIA)"
+                description="Impact assessment"
                 icon="solar:shield-cross-bold"
                 variant="default"
             >
-                <div v-if="render" class="space-y-4">
-                    <!-- Impact Metrics -->
-                    <div class="grid gap-3">
-                        <!-- Confidentiality -->
-                        <div
-                            class="flex items-center justify-between p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
-                        >
-                            <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-theme-primary/10">
-                                    <Icon
-                                        icon="solar:eye-closed-bold"
-                                        class="w-5 h-5 text-theme-primary"
-                                    />
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-theme-black">
-                                        Confidentiality
-                                    </p>
-                                    <p class="text-xs text-gray-500">Data exposure risk</p>
-                                </div>
+                <div v-if="render" class="space-y-3">
+                    <!-- Compact Impact Display -->
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <Icon
+                                icon="solar:eye-closed-bold"
+                                class="w-5 h-5 text-theme-primary mx-auto mb-1"
+                            />
+                            <div class="text-lg font-bold text-theme-black">
+                                {{ stats.mean_confidentiality_impact?.toFixed(1) ?? '0.0' }}
                             </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-theme-black">
-                                    {{ stats.mean_confidentiality_impact?.toFixed(1) ?? '0.0' }}
-                                </div>
-                                <div class="text-xs text-gray-500">Impact Score</div>
-                            </div>
+                            <p class="text-xs text-gray-500">Confidentiality</p>
                         </div>
 
-                        <!-- Integrity -->
-                        <div
-                            class="flex items-center justify-between p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
-                        >
-                            <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-theme-primary/10">
-                                    <Icon
-                                        icon="solar:shield-check-bold"
-                                        class="w-5 h-5 text-theme-primary"
-                                    />
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-theme-black">Integrity</p>
-                                    <p class="text-xs text-gray-500">Data modification risk</p>
-                                </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <Icon
+                                icon="solar:shield-check-bold"
+                                class="w-5 h-5 text-theme-primary mx-auto mb-1"
+                            />
+                            <div class="text-lg font-bold text-theme-black">
+                                {{ stats.mean_integrity_impact?.toFixed(1) ?? '0.0' }}
                             </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-theme-black">
-                                    {{ stats.mean_integrity_impact?.toFixed(1) ?? '0.0' }}
-                                </div>
-                                <div class="text-xs text-gray-500">Impact Score</div>
-                            </div>
+                            <p class="text-xs text-gray-500">Integrity</p>
                         </div>
 
-                        <!-- Availability -->
-                        <div
-                            class="flex items-center justify-between p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
-                        >
-                            <div class="flex items-center gap-3">
-                                <div class="p-2 rounded-lg bg-theme-primary/10">
-                                    <Icon
-                                        icon="solar:server-bold"
-                                        class="w-5 h-5 text-theme-primary"
-                                    />
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-theme-black">Availability</p>
-                                    <p class="text-xs text-gray-500">Service disruption risk</p>
-                                </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <Icon
+                                icon="solar:server-bold"
+                                class="w-5 h-5 text-theme-primary mx-auto mb-1"
+                            />
+                            <div class="text-lg font-bold text-theme-black">
+                                {{ stats.mean_availability_impact?.toFixed(1) ?? '0.0' }}
                             </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-theme-black">
-                                    {{ stats.mean_availability_impact?.toFixed(1) ?? '0.0' }}
-                                </div>
-                                <div class="text-xs text-gray-500">Impact Score</div>
-                            </div>
+                            <p class="text-xs text-gray-500">Availability</p>
                         </div>
                     </div>
 
-                    <!-- Overall Impact Summary -->
-                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-theme-black">Overall Impact</p>
-                                <p class="text-xs text-gray-500">Combined risk assessment</p>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-theme-black">
-                                    {{
-                                        (
-                                            ((stats.mean_confidentiality_impact || 0) +
-                                                (stats.mean_integrity_impact || 0) +
-                                                (stats.mean_availability_impact || 0)) /
-                                            3
-                                        ).toFixed(1)
-                                    }}
-                                </div>
-                                <div class="text-xs text-gray-500">Average Score</div>
-                            </div>
+                    <!-- Overall Impact -->
+                    <div
+                        class="p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20 text-center"
+                    >
+                        <p class="text-sm font-medium text-theme-black mb-1">Overall Impact</p>
+                        <div class="text-2xl font-bold text-theme-primary">
+                            {{
+                                (
+                                    ((stats.mean_confidentiality_impact || 0) +
+                                        (stats.mean_integrity_impact || 0) +
+                                        (stats.mean_availability_impact || 0)) /
+                                    3
+                                ).toFixed(1)
+                            }}
                         </div>
+                        <p class="text-xs text-gray-500 mt-1">Combined risk score</p>
                     </div>
                 </div>
 
@@ -574,152 +433,108 @@ function handleExportSecurityReport() {
                     <TextLoader v-for="i in 4" :key="i" />
                 </div>
             </InfoCard>
-        </div>
-
-        <!-- Additional Metrics -->
-        <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
-            <!-- Mean Severity -->
-            <StatCard
-                label="Mean Severity"
-                :value="stats.mean_severity?.toFixed(2) ?? '0.00'"
-                icon="solar:chart-linear"
-                variant="default"
-                :subtitle="
-                    stats.mean_severity_diff !== undefined
-                        ? `${stats.mean_severity_diff > 0 ? '+' : ''}${stats.mean_severity_diff?.toFixed(2)} from last scan`
-                        : 'Average vulnerability severity'
-                "
-                :subtitle-icon="
-                    stats.mean_severity_diff && stats.mean_severity_diff > 0
-                        ? 'solar:arrow-up-linear'
-                        : stats.mean_severity_diff && stats.mean_severity_diff < 0
-                          ? 'solar:arrow-down-linear'
-                          : 'solar:chart-linear'
-                "
-            />
-
-            <!-- Max Severity -->
-            <StatCard
-                label="Max Severity"
-                :value="stats.max_severity?.toFixed(2) ?? '0.00'"
-                icon="solar:danger-triangle-bold"
-                variant="danger"
-                :subtitle="
-                    stats.max_severity_diff !== undefined
-                        ? `${stats.max_severity_diff > 0 ? '+' : ''}${stats.max_severity_diff?.toFixed(2)} from last scan`
-                        : 'Highest severity found'
-                "
-                :subtitle-icon="
-                    stats.max_severity_diff && stats.max_severity_diff > 0
-                        ? 'solar:arrow-up-linear'
-                        : stats.max_severity_diff && stats.max_severity_diff < 0
-                          ? 'solar:arrow-down-linear'
-                          : 'solar:danger-linear'
-                "
-            />
 
             <!-- OWASP Top 10 -->
             <InfoCard
-                title="Top OWASP Categories"
-                description="Most prevalent OWASP Top 10 vulnerabilities"
+                title="OWASP Top 10"
+                description="Most common categories"
                 icon="solar:shield-bold"
                 variant="primary"
             >
-                <div v-if="render && topOwaspCategories.length > 0" class="space-y-3">
+                <div v-if="render">
+                    <!-- Summary Stats -->
                     <div
-                        v-for="(category, index) in topOwaspCategories"
-                        :key="index"
-                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                        class="mb-3 p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
                     >
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-theme-black truncate">
-                                {{ category.name.split(':')[1] || category.name }}
-                            </p>
-                            <p class="text-xs text-gray-500">{{ category.name.split(':')[0] }}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-theme-primary text-white"
-                            >
-                                {{ category.count }}
-                            </span>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-theme-black">
+                                    Total OWASP Issues
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    Across {{ topOwaspCategories.length || 0 }} categories
+                                </p>
+                            </div>
+                            <div class="text-2xl font-bold text-theme-primary">
+                                {{
+                                    topOwaspCategories.reduce(
+                                        (sum: number, cat: any) => sum + cat.count,
+                                        0
+                                    ) || 0
+                                }}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div v-else-if="render" class="text-center py-8">
-                    <Icon
-                        icon="solar:shield-check-bold"
-                        class="w-12 h-12 text-theme-primary mx-auto mb-2"
-                    />
-                    <p class="text-sm text-gray-500">No OWASP Top 10 vulnerabilities found</p>
+
+                    <!-- Categories List -->
+                    <div v-if="topOwaspCategories.length > 0" class="space-y-1">
+                        <div
+                            v-for="(category, index) in topOwaspCategories.slice(0, 5)"
+                            :key="index"
+                            class="group"
+                        >
+                            <div
+                                class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                            >
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <span class="text-xs font-bold text-gray-400">{{
+                                        category.name.split(':')[0]
+                                    }}</span>
+                                    <p class="text-xs text-gray-600 truncate flex-1">
+                                        {{ category.name.split(':')[1]?.trim() || '' }}
+                                    </p>
+                                </div>
+                                <span
+                                    class="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full text-xs font-bold bg-theme-primary/10 text-theme-primary"
+                                >
+                                    {{ category.count }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-2">
+                        <Icon
+                            icon="solar:shield-check-bold"
+                            class="w-6 h-6 text-green-500 mx-auto mb-1"
+                        />
+                        <p class="text-xs text-gray-500">No OWASP vulnerabilities detected</p>
+                    </div>
                 </div>
                 <div v-else class="space-y-3">
                     <TextLoader v-for="i in 3" :key="i" />
                 </div>
             </InfoCard>
         </div>
-
-        <!-- Quick Actions -->
-        <InfoCard
-            title="Security Actions"
-            description="Recommended actions to improve your security posture"
-            icon="solar:settings-bold"
-            variant="primary"
-        >
-            <div class="grid gap-3 grid-cols-1 md:grid-cols-3">
-                <button
-                    class="flex items-center gap-3 p-3 rounded-xl bg-theme-primary/5 border border-theme-primary/20 hover:border-theme-primary/30 hover:bg-theme-primary/10 transition-all duration-200 text-left group"
-                    @click="handleFixCritical"
-                >
-                    <div
-                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
-                    >
-                        <Icon
-                            icon="solar:bug-minimalistic-bold"
-                            class="w-5 h-5 text-theme-primary"
-                        />
-                    </div>
-                    <div>
-                        <p class="font-semibold text-theme-black">Fix Critical Issues</p>
-                        <p class="text-sm text-gray-500">
-                            Address {{ stats.number_of_critical ?? 0 }} critical vulnerabilities
-                        </p>
-                    </div>
-                </button>
-
-                <button
-                    class="flex items-center gap-3 p-3 rounded-xl bg-theme-primary/5 border border-theme-primary/20 hover:border-theme-primary/30 hover:bg-theme-primary/10 transition-all duration-200 text-left group"
-                    @click="handleUpdateVulnerable"
-                >
-                    <div
-                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
-                    >
-                        <Icon icon="solar:refresh-bold" class="w-5 h-5 text-theme-primary" />
-                    </div>
-                    <div>
-                        <p class="font-semibold text-theme-black">Update Dependencies</p>
-                        <p class="text-sm text-gray-500">
-                            Update {{ stats.number_of_vulnerable_dependencies ?? 0 }} vulnerable
-                            packages
-                        </p>
-                    </div>
-                </button>
-
-                <button
-                    class="flex items-center gap-3 p-3 rounded-xl bg-theme-primary/5 border border-theme-primary/20 hover:border-theme-primary/30 hover:bg-theme-primary/10 transition-all duration-200 text-left group"
-                    @click="handleExportSecurityReport"
-                >
-                    <div
-                        class="p-2 rounded-lg bg-theme-primary/10 group-hover:bg-theme-primary/20 transition-colors"
-                    >
-                        <Icon icon="solar:document-bold" class="w-5 h-5 text-theme-primary" />
-                    </div>
-                    <div>
-                        <p class="font-semibold text-theme-black">Export Report</p>
-                        <p class="text-sm text-gray-500">Generate security analysis report</p>
-                    </div>
-                </button>
-            </div>
-        </InfoCard>
     </div>
 </template>
+
+<style scoped>
+.vuln-stats-grid {
+    align-items: stretch;
+}
+
+/* Make all cards in the stats grid have equal heights */
+.vuln-stats-grid > * {
+    height: 100%;
+}
+
+/* For StatCards: center the main content */
+.vuln-stats-grid :deep(.card:not(:has(.card-header))) {
+    display: flex;
+    align-items: center;
+}
+
+/* For InfoCards: make them fill height and center content vertically */
+.vuln-stats-grid :deep(.card:has(.card-header)) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.vuln-stats-grid :deep(.card:has(.card-header) .card-content) {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>

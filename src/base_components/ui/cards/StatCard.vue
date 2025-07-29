@@ -1,35 +1,40 @@
 <template>
     <!-- Statistics card with label, value, icon and optional subtitle -->
-    <Card class="border shadow-sm hover:shadow-md transition-shadow" :class="borderColor">
-        <CardContent class="p-6">
-            <!-- Main content: stats on left, icon on right -->
-            <div class="flex items-center justify-between">
-                <!-- Statistics content -->
-                <div class="space-y-2">
-                    <!-- Label (required) -->
-                    <p class="text-sm font-semibold uppercase tracking-wide text-theme-gray">
-                        {{ label }}
-                    </p>
+    <Card class="border shadow-sm hover:shadow-md transition-shadow h-full" :class="borderColor">
+        <CardContent class="p-6 h-full flex flex-col">
+            <!-- Label at the top -->
+            <p class="text-sm font-semibold uppercase tracking-wide text-theme-gray mb-2">
+                {{ label }}
+            </p>
 
-                    <!-- Value (required) -->
-                    <p class="text-3xl font-bold text-theme-black">{{ value }}</p>
+            <!-- Main content: centered vertically -->
+            <div class="flex-1 flex items-center">
+                <div class="flex items-center justify-between w-full">
+                    <!-- Statistics content -->
+                    <div class="space-y-2">
+                        <!-- Value (required) -->
+                        <p class="text-3xl font-bold text-theme-black">{{ value }}</p>
 
-                    <!-- Optional subtitle with icon -->
-                    <div v-if="subtitle || $slots.subtitle" class="flex items-center gap-1 text-xs">
-                        <Icon
-                            v-if="subtitleIcon"
-                            :icon="subtitleIcon"
-                            class="h-3 w-3 text-gray-500"
-                        />
-                        <span class="font-medium text-theme-gray">
-                            <slot name="subtitle">{{ subtitle }}</slot>
-                        </span>
+                        <!-- Optional subtitle with icon -->
+                        <div
+                            v-if="subtitle || $slots.subtitle"
+                            class="flex items-center gap-1 text-xs"
+                        >
+                            <Icon
+                                v-if="subtitleIcon"
+                                :icon="subtitleIcon"
+                                class="h-3 w-3 text-gray-500"
+                            />
+                            <span class="font-medium text-theme-gray">
+                                <slot name="subtitle">{{ subtitle }}</slot>
+                            </span>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Icon container -->
-                <div class="p-3 rounded-full bg-gray-100">
-                    <Icon :icon="icon" class="h-8 w-8 text-gray-600" />
+                    <!-- Icon container -->
+                    <div class="p-3 rounded-full bg-gray-100">
+                        <Icon :icon="icon" class="h-8 w-8 text-gray-600" />
+                    </div>
                 </div>
             </div>
         </CardContent>

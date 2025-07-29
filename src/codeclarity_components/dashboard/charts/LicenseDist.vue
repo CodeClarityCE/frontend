@@ -82,8 +82,8 @@ function generateChartData(licenseDistData: LicenseDist) {
 fetch();
 </script>
 <template>
-    <div class="flex flex-col items-center justify-center">
-        <div v-if="loading || noData" class="flex flex-row justify-center items-center">
+    <div class="h-full w-full">
+        <div v-if="loading || noData" class="flex flex-row justify-center items-center h-full">
             <div class="grid gap-1 relative grid-cols-10">
                 <Skeleton v-for="index in 100" :key="index" class="h-[20px] w-[20px] rounded" />
                 <div
@@ -95,34 +95,31 @@ fetch();
                 </div>
             </div>
         </div>
-        <div v-else class="flex flex-row gap-8 justify-center items-center">
-            <div v-if="error">
-                <div class="flex flex-row gap-2">
-                    <Icon
-                        class="icon user-icon"
-                        icon="solar:confounded-square-outline"
-                        style="font-size: 3rem; height: fit-content"
-                    ></Icon>
-                    <div>
+        <div v-else-if="error" class="flex flex-row justify-center items-center h-full">
+            <div class="flex flex-row gap-2">
+                <Icon
+                    class="icon user-icon"
+                    icon="solar:confounded-square-outline"
+                    style="font-size: 3rem; height: fit-content"
+                ></Icon>
+                <div>
+                    <div class="flex flex-col gap-2">
                         <div class="flex flex-col gap-2">
-                            <div class="flex flex-col gap-2">
-                                <div>Failed to load the dashboard component</div>
-                            </div>
-                            <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <Button @click="fetch()"> Try again </Button>
-                            </div>
+                            <div>Failed to load the dashboard component</div>
+                        </div>
+                        <div class="flex flex-row gap-2 items-center flex-wrap">
+                            <Button @click="fetch()"> Try again </Button>
                         </div>
                     </div>
                 </div>
             </div>
-            <WaffleChart
-                v-else
-                :data="chartData"
-                :source-percentual="false"
-                :output-percentual="true"
-            >
-            </WaffleChart>
         </div>
+        <WaffleChart
+            v-else
+            :data="chartData"
+            :source-percentual="false"
+            :output-percentual="true"
+        />
     </div>
 </template>
 

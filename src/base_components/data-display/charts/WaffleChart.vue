@@ -1,9 +1,15 @@
 <script lang="ts">
 import * as d3 from 'd3';
 import { interpolateColors } from '@/base_components/data-display/charts/colors-waffle';
-import CenteredModal from '../../ui/modals/CenteredModal.vue';
-import { Icon } from '@iconify/vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import {
+    Dialog,
+    DialogDescription,
+    DialogHeader,
+    DialogScrollContent,
+    DialogTitle,
+    DialogTrigger
+} from '@/shadcn/ui/dialog';
 
 export interface WaffleChartEntry {
     label: string;
@@ -24,7 +30,7 @@ interface Square {
 }
 </script>
 <script setup lang="ts">
-import { ref, type Ref } from 'vue';
+import { ref, type Ref, onMounted, onUnmounted } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -36,18 +42,75 @@ const props = defineProps<{
     colorScale?: (a: number) => string;
 }>();
 
-const squares: Square[] = [];
-const nmbOfSquares = 100;
+const squares: Ref<Square[]> = ref([]);
+const nmbOfSquares = ref(100);
 const groupToAnimate: Ref<string | undefined> = ref();
 const waffleEntries: Ref<WaffleChartEntryNormalized[]> = ref([]);
 const truncatedOthers: Ref<WaffleChartEntryNormalized[]> = ref([]);
-const allLicensesModalRef: Ref<typeof CenteredModal> = ref(CenteredModal);
+const chartContainer: Ref<HTMLElement | null> = ref(null);
+const squareSize = ref(25);
+const gridCols = ref(10);
+
+/**
+ * Calculate responsive dimensions based on container size
+ */
+function calculateResponsiveDimensions() {
+    if (!chartContainer.value) return;
+
+    const containerRect = chartContainer.value.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+
+    // If we don't have meaningful dimensions, use defaults
+    if (containerWidth < 200 || containerHeight < 150) {
+        gridCols.value = 10;
+        squareSize.value = 25;
+        nmbOfSquares.value = 100;
+        return;
+    }
+
+    // Reserve space for legend (approximately 200px width)
+    const chartAreaWidth = Math.max(containerWidth - 200, 200);
+    const chartAreaHeight = containerHeight - 10; // Minimal margin to use more space
+
+    // Calculate square size that maximizes chart usage of available space
+    const targetSquareSize = 25;
+    const padding = 0;
+
+    // Try different column counts to find best fit
+    let bestCols = 10;
+    let bestRows = 10;
+    let bestSquareSize = targetSquareSize;
+
+    for (let cols = 8; cols <= 20; cols++) {
+        const squareSizeForWidth = (chartAreaWidth - (cols - 1) * padding) / cols;
+
+        if (squareSizeForWidth >= 15 && squareSizeForWidth <= 40) {
+            const rows = Math.floor(chartAreaHeight / squareSizeForWidth);
+
+            if (rows >= 5) {
+                const totalSquares = cols * rows;
+
+                if (totalSquares >= 50 && totalSquares <= 300) {
+                    bestCols = cols;
+                    bestRows = rows;
+                    bestSquareSize = Math.floor(squareSizeForWidth);
+                }
+            }
+        }
+    }
+
+    gridCols.value = bestCols;
+    squareSize.value = bestSquareSize;
+    nmbOfSquares.value = bestCols * bestRows;
+}
 
 /**
  * Creates the internal data structure for the waffle chart from the data passed in by the user
  */
 function createData() {
     truncatedOthers.value = [];
+    squares.value = [];
 
     let colorScale = props.colorScale;
     if (!colorScale)
@@ -113,15 +176,15 @@ function createData() {
             i++;
         }
 
-        colors = interpolateColors(normalizedData.length, d3.interpolateWarm, {
-            colorStart: 0.0,
-            colorEnd: 1.0,
+        // Use theme-appropriate colors for "Others" entries, avoiding light colors
+        colors = interpolateColors(othersEntries.length, colorScale, {
+            colorStart: 0.2,
+            colorEnd: 0.8,
             useEndAsStart: false
         });
 
-        const baseIndex = dataForLegend.length - 1;
-        for (let i = baseIndex; i < normalizedData.length; i++) {
-            othersEntries[i - baseIndex].color = colors[i - baseIndex];
+        for (let i = 0; i < othersEntries.length; i++) {
+            othersEntries[i].color = colors[i];
         }
     }
 
@@ -159,10 +222,10 @@ function createSquares(
         } else {
             for (
                 let i = 0;
-                i < Math.round(Number.parseFloat(entry.value.toPrecision(2)) * nmbOfSquares);
+                i < Math.round(Number.parseFloat(entry.value.toPrecision(2)) * nmbOfSquares.value);
                 i++
             ) {
-                squares.push({ data: entry, group: entry.label });
+                squares.value.push({ data: entry, group: entry.label });
                 nmbSquaresCreated++;
             }
         }
@@ -175,22 +238,22 @@ function createSquares(
         for (const entry of normalizedData) {
             for (
                 let i = 0;
-                i < Math.round(Number.parseFloat(entry.value.toPrecision(2)) * nmbOfSquares);
+                i < Math.round(Number.parseFloat(entry.value.toPrecision(2)) * nmbOfSquares.value);
                 i++
             ) {
-                squares.push({ data: entry, group: entry.label });
+                squares.value.push({ data: entry, group: entry.label });
                 nmbSquaresCreated++;
             }
         }
     }
 
     if (othersData) {
-        for (let i = nmbOfSquares - nmbSquaresCreated; i > 0; i--) {
-            squares.push({ data: othersData, group: 'Others' });
+        for (let i = nmbOfSquares.value - nmbSquaresCreated; i > 0; i--) {
+            squares.value.push({ data: othersData, group: 'Others' });
         }
     }
 
-    const cleanedData = normalizedData.filter((val, index) => {
+    const cleanedData = normalizedData.filter((_, index) => {
         return !indicesToRemove.includes(index);
     });
 
@@ -215,130 +278,129 @@ function styleSelected(group: string) {
     }
 }
 
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+    // Small delay to ensure DOM is fully rendered
+    setTimeout(() => {
+        if (chartContainer.value) {
+            calculateResponsiveDimensions();
+            createData();
+
+            // Set up resize observer
+            resizeObserver = new ResizeObserver(() => {
+                calculateResponsiveDimensions();
+                createData();
+            });
+            resizeObserver.observe(chartContainer.value);
+        }
+    }, 100);
+});
+
+onUnmounted(() => {
+    if (resizeObserver) {
+        resizeObserver.disconnect();
+    }
+});
+
+// Initial data creation for cases where container isn't ready yet
 createData();
 </script>
 <template>
-    <!-- Waffle chart -->
-    <div class="grid grid-cols-10 gap-0">
-        <div
-            v-for="(square, index) in squares"
-            :key="index"
-            style="width: 25px; height: 25px; padding: 2.5px"
-            :style="{ filter: styleSelected(square.group) }"
-            @mouseover="animateGroup(square.group)"
-            @mouseleave="stopAnimateGroup()"
-        >
+    <div ref="chartContainer" class="flex flex-row gap-8 justify-center items-start h-full w-full">
+        <!-- Waffle chart -->
+        <div class="grid gap-0" :style="{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }">
             <div
-                style="background-color: gray; width: 100%; height: 100%; border-radius: 5px"
-                :style="{ backgroundColor: square.data.color }"
-            ></div>
-        </div>
-    </div>
-    <!-- Waffle legend -->
-    <div class="flex flex-col gap-2 w-fit">
-        <div class="font-bold text-xl">Legend</div>
-        <div class="flex-column flex-column-10 overflow-y-auto max-h-80">
-            <div v-for="(value, index) in waffleEntries" :key="index">
-                <div class="flex flex-row gap-2 items-center">
-                    <div
-                        style="border-radius: 50%; width: 10px; height: 10px; flex-shrink: 0"
-                        :style="{
-                            backgroundColor: value.color,
-                            filter: styleSelected(value.label)
-                        }"
-                    ></div>
-                    <div
-                        class="flex flex-row gap-2 justify-between max-w-52"
-                        :style="{ filter: styleSelected(value.label) }"
-                    >
-                        <div class="text-[#3e3e3e]">{{ value.label }}</div>
-                        <div class="font-bold" :style="{ color: value.color }">
-                            <template v-if="props.outputPercentual">
-                                {{ (value.value * 100).toFixed(2) }}%
-                            </template>
-                            <template v-else>
-                                {{ value.value.toFixed(0) }}
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div v-if="truncatedOthers.length > 0" class="flex flex-row" style="justify-content: start">
-            <Button variant="outline" @click="allLicensesModalRef.toggle()"> See others </Button>
-        </div>
-    </div>
-    <!-- Modal that shows licenses grouped under 'others' if any -->
-    <CenteredModal ref="allLicensesModalRef">
-        <template #title>
-            <div
-                style="
-                    display: flex;
-                    flex-direction: row;
-                    column-gap: 1em;
-                    justify-content: space-between;
-                "
+                v-for="(square, index) in squares"
+                :key="index"
+                :style="{
+                    width: squareSize + 'px',
+                    height: squareSize + 'px',
+                    padding: '2.5px',
+                    filter: styleSelected(square.group)
+                }"
+                @mouseover="animateGroup(square.group)"
+                @mouseleave="stopAnimateGroup()"
             >
-                <div>Other Licenses</div>
-                <Icon
-                    :icon="'ic:round-close'"
-                    style="cursor: pointer"
-                    title="Close modal"
-                    @click="allLicensesModalRef.toggle()"
-                >
-                    Close
-                </Icon>
+                <div
+                    style="background-color: gray; width: 100%; height: 100%; border-radius: 5px"
+                    :style="{ backgroundColor: square.data.color }"
+                ></div>
             </div>
-        </template>
-        <template #subtitle>
-            The following list shows those licenses that were grouped under 'Others'.
-        </template>
-        <template #content>
-            <div style="max-width: 1000px; max-height: 40vh; overflow-y: auto">
-                <div style="font-weight: 400; color: #737171">
-                    <div
-                        style="
-                            margin-bottom: 10px;
-                            font-size: 1em;
-                            display: flex;
-                            align-items: center;
-                            flex-direction: row;
-                            column-gap: 6px;
-                        "
-                    >
-                        <div>Licenses</div>
-                    </div>
-                    <div v-for="(value, index) in truncatedOthers" :key="index">
-                        <div class="flex flex-row gap-2 justify-start items-center">
-                            <div
-                                style="
-                                    border-radius: 50%;
-                                    width: 10px;
-                                    height: 10px;
-                                    flex-shrink: 0;
-                                "
-                                :style="{
-                                    backgroundColor: value.color,
-                                    filter: styleSelected(value.label)
-                                }"
-                            ></div>
-                            <div
-                                class="flex flex-row gap-2 justify-between max-w-80"
-                                :style="{ filter: styleSelected(value.label) }"
-                            >
-                                <div style="color: #3e3e3e">{{ value.label }}</div>
-                                <div style="font-weight: 700" :style="{ color: value.color }">
-                                    {{ (value.value * 100).toFixed(5) }}% ({{ value.sourceValue }})
-                                </div>
+        </div>
+        <!-- Waffle legend -->
+        <div class="flex flex-col gap-2 w-fit">
+            <div class="font-bold text-xl">Legend</div>
+            <div class="flex-column flex-column-10 overflow-y-auto max-h-80">
+                <div v-for="(value, index) in waffleEntries" :key="index">
+                    <div class="flex flex-row gap-2 items-center">
+                        <div
+                            style="border-radius: 50%; width: 10px; height: 10px; flex-shrink: 0"
+                            :style="{
+                                backgroundColor: value.color,
+                                filter: styleSelected(value.label)
+                            }"
+                        ></div>
+                        <div
+                            class="flex flex-row gap-2 justify-between max-w-52"
+                            :style="{ filter: styleSelected(value.label) }"
+                        >
+                            <div class="text-[#3e3e3e]">{{ value.label }}</div>
+                            <div class="font-bold" :style="{ color: value.color }">
+                                <template v-if="props.outputPercentual">
+                                    {{ (value.value * 100).toFixed(2) }}%
+                                </template>
+                                <template v-else>
+                                    {{ value.value.toFixed(0) }}
+                                </template>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </template>
-        <template #buttons>
-            <Button @click="allLicensesModalRef.toggle()"> Close </Button>
-        </template>
-    </CenteredModal>
+
+            <div
+                v-if="truncatedOthers.length > 0"
+                class="flex flex-row"
+                style="justify-content: start"
+            >
+                <Dialog>
+                    <DialogTrigger as-child>
+                        <Button variant="outline">See others</Button>
+                    </DialogTrigger>
+                    <DialogScrollContent class="max-w-2xl max-h-[80vh]">
+                        <DialogHeader>
+                            <DialogTitle>Other Licenses</DialogTitle>
+                            <DialogDescription>
+                                The following list shows those licenses that were grouped under
+                                'Others'.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div class="mt-6 space-y-3">
+                            <div v-for="(value, index) in truncatedOthers" :key="index">
+                                <div
+                                    class="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
+                                >
+                                    <div
+                                        class="rounded-full w-3 h-3 flex-shrink-0"
+                                        :style="{ backgroundColor: value.color }"
+                                    ></div>
+                                    <div class="flex justify-between items-center w-full">
+                                        <div class="text-foreground font-medium">
+                                            {{ value.label }}
+                                        </div>
+                                        <div class="text-sm text-muted-foreground">
+                                            {{ (value.value * 100).toFixed(2) }}% ({{
+                                                value.sourceValue
+                                            }})
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </DialogScrollContent>
+                </Dialog>
+            </div>
+        </div>
+    </div>
 </template>

@@ -1,6 +1,9 @@
 <template>
     <!-- Main card with left border color based on variant -->
-    <Card class="border-l-4 shadow-sm hover:shadow-md transition-shadow" :class="borderColor">
+    <Card
+        class="border-l-4 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col"
+        :class="borderColor"
+    >
         <CardHeader>
             <!-- Icon, title, description, and actions in a single row -->
             <div class="flex items-center gap-3">
@@ -23,8 +26,10 @@
         </CardHeader>
 
         <!-- Optional card content -->
-        <CardContent v-if="$slots.default">
-            <slot></slot>
+        <CardContent v-if="$slots.default" class="flex-1 flex items-center">
+            <div class="w-full">
+                <slot></slot>
+            </div>
         </CardContent>
     </Card>
 </template>

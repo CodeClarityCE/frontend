@@ -23,6 +23,10 @@ const props = withDefaults(defineProps<Props>(), {
     analysisID: ''
 });
 
+const emit = defineEmits<{
+    'package-manager-loaded': [packageManager: string];
+}>();
+
 // Repositories
 const sbomRepo: ResultsRepository = new ResultsRepository();
 
@@ -48,6 +52,11 @@ async function getSbomWorkspaces() {
             handleBusinessErrors: true
         });
         workspaces.value = res.data;
+
+        // Emit package manager information
+        if (res.data.package_manager) {
+            emit('package-manager-loaded', res.data.package_manager);
+        }
     } catch (_err) {
         console.error(_err);
         error.value = true;

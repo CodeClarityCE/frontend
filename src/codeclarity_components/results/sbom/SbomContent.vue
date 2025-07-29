@@ -60,6 +60,7 @@ const stats: Ref<SbomStats> = ref(new SbomStats());
 const selected_workspace: Ref<string> = ref('.');
 const dependencies: Ref<any[]> = ref([]);
 const showUpdatesModal: Ref<boolean> = ref(false);
+const packageManager: Ref<string> = ref('yarn'); // Default to yarn
 
 watch(
     () => props.projectID,
@@ -150,6 +151,11 @@ function handleUpdateOutdated() {
 function handleCopyToClipboard(content: string) {
     // Toast notification could be added here
     console.log('Copied to clipboard:', content);
+}
+
+function handlePackageManagerLoaded(manager: string) {
+    // Normalize package manager names (convert to lowercase)
+    packageManager.value = manager.toLowerCase();
 }
 
 async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
@@ -438,6 +444,7 @@ function createDepTypeChart() {
             v-model:selected_workspace="selected_workspace"
             :project-i-d="projectID"
             :analysis-i-d="analysisID"
+            @package-manager-loaded="handlePackageManagerLoaded"
         ></SelectWorkspace>
 
         <!-- Quick Stats Row -->
@@ -677,6 +684,7 @@ function createDepTypeChart() {
         v-model:open="showUpdatesModal"
         :updates="packageUpdates"
         :project-name="projectName"
+        :package-manager="packageManager"
         @copy-to-clipboard="handleCopyToClipboard"
     />
 </template>

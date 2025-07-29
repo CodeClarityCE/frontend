@@ -140,6 +140,10 @@ watch(activeTab, async (newTab, oldTab) => {
             </div>
         </template>
 
-        <SbomContent :analysis-i-d="analysis.id" :project-i-d="project.id" :project-name="project.name"></SbomContent>
+        <SbomContent
+            :analysis-i-d="analysis.id"
+            :project-i-d="project.id"
+            :project-name="project.name"
+        ></SbomContent>
     </div>
 </template>

@@ -7,7 +7,7 @@ import {
     DialogContent,
     DialogDescription,
     DialogHeader,
-    DialogTitle,
+    DialogTitle
 } from '@/shadcn/ui/dialog';
 
 export interface PackageUpdate {
@@ -32,78 +32,76 @@ const emit = defineEmits<{
 }>();
 
 // Separate production and development dependencies
-const productionUpdates = computed(() => 
-    props.updates.filter(update => update.isProd)
-);
+const productionUpdates = computed(() => props.updates.filter((update) => update.isProd));
 
-const developmentUpdates = computed(() => 
-    props.updates.filter(update => update.isDev && !update.isProd)
+const developmentUpdates = computed(() =>
+    props.updates.filter((update) => update.isDev && !update.isProd)
 );
 
 // Generate package.json snippet
 const packageJsonSnippet = computed(() => {
     const dependencies: Record<string, string> = {};
     const devDependencies: Record<string, string> = {};
-    
-    productionUpdates.value.forEach(update => {
+
+    productionUpdates.value.forEach((update) => {
         dependencies[update.name] = `^${update.latestVersion}`;
     });
-    
-    developmentUpdates.value.forEach(update => {
+
+    developmentUpdates.value.forEach((update) => {
         devDependencies[update.name] = `^${update.latestVersion}`;
     });
-    
+
     const snippet: any = {};
-    
+
     if (Object.keys(dependencies).length > 0) {
         snippet.dependencies = dependencies;
     }
-    
+
     if (Object.keys(devDependencies).length > 0) {
         snippet.devDependencies = devDependencies;
     }
-    
+
     return JSON.stringify(snippet, null, 2);
 });
 
 // Generate npm/yarn commands
 const npmCommands = computed(() => {
     const commands: string[] = [];
-    
+
     if (productionUpdates.value.length > 0) {
         const prodPackages = productionUpdates.value
-            .map(update => `${update.name}@^${update.latestVersion}`)
+            .map((update) => `${update.name}@^${update.latestVersion}`)
             .join(' ');
         commands.push(`npm install ${prodPackages}`);
     }
-    
+
     if (developmentUpdates.value.length > 0) {
         const devPackages = developmentUpdates.value
-            .map(update => `${update.name}@^${update.latestVersion}`)
+            .map((update) => `${update.name}@^${update.latestVersion}`)
             .join(' ');
         commands.push(`npm install --save-dev ${devPackages}`);
     }
-    
+
     return commands;
 });
 
 const yarnCommands = computed(() => {
     const commands: string[] = [];
-    
+
     if (productionUpdates.value.length > 0) {
         const prodPackages = productionUpdates.value
-            .map(update => `${update.name}@^${update.latestVersion}`)
+            .map((update) => `${update.name}@^${update.latestVersion}`)
             .join(' ');
         commands.push(`yarn upgrade ${prodPackages}`);
     }
-    
+
     if (developmentUpdates.value.length > 0) {
         const devPackages = developmentUpdates.value
-            .map(update => `${update.name}@^${update.latestVersion}`)
+            .map((update) => `${update.name}@^${update.latestVersion}`)
             .join(' ');
         commands.push(`yarn upgrade ${devPackages}`);
     }
-    
+
     return commands;
 });
 
@@ -130,8 +128,8 @@ function closeModal() {
                     </span>
                 </DialogTitle>
                 <DialogDescription>
-                    {{ updates.length }} direct dependencies have updates available. 
-                    Choose your preferred method to update them.
+                    {{ updates.length }} direct dependencies have updates available. Choose your
+                    preferred method to update them.
                 </DialogDescription>
             </DialogHeader>
 
@@ -166,8 +164,10 @@ function closeModal() {
                                     <span class="font-medium">{{ update.name }}</span>
                                 </div>
                                 <div class="text-sm text-gray-600">
-                                    {{ update.currentVersion }} → 
-                                    <span class="font-semibold text-green-600">{{ update.latestVersion }}</span>
+                                    {{ update.currentVersion }} →
+                                    <span class="font-semibold text-green-600">{{
+                                        update.latestVersion
+                                    }}</span>
                                 </div>
                             </div>
                         </div>
@@ -186,8 +186,10 @@ function closeModal() {
                                     <span class="font-medium">{{ update.name }}</span>
                                 </div>
                                 <div class="text-sm text-gray-600">
-                                    {{ update.currentVersion }} → 
-                                    <span class="font-semibold text-orange-600">{{ update.latestVersion }}</span>
+                                    {{ update.currentVersion }} →
+                                    <span class="font-semibold text-orange-600">{{
+                                        update.latestVersion
+                                    }}</span>
                                 </div>
                             </div>
                         </div>
@@ -197,7 +199,7 @@ function closeModal() {
                 <!-- Update Methods -->
                 <div class="space-y-4">
                     <h3 class="font-semibold text-gray-900">Choose Your Update Method</h3>
-                    
+
                     <!-- NPM Commands -->
                     <div class="border rounded-lg p-4">
                         <div class="flex items-center justify-between mb-3">
@@ -221,11 +223,7 @@ function closeModal() {
                                 class="flex items-center justify-between bg-gray-50 rounded p-3 font-mono text-sm"
                             >
                                 <code>{{ command }}</code>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    @click="copyToClipboard(command)"
-                                >
+                                <Button variant="ghost" size="sm" @click="copyToClipboard(command)">
                                     <Icon icon="solar:copy-linear" class="h-4 w-4" />
                                 </Button>
                             </div>
@@ -255,11 +253,7 @@ function closeModal() {
                                 class="flex items-center justify-between bg-gray-50 rounded p-3 font-mono text-sm"
                             >
                                 <code>{{ command }}</code>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    @click="copyToClipboard(command)"
-                                >
+                                <Button variant="ghost" size="sm" @click="copyToClipboard(command)">
                                     <Icon icon="solar:copy-linear" class="h-4 w-4" />
                                 </Button>
                             </div>
@@ -286,7 +280,9 @@ function closeModal() {
                             <pre>{{ packageJsonSnippet }}</pre>
                         </div>
                         <p class="text-xs text-gray-600 mt-2">
-                            Copy this JSON and merge it into your package.json file, then run <code class="bg-gray-200 px-1 rounded">yarn install</code> to update the lockfile.
+                            Copy this JSON and merge it into your package.json file, then run
+                            <code class="bg-gray-200 px-1 rounded">yarn install</code> to update the
+                            lockfile.
                         </p>
                     </div>
                 </div>
@@ -299,22 +295,26 @@ function closeModal() {
                     </h4>
                     <div class="text-sm text-amber-800 space-y-2">
                         <p>
-                            <strong>Recommended:</strong> Keep your lockfile (yarn.lock) and let the commands above update it automatically.
+                            <strong>Recommended:</strong> Keep your lockfile (yarn.lock) and let the
+                            commands above update it automatically.
                         </p>
                         <p>
-                            <strong>Why yarn upgrade?</strong> Unlike <code class="bg-amber-100 px-1 rounded">yarn add</code>, the <code class="bg-amber-100 px-1 rounded">yarn upgrade</code> command will update packages even if current versions satisfy semver constraints.
+                            <strong>Why yarn upgrade?</strong> Unlike
+                            <code class="bg-amber-100 px-1 rounded">yarn add</code>, the
+                            <code class="bg-amber-100 px-1 rounded">yarn upgrade</code> command will
+                            update packages even if current versions satisfy semver constraints.
                         </p>
                         <p class="text-xs">
-                            Only delete the lockfile if you're experiencing dependency resolution issues or want to get the very latest compatible versions of all dependencies.
+                            Only delete the lockfile if you're experiencing dependency resolution
+                            issues or want to get the very latest compatible versions of all
+                            dependencies.
                         </p>
                     </div>
                 </div>
 
                 <!-- Footer -->
                 <div class="flex justify-end gap-3 pt-4 border-t">
-                    <Button variant="outline" @click="closeModal">
-                        Close
-                    </Button>
+                    <Button variant="outline" @click="closeModal"> Close </Button>
                 </div>
             </div>
         </DialogContent>

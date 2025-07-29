@@ -80,8 +80,8 @@ defineExpose({
                 :disabled="isExporting"
             >
                 <div class="bg-gray-100 p-2 rounded-lg group-hover:bg-[#1dce79]/10">
-                    <Icon 
-                        :icon="isExporting ? 'solar:hourglass-line-bold' : 'solar:download-bold'" 
+                    <Icon
+                        :icon="isExporting ? 'solar:hourglass-line-bold' : 'solar:download-bold'"
                         class="h-5 w-5"
                         :class="{ 'animate-spin': isExporting }"
                     />
@@ -91,23 +91,23 @@ defineExpose({
                         {{ isExporting ? 'Exporting...' : 'Export Report' }}
                     </div>
                     <div class="text-sm text-gray-500">
-                        {{ isExporting ? (exportProgress || 'Preparing your download') : 'Download detailed SBOM report' }}
+                        {{
+                            isExporting
+                                ? exportProgress || 'Preparing your download'
+                                : 'Download detailed SBOM report'
+                        }}
                     </div>
                 </div>
                 <Icon icon="solar:alt-arrow-down-linear" class="h-4 w-4 text-gray-400" />
             </Button>
         </DropdownMenuTrigger>
-        
-        <DropdownMenuContent 
-            align="end" 
-            class="w-72 p-2"
-            :side-offset="5"
-        >
+
+        <DropdownMenuContent align="end" class="w-72 p-2" :side-offset="5">
             <DropdownMenuLabel class="text-sm font-semibold text-gray-700 px-2 py-1.5">
                 Choose Export Format
             </DropdownMenuLabel>
             <DropdownMenuSeparator class="my-2" />
-            
+
             <DropdownMenuItem
                 v-for="format in exportFormats"
                 :key="format.id"

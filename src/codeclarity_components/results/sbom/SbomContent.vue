@@ -20,12 +20,12 @@ import SelectWorkspace from '../SelectWorkspace.vue';
 import SbomExportMenu from './SbomExportMenu.vue';
 import PackageJsonUpdatesModal from './PackageJsonUpdatesModal.vue';
 import type { PackageUpdate } from './PackageJsonUpdatesModal.vue';
-import { 
-    convertToCSV, 
-    convertToHTML, 
-    convertToCycloneDX, 
+import {
+    convertToCSV,
+    convertToHTML,
+    convertToCycloneDX,
     sortDependenciesByPriority,
-    type ExportOptions 
+    type ExportOptions
 } from './exports/sbomExportUtils';
 
 // Import common components
@@ -119,9 +119,10 @@ const securityIssues = computed(() => {
 
 // Computed property for direct dependencies that need updates (actionable in package.json)
 const directDependenciesNeedingUpdates = computed(() => {
-    return dependencies.value.filter(dep => {
+    return dependencies.value.filter((dep) => {
         const isDirect = dep.is_direct_count > 0 || dep.is_direct;
-        const hasUpdate = dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
+        const hasUpdate =
+            dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
         return isDirect && hasUpdate;
     });
 });
@@ -130,7 +131,7 @@ const directUpdatesCount = computed(() => directDependenciesNeedingUpdates.value
 
 // Convert dependencies to PackageUpdate format for the modal
 const packageUpdates = computed((): PackageUpdate[] => {
-    return directDependenciesNeedingUpdates.value.map(dep => ({
+    return directDependenciesNeedingUpdates.value.map((dep) => ({
         name: dep.name,
         currentVersion: dep.version,
         latestVersion: dep.newest_release || dep.version,
@@ -157,7 +158,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
     try {
         exportMenuRef.value?.setExportProgress('Fetching dependencies...');
-        
+
         // First, get the initial page to know the total count
         const firstPage = await sbomRepo.getSbom({
             orgId: userStore.getDefaultOrg.id,
@@ -174,11 +175,11 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
         // Collect all dependencies
         let allDependencies = [...firstPage.data];
-        
+
         // If there are more pages, fetch them all
         if (firstPage.total_pages > 1) {
             exportMenuRef.value?.setExportProgress(`Fetching ${firstPage.total_pages} pages...`);
-            
+
             const promises = [];
             for (let page = 1; page < firstPage.total_pages; page++) {
                 promises.push(
@@ -196,13 +197,13 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
                     })
                 );
             }
-            
+
             const additionalPages = await Promise.all(promises);
-            additionalPages.forEach(page => {
+            additionalPages.forEach((page) => {
                 allDependencies = allDependencies.concat(page.data);
             });
         }
-        
+
         exportMenuRef.value?.setExportProgress(`Generating ${format.toUpperCase()} file...`);
 
         const exportOptions: ExportOptions = {
@@ -249,7 +250,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        
+
         // Reset export state
         exportMenuRef.value?.resetExportState();
     } catch (error) {
@@ -278,7 +279,7 @@ async function fetchDependencies() {
         });
 
         let allDependencies = [...firstPage.data];
-        
+
         // If there are more pages, fetch them all
         if (firstPage.total_pages > 1) {
             const promises = [];
@@ -298,13 +299,13 @@ async function fetchDependencies() {
                     })
                 );
             }
-            
+
             const additionalPages = await Promise.all(promises);
-            additionalPages.forEach(page => {
+            additionalPages.forEach((page) => {
                 allDependencies = allDependencies.concat(page.data);
             });
         }
-        
+
         dependencies.value = allDependencies;
     } catch (error) {
         console.error('Failed to fetch dependencies:', error);
@@ -334,10 +335,10 @@ async function getSbomStats(refresh: boolean = false) {
             handleBusinessErrors: true
         });
         stats.value = res.data;
-        
+
         // Also fetch dependencies to calculate accurate counts
         await fetchDependencies();
-        
+
         render.value = true;
     } catch (_err) {
         console.error(_err);

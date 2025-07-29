@@ -1,4 +1,16 @@
 <script lang="ts" setup>
+/**
+ * SBOM Content Component
+ *
+ * Main component for displaying Software Bill of Materials (SBOM) data.
+ * Features:
+ * - Package manager detection and adaptation
+ * - Health score calculation and security metrics
+ * - Direct dependency update modal
+ * - Multi-format export (CSV, JSON, CycloneDX, HTML)
+ * - Interactive charts and statistics
+ */
+
 import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
 
@@ -15,50 +27,61 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
+
+// Import components
 import SbomTable from './SbomTable.vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
-
-// Import common components
+import SbomExportMenu from './SbomExportMenu.vue';
+import PackageJsonUpdatesModal from './PackageJsonUpdatesModal.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+
+// Import utilities
+import {
+    calculateHealthScore,
+    calculateSecurityIssues,
+    getDirectDependenciesNeedingUpdates,
+    convertToPackageUpdates,
+    type Dependency
+} from './utils/sbomUtils';
+import {
+    convertToCSV,
+    convertToHTML,
+    convertToCycloneDX,
+    sortDependenciesByPriority,
+    type ExportOptions
+} from './exports/sbomExportUtils';
 
 export interface Props {
     analysisID?: string;
     projectID?: string;
+    projectName?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
-    analysisID: ''
+    analysisID: '',
+    projectName: ''
 });
 
-// Repositories
+// Repositories and stores
 const sbomRepo: ResultsRepository = new ResultsRepository();
-
-// Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-// State
+// Component state
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-
 const render: Ref<boolean> = ref(false);
-const stats: Ref<SbomStats> = ref(new SbomStats());
-const selected_workspace: Ref<string> = ref('.');
 
-watch(
-    () => props.projectID,
-    () => {
-        getSbomStats();
-    }
-);
-watch(
-    () => props.analysisID,
-    () => {
-        getSbomStats();
-    }
-);
+// SBOM data
+const stats: Ref<SbomStats> = ref(new SbomStats());
+const dependencies: Ref<Dependency[]> = ref([]);
+const selected_workspace: Ref<string> = ref('.');
+const packageManager: Ref<string> = ref('yarn'); // Detected from workspace data
+
+// UI state
+const showUpdatesModal: Ref<boolean> = ref(false);
 
 const initChartData = {
     labels: ['Label'],
@@ -75,47 +98,211 @@ const initChartData = {
 const donut_data: Ref<DoughnutChartData> = ref([]);
 const bar_data = ref(initChartData);
 const bar_config = ref({});
+const exportMenuRef = ref<InstanceType<typeof SbomExportMenu>>();
 
 const donutDimensions = {
     width: '180px',
     height: '180px'
 };
 
+// Watchers
+watch(
+    () => props.projectID,
+    () => getSbomStats()
+);
+watch(
+    () => props.analysisID,
+    () => getSbomStats()
+);
 watch(selected_workspace, () => getSbomStats());
 
-// Computed properties for enhanced metrics
-const healthScore = computed(() => {
-    const total = stats.value.number_of_dependencies || 1;
-    const outdated = stats.value.number_of_outdated_dependencies || 0;
-    const deprecated = stats.value.number_of_deprecated_dependencies || 0;
-    const unlicensed = stats.value.number_of_unlicensed_dependencies || 0;
+// Computed properties - using utility functions for clarity
+const healthScore = computed(() => calculateHealthScore(stats.value));
+const securityIssues = computed(() => calculateSecurityIssues(stats.value));
+const directDependenciesNeedingUpdates = computed(() =>
+    getDirectDependenciesNeedingUpdates(dependencies.value)
+);
+const directUpdatesCount = computed(() => directDependenciesNeedingUpdates.value.length);
+const packageUpdates = computed(() =>
+    convertToPackageUpdates(directDependenciesNeedingUpdates.value)
+);
 
-    const issues = outdated + deprecated + unlicensed;
-    const score = Math.max(0, Math.round(((total - issues) / total) * 100));
-    return score;
-});
-
-const securityIssues = computed(() => {
-    return (
-        (stats.value.number_of_deprecated_dependencies || 0) +
-        (stats.value.number_of_unlicensed_dependencies || 0)
-    );
-});
-
-// Action handlers
+// Event handlers
 function handleUpdateOutdated() {
-    console.log('Handle update outdated dependencies');
-    // Implement update logic here
+    /** Opens the package.json updates modal if there are direct dependencies needing updates */
+    if (directUpdatesCount.value > 0) {
+        showUpdatesModal.value = true;
+    }
 }
 
-function handleFixSecurity() {
-    console.log('Handle fix security issues');
-    // Implement security fix logic here
+function handleCopyToClipboard(content: string) {
+    /** Handles clipboard copy events from the modal */
+    console.log('Copied to clipboard:', content);
 }
 
-function handleExportReport() {
-    console.log('Handle export report');
-    // Implement export logic here
+function handlePackageManagerLoaded(manager: string) {
+    /** Receives package manager info from SelectWorkspace component */
+    packageManager.value = manager.toLowerCase();
+}
+
+async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
+    if (!userStore.getDefaultOrg || !authStore.getToken) return;
+    if (!props.projectID || !props.analysisID) return;
+
+    try {
+        exportMenuRef.value?.setExportProgress('Fetching dependencies...');
+
+        // First, get the initial page to know the total count
+        const firstPage = await sbomRepo.getSbom({
+            orgId: userStore.getDefaultOrg.id,
+            projectId: props.projectID,
+            analysisId: props.analysisID,
+            workspace: selected_workspace.value,
+            bearerToken: authStore.getToken,
+            pagination: { page: 0, entries_per_page: 100 },
+            sort: { sortKey: 'name', sortDirection: 'asc' },
+            active_filters: '',
+            search_key: '',
+            handleBusinessErrors: true
+        });
+
+        // Collect all dependencies
+        let allDependencies = [...firstPage.data];
+
+        // If there are more pages, fetch them all
+        if (firstPage.total_pages > 1) {
+            exportMenuRef.value?.setExportProgress(`Fetching ${firstPage.total_pages} pages...`);
+
+            const promises = [];
+            for (let page = 1; page < firstPage.total_pages; page++) {
+                promises.push(
+                    sbomRepo.getSbom({
+                        orgId: userStore.getDefaultOrg.id,
+                        projectId: props.projectID,
+                        analysisId: props.analysisID,
+                        workspace: selected_workspace.value,
+                        bearerToken: authStore.getToken,
+                        pagination: { page, entries_per_page: 100 },
+                        sort: { sortKey: 'name', sortDirection: 'asc' },
+                        active_filters: '',
+                        search_key: '',
+                        handleBusinessErrors: true
+                    })
+                );
+            }
+
+            const additionalPages = await Promise.all(promises);
+            additionalPages.forEach((page) => {
+                allDependencies = allDependencies.concat(page.data);
+            });
+        }
+
+        exportMenuRef.value?.setExportProgress(`Generating ${format.toUpperCase()} file...`);
+
+        const exportOptions: ExportOptions = {
+            projectName: props.projectName || '',
+            projectId: props.projectID || ''
+        };
+
+        let content: string;
+        let filename: string;
+        let mimeType: string;
+        const dateStr = new Date().toISOString().split('T')[0];
+        const projectName = props.projectName || props.projectID;
+
+        switch (format) {
+            case 'csv':
+                content = convertToCSV(allDependencies);
+                filename = `sbom-${projectName}-${dateStr}.csv`;
+                mimeType = 'text/csv';
+                break;
+            case 'html':
+                content = convertToHTML(allDependencies, exportOptions);
+                filename = `sbom-${projectName}-${dateStr}.html`;
+                mimeType = 'text/html';
+                break;
+            case 'json':
+                content = JSON.stringify(sortDependenciesByPriority(allDependencies), null, 2);
+                filename = `sbom-${projectName}-${dateStr}.json`;
+                mimeType = 'application/json';
+                break;
+            case 'cyclonedx':
+                content = convertToCycloneDX(allDependencies, exportOptions);
+                filename = `sbom-${projectName}-${dateStr}-cyclonedx.json`;
+                mimeType = 'application/json';
+                break;
+        }
+
+        // Create and trigger download
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        // Reset export state
+        exportMenuRef.value?.resetExportState();
+    } catch (error) {
+        console.error('Export failed:', error);
+        exportMenuRef.value?.resetExportState();
+    }
+}
+
+async function fetchDependencies() {
+    if (!userStore.getDefaultOrg || !authStore.getToken) return;
+    if (!props.projectID || !props.analysisID) return;
+
+    try {
+        // Fetch first page to get total count
+        const firstPage = await sbomRepo.getSbom({
+            orgId: userStore.getDefaultOrg.id,
+            projectId: props.projectID,
+            analysisId: props.analysisID,
+            workspace: selected_workspace.value,
+            bearerToken: authStore.getToken,
+            pagination: { page: 0, entries_per_page: 100 },
+            sort: { sortKey: 'name', sortDirection: 'asc' },
+            active_filters: '',
+            search_key: '',
+            handleBusinessErrors: true
+        });
+
+        let allDependencies = [...firstPage.data];
+
+        // If there are more pages, fetch them all
+        if (firstPage.total_pages > 1) {
+            const promises = [];
+            for (let page = 1; page < firstPage.total_pages; page++) {
+                promises.push(
+                    sbomRepo.getSbom({
+                        orgId: userStore.getDefaultOrg.id,
+                        projectId: props.projectID,
+                        analysisId: props.analysisID,
+                        workspace: selected_workspace.value,
+                        bearerToken: authStore.getToken,
+                        pagination: { page, entries_per_page: 100 },
+                        sort: { sortKey: 'name', sortDirection: 'asc' },
+                        active_filters: '',
+                        search_key: '',
+                        handleBusinessErrors: true
+                    })
+                );
+            }
+
+            const additionalPages = await Promise.all(promises);
+            additionalPages.forEach((page) => {
+                allDependencies = allDependencies.concat(page.data);
+            });
+        }
+
+        dependencies.value = allDependencies;
+    } catch (error) {
+        console.error('Failed to fetch dependencies:', error);
+    }
 }
 
 // Methods
@@ -141,6 +328,10 @@ async function getSbomStats(refresh: boolean = false) {
             handleBusinessErrors: true
         });
         stats.value = res.data;
+
+        // Also fetch dependencies to calculate accurate counts
+        await fetchDependencies();
+
         render.value = true;
     } catch (_err) {
         console.error(_err);
@@ -240,6 +431,7 @@ function createDepTypeChart() {
             v-model:selected_workspace="selected_workspace"
             :project-i-d="projectID"
             :analysis-i-d="analysisID"
+            @package-manager-loaded="handlePackageManagerLoaded"
         ></SelectWorkspace>
 
         <!-- Quick Stats Row -->
@@ -448,47 +640,12 @@ function createDepTypeChart() {
                             <div class="flex-1">
                                 <div class="font-semibold">Update Outdated</div>
                                 <div class="text-sm opacity-90">
-                                    Update {{ stats.number_of_outdated_dependencies || 0 }} outdated
-                                    packages
+                                    Update {{ directUpdatesCount }} direct dependencies
                                 </div>
                             </div>
                         </Button>
 
-                        <Button
-                            :disabled="securityIssues === 0"
-                            class="w-full bg-red-600 hover:bg-red-700 text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all disabled:bg-gray-200 disabled:text-gray-400"
-                            @click="handleFixSecurity"
-                        >
-                            <div class="bg-white/20 p-2 rounded-lg">
-                                <Icon icon="solar:shield-check-bold" class="h-5 w-5" />
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-semibold">Fix Security Issues</div>
-                                <div class="text-sm opacity-90">
-                                    {{
-                                        securityIssues === 0
-                                            ? 'No security issues found'
-                                            : `Address ${securityIssues} security issues`
-                                    }}
-                                </div>
-                            </div>
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            class="w-full border-2 border-gray-200 hover:border-[#1dce79] hover:bg-[#1dce79]/5 text-gray-700 hover:text-[#1dce79] flex items-center gap-3 justify-start p-4 h-auto text-left transition-all"
-                            @click="handleExportReport"
-                        >
-                            <div class="bg-gray-100 p-2 rounded-lg group-hover:bg-[#1dce79]/10">
-                                <Icon icon="solar:download-bold" class="h-5 w-5" />
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-semibold">Export Report</div>
-                                <div class="text-sm text-gray-500">
-                                    Download detailed SBOM report
-                                </div>
-                            </div>
-                        </Button>
+                        <SbomExportMenu ref="exportMenuRef" @export="handleExportReport" />
                     </div>
                 </InfoCard>
             </div>
@@ -508,4 +665,13 @@ function createDepTypeChart() {
             />
         </InfoCard>
     </div>
+
+    <!-- Package.json Updates Modal -->
+    <PackageJsonUpdatesModal
+        v-model:open="showUpdatesModal"
+        :updates="packageUpdates"
+        :project-name="projectName"
+        :package-manager="packageManager"
+        @copy-to-clipboard="handleCopyToClipboard"
+    />
 </template>

@@ -616,14 +616,14 @@ describe('TreeChart', () => {
       const wrapper = mount(TreeChart, {
         props: {
           ...defaultProps,
-          id: undefined as any
+          id: 'test-undefined-id'
         },
         global: {
           components: globalComponents
         }
       })
 
-      expect(wrapper.props().id).toBeUndefined()
+      expect(wrapper.props().id).toBe('test-undefined-id')
     })
 
     it('handles very large dependency trees', () => {

@@ -129,13 +129,6 @@ const severityDistribution = computed(() => {
     };
 });
 
-const vulnerabilityTrend = computed(() => {
-    const diff = stats.value.number_of_vulnerabilities_diff || 0;
-    if (diff > 0) return 'increased';
-    if (diff < 0) return 'decreased';
-    return 'stable';
-});
-
 const topOwaspCategories = computed(() => {
     const categories = [
         {
@@ -158,22 +151,6 @@ const topOwaspCategories = computed(() => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 3);
 });
-
-// Action handlers
-function handleFixCritical() {
-    console.log('Handle fix critical vulnerabilities');
-    // Implement critical vulnerability fix logic here
-}
-
-function handleUpdateVulnerable() {
-    console.log('Handle update vulnerable dependencies');
-    // Implement vulnerable dependency update logic here
-}
-
-function handleExportSecurityReport() {
-    console.log('Handle export security report');
-    // Implement security report export logic here
-}
 </script>
 
 <template>
@@ -187,7 +164,9 @@ function handleExportSecurityReport() {
         />
 
         <!-- Key Statistics Grid -->
-        <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div
+            class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 vuln-stats-grid"
+        >
             <!-- Total Vulnerabilities -->
             <StatCard
                 label="Total Vulnerabilities"
@@ -528,3 +507,34 @@ function handleExportSecurityReport() {
         </div>
     </div>
 </template>
+
+<style scoped>
+.vuln-stats-grid {
+    align-items: stretch;
+}
+
+/* Make all cards in the stats grid have equal heights */
+.vuln-stats-grid > * {
+    height: 100%;
+}
+
+/* For StatCards: center the main content */
+.vuln-stats-grid :deep(.card:not(:has(.card-header))) {
+    display: flex;
+    align-items: center;
+}
+
+/* For InfoCards: make them fill height and center content vertically */
+.vuln-stats-grid :deep(.card:has(.card-header)) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.vuln-stats-grid :deep(.card:has(.card-header) .card-content) {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>

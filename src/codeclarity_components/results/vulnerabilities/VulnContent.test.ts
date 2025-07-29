@@ -231,7 +231,7 @@ describe('VulnContent', () => {
         expect(wrapper.vm.criticalAndHighCount).toBeGreaterThanOrEqual(0);
     });
 
-    it('has vulnerability trend computed property', () => {
+    it('has security risk score computed property', () => {
         wrapper = mount(VulnContent, {
             props: {
                 projectID: 'project-123',
@@ -242,8 +242,9 @@ describe('VulnContent', () => {
             }
         });
 
-        const validTrends = ['increased', 'decreased', 'stable'];
-        expect(validTrends).toContain(wrapper.vm.vulnerabilityTrend);
+        expect(typeof wrapper.vm.securityRiskScore).toBe('number');
+        expect(wrapper.vm.securityRiskScore).toBeGreaterThanOrEqual(0);
+        expect(wrapper.vm.securityRiskScore).toBeLessThanOrEqual(100);
     });
 
     it('has severity distribution computed property', () => {
@@ -313,7 +314,7 @@ describe('VulnContent', () => {
         expect(wrapper.vm.securityRiskScore).toBe(100);
     });
 
-    it('calculates vulnerability trend correctly', () => {
+    it('calculates critical and high count correctly', () => {
         wrapper = mount(VulnContent, {
             props: {
                 projectID: 'project-123',
@@ -324,17 +325,17 @@ describe('VulnContent', () => {
             }
         });
 
-        // Test increased trend
-        wrapper.vm.stats = { number_of_vulnerabilities_diff: 5 };
-        expect(wrapper.vm.vulnerabilityTrend).toBe('increased');
+        // Test with stats that have critical and high vulnerabilities
+        wrapper.vm.stats = { number_of_critical: 5, number_of_high: 3 };
+        expect(wrapper.vm.criticalAndHighCount).toBe(8);
 
-        // Test decreased trend
-        wrapper.vm.stats = { number_of_vulnerabilities_diff: -3 };
-        expect(wrapper.vm.vulnerabilityTrend).toBe('decreased');
+        // Test with only critical vulnerabilities
+        wrapper.vm.stats = { number_of_critical: 2, number_of_high: 0 };
+        expect(wrapper.vm.criticalAndHighCount).toBe(2);
 
-        // Test stable trend
-        wrapper.vm.stats = { number_of_vulnerabilities_diff: 0 };
-        expect(wrapper.vm.vulnerabilityTrend).toBe('stable');
+        // Test with no vulnerabilities
+        wrapper.vm.stats = { number_of_critical: 0, number_of_high: 0 };
+        expect(wrapper.vm.criticalAndHighCount).toBe(0);
     });
 
     it('handles workspace model updates', async () => {
@@ -394,7 +395,7 @@ describe('VulnContent', () => {
         expect(mockUserStore.getDefaultOrg).toBeTruthy();
     });
 
-    it('has action handler methods', () => {
+    it('has data fetching method', () => {
         wrapper = mount(VulnContent, {
             props: {
                 projectID: 'project-123',
@@ -405,34 +406,23 @@ describe('VulnContent', () => {
             }
         });
 
-        expect(typeof wrapper.vm.handleFixCritical).toBe('function');
-        expect(typeof wrapper.vm.handleUpdateVulnerable).toBe('function');
-        expect(typeof wrapper.vm.handleExportSecurityReport).toBe('function');
+        expect(typeof wrapper.vm.getVulnerabilitiesStats).toBe('function');
     });
 
-    it('action handlers log expected messages', () => {
-        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
+    it('handles error states correctly', () => {
         wrapper = mount(VulnContent, {
             props: {
-                projectID: 'project-123',
-                analysisID: 'analysis-456'
+                projectID: '',
+                analysisID: ''
             },
             global: {
                 plugins: []
             }
         });
 
-        wrapper.vm.handleFixCritical();
-        expect(consoleSpy).toHaveBeenCalledWith('Handle fix critical vulnerabilities');
-
-        wrapper.vm.handleUpdateVulnerable();
-        expect(consoleSpy).toHaveBeenCalledWith('Handle update vulnerable dependencies');
-
-        wrapper.vm.handleExportSecurityReport();
-        expect(consoleSpy).toHaveBeenCalledWith('Handle export security report');
-
-        consoleSpy.mockRestore();
+        expect(wrapper.vm.error).toBe(false);
+        expect(wrapper.vm.loading).toBe(true);
+        expect(wrapper.vm.render).toBe(false);
     });
 
     it('displays loading state correctly', () => {

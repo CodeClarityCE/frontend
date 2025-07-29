@@ -2,12 +2,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import SearchHeader from '@/codeclarity_components/header/components/SearchHeader.vue';
 
+import { ref } from 'vue';
+
 // Mock external dependencies
 vi.mock('@vueuse/core', () => ({
   useMagicKeys: () => ({
-    Meta_K: { value: false },
-    Ctrl_K: { value: false },
-    enter: { value: false }
+    Meta_K: ref(false),
+    Ctrl_K: ref(false),  
+    enter: ref(false)
   }),
   useCurrentElement: () => ({ value: null })
 }));

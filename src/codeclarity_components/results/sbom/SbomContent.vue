@@ -17,6 +17,14 @@ import { ResultsRepository } from '@/codeclarity_components/results/results.repo
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import SbomTable from './SbomTable.vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
+import SbomExportMenu from './SbomExportMenu.vue';
+import { 
+    convertToCSV, 
+    convertToHTML, 
+    convertToCycloneDX, 
+    sortDependenciesByPriority,
+    type ExportOptions 
+} from './exports/sbomExportUtils';
 
 // Import common components
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
@@ -25,10 +33,12 @@ import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 export interface Props {
     analysisID?: string;
     projectID?: string;
+    projectName?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
-    analysisID: ''
+    analysisID: '',
+    projectName: ''
 });
 
 // Repositories
@@ -75,6 +85,7 @@ const initChartData = {
 const donut_data: Ref<DoughnutChartData> = ref([]);
 const bar_data = ref(initChartData);
 const bar_config = ref({});
+const exportMenuRef = ref<InstanceType<typeof SbomExportMenu>>();
 
 const donutDimensions = {
     width: '180px',
@@ -113,9 +124,111 @@ function handleFixSecurity() {
     // Implement security fix logic here
 }
 
-function handleExportReport() {
-    console.log('Handle export report');
-    // Implement export logic here
+async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
+    if (!userStore.getDefaultOrg || !authStore.getToken) return;
+    if (!props.projectID || !props.analysisID) return;
+
+    try {
+        exportMenuRef.value?.setExportProgress('Fetching dependencies...');
+        
+        // First, get the initial page to know the total count
+        const firstPage = await sbomRepo.getSbom({
+            orgId: userStore.getDefaultOrg.id,
+            projectId: props.projectID,
+            analysisId: props.analysisID,
+            workspace: selected_workspace.value,
+            bearerToken: authStore.getToken,
+            pagination: { page: 0, entries_per_page: 100 },
+            sort: { sortKey: 'name', sortDirection: 'asc' },
+            active_filters: '',
+            search_key: '',
+            handleBusinessErrors: true
+        });
+
+        // Collect all dependencies
+        let allDependencies = [...firstPage.data];
+        
+        // If there are more pages, fetch them all
+        if (firstPage.total_pages > 1) {
+            exportMenuRef.value?.setExportProgress(`Fetching ${firstPage.total_pages} pages...`);
+            
+            const promises = [];
+            for (let page = 1; page < firstPage.total_pages; page++) {
+                promises.push(
+                    sbomRepo.getSbom({
+                        orgId: userStore.getDefaultOrg.id,
+                        projectId: props.projectID,
+                        analysisId: props.analysisID,
+                        workspace: selected_workspace.value,
+                        bearerToken: authStore.getToken,
+                        pagination: { page, entries_per_page: 100 },
+                        sort: { sortKey: 'name', sortDirection: 'asc' },
+                        active_filters: '',
+                        search_key: '',
+                        handleBusinessErrors: true
+                    })
+                );
+            }
+            
+            const additionalPages = await Promise.all(promises);
+            additionalPages.forEach(page => {
+                allDependencies = allDependencies.concat(page.data);
+            });
+        }
+        
+        exportMenuRef.value?.setExportProgress(`Generating ${format.toUpperCase()} file...`);
+
+        const exportOptions: ExportOptions = {
+            projectName: props.projectName || '',
+            projectId: props.projectID || ''
+        };
+
+        let content: string;
+        let filename: string;
+        let mimeType: string;
+        const dateStr = new Date().toISOString().split('T')[0];
+        const projectName = props.projectName || props.projectID;
+
+        switch (format) {
+            case 'csv':
+                content = convertToCSV(allDependencies);
+                filename = `sbom-${projectName}-${dateStr}.csv`;
+                mimeType = 'text/csv';
+                break;
+            case 'html':
+                content = convertToHTML(allDependencies, exportOptions);
+                filename = `sbom-${projectName}-${dateStr}.html`;
+                mimeType = 'text/html';
+                break;
+            case 'json':
+                content = JSON.stringify(sortDependenciesByPriority(allDependencies), null, 2);
+                filename = `sbom-${projectName}-${dateStr}.json`;
+                mimeType = 'application/json';
+                break;
+            case 'cyclonedx':
+                content = convertToCycloneDX(allDependencies, exportOptions);
+                filename = `sbom-${projectName}-${dateStr}-cyclonedx.json`;
+                mimeType = 'application/json';
+                break;
+        }
+
+        // Create and trigger download
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        // Reset export state
+        exportMenuRef.value?.resetExportState();
+    } catch (error) {
+        console.error('Export failed:', error);
+        exportMenuRef.value?.resetExportState();
+    }
 }
 
 // Methods
@@ -454,41 +567,7 @@ function createDepTypeChart() {
                             </div>
                         </Button>
 
-                        <Button
-                            :disabled="securityIssues === 0"
-                            class="w-full bg-red-600 hover:bg-red-700 text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all disabled:bg-gray-200 disabled:text-gray-400"
-                            @click="handleFixSecurity"
-                        >
-                            <div class="bg-white/20 p-2 rounded-lg">
-                                <Icon icon="solar:shield-check-bold" class="h-5 w-5" />
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-semibold">Fix Security Issues</div>
-                                <div class="text-sm opacity-90">
-                                    {{
-                                        securityIssues === 0
-                                            ? 'No security issues found'
-                                            : `Address ${securityIssues} security issues`
-                                    }}
-                                </div>
-                            </div>
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            class="w-full border-2 border-gray-200 hover:border-[#1dce79] hover:bg-[#1dce79]/5 text-gray-700 hover:text-[#1dce79] flex items-center gap-3 justify-start p-4 h-auto text-left transition-all"
-                            @click="handleExportReport"
-                        >
-                            <div class="bg-gray-100 p-2 rounded-lg group-hover:bg-[#1dce79]/10">
-                                <Icon icon="solar:download-bold" class="h-5 w-5" />
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-semibold">Export Report</div>
-                                <div class="text-sm text-gray-500">
-                                    Download detailed SBOM report
-                                </div>
-                            </div>
-                        </Button>
+                        <SbomExportMenu ref="exportMenuRef" @export="handleExportReport" />
                     </div>
                 </InfoCard>
             </div>

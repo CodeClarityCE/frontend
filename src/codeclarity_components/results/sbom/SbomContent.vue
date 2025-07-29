@@ -18,6 +18,8 @@ import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import SbomTable from './SbomTable.vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
 import SbomExportMenu from './SbomExportMenu.vue';
+import PackageJsonUpdatesModal from './PackageJsonUpdatesModal.vue';
+import type { PackageUpdate } from './PackageJsonUpdatesModal.vue';
 import { 
     convertToCSV, 
     convertToHTML, 
@@ -56,6 +58,8 @@ const loading: Ref<boolean> = ref(true);
 const render: Ref<boolean> = ref(false);
 const stats: Ref<SbomStats> = ref(new SbomStats());
 const selected_workspace: Ref<string> = ref('.');
+const dependencies: Ref<any[]> = ref([]);
+const showUpdatesModal: Ref<boolean> = ref(false);
 
 watch(
     () => props.projectID,
@@ -113,15 +117,38 @@ const securityIssues = computed(() => {
     );
 });
 
+// Computed property for direct dependencies that need updates (actionable in package.json)
+const directDependenciesNeedingUpdates = computed(() => {
+    return dependencies.value.filter(dep => {
+        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
+        const hasUpdate = dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
+        return isDirect && hasUpdate;
+    });
+});
+
+const directUpdatesCount = computed(() => directDependenciesNeedingUpdates.value.length);
+
+// Convert dependencies to PackageUpdate format for the modal
+const packageUpdates = computed((): PackageUpdate[] => {
+    return directDependenciesNeedingUpdates.value.map(dep => ({
+        name: dep.name,
+        currentVersion: dep.version,
+        latestVersion: dep.newest_release || dep.version,
+        isDev: dep.dev || false,
+        isProd: dep.prod || false
+    }));
+});
+
 // Action handlers
 function handleUpdateOutdated() {
-    console.log('Handle update outdated dependencies');
-    // Implement update logic here
+    if (directUpdatesCount.value > 0) {
+        showUpdatesModal.value = true;
+    }
 }
 
-function handleFixSecurity() {
-    console.log('Handle fix security issues');
-    // Implement security fix logic here
+function handleCopyToClipboard(content: string) {
+    // Toast notification could be added here
+    console.log('Copied to clipboard:', content);
 }
 
 async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
@@ -231,6 +258,59 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
     }
 }
 
+async function fetchDependencies() {
+    if (!userStore.getDefaultOrg || !authStore.getToken) return;
+    if (!props.projectID || !props.analysisID) return;
+
+    try {
+        // Fetch first page to get total count
+        const firstPage = await sbomRepo.getSbom({
+            orgId: userStore.getDefaultOrg.id,
+            projectId: props.projectID,
+            analysisId: props.analysisID,
+            workspace: selected_workspace.value,
+            bearerToken: authStore.getToken,
+            pagination: { page: 0, entries_per_page: 100 },
+            sort: { sortKey: 'name', sortDirection: 'asc' },
+            active_filters: '',
+            search_key: '',
+            handleBusinessErrors: true
+        });
+
+        let allDependencies = [...firstPage.data];
+        
+        // If there are more pages, fetch them all
+        if (firstPage.total_pages > 1) {
+            const promises = [];
+            for (let page = 1; page < firstPage.total_pages; page++) {
+                promises.push(
+                    sbomRepo.getSbom({
+                        orgId: userStore.getDefaultOrg.id,
+                        projectId: props.projectID,
+                        analysisId: props.analysisID,
+                        workspace: selected_workspace.value,
+                        bearerToken: authStore.getToken,
+                        pagination: { page, entries_per_page: 100 },
+                        sort: { sortKey: 'name', sortDirection: 'asc' },
+                        active_filters: '',
+                        search_key: '',
+                        handleBusinessErrors: true
+                    })
+                );
+            }
+            
+            const additionalPages = await Promise.all(promises);
+            additionalPages.forEach(page => {
+                allDependencies = allDependencies.concat(page.data);
+            });
+        }
+        
+        dependencies.value = allDependencies;
+    } catch (error) {
+        console.error('Failed to fetch dependencies:', error);
+    }
+}
+
 // Methods
 getSbomStats();
 async function getSbomStats(refresh: boolean = false) {
@@ -254,6 +334,10 @@ async function getSbomStats(refresh: boolean = false) {
             handleBusinessErrors: true
         });
         stats.value = res.data;
+        
+        // Also fetch dependencies to calculate accurate counts
+        await fetchDependencies();
+        
         render.value = true;
     } catch (_err) {
         console.error(_err);
@@ -561,8 +645,7 @@ function createDepTypeChart() {
                             <div class="flex-1">
                                 <div class="font-semibold">Update Outdated</div>
                                 <div class="text-sm opacity-90">
-                                    Update {{ stats.number_of_outdated_dependencies || 0 }} outdated
-                                    packages
+                                    Update {{ directUpdatesCount }} direct dependencies
                                 </div>
                             </div>
                         </Button>
@@ -587,4 +670,12 @@ function createDepTypeChart() {
             />
         </InfoCard>
     </div>
+
+    <!-- Package.json Updates Modal -->
+    <PackageJsonUpdatesModal
+        v-model:open="showUpdatesModal"
+        :updates="packageUpdates"
+        :project-name="projectName"
+        @copy-to-clipboard="handleCopyToClipboard"
+    />
 </template>

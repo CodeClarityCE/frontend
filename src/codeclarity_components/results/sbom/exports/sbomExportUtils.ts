@@ -7,7 +7,7 @@ export interface ExportDependency {
     version: string;
     newest_release?: string;
     is_direct?: boolean;
-    is_direct_count?: number;
+    is_direct_count: number;
     prod?: boolean;
     dev?: boolean;
     outdated?: boolean;
@@ -58,19 +58,36 @@ export function sortDependenciesByPriority(dependencies: ExportDependency[]): Ex
 }
 
 /**
- * Converts dependencies to CSV format
+ * Converts dependencies to CSV format focused on package.json updates
  */
 export function convertToCSV(dependencies: ExportDependency[]): string {
     const sortedDeps = sortDependenciesByPriority(dependencies);
-    const headers = ['Name', 'Version', 'Latest Version', 'Direct Dependency', 'Production Dependency', 'Update Available'];
-    const rows = sortedDeps.map(dep => [
-        dep.name || '',
-        dep.version || '',
-        dep.newest_release || dep.version || '',
-        (dep.is_direct_count > 0 || dep.is_direct) ? 'Yes' : 'No',
-        dep.prod ? 'Yes' : 'No',
-        (dep.outdated || dep.version !== dep.newest_release) ? 'Yes' : 'No'
-    ]);
+    const headers = [
+        'Package Name', 
+        'Current Version', 
+        'Latest Version', 
+        'Dependency Type', 
+        'Update Available', 
+        'Package.json Update Needed'
+    ];
+    
+    const rows = sortedDeps.map(dep => {
+        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
+        const hasUpdate = dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
+        const dependencyType = isDirect 
+            ? (dep.prod ? 'Direct Production' : dep.dev ? 'Direct Development' : 'Direct')
+            : (dep.prod ? 'Transitive Production' : 'Transitive Development');
+        const needsPackageJsonUpdate = isDirect && hasUpdate;
+        
+        return [
+            dep.name || '',
+            dep.version || '',
+            dep.newest_release || dep.version || '',
+            dependencyType,
+            hasUpdate ? 'Yes' : 'No',
+            needsPackageJsonUpdate ? 'YES - Update package.json' : 'No - Transitive dependency'
+        ];
+    });
 
     const csvContent = [
         headers.join(','),
@@ -88,9 +105,6 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
     const projectName = options.projectName || options.projectId;
     const date = new Date().toLocaleDateString();
     const totalDeps = sortedDeps.length;
-    const directProdUpdatable = sortedDeps.filter(dep => 
-        (dep.is_direct_count > 0 || dep.is_direct) && dep.prod && (dep.outdated || dep.version !== dep.newest_release)
-    ).length;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -218,10 +232,14 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
                 <strong>Production Dependencies:</strong> ${sortedDeps.filter(d => d.prod).length}
             </div>
             <div class="summary-stat">
-                <strong>Updates Available:</strong> ${sortedDeps.filter(d => d.outdated || d.version !== d.newest_release).length}
+                <strong>Package.json Updates Needed:</strong> <span style="color: #d73502; font-weight: bold;">${sortedDeps.filter(d => {
+                    const isDirect = d.is_direct_count > 0 || d.is_direct;
+                    const hasUpdate = d.outdated || (d.newest_release && d.version !== d.newest_release);
+                    return isDirect && hasUpdate;
+                }).length}</span>
             </div>
             <div class="summary-stat">
-                <strong>Direct + Production + Updatable:</strong> <span style="color: #d73502; font-weight: bold;">${directProdUpdatable}</span>
+                <strong>Total Updates Available:</strong> ${sortedDeps.filter(d => d.outdated || (d.newest_release && d.version !== d.newest_release)).length}
             </div>
         </div>
 
@@ -231,9 +249,9 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
                     <th>Package Name</th>
                     <th>Current Version</th>
                     <th>Latest Version</th>
-                    <th>Direct</th>
-                    <th>Production</th>
-                    <th>Update Available</th>
+                    <th>Dependency Type</th>
+                    <th>Package.json Update</th>
+                    <th>Action Required</th>
                 </tr>
             </thead>
             <tbody>
@@ -245,10 +263,10 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
                         // Determine current group
                         const isDirect = dep.is_direct_count > 0 || dep.is_direct;
                         let currentGroup = '';
-                        if (isDirect && dep.prod) currentGroup = 'Direct Production Dependencies';
-                        else if (isDirect && dep.dev) currentGroup = 'Direct Development Dependencies';
-                        else if (!isDirect && dep.prod) currentGroup = 'Transitive Production Dependencies';
-                        else currentGroup = 'Other Transitive Dependencies';
+                        if (isDirect && dep.prod) currentGroup = 'Direct Production Dependencies (Update package.json)';
+                        else if (isDirect && dep.dev) currentGroup = 'Direct Development Dependencies (Update package.json)';
+                        else if (!isDirect && dep.prod) currentGroup = 'Transitive Production Dependencies (Auto-updated)';
+                        else currentGroup = 'Other Transitive Dependencies (Auto-updated)';
                         
                         // Add group header if group changed
                         if (currentGroup !== lastGroup) {
@@ -256,17 +274,20 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
                             lastGroup = currentGroup;
                         }
                         
-                        const needsUpdate = dep.outdated || dep.version !== dep.newest_release;
-                        const isHighPriority = isDirect && dep.prod && needsUpdate;
+                        const hasUpdate = dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
+                        const needsPackageJsonUpdate = isDirect && hasUpdate;
+                        const dependencyType = isDirect 
+                            ? (dep.prod ? 'Direct Production' : dep.dev ? 'Direct Development' : 'Direct')
+                            : (dep.prod ? 'Transitive Production' : 'Transitive Development');
                         
                         html += `
-                        <tr class="${isHighPriority ? 'highlight' : ''}">
+                        <tr class="${needsPackageJsonUpdate ? 'highlight' : ''}">
                             <td><strong>${dep.name || ''}</strong></td>
                             <td>${dep.version || ''}</td>
-                            <td class="${needsUpdate ? 'version-mismatch' : ''}">${dep.newest_release || dep.version || ''}</td>
-                            <td><span class="badge ${isDirect ? 'badge-yes' : 'badge-no'}">${isDirect ? 'Yes' : 'No'}</span></td>
-                            <td><span class="badge ${dep.prod ? 'badge-yes' : 'badge-no'}">${dep.prod ? 'Yes' : 'No'}</span></td>
-                            <td>${needsUpdate ? '<span style="color: #d73502;">Yes</span>' : 'No'}</td>
+                            <td class="${hasUpdate ? 'version-mismatch' : ''}">${dep.newest_release || dep.version || ''}</td>
+                            <td><span class="badge ${isDirect ? 'badge-yes' : 'badge-no'}">${dependencyType}</span></td>
+                            <td><span class="badge ${needsPackageJsonUpdate ? 'badge-yes' : 'badge-no'}">${needsPackageJsonUpdate ? 'Required' : 'Not Needed'}</span></td>
+                            <td>${needsPackageJsonUpdate ? '<strong style="color: #d73502;">Update package.json</strong>' : hasUpdate ? 'Transitive - will update automatically' : 'Up to date'}</td>
                         </tr>`;
                     });
                     
@@ -279,7 +300,10 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
             <strong>Legend:</strong>
             <div class="legend-item">
                 <span class="legend-box" style="background-color: #fff3cd;"></span>
-                Highlighted rows = Direct + Production + Update Available (High Priority)
+                Highlighted rows = Direct dependencies requiring package.json updates
+            </div>
+            <div class="legend-item" style="margin-top: 5px;">
+                <strong>Note:</strong> Only direct dependencies need manual updates in package.json. Transitive dependencies update automatically when their parent dependencies are updated.
             </div>
         </div>
     </div>
@@ -318,7 +342,7 @@ export function convertToCycloneDX(dependencies: ExportDependency[], options: Ex
             name: dep.name,
             version: dep.version,
             purl: dep.purl,
-            licenses: dep.licenses?.length > 0 ? dep.licenses.map((license: string) => ({
+            licenses: dep.licenses && dep.licenses.length > 0 ? dep.licenses.map((license: string) => ({
                 license: {
                     id: license
                 }

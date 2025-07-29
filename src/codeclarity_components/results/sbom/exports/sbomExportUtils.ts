@@ -105,7 +105,7 @@ export function convertToCSV(dependencies: ExportDependency[]): string {
 }
 
 /**
- * Converts dependencies to HTML report format
+ * Converts dependencies to HTML report format (optimized for large datasets)
  */
 export function convertToHTML(dependencies: ExportDependency[], options: ExportOptions): string {
     const sortedDeps = sortDependenciesByPriority(dependencies);
@@ -113,7 +113,61 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
     const date = new Date().toLocaleDateString();
     const totalDeps = sortedDeps.length;
 
-    const html = `<!DOCTYPE html>
+    // Pre-calculate statistics for better performance
+    let directCount = 0;
+    let prodCount = 0;
+    let packageJsonUpdatesCount = 0;
+    let totalUpdatesCount = 0;
+
+    // Pre-process dependencies to avoid repeated calculations
+    const processedDeps = sortedDeps.map((dep) => {
+        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
+        const hasUpdate =
+            dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
+        const needsPackageJsonUpdate = isDirect && hasUpdate;
+
+        // Update counters
+        if (isDirect) directCount++;
+        if (dep.prod) prodCount++;
+        if (needsPackageJsonUpdate) packageJsonUpdatesCount++;
+        if (hasUpdate) totalUpdatesCount++;
+
+        const dependencyType = isDirect
+            ? dep.prod
+                ? 'Direct Production'
+                : dep.dev
+                  ? 'Direct Development'
+                  : 'Direct'
+            : dep.prod
+              ? 'Transitive Production'
+              : 'Transitive Development';
+
+        let currentGroup = '';
+        if (isDirect && dep.prod)
+            currentGroup = 'Direct Production Dependencies (Update package.json)';
+        else if (isDirect && dep.dev)
+            currentGroup = 'Direct Development Dependencies (Update package.json)';
+        else if (!isDirect && dep.prod)
+            currentGroup = 'Transitive Production Dependencies (Auto-updated)';
+        else currentGroup = 'Other Transitive Dependencies (Auto-updated)';
+
+        return {
+            name: dep.name || '',
+            version: dep.version || '',
+            latestVersion: dep.newest_release || dep.version || '',
+            isDirect,
+            hasUpdate,
+            needsPackageJsonUpdate,
+            dependencyType,
+            currentGroup
+        };
+    });
+
+    // Use array-based approach for much better performance
+    const htmlParts = [];
+
+    // Add header and styles
+    htmlParts.push(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -233,23 +287,16 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
         
         <div class="summary">
             <div class="summary-stat">
-                <strong>Direct Dependencies:</strong> ${sortedDeps.filter((d) => d.is_direct_count > 0 || d.is_direct).length}
+                <strong>Direct Dependencies:</strong> ${directCount}
             </div>
             <div class="summary-stat">
-                <strong>Production Dependencies:</strong> ${sortedDeps.filter((d) => d.prod).length}
+                <strong>Production Dependencies:</strong> ${prodCount}
             </div>
             <div class="summary-stat">
-                <strong>Package.json Updates Needed:</strong> <span style="color: #d73502; font-weight: bold;">${
-                    sortedDeps.filter((d) => {
-                        const isDirect = d.is_direct_count > 0 || d.is_direct;
-                        const hasUpdate =
-                            d.outdated || (d.newest_release && d.version !== d.newest_release);
-                        return isDirect && hasUpdate;
-                    }).length
-                }</span>
+                <strong>Package.json Updates Needed:</strong> <span style="color: #d73502; font-weight: bold;">${packageJsonUpdatesCount}</span>
             </div>
             <div class="summary-stat">
-                <strong>Total Updates Available:</strong> ${sortedDeps.filter((d) => d.outdated || (d.newest_release && d.version !== d.newest_release)).length}
+                <strong>Total Updates Available:</strong> ${totalUpdatesCount}
             </div>
         </div>
 
@@ -264,57 +311,34 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
                     <th>Action Required</th>
                 </tr>
             </thead>
-            <tbody>
-                ${(() => {
-                    let html = '';
-                    let lastGroup = '';
+            <tbody>`);
 
-                    sortedDeps.forEach((dep) => {
-                        // Determine current group
-                        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
-                        let currentGroup = '';
-                        if (isDirect && dep.prod)
-                            currentGroup = 'Direct Production Dependencies (Update package.json)';
-                        else if (isDirect && dep.dev)
-                            currentGroup = 'Direct Development Dependencies (Update package.json)';
-                        else if (!isDirect && dep.prod)
-                            currentGroup = 'Transitive Production Dependencies (Auto-updated)';
-                        else currentGroup = 'Other Transitive Dependencies (Auto-updated)';
+    // Generate table rows efficiently
+    let lastGroup = '';
+    for (const dep of processedDeps) {
+        // Add group header if group changed
+        if (dep.currentGroup !== lastGroup) {
+            htmlParts.push(
+                `<tr class="group-header"><td colspan="6">${dep.currentGroup}</td></tr>`
+            );
+            lastGroup = dep.currentGroup;
+        }
 
-                        // Add group header if group changed
-                        if (currentGroup !== lastGroup) {
-                            html += `<tr class="group-header"><td colspan="6">${currentGroup}</td></tr>`;
-                            lastGroup = currentGroup;
-                        }
+        // Add dependency row
+        htmlParts.push(
+            `<tr class="${dep.needsPackageJsonUpdate ? 'highlight' : ''}">`,
+            `<td><strong>${dep.name}</strong></td>`,
+            `<td>${dep.version}</td>`,
+            `<td class="${dep.hasUpdate ? 'version-mismatch' : ''}">${dep.latestVersion}</td>`,
+            `<td><span class="badge ${dep.isDirect ? 'badge-yes' : 'badge-no'}">${dep.dependencyType}</span></td>`,
+            `<td><span class="badge ${dep.needsPackageJsonUpdate ? 'badge-yes' : 'badge-no'}">${dep.needsPackageJsonUpdate ? 'Required' : 'Not Needed'}</span></td>`,
+            `<td>${dep.needsPackageJsonUpdate ? '<strong style="color: #d73502;">Update package.json</strong>' : dep.hasUpdate ? 'Transitive - will update automatically' : 'Up to date'}</td>`,
+            '</tr>'
+        );
+    }
 
-                        const hasUpdate =
-                            dep.outdated ||
-                            (dep.newest_release && dep.version !== dep.newest_release);
-                        const needsPackageJsonUpdate = isDirect && hasUpdate;
-                        const dependencyType = isDirect
-                            ? dep.prod
-                                ? 'Direct Production'
-                                : dep.dev
-                                  ? 'Direct Development'
-                                  : 'Direct'
-                            : dep.prod
-                              ? 'Transitive Production'
-                              : 'Transitive Development';
-
-                        html += `
-                        <tr class="${needsPackageJsonUpdate ? 'highlight' : ''}">
-                            <td><strong>${dep.name || ''}</strong></td>
-                            <td>${dep.version || ''}</td>
-                            <td class="${hasUpdate ? 'version-mismatch' : ''}">${dep.newest_release || dep.version || ''}</td>
-                            <td><span class="badge ${isDirect ? 'badge-yes' : 'badge-no'}">${dependencyType}</span></td>
-                            <td><span class="badge ${needsPackageJsonUpdate ? 'badge-yes' : 'badge-no'}">${needsPackageJsonUpdate ? 'Required' : 'Not Needed'}</span></td>
-                            <td>${needsPackageJsonUpdate ? '<strong style="color: #d73502;">Update package.json</strong>' : hasUpdate ? 'Transitive - will update automatically' : 'Up to date'}</td>
-                        </tr>`;
-                    });
-
-                    return html;
-                })()}
-            </tbody>
+    // Add footer
+    htmlParts.push(`            </tbody>
         </table>
         
         <div class="legend">
@@ -329,9 +353,9 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
         </div>
     </div>
 </body>
-</html>`;
+</html>`);
 
-    return html;
+    return htmlParts.join('');
 }
 
 /**

@@ -1,4 +1,16 @@
 <script lang="ts" setup>
+/**
+ * SBOM Content Component
+ *
+ * Main component for displaying Software Bill of Materials (SBOM) data.
+ * Features:
+ * - Package manager detection and adaptation
+ * - Health score calculation and security metrics
+ * - Direct dependency update modal
+ * - Multi-format export (CSV, JSON, CycloneDX, HTML)
+ * - Interactive charts and statistics
+ */
+
 import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
 
@@ -15,11 +27,23 @@ import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
+
+// Import components
 import SbomTable from './SbomTable.vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
 import SbomExportMenu from './SbomExportMenu.vue';
 import PackageJsonUpdatesModal from './PackageJsonUpdatesModal.vue';
-import type { PackageUpdate } from './PackageJsonUpdatesModal.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+
+// Import utilities
+import {
+    calculateHealthScore,
+    calculateSecurityIssues,
+    getDirectDependenciesNeedingUpdates,
+    convertToPackageUpdates,
+    type Dependency
+} from './utils/sbomUtils';
 import {
     convertToCSV,
     convertToHTML,
@@ -27,10 +51,6 @@ import {
     sortDependenciesByPriority,
     type ExportOptions
 } from './exports/sbomExportUtils';
-
-// Import common components
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 
 export interface Props {
     analysisID?: string;
@@ -43,37 +63,25 @@ const props = withDefaults(defineProps<Props>(), {
     projectName: ''
 });
 
-// Repositories
+// Repositories and stores
 const sbomRepo: ResultsRepository = new ResultsRepository();
-
-// Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-// State
+// Component state
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-
 const render: Ref<boolean> = ref(false);
-const stats: Ref<SbomStats> = ref(new SbomStats());
-const selected_workspace: Ref<string> = ref('.');
-const dependencies: Ref<any[]> = ref([]);
-const showUpdatesModal: Ref<boolean> = ref(false);
-const packageManager: Ref<string> = ref('yarn'); // Default to yarn
 
-watch(
-    () => props.projectID,
-    () => {
-        getSbomStats();
-    }
-);
-watch(
-    () => props.analysisID,
-    () => {
-        getSbomStats();
-    }
-);
+// SBOM data
+const stats: Ref<SbomStats> = ref(new SbomStats());
+const dependencies: Ref<Dependency[]> = ref([]);
+const selected_workspace: Ref<string> = ref('.');
+const packageManager: Ref<string> = ref('yarn'); // Detected from workspace data
+
+// UI state
+const showUpdatesModal: Ref<boolean> = ref(false);
 
 const initChartData = {
     labels: ['Label'],
@@ -97,64 +105,43 @@ const donutDimensions = {
     height: '180px'
 };
 
+// Watchers
+watch(
+    () => props.projectID,
+    () => getSbomStats()
+);
+watch(
+    () => props.analysisID,
+    () => getSbomStats()
+);
 watch(selected_workspace, () => getSbomStats());
 
-// Computed properties for enhanced metrics
-const healthScore = computed(() => {
-    const total = stats.value.number_of_dependencies || 1;
-    const outdated = stats.value.number_of_outdated_dependencies || 0;
-    const deprecated = stats.value.number_of_deprecated_dependencies || 0;
-    const unlicensed = stats.value.number_of_unlicensed_dependencies || 0;
-
-    const issues = outdated + deprecated + unlicensed;
-    const score = Math.max(0, Math.round(((total - issues) / total) * 100));
-    return score;
-});
-
-const securityIssues = computed(() => {
-    return (
-        (stats.value.number_of_deprecated_dependencies || 0) +
-        (stats.value.number_of_unlicensed_dependencies || 0)
-    );
-});
-
-// Computed property for direct dependencies that need updates (actionable in package.json)
-const directDependenciesNeedingUpdates = computed(() => {
-    return dependencies.value.filter((dep) => {
-        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
-        const hasUpdate =
-            dep.outdated || (dep.newest_release && dep.version !== dep.newest_release);
-        return isDirect && hasUpdate;
-    });
-});
-
+// Computed properties - using utility functions for clarity
+const healthScore = computed(() => calculateHealthScore(stats.value));
+const securityIssues = computed(() => calculateSecurityIssues(stats.value));
+const directDependenciesNeedingUpdates = computed(() =>
+    getDirectDependenciesNeedingUpdates(dependencies.value)
+);
 const directUpdatesCount = computed(() => directDependenciesNeedingUpdates.value.length);
+const packageUpdates = computed(() =>
+    convertToPackageUpdates(directDependenciesNeedingUpdates.value)
+);
 
-// Convert dependencies to PackageUpdate format for the modal
-const packageUpdates = computed((): PackageUpdate[] => {
-    return directDependenciesNeedingUpdates.value.map((dep) => ({
-        name: dep.name,
-        currentVersion: dep.version,
-        latestVersion: dep.newest_release || dep.version,
-        isDev: dep.dev || false,
-        isProd: dep.prod || false
-    }));
-});
-
-// Action handlers
+// Event handlers
 function handleUpdateOutdated() {
+    /** Opens the package.json updates modal if there are direct dependencies needing updates */
     if (directUpdatesCount.value > 0) {
         showUpdatesModal.value = true;
     }
 }
 
 function handleCopyToClipboard(content: string) {
-    // Toast notification could be added here
+    /** Handles clipboard copy events from the modal */
     console.log('Copied to clipboard:', content);
 }
 
 function handlePackageManagerLoaded(manager: string) {
-    // Normalize package manager names (convert to lowercase)
+    /** Receives package manager info from SelectWorkspace component */
     packageManager.value = manager.toLowerCase();
 }
 

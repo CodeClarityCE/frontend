@@ -22,12 +22,14 @@ export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOpti
     projectId: string;
     analysisId: string;
     workspace: string;
+    runIndex?: number | null;
 }
 
 export interface GetSbomWorkspacesRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
     projectId: string;
     analysisId: string;
+    runIndex?: number | null;
 }
 
 export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -36,6 +38,7 @@ export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOption
     analysisId: string;
     vulnerability_id: string;
     workspace: string;
+    runIndex?: number | null;
 }
 
 export interface GetSbomRequestOptions
@@ -48,6 +51,7 @@ export interface GetSbomRequestOptions
     workspace: string;
     active_filters: string;
     search_key: string;
+    runIndex?: number | null;
 }
 
 export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -56,6 +60,7 @@ export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOpt
     analysisId: string;
     dependency: string;
     workspace: string;
+    runIndex?: number | null;
 }
 
 export interface GetResultByTypeRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -63,16 +68,23 @@ export interface GetResultByTypeRequestOptions extends AuthRepoMethodGetRequestO
     projectId: string;
     analysisId: string;
     type: string;
+    runIndex?: number | null;
 }
 
 export class ResultsRepository extends BaseRepository {
     async getSbomStat(options: GetSbomStatsRequestOptions): Promise<DataResponse<SbomStats>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/stats`;
 
+        const queryParams: any = {
+            workspace: options.workspace
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<SbomStats>>({
-            queryParams: {
-                workspace: options.workspace
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -88,7 +100,14 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<WorkspacesOutput>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/workspaces`;
 
+        const queryParams: any = {};
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<WorkspacesOutput>>({
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -105,16 +124,22 @@ export class ResultsRepository extends BaseRepository {
     async getSbom(options: GetSbomRequestOptions): Promise<PaginatedResponse<Dependency>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom`;
 
+        const queryParams: any = {
+            workspace: options.workspace,
+            page: options.pagination.page,
+            entries_per_page: options.pagination.entries_per_page,
+            sort_by: options.sort.sortKey,
+            sort_direction: options.sort.sortDirection,
+            active_filters: options.active_filters,
+            search_key: options.search_key
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<PaginatedResponse<Dependency>>({
-            queryParams: {
-                workspace: options.workspace,
-                page: options.pagination.page,
-                entries_per_page: options.pagination.entries_per_page,
-                sort_by: options.sort.sortKey,
-                sort_direction: options.sort.sortDirection,
-                active_filters: options.active_filters,
-                search_key: options.search_key
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -133,11 +158,17 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<DependencyDetails>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency`;
 
+        const queryParams: any = {
+            workspace: options.workspace,
+            dependency: options.dependency
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<DependencyDetails>>({
-            queryParams: {
-                workspace: options.workspace,
-                dependency: options.dependency
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -156,11 +187,17 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<Array<GraphDependency>>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency/graph`;
 
+        const queryParams: any = {
+            workspace: options.workspace,
+            dependency: options.dependency
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<Array<GraphDependency>>>({
-            queryParams: {
-                workspace: options.workspace,
-                dependency: options.dependency
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -177,16 +214,22 @@ export class ResultsRepository extends BaseRepository {
     async getLicenses(options: GetSbomRequestOptions): Promise<PaginatedResponse<License>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/licenses`;
 
+        const queryParams: any = {
+            workspace: options.workspace,
+            page: options.pagination.page,
+            entries_per_page: options.pagination.entries_per_page,
+            sort_by: options.sort.sortKey,
+            sort_direction: options.sort.sortDirection,
+            active_filters: options.active_filters,
+            search_key: options.search_key
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<PaginatedResponse<License>>({
-            queryParams: {
-                workspace: options.workspace,
-                page: options.pagination.page,
-                entries_per_page: options.pagination.entries_per_page,
-                sort_by: options.sort.sortKey,
-                sort_direction: options.sort.sortDirection,
-                active_filters: options.active_filters,
-                search_key: options.search_key
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -202,10 +245,16 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<AnalysisStats>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
 
+        const queryParams: any = {
+            workspace: options.workspace
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<AnalysisStats>>({
-            queryParams: {
-                workspace: options.workspace
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -221,16 +270,22 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<PaginatedResponse<VulnerabilityMerged>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities`;
 
+        const queryParams: any = {
+            workspace: options.workspace,
+            page: options.pagination.page,
+            entries_per_page: options.pagination.entries_per_page,
+            sort_by: options.sort.sortKey,
+            sort_direction: options.sort.sortDirection,
+            active_filters: options.active_filters,
+            search_key: options.search_key
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<PaginatedResponse<VulnerabilityMerged>>({
-            queryParams: {
-                workspace: options.workspace,
-                page: options.pagination.page,
-                entries_per_page: options.pagination.entries_per_page,
-                sort_by: options.sort.sortKey,
-                sort_direction: options.sort.sortDirection,
-                active_filters: options.active_filters,
-                search_key: options.search_key
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -249,10 +304,16 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<VulnerabilityDetails>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/vulnerability/${options.vulnerability_id}`;
 
+        const queryParams: any = {
+            workspace: options.workspace
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
-            queryParams: {
-                workspace: options.workspace
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -271,10 +332,16 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<PatchingStats>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/stats`;
 
+        const queryParams: any = {
+            workspace: options.workspace
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<PatchingStats>>({
-            queryParams: {
-                workspace: options.workspace
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -288,16 +355,22 @@ export class ResultsRepository extends BaseRepository {
     async getPatches(options: GetSbomRequestOptions): Promise<DataResponse<Workspace>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching`;
 
+        const queryParams: any = {
+            workspace: options.workspace,
+            page: options.pagination.page,
+            entries_per_page: options.pagination.entries_per_page,
+            sort_by: options.sort.sortKey,
+            sort_direction: options.sort.sortDirection,
+            active_filters: options.active_filters,
+            search_key: options.search_key
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<Workspace>>({
-            queryParams: {
-                workspace: options.workspace,
-                page: options.pagination.page,
-                entries_per_page: options.pagination.entries_per_page,
-                sort_by: options.sort.sortKey,
-                sort_direction: options.sort.sortDirection,
-                active_filters: options.active_filters,
-                search_key: options.search_key
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -355,13 +428,19 @@ export class ResultsRepository extends BaseRepository {
     async getResultByType(options: GetResultByTypeRequestOptions): Promise<DataResponse<Result>> {
         const RELATIVE_URL = `/result`;
 
+        const queryParams: any = {
+            org_id: options.orgId,
+            project_id: options.projectId,
+            analysis_id: options.analysisId,
+            type: options.type
+        };
+
+        if (options.runIndex !== null && options.runIndex !== undefined) {
+            queryParams.run_index = options.runIndex;
+        }
+
         const response = await this.getRequest<DataResponse<Result>>({
-            queryParams: {
-                org_id: options.orgId,
-                project_id: options.projectId,
-                analysis_id: options.analysisId,
-                type: options.type
-            },
+            queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,

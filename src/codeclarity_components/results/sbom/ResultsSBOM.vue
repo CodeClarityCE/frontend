@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 defineProps<{
     analysis: Analysis;
     project: Project;
+    runIndex?: number | null;
 }>();
 
 const bill_of_materials = ref([]);

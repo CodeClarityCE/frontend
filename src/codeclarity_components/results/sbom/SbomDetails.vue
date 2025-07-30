@@ -32,10 +32,12 @@ type Props = {
     showBack?: boolean;
     analysisID: string;
     projectID: string;
+    runIndex?: number | null;
 };
 
 const props = withDefaults(defineProps<Props>(), {
-    showBack: false
+    showBack: false,
+    runIndex: null
 });
 
 const render: Ref<boolean> = ref(false);
@@ -162,6 +164,7 @@ async function getDependency(projectID: string, analysisID: string) {
             dependency: package_id_param,
             bearerToken: authStore.getToken,
             workspace: '.',
+            runIndex: props.runIndex,
             handleBusinessErrors: true
         });
         dependency.value = res.data;

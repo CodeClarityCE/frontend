@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import ProjectItem from './ProjectItem.vue';
+import ProjectItem from './ProjectItemImproved.vue';
 import NoProjects from './NoProjects.vue';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
 import { ref, watch, type Ref } from 'vue';

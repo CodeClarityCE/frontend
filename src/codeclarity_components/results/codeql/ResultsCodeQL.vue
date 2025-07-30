@@ -13,10 +13,12 @@ import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 import type { CodeQLResult } from './codeql.entity';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Badge } from '@/shadcn/ui/badge';
+import ResultTimestamp from '../components/ResultTimestamp.vue';
 
 const props = defineProps<{
     analysis: Analysis;
     project: Project;
+    runIndex?: number | null;
 }>();
 
 // Store setup
@@ -36,7 +38,8 @@ async function init() {
             projectId: props.project.id,
             analysisId: props.analysis.id,
             type: 'codeql',
-            bearerToken: authStore.getToken ?? ''
+            bearerToken: authStore.getToken ?? '',
+            runIndex: props.runIndex
         });
         result.value = res.data;
         codeql_results.value = res.data.result.workspaces['.'].results as Array<CodeQLResult>;
@@ -49,6 +52,12 @@ init();
 </script>
 
 <template>
+    <ResultTimestamp
+        :created-on="result.created_on"
+        :run-index="props.runIndex"
+        plugin-name="CodeQL"
+    />
+
     <div v-if="codeql_results.length > 0" class="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
         <Card v-for="(codeql_result, index) in codeql_results" :key="index">
             <CardHeader>

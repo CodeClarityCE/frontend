@@ -3,4 +3,13 @@ export interface CreateAnalysis {
     branch: string;
     commit_hash: string;
     config: object;
+    schedule_type?: 'once' | 'daily' | 'weekly';
+    next_scheduled_run?: string;
+    is_active?: boolean;
+}
+
+export interface UpdateSchedule {
+    schedule_type: 'once' | 'daily' | 'weekly';
+    next_scheduled_run: string;
+    is_active: boolean;
 }

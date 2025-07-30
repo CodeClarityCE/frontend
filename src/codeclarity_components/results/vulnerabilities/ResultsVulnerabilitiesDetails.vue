@@ -22,13 +22,9 @@ const authStore = useAuthStore();
 const projectRepository: ProjectRepository = new ProjectRepository();
 const analysisRepository: AnalysisRepository = new AnalysisRepository();
 
-// defineProps<{
-//     gitIntegrated: any;
-//     gitSeverType: any;
-//     branch: any;
-//     projectName: any;
-//     analysisID: number;
-// }>();
+const props = defineProps<{
+    runIndex?: number | null;
+}>();
 
 const only_details = ref(false);
 const active_tab = ref('List');
@@ -155,6 +151,7 @@ init();
         :show-back="!only_details"
         :analysis-i-d="analysisID"
         :project-i-d="projectID"
+        :run-index="props.runIndex"
         @close="resetView()"
     ></Details>
 </template>

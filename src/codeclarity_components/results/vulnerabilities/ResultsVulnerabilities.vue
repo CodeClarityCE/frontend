@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shadcn/ui/alert';
 defineProps<{
     analysis: Analysis;
     project: Project;
+    runIndex?: number | null;
 }>();
 
 const no_deps = false;

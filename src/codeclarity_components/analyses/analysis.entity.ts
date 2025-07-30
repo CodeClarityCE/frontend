@@ -67,6 +67,15 @@ export class Analysis {
 
     // @IsNotEmpty()
     // organization_id!: string;
+
+    // Scheduling fields
+    schedule_type?: 'once' | 'daily' | 'weekly';
+
+    @IsDate()
+    @Type(() => Date)
+    next_scheduled_run?: Date;
+
+    is_active?: boolean;
 }
 
 export class StageBase {

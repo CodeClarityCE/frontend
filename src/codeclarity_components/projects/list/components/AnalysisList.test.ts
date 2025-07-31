@@ -101,7 +101,8 @@ describe('AnalysisList', () => {
         // The rest are inside CollapsibleContent
         const analysisItems = wrapper.findAllComponents({ name: 'AnalysisItem' });
         expect(analysisItems.length).toBeGreaterThan(0);
-        expect(analysisItems[0].props().analysis).toEqual(mockAnalyses[0]);
+        // The component sorts by date, so analysis-3 (most recent) should be first
+        expect(analysisItems[0].props().analysis).toEqual(mockAnalyses[2]);
         expect(analysisItems[0].props().projectID).toBe('project-1');
     });
 
@@ -199,7 +200,8 @@ describe('AnalysisList', () => {
         });
 
         const analysisItem = wrapper.findComponent({ name: 'AnalysisItem' });
-        expect(analysisItem.props().analysis).toEqual(mockAnalyses[0]);
+        // The component sorts by date, so analysis-3 (most recent) should be first
+        expect(analysisItem.props().analysis).toEqual(mockAnalyses[2]);
         expect(analysisItem.props().projectID).toBe('test-project-id');
     });
 

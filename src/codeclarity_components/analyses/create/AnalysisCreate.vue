@@ -22,6 +22,7 @@ import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import FormMessage from '@/shadcn/ui/form/FormMessage.vue';
 import { FormField } from '@/shadcn/ui/form';
 import SelectLicensePolicy from './components/SelectLicensePolicy.vue';
+import ScheduleSelector from './components/ScheduleSelector.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { toast } from '@/shadcn/ui/toast';
 import router from '@/router';
@@ -68,6 +69,13 @@ const selected_analyzers_list: Ref<Array<Analyzer>> = ref([]);
 const availableAnalyzers: Ref<Array<any>> = ref([]);
 
 const configuration: Ref<Record<string, any>> = ref({});
+
+// Schedule data
+const scheduleData = ref({
+    schedule_type: 'once' as 'once' | '10min' | 'hourly' | 'daily' | 'weekly' | 'monthly',
+    next_scheduled_run: undefined as Date | undefined,
+    is_active: true
+});
 
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
@@ -208,17 +216,31 @@ async function createAnalysisStart() {
                 throw new Error('Organization id not found');
             }
 
+            // Prepare analysis data with scheduling information
+            const analysisData: any = {
+                analyzer_id: selected_analyzers.value[0].toString(),
+                branch: selected_branch.value,
+                commit_hash: selected_commit_hash.value,
+                config: configuration.value
+            };
+
+            // Add scheduling fields if not 'once'
+            if (scheduleData.value.schedule_type !== 'once') {
+                analysisData.schedule_type = scheduleData.value.schedule_type;
+                analysisData.is_active = scheduleData.value.is_active;
+                if (scheduleData.value.next_scheduled_run) {
+                    // Convert local date to UTC for storage/transmission
+                    analysisData.next_scheduled_run =
+                        scheduleData.value.next_scheduled_run.toISOString();
+                }
+            }
+
             await projectRepository.createAnalysis({
                 orgId: user.defaultOrg?.id,
                 projectId: project_id.value,
                 bearerToken: auth.getToken,
                 handleBusinessErrors: true,
-                data: {
-                    analyzer_id: selected_analyzers.value[0].toString(),
-                    branch: selected_branch.value,
-                    commit_hash: selected_commit_hash.value,
-                    config: configuration.value
-                }
+                data: analysisData
             });
             toast({
                 title: 'Analysis created successfully'
@@ -290,7 +312,21 @@ async function createAnalysisStart() {
                 <AlertCircle class="w-4 h-4 text-red-600" />
                 <AlertTitle class="text-red-800 font-semibold">Error</AlertTitle>
                 <AlertDescription class="text-red-700">
-                    {{ errorCode }} - {{ errorMessage }}
+                    <div
+                        v-if="
+                            errorCode === 'AlreadyExists' && scheduleData.schedule_type !== 'once'
+                        "
+                    >
+                        <p class="font-medium mb-2">
+                            Only one scheduled analysis allowed per project
+                        </p>
+                        <p class="text-sm">
+                            This project already has an active scheduled analysis. Please cancel the
+                            existing scheduled analysis before creating a new one, or create a
+                            one-time analysis instead.
+                        </p>
+                    </div>
+                    <div v-else>{{ errorCode }} - {{ errorMessage }}</div>
                 </AlertDescription>
             </Alert>
 
@@ -507,6 +543,11 @@ async function createAnalysisStart() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Schedule Configuration -->
+                <div class="space-y-4">
+                    <ScheduleSelector v-model="scheduleData" />
                 </div>
 
                 <!-- Create Analysis Button - More prominent -->

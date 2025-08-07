@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { useStateStore } from '@/stores/state';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import { onBeforeMount, ref, type Ref } from 'vue';
+import { onBeforeMount, ref, type Ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Project } from '@/codeclarity_components/projects/project.entity';
 import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import { useUserStore } from '@/stores/user';
@@ -13,6 +14,7 @@ import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.r
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
+import { Icon } from '@iconify/vue';
 
 const ResultsSBOM = defineAsyncComponent({
     loader: () => import('./sbom/ResultsSBOM.vue'),
@@ -104,10 +106,13 @@ const project: Ref<Project> = ref(new Project());
 const analysis: Ref<Analysis> = ref(new Analysis());
 const projectID: Ref<string> = ref('');
 const analysisID: Ref<string> = ref('');
+const runIndex: Ref<number | null> = ref(null);
 
 // Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
+const route = useRoute();
+const router = useRouter();
 
 const projectRepository: ProjectRepository = new ProjectRepository();
 const analysisRepository: AnalysisRepository = new AnalysisRepository();
@@ -121,6 +126,7 @@ const tab = ref({
 });
 
 const default_tab: Ref<string> = ref('sbom');
+const current_tab: Ref<string> = ref('sbom');
 const loading: Ref<boolean> = ref(true);
 
 async function init() {
@@ -129,11 +135,18 @@ async function init() {
 
     const analysis_id = searchParams.get('analysis_id');
     const project_id = searchParams.get('project_id');
+    const run_index = searchParams.get('run_index');
+
     if (analysis_id == null || project_id == null) {
         throw new Error('Missing analysis_id or project_id');
     }
     analysisID.value = analysis_id;
     projectID.value = project_id;
+
+    // Parse run_index if provided (for scheduled analysis historical results)
+    if (run_index !== null) {
+        runIndex.value = parseInt(run_index, 10);
+    }
 
     getProject(project_id);
     await getAnalysis(project_id, analysis_id);
@@ -214,6 +227,7 @@ async function getAnalysis(projectID: string, analysisID: string) {
         });
         analysis.value = res.data;
         default_tab.value = res.data.steps[0][0].Name;
+        current_tab.value = res.data.steps[0][0].Name;
     } catch (_err) {
         console.error(_err);
 
@@ -228,6 +242,27 @@ async function getAnalysis(projectID: string, analysisID: string) {
     }
 }
 
+// Function to handle tab value changes while preserving run_index
+function handleTabChange(newTab: string) {
+    current_tab.value = newTab;
+
+    // Update URL to maintain run_index parameter when switching tabs
+    const currentQuery = { ...route.query };
+    router.replace({
+        name: route.name,
+        query: currentQuery // This preserves all query parameters including run_index
+    });
+}
+
+// Watch for route query changes to sync current tab
+watch(
+    () => route.query,
+    () => {
+        // This ensures that when URL changes, we stay in sync
+    },
+    { deep: true }
+);
+
 onBeforeMount(async () => {
     await init();
     loading.value = false;
@@ -236,12 +271,29 @@ onBeforeMount(async () => {
 <template>
     <div class="flex-1 space-y-4 p-8 pt-6">
         <div class="flex items-center justify-between space-y-2">
-            <h2 class="text-3xl font-bold tracking-tight">Results</h2>
-            {{ project.name }}
+            <div class="space-y-1">
+                <h2 class="text-3xl font-bold tracking-tight">Results</h2>
+                <div class="flex items-center gap-4 text-sm text-gray-600">
+                    <span class="font-medium">{{ project.name }}</span>
+                    <span v-if="runIndex !== null" class="flex items-center gap-1">
+                        <Icon icon="solar:history-bold" class="w-4 h-4" />
+                        Historical Run #{{ runIndex + 1 }}
+                    </span>
+                </div>
+            </div>
         </div>
-        <ResultsVulnerabilitiesDetails v-if="props.page == 'vulnerabilities_details'" />
-        <ResultsSBOMDetails v-else-if="props.page == 'sbom_details'" />
-        <Tabs v-else-if="!loading" :default-value="default_tab" class="space-y-4">
+        <ResultsVulnerabilitiesDetails
+            v-if="props.page == 'vulnerabilities_details'"
+            :run-index="runIndex"
+        />
+        <ResultsSBOMDetails v-else-if="props.page == 'sbom_details'" :run-index="runIndex" />
+        <Tabs
+            v-else-if="!loading"
+            v-model:value="current_tab"
+            :default-value="default_tab"
+            class="space-y-4"
+            @value-change="handleTabChange"
+        >
             <TabsList>
                 <TabsTrigger v-if="tab['js-sbom']" value="js-sbom"> SBOM </TabsTrigger>
                 <TabsTrigger v-if="tab['js-vuln-finder']" value="js-vuln-finder">
@@ -252,19 +304,23 @@ onBeforeMount(async () => {
                 <TabsTrigger v-if="tab['codeql']" value="codeql"> CodeQL </TabsTrigger>
             </TabsList>
             <TabsContent value="js-sbom" class="space-y-4">
-                <ResultsSBOM :project="project" :analysis="analysis" />
+                <ResultsSBOM :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
             <TabsContent value="js-vuln-finder" class="space-y-4">
-                <ResultsVulnerabilities :project="project" :analysis="analysis" />
+                <ResultsVulnerabilities
+                    :project="project"
+                    :analysis="analysis"
+                    :run-index="runIndex"
+                />
             </TabsContent>
             <TabsContent value="js-patching" class="space-y-4">
-                <ResultsPatching :project="project" :analysis="analysis" />
+                <ResultsPatching :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
             <TabsContent value="js-license" class="space-y-4">
-                <ResultsLicenses :project="project" :analysis="analysis" />
+                <ResultsLicenses :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
             <TabsContent value="codeql" class="space-y-4">
-                <ResultsCodeQL :project="project" :analysis="analysis" />
+                <ResultsCodeQL :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
         </Tabs>
     </div>

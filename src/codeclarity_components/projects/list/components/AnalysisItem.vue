@@ -21,9 +21,11 @@ import { Button } from '@/shadcn/ui/button';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shadcn/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
+import AnalysisRuns from './AnalysisRuns.vue';
 
 // State for modals
 const showDeleteModal = ref(false);
+const showRunsModal = ref(false);
 
 const analysisRepository: AnalysisRepository = new AnalysisRepository();
 // Stores
@@ -132,6 +134,11 @@ function getTimeDiff(stage: AnalysisStage) {
     return time;
 }
 
+function getStepName(index: number) {
+    const stepNames = ['SBOM Generation', 'Vulnerability Scan', 'License Check', 'Code Analysis'];
+    return stepNames[index] || `Step ${index + 1}`;
+}
+
 async function getChart(projectID: string, analysisID: string) {
     let res: DataResponse<Array<object>>;
     try {
@@ -189,9 +196,24 @@ getChart(props.projectID, props.analysis.id);
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
                         <span class="text-sm font-medium text-slate-900">Completed</span>
+                        <!-- Schedule indicator -->
+                        <div
+                            v-if="
+                                props.analysis.schedule_type &&
+                                props.analysis.schedule_type !== 'once'
+                            "
+                            class="flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                        >
+                            <Icon icon="solar:calendar-linear" class="h-3 w-3" />
+                            <span class="capitalize">{{ props.analysis.schedule_type }}</span>
+                        </div>
                     </div>
                     <div class="text-xs text-slate-500">
                         {{ formatDate(props.analysis.created_on, 'MMM DD, YYYY [at] h:mm A') }}
+                        <span v-if="props.analysis.next_scheduled_run" class="ml-2">
+                            • Next run:
+                            {{ formatDate(props.analysis.next_scheduled_run, 'h:mm A') }}
+                        </span>
                     </div>
                     <Popover>
                         <PopoverTrigger as-child>
@@ -235,7 +257,7 @@ getChart(props.projectID, props.analysis.id);
                                                 <div
                                                     class="text-xs font-medium text-slate-900 uppercase"
                                                 >
-                                                    {{ stage.Name }}
+                                                    {{ stage.Name || getStepName(index) }}
                                                 </div>
                                             </div>
 
@@ -264,12 +286,26 @@ getChart(props.projectID, props.analysis.id);
                                             </div>
 
                                             <div
-                                                v-else
+                                                v-else-if="
+                                                    stage.Status == AnalysisStatus.FAILED ||
+                                                    stage.Status == AnalysisStatus.FAILURE
+                                                "
                                                 class="flex items-center gap-1 text-red-600"
                                             >
                                                 <span class="text-xs">Failed</span>
                                                 <Icon
                                                     icon="solar:close-circle-bold"
+                                                    class="h-3 w-3"
+                                                />
+                                            </div>
+
+                                            <div
+                                                v-else
+                                                class="flex items-center gap-1 text-gray-500"
+                                            >
+                                                <span class="text-xs">Pending</span>
+                                                <Icon
+                                                    icon="solar:clock-circle-bold"
                                                     class="h-3 w-3"
                                                 />
                                             </div>
@@ -311,6 +347,17 @@ getChart(props.projectID, props.analysis.id);
                                 icon="solar:refresh-linear"
                                 class="h-3 w-3 text-blue-500 animate-spin"
                             />
+                            <!-- Schedule indicator -->
+                            <div
+                                v-if="
+                                    props.analysis.schedule_type &&
+                                    props.analysis.schedule_type !== 'once'
+                                "
+                                class="flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                            >
+                                <Icon icon="solar:calendar-linear" class="h-3 w-3" />
+                                <span class="capitalize">{{ props.analysis.schedule_type }}</span>
+                            </div>
                         </div>
                         <Popover>
                             <PopoverTrigger as-child>
@@ -329,7 +376,7 @@ getChart(props.projectID, props.analysis.id);
                                     >
                                         <div class="p-2 bg-blue-100 rounded-lg">
                                             <Icon
-                                                icon="solar:hourglass-line"
+                                                icon="solar:hourglass-line-bold"
                                                 class="h-4 w-4 text-blue-600"
                                             />
                                         </div>
@@ -361,7 +408,7 @@ getChart(props.projectID, props.analysis.id);
                                                     <div
                                                         class="text-xs font-medium text-slate-900 uppercase"
                                                     >
-                                                        {{ stage.Name }}
+                                                        {{ stage.Name || getStepName(index) }}
                                                     </div>
                                                 </div>
 
@@ -392,12 +439,26 @@ getChart(props.projectID, props.analysis.id);
                                                 </div>
 
                                                 <div
-                                                    v-else
+                                                    v-else-if="
+                                                        stage.Status == AnalysisStatus.FAILED ||
+                                                        stage.Status == AnalysisStatus.FAILURE
+                                                    "
                                                     class="flex items-center gap-1 text-red-600"
                                                 >
                                                     <span class="text-xs">Failed</span>
                                                     <Icon
                                                         icon="solar:close-circle-bold"
+                                                        class="h-3 w-3"
+                                                    />
+                                                </div>
+
+                                                <div
+                                                    v-else
+                                                    class="flex items-center gap-1 text-gray-500"
+                                                >
+                                                    <span class="text-xs">Pending</span>
+                                                    <Icon
+                                                        icon="solar:clock-circle-bold"
                                                         class="h-3 w-3"
                                                     />
                                                 </div>
@@ -408,7 +469,7 @@ getChart(props.projectID, props.analysis.id);
                                                 class="p-3 bg-slate-100 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center"
                                             >
                                                 <Icon
-                                                    icon="solar:hourglass-line"
+                                                    icon="solar:hourglass-line-bold"
                                                     class="h-6 w-6 text-slate-400"
                                                 />
                                             </div>
@@ -444,6 +505,17 @@ getChart(props.projectID, props.analysis.id);
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 bg-red-500 rounded-full"></div>
                             <span class="text-sm font-medium text-red-700">Failed</span>
+                            <!-- Schedule indicator -->
+                            <div
+                                v-if="
+                                    props.analysis.schedule_type &&
+                                    props.analysis.schedule_type !== 'once'
+                                "
+                                class="flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                            >
+                                <Icon icon="solar:calendar-linear" class="h-3 w-3" />
+                                <span class="capitalize">{{ props.analysis.schedule_type }}</span>
+                            </div>
                         </div>
                         <Popover>
                             <PopoverTrigger as-child>
@@ -493,7 +565,7 @@ getChart(props.projectID, props.analysis.id);
                                                     <div
                                                         class="text-xs font-medium text-slate-900 uppercase"
                                                     >
-                                                        {{ stage.Name }}
+                                                        {{ stage.Name || getStepName(index) }}
                                                     </div>
                                                 </div>
 
@@ -524,12 +596,26 @@ getChart(props.projectID, props.analysis.id);
                                                 </div>
 
                                                 <div
-                                                    v-else
+                                                    v-else-if="
+                                                        stage.Status == AnalysisStatus.FAILED ||
+                                                        stage.Status == AnalysisStatus.FAILURE
+                                                    "
                                                     class="flex items-center gap-1 text-red-600"
                                                 >
                                                     <span class="text-xs">Failed</span>
                                                     <Icon
                                                         icon="solar:close-circle-bold"
+                                                        class="h-3 w-3"
+                                                    />
+                                                </div>
+
+                                                <div
+                                                    v-else
+                                                    class="flex items-center gap-1 text-gray-500"
+                                                >
+                                                    <span class="text-xs">Pending</span>
+                                                    <Icon
+                                                        icon="solar:clock-circle-bold"
                                                         class="h-3 w-3"
                                                     />
                                                 </div>
@@ -561,27 +647,48 @@ getChart(props.projectID, props.analysis.id);
 
             <!-- Quick actions positioned to the right -->
             <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                <Button
-                    v-if="
-                        props.analysis.status == AnalysisStatus.COMPLETED ||
-                        props.analysis.status == AnalysisStatus.FINISHED
-                    "
-                    variant="outline"
-                    size="sm"
-                    class="h-8 px-3 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                    as-child
-                >
-                    <RouterLink
-                        :to="{
-                            name: 'results',
-                            query: { analysis_id: props.analysis.id, project_id: props.projectID }
-                        }"
-                        class="inline-flex items-center gap-1"
+                <div class="flex items-center gap-1">
+                    <Button
+                        v-if="
+                            (props.analysis.status == AnalysisStatus.COMPLETED ||
+                                props.analysis.status == AnalysisStatus.FINISHED) &&
+                            props.analysis.schedule_type &&
+                            props.analysis.schedule_type !== 'once'
+                        "
+                        variant="outline"
+                        size="sm"
+                        class="h-8 px-3 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                        @click="showRunsModal = true"
                     >
-                        <Icon icon="solar:eye-linear" class="h-3 w-3" />
-                        View Report
-                    </RouterLink>
-                </Button>
+                        <Icon icon="solar:history-bold" class="h-3 w-3" />
+                        History
+                    </Button>
+
+                    <Button
+                        v-if="
+                            props.analysis.status == AnalysisStatus.COMPLETED ||
+                            props.analysis.status == AnalysisStatus.FINISHED
+                        "
+                        variant="outline"
+                        size="sm"
+                        class="h-8 px-3 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        as-child
+                    >
+                        <RouterLink
+                            :to="{
+                                name: 'results',
+                                query: {
+                                    analysis_id: props.analysis.id,
+                                    project_id: props.projectID
+                                }
+                            }"
+                            class="inline-flex items-center gap-1"
+                        >
+                            <Icon icon="solar:eye-linear" class="h-3 w-3" />
+                            View Report
+                        </RouterLink>
+                    </Button>
+                </div>
 
                 <Button
                     variant="ghost"
@@ -639,5 +746,13 @@ getChart(props.projectID, props.analysis.id);
                 </div>
             </DialogContent>
         </Dialog>
+
+        <!-- Analysis Runs Modal -->
+        <AnalysisRuns
+            v-if="showRunsModal"
+            :analysis="props.analysis"
+            :project-i-d="props.projectID"
+            @close="showRunsModal = false"
+        />
     </div>
 </template>

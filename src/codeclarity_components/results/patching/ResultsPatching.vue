@@ -9,6 +9,7 @@ import PatchingContent from './PatchingContent.vue';
 defineProps<{
     analysis: Analysis;
     project: Project;
+    runIndex?: number | null;
 }>();
 
 const details = ref(false);

@@ -28,10 +28,12 @@ type Props = {
     showBack?: boolean;
     analysisID: string;
     projectID: string;
+    runIndex?: number | null;
 };
 
 const props = withDefaults(defineProps<Props>(), {
-    showBack: false
+    showBack: false,
+    runIndex: null
 });
 
 const render: Ref<boolean> = ref(false);
@@ -96,6 +98,7 @@ async function getFinding(projectID: string, analysisID: string) {
             analysisId: analysisID,
             vulnerability_id: finding_id,
             bearerToken: authStore.getToken,
+            runIndex: props.runIndex,
             handleBusinessErrors: true,
             workspace: '.'
         });

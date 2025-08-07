@@ -3,10 +3,11 @@ import {
     BaseRepository,
     type AuthRepoMethodGetRequestOptions,
     type AuthRepoMethodPostRequestOptions,
+    type AuthRepoMethodPutRequestOptions,
     type EmptyPostData,
     type AuthRepoMethodEmptyDeleteRequestOptions
 } from '../../utils/api/BaseRepository';
-import type { CreateAnalysis } from './analysis.http';
+import type { CreateAnalysis, UpdateSchedule } from './analysis.http';
 import { CreatedResponse } from '../../utils/api/responses/CreatedResponse';
 import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
 import type { Analysis } from './analysis.entity';
@@ -36,6 +37,23 @@ export interface DeleteAnalysisOptions extends AuthRepoMethodEmptyDeleteRequestO
 export interface CreateAnalysisOptions extends AuthRepoMethodPostRequestOptions<CreateAnalysis> {
     orgId: string;
     projectId: string;
+}
+
+export interface GetScheduledAnalysesOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    projectId: string;
+}
+
+export interface UpdateScheduleOptions extends AuthRepoMethodPutRequestOptions<UpdateSchedule> {
+    orgId: string;
+    projectId: string;
+    analysisId: string;
+}
+
+export interface CancelScheduleOptions extends AuthRepoMethodEmptyDeleteRequestOptions {
+    orgId: string;
+    projectId: string;
+    analysisId: string;
 }
 
 export class AnalysisRepository extends BaseRepository {
@@ -116,5 +134,65 @@ export class AnalysisRepository extends BaseRepository {
         });
 
         return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+    }
+
+    async getScheduledAnalyses(
+        options: GetScheduledAnalysesOptions
+    ): Promise<DataResponse<Analysis[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/scheduled`;
+
+        const response = await this.getRequest<DataResponse<Analysis[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<Analysis[]>>(response, DataResponse<Analysis[]>);
+    }
+
+    async updateSchedule(options: UpdateScheduleOptions): Promise<NoDataResponse> {
+        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/schedule`;
+
+        const response = await this.putRequest<NoDataResponse, UpdateSchedule>({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+    }
+
+    async cancelSchedule(options: CancelScheduleOptions): Promise<NoDataResponse> {
+        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/schedule`;
+
+        const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
+            data: {},
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+    }
+
+    async getAnalysisRuns(options: GetAnalysisByIdRequestOptions): Promise<DataResponse<any[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/runs`;
+
+        const response = await this.getRequest<DataResponse<any[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<any[]>>(response, DataResponse<any[]>);
     }
 }

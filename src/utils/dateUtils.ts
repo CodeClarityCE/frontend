@@ -59,6 +59,33 @@ export function formatDate(date: Date | string | null | undefined, format: strin
             options.month = 'short';
             options.day = '2-digit';
             break;
+        case 'MMM DD, YYYY HH:mm': {
+            // "Sep 04, 1986 15:30"
+            const dateStr = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit'
+            });
+            const timeStr = dateObj.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            return `${dateStr} ${timeStr}`;
+        }
+        case 'MMM DD, HH:mm': {
+            // "Sep 04, 15:30"
+            const dateStr = dateObj.toLocaleDateString('en-US', {
+                month: 'short',
+                day: '2-digit'
+            });
+            const timeStr = dateObj.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            return `${dateStr}, ${timeStr}`;
+        }
         default:
             options.year = 'numeric';
             options.month = 'long';
@@ -279,4 +306,14 @@ export function getWeekRange(weekNumber: number, year: number): { start: Date; e
  */
 export function formatDateRange(startDate: Date, endDate: Date, format: string = 'MMM DD'): string {
     return `${formatDate(startDate, format)} - ${formatDate(endDate, format)}`;
+}
+
+/**
+ * Alias for formatRelativeTime - provides distance to now
+ * e.g., "3 hours", "2 days", etc. (without "ago")
+ */
+export function formatDistanceToNow(date: Date | string | null | undefined): string {
+    const relativeTime = formatRelativeTime(date);
+    // Remove "ago" and "in" prefixes to get just the distance
+    return relativeTime.replace(/ ago$/, '').replace(/^in /, '').replace(/^a /, '1 ');
 }

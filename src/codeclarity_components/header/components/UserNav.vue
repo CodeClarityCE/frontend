@@ -50,7 +50,6 @@ async function fetchNotifications() {
             page: 0,
             entries_per_page: 5
         });
-        // console.log(resp);
         notifications.value = resp.data;
         total_notifications.value = resp.matching_count;
     } catch (_err) {
@@ -172,12 +171,12 @@ fetchNotifications();
                     You have {{ total_notifications }} new notifications
                 </p>
             </DialogDescription>
-            <div>
-                <ul class="flex flex-col gap-8">
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="flex flex-col gap-4">
                     <li
                         v-for="notification in notifications"
                         :key="notification.id"
-                        class="grid grid-cols-2 items-center gap-2"
+                        class="border-b pb-4 last:border-b-0"
                     >
                         <div v-if="notification.content_type == 'new_version'">
                             <span class="font-semibold"
@@ -192,20 +191,124 @@ fetchNotifications();
                                 }}</span
                             >
                         </div>
-                        <div v-else>
-                            <span class="font-semibold">{{ notification.title }}</span>
+                        <div v-else-if="notification.content_type == 'fix_available'">
+                            <span class="font-semibold"
+                                >Fix available for {{ notification.content['package'] }}</span
+                            >
                             <br />
                             <span>{{ notification.description }}</span>
-                        </div>
-                        <div class="grid grid-cols-2 items-center gap-2">
-                            <!-- <Button variant="ghost" class="text-sm">View</Button> -->
-                            <span></span>
-                            <Button
-                                variant="destructive"
-                                class="text-sm"
-                                @click="deleteNotification(notification.id)"
-                                >Dismiss</Button
+                            <br />
+                            <span
+                                >Update to {{ notification.content['fixed_version'] }} (current: {{
+                                    notification.content['vulnerable_version']
+                                }})</span
                             >
+                        </div>
+                        <div v-else-if="notification.content_type === 'vuln_summary' || notification.content_type === 'vulnerability_summary'">
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <!-- Header with icon and title -->
+                                <div class="flex items-start gap-3 mb-3">
+                                    <div :class="[
+                                        'p-2 rounded-full',
+                                        notification.content?.max_severity === 'CRITICAL' ? 'bg-severityCriticalBg' : 
+                                        notification.content?.max_severity === 'HIGH' ? 'bg-severityHighBg' : 
+                                        notification.content?.max_severity === 'MEDIUM' ? 'bg-severityMediumBg' : 
+                                        notification.content?.max_severity === 'LOW' ? 'bg-severityLowBg' : 'bg-severityNoneBg'
+                                    ]">
+                                        <Icon 
+                                            icon="mdi:shield-alert" 
+                                            :class="[
+                                                'text-xl',
+                                                notification.content?.max_severity === 'CRITICAL' ? 'text-severityCritical' : 
+                                                notification.content?.max_severity === 'HIGH' ? 'text-severityHigh' : 
+                                                notification.content?.max_severity === 'MEDIUM' ? 'text-severityMedium' : 
+                                                notification.content?.max_severity === 'LOW' ? 'text-severityLow' : 'text-severityNone'
+                                            ]"
+                                        />
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-base text-gray-900">
+                                            {{ notification.title || 'Vulnerability Summary' }}
+                                        </h3>
+                                        <p v-if="notification.content && notification.content.project_name" class="text-sm text-gray-500 mt-0.5">
+                                            Project: <span class="font-medium text-gray-700">{{ notification.content.project_name }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Description -->
+                                <p class="text-sm text-gray-600 mb-3 leading-relaxed">
+                                    {{ notification.description }}
+                                </p>
+                                
+                                <!-- Severity badges -->
+                                <div v-if="notification.content && notification.content.severity_counts" class="flex flex-wrap gap-2 mb-3">
+                                    <div v-if="notification.content.severity_counts.CRITICAL && notification.content.severity_counts.CRITICAL > 0" 
+                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityCriticalBg text-severityCritical rounded-md text-sm font-medium">
+                                        <Icon icon="mdi:alert-circle" class="text-base" />
+                                        <span>Critical: {{ notification.content.severity_counts.CRITICAL }}</span>
+                                    </div>
+                                    <div v-if="notification.content.severity_counts.HIGH && notification.content.severity_counts.HIGH > 0" 
+                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityHighBg text-severityHigh rounded-md text-sm font-medium">
+                                        <Icon icon="mdi:alert" class="text-base" />
+                                        <span>High: {{ notification.content.severity_counts.HIGH }}</span>
+                                    </div>
+                                    <div v-if="notification.content.severity_counts.MEDIUM && notification.content.severity_counts.MEDIUM > 0" 
+                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityMediumBg text-severityMedium rounded-md text-sm font-medium">
+                                        <Icon icon="mdi:alert-outline" class="text-base" />
+                                        <span>Medium: {{ notification.content.severity_counts.MEDIUM }}</span>
+                                    </div>
+                                    <div v-if="notification.content.severity_counts.LOW && notification.content.severity_counts.LOW > 0" 
+                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityLowBg text-severityLow rounded-md text-sm font-medium">
+                                        <Icon icon="mdi:information-outline" class="text-base" />
+                                        <span>Low: {{ notification.content.severity_counts.LOW }}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Footer with total and actions -->
+                                <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                                    <span class="text-sm font-medium text-gray-700">
+                                        Total: {{ notification.content?.total || 0 }} vulnerabilities
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <RouterLink 
+                                            v-if="notification.content && notification.content.analysis_id && notification.content.project_id"
+                                            :to="{ name: 'results', query: { analysis_id: notification.content.analysis_id, project_id: notification.content.project_id } }"
+                                            class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                                        >
+                                            View Details
+                                            <Icon icon="mdi:arrow-right" class="text-base" />
+                                        </RouterLink>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            class="text-sm"
+                                            @click="deleteNotification(notification.id)"
+                                        >
+                                            <Icon icon="mdi:close" class="text-base mr-1" />
+                                            Dismiss
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <span class="font-semibold">{{ notification.title }}</span>
+                                    <br />
+                                    <span>{{ notification.description }}</span>
+                                </div>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    class="ml-4"
+                                    @click="deleteNotification(notification.id)"
+                                >
+                                    <Icon icon="mdi:close" class="text-base mr-1" />
+                                    Dismiss
+                                </Button>
+                            </div>
                         </div>
                     </li>
                 </ul>

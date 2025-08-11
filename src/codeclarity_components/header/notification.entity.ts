@@ -7,7 +7,9 @@ enum NotificationType {
 }
 
 enum NotificationContentType {
-    NewVersion = 'new_version'
+    NewVersion = 'new_version',
+    FixAvailable = 'fix_available',
+    VulnSummary = 'vuln_summary'
 }
 
 export class Notification {
@@ -21,7 +23,7 @@ export class Notification {
     description!: string;
 
     @IsNotEmpty()
-    content!: Record<string, string>;
+    content!: Record<string, any>;
 
     @IsNotEmpty()
     type!: NotificationType;

@@ -204,11 +204,155 @@ fetchNotifications();
                                 }})</span
                             >
                         </div>
+                        <div v-else-if="notification.content_type === 'package_update'">
+                            <div
+:class="[
+                                'rounded-lg p-4 border',
+                                notification.content?.dependency_type === 'production' 
+                                    ? 'bg-orange-50 border-orange-200' 
+                                    : notification.content?.dependency_type === 'development'
+                                    ? 'bg-blue-50 border-blue-200'
+                                    : 'bg-gray-50 border-gray-200'
+                            ]">
+                                <!-- Header with icon and title -->
+                                <div class="flex items-start gap-3 mb-3">
+                                    <div
+:class="[
+                                        'p-2 rounded-full',
+                                        notification.content?.dependency_type === 'production' 
+                                            ? 'bg-orange-100' 
+                                            : notification.content?.dependency_type === 'development'
+                                            ? 'bg-blue-100'
+                                            : 'bg-gray-100'
+                                    ]">
+                                        <Icon 
+                                            :icon="notification.content?.dependency_type === 'production' 
+                                                ? 'mdi:alert-decagram' 
+                                                : 'mdi:package-up'"
+                                            :class="[
+                                                'text-xl',
+                                                notification.content?.dependency_type === 'production' 
+                                                    ? 'text-orange-600' 
+                                                    : notification.content?.dependency_type === 'development'
+                                                    ? 'text-blue-600'
+                                                    : 'text-gray-600'
+                                            ]"
+                                        />
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-start gap-2">
+                                            <h3 class="font-semibold text-base text-gray-900 flex-1">
+                                                {{ notification.title || 'Package Update Available' }}
+                                            </h3>
+                                            <!-- Production/Dev badge -->
+                                            <div
+v-if="notification.content?.dependency_type" :class="[
+                                                'px-2 py-1 rounded-full text-xs font-medium',
+                                                notification.content.dependency_type === 'production' 
+                                                    ? 'bg-orange-100 text-orange-800 border border-orange-300' 
+                                                    : notification.content.dependency_type === 'development'
+                                                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                                    : 'bg-gray-100 text-gray-800 border border-gray-300'
+                                            ]">
+                                                {{ notification.content.dependency_type === 'production' ? 'PRODUCTION' : 'DEVELOPMENT' }}
+                                            </div>
+                                        </div>
+                                        <p v-if="notification.content && notification.content.project_name" class="text-sm text-gray-500 mt-0.5">
+                                            Project: <span class="font-medium text-gray-700">{{ notification.content.project_name }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Description -->
+                                <p class="text-sm text-gray-600 mb-3 leading-relaxed">
+                                    {{ notification.description }}
+                                </p>
+                                
+                                <!-- Version info -->
+                                <div v-if="notification.content && notification.content.package_name" class="bg-white rounded-md p-3 mb-3 border">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-gray-900">{{ notification.content.package_name }}</p>
+                                            <div class="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                                                <span class="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{{ notification.content.current_version }}</span>
+                                                <Icon icon="mdi:arrow-right" class="text-gray-400" />
+                                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-mono">{{ notification.content.new_version }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-if="notification.content.release_notes_url" class="ml-3">
+                                            <a 
+                                                :href="notification.content.release_notes_url" 
+                                                target="_blank" 
+                                                class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+                                            >
+                                                <Icon icon="mdi:open-in-new" class="text-sm" />
+                                                Release Notes
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Footer with actions -->
+                                <div
+:class="[
+                                    'flex items-center justify-between pt-3 border-t',
+                                    notification.content?.dependency_type === 'production' 
+                                        ? 'border-orange-200' 
+                                        : notification.content?.dependency_type === 'development'
+                                        ? 'border-blue-200'
+                                        : 'border-gray-200'
+                                ]">
+                                    <span
+:class="[
+                                        'text-sm font-medium',
+                                        notification.content?.dependency_type === 'production' 
+                                            ? 'text-orange-700' 
+                                            : notification.content?.dependency_type === 'development'
+                                            ? 'text-blue-700'
+                                            : 'text-gray-700'
+                                    ]">
+                                        {{ notification.content?.dependency_type === 'production' 
+                                            ? 'Production dependency update - High Priority' 
+                                            : notification.content?.dependency_type === 'development'
+                                            ? 'Development dependency update'
+                                            : 'Direct dependency update available'
+                                        }}
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <RouterLink 
+                                            v-if="notification.content && notification.content.analysis_id && notification.content.project_id"
+                                            :to="{ name: 'results', query: { analysis_id: notification.content.analysis_id, project_id: notification.content.project_id } }"
+                                            :class="[
+                                                'inline-flex items-center gap-1 text-sm font-medium transition-colors',
+                                                notification.content?.dependency_type === 'production' 
+                                                    ? 'text-orange-600 hover:text-orange-700' 
+                                                    : notification.content?.dependency_type === 'development'
+                                                    ? 'text-blue-600 hover:text-blue-700'
+                                                    : 'text-gray-600 hover:text-gray-700'
+                                            ]"
+                                        >
+                                            View Analysis
+                                            <Icon icon="mdi:arrow-right" class="text-base" />
+                                        </RouterLink>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            class="text-sm"
+                                            @click="deleteNotification(notification.id)"
+                                        >
+                                            <Icon icon="mdi:close" class="text-base mr-1" />
+                                            Dismiss
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div v-else-if="notification.content_type === 'vuln_summary' || notification.content_type === 'vulnerability_summary'">
                             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                 <!-- Header with icon and title -->
                                 <div class="flex items-start gap-3 mb-3">
-                                    <div :class="[
+                                    <div
+:class="[
                                         'p-2 rounded-full',
                                         notification.content?.max_severity === 'CRITICAL' ? 'bg-severityCriticalBg' : 
                                         notification.content?.max_severity === 'HIGH' ? 'bg-severityHighBg' : 
@@ -243,22 +387,26 @@ fetchNotifications();
                                 
                                 <!-- Severity badges -->
                                 <div v-if="notification.content && notification.content.severity_counts" class="flex flex-wrap gap-2 mb-3">
-                                    <div v-if="notification.content.severity_counts.CRITICAL && notification.content.severity_counts.CRITICAL > 0" 
+                                    <div
+v-if="notification.content.severity_counts.CRITICAL && notification.content.severity_counts.CRITICAL > 0" 
                                          class="flex items-center gap-1 px-2.5 py-1 bg-severityCriticalBg text-severityCritical rounded-md text-sm font-medium">
                                         <Icon icon="mdi:alert-circle" class="text-base" />
                                         <span>Critical: {{ notification.content.severity_counts.CRITICAL }}</span>
                                     </div>
-                                    <div v-if="notification.content.severity_counts.HIGH && notification.content.severity_counts.HIGH > 0" 
+                                    <div
+v-if="notification.content.severity_counts.HIGH && notification.content.severity_counts.HIGH > 0" 
                                          class="flex items-center gap-1 px-2.5 py-1 bg-severityHighBg text-severityHigh rounded-md text-sm font-medium">
                                         <Icon icon="mdi:alert" class="text-base" />
                                         <span>High: {{ notification.content.severity_counts.HIGH }}</span>
                                     </div>
-                                    <div v-if="notification.content.severity_counts.MEDIUM && notification.content.severity_counts.MEDIUM > 0" 
+                                    <div
+v-if="notification.content.severity_counts.MEDIUM && notification.content.severity_counts.MEDIUM > 0" 
                                          class="flex items-center gap-1 px-2.5 py-1 bg-severityMediumBg text-severityMedium rounded-md text-sm font-medium">
                                         <Icon icon="mdi:alert-outline" class="text-base" />
                                         <span>Medium: {{ notification.content.severity_counts.MEDIUM }}</span>
                                     </div>
-                                    <div v-if="notification.content.severity_counts.LOW && notification.content.severity_counts.LOW > 0" 
+                                    <div
+v-if="notification.content.severity_counts.LOW && notification.content.severity_counts.LOW > 0" 
                                          class="flex items-center gap-1 px-2.5 py-1 bg-severityLowBg text-severityLow rounded-md text-sm font-medium">
                                         <Icon icon="mdi:information-outline" class="text-base" />
                                         <span>Low: {{ notification.content.severity_counts.LOW }}</span>

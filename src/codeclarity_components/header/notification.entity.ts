@@ -6,8 +6,12 @@ enum NotificationType {
     Error = 'error'
 }
 
-enum NotificationContentType {
-    NewVersion = 'new_version'
+export enum NotificationContentType {
+    NewVersion = 'new_version',
+    FixAvailable = 'fix_available',
+    VulnSummary = 'vuln_summary',
+    VulnerabilitySummary = 'vulnerability_summary',
+    PackageUpdate = 'package_update'
 }
 
 export class Notification {
@@ -21,7 +25,7 @@ export class Notification {
     description!: string;
 
     @IsNotEmpty()
-    content!: Record<string, string>;
+    content!: Record<string, any>;
 
     @IsNotEmpty()
     type!: NotificationType;

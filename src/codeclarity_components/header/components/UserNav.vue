@@ -25,9 +25,17 @@ import { Input } from '@/shadcn/ui/input';
 import { NotificationRepository } from '@/codeclarity_components/header/notification.repository';
 import { ref, type Ref, computed, watch } from 'vue';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { type Notification, NotificationContentType } from '@/codeclarity_components/header/notification.entity';
+import {
+    type Notification,
+    NotificationContentType
+} from '@/codeclarity_components/header/notification.entity';
 import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
-import { isGreaterThan, isPrerelease as semverIsPrerelease, shouldRecommendUpgrade, getUpgradeType } from '@/utils/semver';
+import {
+    isGreaterThan,
+    isPrerelease as semverIsPrerelease,
+    shouldRecommendUpgrade,
+    getUpgradeType
+} from '@/utils/semver';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -51,17 +59,23 @@ async function logout() {
 
 // Priority mapping for sorting
 const getPriority = (notification: Notification): number => {
-    if (notification.content_type === NotificationContentType.VulnSummary || 
-        notification.content_type === NotificationContentType.VulnerabilitySummary || 
-        notification.content_type === NotificationContentType.FixAvailable) {
+    if (
+        notification.content_type === NotificationContentType.VulnSummary ||
+        notification.content_type === NotificationContentType.VulnerabilitySummary ||
+        notification.content_type === NotificationContentType.FixAvailable
+    ) {
         return 1; // Highest priority - vulnerabilities
     }
-    if (notification.content_type === NotificationContentType.PackageUpdate && 
-        notification.content?.dependency_type === 'production') {
+    if (
+        notification.content_type === NotificationContentType.PackageUpdate &&
+        notification.content?.dependency_type === 'production'
+    ) {
         return 2; // High priority - production dependencies
     }
-    if (notification.content_type === NotificationContentType.PackageUpdate && 
-        notification.content?.dependency_type === 'development') {
+    if (
+        notification.content_type === NotificationContentType.PackageUpdate &&
+        notification.content?.dependency_type === 'development'
+    ) {
         return 3; // Medium priority - dev dependencies
     }
     return 4; // Lowest priority - other updates
@@ -70,45 +84,55 @@ const getPriority = (notification: Notification): number => {
 // Filter and sort notifications
 const filteredNotifications = computed(() => {
     let filtered = allNotifications.value;
-    
+
     // Filter out prerelease notifications
-    filtered = filtered.filter(notification => !shouldFilterNotification(notification));
-    
+    filtered = filtered.filter((notification) => !shouldFilterNotification(notification));
+
     // Apply search filter
     if (searchQuery.value.trim()) {
         const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter(notification => 
-            notification.title.toLowerCase().includes(query) ||
-            notification.description.toLowerCase().includes(query) ||
-            notification.content?.package_name?.toLowerCase().includes(query) ||
-            notification.content?.project_name?.toLowerCase().includes(query)
+        filtered = filtered.filter(
+            (notification) =>
+                notification.title.toLowerCase().includes(query) ||
+                notification.description.toLowerCase().includes(query) ||
+                notification.content?.package_name?.toLowerCase().includes(query) ||
+                notification.content?.project_name?.toLowerCase().includes(query)
         );
     }
-    
+
     // Apply type filter
     if (selectedFilter.value !== 'all') {
-        filtered = filtered.filter(notification => {
+        filtered = filtered.filter((notification) => {
             switch (selectedFilter.value) {
                 case 'vulnerabilities':
-                    return notification.content_type === NotificationContentType.VulnSummary || 
-                           notification.content_type === NotificationContentType.VulnerabilitySummary || 
-                           notification.content_type === NotificationContentType.FixAvailable;
+                    return (
+                        notification.content_type === NotificationContentType.VulnSummary ||
+                        notification.content_type ===
+                            NotificationContentType.VulnerabilitySummary ||
+                        notification.content_type === NotificationContentType.FixAvailable
+                    );
                 case 'production':
-                    return notification.content_type === NotificationContentType.PackageUpdate && 
-                           notification.content?.dependency_type === 'production';
+                    return (
+                        notification.content_type === NotificationContentType.PackageUpdate &&
+                        notification.content?.dependency_type === 'production'
+                    );
                 case 'development':
-                    return notification.content_type === NotificationContentType.PackageUpdate && 
-                           notification.content?.dependency_type === 'development';
+                    return (
+                        notification.content_type === NotificationContentType.PackageUpdate &&
+                        notification.content?.dependency_type === 'development'
+                    );
                 case 'other':
-                    return notification.content_type === NotificationContentType.NewVersion || 
-                           (notification.content_type === NotificationContentType.PackageUpdate && 
-                            !notification.content?.dependency_type);
+                    return (
+                        notification.content_type === NotificationContentType.NewVersion ||
+                        (notification.content_type === NotificationContentType.PackageUpdate &&
+                            !notification.content?.dependency_type)
+                    );
                 default:
                     return true;
             }
         });
     }
-    
+
     // Sort by priority then by most recent
     return filtered.sort((a, b) => {
         const priorityDiff = getPriority(a) - getPriority(b);
@@ -133,26 +157,32 @@ const notificationCounts = computed(() => {
         development: 0,
         other: 0
     };
-    
+
     // Only count notifications that wouldn't be filtered out
     allNotifications.value
-        .filter(notification => !shouldFilterNotification(notification))
-        .forEach(notification => {
-            if (notification.content_type === NotificationContentType.VulnSummary || 
-                notification.content_type === NotificationContentType.VulnerabilitySummary || 
-                notification.content_type === NotificationContentType.FixAvailable) {
+        .filter((notification) => !shouldFilterNotification(notification))
+        .forEach((notification) => {
+            if (
+                notification.content_type === NotificationContentType.VulnSummary ||
+                notification.content_type === NotificationContentType.VulnerabilitySummary ||
+                notification.content_type === NotificationContentType.FixAvailable
+            ) {
                 counts.vulnerabilities++;
-            } else if (notification.content_type === NotificationContentType.PackageUpdate && 
-                       notification.content?.dependency_type === 'production') {
+            } else if (
+                notification.content_type === NotificationContentType.PackageUpdate &&
+                notification.content?.dependency_type === 'production'
+            ) {
                 counts.production++;
-            } else if (notification.content_type === NotificationContentType.PackageUpdate && 
-                       notification.content?.dependency_type === 'development') {
+            } else if (
+                notification.content_type === NotificationContentType.PackageUpdate &&
+                notification.content?.dependency_type === 'development'
+            ) {
                 counts.development++;
             } else {
                 counts.other++;
             }
         });
-    
+
     return counts;
 });
 
@@ -161,7 +191,8 @@ const totalFilteredCount = computed(() => filteredNotifications.value.length);
 
 // Total count for display (excluding prerelease notifications)
 const displayNotificationCount = computed(() => {
-    return allNotifications.value.filter(notification => !shouldFilterNotification(notification)).length;
+    return allNotifications.value.filter((notification) => !shouldFilterNotification(notification))
+        .length;
 });
 
 // Total pages
@@ -173,7 +204,7 @@ const shouldFilterNotification = (notification: Notification): boolean => {
     if (notification.content_type === NotificationContentType.PackageUpdate) {
         const currentVersion = notification.content?.current_version;
         const newVersion = notification.content?.new_version;
-        
+
         if (currentVersion && newVersion) {
             // Use the semver utility to determine if this upgrade should be recommended
             return !shouldRecommendUpgrade(currentVersion, newVersion);
@@ -202,7 +233,7 @@ const getVersionInfo = (notification: Notification) => {
 
     // Check if current_version is actually newer than new_version (incorrect data)
     const currentIsNewer = isGreaterThan(currentVersion, newVersion);
-    
+
     if (currentIsNewer) {
         // Data is backwards - swap them and mark as downgrade
         return {
@@ -381,57 +412,74 @@ fetchAllNotifications();
                     You have {{ displayNotificationCount }} new notifications
                 </p>
             </DialogDescription>
-            
+
             <!-- Overview Summary -->
             <div class="grid grid-cols-4 gap-3 p-4 bg-gray-50 rounded-lg border">
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-red-600">{{ notificationCounts.vulnerabilities }}</div>
+                    <div class="text-2xl font-bold text-red-600">
+                        {{ notificationCounts.vulnerabilities }}
+                    </div>
                     <div class="text-xs text-gray-600">Vulnerabilities</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-orange-600">{{ notificationCounts.production }}</div>
+                    <div class="text-2xl font-bold text-orange-600">
+                        {{ notificationCounts.production }}
+                    </div>
                     <div class="text-xs text-gray-600">Production Updates</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-600">{{ notificationCounts.development }}</div>
+                    <div class="text-2xl font-bold text-blue-600">
+                        {{ notificationCounts.development }}
+                    </div>
                     <div class="text-xs text-gray-600">Dev Updates</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-gray-600">{{ notificationCounts.other }}</div>
+                    <div class="text-2xl font-bold text-gray-600">
+                        {{ notificationCounts.other }}
+                    </div>
                     <div class="text-xs text-gray-600">Other</div>
                 </div>
             </div>
-            
+
             <!-- Search and Filter Controls -->
             <div class="flex gap-3 items-center">
                 <div class="flex-1">
-                    <Input 
-                        v-model="searchQuery" 
-                        placeholder="Search notifications..." 
+                    <Input
+                        v-model="searchQuery"
+                        placeholder="Search notifications..."
                         class="w-full"
                     />
                 </div>
-                <select 
-                    v-model="selectedFilter" 
+                <select
+                    v-model="selectedFilter"
                     class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <option value="all">All ({{ totalFilteredCount }})</option>
-                    <option value="vulnerabilities">Vulnerabilities ({{ notificationCounts.vulnerabilities }})</option>
-                    <option value="production">Production ({{ notificationCounts.production }})</option>
-                    <option value="development">Development ({{ notificationCounts.development }})</option>
+                    <option value="vulnerabilities">
+                        Vulnerabilities ({{ notificationCounts.vulnerabilities }})
+                    </option>
+                    <option value="production">
+                        Production ({{ notificationCounts.production }})
+                    </option>
+                    <option value="development">
+                        Development ({{ notificationCounts.development }})
+                    </option>
                     <option value="other">Other ({{ notificationCounts.other }})</option>
                 </select>
             </div>
-            
+
             <!-- Loading State -->
             <div v-if="isLoading" class="flex justify-center items-center py-8">
                 <Icon icon="line-md:loading-loop" class="text-2xl text-gray-500" />
                 <span class="ml-2 text-gray-500">Loading notifications...</span>
             </div>
-            
+
             <!-- Notifications List -->
             <div v-else class="flex-1 overflow-y-auto">
-                <div v-if="paginatedNotifications.length === 0" class="text-center py-8 text-gray-500">
+                <div
+                    v-if="paginatedNotifications.length === 0"
+                    class="text-center py-8 text-gray-500"
+                >
                     <Icon icon="mdi:bell-off" class="text-4xl mx-auto mb-2" />
                     <p>No notifications found</p>
                     <p class="text-sm">Try adjusting your search or filter criteria</p>
@@ -463,90 +511,141 @@ fetchAllNotifications();
                             <span>{{ notification.description }}</span>
                             <br />
                             <span
-                                >Update to {{ notification.content['fixed_version'] }} (current: {{
-                                    notification.content['vulnerable_version']
-                                }})</span
+                                >Update to {{ notification.content['fixed_version'] }} (current:
+                                {{ notification.content['vulnerable_version'] }})</span
                             >
                         </div>
                         <div v-else-if="notification.content_type === 'package_update'">
                             <div
-:class="[
-                                'rounded-lg p-4 border',
-                                notification.content?.dependency_type === 'production' 
-                                    ? 'bg-orange-50 border-orange-200' 
-                                    : notification.content?.dependency_type === 'development'
-                                    ? 'bg-blue-50 border-blue-200'
-                                    : 'bg-gray-50 border-gray-200'
-                            ]">
+                                :class="[
+                                    'rounded-lg p-4 border',
+                                    notification.content?.dependency_type === 'production'
+                                        ? 'bg-orange-50 border-orange-200'
+                                        : notification.content?.dependency_type === 'development'
+                                          ? 'bg-blue-50 border-blue-200'
+                                          : 'bg-gray-50 border-gray-200'
+                                ]"
+                            >
                                 <!-- Header with icon and title -->
                                 <div class="flex items-start gap-3 mb-3">
                                     <div
-:class="[
-                                        'p-2 rounded-full',
-                                        notification.content?.dependency_type === 'production' 
-                                            ? 'bg-orange-100' 
-                                            : notification.content?.dependency_type === 'development'
-                                            ? 'bg-blue-100'
-                                            : 'bg-gray-100'
-                                    ]">
-                                        <Icon 
-                                            :icon="notification.content?.dependency_type === 'production' 
-                                                ? 'mdi:alert-decagram' 
-                                                : 'mdi:package-up'"
+                                        :class="[
+                                            'p-2 rounded-full',
+                                            notification.content?.dependency_type === 'production'
+                                                ? 'bg-orange-100'
+                                                : notification.content?.dependency_type ===
+                                                    'development'
+                                                  ? 'bg-blue-100'
+                                                  : 'bg-gray-100'
+                                        ]"
+                                    >
+                                        <Icon
+                                            :icon="
+                                                notification.content?.dependency_type ===
+                                                'production'
+                                                    ? 'mdi:alert-decagram'
+                                                    : 'mdi:package-up'
+                                            "
                                             :class="[
                                                 'text-xl',
-                                                notification.content?.dependency_type === 'production' 
-                                                    ? 'text-orange-600' 
-                                                    : notification.content?.dependency_type === 'development'
-                                                    ? 'text-blue-600'
-                                                    : 'text-gray-600'
+                                                notification.content?.dependency_type ===
+                                                'production'
+                                                    ? 'text-orange-600'
+                                                    : notification.content?.dependency_type ===
+                                                        'development'
+                                                      ? 'text-blue-600'
+                                                      : 'text-gray-600'
                                             ]"
                                         />
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-start gap-2">
-                                            <h3 class="font-semibold text-base text-gray-900 flex-1">
-                                                {{ notification.title || 'Package Update Available' }}
+                                            <h3
+                                                class="font-semibold text-base text-gray-900 flex-1"
+                                            >
+                                                {{
+                                                    notification.title || 'Package Update Available'
+                                                }}
                                             </h3>
                                             <!-- Production/Dev badge -->
                                             <div
-v-if="notification.content?.dependency_type" :class="[
-                                                'px-2 py-1 rounded-full text-xs font-medium',
-                                                notification.content.dependency_type === 'production' 
-                                                    ? 'bg-orange-100 text-orange-800 border border-orange-300' 
-                                                    : notification.content.dependency_type === 'development'
-                                                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                                                    : 'bg-gray-100 text-gray-800 border border-gray-300'
-                                            ]">
-                                                {{ notification.content.dependency_type === 'production' ? 'PRODUCTION' : 'DEVELOPMENT' }}
+                                                v-if="notification.content?.dependency_type"
+                                                :class="[
+                                                    'px-2 py-1 rounded-full text-xs font-medium',
+                                                    notification.content.dependency_type ===
+                                                    'production'
+                                                        ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                                                        : notification.content.dependency_type ===
+                                                            'development'
+                                                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                                          : 'bg-gray-100 text-gray-800 border border-gray-300'
+                                                ]"
+                                            >
+                                                {{
+                                                    notification.content.dependency_type ===
+                                                    'production'
+                                                        ? 'PRODUCTION'
+                                                        : 'DEVELOPMENT'
+                                                }}
                                             </div>
                                         </div>
-                                        <p v-if="notification.content && notification.content.project_name" class="text-sm text-gray-500 mt-0.5">
-                                            Project: <span class="font-medium text-gray-700">{{ notification.content.project_name }}</span>
+                                        <p
+                                            v-if="
+                                                notification.content &&
+                                                notification.content.project_name
+                                            "
+                                            class="text-sm text-gray-500 mt-0.5"
+                                        >
+                                            Project:
+                                            <span class="font-medium text-gray-700">{{
+                                                notification.content.project_name
+                                            }}</span>
                                         </p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Description -->
                                 <p class="text-sm text-gray-600 mb-3 leading-relaxed">
                                     {{ notification.description }}
                                 </p>
-                                
+
                                 <!-- Version info -->
-                                <div v-if="notification.content && notification.content.package_name" class="bg-white rounded-md p-3 mb-3 border">
+                                <div
+                                    v-if="notification.content && notification.content.package_name"
+                                    class="bg-white rounded-md p-3 mb-3 border"
+                                >
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <p class="font-medium text-gray-900">{{ notification.content.package_name }}</p>
-                                            <div class="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                                                <span class="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{{ getVersionInfo(notification).fromVersion }}</span>
-                                                <Icon 
-                                                    :icon="getVersionInfo(notification).isUpgrade ? 'mdi:arrow-right' : 'mdi:arrow-down'" 
-                                                    :class="getVersionInfo(notification).isUpgrade ? 'text-gray-400' : 'text-orange-500'" 
+                                            <p class="font-medium text-gray-900">
+                                                {{ notification.content.package_name }}
+                                            </p>
+                                            <div
+                                                class="flex items-center gap-2 mt-1 text-sm text-gray-600"
+                                            >
+                                                <span
+                                                    class="bg-gray-100 px-2 py-1 rounded text-xs font-mono"
+                                                    >{{
+                                                        getVersionInfo(notification).fromVersion
+                                                    }}</span
+                                                >
+                                                <Icon
+                                                    :icon="
+                                                        getVersionInfo(notification).isUpgrade
+                                                            ? 'mdi:arrow-right'
+                                                            : 'mdi:arrow-down'
+                                                    "
+                                                    :class="
+                                                        getVersionInfo(notification).isUpgrade
+                                                            ? 'text-gray-400'
+                                                            : 'text-orange-500'
+                                                    "
                                                 />
-                                                <span 
-                                                    :class="getVersionInfo(notification).isUpgrade 
-                                                        ? 'bg-green-100 text-green-800' 
-                                                        : 'bg-orange-100 text-orange-800'"
+                                                <span
+                                                    :class="
+                                                        getVersionInfo(notification).isUpgrade
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-orange-100 text-orange-800'
+                                                    "
                                                     class="px-2 py-1 rounded text-xs font-mono"
                                                 >
                                                     {{ getVersionInfo(notification).toVersion }}
@@ -554,53 +653,100 @@ v-if="notification.content?.dependency_type" :class="[
                                             </div>
                                             <div class="flex gap-2 mt-1">
                                                 <!-- Upgrade type badge -->
-                                                <span 
+                                                <span
                                                     :class="{
-                                                        'bg-red-100 text-red-800': getVersionInfo(notification).upgradeType === 'major',
-                                                        'bg-orange-100 text-orange-800': getVersionInfo(notification).upgradeType === 'minor',
-                                                        'bg-blue-100 text-blue-800': getVersionInfo(notification).upgradeType === 'patch',
-                                                        'bg-purple-100 text-purple-800': getVersionInfo(notification).upgradeType === 'prerelease',
-                                                        'bg-gray-100 text-gray-800': getVersionInfo(notification).upgradeType === 'downgrade' || getVersionInfo(notification).upgradeType === 'same'
+                                                        'bg-red-100 text-red-800':
+                                                            getVersionInfo(notification)
+                                                                .upgradeType === 'major',
+                                                        'bg-orange-100 text-orange-800':
+                                                            getVersionInfo(notification)
+                                                                .upgradeType === 'minor',
+                                                        'bg-blue-100 text-blue-800':
+                                                            getVersionInfo(notification)
+                                                                .upgradeType === 'patch',
+                                                        'bg-purple-100 text-purple-800':
+                                                            getVersionInfo(notification)
+                                                                .upgradeType === 'prerelease',
+                                                        'bg-gray-100 text-gray-800':
+                                                            getVersionInfo(notification)
+                                                                .upgradeType === 'downgrade' ||
+                                                            getVersionInfo(notification)
+                                                                .upgradeType === 'same'
                                                     }"
                                                     class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium"
                                                 >
-                                                    <Icon 
-                                                        :icon="(() => {
-                                                            const type = getVersionInfo(notification).upgradeType;
-                                                            const iconMap: Record<string, string> = {
-                                                                'major': 'mdi:arrow-up-bold',
-                                                                'minor': 'mdi:arrow-up',
-                                                                'patch': 'mdi:arrow-up-thin',
-                                                                'prerelease': 'mdi:flask-outline',
-                                                                'downgrade': 'mdi:arrow-down',
-                                                                'same': 'mdi:equal'
-                                                            };
-                                                            return iconMap[type] || 'mdi:arrow-up';
-                                                        })()" 
-                                                        class="text-sm" 
+                                                    <Icon
+                                                        :icon="
+                                                            (() => {
+                                                                const type =
+                                                                    getVersionInfo(
+                                                                        notification
+                                                                    ).upgradeType;
+                                                                const iconMap: Record<
+                                                                    string,
+                                                                    string
+                                                                > = {
+                                                                    major: 'mdi:arrow-up-bold',
+                                                                    minor: 'mdi:arrow-up',
+                                                                    patch: 'mdi:arrow-up-thin',
+                                                                    prerelease: 'mdi:flask-outline',
+                                                                    downgrade: 'mdi:arrow-down',
+                                                                    same: 'mdi:equal'
+                                                                };
+                                                                return (
+                                                                    iconMap[type] || 'mdi:arrow-up'
+                                                                );
+                                                            })()
+                                                        "
+                                                        class="text-sm"
                                                     />
-                                                    {{ getVersionInfo(notification).upgradeType.charAt(0).toUpperCase() + getVersionInfo(notification).upgradeType.slice(1) }}
+                                                    {{
+                                                        getVersionInfo(notification)
+                                                            .upgradeType.charAt(0)
+                                                            .toUpperCase() +
+                                                        getVersionInfo(
+                                                            notification
+                                                        ).upgradeType.slice(1)
+                                                    }}
                                                 </span>
-                                                
+
                                                 <!-- Prerelease badge if applicable -->
-                                                <span v-if="getVersionInfo(notification).isPrerelease" class="inline-flex items-center gap-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
-                                                    <Icon icon="mdi:flask-outline" class="text-sm" />
+                                                <span
+                                                    v-if="getVersionInfo(notification).isPrerelease"
+                                                    class="inline-flex items-center gap-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full"
+                                                >
+                                                    <Icon
+                                                        icon="mdi:flask-outline"
+                                                        class="text-sm"
+                                                    />
                                                     Prerelease
                                                 </span>
                                             </div>
-                                            
+
                                             <!-- Data issue warning -->
-                                            <div v-if="!getVersionInfo(notification).isUpgrade && getVersionInfo(notification).upgradeType === 'downgrade'" class="mt-1">
-                                                <span class="inline-flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+                                            <div
+                                                v-if="
+                                                    !getVersionInfo(notification).isUpgrade &&
+                                                    getVersionInfo(notification).upgradeType ===
+                                                        'downgrade'
+                                                "
+                                                class="mt-1"
+                                            >
+                                                <span
+                                                    class="inline-flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full"
+                                                >
                                                     <Icon icon="mdi:alert-circle" class="text-sm" />
                                                     Potential version data issue detected
                                                 </span>
                                             </div>
                                         </div>
-                                        <div v-if="notification.content.release_notes_url" class="ml-3">
-                                            <a 
-                                                :href="notification.content.release_notes_url" 
-                                                target="_blank" 
+                                        <div
+                                            v-if="notification.content.release_notes_url"
+                                            class="ml-3"
+                                        >
+                                            <a
+                                                :href="notification.content.release_notes_url"
+                                                target="_blank"
                                                 class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
                                             >
                                                 <Icon icon="mdi:open-in-new" class="text-sm" />
@@ -609,44 +755,62 @@ v-if="notification.content?.dependency_type" :class="[
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Footer with actions -->
                                 <div
-:class="[
-                                    'flex items-center justify-between pt-3 border-t',
-                                    notification.content?.dependency_type === 'production' 
-                                        ? 'border-orange-200' 
-                                        : notification.content?.dependency_type === 'development'
-                                        ? 'border-blue-200'
-                                        : 'border-gray-200'
-                                ]">
+                                    :class="[
+                                        'flex items-center justify-between pt-3 border-t',
+                                        notification.content?.dependency_type === 'production'
+                                            ? 'border-orange-200'
+                                            : notification.content?.dependency_type ===
+                                                'development'
+                                              ? 'border-blue-200'
+                                              : 'border-gray-200'
+                                    ]"
+                                >
                                     <span
-:class="[
-                                        'text-sm font-medium',
-                                        notification.content?.dependency_type === 'production' 
-                                            ? 'text-orange-700' 
-                                            : notification.content?.dependency_type === 'development'
-                                            ? 'text-blue-700'
-                                            : 'text-gray-700'
-                                    ]">
-                                        {{ notification.content?.dependency_type === 'production' 
-                                            ? 'Production dependency update - High Priority' 
-                                            : notification.content?.dependency_type === 'development'
-                                            ? 'Development dependency update'
-                                            : 'Direct dependency update available'
+                                        :class="[
+                                            'text-sm font-medium',
+                                            notification.content?.dependency_type === 'production'
+                                                ? 'text-orange-700'
+                                                : notification.content?.dependency_type ===
+                                                    'development'
+                                                  ? 'text-blue-700'
+                                                  : 'text-gray-700'
+                                        ]"
+                                    >
+                                        {{
+                                            notification.content?.dependency_type === 'production'
+                                                ? 'Production dependency update - High Priority'
+                                                : notification.content?.dependency_type ===
+                                                    'development'
+                                                  ? 'Development dependency update'
+                                                  : 'Direct dependency update available'
                                         }}
                                     </span>
                                     <div class="flex items-center gap-2">
-                                        <RouterLink 
-                                            v-if="notification.content && notification.content.analysis_id && notification.content.project_id"
-                                            :to="{ name: 'results', query: { analysis_id: notification.content.analysis_id, project_id: notification.content.project_id } }"
+                                        <RouterLink
+                                            v-if="
+                                                notification.content &&
+                                                notification.content.analysis_id &&
+                                                notification.content.project_id
+                                            "
+                                            :to="{
+                                                name: 'results',
+                                                query: {
+                                                    analysis_id: notification.content.analysis_id,
+                                                    project_id: notification.content.project_id
+                                                }
+                                            }"
                                             :class="[
                                                 'inline-flex items-center gap-1 text-sm font-medium transition-colors',
-                                                notification.content?.dependency_type === 'production' 
-                                                    ? 'text-orange-600 hover:text-orange-700' 
-                                                    : notification.content?.dependency_type === 'development'
-                                                    ? 'text-blue-600 hover:text-blue-700'
-                                                    : 'text-gray-600 hover:text-gray-700'
+                                                notification.content?.dependency_type ===
+                                                'production'
+                                                    ? 'text-orange-600 hover:text-orange-700'
+                                                    : notification.content?.dependency_type ===
+                                                        'development'
+                                                      ? 'text-blue-600 hover:text-blue-700'
+                                                      : 'text-gray-600 hover:text-gray-700'
                                             ]"
                                         >
                                             View Analysis
@@ -665,26 +829,44 @@ v-if="notification.content?.dependency_type" :class="[
                                 </div>
                             </div>
                         </div>
-                        <div v-else-if="notification.content_type === 'vuln_summary' || notification.content_type === 'vulnerability_summary'">
+                        <div
+                            v-else-if="
+                                notification.content_type === 'vuln_summary' ||
+                                notification.content_type === 'vulnerability_summary'
+                            "
+                        >
                             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                 <!-- Header with icon and title -->
                                 <div class="flex items-start gap-3 mb-3">
                                     <div
-:class="[
-                                        'p-2 rounded-full',
-                                        notification.content?.max_severity === 'CRITICAL' ? 'bg-severityCriticalBg' : 
-                                        notification.content?.max_severity === 'HIGH' ? 'bg-severityHighBg' : 
-                                        notification.content?.max_severity === 'MEDIUM' ? 'bg-severityMediumBg' : 
-                                        notification.content?.max_severity === 'LOW' ? 'bg-severityLowBg' : 'bg-severityNoneBg'
-                                    ]">
-                                        <Icon 
-                                            icon="mdi:shield-alert" 
+                                        :class="[
+                                            'p-2 rounded-full',
+                                            notification.content?.max_severity === 'CRITICAL'
+                                                ? 'bg-severityCriticalBg'
+                                                : notification.content?.max_severity === 'HIGH'
+                                                  ? 'bg-severityHighBg'
+                                                  : notification.content?.max_severity === 'MEDIUM'
+                                                    ? 'bg-severityMediumBg'
+                                                    : notification.content?.max_severity === 'LOW'
+                                                      ? 'bg-severityLowBg'
+                                                      : 'bg-severityNoneBg'
+                                        ]"
+                                    >
+                                        <Icon
+                                            icon="mdi:shield-alert"
                                             :class="[
                                                 'text-xl',
-                                                notification.content?.max_severity === 'CRITICAL' ? 'text-severityCritical' : 
-                                                notification.content?.max_severity === 'HIGH' ? 'text-severityHigh' : 
-                                                notification.content?.max_severity === 'MEDIUM' ? 'text-severityMedium' : 
-                                                notification.content?.max_severity === 'LOW' ? 'text-severityLow' : 'text-severityNone'
+                                                notification.content?.max_severity === 'CRITICAL'
+                                                    ? 'text-severityCritical'
+                                                    : notification.content?.max_severity === 'HIGH'
+                                                      ? 'text-severityHigh'
+                                                      : notification.content?.max_severity ===
+                                                          'MEDIUM'
+                                                        ? 'text-severityMedium'
+                                                        : notification.content?.max_severity ===
+                                                            'LOW'
+                                                          ? 'text-severityLow'
+                                                          : 'text-severityNone'
                                             ]"
                                         />
                                     </div>
@@ -692,54 +874,111 @@ v-if="notification.content?.dependency_type" :class="[
                                         <h3 class="font-semibold text-base text-gray-900">
                                             {{ notification.title || 'Vulnerability Summary' }}
                                         </h3>
-                                        <p v-if="notification.content && notification.content.project_name" class="text-sm text-gray-500 mt-0.5">
-                                            Project: <span class="font-medium text-gray-700">{{ notification.content.project_name }}</span>
+                                        <p
+                                            v-if="
+                                                notification.content &&
+                                                notification.content.project_name
+                                            "
+                                            class="text-sm text-gray-500 mt-0.5"
+                                        >
+                                            Project:
+                                            <span class="font-medium text-gray-700">{{
+                                                notification.content.project_name
+                                            }}</span>
                                         </p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Description -->
                                 <p class="text-sm text-gray-600 mb-3 leading-relaxed">
                                     {{ notification.description }}
                                 </p>
-                                
+
                                 <!-- Severity badges -->
-                                <div v-if="notification.content && notification.content.severity_counts" class="flex flex-wrap gap-2 mb-3">
+                                <div
+                                    v-if="
+                                        notification.content && notification.content.severity_counts
+                                    "
+                                    class="flex flex-wrap gap-2 mb-3"
+                                >
                                     <div
-v-if="notification.content.severity_counts.CRITICAL && notification.content.severity_counts.CRITICAL > 0" 
-                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityCriticalBg text-severityCritical rounded-md text-sm font-medium">
+                                        v-if="
+                                            notification.content.severity_counts.CRITICAL &&
+                                            notification.content.severity_counts.CRITICAL > 0
+                                        "
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityCriticalBg text-severityCritical rounded-md text-sm font-medium"
+                                    >
                                         <Icon icon="mdi:alert-circle" class="text-base" />
-                                        <span>Critical: {{ notification.content.severity_counts.CRITICAL }}</span>
+                                        <span
+                                            >Critical:
+                                            {{
+                                                notification.content.severity_counts.CRITICAL
+                                            }}</span
+                                        >
                                     </div>
                                     <div
-v-if="notification.content.severity_counts.HIGH && notification.content.severity_counts.HIGH > 0" 
-                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityHighBg text-severityHigh rounded-md text-sm font-medium">
+                                        v-if="
+                                            notification.content.severity_counts.HIGH &&
+                                            notification.content.severity_counts.HIGH > 0
+                                        "
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityHighBg text-severityHigh rounded-md text-sm font-medium"
+                                    >
                                         <Icon icon="mdi:alert" class="text-base" />
-                                        <span>High: {{ notification.content.severity_counts.HIGH }}</span>
+                                        <span
+                                            >High:
+                                            {{ notification.content.severity_counts.HIGH }}</span
+                                        >
                                     </div>
                                     <div
-v-if="notification.content.severity_counts.MEDIUM && notification.content.severity_counts.MEDIUM > 0" 
-                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityMediumBg text-severityMedium rounded-md text-sm font-medium">
+                                        v-if="
+                                            notification.content.severity_counts.MEDIUM &&
+                                            notification.content.severity_counts.MEDIUM > 0
+                                        "
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityMediumBg text-severityMedium rounded-md text-sm font-medium"
+                                    >
                                         <Icon icon="mdi:alert-outline" class="text-base" />
-                                        <span>Medium: {{ notification.content.severity_counts.MEDIUM }}</span>
+                                        <span
+                                            >Medium:
+                                            {{ notification.content.severity_counts.MEDIUM }}</span
+                                        >
                                     </div>
                                     <div
-v-if="notification.content.severity_counts.LOW && notification.content.severity_counts.LOW > 0" 
-                                         class="flex items-center gap-1 px-2.5 py-1 bg-severityLowBg text-severityLow rounded-md text-sm font-medium">
+                                        v-if="
+                                            notification.content.severity_counts.LOW &&
+                                            notification.content.severity_counts.LOW > 0
+                                        "
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityLowBg text-severityLow rounded-md text-sm font-medium"
+                                    >
                                         <Icon icon="mdi:information-outline" class="text-base" />
-                                        <span>Low: {{ notification.content.severity_counts.LOW }}</span>
+                                        <span
+                                            >Low:
+                                            {{ notification.content.severity_counts.LOW }}</span
+                                        >
                                     </div>
                                 </div>
-                                
+
                                 <!-- Footer with total and actions -->
-                                <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                                <div
+                                    class="flex items-center justify-between pt-3 border-t border-gray-200"
+                                >
                                     <span class="text-sm font-medium text-gray-700">
-                                        Total: {{ notification.content?.total || 0 }} vulnerabilities
+                                        Total:
+                                        {{ notification.content?.total || 0 }} vulnerabilities
                                     </span>
                                     <div class="flex items-center gap-2">
-                                        <RouterLink 
-                                            v-if="notification.content && notification.content.analysis_id && notification.content.project_id"
-                                            :to="{ name: 'results', query: { analysis_id: notification.content.analysis_id, project_id: notification.content.project_id } }"
+                                        <RouterLink
+                                            v-if="
+                                                notification.content &&
+                                                notification.content.analysis_id &&
+                                                notification.content.project_id
+                                            "
+                                            :to="{
+                                                name: 'results',
+                                                query: {
+                                                    analysis_id: notification.content.analysis_id,
+                                                    project_id: notification.content.project_id
+                                                }
+                                            }"
                                             class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
                                         >
                                             View Details
@@ -779,22 +1018,25 @@ v-if="notification.content.severity_counts.LOW && notification.content.severity_
                     </li>
                 </ul>
             </div>
-            
+
             <!-- Pagination Controls -->
             <div v-if="totalPages > 1" class="flex items-center justify-between border-t pt-4">
                 <div class="text-sm text-gray-600">
-                    Showing {{ currentPage * entriesPerPage + 1 }}-{{ Math.min((currentPage + 1) * entriesPerPage, totalFilteredCount) }} of {{ totalFilteredCount }}
+                    Showing {{ currentPage * entriesPerPage + 1 }}-{{
+                        Math.min((currentPage + 1) * entriesPerPage, totalFilteredCount)
+                    }}
+                    of {{ totalFilteredCount }}
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <Button
+                        variant="outline"
+                        size="sm"
                         :disabled="currentPage === 0"
                         @click="prevPage"
                     >
                         <Icon icon="mdi:chevron-left" class="text-base" />
                     </Button>
-                    
+
                     <!-- Page numbers -->
                     <div class="flex gap-1">
                         <Button
@@ -802,17 +1044,19 @@ v-if="notification.content.severity_counts.LOW && notification.content.severity_
                             :key="page - 1"
                             variant="outline"
                             size="sm"
-                            :class="{ 'bg-blue-50 border-blue-300 text-blue-700': currentPage === page - 1 }"
+                            :class="{
+                                'bg-blue-50 border-blue-300 text-blue-700': currentPage === page - 1
+                            }"
                             @click="goToPage(page - 1)"
                         >
                             {{ page }}
                         </Button>
                         <span v-if="totalPages > 5" class="px-2 text-gray-500">...</span>
                     </div>
-                    
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+
+                    <Button
+                        variant="outline"
+                        size="sm"
                         :disabled="currentPage === totalPages - 1"
                         @click="nextPage"
                     >
@@ -820,7 +1064,7 @@ v-if="notification.content.severity_counts.LOW && notification.content.severity_
                     </Button>
                 </div>
             </div>
-            
+
             <DialogFooter>
                 <Button variant="ghost" class="text-sm" @click="deleteAllNotifications"
                     >Clear all</Button

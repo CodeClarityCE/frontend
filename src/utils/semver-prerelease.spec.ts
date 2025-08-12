@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { isPrerelease, shouldRecommendUpgrade } from './semver';
 
 // Test the filtering logic that would be used in the component
-function shouldFilterNotification(notification: { content_type: string, content?: { new_version?: string, current_version?: string } }): boolean {
+function shouldFilterNotification(notification: {
+    content_type: string;
+    content?: { new_version?: string; current_version?: string };
+}): boolean {
     // Filter out package update notifications that shouldn't be recommended
     if (notification.content_type === 'package_update') {
         const currentVersion = notification.content?.current_version;
         const newVersion = notification.content?.new_version;
-        
+
         if (currentVersion && newVersion) {
             // Use the semver utility to determine if this upgrade should be recommended
             return !shouldRecommendUpgrade(currentVersion, newVersion);

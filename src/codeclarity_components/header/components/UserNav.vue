@@ -21,17 +21,24 @@ import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
 import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
 import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
 import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
+import { Input } from '@/shadcn/ui/input';
 import { NotificationRepository } from '@/codeclarity_components/header/notification.repository';
-import { ref, type Ref } from 'vue';
+import { ref, type Ref, computed, watch } from 'vue';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import type { Notification } from '@/codeclarity_components/header/notification.entity';
+import { type Notification, NotificationContentType } from '@/codeclarity_components/header/notification.entity';
 import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
+import { isGreaterThan, isPrerelease as semverIsPrerelease, shouldRecommendUpgrade, getUpgradeType } from '@/utils/semver';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const notifications: Ref<Array<Notification>> = ref([]);
+const allNotifications: Ref<Array<Notification>> = ref([]);
 const total_notifications: Ref<number> = ref(0);
+const currentPage: Ref<number> = ref(0);
+const searchQuery: Ref<string> = ref('');
+const selectedFilter: Ref<string> = ref('all');
+const entriesPerPage = 10;
+const isLoading: Ref<boolean> = ref(false);
 
 // Repositories
 const notificationRepository: NotificationRepository = new NotificationRepository();
@@ -42,20 +49,204 @@ async function logout() {
     router.push('/login');
 }
 
-async function fetchNotifications() {
+// Priority mapping for sorting
+const getPriority = (notification: Notification): number => {
+    if (notification.content_type === NotificationContentType.VulnSummary || 
+        notification.content_type === NotificationContentType.VulnerabilitySummary || 
+        notification.content_type === NotificationContentType.FixAvailable) {
+        return 1; // Highest priority - vulnerabilities
+    }
+    if (notification.content_type === NotificationContentType.PackageUpdate && 
+        notification.content?.dependency_type === 'production') {
+        return 2; // High priority - production dependencies
+    }
+    if (notification.content_type === NotificationContentType.PackageUpdate && 
+        notification.content?.dependency_type === 'development') {
+        return 3; // Medium priority - dev dependencies
+    }
+    return 4; // Lowest priority - other updates
+};
+
+// Filter and sort notifications
+const filteredNotifications = computed(() => {
+    let filtered = allNotifications.value;
+    
+    // Filter out prerelease notifications
+    filtered = filtered.filter(notification => !shouldFilterNotification(notification));
+    
+    // Apply search filter
+    if (searchQuery.value.trim()) {
+        const query = searchQuery.value.toLowerCase();
+        filtered = filtered.filter(notification => 
+            notification.title.toLowerCase().includes(query) ||
+            notification.description.toLowerCase().includes(query) ||
+            notification.content?.package_name?.toLowerCase().includes(query) ||
+            notification.content?.project_name?.toLowerCase().includes(query)
+        );
+    }
+    
+    // Apply type filter
+    if (selectedFilter.value !== 'all') {
+        filtered = filtered.filter(notification => {
+            switch (selectedFilter.value) {
+                case 'vulnerabilities':
+                    return notification.content_type === NotificationContentType.VulnSummary || 
+                           notification.content_type === NotificationContentType.VulnerabilitySummary || 
+                           notification.content_type === NotificationContentType.FixAvailable;
+                case 'production':
+                    return notification.content_type === NotificationContentType.PackageUpdate && 
+                           notification.content?.dependency_type === 'production';
+                case 'development':
+                    return notification.content_type === NotificationContentType.PackageUpdate && 
+                           notification.content?.dependency_type === 'development';
+                case 'other':
+                    return notification.content_type === NotificationContentType.NewVersion || 
+                           (notification.content_type === NotificationContentType.PackageUpdate && 
+                            !notification.content?.dependency_type);
+                default:
+                    return true;
+            }
+        });
+    }
+    
+    // Sort by priority then by most recent
+    return filtered.sort((a, b) => {
+        const priorityDiff = getPriority(a) - getPriority(b);
+        if (priorityDiff !== 0) return priorityDiff;
+        // If same priority, sort by ID (assuming newer IDs are higher)
+        return b.id.localeCompare(a.id);
+    });
+});
+
+// Paginated notifications
+const paginatedNotifications = computed(() => {
+    const start = currentPage.value * entriesPerPage;
+    const end = start + entriesPerPage;
+    return filteredNotifications.value.slice(start, end);
+});
+
+// Notification counts by type (excluding filtered prerelease notifications)
+const notificationCounts = computed(() => {
+    const counts = {
+        vulnerabilities: 0,
+        production: 0,
+        development: 0,
+        other: 0
+    };
+    
+    // Only count notifications that wouldn't be filtered out
+    allNotifications.value
+        .filter(notification => !shouldFilterNotification(notification))
+        .forEach(notification => {
+            if (notification.content_type === NotificationContentType.VulnSummary || 
+                notification.content_type === NotificationContentType.VulnerabilitySummary || 
+                notification.content_type === NotificationContentType.FixAvailable) {
+                counts.vulnerabilities++;
+            } else if (notification.content_type === NotificationContentType.PackageUpdate && 
+                       notification.content?.dependency_type === 'production') {
+                counts.production++;
+            } else if (notification.content_type === NotificationContentType.PackageUpdate && 
+                       notification.content?.dependency_type === 'development') {
+                counts.development++;
+            } else {
+                counts.other++;
+            }
+        });
+    
+    return counts;
+});
+
+// Total filtered notifications count
+const totalFilteredCount = computed(() => filteredNotifications.value.length);
+
+// Total count for display (excluding prerelease notifications)
+const displayNotificationCount = computed(() => {
+    return allNotifications.value.filter(notification => !shouldFilterNotification(notification)).length;
+});
+
+// Total pages
+const totalPages = computed(() => Math.ceil(totalFilteredCount.value / entriesPerPage));
+
+// Helper function to determine if a notification should be filtered out
+const shouldFilterNotification = (notification: Notification): boolean => {
+    // Filter out package update notifications that shouldn't be recommended
+    if (notification.content_type === NotificationContentType.PackageUpdate) {
+        const currentVersion = notification.content?.current_version;
+        const newVersion = notification.content?.new_version;
+        
+        if (currentVersion && newVersion) {
+            // Use the semver utility to determine if this upgrade should be recommended
+            return !shouldRecommendUpgrade(currentVersion, newVersion);
+        }
+    }
+    return false;
+};
+
+// Helper function to get properly ordered versions with upgrade analysis
+const getVersionInfo = (notification: Notification) => {
+    const content = notification.content;
+    if (!content?.current_version || !content?.new_version) {
+        return {
+            fromVersion: content?.current_version || '',
+            toVersion: content?.new_version || '',
+            isUpgrade: true,
+            isPrerelease: false,
+            upgradeType: 'minor' as const
+        };
+    }
+
+    const currentVersion = content.current_version;
+    const newVersion = content.new_version;
+    const upgradeType = getUpgradeType(currentVersion, newVersion);
+    const newVersionIsPrerelease = semverIsPrerelease(newVersion);
+
+    // Check if current_version is actually newer than new_version (incorrect data)
+    const currentIsNewer = isGreaterThan(currentVersion, newVersion);
+    
+    if (currentIsNewer) {
+        // Data is backwards - swap them and mark as downgrade
+        return {
+            fromVersion: newVersion,
+            toVersion: currentVersion,
+            isUpgrade: false, // This would be a downgrade, which is unusual
+            isPrerelease: newVersionIsPrerelease,
+            upgradeType: 'downgrade' as const
+        };
+    } else {
+        // Data is correct
+        return {
+            fromVersion: currentVersion,
+            toVersion: newVersion,
+            isUpgrade: upgradeType !== 'downgrade' && upgradeType !== 'same',
+            isPrerelease: newVersionIsPrerelease,
+            upgradeType
+        };
+    }
+};
+
+// Reset page when search or filter changes
+watch([searchQuery, selectedFilter], () => {
+    currentPage.value = 0;
+});
+
+async function fetchAllNotifications() {
+    isLoading.value = true;
     try {
+        // Fetch a larger number to get all notifications for better sorting/filtering
         const resp = await notificationRepository.getNotifications({
             bearerToken: authStore.getToken as string,
             handleBusinessErrors: true,
             page: 0,
-            entries_per_page: 5
+            entries_per_page: 100 // Fetch more notifications for better overview
         });
-        notifications.value = resp.data;
+        allNotifications.value = resp.data;
         total_notifications.value = resp.matching_count;
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
             console.log(_err);
         }
+    } finally {
+        isLoading.value = false;
     }
 }
 
@@ -71,7 +262,7 @@ async function deleteNotification(notification_id: string) {
             console.log(_err);
         }
     }
-    notifications.value = notifications.value.filter(
+    allNotifications.value = allNotifications.value.filter(
         (notification) => notification.id !== notification_id
     );
     total_notifications.value -= 1;
@@ -88,11 +279,30 @@ async function deleteAllNotifications() {
             console.log(_err);
         }
     }
-    notifications.value = [];
+    allNotifications.value = [];
     total_notifications.value = 0;
 }
 
-fetchNotifications();
+// Pagination functions
+function nextPage() {
+    if (currentPage.value < totalPages.value - 1) {
+        currentPage.value++;
+    }
+}
+
+function prevPage() {
+    if (currentPage.value > 0) {
+        currentPage.value--;
+    }
+}
+
+function goToPage(page: number) {
+    if (page >= 0 && page < totalPages.value) {
+        currentPage.value = page;
+    }
+}
+
+fetchAllNotifications();
 </script>
 
 <template>
@@ -158,23 +368,77 @@ fetchNotifications();
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
-    <Dialog v-if="total_notifications > 0">
+    <Dialog v-if="displayNotificationCount > 0">
         <DialogTrigger>
             <Badge class="flex gap-1 items-center">
-                <Icon class="text-lg" icon="line-md:bell-loop"></Icon>{{ total_notifications }}
+                <Icon class="text-lg" icon="line-md:bell-loop"></Icon>{{ displayNotificationCount }}
             </Badge>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent class="max-w-4xl max-h-[90vh] flex flex-col">
             <DialogTitle>Notifications</DialogTitle>
             <DialogDescription>
                 <p class="text-sm text-muted-foreground">
-                    You have {{ total_notifications }} new notifications
+                    You have {{ displayNotificationCount }} new notifications
                 </p>
             </DialogDescription>
-            <div class="max-h-96 overflow-y-auto">
-                <ul class="flex flex-col gap-4">
+            
+            <!-- Overview Summary -->
+            <div class="grid grid-cols-4 gap-3 p-4 bg-gray-50 rounded-lg border">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600">{{ notificationCounts.vulnerabilities }}</div>
+                    <div class="text-xs text-gray-600">Vulnerabilities</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-orange-600">{{ notificationCounts.production }}</div>
+                    <div class="text-xs text-gray-600">Production Updates</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">{{ notificationCounts.development }}</div>
+                    <div class="text-xs text-gray-600">Dev Updates</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-600">{{ notificationCounts.other }}</div>
+                    <div class="text-xs text-gray-600">Other</div>
+                </div>
+            </div>
+            
+            <!-- Search and Filter Controls -->
+            <div class="flex gap-3 items-center">
+                <div class="flex-1">
+                    <Input 
+                        v-model="searchQuery" 
+                        placeholder="Search notifications..." 
+                        class="w-full"
+                    />
+                </div>
+                <select 
+                    v-model="selectedFilter" 
+                    class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="all">All ({{ totalFilteredCount }})</option>
+                    <option value="vulnerabilities">Vulnerabilities ({{ notificationCounts.vulnerabilities }})</option>
+                    <option value="production">Production ({{ notificationCounts.production }})</option>
+                    <option value="development">Development ({{ notificationCounts.development }})</option>
+                    <option value="other">Other ({{ notificationCounts.other }})</option>
+                </select>
+            </div>
+            
+            <!-- Loading State -->
+            <div v-if="isLoading" class="flex justify-center items-center py-8">
+                <Icon icon="line-md:loading-loop" class="text-2xl text-gray-500" />
+                <span class="ml-2 text-gray-500">Loading notifications...</span>
+            </div>
+            
+            <!-- Notifications List -->
+            <div v-else class="flex-1 overflow-y-auto">
+                <div v-if="paginatedNotifications.length === 0" class="text-center py-8 text-gray-500">
+                    <Icon icon="mdi:bell-off" class="text-4xl mx-auto mb-2" />
+                    <p>No notifications found</p>
+                    <p class="text-sm">Try adjusting your search or filter criteria</p>
+                </div>
+                <ul v-else class="flex flex-col gap-4">
                     <li
-                        v-for="notification in notifications"
+                        v-for="notification in paginatedNotifications"
                         :key="notification.id"
                         class="border-b pb-4 last:border-b-0"
                     >
@@ -274,9 +538,63 @@ v-if="notification.content?.dependency_type" :class="[
                                         <div>
                                             <p class="font-medium text-gray-900">{{ notification.content.package_name }}</p>
                                             <div class="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                                                <span class="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{{ notification.content.current_version }}</span>
-                                                <Icon icon="mdi:arrow-right" class="text-gray-400" />
-                                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-mono">{{ notification.content.new_version }}</span>
+                                                <span class="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{{ getVersionInfo(notification).fromVersion }}</span>
+                                                <Icon 
+                                                    :icon="getVersionInfo(notification).isUpgrade ? 'mdi:arrow-right' : 'mdi:arrow-down'" 
+                                                    :class="getVersionInfo(notification).isUpgrade ? 'text-gray-400' : 'text-orange-500'" 
+                                                />
+                                                <span 
+                                                    :class="getVersionInfo(notification).isUpgrade 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : 'bg-orange-100 text-orange-800'"
+                                                    class="px-2 py-1 rounded text-xs font-mono"
+                                                >
+                                                    {{ getVersionInfo(notification).toVersion }}
+                                                </span>
+                                            </div>
+                                            <div class="flex gap-2 mt-1">
+                                                <!-- Upgrade type badge -->
+                                                <span 
+                                                    :class="{
+                                                        'bg-red-100 text-red-800': getVersionInfo(notification).upgradeType === 'major',
+                                                        'bg-orange-100 text-orange-800': getVersionInfo(notification).upgradeType === 'minor',
+                                                        'bg-blue-100 text-blue-800': getVersionInfo(notification).upgradeType === 'patch',
+                                                        'bg-purple-100 text-purple-800': getVersionInfo(notification).upgradeType === 'prerelease',
+                                                        'bg-gray-100 text-gray-800': getVersionInfo(notification).upgradeType === 'downgrade' || getVersionInfo(notification).upgradeType === 'same'
+                                                    }"
+                                                    class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium"
+                                                >
+                                                    <Icon 
+                                                        :icon="(() => {
+                                                            const type = getVersionInfo(notification).upgradeType;
+                                                            const iconMap: Record<string, string> = {
+                                                                'major': 'mdi:arrow-up-bold',
+                                                                'minor': 'mdi:arrow-up',
+                                                                'patch': 'mdi:arrow-up-thin',
+                                                                'prerelease': 'mdi:flask-outline',
+                                                                'downgrade': 'mdi:arrow-down',
+                                                                'same': 'mdi:equal'
+                                                            };
+                                                            return iconMap[type] || 'mdi:arrow-up';
+                                                        })()" 
+                                                        class="text-sm" 
+                                                    />
+                                                    {{ getVersionInfo(notification).upgradeType.charAt(0).toUpperCase() + getVersionInfo(notification).upgradeType.slice(1) }}
+                                                </span>
+                                                
+                                                <!-- Prerelease badge if applicable -->
+                                                <span v-if="getVersionInfo(notification).isPrerelease" class="inline-flex items-center gap-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
+                                                    <Icon icon="mdi:flask-outline" class="text-sm" />
+                                                    Prerelease
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- Data issue warning -->
+                                            <div v-if="!getVersionInfo(notification).isUpgrade && getVersionInfo(notification).upgradeType === 'downgrade'" class="mt-1">
+                                                <span class="inline-flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+                                                    <Icon icon="mdi:alert-circle" class="text-sm" />
+                                                    Potential version data issue detected
+                                                </span>
                                             </div>
                                         </div>
                                         <div v-if="notification.content.release_notes_url" class="ml-3">
@@ -461,6 +779,48 @@ v-if="notification.content.severity_counts.LOW && notification.content.severity_
                     </li>
                 </ul>
             </div>
+            
+            <!-- Pagination Controls -->
+            <div v-if="totalPages > 1" class="flex items-center justify-between border-t pt-4">
+                <div class="text-sm text-gray-600">
+                    Showing {{ currentPage * entriesPerPage + 1 }}-{{ Math.min((currentPage + 1) * entriesPerPage, totalFilteredCount) }} of {{ totalFilteredCount }}
+                </div>
+                <div class="flex items-center gap-2">
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        :disabled="currentPage === 0"
+                        @click="prevPage"
+                    >
+                        <Icon icon="mdi:chevron-left" class="text-base" />
+                    </Button>
+                    
+                    <!-- Page numbers -->
+                    <div class="flex gap-1">
+                        <Button
+                            v-for="page in Math.min(5, totalPages)"
+                            :key="page - 1"
+                            variant="outline"
+                            size="sm"
+                            :class="{ 'bg-blue-50 border-blue-300 text-blue-700': currentPage === page - 1 }"
+                            @click="goToPage(page - 1)"
+                        >
+                            {{ page }}
+                        </Button>
+                        <span v-if="totalPages > 5" class="px-2 text-gray-500">...</span>
+                    </div>
+                    
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        :disabled="currentPage === totalPages - 1"
+                        @click="nextPage"
+                    >
+                        <Icon icon="mdi:chevron-right" class="text-base" />
+                    </Button>
+                </div>
+            </div>
+            
             <DialogFooter>
                 <Button variant="ghost" class="text-sm" @click="deleteAllNotifications"
                     >Clear all</Button

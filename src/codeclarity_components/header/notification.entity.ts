@@ -6,10 +6,12 @@ enum NotificationType {
     Error = 'error'
 }
 
-enum NotificationContentType {
+export enum NotificationContentType {
     NewVersion = 'new_version',
     FixAvailable = 'fix_available',
-    VulnSummary = 'vuln_summary'
+    VulnSummary = 'vuln_summary',
+    VulnerabilitySummary = 'vulnerability_summary',
+    PackageUpdate = 'package_update'
 }
 
 export class Notification {

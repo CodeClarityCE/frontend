@@ -25,7 +25,7 @@ export function initializeDefaultNodes(plugins: Plugin[]): AnalyzerNode[] {
         (p) =>
             p.name.includes('vuln') ||
             p.name.includes('vulnerability') ||
-            p.name.includes('js-vuln-finder')
+            p.name.includes('vuln-finder')
     );
     if (vulnPlugin) {
         defaultNodes.push(createAnalyzerNode(vulnPlugin));

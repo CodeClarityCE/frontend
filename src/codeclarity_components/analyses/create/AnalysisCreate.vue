@@ -151,11 +151,11 @@ function onSubmit(values: any, plugin_name: string) {
     if (values === undefined) configuration.value[plugin_name] = {};
     else configuration.value[plugin_name] = values;
 
-    if (plugin_name === 'js-license') {
+    if (plugin_name === 'license-finder') {
         configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
     }
 
-    if (plugin_name === 'js-sbom' || plugin_name === 'codeql') {
+    if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
         configuration.value[plugin_name]['project'] =
             `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
         selected_branch.value = values.branch;

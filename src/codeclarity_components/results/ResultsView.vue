@@ -118,10 +118,10 @@ const projectRepository: ProjectRepository = new ProjectRepository();
 const analysisRepository: AnalysisRepository = new AnalysisRepository();
 
 const tab = ref({
-    'js-sbom': false,
-    'js-vuln-finder': false,
+    'sbom': false, // Generic SBOM tab for both js-sbom and php-sbom
+    'vuln-finder': false,
     'js-patching': false,
-    'js-license': false,
+    'license-finder': false,
     codeql: false
 });
 
@@ -156,14 +156,14 @@ async function init() {
             if (result.Status != 'success') {
                 continue;
             }
-            if (result.Name == 'js-sbom') {
-                tab.value['js-sbom'] = true;
-            } else if (result.Name == 'js-vuln-finder') {
-                tab.value['js-vuln-finder'] = true;
+            if (result.Name == 'js-sbom' || result.Name == 'php-sbom') {
+                tab.value['sbom'] = true;
+            } else if (result.Name == 'vuln-finder') {
+                tab.value['vuln-finder'] = true;
             } else if (result.Name == 'js-patching') {
                 tab.value['js-patching'] = true;
-            } else if (result.Name == 'js-license') {
-                tab.value['js-license'] = true;
+            } else if (result.Name == 'license-finder') {
+                tab.value['license-finder'] = true;
             } else if (result.Name == 'codeql') {
                 tab.value['codeql'] = true;
             }
@@ -295,18 +295,18 @@ onBeforeMount(async () => {
             @value-change="handleTabChange"
         >
             <TabsList>
-                <TabsTrigger v-if="tab['js-sbom']" value="js-sbom"> SBOM </TabsTrigger>
-                <TabsTrigger v-if="tab['js-vuln-finder']" value="js-vuln-finder">
+                <TabsTrigger v-if="tab['sbom']" value="sbom"> SBOM </TabsTrigger>
+                <TabsTrigger v-if="tab['vuln-finder']" value="vuln-finder">
                     Vulnerabilities
                 </TabsTrigger>
                 <TabsTrigger v-if="tab['js-patching']" value="js-patching"> Patches </TabsTrigger>
-                <TabsTrigger v-if="tab['js-license']" value="js-license"> Licenses </TabsTrigger>
+                <TabsTrigger v-if="tab['license-finder']" value="license-finder"> Licenses </TabsTrigger>
                 <TabsTrigger v-if="tab['codeql']" value="codeql"> CodeQL </TabsTrigger>
             </TabsList>
-            <TabsContent value="js-sbom" class="space-y-4">
+            <TabsContent value="sbom" class="space-y-4">
                 <ResultsSBOM :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
-            <TabsContent value="js-vuln-finder" class="space-y-4">
+            <TabsContent value="vuln-finder" class="space-y-4">
                 <ResultsVulnerabilities
                     :project="project"
                     :analysis="analysis"
@@ -316,7 +316,7 @@ onBeforeMount(async () => {
             <TabsContent value="js-patching" class="space-y-4">
                 <ResultsPatching :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
-            <TabsContent value="js-license" class="space-y-4">
+            <TabsContent value="license-finder" class="space-y-4">
                 <ResultsLicenses :project="project" :analysis="analysis" :run-index="runIndex" />
             </TabsContent>
             <TabsContent value="codeql" class="space-y-4">

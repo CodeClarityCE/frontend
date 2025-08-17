@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import AnalyzerFormFields from './shared/AnalyzerFormFields.vue';
+import AnalyzerTemplateSelector from './shared/AnalyzerTemplateSelector.vue';
+import type { AnalyzerTemplate } from './AnalyzerTemplatesRepository';
 import WorkflowDesigner from './shared/WorkflowDesigner.vue';
 import { analyzerValidationSchema } from './shared/analyzerValidation';
 import { initializeDefaultNodes } from './shared/analyzerUtils';
@@ -51,6 +53,10 @@ const errorCode: Ref<string> = ref('');
 // Form Data
 const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
+const selectedTemplate: Ref<AnalyzerTemplate | null> = ref(null);
+const supportedLanguages: Ref<string[]> = ref(['javascript']);
+const languageConfig: Ref<any> = ref({});
+const logo: Ref<string> = ref('js');
 const plugins: Ref<Array<Plugin>> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
@@ -66,6 +72,26 @@ function setOrgInfo(_orgInfo: Organization) {
 }
 
 // Methods
+function onTemplateChanged(template: AnalyzerTemplate) {
+    // Update form fields based on selected template
+    name.value = template.name;
+    description.value = template.description;
+    supportedLanguages.value = [...template.supported_languages];
+    languageConfig.value = { ...template.language_config };
+    logo.value = template.logo;
+    
+    // Update workflow nodes and edges based on template
+    if (template.steps && template.steps.length > 0) {
+        // Convert template steps to nodes
+        const templateNodes = initializeDefaultNodes(plugins.value, template.steps);
+        if (templateNodes.length > 0) {
+            nodes.value = templateNodes;
+            edges.value = createEdgesFromNodes(templateNodes);
+            nodes.value = layoutNodes(nodes.value);
+        }
+    }
+}
+
 async function submit() {
     const arr = retrieveWorkflowSteps(nodes.value, edges.value);
 
@@ -75,7 +101,10 @@ async function submit() {
             data: {
                 name: name.value,
                 description: description.value,
-                steps: arr
+                steps: arr,
+                supported_languages: supportedLanguages.value,
+                language_config: languageConfig.value,
+                logo: logo.value
             },
             bearerToken: authStore.getToken ?? ''
         });
@@ -156,8 +185,19 @@ init();
                     :validation-schema="formValidationSchema"
                     @submit="submit"
                 >
+                    <!-- Template Selection Section -->
+                    <AnalyzerTemplateSelector 
+                        v-model:selectedTemplate="selectedTemplate"
+                        @template-changed="onTemplateChanged"
+                    />
+
                     <!-- Basic Information Section -->
-                    <AnalyzerFormFields v-model:name="name" v-model:description="description" />
+                    <AnalyzerFormFields 
+                        v-model:name="name" 
+                        v-model:description="description"
+                        v-model:supportedLanguages="supportedLanguages"
+                        v-model:logo="logo"
+                    />
 
                     <!-- Workflow Designer Section -->
                     <WorkflowDesigner

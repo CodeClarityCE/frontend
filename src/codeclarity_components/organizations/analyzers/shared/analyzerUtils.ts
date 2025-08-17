@@ -11,10 +11,29 @@ export interface AnalyzerSubmissionData extends AnalyzerFormData {
     steps: any[];
 }
 
-export function initializeDefaultNodes(plugins: Plugin[]): AnalyzerNode[] {
+export function initializeDefaultNodes(plugins: Plugin[], templateSteps?: any[]): AnalyzerNode[] {
     const defaultNodes: AnalyzerNode[] = [];
 
-    // Add SBOM plugin
+    // If template steps are provided, use them to create nodes
+    if (templateSteps && templateSteps.length > 0) {
+        templateSteps.forEach((stageSteps, stageIndex) => {
+            if (Array.isArray(stageSteps)) {
+                stageSteps.forEach((step) => {
+                    const plugin = plugins.find((p) => p.name === step.name);
+                    if (plugin) {
+                        const node = createAnalyzerNode(plugin);
+                        // Add stage information to the node
+                        node.data.stage = stageIndex;
+                        node.data.config = step.config || {};
+                        defaultNodes.push(node);
+                    }
+                });
+            }
+        });
+        return defaultNodes;
+    }
+
+    // Default behavior: Add SBOM plugin
     const sbomPlugin = plugins.find((p) => p.name.includes('sbom') || p.name.includes('js-sbom'));
     if (sbomPlugin) {
         defaultNodes.push(createAnalyzerNode(sbomPlugin));

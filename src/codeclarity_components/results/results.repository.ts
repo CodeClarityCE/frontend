@@ -234,6 +234,10 @@ export class ResultsRepository extends BaseRepository {
             search_key: options.search_key
         };
 
+        if (options.ecosystem_filter) {
+            queryParams.ecosystem_filter = options.ecosystem_filter;
+        }
+
         if (options.runIndex !== null && options.runIndex !== undefined) {
             queryParams.run_index = options.runIndex;
         }

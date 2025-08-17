@@ -5,6 +5,7 @@ import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { Icon } from '@iconify/vue';
 
 import LicenseComponent from './LicenseComponent.vue';
+import SelectWorkspace from '../SelectWorkspace.vue';
 // Import stores
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
@@ -24,10 +25,12 @@ import { ProjectsSortInterface } from '@/codeclarity_components/projects/project
 export interface Props {
     analysisID?: string;
     projectID?: string;
+    ecosystemFilter?: string | null;
 }
 const props = withDefaults(defineProps<Props>(), {
     analysisID: '',
-    projectID: ''
+    projectID: '',
+    ecosystemFilter: null
 });
 
 const render = ref(false);
@@ -45,6 +48,8 @@ const searchKey = ref('');
 const placeholder = 'Search by licenses';
 // const licenses_used = ref([]);
 const licensesUsed: Ref<Array<License>> = ref([]);
+const selected_workspace = ref('.');
+const selectedEcosystemFilter: Ref<string | null> = ref(null);
 
 const sortByOptions = [
     { key: 'type', label: 'Type' },
@@ -57,9 +62,16 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-watch([pageNumber, pageLimitSelected, sortKey, sortDirection, searchKey], () => {
+watch([pageNumber, pageLimitSelected, sortKey, sortDirection, searchKey, selected_workspace, selectedEcosystemFilter], () => {
     init();
 });
+
+// Event handlers
+function handleEcosystemFilterChanged(ecosystemType: string | null) {
+    /** Handles ecosystem filter changes from SelectWorkspace component */
+    selectedEcosystemFilter.value = ecosystemType;
+    // init() will be called automatically by the watch
+}
 
 // Filters
 const filterState: Ref<FilterState> = ref(
@@ -92,7 +104,7 @@ async function init() {
             orgId: userStore.getDefaultOrg.id,
             projectId: props.projectID,
             analysisId: props.analysisID,
-            workspace: '.',
+            workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
             pagination: {
                 page: pageNumber.value,
@@ -103,7 +115,8 @@ async function init() {
                 sortDirection: sortDirection.value
             },
             active_filters: '',
-            search_key: searchKey.value
+            search_key: searchKey.value,
+            ecosystem_filter: selectedEcosystemFilter.value || undefined
         });
         licensesUsed.value = res.data;
         pageNumber.value = res.page;
@@ -171,6 +184,14 @@ init();
                     <span>{{ nmbEntriesTotal }} total licenses</span>
                 </div>
             </div>
+
+            <!-- Workspace Selection -->
+            <SelectWorkspace
+                v-model:selected_workspace="selected_workspace"
+                :project-i-d="projectID"
+                :analysis-i-d="analysisID"
+                @ecosystem-filter-changed="handleEcosystemFilterChanged"
+            />
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">

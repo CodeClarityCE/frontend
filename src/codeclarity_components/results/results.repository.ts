@@ -259,6 +259,10 @@ export class ResultsRepository extends BaseRepository {
             workspace: options.workspace
         };
 
+        if (options.ecosystem_filter) {
+            queryParams.ecosystem_filter = options.ecosystem_filter;
+        }
+
         if (options.runIndex !== null && options.runIndex !== undefined) {
             queryParams.run_index = options.runIndex;
         }
@@ -289,6 +293,10 @@ export class ResultsRepository extends BaseRepository {
             active_filters: options.active_filters,
             search_key: options.search_key
         };
+
+        if (options.ecosystem_filter) {
+            queryParams.ecosystem_filter = options.ecosystem_filter;
+        }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
             queryParams.run_index = options.runIndex;

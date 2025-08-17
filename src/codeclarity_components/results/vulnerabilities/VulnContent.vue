@@ -25,6 +25,10 @@ const props = withDefaults(defineProps<Props>(), {
     analysisID: ''
 });
 
+const emit = defineEmits<{
+    'ecosystem-filter-changed': [ecosystem: string | null];
+}>();
+
 // Repositories
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
@@ -37,6 +41,7 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
+const selectedEcosystemFilter: Ref<string | null> = ref(null);
 
 watch(
     () => props.projectID,
@@ -62,6 +67,16 @@ const stats: Ref<AnalysisStats> = ref(new AnalysisStats());
 
 getVulnerabilitiesStats();
 
+// Event handlers
+function handleEcosystemFilterChanged(ecosystemType: string | null) {
+    /** Handles ecosystem filter changes from SelectWorkspace component */
+    selectedEcosystemFilter.value = ecosystemType;
+    // Emit the change to parent component
+    emit('ecosystem-filter-changed', ecosystemType);
+    // Refresh stats with the new filter
+    getVulnerabilitiesStats(true);
+}
+
 // Methods
 async function getVulnerabilitiesStats(refresh: boolean = false) {
     if (!userStore.getDefaultOrg) return;
@@ -82,6 +97,7 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
             analysisId: props.analysisID,
             workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
+            ecosystem_filter: selectedEcosystemFilter.value || undefined,
             handleBusinessErrors: true
         });
         stats.value = res.data;
@@ -161,6 +177,7 @@ const topOwaspCategories = computed(() => {
             v-model:selected_workspace="selected_workspace"
             :project-i-d="projectID"
             :analysis-i-d="analysisID"
+            @ecosystem-filter-changed="handleEcosystemFilterChanged"
         />
 
         <!-- Key Statistics Grid -->

@@ -79,7 +79,7 @@ function onTemplateChanged(template: AnalyzerTemplate) {
     supportedLanguages.value = [...template.supported_languages];
     languageConfig.value = { ...template.language_config };
     logo.value = template.logo;
-    
+
     // Update workflow nodes and edges based on template
     if (template.steps && template.steps.length > 0) {
         // Convert template steps to nodes
@@ -186,16 +186,16 @@ init();
                     @submit="submit"
                 >
                     <!-- Template Selection Section -->
-                    <AnalyzerTemplateSelector 
-                        v-model:selectedTemplate="selectedTemplate"
+                    <AnalyzerTemplateSelector
+                        v-model:selected-template="selectedTemplate"
                         @template-changed="onTemplateChanged"
                     />
 
                     <!-- Basic Information Section -->
-                    <AnalyzerFormFields 
-                        v-model:name="name" 
+                    <AnalyzerFormFields
+                        v-model:name="name"
                         v-model:description="description"
-                        v-model:supportedLanguages="supportedLanguages"
+                        v-model:supported-languages="supportedLanguages"
                         v-model:logo="logo"
                     />
 

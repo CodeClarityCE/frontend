@@ -31,7 +31,9 @@ async function detectLanguages() {
     if (!props.project.analyses || props.project.analyses.length === 0) return;
 
     // Get the most recent completed analysis
-    const recentAnalysis = languageDetectionService.getMostRecentCompletedAnalysis(props.project.analyses);
+    const recentAnalysis = languageDetectionService.getMostRecentCompletedAnalysis(
+        props.project.analyses
+    );
     if (!recentAnalysis) return;
 
     loading.value = true;
@@ -62,14 +64,14 @@ onMounted(() => {
     <div class="flex items-center gap-2">
         <!-- Loading state -->
         <div v-if="loading" class="flex items-center gap-2">
-            <Skeleton 
+            <Skeleton
                 :class="{
                     'h-5 w-16': size === 'sm' || !size,
                     'h-6 w-20': size === 'md',
                     'h-7 w-24': size === 'lg'
                 }"
             />
-            <Skeleton 
+            <Skeleton
                 :class="{
                     'h-5 w-12': size === 'sm' || !size,
                     'h-6 w-16': size === 'md',
@@ -80,15 +82,15 @@ onMounted(() => {
 
         <!-- Error state -->
         <div v-else-if="error" class="flex items-center gap-1 text-gray-400">
-            <Icon 
-                icon="solar:question-circle-linear" 
+            <Icon
+                icon="solar:question-circle-linear"
                 :class="{
                     'h-3 w-3': size === 'sm' || !size,
                     'h-4 w-4': size === 'md',
                     'h-5 w-5': size === 'lg'
                 }"
             />
-            <span 
+            <span
                 :class="{
                     'text-xs': size === 'sm' || !size,
                     'text-sm': size === 'md',
@@ -100,16 +102,19 @@ onMounted(() => {
         </div>
 
         <!-- No languages detected -->
-        <div v-else-if="detectedLanguages.length === 0" class="flex items-center gap-1 text-gray-400">
-            <Icon 
-                icon="solar:code-square-linear" 
+        <div
+            v-else-if="detectedLanguages.length === 0"
+            class="flex items-center gap-1 text-gray-400"
+        >
+            <Icon
+                icon="solar:code-square-linear"
                 :class="{
                     'h-3 w-3': size === 'sm' || !size,
                     'h-4 w-4': size === 'md',
                     'h-5 w-5': size === 'lg'
                 }"
             />
-            <span 
+            <span
                 :class="{
                     'text-xs': size === 'sm' || !size,
                     'text-sm': size === 'md',

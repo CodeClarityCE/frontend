@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
-import { EcosystemDetector, ECOSYSTEMS } from '@/utils/packageEcosystem';
+import { ECOSYSTEMS } from '@/utils/packageEcosystem';
 import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
 
 export interface Props {
@@ -76,14 +76,14 @@ const shouldShowEcosystemFilter = computed(() => {
 
 const ecosystemFilterOptions = computed(() => {
     const options = [];
-    
+
     // Add "All" option
     options.push({
         value: null,
         label: 'All Languages',
         ecosystem: null
     });
-    
+
     // Add options for each available ecosystem
     for (const ecosystemType of availableEcosystems.value) {
         const ecosystem = ECOSYSTEMS[ecosystemType as keyof typeof ECOSYSTEMS];
@@ -95,7 +95,7 @@ const ecosystemFilterOptions = computed(() => {
             });
         }
     }
-    
+
     return options;
 });
 
@@ -109,10 +109,10 @@ function handleEcosystemFilterChange(ecosystemType: string | null) {
 async function detectAvailableEcosystems() {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
-    
+
     try {
         const ecosystems = new Set<string>();
-        
+
         // Check for js-sbom results
         try {
             await sbomRepo.getResultByType({
@@ -127,7 +127,7 @@ async function detectAvailableEcosystems() {
         } catch {
             // No js-sbom results
         }
-        
+
         // Check for php-sbom results
         try {
             await sbomRepo.getResultByType({
@@ -142,7 +142,7 @@ async function detectAvailableEcosystems() {
         } catch {
             // No php-sbom results
         }
-        
+
         availableEcosystems.value = ecosystems;
     } catch (error) {
         console.error('Error detecting ecosystems:', error);
@@ -202,10 +202,10 @@ onMounted(async () => {
                             :value="option.value"
                         >
                             <div class="flex items-center gap-2">
-                                <EcosystemBadge 
-                                    v-if="option.ecosystem" 
-                                    :ecosystem="option.ecosystem" 
-                                    size="xs" 
+                                <EcosystemBadge
+                                    v-if="option.ecosystem"
+                                    :ecosystem="option.ecosystem"
+                                    size="xs"
                                     variant="minimal"
                                     :show-name="false"
                                 />
@@ -217,13 +217,13 @@ onMounted(async () => {
                 </SelectContent>
             </Select>
         </div>
-        
+
         <!-- Current ecosystem indicator (when single ecosystem or filter applied) -->
         <div v-else-if="ecosystem && !shouldShowEcosystemFilter" class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-600">Language:</span>
             <EcosystemBadge :ecosystem="ecosystem" size="sm" variant="default" />
         </div>
-        
+
         <!-- Workspace selector (only shown when there are multiple workspaces) -->
         <div v-if="shouldShowWorkspaceSelector" class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-600">Workspace:</span>
@@ -251,9 +251,12 @@ onMounted(async () => {
                 </SelectContent>
             </Select>
         </div>
-        
+
         <!-- Single workspace indicator (when only one workspace exists) -->
-        <div v-else-if="workspaces.workspaces && workspaces.workspaces.length === 1" class="flex items-center gap-2">
+        <div
+            v-else-if="workspaces.workspaces && workspaces.workspaces.length === 1"
+            class="flex items-center gap-2"
+        >
             <span class="text-sm font-medium text-gray-600">Workspace:</span>
             <span class="text-sm text-gray-800 bg-gray-100 px-2 py-1 rounded border">
                 {{ workspaces.workspaces[0] === '.' ? 'Root' : workspaces.workspaces[0] }}

@@ -5,7 +5,6 @@ import { Icon } from '@iconify/vue';
 import { calculateDateDifference, formatRelativeTime, isValidDate } from '@/utils/dateUtils';
 import type { PropType } from 'vue';
 import { computed } from 'vue';
-import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
 import { EcosystemDetector, EcosystemMetadataExtractor } from '@/utils/packageEcosystem';
 
 const props = defineProps({
@@ -133,24 +132,32 @@ const getAgeDescription = (): string => {
                                 class="integration-link"
                                 :class="ecosystem.type"
                             >
-                                <Icon :icon="ecosystem.icon" class="integration-icon" :style="{ color: ecosystem.color }" />
+                                <Icon
+                                    :icon="ecosystem.icon"
+                                    class="integration-icon"
+                                    :style="{ color: ecosystem.color }"
+                                />
                                 <span class="integration-text">{{ ecosystem.name }}</span>
                                 <Icon icon="solar:external-link-linear" class="external-icon" />
                             </a>
                             <div v-else class="integration-link" :class="ecosystem.type">
-                                <Icon :icon="ecosystem.icon" class="integration-icon" :style="{ color: ecosystem.color }" />
+                                <Icon
+                                    :icon="ecosystem.icon"
+                                    class="integration-icon"
+                                    :style="{ color: ecosystem.color }"
+                                />
                                 <span class="integration-text">{{ ecosystem.name }}</span>
                             </div>
                         </div>
-                        
+
                         <!-- Show available tools for this ecosystem -->
                         <div v-if="ecosystem.tools.length > 0" class="mt-3">
                             <div class="text-xs text-gray-500 mb-2">Compatible tools:</div>
                             <div class="flex flex-wrap gap-1">
-                                <Badge 
-                                    v-for="tool in ecosystem.tools" 
-                                    :key="tool" 
-                                    variant="outline" 
+                                <Badge
+                                    v-for="tool in ecosystem.tools"
+                                    :key="tool"
+                                    variant="outline"
                                     class="text-xs"
                                 >
                                     {{ tool }}
@@ -321,9 +328,16 @@ const getAgeDescription = (): string => {
                 </div>
 
                 <!-- Ecosystem-specific Metadata -->
-                <div v-if="Object.keys(ecosystemMetadata).length > 0" class="detail-card ecosystem-metadata">
+                <div
+                    v-if="Object.keys(ecosystemMetadata).length > 0"
+                    class="detail-card ecosystem-metadata"
+                >
                     <div class="detail-header">
-                        <Icon :icon="ecosystem.icon" class="detail-icon" :style="{ color: ecosystem.color }" />
+                        <Icon
+                            :icon="ecosystem.icon"
+                            class="detail-icon"
+                            :style="{ color: ecosystem.color }"
+                        />
                         <span class="detail-title">{{ ecosystem.language }} Metadata</span>
                     </div>
                     <div class="detail-content">
@@ -332,42 +346,106 @@ const getAgeDescription = (): string => {
                             <template v-if="ecosystem.type === 'packagist'">
                                 <div v-if="ecosystemMetadata.type" class="flex flex-col gap-2">
                                     <span class="text-sm font-semibold text-gray-700">Type:</span>
-                                    <Badge variant="outline" class="w-fit text-xs">{{ ecosystemMetadata.type }}</Badge>
+                                    <Badge variant="outline" class="w-fit text-xs">{{
+                                        ecosystemMetadata.type
+                                    }}</Badge>
                                 </div>
                                 <div v-if="ecosystemMetadata.autoload" class="flex flex-col gap-2">
-                                    <span class="text-sm font-semibold text-gray-700">Autoload:</span>
-                                    <code class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto">{{ JSON.stringify(ecosystemMetadata.autoload, null, 2) }}</code>
+                                    <span class="text-sm font-semibold text-gray-700"
+                                        >Autoload:</span
+                                    >
+                                    <code
+                                        class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto"
+                                        >{{
+                                            JSON.stringify(ecosystemMetadata.autoload, null, 2)
+                                        }}</code
+                                    >
                                 </div>
-                                <div v-if="ecosystemMetadata.suggest && Object.keys(ecosystemMetadata.suggest).length > 0" class="flex flex-col gap-2">
-                                    <span class="text-sm font-semibold text-gray-700">Suggested packages:</span>
+                                <div
+                                    v-if="
+                                        ecosystemMetadata.suggest &&
+                                        Object.keys(ecosystemMetadata.suggest).length > 0
+                                    "
+                                    class="flex flex-col gap-2"
+                                >
+                                    <span class="text-sm font-semibold text-gray-700"
+                                        >Suggested packages:</span
+                                    >
                                     <div class="flex flex-col gap-2 max-h-24 overflow-y-auto">
-                                        <div v-for="(reason, pkg) in ecosystemMetadata.suggest" :key="pkg" class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200">
-                                            <code class="font-mono text-xs font-semibold text-blue-600">{{ pkg }}</code>
-                                            <span class="text-xs text-gray-600 text-right max-w-60 break-words">{{ reason }}</span>
+                                        <div
+                                            v-for="(reason, pkg) in ecosystemMetadata.suggest"
+                                            :key="pkg"
+                                            class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
+                                        >
+                                            <code
+                                                class="font-mono text-xs font-semibold text-blue-600"
+                                                >{{ pkg }}</code
+                                            >
+                                            <span
+                                                class="text-xs text-gray-600 text-right max-w-60 break-words"
+                                                >{{ reason }}</span
+                                            >
                                         </div>
                                     </div>
                                 </div>
                             </template>
-                            
+
                             <!-- NPM specific metadata -->
                             <template v-if="ecosystem.type === 'npm'">
-                                <div v-if="ecosystemMetadata.keywords && ecosystemMetadata.keywords.length > 0" class="flex flex-col gap-2">
-                                    <span class="text-sm font-semibold text-gray-700">Keywords:</span>
+                                <div
+                                    v-if="
+                                        ecosystemMetadata.keywords &&
+                                        ecosystemMetadata.keywords.length > 0
+                                    "
+                                    class="flex flex-col gap-2"
+                                >
+                                    <span class="text-sm font-semibold text-gray-700"
+                                        >Keywords:</span
+                                    >
                                     <div class="flex flex-wrap gap-1">
-                                        <Badge v-for="keyword in ecosystemMetadata.keywords" :key="keyword" variant="outline" class="text-xs">
+                                        <Badge
+                                            v-for="keyword in ecosystemMetadata.keywords"
+                                            :key="keyword"
+                                            variant="outline"
+                                            class="text-xs"
+                                        >
                                             {{ keyword }}
                                         </Badge>
                                     </div>
                                 </div>
                                 <div v-if="ecosystemMetadata.engines" class="flex flex-col gap-2">
-                                    <span class="text-sm font-semibold text-gray-700">Engines:</span>
-                                    <code class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto">{{ JSON.stringify(ecosystemMetadata.engines, null, 2) }}</code>
+                                    <span class="text-sm font-semibold text-gray-700"
+                                        >Engines:</span
+                                    >
+                                    <code
+                                        class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto"
+                                        >{{
+                                            JSON.stringify(ecosystemMetadata.engines, null, 2)
+                                        }}</code
+                                    >
                                 </div>
-                                <div v-if="ecosystemMetadata.peerDependencies && Object.keys(ecosystemMetadata.peerDependencies).length > 0" class="flex flex-col gap-2">
-                                    <span class="text-sm font-semibold text-gray-700">Peer Dependencies:</span>
+                                <div
+                                    v-if="
+                                        ecosystemMetadata.peerDependencies &&
+                                        Object.keys(ecosystemMetadata.peerDependencies).length > 0
+                                    "
+                                    class="flex flex-col gap-2"
+                                >
+                                    <span class="text-sm font-semibold text-gray-700"
+                                        >Peer Dependencies:</span
+                                    >
                                     <div class="flex flex-col gap-2 max-h-24 overflow-y-auto">
-                                        <div v-for="(version, pkg) in ecosystemMetadata.peerDependencies" :key="pkg" class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200">
-                                            <code class="font-mono text-xs font-semibold text-blue-600">{{ pkg }}</code>
+                                        <div
+                                            v-for="(
+                                                version, pkg
+                                            ) in ecosystemMetadata.peerDependencies"
+                                            :key="pkg"
+                                            class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
+                                        >
+                                            <code
+                                                class="font-mono text-xs font-semibold text-blue-600"
+                                                >{{ pkg }}</code
+                                            >
                                             <span class="text-xs text-gray-600">{{ version }}</span>
                                         </div>
                                     </div>

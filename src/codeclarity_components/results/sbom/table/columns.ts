@@ -49,7 +49,7 @@ export const columns: ColumnDef<Dependency>[] = [
             const name = row.getValue('name') as string;
             const dependency = row.original;
             const ecosystem = EcosystemDetector.detectFromDependency(dependency);
-            
+
             return h(
                 'div',
                 {
@@ -95,7 +95,7 @@ export const columns: ColumnDef<Dependency>[] = [
         cell: ({ row }) => {
             const dependency = row.original;
             const ecosystem = EcosystemDetector.detectFromDependency(dependency);
-            
+
             return h(
                 'div',
                 {

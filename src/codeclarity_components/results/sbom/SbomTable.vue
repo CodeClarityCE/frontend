@@ -89,7 +89,7 @@ async function init() {
     // Use props for project and analysis IDs, fallback to URL params if not provided
     let project_id = props.projectID;
     let analysis_id = props.analysisID;
-    
+
     if (!project_id || !analysis_id) {
         const urlParams = new URLSearchParams(window.location.search);
         project_id = project_id || urlParams.get('project_id') || '';
@@ -153,10 +153,13 @@ watch(sorting, () => {
     }
 });
 watch([selected_workspace], () => init());
-watch(() => props.ecosystemFilter, () => {
-    pageNumber.value = 0; // Reset to first page when filter changes
-    init();
-});
+watch(
+    () => props.ecosystemFilter,
+    () => {
+        pageNumber.value = 0; // Reset to first page when filter changes
+        init();
+    }
+);
 </script>
 
 <template>
@@ -174,7 +177,10 @@ watch(() => props.ecosystemFilter, () => {
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <Icon icon="tabler:package" class="w-4 h-4" />
-                    <span>{{ props.stats?.number_of_dependencies || nmbEntriesTotal }} total dependencies</span>
+                    <span
+                        >{{ props.stats?.number_of_dependencies || nmbEntriesTotal }} total
+                        dependencies</span
+                    >
                 </div>
             </div>
 

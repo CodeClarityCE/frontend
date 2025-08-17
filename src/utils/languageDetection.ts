@@ -51,7 +51,7 @@ export class LanguageDetectionService {
                     handleBusinessErrors: true
                 });
                 detectedLanguages.push(SUPPORTED_LANGUAGES.javascript);
-            } catch (error) {
+            } catch {
                 // No js-sbom results found, JavaScript not detected
             }
 
@@ -66,7 +66,7 @@ export class LanguageDetectionService {
                     handleBusinessErrors: true
                 });
                 detectedLanguages.push(SUPPORTED_LANGUAGES.php);
-            } catch (error) {
+            } catch {
                 // No php-sbom results found, PHP not detected
             }
         } catch (error) {
@@ -79,7 +79,8 @@ export class LanguageDetectionService {
     /**
      * Gets languages from a completed analysis
      */
-    getLanguagesFromAnalysis(analysis: Analysis): DetectedLanguage[] {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getLanguagesFromAnalysis(_analysis: Analysis): DetectedLanguage[] {
         // This method can be extended to check analysis metadata if language detection
         // information is stored in the analysis object itself in the future
         const detectedLanguages: DetectedLanguage[] = [];
@@ -87,7 +88,7 @@ export class LanguageDetectionService {
         // For now, we'll need to make API calls to determine languages
         // This is a placeholder that could be optimized by storing language
         // detection results in the analysis object
-        
+
         return detectedLanguages;
     }
 
@@ -98,7 +99,9 @@ export class LanguageDetectionService {
         if (!analyses || analyses.length === 0) return null;
 
         const completedAnalyses = analyses.filter(
-            analysis => analysis.status === AnalysisStatus.COMPLETED || analysis.status === AnalysisStatus.FINISHED
+            (analysis) =>
+                analysis.status === AnalysisStatus.COMPLETED ||
+                analysis.status === AnalysisStatus.FINISHED
         );
 
         if (completedAnalyses.length === 0) return null;

@@ -1,4 +1,7 @@
-import { BaseRepository, type AuthRepoMethodGetRequestOptions } from '../../../utils/api/BaseRepository';
+import {
+    BaseRepository,
+    type AuthRepoMethodGetRequestOptions
+} from '../../../utils/api/BaseRepository';
 import { DataResponse } from '../../../utils/api/responses/DataResponse';
 
 export interface AnalyzerTemplate {
@@ -19,7 +22,9 @@ export interface GetTemplateByLanguageOptions extends AuthRepoMethodGetRequestOp
 }
 
 export class AnalyzerTemplatesRepository extends BaseRepository {
-    async getTemplates(options: GetTemplatesRequestOptions): Promise<DataResponse<AnalyzerTemplate[]>> {
+    async getTemplates(
+        options: GetTemplatesRequestOptions
+    ): Promise<DataResponse<AnalyzerTemplate[]>> {
         const RELATIVE_URL = '/analyzer-templates';
 
         return await this.getRequest<DataResponse<AnalyzerTemplate[]>>({
@@ -31,7 +36,9 @@ export class AnalyzerTemplatesRepository extends BaseRepository {
         });
     }
 
-    async getTemplateByLanguage(options: GetTemplateByLanguageOptions): Promise<DataResponse<AnalyzerTemplate>> {
+    async getTemplateByLanguage(
+        options: GetTemplateByLanguageOptions
+    ): Promise<DataResponse<AnalyzerTemplate>> {
         const RELATIVE_URL = `/analyzer-templates/${options.language}`;
 
         return await this.getRequest<DataResponse<AnalyzerTemplate>>({

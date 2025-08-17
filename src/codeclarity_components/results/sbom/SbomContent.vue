@@ -51,7 +51,6 @@ import {
     sortDependenciesByPriority,
     type ExportOptions
 } from './exports/sbomExportUtils';
-import { EcosystemDetector } from '@/utils/packageEcosystem';
 
 export interface Props {
     analysisID?: string;
@@ -154,17 +153,6 @@ function handleEcosystemFilterChanged(ecosystemType: string | null) {
     selectedEcosystemFilter.value = ecosystemType;
     // Refresh both dependencies and stats with the new filter
     getSbomStats(true); // This will call fetchDependencies() as well
-}
-
-function updateStatsForFilteredDependencies() {
-    /** Recalculates statistics based on currently filtered dependencies */
-    const filteredDeps = dependencies.value;
-    
-    stats.value.number_of_dependencies = filteredDeps.length;
-    stats.value.number_of_direct_dependencies = filteredDeps.filter(dep => dep.is_direct_count > 0).length;
-    stats.value.number_of_transitive_dependencies = filteredDeps.filter(dep => dep.is_transitive_count > 0).length;
-    stats.value.number_of_non_dev_dependencies = filteredDeps.filter(dep => !dep.dev).length;
-    stats.value.number_of_dev_dependencies = filteredDeps.filter(dep => dep.dev).length;
 }
 
 async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
@@ -281,8 +269,11 @@ async function fetchDependencies() {
     if (!props.projectID || !props.analysisID) return;
 
     try {
-        console.log('📡 Fetching dependencies with ecosystem filter:', selectedEcosystemFilter.value);
-        
+        console.log(
+            '📡 Fetching dependencies with ecosystem filter:',
+            selectedEcosystemFilter.value
+        );
+
         // Fetch first page to get total count
         const firstPage = await sbomRepo.getSbom({
             orgId: userStore.getDefaultOrg.id,
@@ -329,7 +320,7 @@ async function fetchDependencies() {
 
         dependencies.value = fetchedDependencies;
         allDependencies.value = fetchedDependencies; // Store for potential client-side operations
-        
+
         console.log('📊 Fetched dependencies count:', fetchedDependencies.length);
         if (fetchedDependencies.length > 0) {
             const sampleDep = fetchedDependencies[0];
@@ -355,7 +346,7 @@ async function getSbomStats(refresh: boolean = false) {
     if (!refresh) loading.value = true;
 
     if (!props.projectID || !props.analysisID) return;
-    
+
     console.log('📈 Fetching SBOM stats with ecosystem filter:', selectedEcosystemFilter.value);
 
     let res: DataResponse<SbomStats>;

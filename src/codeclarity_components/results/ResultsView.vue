@@ -118,7 +118,7 @@ const projectRepository: ProjectRepository = new ProjectRepository();
 const analysisRepository: AnalysisRepository = new AnalysisRepository();
 
 const tab = ref({
-    'sbom': false, // Generic SBOM tab for both js-sbom and php-sbom
+    sbom: false, // Generic SBOM tab for both js-sbom and php-sbom
     'vuln-finder': false,
     'js-patching': false,
     'license-finder': false,
@@ -306,7 +306,9 @@ onBeforeMount(async () => {
                     Vulnerabilities
                 </TabsTrigger>
                 <TabsTrigger v-if="tab['js-patching']" value="js-patching"> Patches </TabsTrigger>
-                <TabsTrigger v-if="tab['license-finder']" value="license-finder"> Licenses </TabsTrigger>
+                <TabsTrigger v-if="tab['license-finder']" value="license-finder">
+                    Licenses
+                </TabsTrigger>
                 <TabsTrigger v-if="tab['codeql']" value="codeql"> CodeQL </TabsTrigger>
             </TabsList>
             <TabsContent value="sbom" class="space-y-4">

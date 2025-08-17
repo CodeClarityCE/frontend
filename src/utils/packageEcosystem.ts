@@ -149,7 +149,7 @@ export class EcosystemDetector {
             if (dependency.name.includes('/') && !dependency.name.startsWith('@')) {
                 return ECOSYSTEMS[PackageEcosystem.PACKAGIST];
             }
-            
+
             // npm scoped packages start with @
             if (dependency.name.startsWith('@')) {
                 return ECOSYSTEMS[PackageEcosystem.NPM];
@@ -173,7 +173,7 @@ export class EcosystemDetector {
      * Gets all supported ecosystems
      */
     static getAllEcosystems(): EcosystemInfo[] {
-        return Object.values(ECOSYSTEMS).filter(eco => eco.type !== PackageEcosystem.UNKNOWN);
+        return Object.values(ECOSYSTEMS).filter((eco) => eco.type !== PackageEcosystem.UNKNOWN);
     }
 
     /**
@@ -193,7 +193,7 @@ export class EcosystemMetadataExtractor {
      */
     static extractNpmMetadata(dependency: any): any {
         if (!dependency.extra?.npm) return {};
-        
+
         return {
             scripts: dependency.extra.npm.scripts,
             engines: dependency.extra.npm.engines,
@@ -208,7 +208,7 @@ export class EcosystemMetadataExtractor {
      */
     static extractComposerMetadata(dependency: any): any {
         if (!dependency.extra?.composer) return {};
-        
+
         return {
             type: dependency.extra.composer.type,
             autoload: dependency.extra.composer.autoload,

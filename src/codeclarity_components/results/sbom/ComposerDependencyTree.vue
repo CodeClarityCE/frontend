@@ -11,10 +11,21 @@
  * - Interactive expand/collapse functionality
  */
 
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shadcn/ui/collapsible';
-import type { Dependency } from '../utils/sbomUtils';
+interface Dependency {
+    name: string;
+    version: string;
+    version_info?: any;
+    framework?: string;
+    package_url?: string;
+    ecosystem?: string;
+    type?: string;
+    description?: string;
+    license?: string | string[];
+    scope?: string;
+}
 
 interface ComposerPackage {
     name: string;
@@ -277,9 +288,9 @@ function selectPackage(packageName: string) {
                         <!-- Actions -->
                         <div class="flex-shrink-0">
                             <button
-                                @click="selectPackage(pkg.name)"
                                 class="p-1 text-gray-400 hover:text-gray-600 rounded"
                                 title="View package details"
+                                @click="selectPackage(pkg.name)"
                             >
                                 <Icon icon="mdi:information-outline" class="w-4 h-4" />
                             </button>

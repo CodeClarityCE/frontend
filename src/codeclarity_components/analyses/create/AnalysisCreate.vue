@@ -46,6 +46,22 @@ import {
 import type { Project } from '@/codeclarity_components/projects/project.entity';
 import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+
+// Languages API
+import { BaseRepository } from '@/utils/api/BaseRepository';
+
+// Create a simple languages repository
+class LanguagesRepository extends BaseRepository {
+    async getSupportedLanguages(bearerToken: string): Promise<{ data: string[] }> {
+        return this.get({
+            url: '/languages',
+            bearerToken,
+            handleBusinessErrors: true
+        });
+    }
+}
+
+const languagesRepository = new LanguagesRepository();
 const user = useUserStore();
 const auth = useAuthStore();
 
@@ -70,6 +86,10 @@ const availableAnalyzers: Ref<Array<any>> = ref([]);
 
 const configuration: Ref<Record<string, any>> = ref({});
 
+// Language selection
+const selectedLanguages: Ref<string[]> = ref([]);
+const availableLanguages: Ref<string[]> = ref([]);
+
 // Schedule data
 const scheduleData = ref({
     schedule_type: 'once' as 'once' | '10min' | 'hourly' | 'daily' | 'weekly' | 'monthly',
@@ -91,6 +111,21 @@ if (projectId == null) {
     throw new Error('Project id not found');
 }
 project_id.value = projectId;
+
+// Fetch available languages
+async function getAvailableLanguages() {
+    if (auth.getAuthenticated && auth.getToken) {
+        try {
+            const response = await languagesRepository.getSupportedLanguages(auth.getToken);
+            availableLanguages.value = response.data;
+            console.log('Available languages:', availableLanguages.value);
+        } catch (err) {
+            console.error('Failed to fetch available languages:', err);
+            // Fallback to default languages
+            availableLanguages.value = ['javascript', 'php'];
+        }
+    }
+}
 
 // Fetch project info
 async function getProject() {
@@ -119,6 +154,7 @@ async function getProject() {
 // Initialize
 getProject();
 fetchAvailableAnalyzers();
+getAvailableLanguages();
 
 // Fetch available analyzers
 async function fetchAvailableAnalyzers() {
@@ -221,7 +257,8 @@ async function createAnalysisStart() {
                 analyzer_id: selected_analyzers.value[0].toString(),
                 branch: selected_branch.value,
                 commit_hash: selected_commit_hash.value,
-                config: configuration.value
+                config: configuration.value,
+                languages: selectedLanguages.value.length > 0 ? selectedLanguages.value : undefined
             };
 
             // Add scheduling fields if not 'once'
@@ -329,6 +366,48 @@ async function createAnalysisStart() {
                     <div v-else>{{ errorCode }} - {{ errorMessage }}</div>
                 </AlertDescription>
             </Alert>
+
+            <!-- Language Selection -->
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Select Languages</h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Choose the programming languages to analyze in your project. If none selected, automatic detection will be used.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <div v-for="language in availableLanguages" :key="language" class="relative">
+                        <label
+                            class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all"
+                            :class="{
+                                'border-theme-primary bg-theme-primary/5': selectedLanguages.includes(language)
+                            }"
+                        >
+                            <input
+                                v-model="selectedLanguages"
+                                type="checkbox"
+                                :value="language"
+                                class="w-4 h-4 text-theme-primary border-gray-300 rounded focus:ring-theme-primary focus:ring-2"
+                            />
+                            <div class="ml-3 flex items-center">
+                                <Icon 
+                                    :icon="language === 'javascript' ? 'simple-icons:javascript' : language === 'php' ? 'simple-icons:php' : 'mdi:code-tags'"
+                                    class="w-5 h-5 mr-2"
+                                    :class="{
+                                        'text-yellow-500': language === 'javascript',
+                                        'text-purple-600': language === 'php',
+                                        'text-gray-500': !['javascript', 'php'].includes(language)
+                                    }"
+                                />
+                                <span class="text-sm font-medium text-gray-900 capitalize">
+                                    {{ language }}
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
 
             <!-- Analyzer Selection - Much Simpler -->
             <div class="space-y-4">
@@ -496,15 +575,12 @@ async function createAnalysisStart() {
                                                                 <SelectContent>
                                                                     <SelectGroup>
                                                                         <SelectItem
-                                                                            value="javascript-typescript"
-                                                                            >JavaScript/TypeScript</SelectItem
+                                                                            v-for="language in availableLanguages"
+                                                                            :key="language"
+                                                                            :value="language"
                                                                         >
-                                                                        <SelectItem value="python"
-                                                                            >Python</SelectItem
-                                                                        >
-                                                                        <SelectItem value="go"
-                                                                            >Go</SelectItem
-                                                                        >
+                                                                            {{ language.charAt(0).toUpperCase() + language.slice(1) }}
+                                                                        </SelectItem>
                                                                     </SelectGroup>
                                                                 </SelectContent>
                                                             </Select>

@@ -24,9 +24,9 @@ export interface EcosystemInfo {
 export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.NPM]: {
         type: PackageEcosystem.NPM,
-        name: 'npm Registry',
-        icon: 'devicon:npm',
-        color: '#CB3837',
+        name: 'JavaScript',
+        icon: 'devicon:javascript',
+        color: '#F7DF1E',
         website: 'https://www.npmjs.com',
         language: 'JavaScript',
         purlType: 'npm',
@@ -35,9 +35,9 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     },
     [PackageEcosystem.PACKAGIST]: {
         type: PackageEcosystem.PACKAGIST,
-        name: 'Packagist',
-        icon: 'devicon:composer',
-        color: '#885630',
+        name: 'PHP',
+        icon: 'devicon:php',
+        color: '#777BB4',
         website: 'https://packagist.org',
         language: 'PHP',
         purlType: 'composer',
@@ -135,15 +135,34 @@ export class EcosystemDetector {
      * Detects ecosystem from dependency object
      */
     static detectFromDependency(dependency: any): EcosystemInfo {
-        // First try to detect from PURL if available
-        if (dependency.purl) {
-            const detected = this.detectFromPURL(dependency.purl);
+        // First check explicit ecosystem field from backend (most reliable)
+        if (dependency.ecosystem) {
+            switch (dependency.ecosystem.toLowerCase()) {
+                case 'npm':
+                    return ECOSYSTEMS[PackageEcosystem.NPM];
+                case 'packagist':
+                    return ECOSYSTEMS[PackageEcosystem.PACKAGIST];
+                case 'pypi':
+                    return ECOSYSTEMS[PackageEcosystem.PYPI];
+                case 'cargo':
+                    return ECOSYSTEMS[PackageEcosystem.CRATES_IO];
+                case 'maven':
+                    return ECOSYSTEMS[PackageEcosystem.MAVEN_CENTRAL];
+                case 'nuget':
+                    return ECOSYSTEMS[PackageEcosystem.NUGET];
+            }
+        }
+
+        // Fallback to PURL detection if available
+        if (dependency.purl || dependency.package_url) {
+            const purl = dependency.purl || dependency.package_url;
+            const detected = this.detectFromPURL(purl);
             if (detected.type !== PackageEcosystem.UNKNOWN) {
                 return detected;
             }
         }
 
-        // Fallback: try to detect from package name patterns
+        // Fallback to package name patterns (least reliable)
         if (dependency.name) {
             // PHP Composer packages typically have vendor/package format
             if (dependency.name.includes('/') && !dependency.name.startsWith('@')) {
@@ -154,14 +173,9 @@ export class EcosystemDetector {
             if (dependency.name.startsWith('@')) {
                 return ECOSYSTEMS[PackageEcosystem.NPM];
             }
-        }
 
-        // Check extra field for hints
-        if (dependency.extra) {
-            if (dependency.extra.composer) {
-                return ECOSYSTEMS[PackageEcosystem.PACKAGIST];
-            }
-            if (dependency.extra.npm) {
+            // If no slash and not scoped, likely npm (since PHP packages almost always have vendor/package format)
+            if (!dependency.name.includes('/')) {
                 return ECOSYSTEMS[PackageEcosystem.NPM];
             }
         }

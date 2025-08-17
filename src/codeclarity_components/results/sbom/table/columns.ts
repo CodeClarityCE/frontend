@@ -47,29 +47,13 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const name = row.getValue('name') as string;
-            const dependency = row.original;
-            const ecosystem = EcosystemDetector.detectFromDependency(dependency);
 
             return h(
-                'div',
+                'span',
                 {
-                    class: 'flex items-center gap-3'
+                    class: 'font-medium text-gray-900 dark:text-gray-100 truncate'
                 },
-                [
-                    h(EcosystemBadge, {
-                        ecosystem,
-                        size: 'xs',
-                        variant: 'minimal',
-                        showName: false
-                    }),
-                    h(
-                        'span',
-                        {
-                            class: 'font-medium text-gray-900 dark:text-gray-100 truncate'
-                        },
-                        name
-                    )
-                ]
+                name
             );
         },
         enableSorting: false
@@ -112,7 +96,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         enableSorting: false,
-        filterFn: (row, id, value) => {
+        filterFn: (row, _id, value) => {
             const dependency = row.original;
             const ecosystem = EcosystemDetector.detectFromDependency(dependency);
             return value.includes(ecosystem.type);

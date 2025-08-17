@@ -6,6 +6,8 @@ import { formatRelativeTime } from '@/utils/dateUtils';
 import type { Dependency } from '@/codeclarity_components/results/graph.entity';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { Icon } from '@iconify/vue';
+import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
+import { EcosystemDetector } from '@/utils/packageEcosystem';
 
 export const columns: ColumnDef<Dependency>[] = [
     // {
@@ -45,14 +47,20 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const name = row.getValue('name') as string;
+            const dependency = row.original;
+            const ecosystem = EcosystemDetector.detectFromDependency(dependency);
+            
             return h(
                 'div',
                 {
-                    class: 'flex items-center gap-2'
+                    class: 'flex items-center gap-3'
                 },
                 [
-                    h('div', {
-                        class: 'w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex-shrink-0'
+                    h(EcosystemBadge, {
+                        ecosystem,
+                        size: 'xs',
+                        variant: 'minimal',
+                        showName: false
                     }),
                     h(
                         'span',
@@ -65,6 +73,50 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         enableSorting: false
+    },
+    {
+        accessorKey: 'ecosystem',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+                    class: 'h-auto p-0 font-semibold text-left justify-start'
+                },
+                () => [
+                    h('div', { class: 'flex items-center gap-2' }, [
+                        h('span', 'Ecosystem'),
+                        h(ArrowUpDown, { class: 'h-3 w-3 text-gray-400' })
+                    ])
+                ]
+            );
+        },
+        cell: ({ row }) => {
+            const dependency = row.original;
+            const ecosystem = EcosystemDetector.detectFromDependency(dependency);
+            
+            return h(
+                'div',
+                {
+                    class: 'flex items-center justify-start'
+                },
+                [
+                    h(EcosystemBadge, {
+                        ecosystem,
+                        size: 'sm',
+                        variant: 'default',
+                        showName: true
+                    })
+                ]
+            );
+        },
+        enableSorting: false,
+        filterFn: (row, id, value) => {
+            const dependency = row.original;
+            const ecosystem = EcosystemDetector.detectFromDependency(dependency);
+            return value.includes(ecosystem.type);
+        }
     },
     {
         accessorKey: 'version',

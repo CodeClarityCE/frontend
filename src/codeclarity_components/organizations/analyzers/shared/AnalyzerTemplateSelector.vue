@@ -22,8 +22,8 @@ const error = ref(false);
 
 // Computed
 const selectedTemplate = computed({
-    get: () => props.selectedTemplate,
-    set: (value) => emit('update:selectedTemplate', value)
+    get: () => props.selectedTemplate ?? null,
+    set: (value) => emit('update:selectedTemplate', value ?? null)
 });
 
 // Language logos mapping

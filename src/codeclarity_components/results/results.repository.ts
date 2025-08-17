@@ -22,6 +22,7 @@ export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOpti
     projectId: string;
     analysisId: string;
     workspace: string;
+    ecosystem_filter?: string;
     runIndex?: number | null;
 }
 
@@ -51,6 +52,7 @@ export interface GetSbomRequestOptions
     workspace: string;
     active_filters: string;
     search_key: string;
+    ecosystem_filter?: string;
     runIndex?: number | null;
 }
 
@@ -78,6 +80,10 @@ export class ResultsRepository extends BaseRepository {
         const queryParams: any = {
             workspace: options.workspace
         };
+
+        if (options.ecosystem_filter) {
+            queryParams.ecosystem_filter = options.ecosystem_filter;
+        }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
             queryParams.run_index = options.runIndex;
@@ -133,6 +139,10 @@ export class ResultsRepository extends BaseRepository {
             active_filters: options.active_filters,
             search_key: options.search_key
         };
+
+        if (options.ecosystem_filter) {
+            queryParams.ecosystem_filter = options.ecosystem_filter;
+        }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
             queryParams.run_index = options.runIndex;

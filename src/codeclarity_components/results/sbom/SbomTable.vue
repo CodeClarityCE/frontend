@@ -12,6 +12,19 @@ import PaginationComponent from '@/base_components/utilities/PaginationComponent
 import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
 import { Icon } from '@iconify/vue';
 
+export interface Props {
+    projectID?: string;
+    analysisID?: string;
+    ecosystemFilter?: string | null;
+    stats?: any; // Stats from the parent component
+}
+const props = withDefaults(defineProps<Props>(), {
+    projectID: '',
+    analysisID: '',
+    ecosystemFilter: null,
+    stats: null
+});
+
 // Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -42,14 +55,26 @@ const columnVisibility = ref<VisibilityState>({
 
 // Computed statistics for dashboard
 const outdatedCount = computed(() => {
+    // Use stats from props if available, otherwise calculate from current page
+    if (props.stats?.number_of_outdated_dependencies !== undefined) {
+        return props.stats.number_of_outdated_dependencies;
+    }
     return data.value.filter((dep) => dep.version !== dep.newest_release).length;
 });
 
 const directCount = computed(() => {
+    // Use stats from props if available, otherwise calculate from current page
+    if (props.stats?.number_of_direct_dependencies !== undefined) {
+        return props.stats.number_of_direct_dependencies;
+    }
     return data.value.filter((dep) => dep.is_direct_count > 0).length;
 });
 
 const prodCount = computed(() => {
+    // Use stats from props if available, otherwise calculate from current page
+    if (props.stats?.number_of_non_dev_dependencies !== undefined) {
+        return props.stats.number_of_non_dev_dependencies;
+    }
     return data.value.filter((dep) => dep.prod).length;
 });
 
@@ -60,11 +85,18 @@ async function init() {
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    const urlParams = new URLSearchParams(window.location.search);
-    const analysis_id = urlParams.get('analysis_id');
-    const project_id = urlParams.get('project_id');
 
-    if (project_id == null || analysis_id == null) {
+    // Use props for project and analysis IDs, fallback to URL params if not provided
+    let project_id = props.projectID;
+    let analysis_id = props.analysisID;
+    
+    if (!project_id || !analysis_id) {
+        const urlParams = new URLSearchParams(window.location.search);
+        project_id = project_id || urlParams.get('project_id') || '';
+        analysis_id = analysis_id || urlParams.get('analysis_id') || '';
+    }
+
+    if (!project_id || !analysis_id) {
         return;
     }
 
@@ -84,7 +116,8 @@ async function init() {
             },
             bearerToken: authStore.getToken,
             active_filters: '',
-            search_key: searchKey.value
+            search_key: searchKey.value,
+            ecosystem_filter: props.ecosystemFilter || undefined
         });
         data.value = res.data;
 
@@ -120,6 +153,10 @@ watch(sorting, () => {
     }
 });
 watch([selected_workspace], () => init());
+watch(() => props.ecosystemFilter, () => {
+    pageNumber.value = 0; // Reset to first page when filter changes
+    init();
+});
 </script>
 
 <template>
@@ -137,7 +174,7 @@ watch([selected_workspace], () => init());
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <Icon icon="tabler:package" class="w-4 h-4" />
-                    <span>{{ nmbEntriesTotal }} total dependencies</span>
+                    <span>{{ props.stats?.number_of_dependencies || nmbEntriesTotal }} total dependencies</span>
                 </div>
             </div>
 
@@ -152,7 +189,7 @@ watch([selected_workspace], () => init());
                         >
                     </div>
                     <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {{ nmbEntriesTotal }}
+                        {{ props.stats?.number_of_dependencies || nmbEntriesTotal }}
                     </div>
                 </div>
 

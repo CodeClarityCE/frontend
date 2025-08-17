@@ -226,8 +226,14 @@ async function getAnalysis(projectID: string, analysisID: string) {
             handleBusinessErrors: true
         });
         analysis.value = res.data;
-        default_tab.value = res.data.steps[0][0].Name;
-        current_tab.value = res.data.steps[0][0].Name;
+        // Map plugin names to tab names
+        const pluginName = res.data.steps[0][0].Name;
+        let tabName = pluginName;
+        if (pluginName === 'js-sbom' || pluginName === 'php-sbom') {
+            tabName = 'sbom';
+        }
+        default_tab.value = tabName;
+        current_tab.value = tabName;
     } catch (_err) {
         console.error(_err);
 

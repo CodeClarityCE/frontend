@@ -149,7 +149,6 @@ function handlePackageManagerLoaded(manager: string) {
 
 function handleEcosystemFilterChanged(ecosystemType: string | null) {
     /** Handles ecosystem filter changes from SelectWorkspace component */
-    console.log('🔄 Ecosystem filter changed:', ecosystemType);
     selectedEcosystemFilter.value = ecosystemType;
     // Refresh both dependencies and stats with the new filter
     getSbomStats(true); // This will call fetchDependencies() as well
@@ -269,11 +268,6 @@ async function fetchDependencies() {
     if (!props.projectID || !props.analysisID) return;
 
     try {
-        console.log(
-            '📡 Fetching dependencies with ecosystem filter:',
-            selectedEcosystemFilter.value
-        );
-
         // Fetch first page to get total count
         const firstPage = await sbomRepo.getSbom({
             orgId: userStore.getDefaultOrg.id,
@@ -320,16 +314,6 @@ async function fetchDependencies() {
 
         dependencies.value = fetchedDependencies;
         allDependencies.value = fetchedDependencies; // Store for potential client-side operations
-
-        console.log('📊 Fetched dependencies count:', fetchedDependencies.length);
-        if (fetchedDependencies.length > 0) {
-            const sampleDep = fetchedDependencies[0];
-            console.log('📦 Sample dependency:', {
-                name: sampleDep.name,
-                ecosystem: (sampleDep as any).ecosystem,
-                source_plugin: (sampleDep as any).source_plugin
-            });
-        }
     } catch (error) {
         console.error('Failed to fetch dependencies:', error);
     }
@@ -346,8 +330,6 @@ async function getSbomStats(refresh: boolean = false) {
     if (!refresh) loading.value = true;
 
     if (!props.projectID || !props.analysisID) return;
-
-    console.log('📈 Fetching SBOM stats with ecosystem filter:', selectedEcosystemFilter.value);
 
     let res: DataResponse<SbomStats>;
     try {

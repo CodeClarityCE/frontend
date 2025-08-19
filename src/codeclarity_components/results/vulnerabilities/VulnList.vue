@@ -588,7 +588,7 @@ const exploitableCount = computed(() => {
                                     {{ report.Vulnerability }}
                                 </h3>
                                 <div
-                                    v-if="report.Weaknesses.length > 0"
+                                    v-if="report.Weaknesses && report.Weaknesses.length > 0"
                                     class="text-sm text-gray-500 font-medium"
                                 >
                                     {{ report.Weaknesses[0].WeaknessName }}
@@ -1124,7 +1124,7 @@ const exploitableCount = computed(() => {
 
                             <!-- CWE Badges -->
                             <TooltipProvider
-                                v-for="weakness in report.Weaknesses"
+                                v-for="weakness in (report.Weaknesses || [])"
                                 :key="weakness.WeaknessId"
                             >
                                 <Tooltip>
@@ -1511,7 +1511,7 @@ const exploitableCount = computed(() => {
                         >
                             <div class="flex flex-wrap gap-2">
                                 <div
-                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses)"
+                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses || [])"
                                     :key="owaspID"
                                 >
                                     <TooltipProvider>

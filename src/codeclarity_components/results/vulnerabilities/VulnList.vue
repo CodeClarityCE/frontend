@@ -79,22 +79,6 @@ const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 // Filters
 const filterState: Ref<FilterState> = ref(
     createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            icon: 'meteor-icons:language',
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        },
-        Divider: {
-            name: 'Language',
-            type: FilterType.DIVIDER,
-            data: {}
-        },
         AttributeState: {
             name: 'Matching',
             type: FilterType.CHECKBOX,

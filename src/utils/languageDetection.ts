@@ -1,12 +1,10 @@
 import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import type { DetectedLanguage } from './ecosystem-shared';
 
-export interface DetectedLanguage {
-    name: string;
-    icon: string;
-    color: string;
-}
+// Re-export DetectedLanguage for components that depend on it
+export type { DetectedLanguage };
 
 export const SUPPORTED_LANGUAGES: Record<string, DetectedLanguage> = {
     javascript: {

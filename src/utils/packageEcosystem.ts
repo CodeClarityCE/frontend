@@ -1,3 +1,8 @@
+import type { EcosystemInfo } from './ecosystem-shared';
+
+// Re-export types for components that depend on them
+export type { EcosystemInfo };
+
 export enum PackageEcosystem {
     NPM = 'npm',
     PACKAGIST = 'packagist', // PHP Composer
@@ -8,27 +13,22 @@ export enum PackageEcosystem {
     UNKNOWN = 'unknown'
 }
 
-export interface EcosystemInfo {
+// Extended interface that includes the legacy type field for backwards compatibility
+export interface EcosystemInfoExtended extends EcosystemInfo {
     type: PackageEcosystem;
-    name: string;
-    icon: string;
-    color: string;
-    website: string;
-    language: string;
-    purlType: string; // The type used in Package URLs
-    registryUrl: string;
-    // Common tools that work with this ecosystem
-    tools: string[];
 }
 
-export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
+export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     [PackageEcosystem.NPM]: {
         type: PackageEcosystem.NPM,
         name: 'JavaScript',
+        ecosystem: 'npm',
+        language: 'JavaScript',
+        packageManagerPattern: '(npm|yarn|pnpm|bun)',
+        defaultPackageManager: 'npm',
         icon: 'devicon:javascript',
         color: '#F7DF1E',
         website: 'https://www.npmjs.com',
-        language: 'JavaScript',
         purlType: 'npm',
         registryUrl: 'https://registry.npmjs.org',
         tools: ['npm', 'yarn', 'pnpm', 'bun']
@@ -36,10 +36,13 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.PACKAGIST]: {
         type: PackageEcosystem.PACKAGIST,
         name: 'PHP',
+        ecosystem: 'packagist',
+        language: 'PHP',
+        packageManagerPattern: 'composer',
+        defaultPackageManager: 'composer',
         icon: 'devicon:php',
         color: '#777BB4',
         website: 'https://packagist.org',
-        language: 'PHP',
         purlType: 'composer',
         registryUrl: 'https://packagist.org',
         tools: ['composer']
@@ -47,10 +50,13 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.PYPI]: {
         type: PackageEcosystem.PYPI,
         name: 'PyPI',
+        ecosystem: 'pypi',
+        language: 'Python',
+        packageManagerPattern: '(pip|poetry|pipenv|conda)',
+        defaultPackageManager: 'pip',
         icon: 'devicon:python',
         color: '#3776AB',
         website: 'https://pypi.org',
-        language: 'Python',
         purlType: 'pypi',
         registryUrl: 'https://pypi.org/simple',
         tools: ['pip', 'poetry', 'pipenv', 'conda']
@@ -58,10 +64,13 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.CRATES_IO]: {
         type: PackageEcosystem.CRATES_IO,
         name: 'crates.io',
+        ecosystem: 'cargo',
+        language: 'Rust',
+        packageManagerPattern: 'cargo',
+        defaultPackageManager: 'cargo',
         icon: 'devicon:rust',
         color: '#000000',
         website: 'https://crates.io',
-        language: 'Rust',
         purlType: 'cargo',
         registryUrl: 'https://crates.io',
         tools: ['cargo']
@@ -69,10 +78,13 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.MAVEN_CENTRAL]: {
         type: PackageEcosystem.MAVEN_CENTRAL,
         name: 'Maven Central',
+        ecosystem: 'maven',
+        language: 'Java',
+        packageManagerPattern: '(maven|gradle|sbt)',
+        defaultPackageManager: 'maven',
         icon: 'devicon:maven',
         color: '#C71A36',
         website: 'https://mvnrepository.com',
-        language: 'Java',
         purlType: 'maven',
         registryUrl: 'https://repo1.maven.org/maven2',
         tools: ['maven', 'gradle', 'sbt']
@@ -80,10 +92,13 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.NUGET]: {
         type: PackageEcosystem.NUGET,
         name: 'NuGet',
+        ecosystem: 'nuget',
+        language: 'C#',
+        packageManagerPattern: '(dotnet|nuget|paket)',
+        defaultPackageManager: 'dotnet',
         icon: 'devicon:nuget',
         color: '#004880',
         website: 'https://www.nuget.org',
-        language: 'C#',
         purlType: 'nuget',
         registryUrl: 'https://api.nuget.org/v3/index.json',
         tools: ['dotnet', 'nuget', 'paket']
@@ -91,10 +106,13 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfo> = {
     [PackageEcosystem.UNKNOWN]: {
         type: PackageEcosystem.UNKNOWN,
         name: 'Unknown',
+        ecosystem: 'unknown',
+        language: 'Unknown',
+        packageManagerPattern: '',
+        defaultPackageManager: '',
         icon: 'solar:question-circle-linear',
         color: '#6B7280',
         website: '',
-        language: 'Unknown',
         purlType: '',
         registryUrl: '',
         tools: []
@@ -106,7 +124,7 @@ export class EcosystemDetector {
      * Detects ecosystem from Package URL (PURL)
      * PURL format: pkg:type/namespace/name@version?qualifiers#subpath
      */
-    static detectFromPURL(purl: string): EcosystemInfo {
+    static detectFromPURL(purl: string): EcosystemInfoExtended {
         if (!purl || !purl.startsWith('pkg:')) {
             return ECOSYSTEMS[PackageEcosystem.UNKNOWN];
         }
@@ -134,7 +152,7 @@ export class EcosystemDetector {
     /**
      * Detects ecosystem from dependency object
      */
-    static detectFromDependency(dependency: any): EcosystemInfo {
+    static detectFromDependency(dependency: any): EcosystemInfoExtended {
         // First check explicit ecosystem field from backend (most reliable)
         if (dependency.ecosystem) {
             switch (dependency.ecosystem.toLowerCase()) {
@@ -186,14 +204,14 @@ export class EcosystemDetector {
     /**
      * Gets all supported ecosystems
      */
-    static getAllEcosystems(): EcosystemInfo[] {
+    static getAllEcosystems(): EcosystemInfoExtended[] {
         return Object.values(ECOSYSTEMS).filter((eco) => eco.type !== PackageEcosystem.UNKNOWN);
     }
 
     /**
      * Gets ecosystem by type
      */
-    static getEcosystem(type: PackageEcosystem): EcosystemInfo {
+    static getEcosystem(type: PackageEcosystem): EcosystemInfoExtended {
         return ECOSYSTEMS[type] || ECOSYSTEMS[PackageEcosystem.UNKNOWN];
     }
 }
@@ -243,10 +261,11 @@ export class EcosystemMetadataExtractor {
      * Extracts ecosystem-specific metadata
      */
     static extractMetadata(dependency: any, ecosystem: EcosystemInfo): any {
-        switch (ecosystem.type) {
-            case PackageEcosystem.NPM:
+        // Use ecosystem name instead of type since shared EcosystemInfo doesn't have type
+        switch (ecosystem.ecosystem) {
+            case 'npm':
                 return this.extractNpmMetadata(dependency);
-            case PackageEcosystem.PACKAGIST:
+            case 'packagist':
                 return this.extractComposerMetadata(dependency);
             default:
                 return dependency.extra || {};

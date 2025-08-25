@@ -74,7 +74,6 @@ const configuration: Ref<Record<string, any>> = ref({});
 // Available languages for analyzer configuration only
 const availableLanguages = ['javascript', 'php'];
 
-
 // Schedule data
 const scheduleData = ref({
     schedule_type: 'once' as 'once' | '10min' | 'hourly' | 'daily' | 'weekly' | 'monthly',
@@ -96,7 +95,6 @@ if (projectId == null) {
     throw new Error('Project id not found');
 }
 project_id.value = projectId;
-
 
 // Fetch project info
 async function getProject() {
@@ -336,7 +334,6 @@ async function createAnalysisStart() {
                 </AlertDescription>
             </Alert>
 
-
             <!-- Analyzer Selection - Much Simpler -->
             <div class="space-y-4">
                 <div>
@@ -507,7 +504,12 @@ async function createAnalysisStart() {
                                                                             :key="language"
                                                                             :value="language"
                                                                         >
-                                                                            {{ language.charAt(0).toUpperCase() + language.slice(1) }}
+                                                                            {{
+                                                                                language
+                                                                                    .charAt(0)
+                                                                                    .toUpperCase() +
+                                                                                language.slice(1)
+                                                                            }}
                                                                         </SelectItem>
                                                                     </SelectGroup>
                                                                 </SelectContent>

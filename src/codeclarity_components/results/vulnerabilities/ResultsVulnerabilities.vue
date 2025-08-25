@@ -143,7 +143,9 @@ watch(active_tab, async (newTab, oldTab) => {
             v-model:selected_workspace="selected_workspace"
             :analysis-i-d="analysis.id"
             :project-i-d="project.id"
-            @ecosystem-filter-changed="(filter: string | null) => selectedEcosystemFilter = filter"
+            @ecosystem-filter-changed="
+                (filter: string | null) => (selectedEcosystemFilter = filter)
+            "
         ></VulnContent>
         <Card>
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">

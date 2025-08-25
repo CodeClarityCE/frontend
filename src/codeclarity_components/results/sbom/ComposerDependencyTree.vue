@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /**
  * ComposerDependencyTree Component
- * 
+ *
  * Displays PHP Composer dependencies in a hierarchical tree structure.
  * Features:
  * - Visual representation of package dependencies from composer.lock
@@ -59,10 +59,11 @@ const expandedPackages = ref<Set<string>>(new Set());
 // Computed properties
 const composerPackages = computed(() => {
     // Filter for PHP/Composer dependencies only
-    const phpDeps = props.dependencies.filter(dep => 
-        dep.package_url?.includes('pkg:composer/') || 
-        dep.ecosystem === 'composer' ||
-        dep.name?.includes('/')  // Composer packages typically have vendor/package format
+    const phpDeps = props.dependencies.filter(
+        (dep) =>
+            dep.package_url?.includes('pkg:composer/') ||
+            dep.ecosystem === 'composer' ||
+            dep.name?.includes('/') // Composer packages typically have vendor/package format
     );
 
     return buildPackageTree(phpDeps);
@@ -74,9 +75,10 @@ const frameworkInfo = computed(() => {
     let devPackages = 0;
     let prodPackages = 0;
 
-    composerPackages.value.forEach(pkg => {
+    composerPackages.value.forEach((pkg) => {
         if (pkg.framework) frameworks.add(pkg.framework);
-        if (pkg.isDev) devPackages++; else prodPackages++;
+        if (pkg.isDev) devPackages++;
+        else prodPackages++;
     });
 
     return {
@@ -93,13 +95,17 @@ function buildPackageTree(dependencies: Dependency[]): ComposerPackage[] {
     const packageMap = new Map<string, ComposerPackage>();
 
     // Convert dependencies to ComposerPackage format
-    dependencies.forEach(dep => {
+    dependencies.forEach((dep) => {
         const pkg: ComposerPackage = {
             name: dep.name || 'unknown',
             version: dep.version || 'unknown',
             type: dep.type,
             description: dep.description,
-            license: Array.isArray(dep.license) ? dep.license : dep.license ? [dep.license] : undefined,
+            license: Array.isArray(dep.license)
+                ? dep.license
+                : dep.license
+                  ? [dep.license]
+                  : undefined,
             framework: detectFramework(dep.name || ''),
             isDev: dep.scope === 'dev' || dep.scope === 'development',
             dependencies: [],
@@ -123,19 +129,19 @@ function buildPackageTree(dependencies: Dependency[]): ComposerPackage[] {
 
 function detectFramework(packageName: string): string | undefined {
     const frameworkPatterns = {
-        'Laravel': ['laravel/framework', 'laravel/'],
-        'Symfony': ['symfony/framework-bundle', 'symfony/'],
-        'CakePHP': ['cakephp/cakephp', 'cakephp/'],
-        'CodeIgniter': ['codeigniter4/framework'],
-        'WordPress': ['johnpbloch/wordpress', 'wordpress/'],
-        'Drupal': ['drupal/core', 'drupal/'],
-        'Slim': ['slim/slim'],
-        'Yii': ['yiisoft/yii2'],
-        'Laminas': ['laminas/']
+        Laravel: ['laravel/framework', 'laravel/'],
+        Symfony: ['symfony/framework-bundle', 'symfony/'],
+        CakePHP: ['cakephp/cakephp', 'cakephp/'],
+        CodeIgniter: ['codeigniter4/framework'],
+        WordPress: ['johnpbloch/wordpress', 'wordpress/'],
+        Drupal: ['drupal/core', 'drupal/'],
+        Slim: ['slim/slim'],
+        Yii: ['yiisoft/yii2'],
+        Laminas: ['laminas/']
     };
 
     for (const [framework, patterns] of Object.entries(frameworkPatterns)) {
-        if (patterns.some(pattern => packageName.includes(pattern))) {
+        if (patterns.some((pattern) => packageName.includes(pattern))) {
             return framework;
         }
     }
@@ -179,15 +185,13 @@ function selectPackage(packageName: string) {
                     <Icon icon="mdi:package-variant-closed" class="text-blue-600" />
                     Composer Dependencies
                 </h3>
-                <div class="text-sm text-gray-500">
-                    {{ frameworkInfo.totalPackages }} packages
-                </div>
+                <div class="text-sm text-gray-500">{{ frameworkInfo.totalPackages }} packages</div>
             </div>
 
             <!-- Framework badges -->
             <div v-if="frameworkInfo.frameworks.length > 0" class="flex flex-wrap gap-2 mb-4">
-                <span 
-                    v-for="framework in frameworkInfo.frameworks" 
+                <span
+                    v-for="framework in frameworkInfo.frameworks"
                     :key="framework"
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                 >
@@ -199,11 +203,15 @@ function selectPackage(packageName: string) {
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div class="bg-gray-50 rounded-lg p-3">
                     <div class="text-gray-500">Production</div>
-                    <div class="text-lg font-semibold text-gray-900">{{ frameworkInfo.prodPackages }}</div>
+                    <div class="text-lg font-semibold text-gray-900">
+                        {{ frameworkInfo.prodPackages }}
+                    </div>
                 </div>
                 <div class="bg-orange-50 rounded-lg p-3">
                     <div class="text-gray-500">Development</div>
-                    <div class="text-lg font-semibold text-orange-600">{{ frameworkInfo.devPackages }}</div>
+                    <div class="text-lg font-semibold text-orange-600">
+                        {{ frameworkInfo.devPackages }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -223,29 +231,27 @@ function selectPackage(packageName: string) {
 
         <!-- Dependency tree -->
         <div v-else class="space-y-1">
-            <div 
-                v-for="pkg in composerPackages" 
-                :key="pkg.name"
-                class="dependency-item"
-            >
+            <div v-for="pkg in composerPackages" :key="pkg.name" class="dependency-item">
                 <Collapsible v-model:open="pkg.expanded">
-                    <div class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div
+                        class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
                         <!-- Expand/collapse button -->
-                        <CollapsibleTrigger 
+                        <CollapsibleTrigger
                             v-if="pkg.dependencies.length > 0"
                             class="flex-shrink-0 p-1 hover:bg-gray-200 rounded"
                             @click="togglePackage(pkg.name)"
                         >
-                            <Icon 
-                                :icon="pkg.expanded ? 'mdi:chevron-down' : 'mdi:chevron-right'" 
+                            <Icon
+                                :icon="pkg.expanded ? 'mdi:chevron-down' : 'mdi:chevron-right'"
                                 class="w-4 h-4 text-gray-400"
                             />
                         </CollapsibleTrigger>
                         <div v-else class="w-6"></div>
 
                         <!-- Package icon -->
-                        <Icon 
-                            :icon="getPackageIcon(pkg)" 
+                        <Icon
+                            :icon="getPackageIcon(pkg)"
                             :class="getPackageColor(pkg)"
                             class="w-5 h-5"
                         />
@@ -253,11 +259,13 @@ function selectPackage(packageName: string) {
                         <!-- Package information -->
                         <div class="flex-1 min-w-0" @click="selectPackage(pkg.name)">
                             <div class="flex items-center space-x-2">
-                                <span class="font-medium text-gray-900 truncate">{{ pkg.name }}</span>
+                                <span class="font-medium text-gray-900 truncate">{{
+                                    pkg.name
+                                }}</span>
                                 <span class="text-sm text-gray-500">{{ pkg.version }}</span>
-                                
+
                                 <!-- Framework badge -->
-                                <span 
+                                <span
                                     v-if="pkg.framework"
                                     class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700"
                                 >
@@ -265,7 +273,7 @@ function selectPackage(packageName: string) {
                                 </span>
 
                                 <!-- Dev badge -->
-                                <span 
+                                <span
                                     v-if="pkg.isDev"
                                     class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700"
                                 >
@@ -300,13 +308,16 @@ function selectPackage(packageName: string) {
                     <!-- Child dependencies -->
                     <CollapsibleContent v-if="pkg.dependencies.length > 0">
                         <div class="ml-8 mt-2 space-y-1">
-                            <div 
-                                v-for="childPkg in pkg.dependencies" 
+                            <div
+                                v-for="childPkg in pkg.dependencies"
                                 :key="childPkg.name"
                                 class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
                                 @click="selectPackage(childPkg.name)"
                             >
-                                <Icon :icon="getPackageIcon(childPkg)" class="w-4 h-4 text-gray-400" />
+                                <Icon
+                                    :icon="getPackageIcon(childPkg)"
+                                    class="w-4 h-4 text-gray-400"
+                                />
                                 <span class="text-sm text-gray-700">{{ childPkg.name }}</span>
                                 <span class="text-xs text-gray-500">{{ childPkg.version }}</span>
                             </div>

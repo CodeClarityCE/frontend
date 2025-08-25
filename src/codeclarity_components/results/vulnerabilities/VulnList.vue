@@ -109,7 +109,6 @@ const sortByOptions = [
     { label: 'Owasp Top 10', key: 'owasp_top_10' }
 ];
 
-
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
 // OWASP Top 10 2021 mapping with descriptions
@@ -303,7 +302,15 @@ async function init() {
 init();
 
 watch(
-    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace, () => props.ecosystemFilter],
+    [
+        pageLimitSelected,
+        searchKey,
+        sortKey,
+        sortDirection,
+        pageNumber,
+        selected_workspace,
+        () => props.ecosystemFilter
+    ],
     () => {
         init();
     }
@@ -1108,7 +1115,7 @@ const exploitableCount = computed(() => {
 
                             <!-- CWE Badges -->
                             <TooltipProvider
-                                v-for="weakness in (report.Weaknesses || [])"
+                                v-for="weakness in report.Weaknesses || []"
                                 :key="weakness.WeaknessId"
                             >
                                 <Tooltip>

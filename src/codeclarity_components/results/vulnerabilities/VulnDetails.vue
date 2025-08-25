@@ -185,7 +185,9 @@ function getMediumLowCount(finding: VulnerabilityDetails): string {
 function getVersionStatus(finding: VulnerabilityDetails): string {
     if (!finding.dependency_info?.version) return 'Unknown';
     // Check if version already starts with 'v' to avoid duplication
-    return finding.dependency_info.version.startsWith('v') ? finding.dependency_info.version : `v${finding.dependency_info.version}`;
+    return finding.dependency_info.version.startsWith('v')
+        ? finding.dependency_info.version
+        : `v${finding.dependency_info.version}`;
 }
 function getVersionStatusVariant(): 'success' | 'primary' | 'default' {
     return 'default';
@@ -193,7 +195,9 @@ function getVersionStatusVariant(): 'success' | 'primary' | 'default' {
 function getVersionStatusDescription(finding: VulnerabilityDetails): string {
     if (!finding.dependency_info?.version) return 'Version information unavailable';
     // Check if version already starts with 'v' to avoid duplication
-    const version = finding.dependency_info.version.startsWith('v') ? finding.dependency_info.version : `v${finding.dependency_info.version}`;
+    const version = finding.dependency_info.version.startsWith('v')
+        ? finding.dependency_info.version
+        : `v${finding.dependency_info.version}`;
     return `Version: ${version}`;
 }
 function getPackageManager(finding: VulnerabilityDetails): string {

@@ -122,7 +122,9 @@ function getVersionStatusDescription(dependency: DependencyDetails): string {
     if (!dependency.latest_version || !dependency.version) return 'Version information unavailable';
     if (dependency.version === dependency.latest_version) return 'Using latest version';
     // Check if version already starts with 'v' to avoid duplication
-    const latestVersion = dependency.latest_version.startsWith('v') ? dependency.latest_version : `v${dependency.latest_version}`;
+    const latestVersion = dependency.latest_version.startsWith('v')
+        ? dependency.latest_version
+        : `v${dependency.latest_version}`;
     return `Latest: ${latestVersion}`;
 }
 
@@ -393,7 +395,18 @@ getDependency(props.projectID, props.analysisID);
                                             >Update to Latest Version</span
                                         >
                                         <span class="recommendation-desc"
-                                            >Upgrade from {{ dependency.version.startsWith('v') ? dependency.version : `v${dependency.version}` }} to {{ dependency.latest_version.startsWith('v') ? dependency.latest_version : `v${dependency.latest_version}` }}
+                                            >Upgrade from
+                                            {{
+                                                dependency.version.startsWith('v')
+                                                    ? dependency.version
+                                                    : `v${dependency.version}`
+                                            }}
+                                            to
+                                            {{
+                                                dependency.latest_version.startsWith('v')
+                                                    ? dependency.latest_version
+                                                    : `v${dependency.latest_version}`
+                                            }}
                                             to potentially resolve security issues</span
                                         >
                                     </div>

@@ -458,7 +458,15 @@ async function init() {
 init();
 
 watch(
-    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace, () => props.ecosystemFilter],
+    [
+        pageLimitSelected,
+        searchKey,
+        sortKey,
+        sortDirection,
+        pageNumber,
+        selected_workspace,
+        () => props.ecosystemFilter
+    ],
     () => {
         init();
     }

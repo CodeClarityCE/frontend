@@ -62,9 +62,20 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-watch([pageNumber, pageLimitSelected, sortKey, sortDirection, searchKey, selected_workspace, selectedEcosystemFilter], () => {
-    init();
-});
+watch(
+    [
+        pageNumber,
+        pageLimitSelected,
+        sortKey,
+        sortDirection,
+        searchKey,
+        selected_workspace,
+        selectedEcosystemFilter
+    ],
+    () => {
+        init();
+    }
+);
 
 // Event handlers
 function handleEcosystemFilterChanged(ecosystemType: string | null) {

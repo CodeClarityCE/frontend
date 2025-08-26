@@ -110,6 +110,13 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
     ResultsRepository: vi.fn().mockImplementation(() => ({
         getSbomStat: vi.fn().mockResolvedValue({
             data: mockSbomStats
+        }),
+        getSbom: vi.fn().mockResolvedValue({
+            data: [],
+            pagination: { page: 1, limit: 50, totalPages: 1, totalItems: 0 }
+        }),
+        getSbomWorkspaces: vi.fn().mockResolvedValue({
+            data: [{ name: 'default', path: '.' }]
         })
     }))
 }));

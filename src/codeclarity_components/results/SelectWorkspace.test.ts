@@ -37,7 +37,12 @@ const mockWorkspacesResponse = {
 
 vi.mock('./results.repository', () => ({
     ResultsRepository: vi.fn().mockImplementation(() => ({
-        getSbomWorkspaces: vi.fn().mockResolvedValue(mockWorkspacesResponse)
+        getSbomWorkspaces: vi.fn().mockResolvedValue(mockWorkspacesResponse),
+        getResultByType: vi.fn().mockImplementation(({ type }) => {
+            if (type === 'js-sbom') return Promise.resolve({ data: {} });
+            if (type === 'php-sbom') return Promise.reject(new Error('No results'));
+            return Promise.reject(new Error('Unknown type'));
+        })
     }))
 }));
 
@@ -92,10 +97,16 @@ describe('SelectWorkspace', () => {
 
     it('renders correctly with default props', async () => {
         wrapper = mount(SelectWorkspace, {
+            props: {
+                projectID: 'project-123',
+                analysisID: 'analysis-456'
+            },
             global: {
                 plugins: []
             }
         });
+
+        await flushPromises();
 
         expect(wrapper.exists()).toBe(true);
         expect(wrapper.find('[data-testid="select"]').exists()).toBe(true);
@@ -152,27 +163,39 @@ describe('SelectWorkspace', () => {
 
         const selectLabel = wrapper.find('[data-testid="select-label"]');
         expect(selectLabel.exists()).toBe(true);
-        expect(selectLabel.text()).toBe('Workspaces');
+        expect(selectLabel.text()).toBe('Available Workspaces');
     });
 
-    it('displays placeholder text', () => {
+    it('displays placeholder text', async () => {
         wrapper = mount(SelectWorkspace, {
+            props: {
+                projectID: 'project-123',
+                analysisID: 'analysis-456'
+            },
             global: {
                 plugins: []
             }
         });
+
+        await flushPromises();
 
         const selectValue = wrapper.find('[data-testid="select-value"]');
         expect(selectValue.exists()).toBe(true);
         expect(selectValue.text()).toBe('Select a workspace');
     });
 
-    it('has correct CSS classes on trigger', () => {
+    it('has correct CSS classes on trigger', async () => {
         wrapper = mount(SelectWorkspace, {
+            props: {
+                projectID: 'project-123',
+                analysisID: 'analysis-456'
+            },
             global: {
                 plugins: []
             }
         });
+
+        await flushPromises();
 
         const selectTrigger = wrapper.find('[data-testid="select-trigger"]');
         expect(selectTrigger.classes()).toContain('w-[180px]');

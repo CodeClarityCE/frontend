@@ -160,5 +160,6 @@ export declare interface AffectedInfo {
 
 export enum Source {
     Nvd = 'NVD',
-    Osv = 'OSV'
+    Osv = 'OSV',
+    FriendsOfPHP = 'FriendsOfPHP'
 }

@@ -10,6 +10,8 @@ export interface AnalyzerNode extends Node {
         plugin: Plugin;
         version: string;
         description: string;
+        stage?: number;
+        config?: any;
     };
     selectable?: boolean;
     deletable?: boolean;

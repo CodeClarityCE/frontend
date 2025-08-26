@@ -5,12 +5,28 @@ import { Icon } from '@iconify/vue';
 defineProps<{
     name: string;
     description: string;
+    supportedLanguages?: string[];
+    logo?: string;
 }>();
 
 defineEmits<{
     'update:name': [value: string];
     'update:description': [value: string];
+    'update:supportedLanguages': [value: string[]];
+    'update:logo': [value: string];
 }>();
+
+// These options can be used for future language and logo selection features
+// const languageOptions = [
+//     { value: 'javascript', label: 'JavaScript', icon: '🟨' },
+//     { value: 'php', label: 'PHP', icon: '🐘' }
+// ];
+
+// const logoOptions = [
+//     { value: 'js', label: 'JavaScript', icon: '🟨' },
+//     { value: 'php', label: 'PHP', icon: '🐘' },
+//     { value: 'multi', label: 'Multi-Language', icon: '🌐' }
+// ];
 </script>
 
 <template>

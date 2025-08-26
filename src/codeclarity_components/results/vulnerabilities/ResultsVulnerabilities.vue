@@ -23,6 +23,7 @@ const list_ref: any = ref(null);
 const table_ref: any = ref(null);
 
 const selected_workspace: Ref<string> = ref('.');
+const selectedEcosystemFilter: Ref<string | null> = ref(null);
 
 // VIEW DATA
 const details = ref(false);
@@ -142,6 +143,9 @@ watch(active_tab, async (newTab, oldTab) => {
             v-model:selected_workspace="selected_workspace"
             :analysis-i-d="analysis.id"
             :project-i-d="project.id"
+            @ecosystem-filter-changed="
+                (filter: string | null) => (selectedEcosystemFilter = filter)
+            "
         ></VulnContent>
         <Card>
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -161,6 +165,7 @@ watch(active_tab, async (newTab, oldTab) => {
                             :force-open-new-tab="false"
                             :analysis-i-d="analysis.id"
                             :project-i-d="project.id"
+                            :ecosystem-filter="selectedEcosystemFilter"
                         />
                     </TabsContent>
                     <TabsContent value="table" class="space-y-4">
@@ -171,6 +176,7 @@ watch(active_tab, async (newTab, oldTab) => {
                             :force-open-new-tab="false"
                             :analysis-i-d="analysis.id"
                             :project-i-d="project.id"
+                            :ecosystem-filter="selectedEcosystemFilter"
                         ></Table>
                     </TabsContent>
                 </Tabs>

@@ -46,6 +46,7 @@ import {
 import type { Project } from '@/codeclarity_components/projects/project.entity';
 import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+
 const user = useUserStore();
 const auth = useAuthStore();
 
@@ -69,6 +70,9 @@ const selected_analyzers_list: Ref<Array<Analyzer>> = ref([]);
 const availableAnalyzers: Ref<Array<any>> = ref([]);
 
 const configuration: Ref<Record<string, any>> = ref({});
+
+// Available languages for analyzer configuration only
+const availableLanguages = ['javascript', 'php'];
 
 // Schedule data
 const scheduleData = ref({
@@ -151,11 +155,11 @@ function onSubmit(values: any, plugin_name: string) {
     if (values === undefined) configuration.value[plugin_name] = {};
     else configuration.value[plugin_name] = values;
 
-    if (plugin_name === 'js-license') {
+    if (plugin_name === 'license-finder') {
         configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
     }
 
-    if (plugin_name === 'js-sbom' || plugin_name === 'codeql') {
+    if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
         configuration.value[plugin_name]['project'] =
             `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
         selected_branch.value = values.branch;
@@ -496,15 +500,17 @@ async function createAnalysisStart() {
                                                                 <SelectContent>
                                                                     <SelectGroup>
                                                                         <SelectItem
-                                                                            value="javascript-typescript"
-                                                                            >JavaScript/TypeScript</SelectItem
+                                                                            v-for="language in availableLanguages"
+                                                                            :key="language"
+                                                                            :value="language"
                                                                         >
-                                                                        <SelectItem value="python"
-                                                                            >Python</SelectItem
-                                                                        >
-                                                                        <SelectItem value="go"
-                                                                            >Go</SelectItem
-                                                                        >
+                                                                            {{
+                                                                                language
+                                                                                    .charAt(0)
+                                                                                    .toUpperCase() +
+                                                                                language.slice(1)
+                                                                            }}
+                                                                        </SelectItem>
                                                                     </SelectGroup>
                                                                 </SelectContent>
                                                             </Select>

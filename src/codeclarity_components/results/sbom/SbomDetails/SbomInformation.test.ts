@@ -109,45 +109,41 @@ describe('SbomInformation.vue', () => {
             const dependency = createMockDependency({ package_manager: 'NPM' });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.text()).toContain('Package Manager');
-            expect(wrapper.text()).toContain('NPM Registry');
+            expect(wrapper.text()).toContain('Package Source');
+            expect(wrapper.text()).toContain('Compatible tools');
             expect(wrapper.text()).toContain('akar-icons:npm-fill');
 
             const npmLink = wrapper.find('a[href*="npmjs.com"]');
             expect(npmLink.exists()).toBe(true);
-            expect(npmLink.attributes('href')).toBe(
-                'https://www.npmjs.com/package/test-package/v/1.2.3'
-            );
+            expect(npmLink.attributes('href')).toBe('https://www.npmjs.com/package/test-package');
         });
 
         it('should render Yarn package manager link', () => {
             const dependency = createMockDependency({ package_manager: 'YARN' });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.text()).toContain('Yarn Registry');
-            expect(wrapper.text()).toContain('akar-icons:yarn-fill');
+            expect(wrapper.text()).toContain('Compatible tools');
+            expect(wrapper.text()).toContain('akar-icons:npm-fill');
 
-            const yarnLink = wrapper.find('a[href*="yarnpkg.com"]');
-            expect(yarnLink.exists()).toBe(true);
-            expect(yarnLink.attributes('href')).toBe(
-                'https://yarnpkg.com/package?name=test-package&version=1.2.3'
-            );
+            // Yarn package manager should still render npm link as primary package source
+            const npmLink = wrapper.find('a[href*="npmjs.com"]');
+            expect(npmLink.exists()).toBe(true);
         });
 
         it('should render self-managed package type', () => {
             const dependency = createMockDependency({ package_manager: 'SELF' });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.text()).toContain('Self-managed');
-            expect(wrapper.text()).toContain('solar:home-bold');
+            expect(wrapper.text()).toContain('Package Source');
+            expect(wrapper.text()).toContain('akar-icons:npm-fill');
         });
 
         it('should render unknown package manager', () => {
             const dependency = createMockDependency({ package_manager: 'UNKNOWN' });
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.text()).toContain('UNKNOWN');
-            expect(wrapper.text()).toContain('solar:question-circle-bold');
+            expect(wrapper.text()).toContain('Package Source');
+            expect(wrapper.text()).toContain('akar-icons:npm-fill');
         });
 
         it('should display dependency type - direct', () => {

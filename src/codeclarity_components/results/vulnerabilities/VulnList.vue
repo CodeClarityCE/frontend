@@ -40,17 +40,22 @@ export interface Props {
     forceOpenNewTab?: boolean;
     analysisID?: string;
     projectID?: string;
+    ecosystemFilter?: string | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     forceOpenNewTab: false,
     analysisID: '',
-    projectID: ''
+    projectID: '',
+    ecosystemFilter: null
 });
 
 // Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
+
+// Repository setup
+const resultsRepository = new ResultsRepository();
 
 const selectionPageLimit = [5, 10, 20, 30, 40, 50, 75, 100];
 const placeholder = 'Search by dependency, dependency version, or cve';
@@ -74,22 +79,6 @@ const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 // Filters
 const filterState: Ref<FilterState> = ref(
     createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            icon: 'meteor-icons:language',
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        },
-        Divider: {
-            name: 'Language',
-            type: FilterType.DIVIDER,
-            data: {}
-        },
         AttributeState: {
             name: 'Matching',
             type: FilterType.CHECKBOX,
@@ -119,8 +108,6 @@ const sortByOptions = [
     { label: 'Weakness', key: 'weakness' },
     { label: 'Owasp Top 10', key: 'owasp_top_10' }
 ];
-
-const resultsRepository: ResultsRepository = new ResultsRepository();
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
@@ -295,7 +282,8 @@ async function init() {
                 sortDirection: sortDirection.value
             },
             active_filters: filterState.value.toString(),
-            search_key: searchKey.value
+            search_key: searchKey.value,
+            ecosystem_filter: props.ecosystemFilter || undefined
         });
         findings.value = res.data;
         render.value = true;
@@ -314,7 +302,15 @@ async function init() {
 init();
 
 watch(
-    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    [
+        pageLimitSelected,
+        searchKey,
+        sortKey,
+        sortDirection,
+        pageNumber,
+        selected_workspace,
+        () => props.ecosystemFilter
+    ],
     () => {
         init();
     }
@@ -583,7 +579,7 @@ const exploitableCount = computed(() => {
                                     {{ report.Vulnerability }}
                                 </h3>
                                 <div
-                                    v-if="report.Weaknesses.length > 0"
+                                    v-if="report.Weaknesses && report.Weaknesses.length > 0"
                                     class="text-sm text-gray-500 font-medium"
                                 >
                                     {{ report.Weaknesses[0].WeaknessName }}
@@ -1119,7 +1115,7 @@ const exploitableCount = computed(() => {
 
                             <!-- CWE Badges -->
                             <TooltipProvider
-                                v-for="weakness in report.Weaknesses"
+                                v-for="weakness in report.Weaknesses || []"
                                 :key="weakness.WeaknessId"
                             >
                                 <Tooltip>
@@ -1506,7 +1502,7 @@ const exploitableCount = computed(() => {
                         >
                             <div class="flex flex-wrap gap-2">
                                 <div
-                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses)"
+                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses || [])"
                                     :key="owaspID"
                                 >
                                     <TooltipProvider>

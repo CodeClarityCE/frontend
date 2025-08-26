@@ -77,8 +77,10 @@ const render: Ref<boolean> = ref(false);
 // SBOM data
 const stats: Ref<SbomStats> = ref(new SbomStats());
 const dependencies: Ref<Dependency[]> = ref([]);
+const allDependencies: Ref<Dependency[]> = ref([]); // Store all dependencies for filtering
 const selected_workspace: Ref<string> = ref('.');
 const packageManager: Ref<string> = ref('yarn'); // Detected from workspace data
+const selectedEcosystemFilter: Ref<string | null> = ref(null);
 
 // UI state
 const showUpdatesModal: Ref<boolean> = ref(false);
@@ -145,6 +147,13 @@ function handlePackageManagerLoaded(manager: string) {
     packageManager.value = manager.toLowerCase();
 }
 
+function handleEcosystemFilterChanged(ecosystemType: string | null) {
+    /** Handles ecosystem filter changes from SelectWorkspace component */
+    selectedEcosystemFilter.value = ecosystemType;
+    // Refresh both dependencies and stats with the new filter
+    getSbomStats(true); // This will call fetchDependencies() as well
+}
+
 async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
     if (!userStore.getDefaultOrg || !authStore.getToken) return;
     if (!props.projectID || !props.analysisID) return;
@@ -163,11 +172,12 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
             sort: { sortKey: 'name', sortDirection: 'asc' },
             active_filters: '',
             search_key: '',
+            ecosystem_filter: selectedEcosystemFilter.value || undefined,
             handleBusinessErrors: true
         });
 
         // Collect all dependencies
-        let allDependencies = [...firstPage.data];
+        let exportDependencies = [...firstPage.data];
 
         // If there are more pages, fetch them all
         if (firstPage.total_pages > 1) {
@@ -186,6 +196,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
                         sort: { sortKey: 'name', sortDirection: 'asc' },
                         active_filters: '',
                         search_key: '',
+                        ecosystem_filter: selectedEcosystemFilter.value || undefined,
                         handleBusinessErrors: true
                     })
                 );
@@ -193,7 +204,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
             const additionalPages = await Promise.all(promises);
             additionalPages.forEach((page) => {
-                allDependencies = allDependencies.concat(page.data);
+                exportDependencies = exportDependencies.concat(page.data);
             });
         }
 
@@ -212,22 +223,22 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
         switch (format) {
             case 'csv':
-                content = convertToCSV(allDependencies);
+                content = convertToCSV(exportDependencies);
                 filename = `sbom-${projectName}-${dateStr}.csv`;
                 mimeType = 'text/csv';
                 break;
             case 'html':
-                content = convertToHTML(allDependencies, exportOptions);
+                content = convertToHTML(exportDependencies, exportOptions);
                 filename = `sbom-${projectName}-${dateStr}.html`;
                 mimeType = 'text/html';
                 break;
             case 'json':
-                content = JSON.stringify(sortDependenciesByPriority(allDependencies), null, 2);
+                content = JSON.stringify(sortDependenciesByPriority(exportDependencies), null, 2);
                 filename = `sbom-${projectName}-${dateStr}.json`;
                 mimeType = 'application/json';
                 break;
             case 'cyclonedx':
-                content = convertToCycloneDX(allDependencies, exportOptions);
+                content = convertToCycloneDX(exportDependencies, exportOptions);
                 filename = `sbom-${projectName}-${dateStr}-cyclonedx.json`;
                 mimeType = 'application/json';
                 break;
@@ -268,10 +279,11 @@ async function fetchDependencies() {
             sort: { sortKey: 'name', sortDirection: 'asc' },
             active_filters: '',
             search_key: '',
+            ecosystem_filter: selectedEcosystemFilter.value || undefined,
             handleBusinessErrors: true
         });
 
-        let allDependencies = [...firstPage.data];
+        let fetchedDependencies = [...firstPage.data];
 
         // If there are more pages, fetch them all
         if (firstPage.total_pages > 1) {
@@ -288,6 +300,7 @@ async function fetchDependencies() {
                         sort: { sortKey: 'name', sortDirection: 'asc' },
                         active_filters: '',
                         search_key: '',
+                        ecosystem_filter: selectedEcosystemFilter.value || undefined,
                         handleBusinessErrors: true
                     })
                 );
@@ -295,11 +308,12 @@ async function fetchDependencies() {
 
             const additionalPages = await Promise.all(promises);
             additionalPages.forEach((page) => {
-                allDependencies = allDependencies.concat(page.data);
+                fetchedDependencies = fetchedDependencies.concat(page.data);
             });
         }
 
-        dependencies.value = allDependencies;
+        dependencies.value = fetchedDependencies;
+        allDependencies.value = fetchedDependencies; // Store for potential client-side operations
     } catch (error) {
         console.error('Failed to fetch dependencies:', error);
     }
@@ -325,6 +339,7 @@ async function getSbomStats(refresh: boolean = false) {
             analysisId: props.analysisID,
             workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
+            ecosystem_filter: selectedEcosystemFilter.value || undefined,
             handleBusinessErrors: true
         });
         stats.value = res.data;
@@ -432,6 +447,7 @@ function createDepTypeChart() {
             :project-i-d="projectID"
             :analysis-i-d="analysisID"
             @package-manager-loaded="handlePackageManagerLoaded"
+            @ecosystem-filter-changed="handleEcosystemFilterChanged"
         ></SelectWorkspace>
 
         <!-- Quick Stats Row -->
@@ -662,6 +678,8 @@ function createDepTypeChart() {
                 :project-i-d="projectID"
                 :analysis-i-d="analysisID"
                 :selected_workspace="selected_workspace"
+                :ecosystem-filter="selectedEcosystemFilter"
+                :stats="stats"
             />
         </InfoCard>
     </div>

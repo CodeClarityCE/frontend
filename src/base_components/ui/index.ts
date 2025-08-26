@@ -12,3 +12,6 @@ export { default as TextLoader } from './loaders/TextLoader.vue';
 
 export { default as CenteredModal } from './modals/CenteredModal.vue';
 export { default as PositionedModal } from './modals/PositionedModal.vue';
+
+export { default as LanguageBadge } from './LanguageBadge.vue';
+export { default as EcosystemBadge } from './EcosystemBadge.vue';

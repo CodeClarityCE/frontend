@@ -33,12 +33,14 @@ export interface Props {
     forceOpenNewTab?: boolean;
     analysisID?: string;
     projectID?: string;
+    ecosystemFilter?: string | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     forceOpenNewTab: false,
     analysisID: '',
-    projectID: ''
+    projectID: '',
+    ecosystemFilter: null
 });
 
 // Store setup
@@ -436,7 +438,8 @@ async function init() {
                 sortDirection: sortDirection.value
             },
             active_filters: filterState.value.toString(),
-            search_key: searchKey.value
+            search_key: searchKey.value,
+            ecosystem_filter: props.ecosystemFilter || undefined
         });
         findings.value = res.data;
         render.value = true;
@@ -455,7 +458,15 @@ async function init() {
 init();
 
 watch(
-    [pageLimitSelected, searchKey, sortKey, sortDirection, pageNumber, selected_workspace],
+    [
+        pageLimitSelected,
+        searchKey,
+        sortKey,
+        sortDirection,
+        pageNumber,
+        selected_workspace,
+        () => props.ecosystemFilter
+    ],
     () => {
         init();
     }

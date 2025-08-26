@@ -125,5 +125,5 @@
     "vue-tsc": "3.0.4",
     "webpack-bundle-analyzer": "4.10.2"
   },
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.3"
 }

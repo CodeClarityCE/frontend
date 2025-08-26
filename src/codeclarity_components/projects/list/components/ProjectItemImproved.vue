@@ -29,6 +29,7 @@ import {
 import AnalysisListImproved from './AnalysisListImproved.vue';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import router from '@/router';
+import ProjectLanguageDetection from '@/codeclarity_components/projects/components/ProjectLanguageDetection.vue';
 
 // Props
 const props = defineProps<{
@@ -178,15 +179,19 @@ function getProjectIcon() {
 
         <template #header>
             <!-- Project metadata -->
-            <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                <span class="flex items-center gap-1">
-                    <Icon icon="solar:calendar-linear" class="w-3.5 h-3.5" />
-                    {{ formatDate(project.added_on, 'MMM DD, YYYY') }}
-                </span>
-                <span v-if="latestAnalysis" class="flex items-center gap-1">
-                    <Icon icon="solar:refresh-linear" class="w-3.5 h-3.5" />
-                    Last: {{ formatDate(latestAnalysis.created_on, 'MMM DD') }}
-                </span>
+            <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center gap-4 text-xs text-gray-400">
+                    <span class="flex items-center gap-1">
+                        <Icon icon="solar:calendar-linear" class="w-3.5 h-3.5" />
+                        {{ formatDate(project.added_on, 'MMM DD, YYYY') }}
+                    </span>
+                    <span v-if="latestAnalysis" class="flex items-center gap-1">
+                        <Icon icon="solar:refresh-linear" class="w-3.5 h-3.5" />
+                        Last: {{ formatDate(latestAnalysis.created_on, 'MMM DD') }}
+                    </span>
+                </div>
+                <!-- Language detection -->
+                <ProjectLanguageDetection :project="project" size="sm" variant="minimal" />
             </div>
         </template>
 

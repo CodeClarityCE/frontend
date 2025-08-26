@@ -9,6 +9,11 @@
 	reverse_proxy frontend:5173
 }
 
+# Metrics endpoint
+:2019 {
+	metrics /metrics
+}
+
 {$SERVER_NAME}:15672 {
 	reverse_proxy rabbitmq:15672
 }

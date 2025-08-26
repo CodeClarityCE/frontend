@@ -106,7 +106,8 @@ function getCriticalHighCount(severityDist?: SeverityDist): number {
 function getVersionStatus(dependency: DependencyDetails): string {
     if (!dependency.latest_version || !dependency.version) return 'Unknown';
     if (dependency.version === dependency.latest_version) return 'Latest';
-    return `v${dependency.version}`;
+    // Check if version already starts with 'v' to avoid duplication
+    return dependency.version.startsWith('v') ? dependency.version : `v${dependency.version}`;
 }
 
 function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'primary' | 'default' {
@@ -120,7 +121,11 @@ function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'pr
 function getVersionStatusDescription(dependency: DependencyDetails): string {
     if (!dependency.latest_version || !dependency.version) return 'Version information unavailable';
     if (dependency.version === dependency.latest_version) return 'Using latest version';
-    return `Latest: v${dependency.latest_version}`;
+    // Check if version already starts with 'v' to avoid duplication
+    const latestVersion = dependency.latest_version.startsWith('v')
+        ? dependency.latest_version
+        : `v${dependency.latest_version}`;
+    return `Latest: ${latestVersion}`;
 }
 
 function getLicenseDescription(license?: string): string {
@@ -390,8 +395,17 @@ getDependency(props.projectID, props.analysisID);
                                             >Update to Latest Version</span
                                         >
                                         <span class="recommendation-desc"
-                                            >Upgrade from v{{ dependency.version }} to v{{
-                                                dependency.latest_version
+                                            >Upgrade from
+                                            {{
+                                                dependency.version.startsWith('v')
+                                                    ? dependency.version
+                                                    : `v${dependency.version}`
+                                            }}
+                                            to
+                                            {{
+                                                dependency.latest_version.startsWith('v')
+                                                    ? dependency.latest_version
+                                                    : `v${dependency.latest_version}`
                                             }}
                                             to potentially resolve security issues</span
                                         >

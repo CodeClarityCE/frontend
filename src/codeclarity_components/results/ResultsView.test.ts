@@ -70,7 +70,7 @@ const mockAnalysisResponse = {
         steps: [
             [
                 { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
-                { Name: 'js-vuln-finder', Status: 'success', Result: 'result-2' }
+                { Name: 'vuln-finder', Status: 'success', Result: 'result-2' }
             ]
         ],
         branch: 'main'
@@ -328,7 +328,7 @@ describe('ResultsView', () => {
                     steps: [
                         [
                             { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
-                            { Name: 'js-vuln-finder', Status: 'failed', Result: null },
+                            { Name: 'vuln-finder', Status: 'failed', Result: null },
                             { Name: 'js-patching', Status: 'success', Result: 'result-3' }
                         ]
                     ]
@@ -371,9 +371,9 @@ describe('ResultsView', () => {
                     steps: [
                         [
                             { Name: 'js-sbom', Status: 'success', Result: 'result-1' },
-                            { Name: 'js-vuln-finder', Status: 'success', Result: 'result-2' },
+                            { Name: 'vuln-finder', Status: 'success', Result: 'result-2' },
                             { Name: 'js-patching', Status: 'success', Result: 'result-3' },
-                            { Name: 'js-license', Status: 'success', Result: 'result-4' },
+                            { Name: 'license-finder', Status: 'success', Result: 'result-4' },
                             { Name: 'codeql', Status: 'success', Result: 'result-5' }
                         ]
                     ]

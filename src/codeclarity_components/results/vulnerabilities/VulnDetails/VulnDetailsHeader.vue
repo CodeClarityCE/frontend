@@ -35,11 +35,111 @@ defineProps<{
             <!--------------------------------------------------------------------------->
             <!--                              Affected versions                        -->
             <!--------------------------------------------------------------------------->
-            <div>
+            <!-- Show simple version when sources agree -->
+            <div
+                v-if="
+                    !finding.vulnerability_info.version_info.source_comparison ||
+                    finding.vulnerability_info.version_info.source_comparison.agree
+                "
+            >
                 <span class="font-black">
                     Affected versions of {{ finding.dependency_info?.name }}:
                 </span>
                 {{ finding.vulnerability_info.version_info.affected_versions_string }}
+            </div>
+            <!-- Show detailed breakdown when sources disagree -->
+            <div v-else class="space-y-3">
+                <div
+                    class="flex gap-2 items-center text-orange-600 bg-orange-50 p-3 rounded-lg border-l-4 border-orange-400"
+                >
+                    <Icon icon="tabler:alert-triangle-filled" class="text-lg"></Icon>
+                    <span class="font-black">Vulnerability sources disagree on your version</span>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 ml-2">
+                    <!-- NVD Source -->
+                    <div
+                        v-if="finding.vulnerability_info.version_info.source_comparison.nvdReason"
+                        class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400"
+                    >
+                        <div class="flex items-center gap-2 mb-3">
+                            <Icon icon="tabler:database" class="text-blue-600"></Icon>
+                            <span class="font-bold text-blue-800">NVD says:</span>
+                        </div>
+                        <div class="text-sm text-blue-700 leading-relaxed mb-3">
+                            {{
+                                finding.vulnerability_info.version_info.source_comparison.nvdReason
+                            }}
+                        </div>
+
+                        <!-- Expandable technical details -->
+                        <details class="mt-2">
+                            <summary
+                                class="cursor-pointer text-xs text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                                View all affected versions
+                            </summary>
+                            <div
+                                class="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-800 font-mono whitespace-pre-line"
+                            >
+                                {{
+                                    finding.vulnerability_info.version_info.source_comparison.nvdAllVersions.replace(
+                                        /, /g,
+                                        ',\n'
+                                    )
+                                }}
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- OSV Source -->
+                    <div
+                        v-if="finding.vulnerability_info.version_info.source_comparison.osvReason"
+                        class="bg-green-50 p-4 rounded-lg border-l-4 border-green-400"
+                    >
+                        <div class="flex items-center gap-2 mb-3">
+                            <Icon icon="tabler:shield-check" class="text-green-600"></Icon>
+                            <span class="font-bold text-green-800">OSV says:</span>
+                        </div>
+                        <div class="text-sm text-green-700 leading-relaxed mb-3">
+                            {{
+                                finding.vulnerability_info.version_info.source_comparison.osvReason
+                            }}
+                        </div>
+
+                        <!-- Expandable technical details -->
+                        <details class="mt-2">
+                            <summary
+                                class="cursor-pointer text-xs text-green-600 hover:text-green-800 font-medium"
+                            >
+                                View all affected versions
+                            </summary>
+                            <div
+                                class="mt-2 p-2 bg-green-100 rounded text-xs text-green-800 font-mono whitespace-pre-line"
+                            >
+                                {{
+                                    finding.vulnerability_info.version_info.source_comparison.osvAllVersions.replace(
+                                        /, /g,
+                                        ',\n'
+                                    )
+                                }}
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
+                    <div class="flex items-center gap-2 mb-1">
+                        <Icon icon="tabler:info-circle" class="text-yellow-600"></Icon>
+                        <span class="font-semibold text-yellow-800">Recommendation</span>
+                    </div>
+                    <div class="text-sm text-yellow-700">
+                        Since sources disagree on your version
+                        <strong>{{ finding.dependency_info?.version }}</strong
+                        >, review the explanations above and check the official advisory links to
+                        determine your actual risk.
+                    </div>
+                </div>
             </div>
             <div
                 v-if="finding.vulnerability_info.version_info.affected_versions_string == '*'"

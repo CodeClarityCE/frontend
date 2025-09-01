@@ -54,6 +54,7 @@ export interface GetSbomRequestOptions
     search_key: string;
     ecosystem_filter?: string;
     runIndex?: number | null;
+    show_blacklisted?: boolean;
 }
 
 export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -300,6 +301,10 @@ export class ResultsRepository extends BaseRepository {
 
         if (options.ecosystem_filter) {
             queryParams.ecosystem_filter = options.ecosystem_filter;
+        }
+
+        if (options.show_blacklisted !== undefined) {
+            queryParams.show_blacklisted = options.show_blacklisted.toString();
         }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {

@@ -128,6 +128,7 @@ function getPageTitle(): string {
         switch (props.page) {
             case 'policies':
             case 'policy':
+            case 'vulnerability-policy':
                 return 'Organization Policies';
             case 'logs':
                 return 'Audit Logs';
@@ -157,6 +158,7 @@ function getPageDescription(): string {
         switch (props.page) {
             case 'policies':
             case 'policy':
+            case 'vulnerability-policy':
                 return 'Configure security policies and compliance settings';
             case 'logs':
                 return 'Review organization activity and audit trails';
@@ -191,7 +193,12 @@ function getPageDescription(): string {
                 <CreateOrg v-if="props.action == 'add' && !props.orgId" />
                 <OrgsList v-else-if="props.action == 'list' && !props.orgId" />
                 <OrgPolicies
-                    v-if="(props.page == 'policies' || props.page == 'policy') && props.orgId"
+                    v-if="
+                        (props.page == 'policies' ||
+                            props.page == 'policy' ||
+                            props.page == 'vulnerability-policy') &&
+                        props.orgId
+                    "
                     :page="props.page"
                     :org-id="props.orgId"
                     :action="props.action"

@@ -123,6 +123,8 @@ export interface VulnerabilityMerged {
     Conflict: Conflict;
     VLAI: VLAI[];
     EPSS: EPSS;
+    is_blacklisted?: boolean;
+    blacklisted_by_policies?: string[];
 }
 
 export interface VLAI {

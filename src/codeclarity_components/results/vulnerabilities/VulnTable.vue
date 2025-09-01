@@ -26,6 +26,7 @@ import { ProjectsSortInterface } from '@/codeclarity_components/projects/project
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import AddToPolicyButton from './components/AddToPolicyButton.vue';
 
 export interface Props {
     [key: string]: any;
@@ -34,13 +35,15 @@ export interface Props {
     analysisID?: string;
     projectID?: string;
     ecosystemFilter?: string | null;
+    showBlacklisted?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     forceOpenNewTab: false,
     analysisID: '',
     projectID: '',
-    ecosystemFilter: null
+    ecosystemFilter: null,
+    showBlacklisted: true
 });
 
 // Store setup
@@ -119,6 +122,16 @@ const filterState: Ref<FilterState> = ref(
                 hide_incorrect_matching: {
                     title: 'Hide incorrect',
                     value: false
+                }
+            }
+        },
+        BlacklistState: {
+            name: 'Policy Status',
+            type: FilterType.CHECKBOX,
+            data: {
+                show_blacklisted: {
+                    title: 'Show blacklisted vulnerabilities',
+                    value: props.showBlacklisted
                 }
             }
         }
@@ -439,7 +452,8 @@ async function init() {
             },
             active_filters: filterState.value.toString(),
             search_key: searchKey.value,
-            ecosystem_filter: props.ecosystemFilter || undefined
+            ecosystem_filter: props.ecosystemFilter || undefined,
+            show_blacklisted: props.showBlacklisted
         });
         findings.value = res.data;
         render.value = true;
@@ -465,13 +479,29 @@ watch(
         sortDirection,
         pageNumber,
         selected_workspace,
-        () => props.ecosystemFilter
+        () => props.ecosystemFilter,
+        () => props.showBlacklisted
     ],
     () => {
         init();
     }
 );
 watch(() => filterState.value.activeFilters, init);
+
+// Sync blacklisted filter with parent component
+const showBlacklistedFromFilter = computed(() => {
+    return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value || false;
+});
+
+// Define emit for updating parent's showBlacklisted value
+const emit = defineEmits<{
+    'update:showBlacklisted': [value: boolean];
+}>();
+
+// Watch for changes in the filter and emit to parent
+watch(showBlacklistedFromFilter, (newValue) => {
+    emit('update:showBlacklisted', newValue);
+});
 </script>
 
 <template>
@@ -685,6 +715,47 @@ watch(() => filterState.value.activeFilters, init);
                                                 </div>
                                                 <div class="text-xs text-gray-500">
                                                     Click for detailed analysis
+                                                </div>
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <!-- Policy status indicator -->
+                                <TooltipProvider v-if="report.is_blacklisted">
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <div
+                                                class="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 text-yellow-800 border border-yellow-300 rounded-md text-xs font-semibold cursor-help"
+                                            >
+                                                <Icon
+                                                    icon="solar:shield-cross-bold"
+                                                    class="w-3.5 h-3.5"
+                                                />
+                                                Policy Excluded
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                            class="bg-white border border-gray-300 shadow-lg"
+                                        >
+                                            <div class="p-2">
+                                                <div class="font-medium text-gray-900">
+                                                    Excluded by Vulnerability Policy
+                                                </div>
+                                                <div class="text-sm text-gray-600">
+                                                    This vulnerability is marked as a false positive
+                                                    and excluded from results by your vulnerability
+                                                    policy
+                                                </div>
+                                                <div
+                                                    v-if="
+                                                        report.blacklisted_by_policies &&
+                                                        report.blacklisted_by_policies.length > 0
+                                                    "
+                                                    class="text-xs text-gray-500 mt-1"
+                                                >
+                                                    Policy:
+                                                    {{ report.blacklisted_by_policies.join(', ') }}
                                                 </div>
                                             </div>
                                         </TooltipContent>
@@ -1711,7 +1782,7 @@ watch(() => filterState.value.activeFilters, init);
 
                         <!-- Details Column -->
                         <td class="px-4 py-3">
-                            <div>
+                            <div class="flex flex-col gap-2">
                                 <RouterLink
                                     class="open-details flex flex-row items-center gap-1 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
                                     :to="{
@@ -1727,6 +1798,12 @@ watch(() => filterState.value.activeFilters, init);
                                     <Icon icon="ic:outline-open-in-new" class="w-4 h-4" />
                                     <span>details</span>
                                 </RouterLink>
+                                <AddToPolicyButton
+                                    v-if="!report.is_blacklisted"
+                                    :vulnerability-id="report.Vulnerability"
+                                    size="sm"
+                                    variant="outline"
+                                />
                             </div>
                         </td>
                     </tr>

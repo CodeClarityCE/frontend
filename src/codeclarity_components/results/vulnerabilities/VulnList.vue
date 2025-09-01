@@ -33,6 +33,7 @@ import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import AddToPolicyButton from './components/AddToPolicyButton.vue';
 
 export interface Props {
     [key: string]: any;
@@ -41,13 +42,15 @@ export interface Props {
     analysisID?: string;
     projectID?: string;
     ecosystemFilter?: string | null;
+    showBlacklisted?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     forceOpenNewTab: false,
     analysisID: '',
     projectID: '',
-    ecosystemFilter: null
+    ecosystemFilter: null,
+    showBlacklisted: true
 });
 
 // Store setup
@@ -94,6 +97,16 @@ const filterState: Ref<FilterState> = ref(
                 hide_incorrect_matching: {
                     title: 'Hide incorrect',
                     value: false
+                }
+            }
+        },
+        BlacklistState: {
+            name: 'Policy Status',
+            type: FilterType.CHECKBOX,
+            data: {
+                show_blacklisted: {
+                    title: 'Show blacklisted vulnerabilities',
+                    value: props.showBlacklisted
                 }
             }
         }
@@ -283,7 +296,8 @@ async function init() {
             },
             active_filters: filterState.value.toString(),
             search_key: searchKey.value,
-            ecosystem_filter: props.ecosystemFilter || undefined
+            ecosystem_filter: props.ecosystemFilter || undefined,
+            show_blacklisted: props.showBlacklisted
         });
         findings.value = res.data;
         render.value = true;
@@ -309,7 +323,8 @@ watch(
         sortDirection,
         pageNumber,
         selected_workspace,
-        () => props.ecosystemFilter
+        () => props.ecosystemFilter,
+        () => props.showBlacklisted
     ],
     () => {
         init();
@@ -317,6 +332,21 @@ watch(
 );
 
 watch(() => filterState.value.activeFilters, init);
+
+// Sync blacklisted filter with parent component
+const showBlacklistedFromFilter = computed(() => {
+    return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value || false;
+});
+
+// Define emit for updating parent's showBlacklisted value
+const emit = defineEmits<{
+    'update:showBlacklisted': [value: boolean];
+}>();
+
+// Watch for changes in the filter and emit to parent
+watch(showBlacklistedFromFilter, (newValue) => {
+    emit('update:showBlacklisted', newValue);
+});
 
 // Computed statistics for dashboard
 const criticalCount = computed(() => {
@@ -578,6 +608,17 @@ const exploitableCount = computed(() => {
                                 <h3 class="text-xl font-bold text-gray-900 tracking-tight">
                                     {{ report.Vulnerability }}
                                 </h3>
+                                <!-- Policy status indicator -->
+                                <Badge
+                                    v-if="report.is_blacklisted"
+                                    class="bg-yellow-100 text-yellow-800 border border-yellow-300 font-semibold text-xs px-2.5 py-1.5 rounded-md"
+                                >
+                                    <Icon
+                                        icon="solar:shield-cross-bold"
+                                        class="w-3.5 h-3.5 mr-1.5"
+                                    />
+                                    Policy Excluded
+                                </Badge>
                                 <div
                                     v-if="report.Weaknesses && report.Weaknesses.length > 0"
                                     class="text-sm text-gray-500 font-medium"
@@ -706,6 +747,14 @@ const exploitableCount = computed(() => {
 
                         <!-- Quick Actions & Key Metrics -->
                         <div class="flex-shrink-0 flex items-center gap-2">
+                            <!-- Add to Policy Button -->
+                            <AddToPolicyButton
+                                v-if="!report.is_blacklisted"
+                                :vulnerability-id="report.Vulnerability"
+                                size="sm"
+                                variant="outline"
+                            />
+
                             <!-- High Impact Warning -->
                             <TooltipProvider v-if="report.EPSS.Score > 0.1">
                                 <Tooltip>
@@ -1579,7 +1628,9 @@ const exploitableCount = computed(() => {
                         </div>
 
                         <!-- View Details Link -->
-                        <div class="mt-3 pt-3 border-t border-gray-100">
+                        <div
+                            class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between"
+                        >
                             <RouterLink
                                 :to="{
                                     name: 'results',

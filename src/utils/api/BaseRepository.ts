@@ -211,7 +211,11 @@ export class BaseRepository {
         // Construct headers
         const headers = new Headers();
         headers.append('Accepts', 'application/json');
-        headers.append('Content-Type', 'application/json');
+
+        // Only add Content-Type if we have data to send
+        if (options.data) {
+            headers.append('Content-Type', 'application/json');
+        }
 
         // Attach bearer token
         if (options.bearerToken) {

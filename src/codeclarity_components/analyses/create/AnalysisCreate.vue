@@ -22,6 +22,7 @@ import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import FormMessage from '@/shadcn/ui/form/FormMessage.vue';
 import { FormField } from '@/shadcn/ui/form';
 import SelectLicensePolicy from './components/SelectLicensePolicy.vue';
+import SelectVulnerabilityPolicy from './components/SelectVulnerabilityPolicy.vue';
 import ScheduleSelector from './components/ScheduleSelector.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { toast } from '@/shadcn/ui/toast';
@@ -65,7 +66,8 @@ const projectRepo: ProjectRepository = new ProjectRepository();
 const selected_branch: Ref<string> = ref('');
 const selected_commit_hash: Ref<string> = ref('');
 const selected_analyzers: Ref<Array<number>> = ref([]);
-const selected_license_policy: Ref<Array<string>> = ref(['']);
+const selected_license_policy: Ref<Array<string>> = ref([]);
+const selected_vulnerability_policy: Ref<string | null> = ref(null);
 const selected_analyzers_list: Ref<Array<Analyzer>> = ref([]);
 const availableAnalyzers: Ref<Array<any>> = ref([]);
 
@@ -151,28 +153,8 @@ async function fetchAvailableAnalyzers() {
 }
 
 function onSubmit(values: any, plugin_name: string) {
-    console.log('Form submitted!', values, selected_license_policy.value);
-    if (values === undefined) configuration.value[plugin_name] = {};
-    else configuration.value[plugin_name] = values;
-
-    if (plugin_name === 'license-finder') {
-        configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
-    }
-
-    if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
-        configuration.value[plugin_name]['project'] =
-            `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
-        selected_branch.value = values.branch;
-    }
-
-    toast({
-        title: 'You submitted the following values:',
-        description: h(
-            'pre',
-            { class: 'mt-2 w-[340px] rounded-md bg-slate-950 p-4' },
-            h('code', { class: 'text-white' }, JSON.stringify(configuration.value, null, 2))
-        )
-    });
+    // Just apply config silently - comprehensive toast is shown by validateAllConfigurations
+    applyConfigSilently(values, plugin_name);
 }
 
 watchDeep(selected_analyzers, () => {
@@ -181,12 +163,6 @@ watchDeep(selected_analyzers, () => {
         getAnalyzer(selected_analyzers.value[0].toString());
     }
 });
-
-function addIcon(element: any) {
-    if (element.target) {
-        element.target.innerHTML = '✓ Configuration validated';
-    }
-}
 
 async function getAnalyzer(analyzer_id: string) {
     loading.value = true;
@@ -209,12 +185,208 @@ async function getAnalyzer(analyzer_id: string) {
     }
 }
 
+// Helper functions for SBOM plugin consolidation
+function isSBOMPlugin(pluginName: string): boolean {
+    return pluginName.endsWith('-sbom');
+}
+
+function hasSBOMPlugins(analyzer: any): boolean {
+    return analyzer.steps.some((step: any) =>
+        step.some(
+            (plugin: any) => isSBOMPlugin(plugin.name) && Object.keys(plugin.config).length > 0
+        )
+    );
+}
+
+function onSubmitSBOM(values: any) {
+    // Apply the same configuration to all SBOM plugins
+    selected_analyzers_list.value.forEach((analyzer) => {
+        analyzer.steps.forEach((step: any) => {
+            step.forEach((plugin: any) => {
+                if (isSBOMPlugin(plugin.name)) {
+                    onSubmit(values, plugin.name);
+                }
+            });
+        });
+    });
+}
+
+// Additional helper functions for the new adaptive UI
+function hasPolicyPlugins(analyzer: any): boolean {
+    return hasVulnFinderPlugin(analyzer) || hasLicenseFinderPlugin(analyzer);
+}
+
+function hasVulnFinderPlugin(analyzer: any): boolean {
+    return analyzer.steps.some((step: any) =>
+        step.some(
+            (plugin: any) =>
+                (plugin.name === 'vuln-finder' || plugin.name === 'js-vuln-finder') &&
+                Object.keys(plugin.config).length > 0
+        )
+    );
+}
+
+function hasLicenseFinderPlugin(analyzer: any): boolean {
+    return analyzer.steps.some((step: any) =>
+        step.some(
+            (plugin: any) =>
+                (plugin.name === 'license-finder' || plugin.name === 'js-license') &&
+                Object.keys(plugin.config).length > 0
+        )
+    );
+}
+
+function hasAdvancedPlugins(analyzer: any): boolean {
+    return analyzer.steps.some((step: any) => step.some((plugin: any) => isAdvancedPlugin(plugin)));
+}
+
+function isAdvancedPlugin(plugin: any): boolean {
+    // Advanced plugins are those that aren't SBOM, vuln-finder, or license-finder
+    // and have configuration options
+    const isPolicyPlugin =
+        plugin.name === 'vuln-finder' ||
+        plugin.name === 'js-vuln-finder' ||
+        plugin.name === 'license-finder' ||
+        plugin.name === 'js-license';
+
+    return !isSBOMPlugin(plugin.name) && !isPolicyPlugin && Object.keys(plugin.config).length > 0;
+}
+
+// Helper functions for modern analyzer UI
+function getAnalyzerIcon(analyzerName: string): string {
+    const name = analyzerName.toLowerCase();
+    if (name.includes('javascript') || name.includes('js')) {
+        return 'devicon:javascript';
+    }
+    if (name.includes('php')) {
+        return 'devicon:php';
+    }
+    if (name.includes('multi') || name.includes('language')) {
+        return 'solar:code-square-bold';
+    }
+    return 'solar:shield-check-bold';
+}
+
+function getAnalyzerTechnologies(analyzerName: string): string[] {
+    const name = analyzerName.toLowerCase();
+    if (name.includes('multi') || name.includes('language')) {
+        return ['JavaScript', 'PHP', 'Node.js', 'Composer'];
+    }
+    if (name.includes('javascript') || name.includes('js')) {
+        return ['JavaScript', 'Node.js', 'npm', 'yarn'];
+    }
+    if (name.includes('php')) {
+        return ['PHP', 'Composer', 'Laravel', 'Symfony'];
+    }
+    return ['Security Analysis'];
+}
+
+// Validate all configurations (without showing individual toasts)
+async function validateAllConfigurations() {
+    // Get the current selected analyzer
+    if (selected_analyzers_list.value.length === 0) {
+        throw new Error('No analyzer selected');
+    }
+
+    const analyzer = selected_analyzers_list.value[0];
+
+    // 1. Apply SBOM configuration if needed
+    if (hasSBOMPlugins(analyzer)) {
+        // Get actual form values from the SBOM form inputs
+        const branchInput = document.querySelector('input[placeholder="main"]') as HTMLInputElement;
+        const commitHashInput = document.querySelector(
+            'input[placeholder="latest"]'
+        ) as HTMLInputElement;
+
+        const actualBranch = branchInput?.value || 'main';
+        const actualCommitHash = commitHashInput?.value || '';
+
+        // Update global values with actual form input
+        selected_branch.value = actualBranch;
+        selected_commit_hash.value = actualCommitHash || ' ';
+
+        const sbomConfig = {
+            branch: actualBranch
+        };
+        onSubmitSBOM(sbomConfig);
+    }
+
+    // 2. Apply policy configurations silently
+    analyzer.steps.forEach((step: any) => {
+        step.forEach((plugin: any) => {
+            // Vulnerability policy
+            if (
+                (plugin.name === 'vuln-finder' || plugin.name === 'js-vuln-finder') &&
+                Object.keys(plugin.config).length > 0
+            ) {
+                applyConfigSilently({}, 'vuln-finder');
+            }
+
+            // License policy
+            if (
+                (plugin.name === 'license-finder' || plugin.name === 'js-license') &&
+                Object.keys(plugin.config).length > 0
+            ) {
+                applyConfigSilently({}, 'license-finder');
+            }
+
+            // Advanced plugins - apply empty config for now
+            if (isAdvancedPlugin(plugin)) {
+                applyConfigSilently({}, plugin.name);
+            }
+        });
+    });
+
+    // 3. Show single comprehensive configuration toast
+    showFinalConfigurationToast();
+}
+
+// Apply configuration silently (without toast notification)
+function applyConfigSilently(values: any, plugin_name: string) {
+    if (values === undefined) configuration.value[plugin_name] = {};
+    else configuration.value[plugin_name] = values;
+
+    if (plugin_name === 'license-finder') {
+        configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
+    }
+    if (plugin_name === 'vuln-finder') {
+        // Send policy ID if one is selected, otherwise send empty array for no policy
+        configuration.value[plugin_name]['vulnerabilityPolicy'] =
+            selected_vulnerability_policy.value ? [selected_vulnerability_policy.value] : [];
+    }
+    if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
+        configuration.value[plugin_name]['project'] =
+            `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
+        selected_branch.value = values.branch;
+    }
+}
+
+// Show final comprehensive configuration toast
+function showFinalConfigurationToast() {
+    toast({
+        title: '🔧 Configuration Applied',
+        description: h('div', { class: 'space-y-2' }, [
+            h('p', { class: 'text-sm text-gray-600' }, 'Complete configuration for API requests:'),
+            h(
+                'pre',
+                {
+                    class: 'mt-2 w-[380px] rounded-md bg-slate-950 p-3 text-xs overflow-auto max-h-40'
+                },
+                h('code', { class: 'text-white' }, JSON.stringify(configuration.value, null, 2))
+            )
+        ])
+    });
+}
+
 // Fetch projects
 async function createAnalysisStart() {
     loading.value = true;
-    if (selected_commit_hash.value == '') selected_commit_hash.value = ' ';
-    if (selected_branch.value == '') selected_branch.value = ' ';
+    // Note: branch and commit hash values are now collected in validateAllConfigurations
+
     try {
+        // Validate and apply all configurations before creating analysis
+        await validateAllConfigurations();
+
         if (auth.getAuthenticated && auth.getToken) {
             if (user.defaultOrg?.id === undefined) {
                 throw new Error('Organization id not found');
@@ -247,7 +419,10 @@ async function createAnalysisStart() {
                 data: analysisData
             });
             toast({
-                title: 'Analysis created successfully'
+                title: '✅ Analysis Created Successfully!',
+                description:
+                    'Your analysis has been started and will run in the background. You will be notified when results are available.',
+                variant: 'default'
             });
             router.push({ name: 'projects' });
         }
@@ -334,65 +509,118 @@ async function createAnalysisStart() {
                 </AlertDescription>
             </Alert>
 
-            <!-- Analyzer Selection - Much Simpler -->
-            <div class="space-y-4">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Select Analyzers</h3>
-                    <p class="text-sm text-gray-600 mb-4">
-                        Choose the security analysis tools to run on your project
+            <!-- Modern Analyzer Selection -->
+            <div class="space-y-6">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                        Choose Your Security Analysis
+                    </h3>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Select the analyzer that best matches your project's technology stack
                     </p>
                 </div>
 
-                <!-- Simple List of Available Analyzers -->
-                <div class="space-y-3">
-                    <div v-for="analyzer in availableAnalyzers" :key="analyzer.id" class="relative">
+                <!-- Analyzer Cards Grid -->
+                <div class="grid gap-4 md:gap-6">
+                    <div
+                        v-for="analyzer in availableAnalyzers"
+                        :key="analyzer.id"
+                        class="group relative"
+                    >
+                        <input
+                            :id="`analyzer-${analyzer.id}`"
+                            v-model="selected_analyzers"
+                            type="checkbox"
+                            :value="analyzer.id"
+                            class="sr-only peer"
+                        />
                         <label
-                            class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all"
-                            :class="{
-                                'border-theme-primary bg-theme-primary/5':
-                                    selected_analyzers.includes(analyzer.id)
-                            }"
+                            :for="`analyzer-${analyzer.id}`"
+                            class="block p-6 bg-white border-2 border-gray-200 rounded-2xl cursor-pointer transition-all duration-200 hover:border-theme-primary hover:shadow-lg peer-checked:border-theme-primary peer-checked:bg-theme-primary/5 peer-checked:shadow-lg"
                         >
-                            <input
-                                v-model="selected_analyzers"
-                                type="checkbox"
-                                :value="analyzer.id"
-                                class="w-4 h-4 text-theme-primary border-gray-300 rounded focus:ring-theme-primary focus:ring-2"
-                            />
-                            <div class="ml-4 flex items-center flex-1">
+                            <div class="flex items-start gap-4">
+                                <!-- Modern Icon -->
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="w-16 h-16 bg-gradient-to-br from-theme-primary to-theme-primary/80 rounded-2xl flex items-center justify-center shadow-lg"
+                                    >
+                                        <Icon
+                                            :icon="getAnalyzerIcon(analyzer.name)"
+                                            class="w-10 h-10 text-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <h4
+                                            class="text-xl font-semibold text-gray-900 group-hover:text-theme-primary transition-colors"
+                                        >
+                                            {{ analyzer.displayName || analyzer.name }}
+                                        </h4>
+                                        <div class="hidden peer-checked:block">
+                                            <div
+                                                class="w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center"
+                                            >
+                                                <Icon
+                                                    icon="solar:check-bold"
+                                                    class="w-4 h-4 text-white"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-gray-600 mb-4 leading-relaxed">
+                                        {{
+                                            analyzer.description ||
+                                            'Security analysis for your codebase'
+                                        }}
+                                    </p>
+
+                                    <!-- Technology Tags -->
+                                    <div class="flex flex-wrap gap-2">
+                                        <span
+                                            v-for="tech in getAnalyzerTechnologies(analyzer.name)"
+                                            :key="tech"
+                                            class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full"
+                                        >
+                                            {{ tech }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Selection Indicator -->
                                 <div
-                                    class="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-lg mr-4"
+                                    class="flex-shrink-0 opacity-0 peer-checked:opacity-100 transition-opacity"
                                 >
-                                    <Icon icon="devicon:javascript" class="w-8 h-8" />
+                                    <div
+                                        class="w-8 h-8 bg-theme-primary rounded-full flex items-center justify-center shadow-md"
+                                    >
+                                        <Icon icon="solar:check-bold" class="w-5 h-5 text-white" />
+                                    </div>
                                 </div>
-                                <div class="flex-1">
-                                    <h4 class="font-semibold text-gray-900">
-                                        {{ analyzer.displayName }}
-                                    </h4>
-                                    <p class="text-sm text-gray-600">{{ analyzer.description }}</p>
-                                </div>
-                            </div>
-                            <!-- Selection indicator -->
-                            <div
-                                v-if="selected_analyzers.includes(analyzer.id)"
-                                class="text-theme-primary"
-                            >
-                                <Icon icon="solar:check-circle-bold" class="w-5 h-5" />
                             </div>
                         </label>
                     </div>
 
-                    <!-- Empty state -->
+                    <!-- Empty State -->
                     <div
                         v-if="availableAnalyzers.length === 0"
-                        class="text-center py-8 text-gray-500"
+                        class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300"
                     >
-                        <Icon
-                            icon="solar:settings-linear"
-                            class="w-12 h-12 mx-auto mb-3 text-gray-400"
-                        />
-                        <p class="text-sm">No analyzers available.</p>
-                        <Button variant="link" class="text-theme-primary mt-2" as-child>
+                        <div
+                            class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4"
+                        >
+                            <Icon icon="solar:settings-linear" class="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            No Analyzers Available
+                        </h3>
+                        <p class="text-gray-600 mb-4">
+                            Create your first analyzer to get started with security analysis.
+                        </p>
+                        <Button variant="default" as-child>
                             <RouterLink
                                 :to="{
                                     name: 'orgs',
@@ -402,147 +630,314 @@ async function createAnalysisStart() {
                                         orgId: user.defaultOrg?.id
                                     }
                                 }"
+                                class="inline-flex items-center gap-2"
                             >
-                                Create a new analyzer
+                                <Icon icon="solar:add-circle-bold" class="w-4 h-4" />
+                                Create New Analyzer
                             </RouterLink>
                         </Button>
                     </div>
                 </div>
 
-                <!-- Selection feedback -->
-                <div
-                    v-if="selected_analyzers.length > 0"
-                    class="text-sm text-theme-primary font-medium"
-                >
-                    ✓ {{ selected_analyzers.length }} analyzer{{
-                        selected_analyzers.length > 1 ? 's' : ''
-                    }}
-                    selected
+                <!-- Selection Summary -->
+                <div v-if="selected_analyzers.length > 0" class="text-center">
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-theme-primary/10 border border-theme-primary/20 text-theme-primary rounded-full"
+                    >
+                        <Icon icon="solar:check-circle-bold" class="w-5 h-5" />
+                        <span class="font-medium">
+                            {{ selected_analyzers.length }} analyzer{{
+                                selected_analyzers.length > 1 ? 's' : ''
+                            }}
+                            selected
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Analyzer Configuration - Simplified -->
+            <!-- Modern Configuration Section -->
             <div v-if="selected_analyzers.length > 0" class="space-y-6">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Configure Analysis</h3>
-                    <p class="text-sm text-gray-600 mb-4">
-                        Set up the configuration for your selected analyzers
-                    </p>
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Configure Your Analysis</h3>
+                    <p class="text-gray-600">Fine-tune the settings for your security analysis</p>
                 </div>
 
-                <div class="space-y-4">
+                <!-- New Adaptive Configuration UI -->
+                <div class="space-y-6">
                     <div
                         v-for="analyzer in selected_analyzers_list"
                         :key="analyzer.id"
-                        class="space-y-4"
+                        class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
                     >
-                        <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                            <div v-for="(step, index) in analyzer.steps" :key="index">
-                                <div v-for="plugin in step" :key="plugin.name">
+                        <!-- Configuration Sections -->
+                        <div class="divide-y divide-gray-100">
+                            <!-- Repository Configuration (if SBOM plugins exist) -->
+                            <div v-if="hasSBOMPlugins(analyzer)" class="p-6">
+                                <div class="flex items-center gap-3 mb-4">
                                     <div
-                                        v-if="Object.keys(plugin.config).length > 0"
-                                        class="h-full"
+                                        class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
                                     >
-                                        <div
-                                            class="border border-gray-200 rounded-lg bg-white p-4 h-full"
-                                        >
-                                            <div class="mb-4">
-                                                <h4 class="font-medium text-gray-900 mb-1">
-                                                    {{ plugin.name }}
-                                                </h4>
-                                                <p class="text-xs text-gray-500">
-                                                    {{ plugin.version }}
-                                                </p>
-                                            </div>
+                                        <Icon
+                                            icon="solar:code-square-bold"
+                                            class="w-5 h-5 text-blue-600"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">
+                                            Repository Configuration
+                                        </h4>
+                                        <p class="text-sm text-gray-500">
+                                            Source code and dependency analysis settings
+                                        </p>
+                                    </div>
+                                </div>
 
-                                            <Form
-                                                class="space-y-3"
-                                                @submit="
-                                                    (values: any) => onSubmit(values, plugin.name)
-                                                "
-                                            >
-                                                <FormField
-                                                    v-for="config in plugin.config"
-                                                    :key="config"
-                                                    v-slot="{ componentField }"
-                                                    :name="config.name"
+                                <Form
+                                    class="space-y-4"
+                                    @submit="(values: any) => onSubmitSBOM(values)"
+                                >
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField v-slot="{ componentField }" name="branch">
+                                            <FormItem>
+                                                <FormLabel
+                                                    class="text-sm font-medium text-gray-700"
                                                 >
-                                                    <FormItem>
-                                                        <FormLabel
-                                                            class="text-sm font-medium text-gray-700"
-                                                        >
-                                                            {{ config.name }}
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            <SelectLicensePolicy
-                                                                v-if="
-                                                                    config.name === 'License Policy'
-                                                                "
-                                                                v-model:selected_license_policy="
-                                                                    selected_license_policy
-                                                                "
-                                                            />
-                                                            <Select
-                                                                v-else-if="
-                                                                    config.name === 'language'
-                                                                "
-                                                                v-bind="componentField"
-                                                            >
-                                                                <FormControl>
-                                                                    <SelectTrigger
-                                                                        class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
-                                                                    >
-                                                                        <SelectValue
-                                                                            placeholder="Select language"
-                                                                        />
-                                                                    </SelectTrigger>
-                                                                </FormControl>
-                                                                <SelectContent>
-                                                                    <SelectGroup>
-                                                                        <SelectItem
-                                                                            v-for="language in availableLanguages"
-                                                                            :key="language"
-                                                                            :value="language"
-                                                                        >
-                                                                            {{
-                                                                                language
-                                                                                    .charAt(0)
-                                                                                    .toUpperCase() +
-                                                                                language.slice(1)
-                                                                            }}
-                                                                        </SelectItem>
-                                                                    </SelectGroup>
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <Input
-                                                                v-else
-                                                                :placeholder="config.name"
-                                                                v-bind="componentField"
-                                                                class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
-                                                            />
-                                                        </FormControl>
-                                                        <FormDescription
-                                                            v-if="config.description"
-                                                            class="text-xs text-gray-500"
-                                                        >
-                                                            {{ config.description }}
-                                                        </FormDescription>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                </FormField>
-                                                <Button
-                                                    type="submit"
-                                                    size="sm"
-                                                    class="w-full bg-gray-900 hover:bg-gray-800 text-white"
-                                                    @click="(e: any) => addIcon(e)"
-                                                >
-                                                    <Icon
-                                                        icon="solar:check-circle-linear"
-                                                        class="h-4 w-4 mr-1"
+                                                    Branch <span class="text-red-500">*</span>
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="main"
+                                                        v-bind="componentField"
+                                                        class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                                                     />
-                                                    Validate
-                                                </Button>
-                                            </Form>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        </FormField>
+
+                                        <FormField v-slot="{ componentField }" name="commit_id">
+                                            <FormItem>
+                                                <FormLabel
+                                                    class="text-sm font-medium text-gray-700"
+                                                >
+                                                    Commit ID
+                                                    <span class="text-xs text-gray-500"
+                                                        >(optional)</span
+                                                    >
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="latest"
+                                                        v-bind="componentField"
+                                                        class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        </FormField>
+                                    </div>
+                                </Form>
+                            </div>
+
+                            <!-- Policy Configuration -->
+                            <div v-if="hasPolicyPlugins(analyzer)" class="p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div
+                                        class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+                                    >
+                                        <Icon
+                                            icon="solar:shield-check-bold"
+                                            class="w-5 h-5 text-green-600"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">
+                                            Security Policies
+                                        </h4>
+                                        <p class="text-sm text-gray-500">
+                                            Set up compliance and filtering rules
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="grid md:grid-cols-2 gap-6">
+                                    <!-- Vulnerability Policy -->
+                                    <div v-if="hasVulnFinderPlugin(analyzer)" class="space-y-3">
+                                        <div class="flex items-center gap-2">
+                                            <Icon
+                                                icon="solar:bug-bold"
+                                                class="w-5 h-5 text-red-500"
+                                            />
+                                            <span class="font-semibold text-gray-900"
+                                                >Vulnerability Policy</span
+                                            >
+                                            <span
+                                                class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+                                                >Optional</span
+                                            >
+                                        </div>
+                                        <div class="bg-gray-50 rounded-lg p-4 border">
+                                            <SelectVulnerabilityPolicy
+                                                v-model:selected_vulnerability_policy="
+                                                    selected_vulnerability_policy
+                                                "
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <!-- License Policy -->
+                                    <div v-if="hasLicenseFinderPlugin(analyzer)" class="space-y-3">
+                                        <div class="flex items-center gap-2">
+                                            <Icon
+                                                icon="solar:document-text-bold"
+                                                class="w-5 h-5 text-blue-500"
+                                            />
+                                            <span class="font-semibold text-gray-900"
+                                                >License Policy</span
+                                            >
+                                            <span
+                                                class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+                                                >Optional</span
+                                            >
+                                        </div>
+                                        <div class="bg-gray-50 rounded-lg p-4 border">
+                                            <SelectLicensePolicy
+                                                v-model:selected_license_policy="
+                                                    selected_license_policy
+                                                "
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Advanced Plugin Configuration -->
+                            <div v-if="hasAdvancedPlugins(analyzer)" class="p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div
+                                        class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"
+                                    >
+                                        <Icon
+                                            icon="solar:settings-bold"
+                                            class="w-5 h-5 text-purple-600"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">
+                                            Advanced Configuration
+                                        </h4>
+                                        <p class="text-sm text-gray-500">
+                                            Plugin-specific settings and customizations
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div v-for="(step, index) in analyzer.steps" :key="index">
+                                        <div v-for="plugin in step" :key="plugin.name">
+                                            <div v-if="isAdvancedPlugin(plugin)">
+                                                <div
+                                                    class="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                                                >
+                                                    <div class="flex items-center gap-2 mb-3">
+                                                        <span class="font-medium text-gray-900">{{
+                                                            plugin.name
+                                                        }}</span>
+                                                        <span
+                                                            class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded"
+                                                            >{{ plugin.version }}</span
+                                                        >
+                                                    </div>
+
+                                                    <Form
+                                                        class="space-y-3"
+                                                        @submit="
+                                                            (values: any) =>
+                                                                onSubmit(values, plugin.name)
+                                                        "
+                                                    >
+                                                        <div
+                                                            v-for="config in plugin.config"
+                                                            :key="config.name"
+                                                            class="space-y-2"
+                                                        >
+                                                            <FormField
+                                                                v-slot="{ componentField }"
+                                                                :name="config.name"
+                                                            >
+                                                                <FormItem>
+                                                                    <FormLabel
+                                                                        class="text-sm font-medium text-gray-700"
+                                                                    >
+                                                                        {{ config.name }}
+                                                                        <span
+                                                                            v-if="config.required"
+                                                                            class="text-red-500"
+                                                                            >*</span
+                                                                        >
+                                                                    </FormLabel>
+                                                                    <FormControl>
+                                                                        <Select
+                                                                            v-if="
+                                                                                config.name ===
+                                                                                'language'
+                                                                            "
+                                                                            v-bind="componentField"
+                                                                        >
+                                                                            <SelectTrigger
+                                                                                class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
+                                                                            >
+                                                                                <SelectValue
+                                                                                    placeholder="Select language"
+                                                                                />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectGroup>
+                                                                                    <SelectItem
+                                                                                        v-for="language in availableLanguages"
+                                                                                        :key="
+                                                                                            language
+                                                                                        "
+                                                                                        :value="
+                                                                                            language
+                                                                                        "
+                                                                                    >
+                                                                                        {{
+                                                                                            language
+                                                                                                .charAt(
+                                                                                                    0
+                                                                                                )
+                                                                                                .toUpperCase() +
+                                                                                            language.slice(
+                                                                                                1
+                                                                                            )
+                                                                                        }}
+                                                                                    </SelectItem>
+                                                                                </SelectGroup>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                        <Input
+                                                                            v-else
+                                                                            :placeholder="
+                                                                                config.name
+                                                                            "
+                                                                            v-bind="componentField"
+                                                                            class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormDescription
+                                                                        v-if="config.description"
+                                                                        class="text-xs text-gray-500"
+                                                                    >
+                                                                        {{ config.description }}
+                                                                    </FormDescription>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            </FormField>
+                                                        </div>
+                                                    </Form>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -22,6 +22,7 @@ import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import VulnReferences from './VulnDetails/VulnReferences.vue';
 import VulnSecurityAnalysis from './VulnDetails/VulnSecurityAnalysis.vue';
+import AddToPolicyButton from './components/AddToPolicyButton.vue';
 
 type Props = {
     [key: string]: any;
@@ -216,19 +217,39 @@ function getPackageManagerSubtitleIcon(): string {
     <div class="sbom-details-container">
         <!-- Navigation -->
         <div v-if="showBack" class="navigation-section">
-            <Badge
-                variant="secondary"
-                title="Go back to preview page"
-                class="back-button"
-                @click="goBack()"
-            >
-                <Icon
-                    :icon="'material-symbols:keyboard-backspace'"
-                    class="mr-2 text-theme-primary"
+            <div class="flex items-center justify-between">
+                <Badge
+                    variant="secondary"
+                    title="Go back to preview page"
+                    class="back-button"
+                    @click="goBack()"
+                >
+                    <Icon
+                        :icon="'material-symbols:keyboard-backspace'"
+                        class="mr-2 text-theme-primary"
+                    />
+                    Go back
+                </Badge>
+                <AddToPolicyButton
+                    v-if="finding?.vulnerability_info?.vulnerability_id"
+                    :vulnerability-id="finding.vulnerability_info.vulnerability_id"
+                    size="default"
+                    variant="outline"
                 />
-                Go back
-            </Badge>
+            </div>
         </div>
+        <!-- Add to Policy button for when no back button is shown -->
+        <div
+            v-if="!showBack && render && finding?.vulnerability_info?.vulnerability_id"
+            class="mb-6 flex justify-end"
+        >
+            <AddToPolicyButton
+                :vulnerability-id="finding.vulnerability_info.vulnerability_id"
+                size="default"
+                variant="outline"
+            />
+        </div>
+
         <!-- Content -->
         <div v-if="render && finding" class="content-wrapper">
             <!-- Header Section with Package Info -->

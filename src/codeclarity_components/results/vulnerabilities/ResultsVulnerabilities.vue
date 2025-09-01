@@ -24,6 +24,7 @@ const table_ref: any = ref(null);
 
 const selected_workspace: Ref<string> = ref('.');
 const selectedEcosystemFilter: Ref<string | null> = ref(null);
+const showBlacklistedVulns: Ref<boolean> = ref(false);
 
 // VIEW DATA
 const details = ref(false);
@@ -148,7 +149,15 @@ watch(active_tab, async (newTab, oldTab) => {
             "
         ></VulnContent>
         <Card>
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader class="pb-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Vulnerabilities</h3>
+                        <p class="text-sm text-gray-600">
+                            Security vulnerabilities found in your project dependencies
+                        </p>
+                    </div>
+                </div>
             </CardHeader>
             <CardContent>
                 <Tabs default-value="list" class="space-y-4">
@@ -166,6 +175,8 @@ watch(active_tab, async (newTab, oldTab) => {
                             :analysis-i-d="analysis.id"
                             :project-i-d="project.id"
                             :ecosystem-filter="selectedEcosystemFilter"
+                            :show-blacklisted="showBlacklistedVulns"
+                            @update:show-blacklisted="showBlacklistedVulns = $event"
                         />
                     </TabsContent>
                     <TabsContent value="table" class="space-y-4">
@@ -177,6 +188,8 @@ watch(active_tab, async (newTab, oldTab) => {
                             :analysis-i-d="analysis.id"
                             :project-i-d="project.id"
                             :ecosystem-filter="selectedEcosystemFilter"
+                            :show-blacklisted="showBlacklistedVulns"
+                            @update:show-blacklisted="showBlacklistedVulns = $event"
                         ></Table>
                     </TabsContent>
                 </Tabs>

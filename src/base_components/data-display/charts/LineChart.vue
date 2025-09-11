@@ -29,10 +29,10 @@ onMounted(() => {
 
     const aapl: ChartDataPoint[] = [];
 
-    for (let i = 0; i < props.chartData.datasets[0].data.length; i++) {
+    for (let i = 0; i < (props.chartData.datasets[0]?.data?.length ?? 0); i++) {
         aapl.push({
-            date: props.chartData.labels[i],
-            close: props.chartData.datasets[0].data[i]
+            date: props.chartData.labels?.[i] ?? '',
+            close: props.chartData.datasets[0]?.data?.[i] ?? 0
         });
     }
 

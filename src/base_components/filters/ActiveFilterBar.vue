@@ -5,7 +5,9 @@ import { Icon } from '@iconify/vue';
 const filterState = defineModel<FilterState>('filterState', { default: {} });
 
 function removeFilter(filter: ActiveFilter) {
-    filterState.value.filterConfig[filter.category].data[filter.option].value = false;
+    if (filterState.value?.filterConfig?.[filter.category]?.data?.[filter.option]) {
+        filterState.value.filterConfig[filter.category]!.data[filter.option]!.value = false;
+    }
 }
 </script>
 <template>

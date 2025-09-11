@@ -27,7 +27,7 @@ const shapes = computed(() => {
     const val: { [key in keyof T]: Shape } = {};
 
     if (!props.schema) return;
-    const shape = getBaseSchema(props.schema)?.shape;
+    const shape = (getBaseSchema(props.schema) as any)?.shape;
     if (!shape) return;
     Object.keys(shape).forEach((name) => {
         const item = shape[name] as ZodAny;
@@ -41,7 +41,7 @@ const shapes = computed(() => {
             type: getBaseType(item),
             default: getDefaultValueInZodStack(item),
             options,
-            required: !['ZodOptional', 'ZodNullable'].includes(item._def.typeName),
+            required: !['ZodOptional', 'ZodNullable'].includes(item._def?.typeName ?? ''),
             schema: item
         };
     });

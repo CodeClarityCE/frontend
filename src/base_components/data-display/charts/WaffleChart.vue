@@ -172,7 +172,7 @@ function createData() {
         });
         let i = 0;
         for (const entry of [...dataForLegend]) {
-            entry.color = colors[i];
+            entry.color = colors[i] ?? '#000000';
             i++;
         }
 
@@ -184,7 +184,9 @@ function createData() {
         });
 
         for (let i = 0; i < othersEntries.length; i++) {
-            othersEntries[i].color = colors[i];
+            if (othersEntries[i]) {
+                othersEntries[i].color = colors[i] ?? '#000000';
+            }
         }
     }
 

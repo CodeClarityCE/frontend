@@ -133,7 +133,7 @@ export class EcosystemDetector {
             // Extract the type from PURL
             const purlParts = purl.split('/');
             const typeWithPrefix = purlParts[0]; // "pkg:type"
-            const type = typeWithPrefix.split(':')[1]; // "type"
+            const type = typeWithPrefix?.split(':')[1]; // "type"
 
             // Find ecosystem by PURL type
             for (const ecosystem of Object.values(ECOSYSTEMS)) {

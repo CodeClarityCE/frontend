@@ -46,7 +46,7 @@ const shapes = computed(() => {
             type: getBaseType(item),
             default: getDefaultValueInZodStack(item),
             options,
-            required: !['ZodOptional', 'ZodNullable'].includes(item._def.typeName),
+            required: !['ZodOptional', 'ZodNullable'].includes(item._def?.typeName ?? ''),
             schema: baseItem
         };
     });

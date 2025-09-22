@@ -331,18 +331,22 @@ function selectPackage(packageName: string) {
 
 <style scoped>
 .composer-dependency-tree {
-    @apply bg-white rounded-lg border border-gray-200 p-4;
+    background-color: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
 }
 
 .tree-header {
-    @apply border-b border-gray-200 pb-4;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
 }
 
 .dependency-item {
-    @apply border-l-2 border-gray-100;
+    border-left: 2px solid #f3f4f6;
 }
 
 .dependency-item:hover {
-    @apply border-l-blue-200;
+    border-left-color: #dbeafe;
 }
 </style>

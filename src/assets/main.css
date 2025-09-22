@@ -1,0 +1,48 @@
+@import url('fonts/lato.scss');
+@import url('fonts/roboto.scss');
+@import "tailwindcss";
+
+@theme {
+    /* Basic colors */
+    --color-black: #000000;
+    --color-white: #ffffff;
+
+    /* Gray scale */
+    --color-gray-50: #f9fafb;
+    --color-gray-100: #f3f4f6;
+    --color-gray-200: #e5e7eb;
+    --color-gray-300: #d1d5db;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #4b5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+
+    /* Shadcn colors */
+    --color-background: hsl(0 0% 100%);
+    --color-foreground: hsl(0 0% 0%);
+    --color-border: hsl(0 0% 90%);
+    --color-input: hsl(0 0% 90%);
+    --color-ring: hsl(0 0% 0%);
+    --color-primary: hsl(148 76% 47%);
+    --color-primary-foreground: hsl(0 0% 100%);
+    --color-secondary: hsl(0 0% 96%);
+    --color-secondary-foreground: hsl(0 0% 10%);
+    --color-muted: hsl(0 0% 96%);
+    --color-muted-foreground: hsl(0 0% 45%);
+    --color-accent: hsl(148 76% 47%);
+    --color-accent-foreground: hsl(0 0% 100%);
+    --color-destructive: hsl(0 0% 0%);
+    --color-destructive-foreground: hsl(0 0% 100%);
+}
+
+@layer base {
+    * {
+        border-color: hsl(0 0% 90%);
+    }
+    body {
+        background-color: hsl(0 0% 100%);
+        color: hsl(0 0% 0%);
+    }
+}

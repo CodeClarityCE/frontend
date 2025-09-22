@@ -58,25 +58,44 @@ defineProps<Props>();
 
 <style scoped>
 .analyzer-node {
-    @apply relative bg-black text-white border border-gray-700 rounded-lg p-4 shadow-lg;
+    position: relative;
+    background-color: #000000;
+    color: white;
+    border: 1px solid #374151;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     min-width: 280px;
     max-width: 320px;
 }
 
 .node-header {
-    @apply flex items-center gap-2 mb-2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .node-title {
-    @apply text-sm font-semibold truncate;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .node-content {
-    @apply space-y-1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .node-description {
-    @apply text-xs opacity-90 leading-tight;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    opacity: 0.9;
+    line-height: 1.25;
     word-wrap: break-word;
     overflow-wrap: break-word;
     display: -webkit-box;
@@ -87,7 +106,12 @@ defineProps<Props>();
 }
 
 .node-version {
-    @apply text-xs bg-white/20 px-2 py-1 rounded text-center;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-align: center;
 }
 
 /* Handle styles are applied via inline styles in template */

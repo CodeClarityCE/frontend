@@ -595,7 +595,7 @@ const exploitableCount = computed(() => {
                             </div>
                             <div
                                 v-else-if="isNoneSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityNone rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-none rounded-md shadow-sm"
                             >
                                 NONE
                             </div>
@@ -1028,7 +1028,7 @@ const exploitableCount = computed(() => {
                                         'text-severity-high': vla.Score == 'high',
                                         'text-severity-medium': vla.Score == 'medium',
                                         'text-severity-low': vla.Score == 'low',
-                                        'text-severityNone': vla.Score == 'none'
+                                        'text-severity-none': vla.Score == 'none'
                                     }"
                                 >
                                     {{ vla.Source }}

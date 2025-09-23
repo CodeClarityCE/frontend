@@ -1006,7 +1006,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                     vla.Score == 'medium',
                                                                 'text-severity-low':
                                                                     vla.Score == 'low',
-                                                                'text-severityNone':
+                                                                'text-severity-none':
                                                                     vla.Score == 'none' ||
                                                                     !vla.Score
                                                             }"
@@ -1027,7 +1027,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                     vla.Score == 'medium',
                                                                 'text-severity-low':
                                                                     vla.Score == 'low',
-                                                                'text-severityNone':
+                                                                'text-severity-none':
                                                                     vla.Score == 'none'
                                                             }"
                                                         >
@@ -1102,7 +1102,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                             vla.Score == 'medium',
                                                                         'severity-low-bg text-severity-low':
                                                                             vla.Score == 'low',
-                                                                        'severity-none-bg text-severityNone':
+                                                                        'severity-none-bg text-severity-none':
                                                                             vla.Score == 'none' ||
                                                                             !vla.Score
                                                                     }"
@@ -1961,7 +1961,7 @@ td {
     color: rgb(37 99 235);
 }
 
-.text-severityNone {
+.text-severity-none {
     color: rgb(107 114 128);
 }
 </style>

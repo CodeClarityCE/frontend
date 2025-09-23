@@ -14,7 +14,7 @@ function removeFilter(filter: ActiveFilter) {
     <div class="flex flex-row gap-2 flex-wrap">
         <div v-for="filter in filterState.activeFilters" :key="filter.label">
             <div
-                class="w-fit bg-gray-200 py-1 px-2 rounded flex flex-row gap-2 items-center font-normal text-grayTitle"
+                class="w-fit bg-gray-200 py-1 px-2 rounded flex flex-row gap-2 items-center font-normal text-gray-700"
             >
                 <div>{{ filter.label }}</div>
                 <div

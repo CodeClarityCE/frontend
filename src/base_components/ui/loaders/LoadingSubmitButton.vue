@@ -26,7 +26,7 @@ defineExpose({
 <template>
     <button
         type="submit"
-        class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primaryHovered"
+        class="rounded py-3 px-5 text-white shadow-md bg-primary hover:bg-primary/90"
         :class="{ 'submit-button': !props.noStyle }"
         :disabled="disabled"
     >

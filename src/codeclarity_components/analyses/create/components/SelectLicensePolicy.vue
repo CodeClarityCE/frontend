@@ -175,7 +175,7 @@ fetchLicensePolicies();
                             </div>
                         </div>
                     </div>
-                    <div class="text-grayTitle font-normal flex justify-between mt-10">
+                    <div class="text-gray-700 font-normal flex justify-between mt-10">
                         <PaginationComponent
                             v-model:page="currentPage"
                             v-model:nmb-entries-showing="defaultEntriesPerPage"

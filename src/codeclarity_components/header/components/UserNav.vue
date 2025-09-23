@@ -906,7 +906,7 @@ fetchAllNotifications();
                                             notification.content.severity_counts.CRITICAL &&
                                             notification.content.severity_counts.CRITICAL > 0
                                         "
-                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityCriticalBg text-severityCritical rounded-md text-sm font-medium"
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severity-critical-bg text-severity-critical rounded-md text-sm font-medium"
                                     >
                                         <Icon icon="mdi:alert-circle" class="text-base" />
                                         <span
@@ -921,7 +921,7 @@ fetchAllNotifications();
                                             notification.content.severity_counts.HIGH &&
                                             notification.content.severity_counts.HIGH > 0
                                         "
-                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityHighBg text-severityHigh rounded-md text-sm font-medium"
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severity-high-bg text-severity-high rounded-md text-sm font-medium"
                                     >
                                         <Icon icon="mdi:alert" class="text-base" />
                                         <span
@@ -934,7 +934,7 @@ fetchAllNotifications();
                                             notification.content.severity_counts.MEDIUM &&
                                             notification.content.severity_counts.MEDIUM > 0
                                         "
-                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityMediumBg text-severityMedium rounded-md text-sm font-medium"
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severity-medium-bg text-severity-medium rounded-md text-sm font-medium"
                                     >
                                         <Icon icon="mdi:alert-outline" class="text-base" />
                                         <span
@@ -947,7 +947,7 @@ fetchAllNotifications();
                                             notification.content.severity_counts.LOW &&
                                             notification.content.severity_counts.LOW > 0
                                         "
-                                        class="flex items-center gap-1 px-2.5 py-1 bg-severityLowBg text-severityLow rounded-md text-sm font-medium"
+                                        class="flex items-center gap-1 px-2.5 py-1 bg-severity-low-bg text-severity-low rounded-md text-sm font-medium"
                                     >
                                         <Icon icon="mdi:information-outline" class="text-base" />
                                         <span

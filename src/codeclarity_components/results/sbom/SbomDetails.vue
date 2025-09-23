@@ -605,30 +605,30 @@ getDependency(props.projectID, props.analysisID);
         }
 
         &.critical {
-            border-left: 4px solid theme('colors.severityCritical');
+            border-left: 4px solid theme('colors.severity-critical');
             .severity-icon {
-                color: theme('colors.severityCritical');
+                color: theme('colors.severity-critical');
             }
         }
 
         &.high {
-            border-left: 4px solid theme('colors.severityHigh');
+            border-left: 4px solid theme('colors.severity-high');
             .severity-icon {
-                color: theme('colors.severityHigh');
+                color: theme('colors.severity-high');
             }
         }
 
         &.medium {
-            border-left: 4px solid theme('colors.severityMedium');
+            border-left: 4px solid theme('colors.severity-medium');
             .severity-icon {
-                color: theme('colors.severityMedium');
+                color: theme('colors.severity-medium');
             }
         }
 
         &.low {
-            border-left: 4px solid theme('colors.severityLow');
+            border-left: 4px solid theme('colors.severity-low');
             .severity-icon {
-                color: theme('colors.severityLow');
+                color: theme('colors.severity-low');
             }
         }
     }

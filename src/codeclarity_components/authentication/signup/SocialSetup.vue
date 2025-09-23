@@ -154,7 +154,7 @@ function nonRecoverableErrorRedirect() {
                         <Icon class="text-7xl" icon="simple-icons:github" />
                     </span>
                 </div>
-                <div class="pt-2 text-5xl font-extrabold text-grayTitle">Account setup</div>
+                <div class="pt-2 text-5xl font-extrabold text-gray-700">Account setup</div>
             </div>
 
             <div v-if="errorNonRecoverable" class="flex flex-col gap-7">

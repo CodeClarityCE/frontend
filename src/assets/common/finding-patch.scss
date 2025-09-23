@@ -1,5 +1,3 @@
-@use '../colors.scss';
-
 /*****************************************************************************/
 /*                          Findings patch container                         */
 /*****************************************************************************/
@@ -36,7 +34,7 @@
 }
 
 .findings-patch-type-indicator-full {
-    color: colors.$patch-type-full;
+    color: var(--color-patched);
     display: flex;
     align-items: center;
     column-gap: 5px;
@@ -46,7 +44,7 @@
 }
 
 .findings-patch-type-indicator-partial {
-    color: colors.$patch-type-partial;
+    color: var(--color-partially-patched);
     display: flex;
     align-items: center;
     column-gap: 5px;
@@ -56,7 +54,7 @@
 }
 
 .findings-patch-type-indicator-none {
-    color: colors.$patch-type-none;
+    color: var(--color-not-patched);
     display: flex;
     align-items: center;
     column-gap: 5px;
@@ -72,13 +70,13 @@
 }
 
 .findings-patch-container-full {
-    border-left: 3px solid colors.$patch-type-full;
+    border-left: 3px solid var(--color-patched);
 }
 
 .findings-patch-container-partial {
-    border-left: 3px solid colors.$patch-type-partial;
+    border-left: 3px solid var(--color-partially-patched);
 }
 
 .findings-patch-container-none {
-    border-left: 3px solid colors.$patch-type-none;
+    border-left: 3px solid var(--color-not-patched);
 }

@@ -78,7 +78,6 @@ async function updateSort(key: string | null) {
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .stylized_table :deep(tbody) > tr > td > div {
     padding-top: 5px;
@@ -138,7 +137,7 @@ async function updateSort(key: string | null) {
 }
 
 .stylized_table .header-sortable-active .header-sortable {
-    border-bottom: 1px solid colors.$base-color;
+    border-bottom: 1px solid var(--color-theme-primary);
 }
 
 .stylized_table_with_dividers th > div {

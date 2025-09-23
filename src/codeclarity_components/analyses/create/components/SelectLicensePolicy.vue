@@ -236,7 +236,6 @@ fetchLicensePolicies();
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .license-policies-list-wrapper {
     display: flex;
@@ -251,7 +250,7 @@ fetchLicensePolicies();
 }
 
 .license-policy-selected {
-    border: 3px solid colors.$accent;
+    border: 3px solid var(--color-accent);
 }
 
 .license-policy-header {

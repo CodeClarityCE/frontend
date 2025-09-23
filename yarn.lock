@@ -8176,7 +8176,6 @@ __metadata:
     start-server-and-test: "npm:2.1.0"
     tailwind-merge: "npm:3.3.1"
     tailwindcss: "npm:4.1.13"
-    tailwindcss-animate: "npm:1.0.7"
     typescript: "npm:5.9.2"
     typescript-eslint: "npm:8.43.0"
     v-calendar: "npm:3.1.2"
@@ -12623,15 +12622,6 @@ __metadata:
   version: 3.3.1
   resolution: "tailwind-merge@npm:3.3.1"
   checksum: 10/ad97f0763afdfdce785b8de50bc546951bb3cc803ab4f809cb10d654d9b7e28b0d19dead70ab9070edf479af68622a5f6ba16a21584fa8c21236855709dc648f
-  languageName: node
-  linkType: hard
-
-"tailwindcss-animate@npm:1.0.7":
-  version: 1.0.7
-  resolution: "tailwindcss-animate@npm:1.0.7"
-  peerDependencies:
-    tailwindcss: "*"
-  checksum: 10/ef176fbb0bf9dca84178b35b6a9615cd756358ea80be9c575456d12ecd7f3c431e9e571915c7df72959dc798a730959e9a4739d59eab55d8cc6db390870ff0d2
   languageName: node
   linkType: hard
 

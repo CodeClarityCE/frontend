@@ -409,6 +409,5 @@ defineProps<{
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 @use '@/assets/common/finding-patch.scss';
 </style>

@@ -1706,7 +1706,6 @@ const exploitableCount = computed(() => {
 <style scoped lang="scss">
 @use '@/assets/common/summary.scss';
 @use '@/assets/common/cvss.scss';
-@use '@/assets/colors.scss' as colors;
 
 .vulnerability-card-wrapper {
     transition: all 0.2s ease-in-out;
@@ -1755,23 +1754,23 @@ const exploitableCount = computed(() => {
 
 // Color-coded left borders
 .border-l-red-600 {
-    border-left-color: colors.$severity-critical !important;
+    border-left-color: var(--color-severity-critical) !important;
 }
 
 .border-l-orange-500 {
-    border-left-color: colors.$severity-high !important;
+    border-left-color: var(--color-severity-high) !important;
 }
 
 .border-l-yellow-500 {
-    border-left-color: colors.$severity-medium !important;
+    border-left-color: var(--color-severity-medium) !important;
 }
 
 .border-l-blue-500 {
-    border-left-color: colors.$severity-low !important;
+    border-left-color: var(--color-severity-low) !important;
 }
 
 .border-l-gray-400 {
-    border-left-color: colors.$severity-none !important;
+    border-left-color: var(--color-severity-none) !important;
 }
 
 // Enhanced CVE styling
@@ -1793,28 +1792,28 @@ h3 {
 
 // Severity background colors to match text colors
 .severity-critical-bg {
-    background-color: rgba(colors.$severity-critical, 0.1);
-    border-color: rgba(colors.$severity-critical, 0.3);
+    background-color: rgba(var(--color-severity-critical), 0.1);
+    border-color: rgba(var(--color-severity-critical), 0.3);
 }
 
 .severity-high-bg {
-    background-color: rgba(colors.$severity-high, 0.1);
-    border-color: rgba(colors.$severity-high, 0.3);
+    background-color: rgba(var(--color-severity-high), 0.1);
+    border-color: rgba(var(--color-severity-high), 0.3);
 }
 
 .severity-medium-bg {
-    background-color: rgba(colors.$severity-medium, 0.1);
-    border-color: rgba(colors.$severity-medium, 0.3);
+    background-color: rgba(var(--color-severity-medium), 0.1);
+    border-color: rgba(var(--color-severity-medium), 0.3);
 }
 
 .severity-low-bg {
-    background-color: rgba(colors.$severity-low, 0.1);
-    border-color: rgba(colors.$severity-low, 0.3);
+    background-color: rgba(var(--color-severity-low), 0.1);
+    border-color: rgba(var(--color-severity-low), 0.3);
 }
 
 .severity-none-bg {
-    background-color: rgba(colors.$severity-none, 0.1);
-    border-color: rgba(colors.$severity-none, 0.3);
+    background-color: rgba(var(--color-severity-none), 0.1);
+    border-color: rgba(var(--color-severity-none), 0.3);
 }
 
 // Impact bubble styling

@@ -1867,7 +1867,6 @@ watch(showBlacklistedFromFilter, (newValue) => {
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 /* Enhanced table styling */
 .vulnerability-table {

@@ -292,7 +292,6 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .org-membership {
     border-radius: 15px;
@@ -315,7 +314,7 @@ const emit = defineEmits<{
 }
 
 .membership-moderator {
-    background-color: colors.$accent;
+    background-color: var(--color-accent);
 }
 
 .membership-user {

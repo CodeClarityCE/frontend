@@ -606,7 +606,6 @@ function getPackageManagerSubtitleIcon(): string {
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 @use '@/assets/common/details.scss';
 @use '@/assets/common/cvss.scss';
 .sbom-details-container {

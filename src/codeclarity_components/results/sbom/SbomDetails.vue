@@ -491,7 +491,6 @@ getDependency(props.projectID, props.analysisID);
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 @use '@/assets/common/details.scss';
 @use '@/assets/common/cvss.scss';
 

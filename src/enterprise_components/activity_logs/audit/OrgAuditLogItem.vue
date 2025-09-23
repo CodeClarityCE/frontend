@@ -95,7 +95,6 @@ defineProps<{
     </tr>
 </template>
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .org-membership {
     border-radius: 15px;
@@ -118,7 +117,7 @@ defineProps<{
 }
 
 .membership-moderator {
-    background-color: colors.$accent;
+    background-color: var(--color-accent);
 }
 
 .membership-user {
@@ -135,19 +134,19 @@ defineProps<{
     }
 
     .log-severity-critical {
-        background-color: colors.$severity-critical;
+        background-color: var(--color-severity-critical);
     }
 
     .log-severity-high {
-        background-color: colors.$severity-high;
+        background-color: var(--color-severity-high);
     }
 
     .log-severity-medium {
-        background-color: colors.$severity-medium;
+        background-color: var(--color-severity-medium);
     }
 
     .log-severity-low {
-        background-color: colors.$severity-low;
+        background-color: var(--color-severity-low);
     }
 }
 </style>

@@ -277,5 +277,4 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 </style>

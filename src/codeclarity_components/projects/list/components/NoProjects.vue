@@ -19,5 +19,4 @@ import { RouterLink } from 'vue-router';
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 </style>

@@ -66,9 +66,7 @@ defineProps({
     </div>
 </template>
 
-<style scoped lang="scss">
-@use '@/assets/colors.scss';
-
+<style scoped>
 .severity-bar {
     display: flex;
     flex-direction: row;
@@ -120,51 +118,51 @@ defineProps({
 }
 
 .severity-bar .severity-box .severity-class-disabled {
-    background-color: colors.$severity-bar-class-disabled !important;
+    background-color: var(--color-severity-bar-class-disabled) !important;
 }
 
 .severity-bar .severity-box .severity-value-disabled {
-    background-color: colors.$severity-bar-value-disabled !important;
+    background-color: var(--color-severity-bar-value-disabled) !important;
 }
 
 .severity-bar .severity-box .severity-class-critical {
-    background-color: colors.$severity-bar-class-critical;
+    background-color: var(--color-severity-bar-class-critical);
 }
 
 .severity-bar .severity-box .severity-value-critical {
-    background-color: colors.$severity-bar-value-critical;
+    background-color: var(--color-severity-bar-value-critical);
 }
 
 .severity-bar .severity-box .severity-class-high {
-    background-color: colors.$severity-bar-class-high;
+    background-color: var(--color-severity-bar-class-high);
 }
 
 .severity-bar .severity-box .severity-value-high {
-    background-color: colors.$severity-bar-value-high;
+    background-color: var(--color-severity-bar-value-high);
 }
 
 .severity-bar .severity-box .severity-class-medium {
-    background-color: colors.$severity-bar-class-medium;
+    background-color: var(--color-severity-bar-class-medium);
 }
 
 .severity-bar .severity-box .severity-value-medium {
-    background-color: colors.$severity-bar-value-medium;
+    background-color: var(--color-severity-bar-value-medium);
 }
 
 .severity-bar .severity-box .severity-class-low {
-    background-color: colors.$severity-bar-class-low;
+    background-color: var(--color-severity-bar-class-low);
 }
 
 .severity-bar .severity-box .severity-value-low {
-    background-color: colors.$severity-bar-value-low;
+    background-color: var(--color-severity-bar-value-low);
 }
 
 .severity-bar .severity-box .severity-class-none {
-    background-color: colors.$severity-bar-class-none;
+    background-color: var(--color-severity-bar-class-none);
 }
 
 .severity-bar .severity-box .severity-value-none {
-    background-color: colors.$severity-bar-value-none;
+    background-color: var(--color-severity-bar-value-none);
 }
 
 #summary-findings-severity-bar .severity-box .severity-class {

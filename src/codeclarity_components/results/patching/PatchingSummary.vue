@@ -657,7 +657,6 @@ function createSeverityDistChart() {
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 @use '@/assets/common/summary.scss';
 @use '@/assets/common/chart.scss';
 </style>

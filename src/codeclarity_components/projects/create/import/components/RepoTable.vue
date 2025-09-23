@@ -543,7 +543,6 @@ defineExpose({
 </template>
 
 <style scope lang="scss">
-@use '@/assets/colors.scss';
 
 .line-clamp-2 {
     overflow: hidden;

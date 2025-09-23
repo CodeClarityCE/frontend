@@ -95,7 +95,7 @@ function toggleFilter(filterType: string) {
     <div class="space-y-4">
         <!-- Header Section with Search and Filters -->
         <div
-            class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border"
+            class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg border"
         >
             <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-1">
                 <div class="relative flex-1 max-w-sm">
@@ -104,13 +104,13 @@ function toggleFilter(filterType: string) {
                         class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
                     />
                     <Input
-                        class="pl-10 bg-white dark:bg-gray-800"
+                        class="pl-10 bg-white"
                         placeholder="Search by name, version, or status..."
                         :model-value="table.getColumn('name')?.getFilterValue() as string"
                         @update:model-value="search"
                     />
                 </div>
-                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center gap-4 text-sm text-gray-600">
                     <div class="flex items-center gap-1">
                         <Icon icon="tabler:filter" class="w-3 h-3" />
                         {{ table.getFilteredRowModel().rows.length }} dependencies
@@ -194,18 +194,18 @@ function toggleFilter(filterType: string) {
         </div>
 
         <!-- Table Section -->
-        <div class="border rounded-lg overflow-hidden bg-white dark:bg-gray-950">
+        <div class="border rounded-lg overflow-hidden bg-white">
             <Table>
-                <TableHeader class="bg-gray-50 dark:bg-gray-900/50">
+                <TableHeader class="bg-gray-50">
                     <TableRow
                         v-for="headerGroup in table.getHeaderGroups()"
                         :key="headerGroup.id"
-                        class="border-b border-gray-200 dark:border-gray-800"
+                        class="border-b border-gray-200 "
                     >
                         <TableHead
                             v-for="header in headerGroup.headers"
                             :key="header.id"
-                            class="font-semibold text-gray-900 dark:text-gray-100 py-3"
+                            class="font-semibold text-gray-900  py-3"
                         >
                             <FlexRender
                                 v-if="!header.isPlaceholder"
@@ -222,13 +222,13 @@ function toggleFilter(filterType: string) {
                             :key="row.id"
                             :data-state="row.getIsSelected() ? 'selected' : undefined"
                             :class="[
-                                'transition-colors duration-150 border-b border-gray-100 dark:border-gray-800',
-                                'hover:bg-blue-50 dark:hover:bg-blue-950/30',
+                                'transition-colors duration-150 border-b border-gray-100',
+                                'hover:bg-blue-50',
                                 {
                                     'h-12': rowDensity === 'compact',
                                     'h-16': rowDensity === 'normal',
                                     'h-20': rowDensity === 'comfortable',
-                                    'bg-gray-50/50 dark:bg-gray-900/20': index % 2 === 1
+                                    'bg-gray-50/50': index % 2 === 1
                                 }
                             ]"
                         >
@@ -255,7 +255,7 @@ function toggleFilter(filterType: string) {
                         <TableRow>
                             <TableCell :col-span="columns.length" class="h-32 text-center">
                                 <div
-                                    class="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400"
+                                    class="flex flex-col items-center justify-center gap-2 text-gray-500 "
                                 >
                                     <Icon icon="tabler:package-off" class="w-8 h-8" />
                                     <p class="text-sm font-medium">No dependencies found</p>
@@ -270,7 +270,7 @@ function toggleFilter(filterType: string) {
 
         <!-- Pagination Section -->
         <div class="flex items-center justify-between py-4 px-2">
-            <div class="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <div class="flex items-center gap-6 text-sm text-gray-600 ">
                 <div class="flex items-center gap-2">
                     <span>Show</span>
                     <Select

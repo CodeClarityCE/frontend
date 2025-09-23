@@ -168,14 +168,14 @@ watch(
         <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-900">
                         Dependencies
                     </h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p class="text-sm text-gray-600 mt-1">
                         Software Bill of Materials (SBOM) for your project
                     </p>
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
                     <Icon icon="tabler:package" class="w-4 h-4" />
                     <span
                         >{{ props.stats?.number_of_dependencies || nmbEntriesTotal }} total
@@ -186,54 +186,54 @@ watch(
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:package" class="w-4 h-4 text-blue-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600 uppercase tracking-wide"
                             >Total</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ props.stats?.number_of_dependencies || nmbEntriesTotal }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:alert-triangle" class="w-4 h-4 text-amber-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600 uppercase tracking-wide"
                             >Outdated</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ outdatedCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:target" class="w-4 h-4 text-purple-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600 uppercase tracking-wide"
                             >Direct</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ directCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:code" class="w-4 h-4 text-green-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600 uppercase tracking-wide"
                             >Prod</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ prodCount }}
                     </div>
                 </div>
@@ -241,10 +241,10 @@ watch(
 
             <!-- Status Legend -->
             <div
-                class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-lg p-4 border"
+                class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border"
             >
                 <h3
-                    class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2"
+                    class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2"
                 >
                     <Icon icon="tabler:info-circle" class="w-4 h-4" />
                     Dependency Types & Status Indicators
@@ -252,33 +252,33 @@ watch(
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div class="flex items-center gap-2">
                         <div
-                            class="w-3 h-3 bg-purple-100 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded"
+                            class="w-3 h-3 bg-purple-100 border border-purple-200 rounded"
                         ></div>
-                        <span class="text-gray-600 dark:text-gray-400"
+                        <span class="text-gray-600"
                             >Direct dependencies (requested by you)</span
                         >
                     </div>
                     <div class="flex items-center gap-2">
                         <div
-                            class="w-3 h-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded"
+                            class="w-3 h-3 bg-orange-100 border border-orange-200 rounded"
                         ></div>
-                        <span class="text-gray-600 dark:text-gray-400"
+                        <span class="text-gray-600"
                             >Transitive dependencies (sub-dependencies)</span
                         >
                     </div>
                     <div class="flex items-center gap-2">
                         <div
-                            class="w-3 h-3 bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded"
+                            class="w-3 h-3 bg-blue-100 border border-blue-200 rounded"
                         ></div>
-                        <span class="text-gray-600 dark:text-gray-400"
+                        <span class="text-gray-600"
                             >Development dependencies</span
                         >
                     </div>
                     <div class="flex items-center gap-2">
                         <div
-                            class="w-3 h-3 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded"
+                            class="w-3 h-3 bg-green-100 border border-green-200 rounded"
                         ></div>
-                        <span class="text-gray-600 dark:text-gray-400"
+                        <span class="text-gray-600"
                             >Production dependencies</span
                         >
                     </div>
@@ -300,30 +300,30 @@ watch(
         </div>
 
         <!-- Loading State -->
-        <div v-else class="border rounded-lg overflow-hidden bg-white dark:bg-gray-950">
-            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 border-b">
+        <div v-else class="border rounded-lg overflow-hidden bg-white">
+            <div class="p-4 bg-gray-50 border-b">
                 <div class="flex items-center justify-between">
-                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-                    <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+                    <div class="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                    <div class="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
                 </div>
             </div>
             <div class="p-6">
                 <div class="space-y-3">
                     <div v-for="i in 8" :key="i" class="flex items-center gap-4">
                         <div
-                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded flex-1 animate-pulse"
+                            class="h-4 bg-gray-200 rounded flex-1 animate-pulse"
                         ></div>
                         <div
-                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"
+                            class="h-4 bg-gray-200 rounded w-20 animate-pulse"
                         ></div>
                         <div
-                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"
+                            class="h-4 bg-gray-200 rounded w-24 animate-pulse"
                         ></div>
                         <div
-                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"
+                            class="h-4 bg-gray-200 rounded w-16 animate-pulse"
                         ></div>
                         <div
-                            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"
+                            class="h-4 bg-gray-200 rounded w-16 animate-pulse"
                         ></div>
                     </div>
                 </div>
@@ -332,9 +332,9 @@ watch(
 
         <!-- Enhanced Pagination -->
         <div
-            class="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border"
+            class="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 bg-gray-50 rounded-lg border"
         >
-            <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+            <div class="flex items-center gap-4 text-sm text-gray-600">
                 <div class="flex items-center gap-2">
                     <Icon icon="tabler:file-text" class="w-4 h-4" />
                     <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>

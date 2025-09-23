@@ -27,37 +27,37 @@ defineProps({
 });
 </script>
 <template>
-    <div class="severity-bar severity-bar-slim">
-        <div v-if="critical" class="severity-box">
-            <div class="severity-class" :class="{ 'severity-class-critical': !deactivated }">C</div>
-            <div class="severity-value" :class="{ 'severity-value-critical': !deactivated }">
+    <div class="flex flex-row gap-1">
+        <div v-if="critical" class="flex flex-row">
+            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-critical': !deactivated, 'bg-gray-400': deactivated }">C</div>
+            <div class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600" :class="{ 'severity-value-critical': !deactivated, 'bg-gray-200': deactivated }">
                 <slot name="critical"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div v-if="high" class="severity-box">
-            <div class="severity-class" :class="{ 'severity-class-high': !deactivated }">H</div>
+        <div v-if="high" class="flex flex-row">
+            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-high': !deactivated, 'bg-gray-400': deactivated }">H</div>
             <div class="severity-value" :class="{ 'severity-value-high': !deactivated }">
                 <slot name="high"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div v-if="medium" class="severity-box">
-            <div class="severity-class" :class="{ 'severity-class-medium': !deactivated }">M</div>
+        <div v-if="medium" class="flex flex-row">
+            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-medium': !deactivated, 'bg-gray-400': deactivated }">M</div>
             <div class="severity-value" :class="{ 'severity-value-medium': !deactivated }">
                 <slot name="medium"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div v-if="low" class="severity-box">
-            <div class="severity-class" :class="{ 'severity-class-low': !deactivated }">L</div>
+        <div v-if="low" class="flex flex-row">
+            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-low': !deactivated, 'bg-gray-400': deactivated }">L</div>
             <div class="severity-value" :class="{ 'severity-value-low': !deactivated }">
                 <slot name="low"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
-        <div v-if="none" class="severity-box">
-            <div class="severity-class" :class="{ 'severity-class-none': !deactivated }">N</div>
+        <div v-if="none" class="flex flex-row">
+            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-none': !deactivated, 'bg-gray-400': deactivated }">N</div>
             <div class="severity-value" :class="{ 'severity-value-none': !deactivated }">
                 <slot name="none"></slot>
                 <slot name="content"></slot>
@@ -67,105 +67,61 @@ defineProps({
 </template>
 
 <style scoped>
-.severity-bar {
-    display: flex;
-    flex-direction: row;
-    column-gap: 3px;
-}
-
-.severity-box {
-    display: flex;
-    flex-direction: row;
-}
-
-.severity-bar .severity-box .severity-class {
-    width: 25px;
-    border-radius: 5px;
-    background-color: #acacac;
-    color: white;
-    padding: 5px;
-    text-align: center;
-    z-index: 1;
-}
-
-.severity-grid .severity-box .severity-class {
-    flex-shrink: 0;
-}
-
-.severity-bar-slim .severity-box .severity-class {
-    padding: 2px;
-    padding-left: 6px;
-    padding-right: 6px;
-    width: unset;
-}
-
-.severity-bar .severity-box .severity-value {
-    align-self: center;
-    padding: 5px;
-    padding-left: 15px;
-    padding-right: 10px;
-    background-color: #d3d3d3;
-    margin-left: -5px;
-    z-index: 0;
-    border-radius: 5px;
-    color: #605e5e;
-}
-
-.severity-bar-slim .severity-box .severity-value {
-    padding: 2px;
-    padding-left: 10px;
-    padding-right: 5px;
-}
-
-.severity-bar .severity-box .severity-class-disabled {
+/* Severity color classes using CSS variables from theme */
+.severity-class-disabled {
     background-color: var(--color-severity-bar-class-disabled) !important;
 }
 
-.severity-bar .severity-box .severity-value-disabled {
+.severity-value-disabled {
     background-color: var(--color-severity-bar-value-disabled) !important;
 }
 
-.severity-bar .severity-box .severity-class-critical {
+.severity-class-critical {
     background-color: var(--color-severity-bar-class-critical);
 }
 
-.severity-bar .severity-box .severity-value-critical {
+.severity-value-critical {
     background-color: var(--color-severity-bar-value-critical);
 }
 
-.severity-bar .severity-box .severity-class-high {
+.severity-class-high {
     background-color: var(--color-severity-bar-class-high);
 }
 
-.severity-bar .severity-box .severity-value-high {
+.severity-value-high {
     background-color: var(--color-severity-bar-value-high);
 }
 
-.severity-bar .severity-box .severity-class-medium {
+.severity-class-medium {
     background-color: var(--color-severity-bar-class-medium);
 }
 
-.severity-bar .severity-box .severity-value-medium {
+.severity-value-medium {
     background-color: var(--color-severity-bar-value-medium);
 }
 
-.severity-bar .severity-box .severity-class-low {
+.severity-class-low {
     background-color: var(--color-severity-bar-class-low);
 }
 
-.severity-bar .severity-box .severity-value-low {
+.severity-value-low {
     background-color: var(--color-severity-bar-value-low);
 }
 
-.severity-bar .severity-box .severity-class-none {
+.severity-class-none {
     background-color: var(--color-severity-bar-class-none);
 }
 
-.severity-bar .severity-box .severity-value-none {
+.severity-value-none {
     background-color: var(--color-severity-bar-value-none);
 }
 
-#summary-findings-severity-bar .severity-box .severity-class {
+/* For wider severity displays */
+#summary-findings-severity-bar .severity-class-critical,
+#summary-findings-severity-bar .severity-class-high,
+#summary-findings-severity-bar .severity-class-medium,
+#summary-findings-severity-bar .severity-class-low,
+#summary-findings-severity-bar .severity-class-none {
     width: 75px;
 }
 </style>

@@ -83,11 +83,11 @@ describe('VulnerabilitiesInfo.vue', () => {
             expect(chartData).toHaveLength(5);
 
             const expectedData = [
-                { label: 'Critical', color: '#dadada', count: 3 },
-                { label: 'High', color: '#d7afaf', count: 7 },
-                { label: 'Medium', color: '#ddcfae', count: 5 },
-                { label: 'Low', color: '#d7ddae', count: 2 },
-                { label: 'None', color: '#94c2ca', count: 1 }
+                { label: 'Critical', color: '#000000', count: 3 },
+                { label: 'High', color: '#bf1313', count: 7 },
+                { label: 'Medium', color: '#ffc107', count: 5 },
+                { label: 'Low', color: '#5a9d09', count: 2 },
+                { label: 'None', color: '#09889d', count: 1 }
             ];
 
             expect(chartData).toEqual(expectedData);
@@ -99,7 +99,7 @@ describe('VulnerabilitiesInfo.vue', () => {
             const doughnutChart = wrapper.findComponent({ name: 'DoughnutChart' });
             const chartData = doughnutChart.props('data');
 
-            const expectedColors = ['#dadada', '#d7afaf', '#ddcfae', '#d7ddae', '#94c2ca'];
+            const expectedColors = ['#000000', '#bf1313', '#ffc107', '#5a9d09', '#09889d'];
 
             chartData.forEach((item: any, index: number) => {
                 expect(item.color).toBe(expectedColors[index]);
@@ -280,11 +280,11 @@ describe('VulnerabilitiesInfo.vue', () => {
             const doughnutChart = wrapper.findComponent({ name: 'DoughnutChart' });
             const chartData = doughnutChart.props('data');
 
-            expect(chartData[0].color).toBe('#dadada'); // Critical
-            expect(chartData[1].color).toBe('#d7afaf'); // High
-            expect(chartData[2].color).toBe('#ddcfae'); // Medium
-            expect(chartData[3].color).toBe('#d7ddae'); // Low
-            expect(chartData[4].color).toBe('#94c2ca'); // None
+            expect(chartData[0].color).toBe('#000000'); // Critical
+            expect(chartData[1].color).toBe('#bf1313'); // High
+            expect(chartData[2].color).toBe('#ffc107'); // Medium
+            expect(chartData[3].color).toBe('#5a9d09'); // Low
+            expect(chartData[4].color).toBe('#09889d'); // None
         });
 
         it('should assign colors in severity order', () => {

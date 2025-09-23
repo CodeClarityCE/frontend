@@ -595,23 +595,23 @@ watch(showBlacklistedFromFilter, (newValue) => {
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityCritical rounded"></div>
+                                <div class="w-3 h-3 bg-severity-critical rounded"></div>
                                 <span class="text-gray-600 "
                                     >Critical (9.0-10.0)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityHigh rounded"></div>
+                                <div class="w-3 h-3 bg-severity-high rounded"></div>
                                 <span class="text-gray-600 ">High (7.0-8.9)</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityMedium rounded"></div>
+                                <div class="w-3 h-3 bg-severity-medium rounded"></div>
                                 <span class="text-gray-600 "
                                     >Medium (4.0-6.9)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityLow rounded"></div>
+                                <div class="w-3 h-3 bg-severity-low rounded"></div>
                                 <span class="text-gray-600 ">Low (0.1-3.9)</span>
                             </div>
                         </div>
@@ -998,13 +998,13 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                         <span
                                                             class="font-semibold"
                                                             :class="{
-                                                                'text-severityCritical':
+                                                                'text-severity-critical':
                                                                     vla.Score == 'critical',
-                                                                'text-severityHigh':
+                                                                'text-severity-high':
                                                                     vla.Score == 'high',
-                                                                'text-severityMedium':
+                                                                'text-severity-medium':
                                                                     vla.Score == 'medium',
-                                                                'text-severityLow':
+                                                                'text-severity-low':
                                                                     vla.Score == 'low',
                                                                 'text-severityNone':
                                                                     vla.Score == 'none' ||
@@ -1019,13 +1019,13 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                             v-if="vla.Score"
                                                             class="ml-1 font-bold text-xs uppercase"
                                                             :class="{
-                                                                'text-severityCritical':
+                                                                'text-severity-critical':
                                                                     vla.Score == 'critical',
-                                                                'text-severityHigh':
+                                                                'text-severity-high':
                                                                     vla.Score == 'high',
-                                                                'text-severityMedium':
+                                                                'text-severity-medium':
                                                                     vla.Score == 'medium',
-                                                                'text-severityLow':
+                                                                'text-severity-low':
                                                                     vla.Score == 'low',
                                                                 'text-severityNone':
                                                                     vla.Score == 'none'
@@ -1094,13 +1094,13 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                 <span
                                                                     class="font-bold capitalize px-2 py-1 rounded text-xs severity-badge-bg"
                                                                     :class="{
-                                                                        'severity-critical-bg text-severityCritical':
+                                                                        'severity-critical-bg text-severity-critical':
                                                                             vla.Score == 'critical',
-                                                                        'severity-high-bg text-severityHigh':
+                                                                        'severity-high-bg text-severity-high':
                                                                             vla.Score == 'high',
-                                                                        'severity-medium-bg text-severityMedium':
+                                                                        'severity-medium-bg text-severity-medium':
                                                                             vla.Score == 'medium',
-                                                                        'severity-low-bg text-severityLow':
+                                                                        'severity-low-bg text-severity-low':
                                                                             vla.Score == 'low',
                                                                         'severity-none-bg text-severityNone':
                                                                             vla.Score == 'none' ||
@@ -1945,19 +1945,19 @@ td {
 }
 
 /* Severity text colors */
-.text-severityCritical {
+.text-severity-critical {
     color: rgb(220 38 38);
 }
 
-.text-severityHigh {
+.text-severity-high {
     color: rgb(234 88 12);
 }
 
-.text-severityMedium {
+.text-severity-medium {
     color: rgb(202 138 4);
 }
 
-.text-severityLow {
+.text-severity-low {
     color: rgb(37 99 235);
 }
 

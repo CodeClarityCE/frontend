@@ -842,14 +842,14 @@ fetchAllNotifications();
                                         :class="[
                                             'p-2 rounded-full',
                                             notification.content?.max_severity === 'CRITICAL'
-                                                ? 'bg-severityCriticalBg'
+                                                ? 'bg-severity-critical-bg'
                                                 : notification.content?.max_severity === 'HIGH'
-                                                  ? 'bg-severityHighBg'
+                                                  ? 'bg-severity-high-bg'
                                                   : notification.content?.max_severity === 'MEDIUM'
-                                                    ? 'bg-severityMediumBg'
+                                                    ? 'bg-severity-medium-bg'
                                                     : notification.content?.max_severity === 'LOW'
-                                                      ? 'bg-severityLowBg'
-                                                      : 'bg-severityNoneBg'
+                                                      ? 'bg-severity-low-bg'
+                                                      : 'bg-severity-none-bg'
                                         ]"
                                     >
                                         <Icon
@@ -857,16 +857,16 @@ fetchAllNotifications();
                                             :class="[
                                                 'text-xl',
                                                 notification.content?.max_severity === 'CRITICAL'
-                                                    ? 'text-severityCritical'
+                                                    ? 'text-severity-critical'
                                                     : notification.content?.max_severity === 'HIGH'
-                                                      ? 'text-severityHigh'
+                                                      ? 'text-severity-high'
                                                       : notification.content?.max_severity ===
                                                           'MEDIUM'
-                                                        ? 'text-severityMedium'
+                                                        ? 'text-severity-medium'
                                                         : notification.content?.max_severity ===
                                                             'LOW'
-                                                          ? 'text-severityLow'
-                                                          : 'text-severityNone'
+                                                          ? 'text-severity-low'
+                                                          : 'text-severity-none'
                                             ]"
                                         />
                                     </div>

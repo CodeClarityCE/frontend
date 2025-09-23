@@ -73,19 +73,19 @@ withDefaults(defineProps<Props>(), {});
                     <div>
                         <span
                             v-if="patch.IsPatchable == 'FULL'"
-                            class="flex gap-1 items-center text-severityLow"
+                            class="flex gap-1 items-center text-severity-low"
                         >
                             <Icon icon="bi:shield-fill-check" />
                             Full patch available
                         </span>
                         <span
                             v-else-if="patch.IsPatchable == 'PARTIAL'"
-                            class="flex gap-1 items-center text-severityMedium"
+                            class="flex gap-1 items-center text-severity-medium"
                         >
                             <Icon icon="bi:shield-fill-minus" />
                             Partial patch available
                         </span>
-                        <span v-else class="flex gap-1 items-center text-severityHigh">
+                        <span v-else class="flex gap-1 items-center text-severity-high">
                             <Icon icon="bi:shield-fill-exclamation" />
                             No patch available
                         </span>

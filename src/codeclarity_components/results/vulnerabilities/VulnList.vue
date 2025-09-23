@@ -461,23 +461,23 @@ const exploitableCount = computed(() => {
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityCritical rounded"></div>
+                                <div class="w-3 h-3 bg-severity-critical rounded"></div>
                                 <span class="text-gray-600 "
                                     >Critical (9.0-10.0)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityHigh rounded"></div>
+                                <div class="w-3 h-3 bg-severity-high rounded"></div>
                                 <span class="text-gray-600 ">High (7.0-8.9)</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityMedium rounded"></div>
+                                <div class="w-3 h-3 bg-severity-medium rounded"></div>
                                 <span class="text-gray-600 "
                                     >Medium (4.0-6.9)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityLow rounded"></div>
+                                <div class="w-3 h-3 bg-severity-low rounded"></div>
                                 <span class="text-gray-600 ">Low (0.1-3.9)</span>
                             </div>
                         </div>
@@ -571,25 +571,25 @@ const exploitableCount = computed(() => {
                         <div class="severity-badge flex-shrink-0">
                             <div
                                 v-if="isCriticalSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityCritical rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-critical rounded-md shadow-sm"
                             >
                                 CRITICAL
                             </div>
                             <div
                                 v-else-if="isHighSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityHigh rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-high rounded-md shadow-sm"
                             >
                                 HIGH
                             </div>
                             <div
                                 v-else-if="isMediumSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityMedium rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-medium rounded-md shadow-sm"
                             >
                                 MEDIUM
                             </div>
                             <div
                                 v-else-if="isLowSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityLow rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-low rounded-md shadow-sm"
                             >
                                 LOW
                             </div>
@@ -1024,10 +1024,10 @@ const exploitableCount = computed(() => {
                                 <span
                                     class="font-semibold"
                                     :class="{
-                                        'text-severityCritical': vla.Score == 'critical',
-                                        'text-severityHigh': vla.Score == 'high',
-                                        'text-severityMedium': vla.Score == 'medium',
-                                        'text-severityLow': vla.Score == 'low',
+                                        'text-severity-critical': vla.Score == 'critical',
+                                        'text-severity-high': vla.Score == 'high',
+                                        'text-severity-medium': vla.Score == 'medium',
+                                        'text-severity-low': vla.Score == 'low',
                                         'text-severityNone': vla.Score == 'none'
                                     }"
                                 >

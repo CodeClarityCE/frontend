@@ -110,7 +110,7 @@ defineProps<{
                                     </div>
                                     <div
                                         v-if="finding.vulnerability_info.sources.length < 2"
-                                        class="text-severityMedium flex gap-1 items-center"
+                                        class="text-severity-medium flex gap-1 items-center"
                                     >
                                         <Icon icon="tabler:alert-triangle-filled"></Icon>
                                         NVD and OSV do not agree

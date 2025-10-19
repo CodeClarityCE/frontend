@@ -4,6 +4,7 @@
 FROM node:25.0.0-alpine AS frontend-dev
 WORKDIR /app
 COPY --link . /app/
+RUN npm install -g corepack --force
 RUN corepack enable
 ENTRYPOINT ["/bin/sh", "-c" , "yarn set version stable && yarn install && yarn dev --host"]
 

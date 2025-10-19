@@ -376,14 +376,14 @@ const exploitableCount = computed(() => {
         <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-900 ">
                         Vulnerabilities
                     </h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p class="text-sm text-gray-600  mt-1">
                         Security vulnerabilities found in your project dependencies
                     </p>
                 </div>
-                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center gap-2 text-sm text-gray-600 ">
                     <Icon icon="tabler:shield-exclamation" class="w-4 h-4" />
                     <span>{{ nmbEntriesTotal }} total vulnerabilities</span>
                 </div>
@@ -391,54 +391,54 @@ const exploitableCount = computed(() => {
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:alert-triangle" class="w-4 h-4 text-red-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600  uppercase tracking-wide"
                             >Critical</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900 ">
                         {{ criticalCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:exclamation-circle" class="w-4 h-4 text-orange-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600  uppercase tracking-wide"
                             >High</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900 ">
                         {{ highCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:trending-up" class="w-4 h-4 text-purple-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600  uppercase tracking-wide"
                             >Exploitable</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900 ">
                         {{ exploitableCount }}
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-950 border rounded-lg p-3">
+                <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:bandage" class="w-4 h-4 text-green-500" />
                         <span
-                            class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide"
+                            class="text-xs text-gray-600  uppercase tracking-wide"
                             >Patchable</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div class="text-lg font-semibold text-gray-900 ">
                         {{ patchableCount }}
                     </div>
                 </div>
@@ -446,75 +446,75 @@ const exploitableCount = computed(() => {
 
             <!-- Security Indicators Legend -->
             <div
-                class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-lg p-4 border border-red-200 dark:border-red-800"
+                class="bg-gradient-to-r from-red-50 to-orange-50  rounded-lg p-4 border border-red-200"
             >
                 <h3
-                    class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2"
+                    class="text-sm font-medium text-gray-900  mb-3 flex items-center gap-2"
                 >
                     <Icon icon="tabler:info-circle" class="w-4 h-4" />
                     Vulnerability Indicators & Severity Levels
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                        <div class="font-medium text-gray-900 ">
                             Severity Levels
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityCritical rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400"
+                                <div class="w-3 h-3 bg-severity-critical rounded"></div>
+                                <span class="text-gray-600 "
                                     >Critical (9.0-10.0)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityHigh rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400">High (7.0-8.9)</span>
+                                <div class="w-3 h-3 bg-severity-high rounded"></div>
+                                <span class="text-gray-600 ">High (7.0-8.9)</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityMedium rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400"
+                                <div class="w-3 h-3 bg-severity-medium rounded"></div>
+                                <span class="text-gray-600 "
                                     >Medium (4.0-6.9)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-severityLow rounded"></div>
-                                <span class="text-gray-600 dark:text-gray-400">Low (0.1-3.9)</span>
+                                <div class="w-3 h-3 bg-severity-low rounded"></div>
+                                <span class="text-gray-600 ">Low (0.1-3.9)</span>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                        <div class="font-medium text-gray-900 ">
                             Exploitation Risk
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:trending-up" class="w-3 h-3 text-red-600" />
-                                <span class="text-gray-600 dark:text-gray-400"
+                                <span class="text-gray-600 "
                                     >EPSS > 10% (High risk)</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:alert-triangle" class="w-3 h-3 text-amber-600" />
-                                <span class="text-gray-600 dark:text-gray-400"
+                                <span class="text-gray-600 "
                                     >Possible false match</span
                                 >
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                        <div class="font-medium text-gray-900 ">
                             Patching Status
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:bandage" class="w-3 h-3 text-green-600" />
-                                <span class="text-gray-600 dark:text-gray-400"
+                                <span class="text-gray-600 "
                                     >Patch available</span
                                 >
                             </div>
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:bandage-off" class="w-3 h-3 text-gray-500" />
-                                <span class="text-gray-600 dark:text-gray-400"
+                                <span class="text-gray-600 "
                                     >No patch available</span
                                 >
                             </div>
@@ -571,31 +571,31 @@ const exploitableCount = computed(() => {
                         <div class="severity-badge flex-shrink-0">
                             <div
                                 v-if="isCriticalSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityCritical rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-critical rounded-md shadow-sm"
                             >
                                 CRITICAL
                             </div>
                             <div
                                 v-else-if="isHighSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityHigh rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-high rounded-md shadow-sm"
                             >
                                 HIGH
                             </div>
                             <div
                                 v-else-if="isMediumSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityMedium rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-medium rounded-md shadow-sm"
                             >
                                 MEDIUM
                             </div>
                             <div
                                 v-else-if="isLowSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityLow rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-low rounded-md shadow-sm"
                             >
                                 LOW
                             </div>
                             <div
                                 v-else-if="isNoneSeverity(report.Severity.Severity)"
-                                class="px-4 py-2 text-sm font-bold text-white bg-severityNone rounded-md shadow-sm"
+                                class="px-4 py-2 text-sm font-bold text-white bg-severity-none rounded-md shadow-sm"
                             >
                                 NONE
                             </div>
@@ -658,7 +658,7 @@ const exploitableCount = computed(() => {
                                 <Tooltip>
                                     <TooltipTrigger as-child>
                                         <div
-                                            class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium border border-red-200 cursor-help"
+                                            class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium border border-red-200cursor-help"
                                         >
                                             <Icon icon="tabler:trending-up" class="w-3 h-3" />
                                             <span
@@ -760,7 +760,7 @@ const exploitableCount = computed(() => {
                                 <Tooltip>
                                     <TooltipTrigger as-child>
                                         <div
-                                            class="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md border border-red-200 cursor-help"
+                                            class="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md border border-red-200cursor-help"
                                         >
                                             <Icon
                                                 icon="tabler:alert-triangle-filled"
@@ -1024,11 +1024,11 @@ const exploitableCount = computed(() => {
                                 <span
                                     class="font-semibold"
                                     :class="{
-                                        'text-severityCritical': vla.Score == 'critical',
-                                        'text-severityHigh': vla.Score == 'high',
-                                        'text-severityMedium': vla.Score == 'medium',
-                                        'text-severityLow': vla.Score == 'low',
-                                        'text-severityNone': vla.Score == 'none'
+                                        'text-severity-critical': vla.Score == 'critical',
+                                        'text-severity-high': vla.Score == 'high',
+                                        'text-severity-medium': vla.Score == 'medium',
+                                        'text-severity-low': vla.Score == 'low',
+                                        'text-severity-none': vla.Score == 'none'
                                     }"
                                 >
                                     {{ vla.Source }}
@@ -1664,7 +1664,7 @@ const exploitableCount = computed(() => {
 
             <!-- Pagination -->
             <div class="flex items-center justify-between border-t border-gray-200 py-4">
-                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center gap-4 text-sm text-gray-600 ">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:file-text" class="w-4 h-4" />
                         <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>
@@ -1706,7 +1706,6 @@ const exploitableCount = computed(() => {
 <style scoped lang="scss">
 @use '@/assets/common/summary.scss';
 @use '@/assets/common/cvss.scss';
-@use '@/assets/colors.scss' as colors;
 
 .vulnerability-card-wrapper {
     transition: all 0.2s ease-in-out;
@@ -1755,23 +1754,23 @@ const exploitableCount = computed(() => {
 
 // Color-coded left borders
 .border-l-red-600 {
-    border-left-color: colors.$severity-critical !important;
+    border-left-color: var(--color-severity-critical) !important;
 }
 
 .border-l-orange-500 {
-    border-left-color: colors.$severity-high !important;
+    border-left-color: var(--color-severity-high) !important;
 }
 
 .border-l-yellow-500 {
-    border-left-color: colors.$severity-medium !important;
+    border-left-color: var(--color-severity-medium) !important;
 }
 
 .border-l-blue-500 {
-    border-left-color: colors.$severity-low !important;
+    border-left-color: var(--color-severity-low) !important;
 }
 
 .border-l-gray-400 {
-    border-left-color: colors.$severity-none !important;
+    border-left-color: var(--color-severity-none) !important;
 }
 
 // Enhanced CVE styling
@@ -1793,28 +1792,28 @@ h3 {
 
 // Severity background colors to match text colors
 .severity-critical-bg {
-    background-color: rgba(colors.$severity-critical, 0.1);
-    border-color: rgba(colors.$severity-critical, 0.3);
+    background-color: rgba(var(--color-severity-critical), 0.1);
+    border-color: rgba(var(--color-severity-critical), 0.3);
 }
 
 .severity-high-bg {
-    background-color: rgba(colors.$severity-high, 0.1);
-    border-color: rgba(colors.$severity-high, 0.3);
+    background-color: rgba(var(--color-severity-high), 0.1);
+    border-color: rgba(var(--color-severity-high), 0.3);
 }
 
 .severity-medium-bg {
-    background-color: rgba(colors.$severity-medium, 0.1);
-    border-color: rgba(colors.$severity-medium, 0.3);
+    background-color: rgba(var(--color-severity-medium), 0.1);
+    border-color: rgba(var(--color-severity-medium), 0.3);
 }
 
 .severity-low-bg {
-    background-color: rgba(colors.$severity-low, 0.1);
-    border-color: rgba(colors.$severity-low, 0.3);
+    background-color: rgba(var(--color-severity-low), 0.1);
+    border-color: rgba(var(--color-severity-low), 0.3);
 }
 
 .severity-none-bg {
-    background-color: rgba(colors.$severity-none, 0.1);
-    border-color: rgba(colors.$severity-none, 0.3);
+    background-color: rgba(var(--color-severity-none), 0.1);
+    border-color: rgba(var(--color-severity-none), 0.3);
 }
 
 // Impact bubble styling

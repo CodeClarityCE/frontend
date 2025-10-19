@@ -18,7 +18,14 @@ const props = defineProps<{
     };
 }>();
 
-const doughnutColors = ['#dadada', '#d7afaf', '#ddcfae', '#d7ddae', '#94c2ca'];
+// Use severity colors from theme for better visibility
+const doughnutColors = [
+    '#000000', // Critical - black
+    '#bf1313', // High - red
+    '#ffc107', // Medium - yellow
+    '#5a9d09', // Low - green
+    '#09889d'  // None - blue
+];
 
 const doughnutChartData: DoughnutChartData = [
     {

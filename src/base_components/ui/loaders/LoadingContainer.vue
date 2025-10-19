@@ -57,7 +57,6 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .loading-wrapper-local {
     width: 100%;
@@ -82,7 +81,7 @@ defineExpose({
     width: 13px;
     height: 13px;
     border-radius: 50%;
-    background: colors.$accent;
+    background: var(--color-accent);
     animation-timing-function: cubic-bezier(0, 1, 1, 0);
 }
 

@@ -1,5 +1,3 @@
-@use '../colors.scss';
-
 /*****************************************************************************/
 /*                               CVSS Table                                  */
 /*****************************************************************************/
@@ -48,19 +46,19 @@
     font-size: 2.5em;
     font-weight: 900;
     font-family: lato;
-    color: colors.$accent-dark;
+    color: var(--color-accent-dark);
 }
 
 .cvss-field-value-high {
-    color: colors.$cvss-field-value-high;
+    color: var(--color-cvss-high);
 }
 
 .cvss-field-value-medium {
-    color: colors.$cvss-field-value-medium;
+    color: var(--color-cvss-medium);
 }
 
 .cvss-field-value-low {
-    color: colors.$cvss-field-value-low;
+    color: var(--color-cvss-low);
 }
 
 .cvss-field-value {

@@ -109,7 +109,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .import-paths-panel {
     height: 100%;

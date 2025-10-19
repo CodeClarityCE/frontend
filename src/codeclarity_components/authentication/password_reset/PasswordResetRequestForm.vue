@@ -117,7 +117,7 @@ async function submit() {
 
         <div v-else class="max-w-md w-full flex flex-col gap-7">
             <div>
-                <div class="text-4xl font-semibold mb-4 text-grayTitle">Success</div>
+                <div class="text-4xl font-semibold mb-4 text-gray-700">Success</div>
                 <div class="text-gray-500 font-medium mb-4">
                     If a user is registered under that email, an email has been sent to complete the
                     password reset. Simply click on the link in the email and supply your new

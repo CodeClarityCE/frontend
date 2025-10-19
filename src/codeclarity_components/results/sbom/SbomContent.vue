@@ -547,7 +547,7 @@ function createDepTypeChart() {
                                 class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent border border-green-100 rounded-lg hover:shadow-sm transition-shadow"
                             >
                                 <div class="flex items-center gap-3">
-                                    <div class="w-4 h-4 rounded-full bg-[#1dce79] shadow-sm"></div>
+                                    <div class="w-4 h-4 rounded-full bg-theme-primary shadow-sm"></div>
                                     <div>
                                         <span class="text-sm font-semibold text-gray-900"
                                             >Direct</span
@@ -575,7 +575,7 @@ function createDepTypeChart() {
                                 class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
                             >
                                 <div class="flex items-center gap-3">
-                                    <div class="w-4 h-4 rounded-full bg-black shadow-sm"></div>
+                                    <div class="w-4 h-4 rounded-full bg-gray-900 shadow-sm"></div>
                                     <div>
                                         <span class="text-sm font-semibold text-gray-900"
                                             >Transitive</span
@@ -647,7 +647,7 @@ function createDepTypeChart() {
                 >
                     <div class="space-y-3">
                         <Button
-                            class="w-full bg-[#1dce79] hover:bg-[#17b56b] text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all"
+                            class="w-full bg-theme-primary hover:bg-theme-primary-dark text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all"
                             @click="handleUpdateOutdated"
                         >
                             <div class="bg-white/20 p-2 rounded-lg">

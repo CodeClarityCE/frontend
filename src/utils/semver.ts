@@ -19,16 +19,16 @@ export function parseSemver(version: string): ParsedSemver {
     const cleanVersion = version.replace(/^v/, '');
 
     // Split by '+' to separate build metadata
-    const [coreAndPre, ...buildParts] = cleanVersion.split('+');
+    const [coreAndPre, ...buildParts] = (cleanVersion ?? '').split('+');
 
     // Split by '-' to separate prerelease
-    const [core, ...prereleaseParts] = coreAndPre.split('-');
+    const [core, ...prereleaseParts] = (coreAndPre ?? '').split('-');
 
     // Parse core version (major.minor.patch)
-    const [major, minor = '0', patch = '0'] = core.split('.');
+    const [major, minor = '0', patch = '0'] = (core ?? '0.0.0').split('.');
 
     return {
-        major: parseInt(major, 10) || 0,
+        major: parseInt(major ?? '0', 10) || 0,
         minor: parseInt(minor, 10) || 0,
         patch: parseInt(patch, 10) || 0,
         prerelease: prereleaseParts,

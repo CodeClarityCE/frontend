@@ -48,7 +48,8 @@ export class LanguageDetectionService {
                     bearerToken,
                     handleBusinessErrors: true
                 });
-                detectedLanguages.push(SUPPORTED_LANGUAGES.javascript);
+                const jsLang = SUPPORTED_LANGUAGES.javascript;
+                if (jsLang) detectedLanguages.push(jsLang);
             } catch {
                 // No js-sbom results found, JavaScript not detected
             }
@@ -63,7 +64,8 @@ export class LanguageDetectionService {
                     bearerToken,
                     handleBusinessErrors: true
                 });
-                detectedLanguages.push(SUPPORTED_LANGUAGES.php);
+                const phpLang = SUPPORTED_LANGUAGES.php;
+                if (phpLang) detectedLanguages.push(phpLang);
             } catch {
                 // No php-sbom results found, PHP not detected
             }
@@ -106,6 +108,6 @@ export class LanguageDetectionService {
 
         return completedAnalyses.sort(
             (a, b) => new Date(b.created_on).getTime() - new Date(a.created_on).getTime()
-        )[0];
+        )[0] ?? null;
     }
 }

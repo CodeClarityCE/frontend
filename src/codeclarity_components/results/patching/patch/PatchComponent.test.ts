@@ -327,21 +327,21 @@ describe('PatchComponent.vue', () => {
         it('should apply correct CSS classes for patch status', () => {
             wrapper = createWrapper();
 
-            const fullPatchElement = wrapper.find('.text-severityLow');
+            const fullPatchElement = wrapper.find('.text-severity-low');
             expect(fullPatchElement.exists()).toBe(true);
         });
 
         it('should apply correct CSS classes for partial patch status', () => {
             wrapper = createWrapper({ patch: mockPartialPatchInfo });
 
-            const partialPatchElement = wrapper.find('.text-severityMedium');
+            const partialPatchElement = wrapper.find('.text-severity-medium');
             expect(partialPatchElement.exists()).toBe(true);
         });
 
         it('should apply correct CSS classes for no patch status', () => {
             wrapper = createWrapper({ patch: mockNoPatchInfo });
 
-            const noPatchElement = wrapper.find('.text-severityHigh');
+            const noPatchElement = wrapper.find('.text-severity-high');
             expect(noPatchElement.exists()).toBe(true);
         });
     });

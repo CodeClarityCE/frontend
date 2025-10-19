@@ -193,7 +193,6 @@ fetch();
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 $--section-title-color: #4f4e4e;
 $--section-title-size: 2.7rem;
@@ -234,22 +233,22 @@ $--section-subtitle-font-weight: 600;
 }
 
 .severity-indicator.critical {
-    background-color: colors.$severity-critical;
+    background-color: var(--color-severity-critical);
 }
 
 .severity-indicator.high {
-    background-color: colors.$severity-high;
+    background-color: var(--color-severity-high);
 }
 
 .severity-indicator.medium {
-    background-color: colors.$severity-medium;
+    background-color: var(--color-severity-medium);
 }
 
 .severity-indicator.low {
-    background-color: colors.$severity-low;
+    background-color: var(--color-severity-low);
 }
 
 .severity-indicator.none {
-    background-color: colors.$severity-none;
+    background-color: var(--color-severity-none);
 }
 </style>

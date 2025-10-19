@@ -91,16 +91,18 @@ export const RadarChart = function RadarChart(
     // var maxValue = max(cfg.maxValue, d3.max(data, function(i){return d3.max(i.map(function(o){return o.value;}))}));
     let maxValue = 0;
     for (let j = 0; j < data.length; j++) {
-        for (let i = 0; i < data[j].axes.length; i++) {
-            data[j].axes[i].id = data[j].name;
-            if (data[j].axes[i].value > maxValue) {
-                maxValue = data[j].axes[i].value;
+        for (let i = 0; i < (data[j]?.axes?.length ?? 0); i++) {
+            if (data[j]?.axes?.[i]) {
+                data[j].axes[i].id = data[j]?.name ?? '';
+                if ((data[j]?.axes?.[i]?.value ?? 0) > maxValue) {
+                    maxValue = data[j]?.axes?.[i]?.value ?? 0;
+                }
             }
         }
     }
     maxValue = max(cfg.maxValue, maxValue);
 
-    const allAxis = data[0].axes.map((i) => i.axis), //Names of each axis
+    const allAxis = (data[0]?.axes ?? []).map((i) => i.axis), //Names of each axis
         total = allAxis.length, //The number of different axes
         radius = Math.min(cfg.w / 2, cfg.h / 2), //Radius of the outermost circle
         Format = d3.format(cfg.format), //Formatting

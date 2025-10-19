@@ -202,7 +202,7 @@ init();
                                                     (direct_dep as UpgradeInfo).original_constraint
                                                 }}" ->
                                             </div>
-                                            <span class="text-partiallyPatched font-black">
+                                            <span class="text-partially-patched font-black">
                                                 "{{ (direct_dep as UpgradeInfo).upgrade_to }}"
                                             </span>
                                         </div>
@@ -218,10 +218,10 @@ init();
                                                     (direct_dep as UpgradeInfo).original_constraint
                                                 }}"
                                             </div>
-                                            <span class="text-notPatched">
+                                            <span class="text-not-patched">
                                                 <Icon icon="bi:shield-fill-exclamation" />
                                             </span>
-                                            <div class="text-notPatched">Not Patchable</div>
+                                            <div class="text-not-patched">Not Patchable</div>
                                         </div>
                                         <div
                                             v-if="(direct_dep as UpgradeInfo).vulnerable == false"
@@ -397,7 +397,6 @@ init();
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .patched-manifest {
     counter-reset: linecount;

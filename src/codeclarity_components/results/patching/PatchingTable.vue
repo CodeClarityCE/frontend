@@ -219,7 +219,6 @@ init();
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/colors.scss';
 
 .patched-manifest {
     counter-reset: linecount;

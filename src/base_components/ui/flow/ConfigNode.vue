@@ -87,26 +87,51 @@ const localValue = computed({
 
 <style scoped>
 .config-node {
-    @apply relative bg-gray-50 border border-gray-300 rounded-md p-3 min-w-[150px] shadow-sm;
+    position: relative;
+    background-color: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    min-width: 150px;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .config-header {
-    @apply flex items-center gap-1 mb-2;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .config-title {
-    @apply text-xs font-medium text-gray-700 truncate;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .config-content {
-    @apply space-y-1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .config-input {
-    @apply w-full text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-black focus:border-black;
+    width: 100%;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background-color: white;
 }
 
 .config-input:focus {
-    @apply border-black ring-1 ring-black;
+    outline: none;
+    box-shadow: 0 0 0 1px #000000;
+    border-color: #000000;
 }
 </style>

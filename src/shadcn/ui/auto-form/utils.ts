@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 // TODO: This should support recursive ZodEffects but TypeScript doesn't allow circular type definitions.
-export type ZodObjectOrWrapped = z.ZodObject<any, any> | z.ZodEffects<z.ZodObject<any, any>>;
+export type ZodObjectOrWrapped = z.ZodObject<any, any> | z.ZodEffects<z.ZodObject<any, any>, any>;
 
 /**
  * Beautify a camelCase string.
@@ -25,7 +25,7 @@ export function getIndexIfArray(string: string) {
     // Match the index
     const match = string.match(indexRegex);
     // Extract the index (number)
-    const index = match ? Number.parseInt(match[1]) : undefined;
+    const index = match ? Number.parseInt(match[1] ?? '0') : undefined;
     return index;
 }
 
@@ -33,8 +33,8 @@ export function getIndexIfArray(string: string) {
  * Get the lowest level Zod type.
  * This will unpack optionals, refinements, etc.
  */
-export function getBaseSchema<ChildType extends z.ZodAny | z.AnyZodObject = z.ZodAny>(
-    schema: ChildType | z.ZodEffects<ChildType>
+export function getBaseSchema<ChildType extends z.ZodAny | z.ZodObject<any, any> = z.ZodAny>(
+    schema: ChildType | z.ZodEffects<ChildType, any>
 ): ChildType | null {
     if (!schema) return null;
     if ('innerType' in schema._def) return getBaseSchema(schema._def.innerType as ChildType);
@@ -50,7 +50,7 @@ export function getBaseSchema<ChildType extends z.ZodAny | z.AnyZodObject = z.Zo
  */
 export function getBaseType(schema: z.ZodAny) {
     const baseSchema = getBaseSchema(schema);
-    return baseSchema ? baseSchema._def.typeName : '';
+    return baseSchema?._def?.typeName ?? '';
 }
 
 /**
@@ -59,7 +59,11 @@ export function getBaseType(schema: z.ZodAny) {
 export function getDefaultValueInZodStack(schema: z.ZodAny): any {
     const typedSchema = schema as unknown as z.ZodDefault<z.ZodNumber | z.ZodString>;
 
-    if (typedSchema._def.typeName === 'ZodDefault') return typedSchema._def.defaultValue();
+    if (typedSchema._def?.typeName === 'ZodDefault') {
+        return typeof typedSchema._def.defaultValue === 'function' 
+            ? typedSchema._def.defaultValue() 
+            : typedSchema._def.defaultValue;
+    }
 
     if ('innerType' in typedSchema._def) {
         return getDefaultValueInZodStack(typedSchema._def.innerType as unknown as z.ZodAny);
@@ -73,7 +77,7 @@ export function getDefaultValueInZodStack(schema: z.ZodAny): any {
 
 export function getObjectFormSchema(schema: ZodObjectOrWrapped): z.ZodObject<any, any> {
     if (schema?._def.typeName === 'ZodEffects') {
-        const typedSchema = schema as z.ZodEffects<z.ZodObject<any, any>>;
+        const typedSchema = schema as z.ZodEffects<z.ZodObject<any, any>, any>;
         return getObjectFormSchema(typedSchema._def.schema);
     }
     return schema as z.ZodObject<any, any>;

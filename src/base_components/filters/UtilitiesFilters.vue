@@ -20,18 +20,24 @@ const options_count: any = ref({});
 
 function optionClick(filter: FilterCategory, category_name: string, option_name: string) {
     // Modify the filter state (view)
-    if (filter.type == FilterType.CHECKBOX) {
-        filterState.value.filterConfig[category_name].data[option_name].value =
-            !filterState.value.filterConfig[category_name].data[option_name].value;
-    } else if (filter.type == FilterType.RADIO) {
+    if (filter?.type == FilterType.CHECKBOX) {
+        if (filterState.value?.filterConfig?.[category_name]?.data?.[option_name]) {
+            filterState.value.filterConfig[category_name].data[option_name].value =
+                !filterState.value.filterConfig[category_name].data[option_name].value;
+        }
+    } else if (filter?.type == FilterType.RADIO) {
         // Set all other radio buttons in the same category to false
-        Object.entries(filterState.value.filterConfig[category_name].data).forEach(([key]) => {
-            if (key == option_name) {
-                filterState.value.filterConfig[category_name].data[key].value = true;
-            } else {
-                filterState.value.filterConfig[category_name].data[key].value = false;
-            }
-        });
+        if (filterState.value?.filterConfig?.[category_name]?.data) {
+            Object.entries(filterState.value.filterConfig[category_name].data).forEach(([key]) => {
+                if (filterState.value?.filterConfig?.[category_name]?.data?.[key]) {
+                    if (key == option_name) {
+                        filterState.value.filterConfig[category_name].data[key].value = true;
+                    } else {
+                        filterState.value.filterConfig[category_name].data[key].value = false;
+                    }
+                }
+            });
+        }
     }
 
     filterState.value.activeFilters = [];

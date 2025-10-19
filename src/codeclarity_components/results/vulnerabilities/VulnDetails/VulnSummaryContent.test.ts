@@ -236,7 +236,7 @@ describe('VulnSummaryContent.vue', () => {
             const wrapper = createWrapper(finding);
 
             expect(wrapper.text()).toContain('NVD and OSV do not agree');
-            expect(wrapper.find('.text-severityMedium').exists()).toBe(true);
+            expect(wrapper.find('.text-severity-medium').exists()).toBe(true);
         });
 
         it('should not show warning when sources agree (2 or more sources)', () => {

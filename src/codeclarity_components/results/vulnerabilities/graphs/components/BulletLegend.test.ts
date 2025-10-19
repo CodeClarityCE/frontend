@@ -1,16 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import BulletLegend from './BulletLegend.vue';
 import type { LegendItem } from './BulletLegend.vue';
-
-// Mock Icon component
-vi.mock('@iconify/vue', () => ({
-    Icon: {
-        name: 'Icon',
-        props: ['icon', 'style'],
-        template: '<span class="mock-icon" :style="$props.style">{{ icon }}</span>'
-    }
-}));
 
 describe('BulletLegend.vue', () => {
     const createMockItems = (): LegendItem[] => [
@@ -62,27 +53,24 @@ describe('BulletLegend.vue', () => {
         });
     });
 
-    describe('Icon Rendering', () => {
-        it('should render circle icons for each item', () => {
+    describe('Circle Rendering', () => {
+        it('should render circle divs for each item', () => {
             const items = createMockItems();
             const wrapper = createWrapper(items);
 
-            const icons = wrapper.findAllComponents({ name: 'Icon' });
-            expect(icons.length).toBe(items.length);
-
-            icons.forEach((icon) => {
-                expect(icon.props('icon')).toBe('ph:circle-fill');
-            });
+            const circles = wrapper.findAll('.w-3.h-3.rounded-full.flex-shrink-0');
+            expect(circles.length).toBe(items.length);
         });
 
-        it('should apply correct colors to icons', () => {
+        it('should apply correct colors to circles', () => {
             const items = createMockItems();
             const wrapper = createWrapper(items);
 
-            const icons = wrapper.findAllComponents({ name: 'Icon' });
+            const circles = wrapper.findAll('.w-3.h-3.rounded-full.flex-shrink-0');
 
             items.forEach((item, index) => {
-                expect(icons[index].props('style')).toEqual({ color: item.color });
+                const circleStyle = circles[index].attributes('style');
+                expect(circleStyle).toContain(`background-color: ${item.color}`);
             });
         });
     });
@@ -171,10 +159,10 @@ describe('BulletLegend.vue', () => {
             ];
             const wrapper = createWrapper(items);
 
-            const icons = wrapper.findAllComponents({ name: 'Icon' });
-            expect(icons[0].props('style')).toEqual({ color: '#ff0000' });
-            expect(icons[1].props('style')).toEqual({ color: 'rgb(0, 255, 0)' });
-            expect(icons[2].props('style')).toEqual({ color: 'blue' });
+            const circles = wrapper.findAll('.w-3.h-3.rounded-full.flex-shrink-0');
+            expect(circles[0].attributes('style')).toContain('background-color: #ff0000');
+            expect(circles[1].attributes('style')).toContain('background-color: rgb(0, 255, 0)');
+            expect(circles[2].attributes('style')).toContain('background-color: blue');
         });
     });
 
@@ -234,8 +222,8 @@ describe('BulletLegend.vue', () => {
             const items = [{ label: 'No Color', color: '', count: 1 }];
             const wrapper = createWrapper(items);
 
-            const icon = wrapper.findComponent({ name: 'Icon' });
-            expect(icon.props('style')).toEqual({ color: '' });
+            const circle = wrapper.find('.w-3.h-3.rounded-full.flex-shrink-0');
+            expect(circle.attributes('style')).toContain('background-color:');
         });
 
         it('should handle negative counts', () => {
@@ -258,9 +246,9 @@ describe('BulletLegend.vue', () => {
             const items = container.findAll('.flex.items-center.gap-2');
             expect(items.length).toBeGreaterThan(0);
 
-            // Each item should have icon, label, and count
+            // Each item should have circle, label, and count
             items.forEach((item) => {
-                expect(item.findComponent({ name: 'Icon' }).exists()).toBe(true);
+                expect(item.find('.w-3.h-3.rounded-full.flex-shrink-0').exists()).toBe(true);
                 expect(item.find('.text-sm').exists()).toBe(true);
                 expect(item.find('.ml-auto.text-sm.font-semibold').exists()).toBe(true);
             });

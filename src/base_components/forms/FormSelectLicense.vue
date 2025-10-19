@@ -51,7 +51,7 @@ function select(license: License) {
             <div
                 v-for="license in licenseList"
                 :key="license.id"
-                class="py-2 px-4 cursor-pointer hover:bg-primaryHovered hover:text-white"
+                class="py-2 px-4 cursor-pointer hover:bg-primary/90 hover:text-white"
                 :class="data.has(license._key) ? 'bg-primary text-white' : ''"
                 @click="select(license)"
             >

@@ -228,22 +228,22 @@ async function joinOrg() {
                             >' as a
                             <span
                                 v-if="orgInfo.role == MemberRole.OWNER"
-                                class="font-bold text-severityMedium"
+                                class="font-bold text-severity-medium"
                                 >Owner</span
                             >
                             <span
                                 v-if="orgInfo.role == MemberRole.ADMIN"
-                                class="font-bold text-severityHigh"
+                                class="font-bold text-severity-high"
                                 >Admin</span
                             >
                             <span
                                 v-if="orgInfo.role == MemberRole.MODERATOR"
-                                class="font-bold text-severityLow"
+                                class="font-bold text-severity-low"
                                 >Moderator</span
                             >
                             <span
                                 v-if="orgInfo.role == MemberRole.USER"
-                                class="font-bold text-severityNone"
+                                class="font-bold text-severity-none"
                                 >User</span
                             >.
                         </span>

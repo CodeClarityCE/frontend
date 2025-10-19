@@ -65,7 +65,7 @@ onMounted(() => {
 
                         expandedNodes.push({
                             ...node,
-                            uniqueId: uniqueId,
+                            uniqueId: uniqueId ?? '',
                             parentIds: [parentId],
                             childrenIds: node.childrenIds || []
                         });

@@ -76,7 +76,7 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
     display: flex;
     flex-direction: row;
     align-items: center;
-    // box-shadow: 0 0.1rem 0.3rem 0.05rem rgba(58, 59, 69, 0.15) !important;
+    /* box-shadow: 0 0.1rem 0.3rem 0.05rem rgba(58, 59, 69, 0.15) !important; */
     margin-top: 0px;
     border: 1px solid #ccc;
     color: #44423b;

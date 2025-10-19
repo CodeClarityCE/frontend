@@ -29,35 +29,63 @@ defineProps({
 <template>
     <div class="flex flex-row gap-1">
         <div v-if="critical" class="flex flex-row">
-            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-critical': !deactivated, 'bg-gray-400': deactivated }">C</div>
-            <div class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600" :class="{ 'severity-value-critical': !deactivated, 'bg-gray-200': deactivated }">
+            <div
+                class="px-1.5 py-0.5 text-white text-center z-10 rounded-md"
+                :class="{ 'severity-class-critical': !deactivated, 'bg-gray-400': deactivated }"
+            >
+                C
+            </div>
+            <div
+                class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600"
+                :class="{ 'severity-value-critical': !deactivated, 'bg-gray-200': deactivated }"
+            >
                 <slot name="critical"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
         <div v-if="high" class="flex flex-row">
-            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-high': !deactivated, 'bg-gray-400': deactivated }">H</div>
+            <div
+                class="px-1.5 py-0.5 text-white text-center z-10 rounded-md"
+                :class="{ 'severity-class-high': !deactivated, 'bg-gray-400': deactivated }"
+            >
+                H
+            </div>
             <div class="severity-value" :class="{ 'severity-value-high': !deactivated }">
                 <slot name="high"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
         <div v-if="medium" class="flex flex-row">
-            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-medium': !deactivated, 'bg-gray-400': deactivated }">M</div>
+            <div
+                class="px-1.5 py-0.5 text-white text-center z-10 rounded-md"
+                :class="{ 'severity-class-medium': !deactivated, 'bg-gray-400': deactivated }"
+            >
+                M
+            </div>
             <div class="severity-value" :class="{ 'severity-value-medium': !deactivated }">
                 <slot name="medium"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
         <div v-if="low" class="flex flex-row">
-            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-low': !deactivated, 'bg-gray-400': deactivated }">L</div>
+            <div
+                class="px-1.5 py-0.5 text-white text-center z-10 rounded-md"
+                :class="{ 'severity-class-low': !deactivated, 'bg-gray-400': deactivated }"
+            >
+                L
+            </div>
             <div class="severity-value" :class="{ 'severity-value-low': !deactivated }">
                 <slot name="low"></slot>
                 <slot name="content"></slot>
             </div>
         </div>
         <div v-if="none" class="flex flex-row">
-            <div class="px-1.5 py-0.5 text-white text-center z-10 rounded-md" :class="{ 'severity-class-none': !deactivated, 'bg-gray-400': deactivated }">N</div>
+            <div
+                class="px-1.5 py-0.5 text-white text-center z-10 rounded-md"
+                :class="{ 'severity-class-none': !deactivated, 'bg-gray-400': deactivated }"
+            >
+                N
+            </div>
             <div class="severity-value" :class="{ 'severity-value-none': !deactivated }">
                 <slot name="none"></slot>
                 <slot name="content"></slot>

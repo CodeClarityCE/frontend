@@ -64,7 +64,9 @@ defineProps<Props>();
     border: 1px solid #374151;
     border-radius: 0.5rem;
     padding: 1rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
     min-width: 280px;
     max-width: 320px;
 }

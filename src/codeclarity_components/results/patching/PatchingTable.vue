@@ -219,7 +219,6 @@ init();
 </template>
 
 <style scoped lang="scss">
-
 .patched-manifest {
     counter-reset: linecount;
 }

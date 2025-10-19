@@ -24,7 +24,7 @@ const doughnutColors = [
     '#bf1313', // High - red
     '#ffc107', // Medium - yellow
     '#5a9d09', // Low - green
-    '#09889d'  // None - blue
+    '#09889d' // None - blue
 ];
 
 const doughnutChartData: DoughnutChartData = [

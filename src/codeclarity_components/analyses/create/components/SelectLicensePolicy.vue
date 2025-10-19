@@ -236,7 +236,6 @@ fetchLicensePolicies();
 </template>
 
 <style scoped lang="scss">
-
 .license-policies-list-wrapper {
     display: flex;
     flex-direction: column;

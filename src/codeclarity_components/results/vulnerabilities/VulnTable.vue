@@ -510,9 +510,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
         <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">
-                        Vulnerabilities
-                    </h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Vulnerabilities</h2>
                     <p class="text-sm text-gray-600 mt-1">
                         Security vulnerabilities found in your project dependencies
                     </p>
@@ -528,12 +526,9 @@ watch(showBlacklistedFromFilter, (newValue) => {
                 <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:alert-triangle" class="w-4 h-4 text-red-500" />
-                        <span
-                            class="text-xs text-gray-600  uppercase tracking-wide"
-                            >Critical</span
-                        >
+                        <span class="text-xs text-gray-600 uppercase tracking-wide">Critical</span>
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 ">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ criticalCount }}
                     </div>
                 </div>
@@ -541,12 +536,9 @@ watch(showBlacklistedFromFilter, (newValue) => {
                 <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:exclamation-circle" class="w-4 h-4 text-orange-500" />
-                        <span
-                            class="text-xs text-gray-600  uppercase tracking-wide"
-                            >High</span
-                        >
+                        <span class="text-xs text-gray-600 uppercase tracking-wide">High</span>
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 ">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ highCount }}
                     </div>
                 </div>
@@ -554,12 +546,11 @@ watch(showBlacklistedFromFilter, (newValue) => {
                 <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:trending-up" class="w-4 h-4 text-purple-500" />
-                        <span
-                            class="text-xs text-gray-600  uppercase tracking-wide"
+                        <span class="text-xs text-gray-600 uppercase tracking-wide"
                             >Exploitable</span
                         >
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 ">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ exploitableCount }}
                     </div>
                 </div>
@@ -567,12 +558,9 @@ watch(showBlacklistedFromFilter, (newValue) => {
                 <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:bandage" class="w-4 h-4 text-green-500" />
-                        <span
-                            class="text-xs text-gray-600  uppercase tracking-wide"
-                            >Patchable</span
-                        >
+                        <span class="text-xs text-gray-600 uppercase tracking-wide">Patchable</span>
                     </div>
-                    <div class="text-lg font-semibold text-gray-900 ">
+                    <div class="text-lg font-semibold text-gray-900">
                         {{ patchableCount }}
                     </div>
                 </div>
@@ -580,77 +568,57 @@ watch(showBlacklistedFromFilter, (newValue) => {
 
             <!-- Security Indicators Legend -->
             <div
-                class="bg-gradient-to-r from-red-50 to-orange-50  rounded-lg p-4 border border-red-200"
+                class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200"
             >
-                <h3
-                    class="text-sm font-medium text-gray-900  mb-3 flex items-center gap-2"
-                >
+                <h3 class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
                     <Icon icon="tabler:info-circle" class="w-4 h-4" />
                     Vulnerability Indicators & Severity Levels
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 ">
-                            Severity Levels
-                        </div>
+                        <div class="font-medium text-gray-900">Severity Levels</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <div class="w-3 h-3 bg-severity-critical rounded"></div>
-                                <span class="text-gray-600 "
-                                    >Critical (9.0-10.0)</span
-                                >
+                                <span class="text-gray-600">Critical (9.0-10.0)</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-3 h-3 bg-severity-high rounded"></div>
-                                <span class="text-gray-600 ">High (7.0-8.9)</span>
+                                <span class="text-gray-600">High (7.0-8.9)</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-3 h-3 bg-severity-medium rounded"></div>
-                                <span class="text-gray-600 "
-                                    >Medium (4.0-6.9)</span
-                                >
+                                <span class="text-gray-600">Medium (4.0-6.9)</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-3 h-3 bg-severity-low rounded"></div>
-                                <span class="text-gray-600 ">Low (0.1-3.9)</span>
+                                <span class="text-gray-600">Low (0.1-3.9)</span>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 ">
-                            Exploitation Risk
-                        </div>
+                        <div class="font-medium text-gray-900">Exploitation Risk</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:trending-up" class="w-3 h-3 text-red-600" />
-                                <span class="text-gray-600 "
-                                    >EPSS > 10% (High risk)</span
-                                >
+                                <span class="text-gray-600">EPSS > 10% (High risk)</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:alert-triangle" class="w-3 h-3 text-amber-600" />
-                                <span class="text-gray-600 "
-                                    >Possible false match</span
-                                >
+                                <span class="text-gray-600">Possible false match</span>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="font-medium text-gray-900 ">
-                            Patching Status
-                        </div>
+                        <div class="font-medium text-gray-900">Patching Status</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:bandage" class="w-3 h-3 text-green-600" />
-                                <span class="text-gray-600 "
-                                    >Patch available</span
-                                >
+                                <span class="text-gray-600">Patch available</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <Icon icon="tabler:bandage-off" class="w-3 h-3 text-gray-500" />
-                                <span class="text-gray-600 "
-                                    >No patch available</span
-                                >
+                                <span class="text-gray-600">No patch available</span>
                             </div>
                         </div>
                     </div>
@@ -1816,14 +1784,14 @@ watch(showBlacklistedFromFilter, (newValue) => {
                     :icon="filterApplied ? 'tabler:filter-off' : 'tabler:shield-check'"
                     class="w-12 h-12 text-gray-400 mx-auto mb-4"
                 />
-                <h3 class="text-lg font-medium text-gray-900  mb-2">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
                     {{
                         filterApplied
                             ? 'No vulnerabilities match the filter'
                             : 'No vulnerabilities found'
                     }}
                 </h3>
-                <p class="text-gray-600 ">
+                <p class="text-gray-600">
                     {{
                         filterApplied
                             ? 'Try adjusting your filters to see more results.'
@@ -1837,7 +1805,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
         <div
             class="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 bg-gray-50 rounded-lg border"
         >
-            <div class="flex items-center gap-4 text-sm text-gray-600 ">
+            <div class="flex items-center gap-4 text-sm text-gray-600">
                 <div class="flex items-center gap-2">
                     <Icon icon="tabler:file-text" class="w-4 h-4" />
                     <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>
@@ -1867,7 +1835,6 @@ watch(showBlacklistedFromFilter, (newValue) => {
 </template>
 
 <style scoped lang="scss">
-
 /* Enhanced table styling */
 .vulnerability-table {
     background-color: white;

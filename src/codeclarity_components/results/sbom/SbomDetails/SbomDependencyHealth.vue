@@ -299,7 +299,6 @@ const getHealthStatusDescription = (): string => {
 </template>
 
 <style scoped lang="scss">
-
 .dependency-health-panel {
     height: 100%;
 }

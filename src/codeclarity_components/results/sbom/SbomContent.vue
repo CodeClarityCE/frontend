@@ -547,7 +547,9 @@ function createDepTypeChart() {
                                 class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent border border-green-100 rounded-lg hover:shadow-sm transition-shadow"
                             >
                                 <div class="flex items-center gap-3">
-                                    <div class="w-4 h-4 rounded-full bg-theme-primary shadow-sm"></div>
+                                    <div
+                                        class="w-4 h-4 rounded-full bg-theme-primary shadow-sm"
+                                    ></div>
                                     <div>
                                         <span class="text-sm font-semibold text-gray-900"
                                             >Direct</span

@@ -136,23 +136,11 @@ export const columns: ColumnDef<Dependency>[] = [
                             class: 'font-mono text-sm bg-slate-100 text-slate-700 px-2 py-1 rounded border font-medium'
                         },
                         [
-                            h(
-                                'span',
-                                { class: 'text-emerald-600 font-semibold' },
-                                parts[0] || '0'
-                            ),
+                            h('span', { class: 'text-emerald-600 font-semibold' }, parts[0] || '0'),
                             h('span', { class: 'text-slate-400' }, '.'),
-                            h(
-                                'span',
-                                { class: 'text-blue-600 font-semibold' },
-                                parts[1] || '0'
-                            ),
+                            h('span', { class: 'text-blue-600 font-semibold' }, parts[1] || '0'),
                             h('span', { class: 'text-slate-400' }, '.'),
-                            h(
-                                'span',
-                                { class: 'text-purple-600' },
-                                parts.slice(2).join('.') || '0'
-                            )
+                            h('span', { class: 'text-purple-600' }, parts.slice(2).join('.') || '0')
                         ]
                     )
                 ]

@@ -25,7 +25,6 @@ import { Button } from '@/shadcn/ui/button';
 </template>
 
 <style scoped lang="scss">
-
 .notfound-wrapper {
     display: flex;
     flex-direction: row;

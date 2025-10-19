@@ -1,6 +1,6 @@
 @import url('fonts/lato.css');
 @import url('fonts/roboto.css');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
     /* Basic colors for Tailwind v4 utilities */

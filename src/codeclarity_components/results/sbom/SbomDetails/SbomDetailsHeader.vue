@@ -69,7 +69,6 @@ defineProps({
 </template>
 
 <style scoped lang="scss">
-
 .sbom-header {
     display: flex;
     flex-direction: column;

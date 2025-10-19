@@ -479,7 +479,6 @@ const getAgeDescription = (): string => {
 </template>
 
 <style scoped lang="scss">
-
 .information-panel {
     height: 100%;
     display: flex;

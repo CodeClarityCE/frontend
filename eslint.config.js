@@ -19,6 +19,9 @@ export default typescriptEslint.config(
       globals: globals.browser,
       parserOptions: {
         parser: typescriptEslint.parser,
+        tsconfigRootDir: import.meta.dirname,
+        project: ['./tsconfig.app.json', './tsconfig.node.json', './tsconfig.vitest.json'],
+        extraFileExtensions: ['.vue'],
       },
     },
     rules: {

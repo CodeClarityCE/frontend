@@ -106,8 +106,10 @@ export class LanguageDetectionService {
 
         if (completedAnalyses.length === 0) return null;
 
-        return completedAnalyses.sort(
-            (a, b) => new Date(b.created_on).getTime() - new Date(a.created_on).getTime()
-        )[0] ?? null;
+        return (
+            completedAnalyses.sort(
+                (a, b) => new Date(b.created_on).getTime() - new Date(a.created_on).getTime()
+            )[0] ?? null
+        );
     }
 }

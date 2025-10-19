@@ -420,14 +420,13 @@ describe('LineChart', () => {
         datasets: []
       }
 
-      // This edge case will cause runtime errors in the component, so we expect it to throw
-      expect(() => {
-        mount(LineChart, {
-          props: {
-            chartData: emptyDatasetData
-          }
-        })
-      }).toThrow()
+      // The component should handle empty datasets gracefully without throwing
+      const wrapper = mount(LineChart, {
+        props: {
+          chartData: emptyDatasetData
+        }
+      })
+      expect(wrapper.exists()).toBe(true)
     })
 
     it('handles very large datasets', () => {

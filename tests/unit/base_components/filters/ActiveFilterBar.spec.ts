@@ -132,7 +132,7 @@ describe('ActiveFilterBar', () => {
     expect(filterChip.classes()).toContain('gap-2');
     expect(filterChip.classes()).toContain('items-center');
     expect(filterChip.classes()).toContain('font-normal');
-    expect(filterChip.classes()).toContain('text-grayTitle');
+    expect(filterChip.classes()).toContain('text-gray-700');
   });
 
   it('has correct container styling', () => {

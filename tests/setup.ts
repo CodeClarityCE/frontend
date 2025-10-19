@@ -71,6 +71,14 @@ Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
 })
 
+// Mock requestAnimationFrame for auto-animate library
+global.requestAnimationFrame = vi.fn((cb) => {
+  cb(0)
+  return 0
+})
+
+global.cancelAnimationFrame = vi.fn()
+
 // Mock scrollIntoView on Element prototype
 if (typeof Element !== 'undefined') {
   Element.prototype.scrollIntoView = vi.fn()

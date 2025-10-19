@@ -543,7 +543,6 @@ defineExpose({
 </template>
 
 <style scope lang="scss">
-
 .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;

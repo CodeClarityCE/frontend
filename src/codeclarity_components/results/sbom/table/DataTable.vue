@@ -200,12 +200,12 @@ function toggleFilter(filterType: string) {
                     <TableRow
                         v-for="headerGroup in table.getHeaderGroups()"
                         :key="headerGroup.id"
-                        class="border-b border-gray-200 "
+                        class="border-b border-gray-200"
                     >
                         <TableHead
                             v-for="header in headerGroup.headers"
                             :key="header.id"
-                            class="font-semibold text-gray-900  py-3"
+                            class="font-semibold text-gray-900 py-3"
                         >
                             <FlexRender
                                 v-if="!header.isPlaceholder"
@@ -255,7 +255,7 @@ function toggleFilter(filterType: string) {
                         <TableRow>
                             <TableCell :col-span="columns.length" class="h-32 text-center">
                                 <div
-                                    class="flex flex-col items-center justify-center gap-2 text-gray-500 "
+                                    class="flex flex-col items-center justify-center gap-2 text-gray-500"
                                 >
                                     <Icon icon="tabler:package-off" class="w-8 h-8" />
                                     <p class="text-sm font-medium">No dependencies found</p>
@@ -270,7 +270,7 @@ function toggleFilter(filterType: string) {
 
         <!-- Pagination Section -->
         <div class="flex items-center justify-between py-4 px-2">
-            <div class="flex items-center gap-6 text-sm text-gray-600 ">
+            <div class="flex items-center gap-6 text-sm text-gray-600">
                 <div class="flex items-center gap-2">
                     <span>Show</span>
                     <Select

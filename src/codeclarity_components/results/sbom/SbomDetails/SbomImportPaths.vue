@@ -109,7 +109,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-
 .import-paths-panel {
     height: 100%;
     min-height: 500px;

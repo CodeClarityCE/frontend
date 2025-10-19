@@ -193,7 +193,6 @@ fetch();
 </template>
 
 <style scoped lang="scss">
-
 $--section-title-color: #4f4e4e;
 $--section-title-size: 2.7rem;
 $--section-title-font-weight: 600;

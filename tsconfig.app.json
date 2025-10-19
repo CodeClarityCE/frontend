@@ -9,5 +9,8 @@
       "@/*": ["./src/*"]
     },
     "experimentalDecorators": true
+  },
+  "vueCompilerOptions": {
+    "globalTypesPath": "./src/vue-global-types.d.ts"
   }
 }

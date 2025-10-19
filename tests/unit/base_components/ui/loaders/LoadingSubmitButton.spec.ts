@@ -21,7 +21,7 @@ describe('LoadingSubmitButton', () => {
       expect(classes).toContain('text-white')
       expect(classes).toContain('shadow-md')
       expect(classes).toContain('bg-primary')
-      expect(classes).toContain('hover:bg-primaryHovered')
+      expect(classes).toContain('hover:bg-primary/90')
     })
 
     it('applies submit-button class by default', () => {
@@ -350,7 +350,7 @@ describe('LoadingSubmitButton', () => {
 
   describe('CSS Class Management', () => {
     it('maintains base CSS classes regardless of noStyle prop', () => {
-      const baseClasses = ['rounded', 'py-3', 'px-5', 'text-white', 'shadow-md', 'bg-primary', 'hover:bg-primaryHovered']
+      const baseClasses = ['rounded', 'py-3', 'px-5', 'text-white', 'shadow-md', 'bg-primary', 'hover:bg-primary/90']
       
       const wrapper1 = mount(LoadingSubmitButton)
       const wrapper2 = mount(LoadingSubmitButton, { props: { noStyle: true } })

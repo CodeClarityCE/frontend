@@ -57,7 +57,6 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-
 .loading-wrapper-local {
     width: 100%;
     height: 100%;

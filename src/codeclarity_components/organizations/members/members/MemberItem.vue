@@ -228,7 +228,6 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
-
 .org-membership {
     border-radius: 15px;
     padding: 3px;

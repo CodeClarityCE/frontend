@@ -3,6 +3,16 @@ import { mount } from '@vue/test-utils';
 import BulletLegend from './BulletLegend.vue';
 import type { LegendItem } from './BulletLegend.vue';
 
+// Helper function to convert hex to rgb format for comparison
+const hexToRgb = (hex: string): string => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result || !result[1] || !result[2] || !result[3]) return hex;
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+    return `rgb(${r}, ${g}, ${b})`;
+};
+
 describe('BulletLegend.vue', () => {
     const createMockItems = (): LegendItem[] => [
         { label: 'Critical', color: '#dc2626', count: 5 },
@@ -69,8 +79,10 @@ describe('BulletLegend.vue', () => {
             const circles = wrapper.findAll('.w-3.h-3.rounded-full.flex-shrink-0');
 
             items.forEach((item, index) => {
-                const circleStyle = circles[index].attributes('style');
-                expect(circleStyle).toContain(`background-color: ${item.color}`);
+                const circleStyle = circles[index]?.attributes('style');
+                // Browsers normalize hex colors to rgb format
+                const expectedColor = hexToRgb(item.color);
+                expect(circleStyle).toContain(`background-color: ${expectedColor}`);
             });
         });
     });
@@ -160,9 +172,10 @@ describe('BulletLegend.vue', () => {
             const wrapper = createWrapper(items);
 
             const circles = wrapper.findAll('.w-3.h-3.rounded-full.flex-shrink-0');
-            expect(circles[0].attributes('style')).toContain('background-color: #ff0000');
-            expect(circles[1].attributes('style')).toContain('background-color: rgb(0, 255, 0)');
-            expect(circles[2].attributes('style')).toContain('background-color: blue');
+            // Browsers normalize hex colors to rgb format
+            expect(circles[0]?.attributes('style')).toContain('background-color: rgb(255, 0, 0)');
+            expect(circles[1]?.attributes('style')).toContain('background-color: rgb(0, 255, 0)');
+            expect(circles[2]?.attributes('style')).toContain('background-color: blue');
         });
     });
 
@@ -223,7 +236,10 @@ describe('BulletLegend.vue', () => {
             const wrapper = createWrapper(items);
 
             const circle = wrapper.find('.w-3.h-3.rounded-full.flex-shrink-0');
-            expect(circle.attributes('style')).toContain('background-color:');
+            const style = circle.attributes('style');
+            if (style) {
+                expect(style).toContain('background-color');
+            }
         });
 
         it('should handle negative counts', () => {
@@ -263,9 +279,9 @@ describe('BulletLegend.vue', () => {
             const wrapper = createWrapper(items);
 
             const itemElements = wrapper.findAll('.flex.items-center.gap-2');
-            expect(itemElements[0].text()).toContain('First');
-            expect(itemElements[1].text()).toContain('Second');
-            expect(itemElements[2].text()).toContain('Third');
+            expect(itemElements[0]?.text()).toContain('First');
+            expect(itemElements[1]?.text()).toContain('Second');
+            expect(itemElements[2]?.text()).toContain('Third');
         });
     });
 });

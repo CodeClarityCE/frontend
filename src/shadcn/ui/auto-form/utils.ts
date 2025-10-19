@@ -60,8 +60,8 @@ export function getDefaultValueInZodStack(schema: z.ZodAny): any {
     const typedSchema = schema as unknown as z.ZodDefault<z.ZodNumber | z.ZodString>;
 
     if (typedSchema._def?.typeName === 'ZodDefault') {
-        return typeof typedSchema._def.defaultValue === 'function' 
-            ? typedSchema._def.defaultValue() 
+        return typeof typedSchema._def.defaultValue === 'function'
+            ? typedSchema._def.defaultValue()
             : typedSchema._def.defaultValue;
     }
 

@@ -120,7 +120,7 @@ const RAW_RUNTIME_STATE =
           ["vue-toast-notification", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.3"],\
           ["vue-tsc", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.1"],\
           ["webpack-bundle-analyzer", "npm:4.10.2"],\
-          ["zod", "npm:4.1.12"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -5142,7 +5142,7 @@ const RAW_RUNTIME_STATE =
           ["@types/jsdom", "npm:27.0.0"],\
           ["@types/node", "npm:24.1.0"],\
           ["@types/tough-cookie", "npm:4.0.5"],\
-          ["parse5", "npm:7.3.0"]\
+          ["parse5", "npm:7.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5988,7 +5988,7 @@ const RAW_RUNTIME_STATE =
           ["@vee-validate/zod", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:4.15.1"],\
           ["type-fest", "npm:4.41.0"],\
           ["vee-validate", "virtual:6f2d15fe021eea50f2085fd3517d53c810009d6549d4da1975ea48c58ab07d958b6749acb02e81f6f61e3a4f3b15d4f8e6412db93b1aa7a999770bc2501730f4#npm:4.15.1"],\
-          ["zod", "npm:4.1.12"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "packagePeers": [\
           "@types/zod",\
@@ -9711,13 +9711,6 @@ const RAW_RUNTIME_STATE =
           ["entities", "npm:4.5.0"]\
         ],\
         "linkType": "HARD"\
-      }],\
-      ["npm:6.0.1", {\
-        "packageLocation": "./.yarn/cache/entities-npm-6.0.1-84692dab43-62af130720.zip/node_modules/entities/",\
-        "packageDependencies": [\
-          ["entities", "npm:6.0.1"]\
-        ],\
-        "linkType": "HARD"\
       }]\
     ]],\
     ["env-paths", [\
@@ -10906,7 +10899,7 @@ const RAW_RUNTIME_STATE =
           ["vue-toast-notification", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.3"],\
           ["vue-tsc", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.1"],\
           ["webpack-bundle-analyzer", "npm:4.10.2"],\
-          ["zod", "npm:4.1.12"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -12335,7 +12328,7 @@ const RAW_RUNTIME_STATE =
           ["https-proxy-agent", "npm:7.0.6"],\
           ["is-potential-custom-element-name", "npm:1.0.1"],\
           ["jsdom", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:27.0.1"],\
-          ["parse5", "npm:8.0.0"],\
+          ["parse5", "npm:7.2.1"],\
           ["rrweb-cssom", "npm:0.8.0"],\
           ["saxes", "npm:6.0.0"],\
           ["symbol-tree", "npm:3.2.4"],\
@@ -13925,19 +13918,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["parse5", [\
-      ["npm:7.3.0", {\
-        "packageLocation": "./.yarn/cache/parse5-npm-7.3.0-b0410074a3-b0e48be20b.zip/node_modules/parse5/",\
+      ["npm:7.2.1", {\
+        "packageLocation": "./.yarn/cache/parse5-npm-7.2.1-c48f333f28-fd1a8ad154.zip/node_modules/parse5/",\
         "packageDependencies": [\
-          ["entities", "npm:6.0.1"],\
-          ["parse5", "npm:7.3.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:8.0.0", {\
-        "packageLocation": "./.yarn/cache/parse5-npm-8.0.0-c813f23978-1973850932.zip/node_modules/parse5/",\
-        "packageDependencies": [\
-          ["entities", "npm:6.0.1"],\
-          ["parse5", "npm:8.0.0"]\
+          ["entities", "npm:4.5.0"],\
+          ["parse5", "npm:7.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -17979,13 +17964,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/zod-npm-3.25.76-7de26333f8-f0c963ec40.zip/node_modules/zod/",\
         "packageDependencies": [\
           ["zod", "npm:3.25.76"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:4.1.12", {\
-        "packageLocation": "./.yarn/cache/zod-npm-4.1.12-8e1ffc4d68-c5f04e6ac3.zip/node_modules/zod/",\
-        "packageDependencies": [\
-          ["zod", "npm:4.1.12"]\
         ],\
         "linkType": "HARD"\
       }]\

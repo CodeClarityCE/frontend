@@ -78,6 +78,14 @@ const prodCount = computed(() => {
     return data.value.filter((dep) => dep.prod).length;
 });
 
+const deprecatedCount = computed(() => {
+    // Use stats from props if available, otherwise calculate from current page
+    if (props.stats?.number_of_deprecated_dependencies !== undefined) {
+        return props.stats.number_of_deprecated_dependencies;
+    }
+    return data.value.filter((dep) => dep.deprecated).length;
+});
+
 async function init() {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
@@ -183,7 +191,7 @@ watch(
             </div>
 
             <!-- Quick Stats -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:package" class="w-4 h-4 text-blue-500" />
@@ -201,6 +209,16 @@ watch(
                     </div>
                     <div class="text-lg font-semibold text-gray-900">
                         {{ outdatedCount }}
+                    </div>
+                </div>
+
+                <div class="bg-white border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="tabler:alert-circle" class="w-4 h-4 text-red-500" />
+                        <span class="text-xs text-gray-600 uppercase tracking-wide">Deprecated</span>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900">
+                        {{ deprecatedCount }}
                     </div>
                 </div>
 

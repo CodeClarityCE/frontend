@@ -264,6 +264,71 @@ export const columns: ColumnDef<Dependency>[] = [
         enableSorting: false
     },
     {
+        accessorKey: 'deprecated',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+                    class: 'h-auto p-0 font-semibold text-left justify-start'
+                },
+                () => [
+                    h('div', { class: 'flex items-center gap-2' }, [
+                        h('span', 'Deprecated'),
+                        h(ArrowUpDown, { class: 'h-3 w-3 text-gray-400' })
+                    ])
+                ]
+            );
+        },
+        cell: ({ row }) => {
+            const isDeprecated = row.getValue('deprecated') as boolean;
+            const deprecatedMessage = (row.original as any).deprecated_message as string;
+
+            if (isDeprecated) {
+                return h(
+                    'div',
+                    {
+                        class: 'flex items-center justify-center',
+                        title: deprecatedMessage || 'This package is deprecated'
+                    },
+                    [
+                        h(
+                            'div',
+                            {
+                                class: 'bg-red-50 text-red-700 px-3 py-1.5 rounded-full text-xs font-medium border border-red-200 flex items-center gap-2'
+                            },
+                            [
+                                h(Icon, {
+                                    icon: 'tabler:alert-triangle',
+                                    class: 'w-4 h-4'
+                                }),
+                                h('span', 'Deprecated')
+                            ]
+                        )
+                    ]
+                );
+            }
+
+            return h(
+                'div',
+                {
+                    class: 'flex items-center justify-center'
+                },
+                [
+                    h(
+                        'div',
+                        {
+                            class: 'bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium border'
+                        },
+                        'No'
+                    )
+                ]
+            );
+        },
+        enableSorting: false // Sorting done on the API side
+    },
+    {
         accessorKey: 'dev',
         header: ({ column }) => {
             return h(

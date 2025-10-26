@@ -215,7 +215,9 @@ watch(
                 <div class="bg-white border rounded-lg p-3">
                     <div class="flex items-center gap-2">
                         <Icon icon="tabler:alert-circle" class="w-4 h-4 text-red-500" />
-                        <span class="text-xs text-gray-600 uppercase tracking-wide">Deprecated</span>
+                        <span class="text-xs text-gray-600 uppercase tracking-wide"
+                            >Deprecated</span
+                        >
                     </div>
                     <div class="text-lg font-semibold text-gray-900">
                         {{ deprecatedCount }}

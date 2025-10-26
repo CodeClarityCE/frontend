@@ -5,7 +5,7 @@ import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
 export default typescriptEslint.config(
-  { ignores: ['*.d.ts', '**/coverage', '**/dist', '**/shadcn', "**/.yarn", "**/cypress", '.pnp.*'] },
+  { ignores: ['**/*.d.ts', '**/coverage', '**/dist', '**/shadcn', "**/.yarn", "**/cypress", '.pnp.*'] },
   {
     extends: [
       eslint.configs.recommended,

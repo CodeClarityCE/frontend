@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.0.33-alpha",
+  "version": "0.0.34-alpha",
   "private": true,
   "type": "module",
   "scripts": {
@@ -128,5 +128,5 @@
     "parse5": "7.2.1",
     "zod": "^3.24.0"
   },
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.12.0"
 }

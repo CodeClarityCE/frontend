@@ -7,12 +7,9 @@ import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
 import {
-    TicketStatusLabels,
-    TicketStatusColors,
     TicketPriorityLabels,
     TicketPriorityColors,
-    type TicketDashboardStats,
-    type TicketSummary
+    type TicketDashboardStats
 } from '@/codeclarity_components/tickets/tickets.entity';
 import { Skeleton } from '@/shadcn/ui/skeleton';
 import { Button } from '@/shadcn/ui/button';

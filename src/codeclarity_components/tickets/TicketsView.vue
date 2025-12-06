@@ -3,7 +3,6 @@ import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent } from 'vue';
 import { Icon } from '@iconify/vue';
 
-import { PageHeader } from '@/base_components';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 
@@ -41,7 +40,7 @@ state.$reset();
 state.page = 'tickets';
 
 // Props
-const props = defineProps<{
+defineProps<{
     page?: string;
 }>();
 

@@ -23,8 +23,7 @@ import {
     type CheckDuplicateRequest,
     type BulkUpdateResult,
     type DuplicateCheckResult,
-    type TicketFilters,
-    type TicketSortField
+    type TicketFilters
 } from './tickets.entity';
 
 // ============================================

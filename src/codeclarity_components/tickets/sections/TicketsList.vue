@@ -7,11 +7,10 @@ import {
     TicketStatusColors,
     TicketPriorityLabels,
     TicketPriorityColors,
-    TicketTypeLabels,
     TicketTypeColors
 } from '../tickets.entity';
 
-const props = defineProps<{
+defineProps<{
     tickets: TicketSummary[];
     isLoading: boolean;
     currentPage: number;

@@ -41,6 +41,10 @@ export class Organization {
     @IsBoolean()
     personal!: boolean;
 
+    @IsOptional()
+    @IsBoolean()
+    auto_resolve_tickets?: boolean;
+
     @IsNotEmpty()
     role!: MemberRole;
 

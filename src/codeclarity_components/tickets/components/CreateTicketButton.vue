@@ -5,7 +5,7 @@ import { Button } from '@/shadcn/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import TicketCreateModal, { type VulnerabilityData } from './TicketCreateModal.vue';
 
-const props = defineProps<{
+defineProps<{
     projectId: string;
     projectName?: string;
     vulnerability: VulnerabilityData;

@@ -1,0 +1,372 @@
+import { Type } from 'class-transformer';
+import { IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+
+// ============================================
+// Enums
+// ============================================
+
+export enum TicketStatus {
+    OPEN = 'OPEN',
+    IN_PROGRESS = 'IN_PROGRESS',
+    RESOLVED = 'RESOLVED',
+    CLOSED = 'CLOSED',
+    WONT_FIX = 'WONT_FIX'
+}
+
+export enum TicketPriority {
+    CRITICAL = 'CRITICAL',
+    HIGH = 'HIGH',
+    MEDIUM = 'MEDIUM',
+    LOW = 'LOW'
+}
+
+export enum TicketType {
+    VULNERABILITY = 'VULNERABILITY',
+    LICENSE = 'LICENSE',
+    UPGRADE = 'UPGRADE'
+}
+
+export enum ExternalTicketProvider {
+    CLICKUP = 'CLICKUP',
+    JIRA = 'JIRA',
+    LINEAR = 'LINEAR'
+}
+
+export enum TicketEventType {
+    CREATED = 'CREATED',
+    STATUS_CHANGED = 'STATUS_CHANGED',
+    PRIORITY_CHANGED = 'PRIORITY_CHANGED',
+    ASSIGNED = 'ASSIGNED',
+    UNASSIGNED = 'UNASSIGNED',
+    SYNCED_EXTERNAL = 'SYNCED_EXTERNAL',
+    OCCURRENCE_ADDED = 'OCCURRENCE_ADDED',
+    OCCURRENCE_RESOLVED = 'OCCURRENCE_RESOLVED',
+    COMMENT_ADDED = 'COMMENT_ADDED',
+    UPDATED = 'UPDATED'
+}
+
+// ============================================
+// Ticket Summary (for list view)
+// ============================================
+
+export class TicketSummary {
+    @IsNotEmpty()
+    id!: string;
+
+    @IsNotEmpty()
+    title!: string;
+
+    @IsEnum(TicketStatus)
+    status!: TicketStatus;
+
+    @IsEnum(TicketPriority)
+    priority!: TicketPriority;
+
+    @IsEnum(TicketType)
+    type!: TicketType;
+
+    @IsOptional()
+    @IsString()
+    vulnerability_id?: string;
+
+    @IsOptional()
+    @IsString()
+    affected_package?: string;
+
+    @IsOptional()
+    @IsNumber()
+    severity_score?: number;
+
+    @IsOptional()
+    @IsString()
+    severity_class?: string;
+
+    @IsNotEmpty()
+    @Type(() => Date)
+    created_on!: Date;
+
+    @IsOptional()
+    @Type(() => Date)
+    updated_on?: Date;
+
+    @IsNotEmpty()
+    project_id!: string;
+
+    @IsNotEmpty()
+    project_name!: string;
+
+    @IsOptional()
+    @IsString()
+    assigned_to_id?: string;
+
+    @IsOptional()
+    @IsString()
+    assigned_to_name?: string;
+
+    @IsDefined()
+    has_external_links!: boolean;
+}
+
+// ============================================
+// Ticket Details (for detail view)
+// ============================================
+
+export interface ExternalLink {
+    id: string;
+    provider: ExternalTicketProvider;
+    external_id: string;
+    external_url: string;
+    synced_on: Date;
+}
+
+export class TicketDetails extends TicketSummary {
+    @IsNotEmpty()
+    description!: string;
+
+    @IsOptional()
+    @IsString()
+    affected_version?: string;
+
+    @IsOptional()
+    @IsString()
+    recommended_version?: string;
+
+    @IsOptional()
+    @IsString()
+    remediation_notes?: string;
+
+    @IsOptional()
+    @Type(() => Date)
+    resolved_on?: Date;
+
+    @IsOptional()
+    @Type(() => Date)
+    due_date?: Date;
+
+    @IsNotEmpty()
+    created_by_id!: string;
+
+    @IsNotEmpty()
+    created_by_name!: string;
+
+    @IsOptional()
+    @IsString()
+    source_analysis_id?: string;
+
+    @IsDefined()
+    external_links!: ExternalLink[];
+
+    @IsNumber()
+    occurrence_count!: number;
+
+    @IsNumber()
+    active_occurrence_count!: number;
+}
+
+// ============================================
+// Ticket Event (audit trail)
+// ============================================
+
+export class TicketEvent {
+    @IsNotEmpty()
+    id!: string;
+
+    @IsEnum(TicketEventType)
+    event_type!: TicketEventType;
+
+    @IsDefined()
+    event_data!: Record<string, unknown>;
+
+    @IsOptional()
+    @IsString()
+    performed_by_id?: string;
+
+    @IsOptional()
+    @IsString()
+    performed_by_name?: string;
+
+    @IsNotEmpty()
+    @Type(() => Date)
+    created_on!: Date;
+}
+
+// ============================================
+// Dashboard Stats
+// ============================================
+
+export class TicketDashboardStats {
+    @IsNumber()
+    total_open!: number;
+
+    @IsNumber()
+    total_in_progress!: number;
+
+    @IsNumber()
+    total_resolved_this_week!: number;
+
+    @IsNumber()
+    total_closed!: number;
+
+    @IsDefined()
+    by_priority!: {
+        critical: number;
+        high: number;
+        medium: number;
+        low: number;
+    };
+
+    @IsDefined()
+    by_project!: Array<{
+        project_id: string;
+        project_name: string;
+        open_count: number;
+    }>;
+
+    @IsDefined()
+    @Type(() => TicketSummary)
+    recent_tickets!: TicketSummary[];
+
+    @IsOptional()
+    @IsNumber()
+    avg_resolution_time_days?: number;
+}
+
+// ============================================
+// Request DTOs
+// ============================================
+
+export interface CreateTicketRequest {
+    title: string;
+    description: string;
+    priority: TicketPriority;
+    type: TicketType;
+    project_id: string;
+    vulnerability_id?: string;
+    affected_package?: string;
+    affected_version?: string;
+    severity_score?: number;
+    severity_class?: string;
+    recommended_version?: string;
+    remediation_notes?: string;
+    due_date?: string;
+    source_analysis_id?: string;
+    sync_to_provider?: ExternalTicketProvider;
+}
+
+export interface UpdateTicketRequest {
+    title?: string;
+    description?: string;
+    status?: TicketStatus;
+    priority?: TicketPriority;
+    assigned_to_id?: string;
+    remediation_notes?: string;
+    due_date?: string;
+}
+
+export interface BulkUpdateTicketsRequest {
+    ticket_ids: string[];
+    status?: TicketStatus;
+    priority?: TicketPriority;
+    assigned_to_id?: string;
+}
+
+export interface CheckDuplicateRequest {
+    project_id: string;
+    vulnerability_id: string;
+}
+
+// ============================================
+// Response Types
+// ============================================
+
+export interface BulkUpdateResult {
+    updated_count: number;
+    ticket_ids: string[];
+}
+
+export interface DuplicateCheckResult {
+    exists: boolean;
+    existing_ticket_id?: string;
+    existing_ticket_title?: string;
+    existing_ticket_status?: TicketStatus;
+}
+
+// ============================================
+// Filter Types
+// ============================================
+
+export interface TicketFilters {
+    status?: TicketStatus[];
+    priority?: TicketPriority[];
+    type?: TicketType[];
+    project_id?: string;
+    assigned_to_id?: string;
+    has_external_link?: boolean;
+    vulnerability_id?: string;
+    severity_class?: string[];
+    created_after?: string;
+    created_before?: string;
+}
+
+export type TicketSortField =
+    | 'created_on'
+    | 'updated_on'
+    | 'priority'
+    | 'status'
+    | 'severity_score'
+    | 'title'
+    | 'due_date';
+
+// ============================================
+// UI Helpers
+// ============================================
+
+export const TicketStatusLabels: Record<TicketStatus, string> = {
+    [TicketStatus.OPEN]: 'Open',
+    [TicketStatus.IN_PROGRESS]: 'In Progress',
+    [TicketStatus.RESOLVED]: 'Resolved',
+    [TicketStatus.CLOSED]: 'Closed',
+    [TicketStatus.WONT_FIX]: "Won't Fix"
+};
+
+export const TicketStatusColors: Record<TicketStatus, string> = {
+    [TicketStatus.OPEN]: 'bg-blue-100 text-blue-800',
+    [TicketStatus.IN_PROGRESS]: 'bg-yellow-100 text-yellow-800',
+    [TicketStatus.RESOLVED]: 'bg-green-100 text-green-800',
+    [TicketStatus.CLOSED]: 'bg-gray-100 text-gray-800',
+    [TicketStatus.WONT_FIX]: 'bg-gray-100 text-gray-600'
+};
+
+export const TicketPriorityLabels: Record<TicketPriority, string> = {
+    [TicketPriority.CRITICAL]: 'Critical',
+    [TicketPriority.HIGH]: 'High',
+    [TicketPriority.MEDIUM]: 'Medium',
+    [TicketPriority.LOW]: 'Low'
+};
+
+export const TicketPriorityColors: Record<TicketPriority, string> = {
+    [TicketPriority.CRITICAL]: 'bg-red-100 text-red-800',
+    [TicketPriority.HIGH]: 'bg-orange-100 text-orange-800',
+    [TicketPriority.MEDIUM]: 'bg-yellow-100 text-yellow-800',
+    [TicketPriority.LOW]: 'bg-green-100 text-green-800'
+};
+
+export const TicketTypeLabels: Record<TicketType, string> = {
+    [TicketType.VULNERABILITY]: 'Vulnerability',
+    [TicketType.LICENSE]: 'License',
+    [TicketType.UPGRADE]: 'Upgrade'
+};
+
+export const TicketTypeColors: Record<TicketType, string> = {
+    [TicketType.VULNERABILITY]: 'bg-red-50 text-red-700',
+    [TicketType.LICENSE]: 'bg-purple-50 text-purple-700',
+    [TicketType.UPGRADE]: 'bg-blue-50 text-blue-700'
+};
+
+// Kanban columns configuration
+export const KanbanColumns: { status: TicketStatus; label: string; color: string }[] = [
+    { status: TicketStatus.OPEN, label: 'Open', color: 'border-blue-400' },
+    { status: TicketStatus.IN_PROGRESS, label: 'In Progress', color: 'border-yellow-400' },
+    { status: TicketStatus.RESOLVED, label: 'Resolved', color: 'border-green-400' },
+    { status: TicketStatus.CLOSED, label: 'Closed', color: 'border-gray-400' }
+];

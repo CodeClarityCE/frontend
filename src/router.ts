@@ -22,6 +22,7 @@ import OrganizationView from '@/codeclarity_components/organizations/Organizatio
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
 import HelpView from '@/codeclarity_components/views/HelpView.vue';
 import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
+import TicketsView from '@/codeclarity_components/tickets/TicketsView.vue';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,6 +43,12 @@ const router = createRouter({
             path: '/projects/:page?',
             name: 'projects',
             component: ProjectsView,
+            props: true
+        },
+        {
+            path: '/tickets/:page?',
+            name: 'tickets',
+            component: TicketsView,
             props: true
         },
         {

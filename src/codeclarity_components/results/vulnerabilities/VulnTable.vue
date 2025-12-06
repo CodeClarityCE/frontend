@@ -27,6 +27,7 @@ import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
+import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 
 export interface Props {
     [key: string]: any;
@@ -1766,12 +1767,27 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                     <Icon icon="ic:outline-open-in-new" class="w-4 h-4" />
                                     <span>details</span>
                                 </RouterLink>
-                                <AddToPolicyButton
-                                    v-if="!report.is_blacklisted"
-                                    :vulnerability-id="report.Vulnerability"
-                                    size="sm"
-                                    variant="outline"
-                                />
+                                <div class="flex flex-wrap gap-1">
+                                    <CreateTicketButton
+                                        :project-id="props.projectID"
+                                        :vulnerability="{
+                                            vulnerability_id: report.Vulnerability,
+                                            severity_score: report.Severity?.Severity,
+                                            severity_class: report.Severity?.Severity >= 9 ? 'CRITICAL' : report.Severity?.Severity >= 7 ? 'HIGH' : report.Severity?.Severity >= 4 ? 'MEDIUM' : 'LOW',
+                                            affected_package: report.Affected?.[0]?.AffectedDependency,
+                                            affected_version: report.Affected?.[0]?.AffectedVersion,
+                                            description: report.Description
+                                        }"
+                                        size="sm"
+                                        variant="outline"
+                                    />
+                                    <AddToPolicyButton
+                                        v-if="!report.is_blacklisted"
+                                        :vulnerability-id="report.Vulnerability"
+                                        size="sm"
+                                        variant="outline"
+                                    />
+                                </div>
                             </div>
                         </td>
                     </tr>

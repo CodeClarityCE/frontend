@@ -34,6 +34,7 @@ import { ProjectsSortInterface } from '@/codeclarity_components/projects/project
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
+import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 
 export interface Props {
     [key: string]: any;
@@ -715,6 +716,20 @@ const exploitableCount = computed(() => {
 
                         <!-- Quick Actions & Key Metrics -->
                         <div class="flex-shrink-0 flex items-center gap-2">
+                            <!-- Create Ticket Button -->
+                            <CreateTicketButton
+                                :project-id="props.projectID"
+                                :vulnerability="{
+                                    vulnerability_id: report.Vulnerability,
+                                    severity_score: report.Severity?.Severity,
+                                    severity_class: isCriticalSeverity(report.Severity?.Severity) ? 'CRITICAL' : isHighSeverity(report.Severity?.Severity) ? 'HIGH' : isMediumSeverity(report.Severity?.Severity) ? 'MEDIUM' : 'LOW',
+                                    affected_package: report.Affected?.[0]?.AffectedDependency,
+                                    affected_version: report.Affected?.[0]?.AffectedVersion,
+                                    description: report.Description
+                                }"
+                                size="sm"
+                                variant="outline"
+                            />
                             <!-- Add to Policy Button -->
                             <AddToPolicyButton
                                 v-if="!report.is_blacklisted"

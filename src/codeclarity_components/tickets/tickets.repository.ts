@@ -260,7 +260,7 @@ export class TicketsRepository extends BaseRepository {
     async getDashboardStats(
         options: GetDashboardStatsRequestOptions
     ): Promise<DataResponse<TicketDashboardStats>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/dashboard`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/stats`;
 
         const response = await this.getRequest<DataResponse<TicketDashboardStats>>({
             bearerToken: options.bearerToken,

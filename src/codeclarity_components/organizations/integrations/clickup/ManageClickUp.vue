@@ -301,25 +301,25 @@ onMounted(() => {
                         <div class="grid grid-cols-2 gap-4">
                             <StatCard
                                 label="Auto-sync"
-                                :value="clickUpConfig.auto_sync_on_create ? 'Enabled' : 'Disabled'"
+                                :value="clickUpConfig?.auto_sync_on_create ? 'Enabled' : 'Disabled'"
                                 :icon="
-                                    clickUpConfig.auto_sync_on_create
+                                    clickUpConfig?.auto_sync_on_create
                                         ? 'solar:check-circle-bold'
                                         : 'solar:close-circle-bold'
                                 "
-                                :variant="clickUpConfig.auto_sync_on_create ? 'success' : 'default'"
+                                :variant="clickUpConfig?.auto_sync_on_create ? 'success' : 'default'"
                                 subtitle="New tickets"
                             />
 
                             <StatCard
                                 label="Status Sync"
-                                :value="clickUpConfig.sync_status_changes ? 'Enabled' : 'Disabled'"
+                                :value="clickUpConfig?.sync_status_changes ? 'Enabled' : 'Disabled'"
                                 :icon="
-                                    clickUpConfig.sync_status_changes
+                                    clickUpConfig?.sync_status_changes
                                         ? 'solar:check-circle-bold'
                                         : 'solar:close-circle-bold'
                                 "
-                                :variant="clickUpConfig.sync_status_changes ? 'success' : 'default'"
+                                :variant="clickUpConfig?.sync_status_changes ? 'success' : 'default'"
                                 subtitle="Changes sync"
                             />
                         </div>

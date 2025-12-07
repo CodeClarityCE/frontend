@@ -99,7 +99,9 @@ async function fetchTicketingIntegrations(refresh: boolean = false) {
         const resp = await ticketsRepo.getIntegrations({
             orgId: props.orgId,
             bearerToken: authStore.getToken,
-            handleBusinessErrors: true
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
         });
 
         // Find ClickUp integration
@@ -119,6 +121,10 @@ async function fetchTicketingIntegrations(refresh: boolean = false) {
 
 async function deleteTicketingIntegration(provider: ExternalTicketProvider) {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
+
+    if (!confirm('Are you sure you want to delete the ClickUp integration?')) {
+        return;
+    }
 
     ticketingError.value = false;
 

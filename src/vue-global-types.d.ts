@@ -2,8 +2,6 @@
 export {};
 
 declare global {
-    var __VLS_PROPS_FALLBACK: Record<string, unknown>;
-
     const __VLS_directiveBindingRestFields: {
         instance: null;
         oldValue: null;
@@ -12,9 +10,10 @@ declare global {
     };
     const __VLS_unref: typeof import('vue').unref;
     const __VLS_placeholder: any;
-    const __VLS_intrinsics: import('vue/jsx-runtime').JSX.IntrinsicElements;
 
-    type __VLS_Elements = __VLS_SpreadMerge<SVGElementTagNameMap, HTMLElementTagNameMap>;
+    type __VLS_NativeElements = __VLS_SpreadMerge<SVGElementTagNameMap, HTMLElementTagNameMap>;
+    type __VLS_IntrinsicElements = import('vue/jsx-runtime').JSX.IntrinsicElements;
+    type __VLS_Element = import('vue/jsx-runtime').JSX.Element;
     type __VLS_GlobalComponents = import('vue').GlobalComponents;
     type __VLS_GlobalDirectives = import('vue').GlobalDirectives;
     type __VLS_IsAny<T> = 0 extends 1 & T ? true : false;
@@ -60,12 +59,12 @@ declare global {
     type __VLS_FunctionalComponent<T> = (
         props: (T extends { $props: infer Props } ? Props : {}) & Record<string, unknown>,
         ctx?: any
-    ) => import('vue/jsx-runtime').JSX.Element & {
+    ) => __VLS_Element & {
         __ctx?: {
             attrs?: any;
             slots?: T extends { $slots: infer Slots } ? Slots : Record<string, any>;
             emit?: T extends { $emit: infer Emit } ? Emit : {};
-            props?: typeof props;
+            props?: (T extends { $props: infer Props } ? Props : {}) & Record<string, unknown>;
             expose?: (exposed: T) => void;
         };
     };

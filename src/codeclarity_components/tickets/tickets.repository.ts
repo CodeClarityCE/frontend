@@ -123,6 +123,13 @@ export interface GetHierarchyRequestOptions extends AuthRepoMethodGetRequestOpti
     parentId?: string;
 }
 
+export interface CreateHierarchyItemRequestOptions
+    extends AuthRepoMethodPostRequestOptions<{ name: string }> {
+    orgId: string;
+    provider: ExternalTicketProvider;
+    parentId: string;
+}
+
 export interface SyncTicketRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
     ticketId: string;
@@ -145,6 +152,17 @@ export interface BulkSyncRequestOptions
 export interface GetExternalLinksRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
     ticketId: string;
+}
+
+// OAuth Request Options
+export interface GetClickUpOAuthUrlRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    redirectUri: string;
+}
+
+export interface ExchangeClickUpOAuthCodeRequestOptions
+    extends AuthRepoMethodPostRequestOptions<{ code: string; redirect_uri: string }> {
+    orgId: string;
 }
 
 // ============================================
@@ -491,7 +509,7 @@ export class TicketsRepository extends BaseRepository {
      * Delete an integration
      */
     async deleteIntegration(options: DeleteIntegrationRequestOptions): Promise<NoDataResponse> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}`;
 
         const response = await this.deleteRequest<NoDataResponse, Record<string, never>>({
             bearerToken: options.bearerToken,
@@ -511,10 +529,14 @@ export class TicketsRepository extends BaseRepository {
     async testIntegration(
         options: TestIntegrationRequestOptions
     ): Promise<DataResponse<ConnectionTestResult>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/test`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/test`;
 
-        const response = await this.getRequest<DataResponse<ConnectionTestResult>>({
+        const response = await this.postRequest<
+            DataResponse<ConnectionTestResult>,
+            Record<string, never>
+        >({
             bearerToken: options.bearerToken,
+            data: {},
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
             handleHTTPErrors: options.handleHTTPErrors,
@@ -533,7 +555,7 @@ export class TicketsRepository extends BaseRepository {
     async getWorkspaces(
         options: GetHierarchyRequestOptions
     ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/workspaces`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/workspaces`;
 
         const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
             bearerToken: options.bearerToken,
@@ -555,7 +577,7 @@ export class TicketsRepository extends BaseRepository {
     async getSpaces(
         options: GetHierarchyRequestOptions
     ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/workspaces/${options.parentId}/spaces`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/spaces/${options.parentId}`;
 
         const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
             bearerToken: options.bearerToken,
@@ -577,7 +599,7 @@ export class TicketsRepository extends BaseRepository {
     async getFolders(
         options: GetHierarchyRequestOptions
     ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/spaces/${options.parentId}/folders`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/folders/${options.parentId}`;
 
         const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
             bearerToken: options.bearerToken,
@@ -599,7 +621,7 @@ export class TicketsRepository extends BaseRepository {
     async getLists(
         options: GetHierarchyRequestOptions
     ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/folders/${options.parentId}/lists`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/lists/${options.parentId}`;
 
         const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
             bearerToken: options.bearerToken,
@@ -615,11 +637,119 @@ export class TicketsRepository extends BaseRepository {
         );
     }
 
+    // ============================================
+    // Hierarchy Creation Methods
+    // ============================================
+
+    /**
+     * Create a space in a workspace
+     */
+    async createSpace(
+        options: CreateHierarchyItemRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/workspaces/${options.parentId}/spaces`;
+
+        const response = await this.postRequest<
+            DataResponse<IntegrationHierarchyItem>,
+            { name: string }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem>>(
+            response,
+            DataResponse<IntegrationHierarchyItem>
+        );
+    }
+
+    /**
+     * Create a folder in a space
+     */
+    async createFolder(
+        options: CreateHierarchyItemRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/spaces/${options.parentId}/folders`;
+
+        const response = await this.postRequest<
+            DataResponse<IntegrationHierarchyItem>,
+            { name: string }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem>>(
+            response,
+            DataResponse<IntegrationHierarchyItem>
+        );
+    }
+
+    /**
+     * Create a list in a folder
+     */
+    async createList(
+        options: CreateHierarchyItemRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/folders/${options.parentId}/lists`;
+
+        const response = await this.postRequest<
+            DataResponse<IntegrationHierarchyItem>,
+            { name: string }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem>>(
+            response,
+            DataResponse<IntegrationHierarchyItem>
+        );
+    }
+
+    /**
+     * Create a folderless list directly in a space
+     */
+    async createFolderlessList(
+        options: CreateHierarchyItemRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/spaces/${options.parentId}/lists`;
+
+        const response = await this.postRequest<
+            DataResponse<IntegrationHierarchyItem>,
+            { name: string }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem>>(
+            response,
+            DataResponse<IntegrationHierarchyItem>
+        );
+    }
+
     /**
      * Sync a ticket to an external provider
      */
     async syncTicket(options: SyncTicketRequestOptions): Promise<DataResponse<SyncResult>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/sync/${options.provider.toLowerCase()}`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/sync/${options.provider}`;
 
         const response = await this.postRequest<DataResponse<SyncResult>, Record<string, never>>({
             bearerToken: options.bearerToken,
@@ -661,7 +791,7 @@ export class TicketsRepository extends BaseRepository {
      * Bulk sync tickets to an external provider
      */
     async bulkSync(options: BulkSyncRequestOptions): Promise<DataResponse<BulkSyncResult>> {
-        const RELATIVE_URL = `/org/${options.orgId}/tickets/bulk-sync/${options.provider.toLowerCase()}`;
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/bulk-sync/${options.provider}`;
 
         const response = await this.postRequest<
             DataResponse<BulkSyncResult>,
@@ -700,6 +830,61 @@ export class TicketsRepository extends BaseRepository {
         return Entity.unMarshal<DataResponse<ExternalLink[]>>(
             response,
             DataResponse<ExternalLink[]>
+        );
+    }
+
+    // ============================================
+    // OAuth Methods
+    // ============================================
+
+    /**
+     * Get ClickUp OAuth authorization URL
+     */
+    async getClickUpOAuthUrl(
+        options: GetClickUpOAuthUrlRequestOptions
+    ): Promise<DataResponse<{ url: string }>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/clickup/oauth/url`;
+
+        const response = await this.getRequest<DataResponse<{ url: string }>>({
+            bearerToken: options.bearerToken,
+            queryParams: {
+                redirect_uri: options.redirectUri
+            },
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<{ url: string }>>(
+            response,
+            DataResponse<{ url: string }>
+        );
+    }
+
+    /**
+     * Exchange ClickUp OAuth code for access token
+     */
+    async exchangeClickUpOAuthCode(
+        options: ExchangeClickUpOAuthCodeRequestOptions
+    ): Promise<DataResponse<{ access_token: string }>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/clickup/oauth/callback`;
+
+        const response = await this.postRequest<
+            DataResponse<{ access_token: string }>,
+            { code: string; redirect_uri: string }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<{ access_token: string }>>(
+            response,
+            DataResponse<{ access_token: string }>
         );
     }
 }

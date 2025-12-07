@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { storeToRefs } from 'pinia';
+import { ref, computed, watch, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
 import { Input } from '@/shadcn/ui/input';
@@ -17,7 +16,7 @@ import {
     type IntegrationHierarchyItem
 } from '../tickets.entity';
 
-defineProps<{
+const props = defineProps<{
     existingConfig?: IntegrationConfigSummary;
 }>();
 
@@ -26,13 +25,14 @@ const emit = defineEmits<{
     configured: [];
 }>();
 
-const { defaultOrg } = storeToRefs(useUserStore());
+const userStore = useUserStore();
 const auth = useAuthStore();
 const ticketsRepository = new TicketsRepository();
 
 // Form state
 const authMethod = ref<'API_KEY' | 'OAUTH'>('API_KEY');
 const apiKey = ref('');
+const accessToken = ref(''); // OAuth access token
 const workspaceId = ref('');
 const spaceId = ref('');
 const folderId = ref('');
@@ -53,6 +53,18 @@ const isLoadingFolders = ref(false);
 const isLoadingLists = ref(false);
 const isSaving = ref(false);
 const isTesting = ref(false);
+const isConnectingOAuth = ref(false);
+
+// Create states
+const isCreatingSpace = ref(false);
+const isCreatingFolder = ref(false);
+const isCreatingList = ref(false);
+const newSpaceName = ref('');
+const newFolderName = ref('');
+const newListName = ref('');
+const showCreateSpace = ref(false);
+const showCreateFolder = ref(false);
+const showCreateList = ref(false);
 
 // Test result
 const testResult = ref<{ success: boolean; message: string } | null>(null);
@@ -60,8 +72,14 @@ const testResult = ref<{ success: boolean; message: string } | null>(null);
 // Modal state
 const isOpen = ref(true);
 
+// OAuth state
+const oauthConnected = ref(false);
+
 const canFetchWorkspaces = computed(() => {
-    return authMethod.value === 'API_KEY' && apiKey.value.length > 0;
+    if (authMethod.value === 'API_KEY') {
+        return apiKey.value.length > 0;
+    }
+    return oauthConnected.value && accessToken.value.length > 0;
 });
 
 const canSave = computed(() => {
@@ -73,8 +91,59 @@ function close() {
     setTimeout(() => emit('close'), 300);
 }
 
+// OAuth redirect URI
+function getOAuthRedirectUri(): string {
+    return `${window.location.origin}/tickets/integrations/clickup/callback`;
+}
+
+async function copyRedirectUri() {
+    try {
+        await navigator.clipboard.writeText(getOAuthRedirectUri());
+        testResult.value = { success: true, message: 'Redirect URL copied to clipboard!' };
+        setTimeout(() => {
+            if (testResult.value?.message === 'Redirect URL copied to clipboard!') {
+                testResult.value = null;
+            }
+        }, 2000);
+    } catch {
+        testResult.value = { success: false, message: 'Failed to copy URL' };
+    }
+}
+
+async function startOAuthFlow() {
+    const orgId = userStore.defaultOrg?.id;
+    const token = auth.getToken;
+    if (!orgId || !token) return;
+
+    isConnectingOAuth.value = true;
+    testResult.value = null;
+
+    try {
+        const response = await ticketsRepository.getClickUpOAuthUrl({
+            orgId,
+            redirectUri: getOAuthRedirectUri(),
+            bearerToken: token,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+
+        // Store state in sessionStorage for callback verification
+        sessionStorage.setItem('clickup_oauth_org_id', orgId);
+
+        // Redirect to ClickUp OAuth
+        window.location.href = response.data.url;
+    } catch {
+        testResult.value = {
+            success: false,
+            message: 'Failed to start OAuth flow. Make sure ClickUp OAuth is configured.'
+        };
+        isConnectingOAuth.value = false;
+    }
+}
+
 async function fetchWorkspaces() {
-    if (!defaultOrg.value?.id || !auth.getToken || !canFetchWorkspaces.value) return;
+    if (!userStore.defaultOrg?.id || !auth.getToken || !canFetchWorkspaces.value) return;
 
     // First save the API key temporarily to fetch workspaces
     isLoadingWorkspaces.value = true;
@@ -83,7 +152,7 @@ async function fetchWorkspaces() {
     try {
         // We need to save a temporary config first to fetch hierarchy
         await ticketsRepository.configureClickUp({
-            orgId: defaultOrg.value.id,
+            orgId: userStore.defaultOrg.id,
             data: {
                 auth_method: authMethod.value,
                 api_key: apiKey.value,
@@ -96,7 +165,7 @@ async function fetchWorkspaces() {
         });
 
         const response = await ticketsRepository.getWorkspaces({
-            orgId: defaultOrg.value.id,
+            orgId: userStore.defaultOrg.id,
             provider: ExternalTicketProvider.CLICKUP,
             bearerToken: auth.getToken,
             handleBusinessErrors: true,
@@ -122,7 +191,7 @@ async function fetchWorkspaces() {
 }
 
 async function fetchSpaces() {
-    if (!defaultOrg.value?.id || !auth.getToken || !workspaceId.value) return;
+    if (!userStore.defaultOrg?.id || !auth.getToken || !workspaceId.value) return;
 
     isLoadingSpaces.value = true;
     spaces.value = [];
@@ -134,7 +203,7 @@ async function fetchSpaces() {
 
     try {
         const response = await ticketsRepository.getSpaces({
-            orgId: defaultOrg.value.id,
+            orgId: userStore.defaultOrg.id,
             provider: ExternalTicketProvider.CLICKUP,
             parentId: workspaceId.value,
             bearerToken: auth.getToken,
@@ -151,7 +220,7 @@ async function fetchSpaces() {
 }
 
 async function fetchFolders() {
-    if (!defaultOrg.value?.id || !auth.getToken || !spaceId.value) return;
+    if (!userStore.defaultOrg?.id || !auth.getToken || !spaceId.value) return;
 
     isLoadingFolders.value = true;
     folders.value = [];
@@ -161,7 +230,7 @@ async function fetchFolders() {
 
     try {
         const response = await ticketsRepository.getFolders({
-            orgId: defaultOrg.value.id,
+            orgId: userStore.defaultOrg.id,
             provider: ExternalTicketProvider.CLICKUP,
             parentId: spaceId.value,
             bearerToken: auth.getToken,
@@ -186,7 +255,7 @@ async function fetchListsFromSpace() {
 }
 
 async function fetchLists() {
-    if (!defaultOrg.value?.id || !auth.getToken || !folderId.value) return;
+    if (!userStore.defaultOrg?.id || !auth.getToken || !folderId.value) return;
 
     isLoadingLists.value = true;
     lists.value = [];
@@ -194,7 +263,7 @@ async function fetchLists() {
 
     try {
         const response = await ticketsRepository.getLists({
-            orgId: defaultOrg.value.id,
+            orgId: userStore.defaultOrg.id,
             provider: ExternalTicketProvider.CLICKUP,
             parentId: folderId.value,
             bearerToken: auth.getToken,
@@ -210,13 +279,165 @@ async function fetchLists() {
     }
 }
 
+// Create functions
+async function createSpace() {
+    if (
+        !userStore.defaultOrg?.id ||
+        !auth.getToken ||
+        !workspaceId.value ||
+        !newSpaceName.value.trim()
+    )
+        return;
+
+    isCreatingSpace.value = true;
+    try {
+        const response = await ticketsRepository.createSpace({
+            orgId: userStore.defaultOrg.id,
+            provider: ExternalTicketProvider.CLICKUP,
+            parentId: workspaceId.value,
+            data: { name: newSpaceName.value.trim() },
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+
+        // Add the new space to the list and select it
+        spaces.value.push(response.data);
+        spaceId.value = response.data.id;
+        newSpaceName.value = '';
+        showCreateSpace.value = false;
+        testResult.value = { success: true, message: `Space "${response.data.name}" created!` };
+    } catch {
+        testResult.value = { success: false, message: 'Failed to create space' };
+    } finally {
+        isCreatingSpace.value = false;
+    }
+}
+
+async function createFolder() {
+    if (
+        !userStore.defaultOrg?.id ||
+        !auth.getToken ||
+        !spaceId.value ||
+        !newFolderName.value.trim()
+    )
+        return;
+
+    isCreatingFolder.value = true;
+    try {
+        const response = await ticketsRepository.createFolder({
+            orgId: userStore.defaultOrg.id,
+            provider: ExternalTicketProvider.CLICKUP,
+            parentId: spaceId.value,
+            data: { name: newFolderName.value.trim() },
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+
+        // Add the new folder to the list and select it
+        folders.value.push(response.data);
+        folderId.value = response.data.id;
+        newFolderName.value = '';
+        showCreateFolder.value = false;
+        testResult.value = { success: true, message: `Folder "${response.data.name}" created!` };
+    } catch {
+        testResult.value = { success: false, message: 'Failed to create folder' };
+    } finally {
+        isCreatingFolder.value = false;
+    }
+}
+
+async function createList() {
+    if (!userStore.defaultOrg?.id || !auth.getToken || !newListName.value.trim()) return;
+
+    isCreatingList.value = true;
+    try {
+        let response;
+        if (folderId.value) {
+            // Create list in folder
+            response = await ticketsRepository.createList({
+                orgId: userStore.defaultOrg.id,
+                provider: ExternalTicketProvider.CLICKUP,
+                parentId: folderId.value,
+                data: { name: newListName.value.trim() },
+                bearerToken: auth.getToken,
+                handleBusinessErrors: true,
+                handleHTTPErrors: true,
+                handleOtherErrors: true
+            });
+        } else if (spaceId.value) {
+            // Create folderless list in space
+            response = await ticketsRepository.createFolderlessList({
+                orgId: userStore.defaultOrg.id,
+                provider: ExternalTicketProvider.CLICKUP,
+                parentId: spaceId.value,
+                data: { name: newListName.value.trim() },
+                bearerToken: auth.getToken,
+                handleBusinessErrors: true,
+                handleHTTPErrors: true,
+                handleOtherErrors: true
+            });
+        } else {
+            return;
+        }
+
+        // Add the new list to the list and select it
+        lists.value.push(response.data);
+        listId.value = response.data.id;
+        newListName.value = '';
+        showCreateList.value = false;
+
+        // Auto-save the configuration with the new list_id
+        // This ensures the list_id is persisted immediately
+        await saveConfigQuietly();
+        testResult.value = {
+            success: true,
+            message: `List "${response.data.name}" created and configuration saved!`
+        };
+    } catch {
+        testResult.value = { success: false, message: 'Failed to create list' };
+    } finally {
+        isCreatingList.value = false;
+    }
+}
+
+// Save configuration without closing the modal
+async function saveConfigQuietly() {
+    const orgId = userStore.defaultOrg?.id;
+    const token = auth.getToken;
+    if (!orgId || !token || !listId.value) return;
+
+    await ticketsRepository.configureClickUp({
+        orgId,
+        data: {
+            auth_method: authMethod.value,
+            api_key: authMethod.value === 'API_KEY' && apiKey.value ? apiKey.value : undefined,
+            access_token:
+                authMethod.value === 'OAUTH' && accessToken.value ? accessToken.value : undefined,
+            workspace_id: workspaceId.value || undefined,
+            space_id: spaceId.value || undefined,
+            folder_id: folderId.value || undefined,
+            list_id: listId.value,
+            auto_sync_on_create: autoSyncOnCreate.value,
+            sync_status_changes: syncStatusChanges.value
+        },
+        bearerToken: token,
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
+        handleOtherErrors: true
+    });
+}
+
 async function testConnection() {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    if (!userStore.defaultOrg?.id || !auth.getToken) return;
 
     isTesting.value = true;
     try {
         const response = await ticketsRepository.testIntegration({
-            orgId: defaultOrg.value.id,
+            orgId: userStore.defaultOrg.id,
             provider: ExternalTicketProvider.CLICKUP,
             bearerToken: auth.getToken,
             handleBusinessErrors: true,
@@ -246,15 +467,24 @@ async function testConnection() {
 }
 
 async function saveConfiguration() {
-    if (!defaultOrg.value?.id || !auth.getToken || !canSave.value) return;
+    const orgId = userStore.defaultOrg?.id;
+    const token = auth.getToken;
+    if (!orgId || !token || !canSave.value) return;
 
     isSaving.value = true;
     try {
         await ticketsRepository.configureClickUp({
-            orgId: defaultOrg.value.id,
+            orgId,
             data: {
                 auth_method: authMethod.value,
-                api_key: authMethod.value === 'API_KEY' ? apiKey.value : undefined,
+                // Only send api_key if using API_KEY auth and it has a value
+                api_key: authMethod.value === 'API_KEY' && apiKey.value ? apiKey.value : undefined,
+                // Only send access_token if using OAuth and it has a value
+                // (token is stored on backend for existing configs, so we don't always have it)
+                access_token:
+                    authMethod.value === 'OAUTH' && accessToken.value
+                        ? accessToken.value
+                        : undefined,
                 workspace_id: workspaceId.value || undefined,
                 space_id: spaceId.value || undefined,
                 folder_id: folderId.value || undefined,
@@ -262,7 +492,7 @@ async function saveConfiguration() {
                 auto_sync_on_create: autoSyncOnCreate.value,
                 sync_status_changes: syncStatusChanges.value
             },
-            bearerToken: auth.getToken,
+            bearerToken: token,
             handleBusinessErrors: true,
             handleHTTPErrors: true,
             handleOtherErrors: true
@@ -297,6 +527,116 @@ watch(folderId, () => {
         fetchLists();
     }
 });
+
+// Check for OAuth token from callback or existing config on mount
+onMounted(async () => {
+    const storedToken = sessionStorage.getItem('clickup_oauth_access_token');
+    if (storedToken) {
+        // Switch to OAuth tab and use the stored token
+        authMethod.value = 'OAUTH';
+        accessToken.value = storedToken;
+        oauthConnected.value = true;
+
+        // Clean up sessionStorage
+        sessionStorage.removeItem('clickup_oauth_access_token');
+
+        // Fetch workspaces with the OAuth token
+        await fetchWorkspacesWithOAuth();
+    } else if (props.existingConfig?.has_config) {
+        // Existing config - load workspaces directly (OAuth token stored on backend)
+        authMethod.value = 'OAUTH';
+        oauthConnected.value = true;
+        await loadExistingConfigWorkspaces();
+    }
+});
+
+async function loadExistingConfigWorkspaces() {
+    if (!userStore.defaultOrg?.id || !auth.getToken) return;
+
+    isLoadingWorkspaces.value = true;
+    testResult.value = null;
+
+    try {
+        const response = await ticketsRepository.getWorkspaces({
+            orgId: userStore.defaultOrg.id,
+            provider: ExternalTicketProvider.CLICKUP,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        workspaces.value = response.data;
+
+        if (workspaces.value.length === 1 && workspaces.value[0]) {
+            workspaceId.value = workspaces.value[0].id;
+        }
+
+        testResult.value = {
+            success: true,
+            message: 'Connected! Select your workspace to update the configuration.'
+        };
+    } catch {
+        testResult.value = {
+            success: false,
+            message: 'Failed to fetch workspaces. Please try reconnecting.'
+        };
+        oauthConnected.value = false;
+        workspaces.value = [];
+    } finally {
+        isLoadingWorkspaces.value = false;
+    }
+}
+
+async function fetchWorkspacesWithOAuth() {
+    if (!userStore.defaultOrg?.id || !auth.getToken || !accessToken.value) return;
+
+    isLoadingWorkspaces.value = true;
+    testResult.value = null;
+
+    try {
+        // First save the OAuth config to enable hierarchy fetching
+        await ticketsRepository.configureClickUp({
+            orgId: userStore.defaultOrg.id,
+            data: {
+                auth_method: 'OAUTH',
+                access_token: accessToken.value,
+                list_id: 'temp' // Temporary, will be updated when user selects a list
+            },
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+
+        const response = await ticketsRepository.getWorkspaces({
+            orgId: userStore.defaultOrg.id,
+            provider: ExternalTicketProvider.CLICKUP,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        workspaces.value = response.data;
+
+        if (workspaces.value.length === 1 && workspaces.value[0]) {
+            workspaceId.value = workspaces.value[0].id;
+        }
+
+        testResult.value = {
+            success: true,
+            message: 'Connected via OAuth! Select your workspace.'
+        };
+    } catch {
+        testResult.value = {
+            success: false,
+            message: 'Failed to fetch workspaces. Please try again.'
+        };
+        oauthConnected.value = false;
+        workspaces.value = [];
+    } finally {
+        isLoadingWorkspaces.value = false;
+    }
+}
 </script>
 
 <template>
@@ -343,10 +683,7 @@ watch(folderId, () => {
                     <Tabs v-model="authMethod" class="w-full">
                         <TabsList class="grid w-full grid-cols-2">
                             <TabsTrigger value="API_KEY">API Key</TabsTrigger>
-                            <TabsTrigger value="OAUTH" disabled>
-                                OAuth
-                                <span class="ml-1 text-xs text-gray-400">(Soon)</span>
-                            </TabsTrigger>
+                            <TabsTrigger value="OAUTH">OAuth</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="API_KEY" class="space-y-4 mt-4">
@@ -515,13 +852,413 @@ watch(folderId, () => {
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="OAUTH" class="mt-4">
-                            <div class="text-center py-8">
-                                <Icon
-                                    icon="solar:lock-linear"
-                                    class="w-12 h-12 text-gray-300 mx-auto"
-                                />
-                                <p class="text-gray-500 mt-2">OAuth authentication coming soon</p>
+                        <TabsContent value="OAUTH" class="space-y-4 mt-4">
+                            <!-- OAuth Connection Status -->
+                            <div v-if="!oauthConnected" class="space-y-4">
+                                <!-- Setup Instructions -->
+                                <div class="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                                    <h4 class="text-sm font-medium text-blue-800 mb-2">
+                                        <Icon
+                                            icon="solar:info-circle-linear"
+                                            class="w-4 h-4 inline mr-1"
+                                        />
+                                        Setup Instructions
+                                    </h4>
+                                    <ol class="text-xs text-blue-700 space-y-1 list-decimal ml-4">
+                                        <li>
+                                            Go to
+                                            <a
+                                                href="https://app.clickup.com/settings/apps"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="underline font-medium"
+                                            >
+                                                ClickUp API Settings
+                                            </a>
+                                        </li>
+                                        <li>Click "Create an App"</li>
+                                        <li>Enter App Name: <strong>CodeClarity</strong></li>
+                                        <li>Copy the Redirect URL below and paste it:</li>
+                                    </ol>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <code
+                                            class="flex-1 px-2 py-1 bg-white rounded border border-blue-300 text-xs text-blue-900 break-all"
+                                        >
+                                            {{ getOAuthRedirectUri() }}
+                                        </code>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            class="shrink-0 h-7 px-2"
+                                            @click="copyRedirectUri"
+                                        >
+                                            <Icon icon="solar:copy-linear" class="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <!-- Connect Button -->
+                                <div class="text-center py-4">
+                                    <Icon
+                                        icon="simple-icons:clickup"
+                                        class="w-10 h-10 text-purple-400 mx-auto mb-3"
+                                    />
+                                    <p class="text-gray-600 mb-4 text-sm">
+                                        Once you've created the app in ClickUp, click below to
+                                        connect.
+                                    </p>
+                                    <Button
+                                        :disabled="isConnectingOAuth"
+                                        class="bg-purple-600 hover:bg-purple-700"
+                                        @click="startOAuthFlow"
+                                    >
+                                        <Icon
+                                            v-if="isConnectingOAuth"
+                                            icon="solar:spinner-outline"
+                                            class="w-4 h-4 mr-2 animate-spin"
+                                        />
+                                        <Icon
+                                            v-else
+                                            icon="solar:link-linear"
+                                            class="w-4 h-4 mr-2"
+                                        />
+                                        Connect to ClickUp
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <!-- OAuth Connected - Show hierarchy selectors -->
+                            <template v-else>
+                                <div
+                                    class="p-3 rounded-lg bg-green-50 text-green-700 text-sm flex items-center gap-2"
+                                >
+                                    <Icon icon="solar:check-circle-bold" class="w-4 h-4" />
+                                    Connected to ClickUp via OAuth
+                                </div>
+
+                                <!-- Workspace Selector -->
+                                <div v-if="workspaces.length > 0" class="space-y-2">
+                                    <Label for="workspace-oauth">Workspace</Label>
+                                    <Select v-model="workspaceId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select workspace" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="workspace in workspaces"
+                                                :key="workspace.id"
+                                                :value="workspace.id"
+                                            >
+                                                {{ workspace.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <!-- Space Selector / Create -->
+                                <div v-if="workspaceId && !isLoadingSpaces" class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <Label for="space-oauth">Space</Label>
+                                        <button
+                                            v-if="!showCreateSpace"
+                                            class="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                                            @click="showCreateSpace = true"
+                                        >
+                                            + Create new
+                                        </button>
+                                    </div>
+
+                                    <!-- Create Space Input -->
+                                    <div v-if="showCreateSpace" class="flex gap-2">
+                                        <Input
+                                            v-model="newSpaceName"
+                                            placeholder="Enter space name"
+                                            class="flex-1"
+                                            @keyup.enter="createSpace"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            :disabled="!newSpaceName.trim() || isCreatingSpace"
+                                            @click="createSpace"
+                                        >
+                                            <Icon
+                                                v-if="isCreatingSpace"
+                                                icon="solar:spinner-outline"
+                                                class="w-4 h-4 animate-spin"
+                                            />
+                                            <template v-else>Create</template>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            @click="
+                                                showCreateSpace = false;
+                                                newSpaceName = '';
+                                            "
+                                        >
+                                            <Icon icon="solar:close-linear" class="w-4 h-4" />
+                                        </Button>
+                                    </div>
+
+                                    <!-- Space Dropdown -->
+                                    <Select v-else-if="spaces.length > 0" v-model="spaceId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select space" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="space in spaces"
+                                                :key="space.id"
+                                                :value="space.id"
+                                            >
+                                                {{ space.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <!-- Empty state -->
+                                    <div
+                                        v-else-if="!showCreateSpace"
+                                        class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg"
+                                    >
+                                        No spaces found. Click "Create new" to add one.
+                                    </div>
+                                </div>
+
+                                <!-- Loading Spaces -->
+                                <div
+                                    v-else-if="workspaceId && isLoadingSpaces"
+                                    class="flex items-center gap-2 text-sm text-gray-500"
+                                >
+                                    <Icon
+                                        icon="solar:spinner-outline"
+                                        class="w-4 h-4 animate-spin"
+                                    />
+                                    Loading spaces...
+                                </div>
+
+                                <!-- Folder Selector / Create -->
+                                <div v-if="spaceId && !isLoadingFolders" class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <Label for="folder-oauth">Folder (optional)</Label>
+                                        <button
+                                            v-if="!showCreateFolder"
+                                            class="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                                            @click="showCreateFolder = true"
+                                        >
+                                            + Create new
+                                        </button>
+                                    </div>
+
+                                    <!-- Create Folder Input -->
+                                    <div v-if="showCreateFolder" class="flex gap-2">
+                                        <Input
+                                            v-model="newFolderName"
+                                            placeholder="Enter folder name"
+                                            class="flex-1"
+                                            @keyup.enter="createFolder"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            :disabled="!newFolderName.trim() || isCreatingFolder"
+                                            @click="createFolder"
+                                        >
+                                            <Icon
+                                                v-if="isCreatingFolder"
+                                                icon="solar:spinner-outline"
+                                                class="w-4 h-4 animate-spin"
+                                            />
+                                            <template v-else>Create</template>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            @click="
+                                                showCreateFolder = false;
+                                                newFolderName = '';
+                                            "
+                                        >
+                                            <Icon icon="solar:close-linear" class="w-4 h-4" />
+                                        </Button>
+                                    </div>
+
+                                    <!-- Folder Dropdown -->
+                                    <Select v-else-if="folders.length > 0" v-model="folderId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select folder (or skip)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="folder in folders"
+                                                :key="folder.id"
+                                                :value="folder.id"
+                                            >
+                                                {{ folder.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <!-- Empty state with option to skip -->
+                                    <p v-else-if="!showCreateFolder" class="text-xs text-gray-500">
+                                        No folders found. Create one or skip to create a list
+                                        directly in the space.
+                                    </p>
+                                </div>
+
+                                <!-- Loading Folders -->
+                                <div
+                                    v-else-if="spaceId && isLoadingFolders"
+                                    class="flex items-center gap-2 text-sm text-gray-500"
+                                >
+                                    <Icon
+                                        icon="solar:spinner-outline"
+                                        class="w-4 h-4 animate-spin"
+                                    />
+                                    Loading folders...
+                                </div>
+
+                                <!-- List Selector / Create -->
+                                <div
+                                    v-if="
+                                        (spaceId && !folderId && !isLoadingFolders) ||
+                                        (folderId && !isLoadingLists)
+                                    "
+                                    class="space-y-2"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <Label for="list-oauth">List</Label>
+                                        <button
+                                            v-if="!showCreateList"
+                                            class="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                                            @click="showCreateList = true"
+                                        >
+                                            + Create new
+                                        </button>
+                                    </div>
+
+                                    <!-- Create List Input -->
+                                    <div v-if="showCreateList" class="flex gap-2">
+                                        <Input
+                                            v-model="newListName"
+                                            placeholder="Enter list name"
+                                            class="flex-1"
+                                            @keyup.enter="createList"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            :disabled="!newListName.trim() || isCreatingList"
+                                            @click="createList"
+                                        >
+                                            <Icon
+                                                v-if="isCreatingList"
+                                                icon="solar:spinner-outline"
+                                                class="w-4 h-4 animate-spin"
+                                            />
+                                            <template v-else>Create</template>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            @click="
+                                                showCreateList = false;
+                                                newListName = '';
+                                            "
+                                        >
+                                            <Icon icon="solar:close-linear" class="w-4 h-4" />
+                                        </Button>
+                                    </div>
+
+                                    <!-- List Dropdown -->
+                                    <Select v-else-if="lists.length > 0" v-model="listId">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select list" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="list in lists"
+                                                :key="list.id"
+                                                :value="list.id"
+                                            >
+                                                {{ list.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <!-- Empty state -->
+                                    <div
+                                        v-else-if="!showCreateList"
+                                        class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg"
+                                    >
+                                        No lists found. Click "Create new" to add one.
+                                    </div>
+
+                                    <p class="text-xs text-gray-500">
+                                        All synced tickets will be created as tasks in this list
+                                    </p>
+                                </div>
+
+                                <!-- Loading Lists -->
+                                <div
+                                    v-else-if="folderId && isLoadingLists"
+                                    class="flex items-center gap-2 text-sm text-gray-500"
+                                >
+                                    <Icon
+                                        icon="solar:spinner-outline"
+                                        class="w-4 h-4 animate-spin"
+                                    />
+                                    Loading lists...
+                                </div>
+
+                                <!-- Sync Options -->
+                                <div v-if="listId" class="space-y-3 pt-4 border-t border-gray-200">
+                                    <h4 class="text-sm font-medium text-gray-700">Sync Options</h4>
+
+                                    <div class="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="auto-sync-oauth"
+                                            v-model:checked="autoSyncOnCreate"
+                                        />
+                                        <Label
+                                            for="auto-sync-oauth"
+                                            class="text-sm font-normal cursor-pointer"
+                                        >
+                                            Auto-sync new tickets to ClickUp
+                                        </Label>
+                                    </div>
+
+                                    <div class="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="sync-status-oauth"
+                                            v-model:checked="syncStatusChanges"
+                                        />
+                                        <Label
+                                            for="sync-status-oauth"
+                                            class="text-sm font-normal cursor-pointer"
+                                        >
+                                            Sync status changes to ClickUp
+                                        </Label>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Test Result for OAuth -->
+                            <div
+                                v-if="testResult && authMethod === 'OAUTH'"
+                                class="p-3 rounded-lg text-sm"
+                                :class="{
+                                    'bg-green-50 text-green-700': testResult.success,
+                                    'bg-red-50 text-red-700': !testResult.success
+                                }"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <Icon
+                                        v-if="testResult.success"
+                                        icon="solar:check-circle-bold"
+                                        class="w-4 h-4"
+                                    />
+                                    <Icon v-else icon="solar:close-circle-bold" class="w-4 h-4" />
+                                    {{ testResult.message }}
+                                </div>
                             </div>
                         </TabsContent>
                     </Tabs>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
 
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
@@ -9,6 +10,9 @@ import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { useTicketsData } from './composables/useTicketsData';
 import { Button } from '@/shadcn/ui/button';
 import IntegrationsConfigPanel from './integrations/IntegrationsConfigPanel.vue';
+
+const route = useRoute();
+const router = useRouter();
 
 // Async loaded sections
 const TicketsList = defineAsyncComponent({
@@ -69,6 +73,16 @@ const {
 
 // Integrations modal state
 const showIntegrationsModal = ref(false);
+
+// Check for OAuth callback on mount
+onMounted(() => {
+    if (route.query.clickup_oauth === 'success') {
+        // Open integrations modal to continue setup
+        showIntegrationsModal.value = true;
+        // Clear the query param from URL
+        router.replace({ path: route.path, query: {} });
+    }
+});
 </script>
 
 <template>

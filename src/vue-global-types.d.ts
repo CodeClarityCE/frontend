@@ -1,11 +1,9 @@
 // @ts-nocheck
 export {};
-
-; declare global {
+declare global {
 	var __VLS_PROPS_FALLBACK: Record<string, unknown>;
 
 	const __VLS_directiveBindingRestFields: { instance: null, oldValue: null, modifiers: any, dir: any };
-	const __VLS_unref: typeof import('vue').unref;
 	const __VLS_placeholder: any;
 	const __VLS_intrinsics: import('vue/jsx-runtime').JSX.IntrinsicElements;
 
@@ -97,12 +95,7 @@ export {};
 	type __VLS_ResolveDirectives<T> = {
 		[K in keyof T & string as `v${Capitalize<K>}`]: T[K];
 	};
-	type __VLS_PrettifyGlobal<T> = { [K in keyof T as K]: T[K]; } & {};
-	type __VLS_WithDefaultsGlobal<P, D> = {
-		[K in keyof P as K extends keyof D ? K : never]-?: P[K];
-	} & {
-		[K in keyof P as K extends keyof D ? never : K]: P[K];
-	};
+	type __VLS_PrettifyGlobal<T> = (T extends any ? { [K in keyof T]: T[K]; } : { [K in keyof T as K]: T[K]; }) & {};
 	type __VLS_UseTemplateRef<T> = Readonly<import('vue').ShallowRef<T | null>>;
 	type __VLS_ProxyRefs<T> = import('vue').ShallowUnwrapRef<T>;
 

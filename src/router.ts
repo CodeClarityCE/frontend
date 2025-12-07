@@ -22,6 +22,8 @@ import OrganizationView from '@/codeclarity_components/organizations/Organizatio
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
 import HelpView from '@/codeclarity_components/views/HelpView.vue';
 import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
+import TicketsView from '@/codeclarity_components/tickets/TicketsView.vue';
+import ClickUpOAuthCallback from '@/codeclarity_components/tickets/integrations/ClickUpOAuthCallback.vue';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,6 +44,17 @@ const router = createRouter({
             path: '/projects/:page?',
             name: 'projects',
             component: ProjectsView,
+            props: true
+        },
+        {
+            path: '/tickets/integrations/clickup/callback',
+            name: 'clickupOAuthCallback',
+            component: ClickUpOAuthCallback
+        },
+        {
+            path: '/tickets/:page?',
+            name: 'tickets',
+            component: TicketsView,
             props: true
         },
         {
@@ -145,7 +158,8 @@ router.beforeEach(async (to) => {
         '/auth/gitlab/callback',
         '/auth/github/callback',
         '/email_action/reset_password',
-        '/email_action/confirm_registration'
+        '/email_action/confirm_registration',
+        '/tickets/integrations/clickup/callback'
     ];
     const authRequired = !publicPages.includes(to.path);
 

@@ -77,7 +77,7 @@ describe('DashboardCharts', () => {
     });
 
     const infoCards = wrapper.findAll('[data-testid="info-card"]');
-    expect(infoCards).toHaveLength(4);
+    expect(infoCards).toHaveLength(5); // Includes TicketsDashboardCard
   });
 
   it('should pass integration IDs to all chart components', () => {

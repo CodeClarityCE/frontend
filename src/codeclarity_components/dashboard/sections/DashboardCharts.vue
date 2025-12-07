@@ -44,6 +44,17 @@
         >
             <VulnerabilityImpact :integration-ids="integrationIds" />
         </InfoCard>
+
+        <!-- Tickets Summary -->
+        <InfoCard
+            title="Tickets"
+            description="Track vulnerability remediation progress"
+            icon="solar:ticket-bold"
+            variant="default"
+            class="lg:col-span-4"
+        >
+            <TicketsDashboardCard :integration-ids="integrationIds" />
+        </InfoCard>
     </div>
 </template>
 
@@ -55,6 +66,7 @@ import LicenseDist from '../charts/LicenseDist.vue';
 import ExposureOverview from '../charts/ExposureOverview.vue';
 import VulnerabilityImpact from '../charts/VulnerabilityImpact.vue';
 import CurrentVulns from '../charts/CurrentVulns.vue';
+import TicketsDashboardCard from '../charts/TicketsDashboardCard.vue';
 
 /**
  * DashboardCharts - Simple chart grid layout

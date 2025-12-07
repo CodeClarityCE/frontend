@@ -8,13 +8,14 @@ import {
 import { APIErrors } from '@/utils/api/ApiErrors';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
-import { ref, type Ref } from 'vue';
+import { ref, type Ref, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { errorToast, successToast } from '@/utils/toasts';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Switch } from '@/shadcn/ui/switch';
 
 const authStore = useAuthStore();
 
@@ -97,6 +98,44 @@ async function leaveOrg(orgId: string) {
 
 function setOrgInfo(_orgInfo: Organization) {
     orgInfo.value = _orgInfo;
+    autoResolveTickets.value = _orgInfo.auto_resolve_tickets ?? false;
+}
+
+// Settings state
+const autoResolveTickets: Ref<boolean> = ref(false);
+const savingSettings: Ref<boolean> = ref(false);
+
+// Watch for settings changes
+watch(autoResolveTickets, async (newValue) => {
+    if (!orgInfo.value || savingSettings.value) return;
+    await updateAutoResolveSetting(newValue);
+});
+
+async function updateAutoResolveSetting(enabled: boolean) {
+    if (!authStore.getAuthenticated || !authStore.getToken || !orgInfo.value) return;
+
+    savingSettings.value = true;
+    try {
+        await orgRepo.updateSettings({
+            orgId: orgInfo.value.id,
+            bearerToken: authStore.getToken,
+            data: { auto_resolve_tickets: enabled },
+            handleBusinessErrors: true
+        });
+        successToast(enabled ? 'Auto-resolve tickets enabled' : 'Auto-resolve tickets disabled');
+    } catch (err) {
+        // Revert on error
+        autoResolveTickets.value = !enabled;
+        if (err instanceof BusinessLogicError) {
+            if (err.error_code === APIErrors.NotAuthorized) {
+                errorToast('You do not have permission to change this setting.');
+            } else {
+                errorToast('Failed to update settings.');
+            }
+        }
+    } finally {
+        savingSettings.value = false;
+    }
 }
 </script>
 <template>
@@ -275,6 +314,44 @@ function setOrgInfo(_orgInfo: Organization) {
                                 </p>
                             </div>
                         </RouterLink>
+                    </div>
+                </div>
+            </InfoCard>
+
+            <!-- Ticket Settings Card -->
+            <InfoCard
+                v-if="orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN"
+                title="Ticket Settings"
+                description="Configure automatic ticket management behavior"
+                icon="solar:ticket-bold-duotone"
+                variant="default"
+            >
+                <div class="mt-6">
+                    <div
+                        class="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    >
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 bg-theme-primary/10 rounded-lg">
+                                <Icon
+                                    icon="solar:refresh-circle-bold-duotone"
+                                    class="text-xl text-theme-primary"
+                                />
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-theme-black mb-1">
+                                    Auto-resolve tickets
+                                </h3>
+                                <p class="text-sm text-theme-gray">
+                                    Automatically resolve tickets when their vulnerabilities are no
+                                    longer detected in scans
+                                </p>
+                            </div>
+                        </div>
+                        <Switch
+                            :checked="autoResolveTickets"
+                            :disabled="savingSettings"
+                            @update:checked="autoResolveTickets = $event"
+                        />
                     </div>
                 </div>
             </InfoCard>

@@ -10,6 +10,7 @@ import HeaderItem from '@/codeclarity_components/organizations/subcomponents/Hea
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import OrgIntegrationAddGithub from './github/AddGithub.vue';
 import OrgIntegrationAddGitlab from './gitlab/AddGitlab.vue';
+import OrgIntegrationAddClickUp from './clickup/AddClickUp.vue';
 
 const provider: Ref<IntegrationProvider> = ref(IntegrationProvider.GITHUB);
 
@@ -43,6 +44,9 @@ if (providerQuery) {
             <OrgIntegrationAddGitlab
                 v-if="provider == IntegrationProvider.GITLAB"
             ></OrgIntegrationAddGitlab>
+            <OrgIntegrationAddClickUp
+                v-if="provider == IntegrationProvider.CLICKUP"
+            ></OrgIntegrationAddClickUp>
         </div>
     </div>
 </template>

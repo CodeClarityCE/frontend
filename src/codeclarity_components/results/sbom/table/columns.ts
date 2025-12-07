@@ -122,6 +122,9 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const version = row.getValue('version') as string;
+            if (!version) {
+                return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
+            }
             const parts = version.split('.');
 
             return h(
@@ -169,6 +172,11 @@ export const columns: ColumnDef<Dependency>[] = [
         cell: ({ row }) => {
             const currentVersion = row.getValue('version') as string;
             const newestVersion = row.getValue('newest_release') as string;
+
+            if (!currentVersion || !newestVersion) {
+                return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
+            }
+
             const isUpToDate = newestVersion === currentVersion;
 
             if (isUpToDate) {

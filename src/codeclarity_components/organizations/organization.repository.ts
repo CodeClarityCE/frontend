@@ -4,6 +4,7 @@ import {
     BaseRepository,
     type AuthRepoMethodGetRequestOptions,
     type AuthRepoMethodPostRequestOptions,
+    type AuthRepoMethodPatchRequestOptions,
     type PaginatedRepoMethodRequestOptions,
     type AuthRepoMethodEmptyPostRequestOptions,
     type EmptyPostData,
@@ -89,6 +90,14 @@ export interface JoinOrgRequestOptions
         BaseOrgRequestOptions {}
 export interface GetOrgMetaDataRequestOptions
     extends AuthRepoMethodGetRequestOptions,
+        BaseOrgRequestOptions {}
+
+export interface OrganizationSettingsUpdate {
+    auto_resolve_tickets?: boolean;
+}
+
+export interface UpdateOrgSettingsRequestOptions
+    extends AuthRepoMethodPatchRequestOptions<OrganizationSettingsUpdate>,
         BaseOrgRequestOptions {}
 
 export class OrgRepository extends BaseRepository {
@@ -387,5 +396,20 @@ export class OrgRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
         return Entity.unMarshal<OrganizationMetaData>(response.data, OrganizationMetaData);
+    }
+
+    async updateSettings(options: UpdateOrgSettingsRequestOptions): Promise<NoDataResponse> {
+        const RELATIVE_URL = `/org/${options.orgId}/settings`;
+
+        const response = await this.patchRequest<NoDataResponse, OrganizationSettingsUpdate>({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
     }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
@@ -8,6 +8,7 @@ import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 
 import { useTicketsData } from './composables/useTicketsData';
 import { Button } from '@/shadcn/ui/button';
+import IntegrationsConfigPanel from './integrations/IntegrationsConfigPanel.vue';
 
 // Async loaded sections
 const TicketsList = defineAsyncComponent({
@@ -65,6 +66,9 @@ const {
     refresh,
     goToPage
 } = useTicketsData({ autoLoad: true });
+
+// Integrations modal state
+const showIntegrationsModal = ref(false);
 </script>
 
 <template>
@@ -112,6 +116,17 @@ const {
                             </button>
                         </div>
 
+                        <!-- Integrations Button -->
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="hidden sm:flex items-center gap-2"
+                            @click="showIntegrationsModal = true"
+                        >
+                            <Icon icon="solar:widget-add-linear" class="h-4 w-4" />
+                            Integrations
+                        </Button>
+
                         <!-- Refresh Button -->
                         <Button
                             variant="outline"
@@ -121,9 +136,7 @@ const {
                             @click="refresh"
                         >
                             <Icon
-                                :icon="
-                                    isLoading ? 'solar:loading-linear' : 'solar:refresh-linear'
-                                "
+                                :icon="isLoading ? 'solar:loading-linear' : 'solar:refresh-linear'"
                                 class="h-4 w-4"
                                 :class="{ 'animate-spin': isLoading }"
                             />
@@ -134,13 +147,8 @@ const {
             </div>
 
             <!-- Quick Stats -->
-            <div
-                v-if="!isEmpty && !hasError"
-                class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"
-            >
-                <div
-                    class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3"
-                >
+            <div v-if="!isEmpty && !hasError" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
                     <div class="p-2 bg-blue-100 rounded-lg">
                         <Icon icon="solar:ticket-bold" class="h-5 w-5 text-blue-600" />
                     </div>
@@ -149,9 +157,7 @@ const {
                         <p class="text-xl font-semibold">{{ totalEntries }}</p>
                     </div>
                 </div>
-                <div
-                    class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3"
-                >
+                <div class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
                     <div class="p-2 bg-yellow-100 rounded-lg">
                         <Icon icon="solar:hourglass-bold" class="h-5 w-5 text-yellow-600" />
                     </div>
@@ -160,9 +166,7 @@ const {
                         <p class="text-xl font-semibold">{{ quickStats.open }}</p>
                     </div>
                 </div>
-                <div
-                    class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3"
-                >
+                <div class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
                     <div class="p-2 bg-red-100 rounded-lg">
                         <Icon icon="solar:danger-bold" class="h-5 w-5 text-red-600" />
                     </div>
@@ -171,9 +175,7 @@ const {
                         <p class="text-xl font-semibold">{{ quickStats.critical }}</p>
                     </div>
                 </div>
-                <div
-                    class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3"
-                >
+                <div class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
                     <div class="p-2 bg-orange-100 rounded-lg">
                         <Icon icon="solar:bell-bold" class="h-5 w-5 text-orange-600" />
                     </div>
@@ -192,9 +194,7 @@ const {
             <!-- Error State -->
             <div v-else-if="hasError" class="text-center py-20">
                 <Icon icon="solar:danger-triangle-bold" class="h-16 w-16 text-red-400 mx-auto" />
-                <h3 class="mt-4 text-lg font-semibold text-gray-900">
-                    Failed to load tickets
-                </h3>
+                <h3 class="mt-4 text-lg font-semibold text-gray-900">Failed to load tickets</h3>
                 <p class="mt-2 text-gray-600">Please try again later or contact support.</p>
                 <Button class="mt-4" @click="refresh">
                     <Icon icon="solar:refresh-linear" class="h-4 w-4 mr-2" />
@@ -254,6 +254,40 @@ const {
                 @close="clearSelectedTicket"
                 @updated="refresh"
             />
+
+            <!-- Integrations Modal -->
+            <Teleport to="body">
+                <div
+                    v-if="showIntegrationsModal"
+                    class="fixed inset-0 z-50 flex items-center justify-center"
+                >
+                    <!-- Backdrop -->
+                    <div class="fixed inset-0 bg-black/50" @click="showIntegrationsModal = false" />
+
+                    <!-- Modal -->
+                    <div
+                        class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[85vh] overflow-hidden"
+                    >
+                        <!-- Header -->
+                        <div
+                            class="flex items-center justify-between px-6 py-4 border-b border-gray-200"
+                        >
+                            <h2 class="text-lg font-semibold text-gray-900">Ticket Integrations</h2>
+                            <button
+                                class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                                @click="showIntegrationsModal = false"
+                            >
+                                <Icon icon="solar:close-circle-linear" class="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+                            <IntegrationsConfigPanel />
+                        </div>
+                    </div>
+                </div>
+            </Teleport>
         </div>
     </main>
 </template>

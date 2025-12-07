@@ -370,3 +370,71 @@ export const KanbanColumns: { status: TicketStatus; label: string; color: string
     { status: TicketStatus.RESOLVED, label: 'Resolved', color: 'border-green-400' },
     { status: TicketStatus.CLOSED, label: 'Closed', color: 'border-gray-400' }
 ];
+
+// ============================================
+// Integration Types
+// ============================================
+
+export interface IntegrationConfigSummary {
+    id: string;
+    provider: ExternalTicketProvider;
+    enabled: boolean;
+    created_on: Date;
+    updated_on?: Date;
+    has_config: boolean;
+    workspace_name?: string;
+    list_name?: string;
+}
+
+export interface IntegrationHierarchyItem {
+    id: string;
+    name: string;
+}
+
+export interface ConnectionTestResult {
+    success: boolean;
+    error?: string;
+    user_info?: {
+        id: string;
+        name: string;
+        email?: string;
+    };
+}
+
+export interface ConfigureClickUpRequest {
+    auth_method: 'API_KEY' | 'OAUTH';
+    api_key?: string;
+    access_token?: string;
+    refresh_token?: string;
+    workspace_id?: string;
+    space_id?: string;
+    folder_id?: string;
+    list_id: string;
+    auto_sync_on_create?: boolean;
+    sync_status_changes?: boolean;
+}
+
+export interface SyncResult {
+    ticket_id: string;
+    external_id: string;
+    external_url: string;
+    provider: ExternalTicketProvider;
+}
+
+export interface BulkSyncResult {
+    synced: SyncResult[];
+    failed: { ticket_id: string; error: string }[];
+}
+
+// Provider labels and icons
+export const ExternalProviderLabels: Record<ExternalTicketProvider, string> = {
+    [ExternalTicketProvider.CLICKUP]: 'ClickUp',
+    [ExternalTicketProvider.JIRA]: 'Jira',
+    [ExternalTicketProvider.LINEAR]: 'Linear'
+};
+
+export const ExternalProviderIcons: Record<ExternalTicketProvider, string> = {
+    [ExternalTicketProvider.CLICKUP]: 'simple-icons:clickup',
+    [ExternalTicketProvider.JIRA]: 'simple-icons:jira',
+    [ExternalTicketProvider.LINEAR]: 'simple-icons:linear'
+};

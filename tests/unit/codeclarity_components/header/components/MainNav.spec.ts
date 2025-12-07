@@ -88,13 +88,14 @@ describe('MainNav', () => {
       expect(projectsLink.props('to')).toEqual({ name: 'projects', params: {}, query: {} });
     });
 
-    it('initially shows only Dashboard and Projects links', () => {
+    it('initially shows Dashboard, Projects, and Tickets links', () => {
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      expect(links).toHaveLength(2);
-      
+      expect(links).toHaveLength(3);
+
       const linkTexts = links.map(link => link.text());
       expect(linkTexts).toContain('Dashboard');
       expect(linkTexts).toContain('Projects');
+      expect(linkTexts).toContain('Tickets');
       expect(linkTexts).not.toContain('Results');
       expect(linkTexts).not.toContain('Settings');
     });
@@ -277,18 +278,18 @@ describe('MainNav', () => {
       mockStateStore.page = '';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      expect(links).toHaveLength(2); // Only Dashboard and Projects
+      expect(links).toHaveLength(3); // Dashboard, Projects, and Tickets
     });
 
     it('handles unknown page state', async () => {
       mockStateStore.page = 'unknown';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      expect(links).toHaveLength(2); // Only Dashboard and Projects
+      expect(links).toHaveLength(3); // Dashboard, Projects, and Tickets
     });
 
     it('renders without store initially', () => {

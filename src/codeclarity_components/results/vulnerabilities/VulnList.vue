@@ -722,7 +722,13 @@ const exploitableCount = computed(() => {
                                 :vulnerability="{
                                     vulnerability_id: report.Vulnerability,
                                     severity_score: report.Severity?.Severity,
-                                    severity_class: isCriticalSeverity(report.Severity?.Severity) ? 'CRITICAL' : isHighSeverity(report.Severity?.Severity) ? 'HIGH' : isMediumSeverity(report.Severity?.Severity) ? 'MEDIUM' : 'LOW',
+                                    severity_class: isCriticalSeverity(report.Severity?.Severity)
+                                        ? 'CRITICAL'
+                                        : isHighSeverity(report.Severity?.Severity)
+                                          ? 'HIGH'
+                                          : isMediumSeverity(report.Severity?.Severity)
+                                            ? 'MEDIUM'
+                                            : 'LOW',
                                     affected_package: report.Affected?.[0]?.AffectedDependency,
                                     affected_version: report.Affected?.[0]?.AffectedVersion,
                                     description: report.Description

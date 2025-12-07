@@ -113,16 +113,15 @@ function getColumnCount(status: TicketStatus): number {
                             >
                                 {{ ticket.vulnerability_id }}
                             </span>
-                            <span
-                                v-if="ticket.affected_package"
-                                class="truncate"
-                            >
+                            <span v-if="ticket.affected_package" class="truncate">
                                 {{ ticket.affected_package }}
                             </span>
                         </div>
 
                         <!-- Footer -->
-                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <div
+                            class="flex items-center justify-between pt-2 border-t border-gray-100"
+                        >
                             <span class="text-xs text-gray-400">
                                 {{ ticket.project_name }}
                             </span>

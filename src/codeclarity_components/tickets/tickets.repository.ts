@@ -17,13 +17,21 @@ import {
     TicketDetails,
     TicketEvent,
     TicketDashboardStats,
+    ExternalTicketProvider,
+    type ExternalLink,
     type CreateTicketRequest,
     type UpdateTicketRequest,
     type BulkUpdateTicketsRequest,
     type CheckDuplicateRequest,
     type BulkUpdateResult,
     type DuplicateCheckResult,
-    type TicketFilters
+    type TicketFilters,
+    type IntegrationConfigSummary,
+    type IntegrationHierarchyItem,
+    type ConnectionTestResult,
+    type ConfigureClickUpRequest,
+    type SyncResult,
+    type BulkSyncResult
 } from './tickets.entity';
 
 // ============================================
@@ -87,6 +95,56 @@ export interface DeleteTicketRequestOptions extends AuthRepoMethodEmptyDeleteReq
 export interface CheckDuplicateRequestOptions
     extends AuthRepoMethodPostRequestOptions<CheckDuplicateRequest> {
     orgId: string;
+}
+
+// Integration Request Options
+export interface GetIntegrationsRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+}
+
+export interface ConfigureClickUpRequestOptions
+    extends AuthRepoMethodPostRequestOptions<ConfigureClickUpRequest> {
+    orgId: string;
+}
+
+export interface DeleteIntegrationRequestOptions extends AuthRepoMethodEmptyDeleteRequestOptions {
+    orgId: string;
+    provider: ExternalTicketProvider;
+}
+
+export interface TestIntegrationRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    provider: ExternalTicketProvider;
+}
+
+export interface GetHierarchyRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    provider: ExternalTicketProvider;
+    parentId?: string;
+}
+
+export interface SyncTicketRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    ticketId: string;
+    provider: ExternalTicketProvider;
+}
+
+export interface UnlinkTicketRequestOptions extends AuthRepoMethodEmptyDeleteRequestOptions {
+    orgId: string;
+    ticketId: string;
+    linkId: string;
+    deleteExternal?: boolean;
+}
+
+export interface BulkSyncRequestOptions
+    extends AuthRepoMethodPostRequestOptions<{ ticket_ids: string[] }> {
+    orgId: string;
+    provider: ExternalTicketProvider;
+}
+
+export interface GetExternalLinksRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    ticketId: string;
 }
 
 // ============================================
@@ -206,7 +264,9 @@ export class TicketsRepository extends BaseRepository {
     /**
      * Get ticket details by ID
      */
-    async getTicketById(options: GetTicketByIdRequestOptions): Promise<DataResponse<TicketDetails>> {
+    async getTicketById(
+        options: GetTicketByIdRequestOptions
+    ): Promise<DataResponse<TicketDetails>> {
         const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}`;
 
         const response = await this.getRequest<DataResponse<TicketDetails>>({
@@ -380,6 +440,266 @@ export class TicketsRepository extends BaseRepository {
         return Entity.unMarshal<DataResponse<DuplicateCheckResult>>(
             response,
             DataResponse<DuplicateCheckResult>
+        );
+    }
+
+    // ============================================
+    // Integration Methods
+    // ============================================
+
+    /**
+     * Get all configured integrations for an organization
+     */
+    async getIntegrations(
+        options: GetIntegrationsRequestOptions
+    ): Promise<DataResponse<IntegrationConfigSummary[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations`;
+
+        const response = await this.getRequest<DataResponse<IntegrationConfigSummary[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationConfigSummary[]>>(
+            response,
+            DataResponse<IntegrationConfigSummary[]>
+        );
+    }
+
+    /**
+     * Configure ClickUp integration
+     */
+    async configureClickUp(options: ConfigureClickUpRequestOptions): Promise<NoDataResponse> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/clickup`;
+
+        const response = await this.postRequest<NoDataResponse, ConfigureClickUpRequest>({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+    }
+
+    /**
+     * Delete an integration
+     */
+    async deleteIntegration(options: DeleteIntegrationRequestOptions): Promise<NoDataResponse> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}`;
+
+        const response = await this.deleteRequest<NoDataResponse, Record<string, never>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors,
+            data: {}
+        });
+
+        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+    }
+
+    /**
+     * Test an integration connection
+     */
+    async testIntegration(
+        options: TestIntegrationRequestOptions
+    ): Promise<DataResponse<ConnectionTestResult>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/test`;
+
+        const response = await this.getRequest<DataResponse<ConnectionTestResult>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<ConnectionTestResult>>(
+            response,
+            DataResponse<ConnectionTestResult>
+        );
+    }
+
+    /**
+     * Get workspaces for an integration
+     */
+    async getWorkspaces(
+        options: GetHierarchyRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/workspaces`;
+
+        const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem[]>>(
+            response,
+            DataResponse<IntegrationHierarchyItem[]>
+        );
+    }
+
+    /**
+     * Get spaces for a workspace
+     */
+    async getSpaces(
+        options: GetHierarchyRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/workspaces/${options.parentId}/spaces`;
+
+        const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem[]>>(
+            response,
+            DataResponse<IntegrationHierarchyItem[]>
+        );
+    }
+
+    /**
+     * Get folders for a space
+     */
+    async getFolders(
+        options: GetHierarchyRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/spaces/${options.parentId}/folders`;
+
+        const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem[]>>(
+            response,
+            DataResponse<IntegrationHierarchyItem[]>
+        );
+    }
+
+    /**
+     * Get lists for a folder or space
+     */
+    async getLists(
+        options: GetHierarchyRequestOptions
+    ): Promise<DataResponse<IntegrationHierarchyItem[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider.toLowerCase()}/folders/${options.parentId}/lists`;
+
+        const response = await this.getRequest<DataResponse<IntegrationHierarchyItem[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<IntegrationHierarchyItem[]>>(
+            response,
+            DataResponse<IntegrationHierarchyItem[]>
+        );
+    }
+
+    /**
+     * Sync a ticket to an external provider
+     */
+    async syncTicket(options: SyncTicketRequestOptions): Promise<DataResponse<SyncResult>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/sync/${options.provider.toLowerCase()}`;
+
+        const response = await this.postRequest<DataResponse<SyncResult>, Record<string, never>>({
+            bearerToken: options.bearerToken,
+            data: {},
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<SyncResult>>(response, DataResponse<SyncResult>);
+    }
+
+    /**
+     * Unlink a ticket from an external provider
+     */
+    async unlinkTicket(options: UnlinkTicketRequestOptions): Promise<NoDataResponse> {
+        const queryParams: Record<string, string> = {};
+        if (options.deleteExternal) {
+            queryParams.delete_external = '1';
+        }
+
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/sync/${options.linkId}`;
+
+        const response = await this.deleteRequest<NoDataResponse, Record<string, never>>({
+            bearerToken: options.bearerToken,
+            queryParams,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors,
+            data: {}
+        });
+
+        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+    }
+
+    /**
+     * Bulk sync tickets to an external provider
+     */
+    async bulkSync(options: BulkSyncRequestOptions): Promise<DataResponse<BulkSyncResult>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/bulk-sync/${options.provider.toLowerCase()}`;
+
+        const response = await this.postRequest<
+            DataResponse<BulkSyncResult>,
+            { ticket_ids: string[] }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<BulkSyncResult>>(
+            response,
+            DataResponse<BulkSyncResult>
+        );
+    }
+
+    /**
+     * Get external links for a ticket
+     */
+    async getExternalLinks(
+        options: GetExternalLinksRequestOptions
+    ): Promise<DataResponse<ExternalLink[]>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/external-links`;
+
+        const response = await this.getRequest<DataResponse<ExternalLink[]>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<ExternalLink[]>>(
+            response,
+            DataResponse<ExternalLink[]>
         );
     }
 }

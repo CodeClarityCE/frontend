@@ -73,9 +73,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     // Computed Properties
     // ============================================
 
-    const isReady = computed(
-        () => defaultOrg?.value && auth.getAuthenticated && auth.getToken
-    );
+    const isReady = computed(() => defaultOrg?.value && auth.getAuthenticated && auth.getToken);
 
     const hasTickets = computed(() => tickets.value.length > 0);
 

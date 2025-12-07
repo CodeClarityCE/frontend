@@ -122,11 +122,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
             data: { auto_resolve_tickets: enabled },
             handleBusinessErrors: true
         });
-        successToast(
-            enabled
-                ? 'Auto-resolve tickets enabled'
-                : 'Auto-resolve tickets disabled'
-        );
+        successToast(enabled ? 'Auto-resolve tickets enabled' : 'Auto-resolve tickets disabled');
     } catch (err) {
         // Revert on error
         autoResolveTickets.value = !enabled;
@@ -331,7 +327,9 @@ async function updateAutoResolveSetting(enabled: boolean) {
                 variant="default"
             >
                 <div class="mt-6">
-                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div
+                        class="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    >
                         <div class="flex items-center gap-4">
                             <div class="p-3 bg-theme-primary/10 rounded-lg">
                                 <Icon
@@ -344,7 +342,8 @@ async function updateAutoResolveSetting(enabled: boolean) {
                                     Auto-resolve tickets
                                 </h3>
                                 <p class="text-sm text-theme-gray">
-                                    Automatically resolve tickets when their vulnerabilities are no longer detected in scans
+                                    Automatically resolve tickets when their vulnerabilities are no
+                                    longer detected in scans
                                 </p>
                             </div>
                         </div>

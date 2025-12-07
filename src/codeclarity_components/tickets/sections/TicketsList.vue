@@ -47,7 +47,9 @@ function getRelativeTime(date: Date): string {
 <template>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <!-- Table Header -->
-        <div class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <div
+            class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
             <div class="col-span-4">Ticket</div>
             <div class="col-span-2">Status</div>
             <div class="col-span-2">Priority</div>
@@ -85,7 +87,9 @@ function getRelativeTime(date: Date): string {
                                 <Icon v-else icon="solar:upload-bold" class="w-4 h-4" />
                             </div>
                             <div class="min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">
+                                <p
+                                    class="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600"
+                                >
                                     {{ ticket.title }}
                                 </p>
                                 <div class="flex items-center gap-2 mt-1">

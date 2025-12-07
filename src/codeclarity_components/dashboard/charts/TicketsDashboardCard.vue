@@ -104,7 +104,10 @@ fetch();
         </div>
 
         <!-- No Data State -->
-        <div v-else-if="noData" class="flex flex-col items-center justify-center py-8 text-gray-500">
+        <div
+            v-else-if="noData"
+            class="flex flex-col items-center justify-center py-8 text-gray-500"
+        >
             <Icon icon="solar:ticket-linear" class="w-12 h-12 mb-3 text-gray-300" />
             <p class="text-sm font-medium">No tickets yet</p>
             <p class="text-xs text-gray-400 mt-1">Create tickets from vulnerability results</p>
@@ -112,10 +115,7 @@ fetch();
 
         <!-- Error State -->
         <div v-else-if="error" class="flex flex-row gap-2">
-            <Icon
-                class="text-3xl text-gray-400"
-                icon="solar:confounded-square-outline"
-            />
+            <Icon class="text-3xl text-gray-400" icon="solar:confounded-square-outline" />
             <div class="flex flex-col gap-2">
                 <div class="text-sm text-gray-600">Failed to load ticket statistics</div>
                 <Button size="sm" variant="outline" @click="fetch()">Try again</Button>
@@ -207,12 +207,7 @@ fetch();
             </div>
 
             <!-- View All Button -->
-            <Button
-                variant="outline"
-                size="sm"
-                class="w-full"
-                @click="navigateToTickets"
-            >
+            <Button variant="outline" size="sm" class="w-full" @click="navigateToTickets">
                 <Icon icon="solar:ticket-bold" class="w-4 h-4 mr-2" />
                 View All Tickets
             </Button>

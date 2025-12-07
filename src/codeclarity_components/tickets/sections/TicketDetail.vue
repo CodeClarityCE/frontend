@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/shadcn/ui/dropdown-menu';
+import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
+import { TicketsRepository } from '../tickets.repository';
 import {
     type TicketDetails,
     TicketStatusLabels,
@@ -10,7 +20,11 @@ import {
     TicketPriorityColors,
     TicketTypeLabels,
     TicketTypeColors,
-    TicketStatus
+    TicketStatus,
+    ExternalTicketProvider,
+    ExternalProviderLabels,
+    ExternalProviderIcons,
+    type IntegrationConfigSummary
 } from '../tickets.entity';
 
 const props = defineProps<{
@@ -23,7 +37,75 @@ const emit = defineEmits<{
     updated: [];
 }>();
 
+const { defaultOrg } = storeToRefs(useUserStore());
+const auth = useAuthStore();
+const ticketsRepository = new TicketsRepository();
+
 const isOpen = ref(true);
+const isSyncing = ref(false);
+const isUnlinking = ref<string | null>(null);
+const availableIntegrations = ref<IntegrationConfigSummary[]>([]);
+
+async function loadIntegrations() {
+    if (!defaultOrg.value?.id || !auth.getToken) return;
+
+    try {
+        const response = await ticketsRepository.getIntegrations({
+            orgId: defaultOrg.value.id,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        availableIntegrations.value = response.data.filter((i) => i.enabled);
+    } catch {
+        console.error('Failed to load integrations');
+    }
+}
+
+async function syncToProvider(provider: ExternalTicketProvider) {
+    if (!defaultOrg.value?.id || !auth.getToken) return;
+
+    isSyncing.value = true;
+    try {
+        await ticketsRepository.syncTicket({
+            orgId: defaultOrg.value.id,
+            ticketId: props.ticket.id,
+            provider,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        emit('updated');
+    } catch (error) {
+        console.error('Failed to sync ticket:', error);
+    } finally {
+        isSyncing.value = false;
+    }
+}
+
+async function unlinkFromProvider(linkId: string) {
+    if (!defaultOrg.value?.id || !auth.getToken) return;
+
+    isUnlinking.value = linkId;
+    try {
+        await ticketsRepository.unlinkTicket({
+            orgId: defaultOrg.value.id,
+            ticketId: props.ticket.id,
+            linkId,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        emit('updated');
+    } catch (error) {
+        console.error('Failed to unlink ticket:', error);
+    } finally {
+        isUnlinking.value = null;
+    }
+}
 
 function close() {
     isOpen.value = false;
@@ -48,6 +130,18 @@ const severityColor = computed(() => {
     if (score >= 7) return 'text-orange-600';
     if (score >= 4) return 'text-yellow-600';
     return 'text-green-600';
+});
+
+// Get providers that aren't already linked
+const availableSyncProviders = computed(() => {
+    const linkedProviders = new Set(props.ticket.external_links.map((link) => link.provider));
+    return availableIntegrations.value.filter(
+        (integration) => !linkedProviders.has(integration.provider as ExternalTicketProvider)
+    );
+});
+
+onMounted(() => {
+    loadIntegrations();
 });
 </script>
 
@@ -123,10 +217,7 @@ const severityColor = computed(() => {
                 </div>
 
                 <!-- Vulnerability Info -->
-                <div
-                    v-if="ticket.vulnerability_id"
-                    class="bg-gray-50 rounded-lg p-4 space-y-3"
-                >
+                <div v-if="ticket.vulnerability_id" class="bg-gray-50 rounded-lg p-4 space-y-3">
                     <h4 class="text-sm font-medium text-gray-700">Vulnerability Information</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -233,58 +324,123 @@ const severityColor = computed(() => {
                 </div>
 
                 <!-- External Links -->
-                <div
-                    v-if="ticket.external_links.length > 0"
-                    class="pt-4 border-t border-gray-200"
-                >
+                <div v-if="ticket.external_links.length > 0" class="pt-4 border-t border-gray-200">
                     <h4 class="text-sm font-medium text-gray-700 mb-3">External Links</h4>
                     <div class="space-y-2">
-                        <a
+                        <div
                             v-for="link in ticket.external_links"
                             :key="link.id"
-                            :href="link.external_url"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group"
                         >
-                            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200">
+                            <a
+                                :href="link.external_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                            >
+                                <div
+                                    class="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200"
+                                >
+                                    <Icon
+                                        :icon="
+                                            ExternalProviderIcons[
+                                                link.provider as ExternalTicketProvider
+                                            ] || 'solar:link-bold'
+                                        "
+                                        class="w-4 h-4"
+                                        :class="{
+                                            'text-purple-600': link.provider === 'CLICKUP',
+                                            'text-blue-600': link.provider === 'JIRA',
+                                            'text-indigo-600': link.provider === 'LINEAR',
+                                            'text-gray-400': ![
+                                                'CLICKUP',
+                                                'JIRA',
+                                                'LINEAR'
+                                            ].includes(link.provider)
+                                        }"
+                                    />
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{
+                                            ExternalProviderLabels[
+                                                link.provider as ExternalTicketProvider
+                                            ] || link.provider
+                                        }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 truncate">
+                                        {{ link.external_id }}
+                                    </p>
+                                </div>
                                 <Icon
-                                    v-if="link.provider === 'CLICKUP'"
-                                    icon="simple-icons:clickup"
-                                    class="w-4 h-4 text-purple-600"
-                                />
-                                <Icon
-                                    v-else-if="link.provider === 'JIRA'"
-                                    icon="simple-icons:jira"
-                                    class="w-4 h-4 text-blue-600"
-                                />
-                                <Icon
-                                    v-else
-                                    icon="solar:link-bold"
+                                    icon="solar:arrow-right-up-linear"
                                     class="w-4 h-4 text-gray-400"
                                 />
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900">
-                                    {{ link.provider }}
-                                </p>
-                                <p class="text-xs text-gray-500 truncate">
-                                    {{ link.external_id }}
-                                </p>
-                            </div>
-                            <Icon
-                                icon="solar:arrow-right-up-linear"
-                                class="w-4 h-4 text-gray-400"
-                            />
-                        </a>
+                            </a>
+                            <button
+                                class="p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                title="Unlink from external"
+                                :disabled="isUnlinking === link.id"
+                                @click.stop="unlinkFromProvider(link.id)"
+                            >
+                                <Icon
+                                    v-if="isUnlinking === link.id"
+                                    icon="solar:spinner-outline"
+                                    class="w-4 h-4 animate-spin"
+                                />
+                                <Icon v-else icon="solar:link-broken-linear" class="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Footer Actions -->
-            <div class="absolute bottom-0 left-0 right-0 px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between gap-3">
+            <div
+                class="absolute bottom-0 left-0 right-0 px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between gap-3"
+            >
                 <Button variant="outline" @click="close">Close</Button>
                 <div class="flex items-center gap-2">
+                    <!-- Sync Button -->
+                    <DropdownMenu v-if="availableSyncProviders.length > 0">
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" :disabled="isSyncing">
+                                <Icon
+                                    v-if="isSyncing"
+                                    icon="solar:spinner-outline"
+                                    class="w-4 h-4 mr-2 animate-spin"
+                                />
+                                <Icon v-else icon="solar:link-linear" class="w-4 h-4 mr-2" />
+                                Sync
+                                <Icon icon="solar:alt-arrow-down-linear" class="w-3 h-3 ml-1" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                v-for="integration in availableSyncProviders"
+                                :key="integration.provider"
+                                @click="
+                                    syncToProvider(integration.provider as ExternalTicketProvider)
+                                "
+                            >
+                                <Icon
+                                    :icon="
+                                        ExternalProviderIcons[
+                                            integration.provider as ExternalTicketProvider
+                                        ]
+                                    "
+                                    class="w-4 h-4 mr-2"
+                                />
+                                Sync to
+                                {{
+                                    ExternalProviderLabels[
+                                        integration.provider as ExternalTicketProvider
+                                    ]
+                                }}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
                     <Button
                         v-if="ticket.status === TicketStatus.OPEN"
                         variant="outline"

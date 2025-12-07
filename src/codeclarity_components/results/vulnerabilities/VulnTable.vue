@@ -1773,8 +1773,16 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                         :vulnerability="{
                                             vulnerability_id: report.Vulnerability,
                                             severity_score: report.Severity?.Severity,
-                                            severity_class: report.Severity?.Severity >= 9 ? 'CRITICAL' : report.Severity?.Severity >= 7 ? 'HIGH' : report.Severity?.Severity >= 4 ? 'MEDIUM' : 'LOW',
-                                            affected_package: report.Affected?.[0]?.AffectedDependency,
+                                            severity_class:
+                                                report.Severity?.Severity >= 9
+                                                    ? 'CRITICAL'
+                                                    : report.Severity?.Severity >= 7
+                                                      ? 'HIGH'
+                                                      : report.Severity?.Severity >= 4
+                                                        ? 'MEDIUM'
+                                                        : 'LOW',
+                                            affected_package:
+                                                report.Affected?.[0]?.AffectedDependency,
                                             affected_version: report.Affected?.[0]?.AffectedVersion,
                                             description: report.Description
                                         }"

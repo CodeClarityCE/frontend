@@ -13,13 +13,7 @@ import {
 import { Input } from '@/shadcn/ui/input';
 import { Label } from '@/shadcn/ui/label';
 import { Textarea } from '@/shadcn/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/shadcn/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { TicketsRepository } from '../tickets.repository';
@@ -221,9 +215,14 @@ function viewExistingTicket() {
                 v-if="duplicateTicket"
                 class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3"
             >
-                <Icon icon="solar:info-circle-bold" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <Icon
+                    icon="solar:info-circle-bold"
+                    class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+                />
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-yellow-800">A ticket already exists for this vulnerability</p>
+                    <p class="text-sm font-medium text-yellow-800">
+                        A ticket already exists for this vulnerability
+                    </p>
                     <p class="text-sm text-yellow-700 mt-1">{{ duplicateTicket.title }}</p>
                     <Button
                         variant="outline"
@@ -238,19 +237,13 @@ function viewExistingTicket() {
             </div>
 
             <!-- Checking duplicate loading -->
-            <div
-                v-if="isCheckingDuplicate"
-                class="flex items-center gap-2 text-sm text-gray-500"
-            >
+            <div v-if="isCheckingDuplicate" class="flex items-center gap-2 text-sm text-gray-500">
                 <Icon icon="solar:refresh-bold" class="w-4 h-4 animate-spin" />
                 Checking for existing tickets...
             </div>
 
             <!-- Vulnerability Info -->
-            <div
-                v-if="vulnerability"
-                class="bg-gray-50 rounded-lg p-4 space-y-2"
-            >
+            <div v-if="vulnerability" class="bg-gray-50 rounded-lg p-4 space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-medium text-gray-700">Vulnerability</span>
                     <span class="font-mono text-sm font-semibold text-gray-900">
@@ -263,8 +256,12 @@ function viewExistingTicket() {
                         class="text-sm font-medium"
                         :class="{
                             'text-red-600': (vulnerability.severity_score || 0) >= 9,
-                            'text-orange-600': (vulnerability.severity_score || 0) >= 7 && (vulnerability.severity_score || 0) < 9,
-                            'text-yellow-600': (vulnerability.severity_score || 0) >= 4 && (vulnerability.severity_score || 0) < 7,
+                            'text-orange-600':
+                                (vulnerability.severity_score || 0) >= 7 &&
+                                (vulnerability.severity_score || 0) < 9,
+                            'text-yellow-600':
+                                (vulnerability.severity_score || 0) >= 4 &&
+                                (vulnerability.severity_score || 0) < 7,
                             'text-green-600': (vulnerability.severity_score || 0) < 4
                         }"
                     >
@@ -274,7 +271,10 @@ function viewExistingTicket() {
                         </span>
                     </span>
                 </div>
-                <div v-if="vulnerability.affected_package" class="flex items-center justify-between">
+                <div
+                    v-if="vulnerability.affected_package"
+                    class="flex items-center justify-between"
+                >
                     <span class="text-sm text-gray-600">Package</span>
                     <span class="text-sm text-gray-900">
                         {{ vulnerability.affected_package }}@{{ vulnerability.affected_version }}
@@ -368,20 +368,13 @@ function viewExistingTicket() {
                 <Button variant="outline" :disabled="isLoading" @click="handleClose">
                     Cancel
                 </Button>
-                <Button
-                    :disabled="isLoading || !title.trim()"
-                    @click="handleSubmit"
-                >
+                <Button :disabled="isLoading || !title.trim()" @click="handleSubmit">
                     <Icon
                         v-if="isLoading"
                         icon="solar:refresh-bold"
                         class="w-4 h-4 mr-2 animate-spin"
                     />
-                    <Icon
-                        v-else
-                        icon="solar:add-circle-bold"
-                        class="w-4 h-4 mr-2"
-                    />
+                    <Icon v-else icon="solar:add-circle-bold" class="w-4 h-4 mr-2" />
                     {{ isLoading ? 'Creating...' : 'Create Ticket' }}
                 </Button>
             </DialogFooter>

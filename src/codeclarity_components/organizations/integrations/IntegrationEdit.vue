@@ -10,6 +10,7 @@ import HeaderItem from '@/codeclarity_components/organizations/subcomponents/Hea
 import OrgIntegrationManageGithub from './github/ManageGithub.vue';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import OrgIntegrationManageGitlab from './gitlab/ManageGitlab.vue';
+import OrgIntegrationManageClickUp from './clickup/ManageClickUp.vue';
 import { useRoute } from 'vue-router';
 
 const provider: Ref<IntegrationProvider> = ref(IntegrationProvider.GITHUB);
@@ -45,6 +46,10 @@ provider.value = route.query.provider as IntegrationProvider;
             />
             <OrgIntegrationManageGitlab
                 v-else-if="provider == IntegrationProvider.GITLAB"
+                :org-id="orgId"
+            />
+            <OrgIntegrationManageClickUp
+                v-else-if="provider == IntegrationProvider.CLICKUP"
                 :org-id="orgId"
             />
         </div>

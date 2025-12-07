@@ -5,7 +5,8 @@ import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { TeamMember } from '../organization.entity';
 
 export enum IntegrationType {
-    VCS = 'VCS'
+    VCS = 'VCS',
+    TICKETING = 'TICKETING'
 }
 
 export enum SocialProvider {
@@ -15,7 +16,8 @@ export enum SocialProvider {
 
 export enum IntegrationProvider {
     GITHUB = 'GITHUB',
-    GITLAB = 'GITLAB'
+    GITLAB = 'GITLAB',
+    CLICKUP = 'CLICKUP'
 }
 
 export class VCS {

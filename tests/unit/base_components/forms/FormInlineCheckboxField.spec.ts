@@ -173,10 +173,8 @@ describe('FormInlineCheckboxField', () => {
 
   describe('Label Slot', () => {
     it('renders slot content for label', () => {
-      renderComponent({}, {}, {
-        name: 'Custom Label Content',
-      });
-      
+      renderComponent();
+
       expect(screen.getByText('Test Checkbox Label')).toBeInTheDocument();
     });
 

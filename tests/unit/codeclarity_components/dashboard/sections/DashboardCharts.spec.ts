@@ -102,12 +102,12 @@ describe('DashboardCharts', () => {
     });
 
     const infoCards = wrapper.findAll('[data-testid="info-card"]');
-    
+
     // Check grid layout classes are applied
-    expect(infoCards[0].classes()).toContain('lg:col-span-8'); // ExposureOverview
-    expect(infoCards[1].classes()).toContain('lg:col-span-4'); // CurrentVulns
-    expect(infoCards[2].classes()).toContain('lg:col-span-6'); // LicenseDist
-    expect(infoCards[3].classes()).toContain('lg:col-span-6'); // VulnerabilityImpact
+    expect(infoCards[0]!.classes()).toContain('lg:col-span-8'); // ExposureOverview
+    expect(infoCards[1]!.classes()).toContain('lg:col-span-4'); // CurrentVulns
+    expect(infoCards[2]!.classes()).toContain('lg:col-span-6'); // LicenseDist
+    expect(infoCards[3]!.classes()).toContain('lg:col-span-6'); // VulnerabilityImpact
   });
 
   it('should handle empty integration IDs array', () => {

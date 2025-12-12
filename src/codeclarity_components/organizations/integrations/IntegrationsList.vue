@@ -559,7 +559,10 @@ init();
                             class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4 border-l-theme-primary"
                         >
                             <div class="flex items-center gap-3 mb-4">
-                                <Icon icon="simple-icons:clickup" class="text-4xl text-purple-600" />
+                                <Icon
+                                    icon="simple-icons:clickup"
+                                    class="text-4xl text-purple-600"
+                                />
                                 <div>
                                     <h3 class="text-lg font-semibold text-theme-black">ClickUp</h3>
                                     <p class="text-sm text-theme-gray">Ticket Sync</p>
@@ -600,7 +603,9 @@ init();
                                 <Button
                                     variant="outline"
                                     class="border-red-500 text-red-500 hover:bg-red-50"
-                                    @click="deleteTicketingIntegration(ExternalTicketProvider.CLICKUP)"
+                                    @click="
+                                        deleteTicketingIntegration(ExternalTicketProvider.CLICKUP)
+                                    "
                                 >
                                     <Icon icon="solar:trash-bin-trash-bold" class="text-sm" />
                                 </Button>
@@ -637,9 +642,7 @@ init();
                                 <h3 class="text-lg font-semibold text-theme-black mb-2">
                                     Add ClickUp
                                 </h3>
-                                <p class="text-sm text-theme-gray">
-                                    Sync tickets to ClickUp tasks
-                                </p>
+                                <p class="text-sm text-theme-gray">Sync tickets to ClickUp tasks</p>
                             </div>
                         </RouterLink>
                     </div>

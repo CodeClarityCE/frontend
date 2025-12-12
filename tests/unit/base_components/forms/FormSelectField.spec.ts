@@ -248,10 +248,8 @@ describe('FormSelectField', () => {
     });
 
     it('supports slot content for label', () => {
-      renderComponent({}, {}, {
-        name: 'Custom Label Content',
-      });
-      
+      renderComponent();
+
       expect(screen.getByText('Test Label')).toBeInTheDocument();
     });
   });

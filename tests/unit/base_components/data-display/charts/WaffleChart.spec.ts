@@ -285,7 +285,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].value).toBe(999999)
+      expect(wrapper.props().data[0]!.value).toBe(999999)
     })
 
     it('handles decimal values', () => {
@@ -303,7 +303,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].value).toBe(33.33)
+      expect(wrapper.props().data[0]!.value).toBe(33.33)
     })
   })
 
@@ -468,7 +468,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].value).toBe(0.001)
+      expect(wrapper.props().data[0]!.value).toBe(0.001)
     })
 
     it('handles long label names', () => {
@@ -486,7 +486,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].label).toBe('Very Long Category Name That Might Cause Layout Issues')
+      expect(wrapper.props().data[0]!.label).toBe('Very Long Category Name That Might Cause Layout Issues')
     })
 
     it('handles special characters in labels', () => {
@@ -504,7 +504,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].label).toBe('Category@#$%')
+      expect(wrapper.props().data[0]!.label).toBe('Category@#$%')
     })
 
     it('handles invalid color values gracefully', () => {
@@ -522,7 +522,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].color).toBe('not-a-valid-color')
+      expect(wrapper.props().data[0]!.color).toBe('not-a-valid-color')
     })
 
     it('handles very large datasets', () => {
@@ -561,7 +561,7 @@ describe('WaffleChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].value).toBe(-10)
+      expect(wrapper.props().data[0]!.value).toBe(-10)
     })
   })
 

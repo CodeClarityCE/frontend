@@ -124,14 +124,14 @@ describe('CenteredModal', () => {
                     buttons: '<button>OK</button><button>Cancel</button>'
                 }
             });
-            
+
             wrapper.vm.show();
             await nextTick();
-            
+
             const buttons = wrapper.findAll('button');
             expect(buttons).toHaveLength(2);
-            expect(buttons[0].text()).toBe('OK');
-            expect(buttons[1].text()).toBe('Cancel');
+            expect(buttons[0]!.text()).toBe('OK');
+            expect(buttons[1]!.text()).toBe('Cancel');
         });
 
         it('renders all slots together', async () => {

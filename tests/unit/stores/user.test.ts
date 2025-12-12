@@ -8,24 +8,28 @@ import type { Organization } from '@/codeclarity_components/organizations/organi
 const createMockOrganization = (overrides: Partial<Organization> = {}): Organization => ({
   id: 'test-org-id',
   name: 'Test Organization',
-  slug: 'test-org',
+  color_scheme: '#000000',
   description: 'A test organization',
   created_on: new Date('2023-01-01'),
-  updated_on: new Date('2023-01-01'),
-  members_count: 5,
-  projects_count: 10,
+  personal: false,
+  role: 0, // MemberRole.OWNER
+  number_of_members: 5,
+  organizationMemberships: [],
+  joined_on: new Date('2023-01-01'),
   ...overrides
 })
 
 const createMockUser = (overrides: Partial<AuthenticatedUser> = {}): AuthenticatedUser => ({
   id: 'test-user-id',
   email: 'test@example.com',
-  name: 'Test User',
-  email_verified: true,
+  first_name: 'Test',
+  last_name: 'User',
+  handle: 'test-user',
+  activated: true,
+  social: false,
+  setup_done: true,
   created_on: new Date('2023-01-01'),
-  updated_on: new Date('2023-01-01'),
   default_org: createMockOrganization(),
-  organizations: [createMockOrganization()],
   ...overrides
 })
 
@@ -63,7 +67,8 @@ describe.skip('User Store', () => {
       expect(user).toBeDefined()
       expect(user?.id).toBe('test-user-id')
       expect(user?.email).toBe('test@example.com')
-      expect(user?.name).toBe('Test User')
+      expect(user?.first_name).toBe('Test')
+      expect(user?.last_name).toBe('User')
     })
 
     it('should return default organization via getDefaultOrg', () => {
@@ -80,7 +85,8 @@ describe.skip('User Store', () => {
         const mockUser = createMockUser({
           id: 'user-123',
           email: 'user@test.com',
-          name: 'John Doe'
+          first_name: 'John',
+          last_name: 'Doe'
         })
 
         userStore.setUser(mockUser)
@@ -88,33 +94,31 @@ describe.skip('User Store', () => {
         expect(userStore.user).toBe(mockUser)
         expect(userStore.getUser?.id).toBe('user-123')
         expect(userStore.getUser?.email).toBe('user@test.com')
-        expect(userStore.getUser?.name).toBe('John Doe')
+        expect(userStore.getUser?.first_name).toBe('John')
+        expect(userStore.getUser?.last_name).toBe('Doe')
       })
 
       it('should replace existing user', () => {
-        const firstUser = createMockUser({ id: 'first-user', name: 'First User' })
-        const secondUser = createMockUser({ id: 'second-user', name: 'Second User' })
+        const firstUser = createMockUser({ id: 'first-user', first_name: 'First', last_name: 'User' })
+        const secondUser = createMockUser({ id: 'second-user', first_name: 'Second', last_name: 'User' })
 
         userStore.setUser(firstUser)
-        expect(userStore.getUser?.name).toBe('First User')
+        expect(userStore.getUser?.first_name).toBe('First')
 
         userStore.setUser(secondUser)
-        expect(userStore.getUser?.name).toBe('Second User')
+        expect(userStore.getUser?.first_name).toBe('Second')
         expect(userStore.getUser?.id).toBe('second-user')
       })
 
-      it('should handle user with multiple organizations', () => {
+      it('should handle user with default organization', () => {
         const org1 = createMockOrganization({ id: 'org-1', name: 'Org 1' })
-        const org2 = createMockOrganization({ id: 'org-2', name: 'Org 2' })
-        
+
         const mockUser = createMockUser({
-          organizations: [org1, org2],
           default_org: org1
         })
 
         userStore.setUser(mockUser)
 
-        expect(userStore.getUser?.organizations).toHaveLength(2)
         expect(userStore.getUser?.default_org.id).toBe('org-1')
       })
     })
@@ -176,16 +180,15 @@ describe.skip('User Store', () => {
       const organization = createMockOrganization({
         id: 'company-org',
         name: 'Company Organization',
-        members_count: 15,
-        projects_count: 5
+        number_of_members: 15
       })
 
       const user = createMockUser({
         id: 'setup-user',
         email: 'setup@company.com',
-        name: 'Setup User',
-        default_org: organization,
-        organizations: [organization]
+        first_name: 'Setup',
+        last_name: 'User',
+        default_org: organization
       })
 
       // Step 1: Set user
@@ -201,21 +204,20 @@ describe.skip('User Store', () => {
     it('should handle user switching organizations', () => {
       const org1 = createMockOrganization({ id: 'org-1', name: 'Organization 1' })
       const org2 = createMockOrganization({ id: 'org-2', name: 'Organization 2' })
-      
+
       const user = createMockUser({
-        organizations: [org1, org2],
         default_org: org1
       })
 
       userStore.setUser(user)
       userStore.setDefaultOrg(org1)
-      
+
       expect(userStore.getDefaultOrg?.id).toBe('org-1')
       expect(userStore.getUser?.default_org.id).toBe('org-1')
 
       // Switch to org2
       userStore.setDefaultOrg(org2)
-      
+
       expect(userStore.getDefaultOrg?.id).toBe('org-2')
       expect(userStore.getUser?.default_org.id).toBe('org-2')
     })
@@ -239,32 +241,35 @@ describe.skip('User Store', () => {
   })
 
   describe('Data Validation', () => {
-    it('should handle user with email_verified false', () => {
+    it('should handle user with activated false', () => {
       const unverifiedUser = createMockUser({
-        email_verified: false
+        activated: false
       })
 
       userStore.setUser(unverifiedUser)
-      expect(userStore.getUser?.email_verified).toBe(false)
+      expect(userStore.getUser?.activated).toBe(false)
     })
 
-    it('should handle user with empty organizations array', () => {
-      const userWithNoOrgs = createMockUser({
-        organizations: []
+    it('should handle user with default organization', () => {
+      const defaultOrg = createMockOrganization()
+      const userWithDefaultOrg = createMockUser({
+        default_org: defaultOrg
       })
 
-      userStore.setUser(userWithNoOrgs)
-      expect(userStore.getUser?.organizations).toHaveLength(0)
+      userStore.setUser(userWithDefaultOrg)
+      expect(userStore.getUser?.default_org).toBeDefined()
+      expect(userStore.getUser?.default_org.id).toBe(defaultOrg.id)
     })
 
     it('should preserve all user properties', () => {
       const complexUser = createMockUser({
         id: 'complex-user',
         email: 'complex@test.com',
-        name: 'Complex User',
-        email_verified: true,
-        created_on: new Date('2022-01-01'),
-        updated_on: new Date('2023-06-01')
+        first_name: 'Complex',
+        last_name: 'User',
+        handle: 'complex-user',
+        activated: true,
+        created_on: new Date('2022-01-01')
       })
 
       userStore.setUser(complexUser)
@@ -272,22 +277,21 @@ describe.skip('User Store', () => {
       const storedUser = userStore.getUser
       expect(storedUser?.id).toBe('complex-user')
       expect(storedUser?.email).toBe('complex@test.com')
-      expect(storedUser?.name).toBe('Complex User')
-      expect(storedUser?.email_verified).toBe(true)
+      expect(storedUser?.first_name).toBe('Complex')
+      expect(storedUser?.last_name).toBe('User')
+      expect(storedUser?.handle).toBe('complex-user')
+      expect(storedUser?.activated).toBe(true)
       expect(storedUser?.created_on).toEqual(new Date('2022-01-01'))
-      expect(storedUser?.updated_on).toEqual(new Date('2023-06-01'))
     })
 
     it('should preserve all organization properties', () => {
       const complexOrg = createMockOrganization({
         id: 'complex-org',
         name: 'Complex Organization',
-        slug: 'complex-org-slug',
+        color_scheme: '#123456',
         description: 'A complex test organization',
-        members_count: 25,
-        projects_count: 50,
-        created_on: new Date('2021-01-01'),
-        updated_on: new Date('2023-05-01')
+        number_of_members: 25,
+        created_on: new Date('2021-01-01')
       })
 
       userStore.setDefaultOrg(complexOrg)
@@ -295,25 +299,25 @@ describe.skip('User Store', () => {
       const storedOrg = userStore.getDefaultOrg
       expect(storedOrg?.id).toBe('complex-org')
       expect(storedOrg?.name).toBe('Complex Organization')
-      expect(storedOrg?.slug).toBe('complex-org-slug')
+      expect(storedOrg?.color_scheme).toBe('#123456')
       expect(storedOrg?.description).toBe('A complex test organization')
-      expect(storedOrg?.members_count).toBe(25)
-      expect(storedOrg?.projects_count).toBe(50)
+      expect(storedOrg?.number_of_members).toBe(25)
     })
   })
 
   describe('Edge Cases', () => {
     it('should handle rapid successive user changes', () => {
       const users = [
-        createMockUser({ id: 'user-1', name: 'User 1' }),
-        createMockUser({ id: 'user-2', name: 'User 2' }),
-        createMockUser({ id: 'user-3', name: 'User 3' })
+        createMockUser({ id: 'user-1', first_name: 'User', last_name: '1' }),
+        createMockUser({ id: 'user-2', first_name: 'User', last_name: '2' }),
+        createMockUser({ id: 'user-3', first_name: 'User', last_name: '3' })
       ]
 
       users.forEach(user => userStore.setUser(user))
 
       expect(userStore.getUser?.id).toBe('user-3')
-      expect(userStore.getUser?.name).toBe('User 3')
+      expect(userStore.getUser?.first_name).toBe('User')
+      expect(userStore.getUser?.last_name).toBe('3')
     })
 
     it('should handle rapid successive org changes', () => {

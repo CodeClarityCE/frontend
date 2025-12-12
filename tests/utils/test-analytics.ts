@@ -273,10 +273,12 @@ export class TestAnalyticsCollector {
     
     return Array.from(grouped.entries())
       .map(([key, metrics]) => {
-        const [suiteName, testName] = key.split(':');
+        const parts = key.split(':');
+        const suiteName = parts[0] ?? '';
+        const testName = parts[1] ?? '';
         const errorPatterns = [...new Set(metrics.map(m => m.error || '').filter(e => e))];
         const lastFailure = new Date(Math.max(...metrics.map(m => m.timestamp)));
-        
+
         return {
           testName,
           suiteName,
@@ -323,7 +325,7 @@ export class TestAnalyticsCollector {
         .reduce((sum, u) => sum + u, 0) / totalTests;
       
       trends.push({
-        date: new Date(dayStart).toISOString().split('T')[0],
+        date: new Date(dayStart).toISOString().split('T')[0] ?? '',
         metrics: {
           totalTests,
           successRate,
@@ -332,7 +334,7 @@ export class TestAnalyticsCollector {
         }
       });
     }
-    
+
     return trends;
   }
 
@@ -342,7 +344,7 @@ export class TestAnalyticsCollector {
   exportData(): {
     metrics: TestMetrics[];
     flakyTests: FlakyTestData[];
-    analytics: ReturnType<typeof this.getOverallAnalytics>;
+    analytics: ReturnType<TestAnalyticsCollector['getOverallAnalytics']>;
   } {
     return {
       metrics: [...this.metrics],
@@ -516,7 +518,7 @@ export class AnalyticsReporter {
   }
 
   onTestStart(test: any): void {
-    this.collector.startTest(test.name, test.suite?.name || 'unknown', test.file || '');
+    this.collector.startTest(test.name, test.suite?.name || 'unknown');
   }
 
   onTestFinished(test: any): void {

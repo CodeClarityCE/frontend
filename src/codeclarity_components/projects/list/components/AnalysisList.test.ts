@@ -102,8 +102,8 @@ describe('AnalysisList', () => {
         const analysisItems = wrapper.findAllComponents({ name: 'AnalysisItem' });
         expect(analysisItems.length).toBeGreaterThan(0);
         // The component sorts by date, so analysis-3 (most recent) should be first
-        expect(analysisItems[0].props().analysis).toEqual(mockAnalyses[2]);
-        expect(analysisItems[0].props().projectID).toBe('project-1');
+        expect(analysisItems[0]!.props().analysis).toEqual(mockAnalyses[2]!);
+        expect(analysisItems[0]!.props().projectID).toBe('project-1');
     });
 
     it('shows expand button when there are multiple analyses', () => {
@@ -122,7 +122,7 @@ describe('AnalysisList', () => {
     it('hides expand button when there is only one analysis', () => {
         wrapper = mount(AnalysisList, {
             props: {
-                analyses: [mockAnalyses[0]],
+                analyses: [mockAnalyses[0]!],
                 projectID: 'project-1'
             }
         });
@@ -201,8 +201,8 @@ describe('AnalysisList', () => {
 
         const analysisItem = wrapper.findComponent({ name: 'AnalysisItem' });
         // The component sorts by date, so analysis-3 (most recent) should be first
-        expect(analysisItem.props().analysis).toEqual(mockAnalyses[2]);
-        expect(analysisItem.props().projectID).toBe('test-project-id');
+        expect(analysisItem?.props().analysis).toEqual(mockAnalyses[2]!);
+        expect(analysisItem?.props().projectID).toBe('test-project-id');
     });
 
     it('uses default props when not provided', () => {
@@ -243,7 +243,7 @@ describe('AnalysisList', () => {
     it('maintains reactive state correctly', async () => {
         wrapper = mount(AnalysisList, {
             props: {
-                analyses: [mockAnalyses[0]],
+                analyses: [mockAnalyses[0]!],
                 projectID: 'project-1'
             }
         });

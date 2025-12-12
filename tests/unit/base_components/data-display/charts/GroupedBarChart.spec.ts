@@ -4,8 +4,16 @@ import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarCha
 import type { GroupedBarChartData, GroupedBarChartOptions } from '@/base_components/data-display'
 
 // Create comprehensive D3 mock chain
-const createMockNode = (): any => {
-  const node = {
+interface MockNode {
+  append: ReturnType<typeof vi.fn>;
+  attr: ReturnType<typeof vi.fn>;
+  style: ReturnType<typeof vi.fn>;
+  text: ReturnType<typeof vi.fn>;
+  selectAll: ReturnType<typeof vi.fn>;
+}
+
+const createMockNode = (): MockNode => {
+  const node: MockNode = {
     append: vi.fn(() => node),
     attr: vi.fn(() => node),
     style: vi.fn(() => node),
@@ -25,21 +33,26 @@ const createMockNode = (): any => {
 
 const mockSvgNode = createMockNode()
 
-const mockScale = vi.fn((value: any) => {
+interface MockScale {
+  (value: string | number): number;
+  bandwidth?: ReturnType<typeof vi.fn>;
+}
+
+const mockScale = vi.fn((value: string | number) => {
   if (typeof value === 'string') return 50 // For band scale
   return 100 - value * 10 // For linear scale (inverted)
-}) as any
+}) as MockScale
 mockScale.bandwidth = vi.fn(() => 40)
 
 // Mock D3 with proper chaining
 const mockBandScale = {
-  range: vi.fn(function() { return this }),
-  domain: vi.fn(function() { return this }),
+  range: vi.fn(function(this: typeof mockBandScale) { return this }),
+  domain: vi.fn(function(this: typeof mockBandScale) { return this }),
   padding: vi.fn(() => mockScale)
 }
 
 const mockLinearScale = {
-  domain: vi.fn(function() { return this }),
+  domain: vi.fn(function(this: typeof mockLinearScale) { return this }),
   range: vi.fn(() => mockScale)
 }
 
@@ -186,7 +199,7 @@ describe('GroupedBarChart', () => {
       })
 
       expect(wrapper.props().data.groups).toHaveLength(1)
-      expect(wrapper.props().data.groups[0].name).toBe('OnlyGroup')
+      expect(wrapper.props().data.groups[0]!.name).toBe('OnlyGroup')
     })
 
     it('handles data with zero values', () => {
@@ -205,8 +218,8 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].data).toEqual([0, 0])
-      expect(wrapper.props().data.groups[1].data).toEqual([5, 3])
+      expect(wrapper.props().data.groups[0]!.data).toEqual([0, 0])
+      expect(wrapper.props().data.groups[1]!.data).toEqual([5, 3])
     })
 
     it('handles mismatched data array lengths', () => {
@@ -225,8 +238,8 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].data).toHaveLength(2)
-      expect(wrapper.props().data.groups[1].data).toHaveLength(4)
+      expect(wrapper.props().data.groups[0]!.data).toHaveLength(2)
+      expect(wrapper.props().data.groups[1]!.data).toHaveLength(4)
     })
 
     it('handles large numbers', () => {
@@ -244,7 +257,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].data[0]).toBe(999999)
+      expect(wrapper.props().data.groups[0]!.data[0]).toBe(999999)
     })
 
     it('handles negative values', () => {
@@ -262,7 +275,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].data).toEqual([-5, 10])
+      expect(wrapper.props().data.groups[0]!.data).toEqual([-5, 10])
     })
   })
 
@@ -439,7 +452,7 @@ describe('GroupedBarChart', () => {
       const wrapper = mount(GroupedBarChart, {
         props: {
           ...defaultProps,
-          id: undefined as any
+          id: undefined as unknown as string
         }
       })
 
@@ -461,7 +474,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].data[0]).toBe(0.001)
+      expect(wrapper.props().data.groups[0]!.data[0]).toBe(0.001)
     })
 
     it('handles long category names', () => {
@@ -479,7 +492,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.categories[0]).toBe('Very Long Category Name That Might Cause Layout Issues')
+      expect(wrapper.props().data.categories[0]!).toBe('Very Long Category Name That Might Cause Layout Issues')
     })
 
     it('handles long group names', () => {
@@ -497,7 +510,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].name).toBe('Very Long Group Name That Might Cause Issues')
+      expect(wrapper.props().data.groups[0]!.name).toBe('Very Long Group Name That Might Cause Issues')
     })
 
     it('handles special characters in names', () => {
@@ -515,8 +528,8 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.categories[0]).toBe('Category@#$%')
-      expect(wrapper.props().data.groups[0].name).toBe('Group!@#')
+      expect(wrapper.props().data.categories[0]!).toBe('Category@#$%')
+      expect(wrapper.props().data.groups[0]!.name).toBe('Group!@#')
     })
 
     it('handles invalid color values gracefully', () => {
@@ -534,7 +547,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].color).toBe('not-a-color')
+      expect(wrapper.props().data.groups[0]!.color).toBe('not-a-color')
     })
 
     it('handles empty data arrays', () => {
@@ -552,7 +565,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.groups[0].data).toEqual([])
+      expect(wrapper.props().data.groups[0]!.data).toEqual([])
     })
   })
 
@@ -613,8 +626,8 @@ describe('GroupedBarChart', () => {
 
       const groups = wrapper.props().data.groups
       expect(Array.isArray(groups)).toBe(true)
-      
-      groups.forEach((group: any) => {
+
+      groups.forEach((group: { name: string; color: string; data: number[] }) => {
         expect(typeof group.name).toBe('string')
         expect(typeof group.color).toBe('string')
         expect(Array.isArray(group.data)).toBe(true)
@@ -627,8 +640,8 @@ describe('GroupedBarChart', () => {
       })
 
       const groups = wrapper.props().data.groups
-      groups.forEach((group: any) => {
-        group.data.forEach((value: any) => {
+      groups.forEach((group: { name: string; color: string; data: number[] }) => {
+        group.data.forEach((value: number) => {
           expect(typeof value).toBe('number')
         })
       })

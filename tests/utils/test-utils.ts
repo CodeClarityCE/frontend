@@ -73,6 +73,11 @@ export const mockStores = {
     authenticated: true,
     token: 'mock-token',
     refreshToken: 'mock-refresh-token',
+    setToken: vi.fn(),
+    setRefreshToken: vi.fn(),
+    setTokenExpiry: vi.fn(),
+    setRefreshTokenExpiry: vi.fn(),
+    setSocialAuthState: vi.fn(),
     $reset: vi.fn()
   },
   router: {

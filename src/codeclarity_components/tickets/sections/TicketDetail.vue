@@ -15,12 +15,7 @@ import {
     AccordionItem,
     AccordionTrigger
 } from '@/shadcn/ui/accordion';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger
-} from '@/shadcn/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { TicketsRepository } from '../tickets.repository';
@@ -298,11 +293,7 @@ const riskBannerConfig = computed((): RiskConfig => {
 
 // Check if we have any scores to show in risk overview
 const hasRiskScores = computed(() => {
-    return (
-        cvssData.value ||
-        epssFormatted.value ||
-        props.vulnerabilityDetails?.other?.vlai_score
-    );
+    return cvssData.value || epssFormatted.value || props.vulnerabilityDetails?.other?.vlai_score;
 });
 
 // Get OWASP info if available
@@ -388,7 +379,10 @@ onMounted(() => {
                     </div>
                     <!-- CVE ID Link (only if not already in title) -->
                     <a
-                        v-if="ticket.vulnerability_id && !ticket.title.includes(ticket.vulnerability_id)"
+                        v-if="
+                            ticket.vulnerability_id &&
+                            !ticket.title.includes(ticket.vulnerability_id)
+                        "
                         :href="`https://nvd.nist.gov/vuln/detail/${ticket.vulnerability_id}`"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -402,7 +396,11 @@ onMounted(() => {
                 <!-- Risk Banner (shown when vulnerability details available) -->
                 <div
                     v-if="vulnerabilityDetails && hasRiskScores && !isLoadingVulnDetails"
-                    :class="['flex items-center gap-3 p-4 rounded-lg', riskBannerConfig.bg, riskBannerConfig.text]"
+                    :class="[
+                        'flex items-center gap-3 p-4 rounded-lg',
+                        riskBannerConfig.bg,
+                        riskBannerConfig.text
+                    ]"
                 >
                     <Icon :icon="riskBannerConfig.icon" class="w-6 h-6 flex-shrink-0" />
                     <div>
@@ -437,27 +435,39 @@ onMounted(() => {
                                         />
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                <TooltipContent
+                                    class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4"
+                                    side="bottom"
+                                >
                                     <div class="space-y-2">
                                         <h5 class="font-semibold">CVSS Score</h5>
                                         <p class="text-sm text-gray-600">
-                                            Common Vulnerability Scoring System - industry standard for assessing severity.
+                                            Common Vulnerability Scoring System - industry standard
+                                            for assessing severity.
                                         </p>
                                         <div class="text-xs space-y-1 mt-2">
                                             <div class="flex items-center gap-2">
-                                                <span class="w-2.5 h-2.5 rounded bg-black flex-shrink-0"></span>
+                                                <span
+                                                    class="w-2.5 h-2.5 rounded bg-black flex-shrink-0"
+                                                ></span>
                                                 <span>Critical: 9.0-10.0</span>
                                             </div>
                                             <div class="flex items-center gap-2">
-                                                <span class="w-2.5 h-2.5 rounded bg-red-600 flex-shrink-0"></span>
+                                                <span
+                                                    class="w-2.5 h-2.5 rounded bg-red-600 flex-shrink-0"
+                                                ></span>
                                                 <span>High: 7.0-8.9</span>
                                             </div>
                                             <div class="flex items-center gap-2">
-                                                <span class="w-2.5 h-2.5 rounded bg-amber-500 flex-shrink-0"></span>
+                                                <span
+                                                    class="w-2.5 h-2.5 rounded bg-amber-500 flex-shrink-0"
+                                                ></span>
                                                 <span>Medium: 4.0-6.9</span>
                                             </div>
                                             <div class="flex items-center gap-2">
-                                                <span class="w-2.5 h-2.5 rounded bg-green-500 flex-shrink-0"></span>
+                                                <span
+                                                    class="w-2.5 h-2.5 rounded bg-green-500 flex-shrink-0"
+                                                ></span>
                                                 <span>Low: 0.1-3.9</span>
                                             </div>
                                         </div>
@@ -477,17 +487,29 @@ onMounted(() => {
                                             label="EPSS"
                                             type="epss"
                                             size="md"
-                                            :sublabel="epssFormatted.percentile ? 'Top ' + epssFormatted.percentile : ''"
+                                            :sublabel="
+                                                epssFormatted.percentile
+                                                    ? 'Top ' + epssFormatted.percentile
+                                                    : ''
+                                            "
                                         />
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                <TooltipContent
+                                    class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4"
+                                    side="bottom"
+                                >
                                     <div class="space-y-2">
                                         <h5 class="font-semibold">EPSS Score</h5>
                                         <p class="text-sm text-gray-600">
-                                            Exploit Prediction Scoring System - probability this vulnerability will be exploited in the wild within 30 days.
+                                            Exploit Prediction Scoring System - probability this
+                                            vulnerability will be exploited in the wild within 30
+                                            days.
                                         </p>
-                                        <div v-if="epssFormatted.percentile" class="text-xs text-gray-500 mt-2">
+                                        <div
+                                            v-if="epssFormatted.percentile"
+                                            class="text-xs text-gray-500 mt-2"
+                                        >
                                             Percentile: {{ epssFormatted.percentile }} of all CVEs
                                         </div>
                                     </div>
@@ -501,7 +523,11 @@ onMounted(() => {
                                 <TooltipTrigger as-child>
                                     <div class="cursor-help">
                                         <RiskScoreGauge
-                                            :score="getVlaiNumericScore(vulnerabilityDetails.other.vlai_score)"
+                                            :score="
+                                                getVlaiNumericScore(
+                                                    vulnerabilityDetails.other.vlai_score
+                                                )
+                                            "
                                             :max-score="10"
                                             label="VLAI"
                                             type="vlai"
@@ -510,14 +536,26 @@ onMounted(() => {
                                         />
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                <TooltipContent
+                                    class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4"
+                                    side="bottom"
+                                >
                                     <div class="space-y-2">
                                         <h5 class="font-semibold">VLAI Score</h5>
                                         <p class="text-sm text-gray-600">
-                                            AI-powered risk assessment considering real-world exploitability and context.
+                                            AI-powered risk assessment considering real-world
+                                            exploitability and context.
                                         </p>
-                                        <div v-if="vulnerabilityDetails.other.vlai_confidence" class="text-xs text-gray-500 mt-2">
-                                            Confidence: {{ (vulnerabilityDetails.other.vlai_confidence * 100).toFixed(0) }}%
+                                        <div
+                                            v-if="vulnerabilityDetails.other.vlai_confidence"
+                                            class="text-xs text-gray-500 mt-2"
+                                        >
+                                            Confidence:
+                                            {{
+                                                (
+                                                    vulnerabilityDetails.other.vlai_confidence * 100
+                                                ).toFixed(0)
+                                            }}%
                                         </div>
                                     </div>
                                 </TooltipContent>
@@ -536,7 +574,8 @@ onMounted(() => {
                                     <div
                                         :class="[
                                             'inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium cursor-help',
-                                            owaspInfo?.color || 'bg-gray-50 border-gray-200 text-gray-800'
+                                            owaspInfo?.color ||
+                                                'bg-gray-50 border-gray-200 text-gray-800'
                                         ]"
                                     >
                                         <Icon icon="simple-icons:owasp" class="w-4 h-4" />
@@ -546,19 +585,31 @@ onMounted(() => {
                                         </span>
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent class="max-w-sm !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                <TooltipContent
+                                    class="max-w-sm !bg-white !text-gray-900 border shadow-lg p-4"
+                                    side="bottom"
+                                >
                                     <div class="space-y-2">
                                         <div class="flex items-center gap-2">
-                                            <Icon icon="simple-icons:owasp" class="w-4 h-4 text-orange-600" />
+                                            <Icon
+                                                icon="simple-icons:owasp"
+                                                class="w-4 h-4 text-orange-600"
+                                            />
                                             <span class="font-semibold">
                                                 OWASP Top 10 - {{ owaspInfo?.id }}
                                             </span>
                                         </div>
                                         <h5 class="font-medium">{{ owaspInfo?.name }}</h5>
-                                        <p class="text-sm text-gray-600">{{ owaspInfo?.description }}</p>
+                                        <p class="text-sm text-gray-600">
+                                            {{ owaspInfo?.description }}
+                                        </p>
                                         <div class="pt-2 border-t border-gray-100">
-                                            <p class="text-xs font-medium text-gray-700">Potential Impact:</p>
-                                            <p class="text-xs text-gray-600">{{ owaspInfo?.impact }}</p>
+                                            <p class="text-xs font-medium text-gray-700">
+                                                Potential Impact:
+                                            </p>
+                                            <p class="text-xs text-gray-600">
+                                                {{ owaspInfo?.impact }}
+                                            </p>
                                         </div>
                                     </div>
                                 </TooltipContent>
@@ -573,7 +624,10 @@ onMounted(() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <p class="text-xs text-gray-500">Package</p>
-                            <p class="text-sm text-gray-900 truncate" :title="ticket.affected_package">
+                            <p
+                                class="text-sm text-gray-900 truncate"
+                                :title="ticket.affected_package"
+                            >
                                 {{ ticket.affected_package }}
                             </p>
                         </div>
@@ -605,17 +659,29 @@ onMounted(() => {
                     class="space-y-2"
                 >
                     <!-- CVSS Details Section -->
-                    <AccordionItem v-if="cvssData" value="cvss-details" class="border rounded-lg overflow-hidden">
-                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                    <AccordionItem
+                        v-if="cvssData"
+                        value="cvss-details"
+                        class="border rounded-lg overflow-hidden"
+                    >
+                        <AccordionTrigger
+                            class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
+                        >
                             <div class="flex items-center gap-2 text-sm font-medium">
-                                <Icon icon="solar:shield-check-bold" class="w-4 h-4 text-gray-600" />
+                                <Icon
+                                    icon="solar:shield-check-bold"
+                                    class="w-4 h-4 text-gray-600"
+                                />
                                 CVSS v{{ cvssData.version }} Breakdown
                             </div>
                         </AccordionTrigger>
                         <AccordionContent class="px-4 pb-4 pt-2">
                             <!-- Exploitability & Impact Sub-scores -->
                             <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div v-if="cvssData.data.exploitability_score" class="bg-white rounded-lg p-3 border">
+                                <div
+                                    v-if="cvssData.data.exploitability_score"
+                                    class="bg-white rounded-lg p-3 border"
+                                >
                                     <ScoreProgressBar
                                         :value="cvssData.data.exploitability_score"
                                         :max="3.9"
@@ -624,7 +690,10 @@ onMounted(() => {
                                         size="sm"
                                     />
                                 </div>
-                                <div v-if="cvssData.data.impact_score" class="bg-white rounded-lg p-3 border">
+                                <div
+                                    v-if="cvssData.data.impact_score"
+                                    class="bg-white rounded-lg p-3 border"
+                                >
                                     <ScoreProgressBar
                                         :value="cvssData.data.impact_score"
                                         :max="6.1"
@@ -637,7 +706,10 @@ onMounted(() => {
 
                             <!-- CVSS Vector Components -->
                             <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div v-if="cvssData.data.attack_vector" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.attack_vector"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">Attack Vector</span>
                                     <span
                                         class="font-medium"
@@ -646,7 +718,10 @@ onMounted(() => {
                                         {{ cvssData.data.attack_vector }}
                                     </span>
                                 </div>
-                                <div v-if="cvssData.data.attack_complexity" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.attack_complexity"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">Attack Complexity</span>
                                     <span
                                         class="font-medium"
@@ -655,16 +730,24 @@ onMounted(() => {
                                         {{ cvssData.data.attack_complexity }}
                                     </span>
                                 </div>
-                                <div v-if="cvssData.data.privileges_required" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.privileges_required"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">Privileges Required</span>
                                     <span
                                         class="font-medium"
-                                        :class="getCvssValueColor(cvssData.data.privileges_required)"
+                                        :class="
+                                            getCvssValueColor(cvssData.data.privileges_required)
+                                        "
                                     >
                                         {{ cvssData.data.privileges_required }}
                                     </span>
                                 </div>
-                                <div v-if="cvssData.data.user_interaction" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.user_interaction"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">User Interaction</span>
                                     <span
                                         class="font-medium"
@@ -682,16 +765,24 @@ onMounted(() => {
                                         {{ cvssData.data.scope }}
                                     </span>
                                 </div>
-                                <div v-if="cvssData.data.confidentiality_impact" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.confidentiality_impact"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">Confidentiality</span>
                                     <span
                                         class="font-medium"
-                                        :class="getCvssValueColor(cvssData.data.confidentiality_impact)"
+                                        :class="
+                                            getCvssValueColor(cvssData.data.confidentiality_impact)
+                                        "
                                     >
                                         {{ cvssData.data.confidentiality_impact }}
                                     </span>
                                 </div>
-                                <div v-if="cvssData.data.integrity_impact" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.integrity_impact"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">Integrity</span>
                                     <span
                                         class="font-medium"
@@ -700,11 +791,16 @@ onMounted(() => {
                                         {{ cvssData.data.integrity_impact }}
                                     </span>
                                 </div>
-                                <div v-if="cvssData.data.availability_impact" class="flex justify-between py-1">
+                                <div
+                                    v-if="cvssData.data.availability_impact"
+                                    class="flex justify-between py-1"
+                                >
                                     <span class="text-gray-500">Availability</span>
                                     <span
                                         class="font-medium"
-                                        :class="getCvssValueColor(cvssData.data.availability_impact)"
+                                        :class="
+                                            getCvssValueColor(cvssData.data.availability_impact)
+                                        "
                                     >
                                         {{ cvssData.data.availability_impact }}
                                     </span>
@@ -719,7 +815,9 @@ onMounted(() => {
                         value="weaknesses"
                         class="border rounded-lg overflow-hidden"
                     >
-                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                        <AccordionTrigger
+                            class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
+                        >
                             <div class="flex items-center gap-2 text-sm font-medium">
                                 <Icon icon="solar:bug-bold" class="w-4 h-4 text-gray-600" />
                                 Weaknesses ({{ vulnerabilityDetails.weaknesses.length }})
@@ -733,12 +831,19 @@ onMounted(() => {
                                     class="bg-white rounded-lg p-3 border"
                                 >
                                     <div class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                        <span
+                                            class="font-mono text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
+                                        >
                                             {{ weakness.id }}
                                         </span>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900">{{ weakness.name }}</p>
-                                            <p v-if="weakness.description" class="text-xs text-gray-500 mt-1 line-clamp-2">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                {{ weakness.name }}
+                                            </p>
+                                            <p
+                                                v-if="weakness.description"
+                                                class="text-xs text-gray-500 mt-1 line-clamp-2"
+                                            >
                                                 {{ weakness.description }}
                                             </p>
                                         </div>
@@ -754,9 +859,14 @@ onMounted(() => {
                         value="locations"
                         class="border rounded-lg overflow-hidden"
                     >
-                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                        <AccordionTrigger
+                            class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
+                        >
                             <div class="flex items-center gap-2 text-sm font-medium">
-                                <Icon icon="solar:folder-path-connect-bold" class="w-4 h-4 text-gray-600" />
+                                <Icon
+                                    icon="solar:folder-path-connect-bold"
+                                    class="w-4 h-4 text-gray-600"
+                                />
                                 Affected Locations ({{ vulnerabilityDetails.location.length }})
                             </div>
                         </AccordionTrigger>
@@ -767,8 +877,13 @@ onMounted(() => {
                                     :key="index"
                                     class="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border font-mono text-xs"
                                 >
-                                    <Icon icon="solar:document-text-linear" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                    <span class="truncate text-gray-700" :title="path">{{ path }}</span>
+                                    <Icon
+                                        icon="solar:document-text-linear"
+                                        class="w-4 h-4 text-gray-400 flex-shrink-0"
+                                    />
+                                    <span class="truncate text-gray-700" :title="path">{{
+                                        path
+                                    }}</span>
                                 </div>
                             </div>
                         </AccordionContent>
@@ -780,7 +895,9 @@ onMounted(() => {
                         value="references"
                         class="border rounded-lg overflow-hidden"
                     >
-                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                        <AccordionTrigger
+                            class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
+                        >
                             <div class="flex items-center gap-2 text-sm font-medium">
                                 <Icon icon="solar:link-bold" class="w-4 h-4 text-gray-600" />
                                 References ({{ vulnerabilityDetails.references.length }})
@@ -796,7 +913,10 @@ onMounted(() => {
                                     rel="noopener noreferrer"
                                     class="flex items-center gap-2 px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                 >
-                                    <Icon icon="solar:arrow-right-up-linear" class="w-3 h-3 flex-shrink-0" />
+                                    <Icon
+                                        icon="solar:arrow-right-up-linear"
+                                        class="w-3 h-3 flex-shrink-0"
+                                    />
                                     <span class="truncate">{{ reference.url }}</span>
                                 </a>
                             </div>

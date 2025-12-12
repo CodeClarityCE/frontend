@@ -83,16 +83,16 @@ describe('MainNav', () => {
 
     it('renders Projects link', () => {
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const projectsLink = links.find(link => link.text() === 'Projects');
+      const projectsLink = links.find((link: any) => link.text() === 'Projects');
       expect(projectsLink).toBeTruthy();
-      expect(projectsLink.props('to')).toEqual({ name: 'projects', params: {}, query: {} });
+      expect(projectsLink!.props('to')).toEqual({ name: 'projects', params: {}, query: {} });
     });
 
     it('initially shows Dashboard, Projects, and Tickets links', () => {
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
       expect(links).toHaveLength(3);
 
-      const linkTexts = links.map(link => link.text());
+      const linkTexts = links.map((link: any) => link.text());
       expect(linkTexts).toContain('Dashboard');
       expect(linkTexts).toContain('Projects');
       expect(linkTexts).toContain('Tickets');
@@ -106,31 +106,31 @@ describe('MainNav', () => {
       mockStateStore.page = 'results';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const resultsLink = links.find(link => link.text() === 'Results');
+      const resultsLink = links.find((link: any) => link.text() === 'Results');
       expect(resultsLink).toBeTruthy();
-      expect(resultsLink.props('to')).toEqual({ name: 'results', params: {}, query: {} });
+      expect(resultsLink!.props('to')).toEqual({ name: 'results', params: {}, query: {} });
     });
 
     it('shows Settings link when page is settings', async () => {
       mockStateStore.page = 'settings';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const settingsLink = links.find(link => link.text() === 'Settings');
+      const settingsLink = links.find((link: any) => link.text() === 'Settings');
       expect(settingsLink).toBeTruthy();
-      expect(settingsLink.props('to')).toEqual({ name: 'settings', params: {}, query: {} });
+      expect(settingsLink!.props('to')).toEqual({ name: 'settings', params: {}, query: {} });
     });
 
     it('hides Results link when page is not results', async () => {
       mockStateStore.page = 'dashboard';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const resultsLink = links.find(link => link.text() === 'Results');
+      const resultsLink = links.find((link: any) => link.text() === 'Results');
       expect(resultsLink).toBeFalsy();
     });
 
@@ -138,9 +138,9 @@ describe('MainNav', () => {
       mockStateStore.page = 'dashboard';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const settingsLink = links.find(link => link.text() === 'Settings');
+      const settingsLink = links.find((link: any) => link.text() === 'Settings');
       expect(settingsLink).toBeFalsy();
     });
   });
@@ -185,13 +185,13 @@ describe('MainNav', () => {
       mockStateStore.page = 'projects';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const projectsLink = links.find(link => link.text() === 'Projects');
-      expect(projectsLink.classes()).toContain('text-gray-900');
-      expect(projectsLink.classes()).toContain('font-semibold');
-      
-      const indicator = projectsLink.find('.absolute.bottom-0');
+      const projectsLink = links.find((link: any) => link.text() === 'Projects');
+      expect(projectsLink!.classes()).toContain('text-gray-900');
+      expect(projectsLink!.classes()).toContain('font-semibold');
+
+      const indicator = projectsLink!.find('.absolute.bottom-0');
       expect(indicator.exists()).toBe(true);
     });
 
@@ -199,22 +199,22 @@ describe('MainNav', () => {
       mockStateStore.page = 'results';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const resultsLink = links.find(link => link.text() === 'Results');
-      expect(resultsLink.classes()).toContain('text-gray-900');
-      expect(resultsLink.classes()).toContain('font-semibold');
+      const resultsLink = links.find((link: any) => link.text() === 'Results');
+      expect(resultsLink!.classes()).toContain('text-gray-900');
+      expect(resultsLink!.classes()).toContain('font-semibold');
     });
 
     it('applies active styling to Settings when page is settings', async () => {
       mockStateStore.page = 'settings';
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      const settingsLink = links.find(link => link.text() === 'Settings');
-      expect(settingsLink.classes()).toContain('text-gray-900');
-      expect(settingsLink.classes()).toContain('font-semibold');
+      const settingsLink = links.find((link: any) => link.text() === 'Settings');
+      expect(settingsLink!.classes()).toContain('text-gray-900');
+      expect(settingsLink!.classes()).toContain('font-semibold');
     });
   });
 
@@ -225,7 +225,7 @@ describe('MainNav', () => {
 
     it('applies correct base styling to all links', () => {
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
-      links.forEach(link => {
+      links.forEach((link: any) => {
         expect(link.classes()).toContain('text-sm');
         expect(link.classes()).toContain('font-medium');
         expect(link.classes()).toContain('transition-all');
@@ -263,10 +263,10 @@ describe('MainNav', () => {
     });
 
     it('handles undefined page state gracefully', async () => {
-      mockStateStore.page = undefined;
+      mockStateStore.page = undefined as any;
       wrapper = createWrapper();
       await wrapper.vm.$nextTick();
-      
+
       expect(wrapper.exists()).toBe(true);
       const links = wrapper.findAllComponents({ name: 'RouterLink' });
       expect(links.length).toBeGreaterThan(0);

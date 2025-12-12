@@ -169,7 +169,7 @@ describe('RadarChart', () => {
 
       expect(wrapper.props().data).toEqual(mockData)
       expect(wrapper.props().data).toHaveLength(2)
-      expect(wrapper.props().data[0].axes).toHaveLength(5)
+      expect(wrapper.props().data[0]!.axes).toHaveLength(5)
     })
 
     it('handles single dataset', () => {
@@ -218,7 +218,7 @@ describe('RadarChart', () => {
       })
 
       expect(wrapper.props().data).toHaveLength(3)
-      expect(wrapper.props().data[2].name).toBe('Dataset 3')
+      expect(wrapper.props().data[2]!.name).toBe('Dataset 3')
     })
 
     it('handles data with zero values', () => {
@@ -239,8 +239,8 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].value).toBe(0)
-      expect(wrapper.props().data[0].axes[1].value).toBe(25)
+      expect(wrapper.props().data[0]!.axes[0]!.value).toBe(0)
+      expect(wrapper.props().data[0]!.axes[1]!.value).toBe(25)
     })
 
     it('handles data with large values', () => {
@@ -260,7 +260,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].value).toBe(999999)
+      expect(wrapper.props().data[0]!.axes[0]!.value).toBe(999999)
     })
 
     it('handles data with decimal values', () => {
@@ -280,7 +280,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].value).toBe(33.33)
+      expect(wrapper.props().data[0]!.axes[0]!.value).toBe(33.33)
     })
 
     it('handles axes with optional id property', () => {
@@ -300,7 +300,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].id).toBe('metric-1')
+      expect(wrapper.props().data[0]!.axes[0]!.id).toBe('metric-1')
     })
   })
 
@@ -487,7 +487,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes).toEqual([])
+      expect(wrapper.props().data[0]!.axes).toEqual([])
     })
 
     it('handles very long dataset names', () => {
@@ -507,7 +507,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].name).toBe('Very Long Dataset Name That Might Cause Layout Issues In The Chart')
+      expect(wrapper.props().data[0]!.name).toBe('Very Long Dataset Name That Might Cause Layout Issues In The Chart')
     })
 
     it('handles very long axis names', () => {
@@ -527,7 +527,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].axis).toBe('Very Long Axis Name That Might Cause Layout Issues')
+      expect(wrapper.props().data[0]!.axes[0]!.axis).toBe('Very Long Axis Name That Might Cause Layout Issues')
     })
 
     it('handles special characters in names', () => {
@@ -547,8 +547,8 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].name).toBe('Dataset@#$%')
-      expect(wrapper.props().data[0].axes[0].axis).toBe('Metric!@#')
+      expect(wrapper.props().data[0]!.name).toBe('Dataset@#$%')
+      expect(wrapper.props().data[0]!.axes[0]!.axis).toBe('Metric!@#')
     })
 
     it('handles negative values gracefully', () => {
@@ -569,8 +569,8 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].value).toBe(-10)
-      expect(wrapper.props().data[0].axes[1].value).toBe(20)
+      expect(wrapper.props().data[0]!.axes[0]!.value).toBe(-10)
+      expect(wrapper.props().data[0]!.axes[1]!.value).toBe(20)
     })
 
     it('handles extremely small decimal values', () => {
@@ -590,7 +590,7 @@ describe('RadarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].axes[0].value).toBe(0.000001)
+      expect(wrapper.props().data[0]!.axes[0]!.value).toBe(0.000001)
     })
 
     it('handles undefined id gracefully', () => {

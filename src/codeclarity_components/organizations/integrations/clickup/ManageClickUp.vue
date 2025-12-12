@@ -188,18 +188,12 @@ onMounted(() => {
                 v-else-if="!clickUpConfig"
                 class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-xl"
             >
-                <Icon
-                    icon="simple-icons:clickup"
-                    class="w-16 h-16 text-gray-300 mb-4"
-                />
+                <Icon icon="simple-icons:clickup" class="w-16 h-16 text-gray-300 mb-4" />
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">No ClickUp Integration</h3>
                 <p class="text-gray-600 mb-6 text-center max-w-md">
                     You haven't configured a ClickUp integration yet. Click below to set it up.
                 </p>
-                <Button
-                    class="bg-purple-600 hover:bg-purple-700"
-                    @click="showConfigModal = true"
-                >
+                <Button class="bg-purple-600 hover:bg-purple-700" @click="showConfigModal = true">
                     <Icon icon="simple-icons:clickup" class="mr-2" />
                     Configure ClickUp
                 </Button>
@@ -307,7 +301,9 @@ onMounted(() => {
                                         ? 'solar:check-circle-bold'
                                         : 'solar:close-circle-bold'
                                 "
-                                :variant="clickUpConfig?.auto_sync_on_create ? 'success' : 'default'"
+                                :variant="
+                                    clickUpConfig?.auto_sync_on_create ? 'success' : 'default'
+                                "
                                 subtitle="New tickets"
                             />
 
@@ -319,7 +315,9 @@ onMounted(() => {
                                         ? 'solar:check-circle-bold'
                                         : 'solar:close-circle-bold'
                                 "
-                                :variant="clickUpConfig?.sync_status_changes ? 'success' : 'default'"
+                                :variant="
+                                    clickUpConfig?.sync_status_changes ? 'success' : 'default'
+                                "
                                 subtitle="Changes sync"
                             />
                         </div>
@@ -337,12 +335,13 @@ onMounted(() => {
                                 <div
                                     class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
                                 >
-                                    <Icon icon="solar:ticket-bold" class="text-purple-600 text-sm" />
+                                    <Icon
+                                        icon="solar:ticket-bold"
+                                        class="text-purple-600 text-sm"
+                                    />
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-gray-900">
-                                        Go to Tickets
-                                    </h4>
+                                    <h4 class="font-semibold text-gray-900">Go to Tickets</h4>
                                     <p class="text-sm text-gray-600">
                                         View your tickets and sync them to ClickUp
                                     </p>

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { interpolateColors, type ColorsInterpolateOptions } from '@/base_components/data-display/charts/colors-waffle'
 
 describe('colors-waffle utilities', () => {
@@ -150,8 +150,8 @@ describe('colors-waffle utilities', () => {
         // Points should be: 100, 66.666..., 33.333...
         expect(mockColorScale).toHaveBeenNthCalledWith(1, 100)
         // Use approximate matching for floating point numbers
-        const secondCall = mockColorScale.mock.calls[1][0]
-        const thirdCall = mockColorScale.mock.calls[2][0]
+        const secondCall = mockColorScale.mock.calls[1]![0]
+        const thirdCall = mockColorScale.mock.calls[2]![0]
         expect(Math.abs(secondCall - 66.66666666666667)).toBeLessThan(0.0001)
         expect(Math.abs(thirdCall - 33.333333333333336)).toBeLessThan(0.0001)
       })
@@ -193,10 +193,10 @@ describe('colors-waffle utilities', () => {
 
           // Check that the interval between calls is correct
           for (let i = 1; i < dataLength; i++) {
-            const currentCall = mockColorScale.mock.calls[i][0]
-            const previousCall = mockColorScale.mock.calls[i - 1][0]
+            const currentCall = mockColorScale.mock.calls[i]![0]
+            const previousCall = mockColorScale.mock.calls[i - 1]![0]
             const actualInterval = currentCall - previousCall
-            
+
             expect(Math.abs(actualInterval - expectedInterval)).toBeLessThan(0.0001)
           }
         })
@@ -214,11 +214,11 @@ describe('colors-waffle utilities', () => {
         // For 4 items from 0.1 to 0.9: interval = 0.2
         // Use approximate matching for floating point precision
         expect(mockColorScale).toHaveBeenNthCalledWith(1, 0.1)
-        
+
         const calls = mockColorScale.mock.calls.map(call => call[0])
-        expect(Math.abs(calls[1] - 0.3)).toBeLessThan(0.0001)
-        expect(Math.abs(calls[2] - 0.5)).toBeLessThan(0.0001)
-        expect(Math.abs(calls[3] - 0.7)).toBeLessThan(0.0001)
+        expect(Math.abs(calls[1]! - 0.3)).toBeLessThan(0.0001)
+        expect(Math.abs(calls[2]! - 0.5)).toBeLessThan(0.0001)
+        expect(Math.abs(calls[3]! - 0.7)).toBeLessThan(0.0001)
       })
     })
 
@@ -261,15 +261,15 @@ describe('colors-waffle utilities', () => {
           useEndAsStart: false
         }
 
-        const result = interpolateColors(2, complexColorScale, options)
-        
+        const result = interpolateColors(2, complexColorScale as any, options)
+
         expect(result).toHaveLength(2)
-        expect(result[0].r).toBe(10)
-        expect(result[0].g).toBe(20)
-        expect(result[0].b).toBe(30)
-        expect(result[1].r).toBe(20)
-        expect(result[1].g).toBe(40)
-        expect(result[1].b).toBe(60)
+        expect((result[0] as any).r).toBe(10)
+        expect((result[0] as any).g).toBe(20)
+        expect((result[0] as any).b).toBe(30)
+        expect((result[1] as any).r).toBe(20)
+        expect((result[1] as any).g).toBe(40)
+        expect((result[1] as any).b).toBe(60)
       })
     })
 
@@ -315,7 +315,7 @@ describe('colors-waffle utilities', () => {
           useEndAsStart: false
         }
 
-        const result = interpolateColors(5, colorScale, options)
+        const result = interpolateColors(5, colorScale as any, options)
         
         expect(result).toEqual([
           '#ff0000',  // point=0, index=0

@@ -55,14 +55,14 @@ describe.skip('SSOAuth', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock window.location
     originalLocation = window.location;
     delete (window as any).location;
-    window.location = {
+    (window as any).location = {
       hostname: 'localhost',
       href: ''
-    } as Location;
+    };
     
     // Mock import.meta.env safely - remove VITE_API_URL to test fallback
     originalEnv = import.meta.env;
@@ -72,7 +72,7 @@ describe.skip('SSOAuth', () => {
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
     vi.unstubAllGlobals();
   });
 
@@ -151,10 +151,10 @@ describe.skip('SSOAuth', () => {
     });
 
     it('should handle different hostname in GitHub URL construction', async () => {
-      window.location = {
+      (window as any).location = {
         hostname: 'example.com',
         href: ''
-      } as Location;
+      };
       
       const wrapper = mount(SSOAuth);
       
@@ -210,10 +210,10 @@ describe.skip('SSOAuth', () => {
     });
 
     it('should handle different hostname in GitLab URL construction', async () => {
-      window.location = {
+      (window as any).location = {
         hostname: 'example.com',
         href: ''
-      } as Location;
+      };
       
       const wrapper = mount(SSOAuth);
       

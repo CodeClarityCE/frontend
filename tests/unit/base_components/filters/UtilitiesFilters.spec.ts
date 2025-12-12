@@ -48,7 +48,7 @@ describe('UtilitiesFilters', () => {
 
   it('shows active indicator when filters are active', async () => {
     const config = createMockFilterConfig();
-    config.severity.data.high.value = true; // Make one filter active
+    config.severity!.data.high!.value = true; // Make one filter active
     const wrapper = createWrapper(config);
 
     // Look for any SVG that might indicate active state
@@ -78,7 +78,7 @@ describe('UtilitiesFilters', () => {
     wrapper.vm.setFilterCount(newFilterCount);
 
     // Check that options_count was updated
-    expect(wrapper.vm.options_count).toEqual(newFilterCount);
+    expect((wrapper.vm as any).options_count).toEqual(newFilterCount);
   });
 
   it('handles empty filter config', () => {
@@ -114,9 +114,9 @@ describe('UtilitiesFilters', () => {
 
     it('toString method works correctly', () => {
       const config = createMockFilterConfig();
-      config.severity.data.high.value = true;
-      config.type.data.bug.value = true;
-      
+      config.severity!.data.high!.value = true;
+      config.type!.data.bug!.value = true;
+
       const filterState = createNewFilterState(config);
       const result = filterState.toString();
 
@@ -140,7 +140,7 @@ describe('UtilitiesFilters', () => {
       const result = filterState.addFilterCategory(newCategory);
 
       expect(result).toHaveLength(1);
-      expect(result[0].label).toBe('New Category: New Option');
+      expect(result[0]!.label).toBe('New Category: New Option');
       expect(filterState.categoryCount).toBe(1);
     });
 
@@ -159,7 +159,7 @@ describe('UtilitiesFilters', () => {
       filterState.addFilterCategory(newCategory, 'customName');
 
       expect(filterState.filterConfig['customName']).toEqual(newCategory);
-      expect(filterState.activeFilters[0].category).toBe('customName');
+      expect(filterState.activeFilters[0]!.category).toBe('customName');
     });
   });
 });

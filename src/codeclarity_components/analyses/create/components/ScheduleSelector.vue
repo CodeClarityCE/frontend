@@ -152,7 +152,9 @@ const updateScheduleData = (updates: Partial<ScheduleData>) => {
     scheduleData.value = { ...scheduleData.value, ...updates };
 };
 
-const updateScheduleType = (type: string | number | boolean | bigint | Record<string, unknown> | null) => {
+const updateScheduleType = (
+    type: string | number | boolean | bigint | Record<string, unknown> | null
+) => {
     if (typeof type !== 'string') return;
     updateScheduleData({
         schedule_type: type as ScheduleData['schedule_type'],

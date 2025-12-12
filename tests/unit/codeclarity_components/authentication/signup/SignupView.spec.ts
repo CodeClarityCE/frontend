@@ -326,8 +326,8 @@ describe('SignupView.vue', () => {
 
     it('renders without crashing when state store fails', () => {
       // Reset store to minimal state
-      mockStateStore.page = undefined;
-      mockStateStore.publicPage = undefined;
+      mockStateStore.page = '';
+      mockStateStore.publicPage = false;
       
       const wrapper = mount(SignupView, {
         global: {

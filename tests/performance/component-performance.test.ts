@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { 
   measureComponentPerformance, 
@@ -168,7 +168,7 @@ describe.skip('Component Performance Tests', () => {
       });
 
       const report = performanceSuite.generateReport();
-      const test = report.results.find(r => r.test === 'Small Dataset (10 items)');
+      const test = report.results.find((r: { test: string }) => r.test === 'Small Dataset (10 items)');
       
       expect(test?.passed).toBe(true);
       expect(test?.metrics.renderTime).toBeLessThan(PERFORMANCE_BENCHMARKS.renderTime.good);
@@ -191,7 +191,7 @@ describe.skip('Component Performance Tests', () => {
       });
 
       const report = performanceSuite.generateReport();
-      const test = report.results.find(r => r.test === 'Medium Dataset (100 items)');
+      const test = report.results.find((r: { test: string }) => r.test === 'Medium Dataset (100 items)');
       
       expect(test?.passed).toBe(true);
       expect(test?.metrics.renderTime).toBeLessThan(PERFORMANCE_BENCHMARKS.renderTime.good);
@@ -308,7 +308,7 @@ describe.skip('Component Performance Tests', () => {
       });
 
       const report = performanceSuite.generateReport();
-      const memoryTest = report.results.find(r => r.test === 'Memory Leak Detection');
+      const memoryTest = report.results.find((r: { test: string }) => r.test === 'Memory Leak Detection');
       
       expect(memoryTest?.passed).toBe(true);
     });
@@ -329,7 +329,7 @@ describe.skip('Component Performance Tests', () => {
       });
 
       const report = performanceSuite.generateReport();
-      const test = report.results.find(r => r.test === 'Initial Render');
+      const test = report.results.find((r: { test: string }) => r.test === 'Initial Render');
       
       expect(test?.passed).toBe(true);
       expect(test?.metrics.renderTime).toBeLessThan(PERFORMANCE_BENCHMARKS.renderTime.good);
@@ -378,7 +378,7 @@ describe.skip('Component Performance Tests', () => {
       const emailInput = wrapper.find('input[name="email"]');
       
       for (const char of 'test@example.com') {
-        await emailInput.setValue(emailInput.element.value + char);
+        await emailInput.setValue((emailInput.element as HTMLInputElement).value + char);
         await wrapper.vm.$nextTick();
       }
 
@@ -436,7 +436,7 @@ describe.skip('Component Performance Tests', () => {
       });
 
       const report = performanceSuite.generateReport();
-      const slowTest = report.results.find(r => r.component === 'SlowComponent');
+      const slowTest = report.results.find((r: { component: string }) => r.component === 'SlowComponent');
       
       // Should detect the performance issue
       expect(slowTest?.passed).toBe(false);

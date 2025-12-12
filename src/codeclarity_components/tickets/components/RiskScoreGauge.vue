@@ -107,11 +107,7 @@ const center = computed(() => config.value.width / 2);
     <div class="flex flex-col items-center">
         <!-- SVG Gauge -->
         <div class="relative" :style="{ width: config.width + 'px', height: config.width + 'px' }">
-            <svg
-                :width="config.width"
-                :height="config.width"
-                class="transform -rotate-90"
-            >
+            <svg :width="config.width" :height="config.width" class="transform -rotate-90">
                 <!-- Background circle -->
                 <circle
                     :cx="center"
@@ -136,12 +132,8 @@ const center = computed(() => config.value.width / 2);
                 />
             </svg>
             <!-- Center content -->
-            <div
-                class="absolute inset-0 flex flex-col items-center justify-center"
-            >
-                <span
-                    :class="[config.fontSize, 'font-bold', textColorClass]"
-                >
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span :class="[config.fontSize, 'font-bold', textColorClass]">
                     {{ displayValue }}
                 </span>
             </div>

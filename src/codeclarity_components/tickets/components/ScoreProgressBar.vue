@@ -71,7 +71,11 @@ const textClass = computed(() => {
         <!-- Progress bar -->
         <div :class="['w-full bg-gray-200 rounded-full overflow-hidden', heightClass]">
             <div
-                :class="['rounded-full transition-all duration-300 ease-out', heightClass, barColorClass]"
+                :class="[
+                    'rounded-full transition-all duration-300 ease-out',
+                    heightClass,
+                    barColorClass
+                ]"
                 :style="{ width: percentage + '%' }"
             />
         </div>

@@ -18,7 +18,7 @@ describe('ActiveFilterBar', () => {
     },
     activeFilters,
     categoryCount: 1
-  } as FilterState);
+  } as unknown as FilterState);
 
   const mockCheckboxFilter: ActiveFilter = {
     label: 'Severity: High',
@@ -110,7 +110,7 @@ describe('ActiveFilterBar', () => {
     await removeButton.trigger('click');
 
     // Check that the filter value was set to false
-    expect(filterState.filterConfig.severity.data.high.value).toBe(false);
+    expect(filterState.filterConfig.severity!.data.high!.value).toBe(false);
   });
 
   it('has correct styling for filter chips', () => {
@@ -237,8 +237,8 @@ describe('ActiveFilterBar', () => {
     });
 
     const filterElements = wrapper.findAll('.bg-gray-200');
-    expect(filterElements[0].text()).toContain('First: Value1');
-    expect(filterElements[1].text()).toContain('Second: Value2');
+    expect(filterElements[0]!.text()).toContain('First: Value1');
+    expect(filterElements[1]!.text()).toContain('Second: Value2');
   });
 
   it('handles mixed filter types correctly', () => {
@@ -253,19 +253,19 @@ describe('ActiveFilterBar', () => {
     expect(filterElements).toHaveLength(2);
 
     // Checkbox filter should have remove button
-    const checkboxFilter = filterElements[0];
+    const checkboxFilter = filterElements[0]!;
     expect(checkboxFilter.find('.cursor-pointer').exists()).toBe(true);
 
     // Radio filter should not have remove button
-    const radioFilter = filterElements[1];
+    const radioFilter = filterElements[1]!;
     expect(radioFilter.find('.cursor-pointer').exists()).toBe(false);
   });
 
   it('updates filter state correctly when removing filters', async () => {
     const filterState = createMockFilterState([mockCheckboxFilter]);
-    
+
     // Spy on the filter state to ensure it gets modified
-    const originalValue = filterState.filterConfig.severity.data.high.value;
+    const originalValue = filterState.filterConfig.severity!.data.high!.value;
     expect(originalValue).toBe(true);
 
     const wrapper = mount(ActiveFilterBar, {
@@ -277,7 +277,7 @@ describe('ActiveFilterBar', () => {
     const removeButton = wrapper.find('.cursor-pointer');
     await removeButton.trigger('click');
 
-    expect(filterState.filterConfig.severity.data.high.value).toBe(false);
+    expect(filterState.filterConfig.severity!.data.high!.value).toBe(false);
   });
 
   it('handles empty filter list gracefully', () => {

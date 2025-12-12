@@ -350,17 +350,17 @@ describe('FaqBox', () => {
 
     it('maintains state consistency', async () => {
       const wrapper = mount(FaqBox);
-      
+
       // Initial state
-      expect(wrapper.vm.show).toBe(false);
-      
+      expect((wrapper.vm as any).show).toBe(false);
+
       // After expansion
       await wrapper.find('[data-icon="tabler:plus"]').trigger('click');
-      expect(wrapper.vm.show).toBe(true);
-      
+      expect((wrapper.vm as any).show).toBe(true);
+
       // After collapse
       await wrapper.find('[data-icon="tabler:minus"]').trigger('click');
-      expect(wrapper.vm.show).toBe(false);
+      expect((wrapper.vm as any).show).toBe(false);
     });
   });
 });

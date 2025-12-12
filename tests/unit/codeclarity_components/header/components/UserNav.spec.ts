@@ -439,7 +439,7 @@ describe('UserNav - Simplified', () => {
 
   describe('Edge Cases', () => {
     it('handles undefined user gracefully', () => {
-      mockUserStore.getUser = undefined;
+      mockUserStore.getUser = undefined as any;
       wrapper = createWrapper();
       expect(wrapper.exists()).toBe(true);
     });

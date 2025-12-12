@@ -295,7 +295,7 @@ describe('SearchBar User Interaction Tests', () => {
       
       // Should emit update:searchKey event
       expect(wrapper.emitted('update:searchKey')).toBeTruthy();
-      expect(wrapper.emitted('update:searchKey')[0]).toEqual(['new search']);
+      expect((wrapper.emitted('update:searchKey') as any)[0]).toEqual(['new search']);
     });
 
     it('should handle rapid model updates', async () => {
@@ -312,7 +312,7 @@ describe('SearchBar User Interaction Tests', () => {
       expect(wrapper.vm.searchKey).toBe('abcde');
       
       // Should have emitted all updates
-      const emittedEvents = wrapper.emitted('update:searchKey') || [];
+      const emittedEvents = (wrapper.emitted('update:searchKey') as any) || [];
       expect(emittedEvents.length).toBe(updates.length);
     });
   });
@@ -441,7 +441,7 @@ describe('SearchBar User Interaction Tests', () => {
         },
         methods: {
           onSubmit() {
-            this.$emit('form-submit', this.searchValue);
+            (this as any).$emit('form-submit', (this as any).searchValue);
           }
         }
       }, {
@@ -459,7 +459,7 @@ describe('SearchBar User Interaction Tests', () => {
       await form.trigger('submit');
       
       expect(formWrapper.emitted('form-submit')).toBeTruthy();
-      expect(formWrapper.emitted('form-submit')[0]).toEqual(['form search test']);
+      expect((formWrapper.emitted('form-submit') as any)[0]).toEqual(['form search test']);
       
       formWrapper.unmount();
     });
@@ -481,7 +481,7 @@ describe('SearchBar User Interaction Tests', () => {
         },
         methods: {
           triggerRerender() {
-            this.rerenderKey++;
+            (this as any).rerenderKey++;
           }
         }
       }, {

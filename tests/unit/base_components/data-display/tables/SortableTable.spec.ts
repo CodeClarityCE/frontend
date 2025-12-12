@@ -176,11 +176,11 @@ describe('SortableTable', () => {
         }
       })
 
-      const nameHeader = wrapper.findAll('th')[0]
+      const nameHeader = wrapper.findAll('th')[0]!
       const allSpans = nameHeader.findAll('span')
-      
+
       // Filter spans that have width classes (the container spans, not icon spans)
-      const widthSpans = allSpans.filter(span => 
+      const widthSpans = allSpans.filter(span =>
         span.classes().some(cls => cls.includes('w-'))
       )
       
@@ -202,11 +202,11 @@ describe('SortableTable', () => {
         }
       })
 
-      const nameHeader = wrapper.findAll('th')[0]
+      const nameHeader = wrapper.findAll('th')[0]!
       const allSpans = nameHeader.findAll('span')
-      
+
       // Filter spans that have width classes (the container spans, not icon spans)
-      const widthSpans = allSpans.filter(span => 
+      const widthSpans = allSpans.filter(span =>
         span.classes().some(cls => cls.includes('w-'))
       )
       
@@ -307,7 +307,7 @@ describe('SortableTable', () => {
         }
       })
 
-      const firstHeader = duplicateWrapper.findAll('th')[0]
+      const firstHeader = duplicateWrapper.findAll('th')[0]!
       await firstHeader.trigger('click')
 
       expect(duplicateWrapper.vm.sortKey).toBe('name')
@@ -345,7 +345,7 @@ describe('SortableTable', () => {
       expect(clickableHeaders.length).toBeGreaterThan(0)
       
       // The cursor pointer is set via CSS class, not inline style
-      clickableHeaders.forEach(header => {
+      clickableHeaders.forEach((header: any) => {
         expect(header.classes()).toContain('header-clickable')
       })
     })

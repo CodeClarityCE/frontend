@@ -298,7 +298,7 @@ export class FPSMonitor {
   private calculateAverageFPS(): number {
     if (this.frames.length < 2) return 0;
     
-    const totalTime = this.frames[this.frames.length - 1] - this.frames[0];
+    const totalTime = this.frames[this.frames.length - 1]! - this.frames[0]!;
     const frameCount = this.frames.length - 1;
     
     return Math.round((frameCount / totalTime) * 1000);
@@ -414,7 +414,7 @@ export class PerformanceTestSuite {
       averageRenderTime: number;
       averageMountTime: number;
     };
-    results: typeof this.results;
+    results: PerformanceTestSuite['results'];
     recommendations: string[];
   } {
     const total = this.results.length;
@@ -472,10 +472,10 @@ export class PerformanceTestSuite {
     if (report.summary.failed > 0) {
       console.log('\n❌ Failed Tests:');
       report.results
-        .filter(r => !r.passed)
-        .forEach(result => {
+        .filter((r: PerformanceTestSuite['results'][0]) => !r.passed)
+        .forEach((result: PerformanceTestSuite['results'][0]) => {
           console.log(`  ${result.component} - ${result.test}:`);
-          result.issues.forEach(issue => {
+          result.issues.forEach((issue: string) => {
             console.log(`    • ${issue}`);
           });
         });

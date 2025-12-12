@@ -303,7 +303,7 @@ describe('UserAuthForm.vue', () => {
     it('handles wrong credentials error', async () => {
       const { BusinessLogicError } = await import('@/utils/api/BaseRepository');
       mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError('WrongCredentials')
+        new BusinessLogicError('WrongCredentials', 'Wrong credentials provided')
       );
 
       const form = wrapper.find('form');
@@ -319,7 +319,7 @@ describe('UserAuthForm.vue', () => {
     it('handles registration not verified error', async () => {
       const { BusinessLogicError } = await import('@/utils/api/BaseRepository');
       mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError('RegistrationNotVerified')
+        new BusinessLogicError('RegistrationNotVerified', 'Registration not verified')
       );
 
       const form = wrapper.find('form');
@@ -332,7 +332,7 @@ describe('UserAuthForm.vue', () => {
     it('handles social account error', async () => {
       const { BusinessLogicError } = await import('@/utils/api/BaseRepository');
       mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError('CannotPerformActionOnSocialAccount')
+        new BusinessLogicError('CannotPerformActionOnSocialAccount', 'Cannot perform action on social account')
       );
 
       const form = wrapper.find('form');
@@ -345,7 +345,7 @@ describe('UserAuthForm.vue', () => {
     it('handles validation error', async () => {
       const { ValidationError } = await import('@/utils/api/BaseRepository');
       mockAuthRepository.authenticate.mockRejectedValue(
-        new ValidationError('ValidationFailed')
+        new ValidationError('ValidationFailed', 'Validation failed', [])
       );
 
       const form = wrapper.find('form');
@@ -358,7 +358,7 @@ describe('UserAuthForm.vue', () => {
     it('handles account not activated and redirects to trial', async () => {
       const { BusinessLogicError } = await import('@/utils/api/BaseRepository');
       mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError('AccountNotActivated')
+        new BusinessLogicError('AccountNotActivated', 'Account not activated')
       );
 
       const form = wrapper.find('form');
@@ -390,7 +390,7 @@ describe('UserAuthForm.vue', () => {
       // First submission with error
       const { BusinessLogicError } = await import('@/utils/api/BaseRepository');
       mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError('WrongCredentials')
+        new BusinessLogicError('WrongCredentials', 'Wrong credentials provided')
       );
 
       const form = wrapper.find('form');

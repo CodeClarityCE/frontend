@@ -13,8 +13,8 @@ interface GraphDependency {
   id: string
   parentIds?: string[]
   childrenIds?: string[]
-  prod?: boolean
-  dev?: boolean
+  prod: boolean
+  dev: boolean
 }
 
 // Create comprehensive D3 mock for TreeChart
@@ -85,24 +85,29 @@ describe('TreeChart', () => {
       id: 'root-package',
       parentIds: [],
       childrenIds: ['dependency-1', 'dependency-2'],
-      prod: true
+      prod: true,
+      dev: false
     },
     {
       id: 'dependency-1',
       parentIds: ['root-package'],
       childrenIds: ['sub-dependency-1'],
+      prod: true,
       dev: false
     },
     {
       id: 'dependency-2',
       parentIds: ['root-package'],
       childrenIds: [],
+      prod: false,
       dev: true
     },
     {
       id: 'sub-dependency-1',
       parentIds: ['dependency-1'],
-      childrenIds: []
+      childrenIds: [],
+      prod: true,
+      dev: false
     }
   ]
 
@@ -220,7 +225,9 @@ describe('TreeChart', () => {
         {
           id: 'single-dependency',
           parentIds: [],
-          childrenIds: []
+          childrenIds: [],
+          prod: true,
+          dev: false
         }
       ]
 
@@ -244,7 +251,8 @@ describe('TreeChart', () => {
           id: 'prod-dependency',
           parentIds: [],
           childrenIds: [],
-          prod: true
+          prod: true,
+          dev: false
         }
       ]
 
@@ -258,7 +266,7 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].prod).toBe(true)
+      expect(wrapper.props().data[0]!.prod).toBe(true)
     })
 
     it('handles dependencies with development flag', () => {
@@ -267,6 +275,7 @@ describe('TreeChart', () => {
           id: 'dev-dependency',
           parentIds: [],
           childrenIds: [],
+          prod: false,
           dev: true
         }
       ]
@@ -281,13 +290,15 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].dev).toBe(true)
+      expect(wrapper.props().data[0]!.dev).toBe(true)
     })
 
     it('handles dependencies without parent/child relationships', () => {
       const isolatedData: GraphDependency[] = [
         {
-          id: 'isolated-dependency'
+          id: 'isolated-dependency',
+          prod: true,
+          dev: false
         }
       ]
 
@@ -301,19 +312,19 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].parentIds).toBeUndefined()
-      expect(wrapper.props().data[0].childrenIds).toBeUndefined()
+      expect(wrapper.props().data[0]!.parentIds).toBeUndefined()
+      expect(wrapper.props().data[0]!.childrenIds).toBeUndefined()
     })
 
     it('handles complex dependency trees', () => {
       const complexData: GraphDependency[] = [
-        { id: 'root', parentIds: [], childrenIds: ['a', 'b', 'c'] },
-        { id: 'a', parentIds: ['root'], childrenIds: ['a1', 'a2'] },
-        { id: 'b', parentIds: ['root'], childrenIds: ['b1'] },
-        { id: 'c', parentIds: ['root'], childrenIds: [] },
-        { id: 'a1', parentIds: ['a'], childrenIds: [] },
-        { id: 'a2', parentIds: ['a'], childrenIds: [] },
-        { id: 'b1', parentIds: ['b'], childrenIds: [] }
+        { id: 'root', parentIds: [], childrenIds: ['a', 'b', 'c'], prod: true, dev: false },
+        { id: 'a', parentIds: ['root'], childrenIds: ['a1', 'a2'], prod: true, dev: false },
+        { id: 'b', parentIds: ['root'], childrenIds: ['b1'], prod: true, dev: false },
+        { id: 'c', parentIds: ['root'], childrenIds: [], prod: true, dev: false },
+        { id: 'a1', parentIds: ['a'], childrenIds: [], prod: true, dev: false },
+        { id: 'a2', parentIds: ['a'], childrenIds: [], prod: true, dev: false },
+        { id: 'b1', parentIds: ['b'], childrenIds: [], prod: true, dev: false }
       ]
 
       const wrapper = mount(TreeChart, {
@@ -327,13 +338,13 @@ describe('TreeChart', () => {
       })
 
       expect(wrapper.props().data).toHaveLength(7)
-      expect(wrapper.props().data[0].childrenIds).toHaveLength(3)
+      expect(wrapper.props().data[0]!.childrenIds).toHaveLength(3)
     })
 
     it('handles circular dependencies gracefully', () => {
       const circularData: GraphDependency[] = [
-        { id: 'a', parentIds: ['b'], childrenIds: ['b'] },
-        { id: 'b', parentIds: ['a'], childrenIds: ['a'] }
+        { id: 'a', parentIds: ['b'], childrenIds: ['b'], prod: true, dev: false },
+        { id: 'b', parentIds: ['a'], childrenIds: ['a'], prod: true, dev: false }
       ]
 
       const wrapper = mount(TreeChart, {
@@ -528,7 +539,9 @@ describe('TreeChart', () => {
         {
           id: 'very-long-dependency-name-that-might-cause-layout-issues-in-the-tree-chart-component',
           parentIds: [],
-          childrenIds: []
+          childrenIds: [],
+          prod: true,
+          dev: false
         }
       ]
 
@@ -542,7 +555,7 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].id).toBe('very-long-dependency-name-that-might-cause-layout-issues-in-the-tree-chart-component')
+      expect(wrapper.props().data[0]!.id).toBe('very-long-dependency-name-that-might-cause-layout-issues-in-the-tree-chart-component')
     })
 
     it('handles dependencies with special characters', () => {
@@ -550,7 +563,9 @@ describe('TreeChart', () => {
         {
           id: '@scope/package-name@1.0.0',
           parentIds: [],
-          childrenIds: []
+          childrenIds: [],
+          prod: true,
+          dev: false
         }
       ]
 
@@ -564,7 +579,7 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].id).toBe('@scope/package-name@1.0.0')
+      expect(wrapper.props().data[0]!.id).toBe('@scope/package-name@1.0.0')
     })
 
     it('handles dependencies with empty arrays for parents/children', () => {
@@ -572,7 +587,9 @@ describe('TreeChart', () => {
         {
           id: 'empty-arrays',
           parentIds: [],
-          childrenIds: []
+          childrenIds: [],
+          prod: true,
+          dev: false
         }
       ]
 
@@ -586,8 +603,8 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].parentIds).toEqual([])
-      expect(wrapper.props().data[0].childrenIds).toEqual([])
+      expect(wrapper.props().data[0]!.parentIds).toEqual([])
+      expect(wrapper.props().data[0]!.childrenIds).toEqual([])
     })
 
     it('handles dependencies with multiple parents', () => {
@@ -595,7 +612,9 @@ describe('TreeChart', () => {
         {
           id: 'shared-dependency',
           parentIds: ['parent-1', 'parent-2', 'parent-3'],
-          childrenIds: []
+          childrenIds: [],
+          prod: true,
+          dev: false
         }
       ]
 
@@ -609,7 +628,7 @@ describe('TreeChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].parentIds).toHaveLength(3)
+      expect(wrapper.props().data[0]!.parentIds).toHaveLength(3)
     })
 
     it('handles undefined id gracefully', () => {
@@ -630,7 +649,9 @@ describe('TreeChart', () => {
       const largeData: GraphDependency[] = Array.from({length: 100}, (_, i) => ({
         id: `dependency-${i}`,
         parentIds: i > 0 ? [`dependency-${i-1}`] : [],
-        childrenIds: i < 99 ? [`dependency-${i+1}`] : []
+        childrenIds: i < 99 ? [`dependency-${i+1}`] : [],
+        prod: true,
+        dev: false
       }))
 
       const wrapper = mount(TreeChart, {

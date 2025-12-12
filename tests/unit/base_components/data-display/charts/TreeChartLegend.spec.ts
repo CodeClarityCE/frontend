@@ -224,7 +224,7 @@ describe('TreeChartLegend', () => {
 
       // Should not include pruned duplicate text
       const prunedCalls = vi.mocked(mockD3Selection.text).mock.calls
-        .some(call => call[0] && call[0].includes('Pruned Duplicate'))
+        .some((call: any) => call[0] && call[0].includes('Pruned Duplicate'))
       expect(prunedCalls).toBe(false)
     })
 

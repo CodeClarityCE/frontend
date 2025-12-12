@@ -5,7 +5,7 @@ import { nextTick } from 'vue';
 import { mockStores } from '../../utils/test-utils';
 import CreateProject from '@/codeclarity_components/projects/create/CreateProject.vue';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import { VCS, IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import { VCS, IntegrationProvider, IntegrationType } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 
 // Mock BaseRepository with error classes
@@ -14,8 +14,8 @@ vi.mock('@/utils/api/BaseRepository', () => ({
     constructor() {}
   },
   BusinessLogicError: class MockBusinessLogicError extends Error {
-    constructor(public error_code: string) {
-      super();
+    constructor(message: string, public error_code: string) {
+      super(message);
     }
   },
   ValidationError: class MockValidationError extends Error {
@@ -63,21 +63,21 @@ describe.skip('CreateProject Integration Tests', () => {
   const mockVcsIntegrations: VCS[] = [
     {
       id: '1',
-      name: 'GitHub Integration',
-      provider: IntegrationProvider.GITHUB,
-      url: 'https://github.com',
-      active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      added_on: new Date(),
+      added_by: 'user-1',
+      service_domain: 'github.com',
+      integration_type: IntegrationType.VCS,
+      integration_provider: IntegrationProvider.GITHUB,
+      invalid: false
     },
     {
-      id: '2', 
-      name: 'GitLab Integration',
-      provider: IntegrationProvider.GITLAB,
-      url: 'https://gitlab.com',
-      active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      id: '2',
+      added_on: new Date(),
+      added_by: 'user-1',
+      service_domain: 'gitlab.com',
+      integration_type: IntegrationType.VCS,
+      integration_provider: IntegrationProvider.GITLAB,
+      invalid: false
     }
   ];
 
@@ -90,11 +90,11 @@ describe.skip('CreateProject Integration Tests', () => {
     mockStores.auth.$reset();
 
     // Setup default organization
-    mockStores.user.getDefaultOrg = vi.fn().mockReturnValue({
+    mockStores.user.getDefaultOrg = {
       id: 'org-1',
       name: 'Test Organization',
-      slug: 'test-org'
-    });
+      created_on: new Date()
+    } as any;
 
     // Setup IntegrationsRepository mock instance
     integrationsRepositoryInstance = {
@@ -148,8 +148,8 @@ describe.skip('CreateProject Integration Tests', () => {
       await nextTick();
 
       expect(integrationsRepositoryInstance.getVCSIntegrations).toHaveBeenCalledWith(
-        mockStores.user.getDefaultOrg().id,
-        mockStores.auth.getToken()
+        mockStores.user.getDefaultOrg.id,
+        mockStores.auth.getToken ?? ''
       );
     });
 
@@ -294,10 +294,10 @@ describe.skip('CreateProject Integration Tests', () => {
       const newOrg = {
         id: 'org-2',
         name: 'New Organization',
-        slug: 'new-org'
-      };
-      
-      mockStores.user.getDefaultOrg = vi.fn().mockReturnValue(newOrg);
+        created_on: new Date()
+      } as any;
+
+      mockStores.user.getDefaultOrg = newOrg;
       
       // Trigger the organization change (simulating reactive watch)
       await wrapper.vm.fetchVcsIntegrations(true);
@@ -306,7 +306,7 @@ describe.skip('CreateProject Integration Tests', () => {
       // Verify integrations are refetched with new organization
       expect(integrationsRepositoryInstance.getVCSIntegrations).toHaveBeenCalledWith(
         newOrg.id,
-        mockStores.auth.getToken()
+        mockStores.auth.getToken ?? ''
       );
     });
   });
@@ -399,13 +399,13 @@ describe.skip('CreateProject Integration Tests', () => {
 
       // Simulate rapid organization changes
       const orgs = [
-        { id: 'org-1', name: 'Org 1', slug: 'org-1' },
-        { id: 'org-2', name: 'Org 2', slug: 'org-2' },
-        { id: 'org-3', name: 'Org 3', slug: 'org-3' }
-      ];
+        { id: 'org-1', name: 'Org 1', created_on: new Date() },
+        { id: 'org-2', name: 'Org 2', created_on: new Date() },
+        { id: 'org-3', name: 'Org 3', created_on: new Date() }
+      ].map(org => org as any);
 
       for (const org of orgs) {
-        mockStores.user.getDefaultOrg = vi.fn().mockReturnValue(org);
+        mockStores.user.getDefaultOrg = org;
         await wrapper.vm.fetchVcsIntegrations(true);
       }
 

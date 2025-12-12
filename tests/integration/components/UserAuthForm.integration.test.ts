@@ -1,13 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
+import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
+import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
+import type { Token } from '@/codeclarity_components/authentication/token.entity';
+import router from '@/router';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { nextTick } from 'vue';
 // import { createTestWrapper } from '../../utils/test-utils';
 import { mockStores } from '../../utils/test-utils';
-import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
-import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import type { Token } from '@/codeclarity_components/authentication/token.entity';
-import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
 
 // Mock BaseRepository with error classes
 vi.mock('@/utils/api/BaseRepository', () => ({
@@ -37,7 +38,6 @@ vi.mock('@/router', () => ({
   }
 }));
 
-import router from '@/router';
 const mockPush = vi.mocked(router.push);
 
 describe.skip('UserAuthForm Integration Tests', () => {

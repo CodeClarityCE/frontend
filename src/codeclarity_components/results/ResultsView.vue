@@ -1,20 +1,18 @@
 <script lang="ts" setup>
-import { useStateStore } from '@/stores/state';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import { onBeforeMount, ref, type Ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
-import { defineAsyncComponent } from 'vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { Icon } from '@iconify/vue';
+import { onBeforeMount, ref, defineAsyncComponent, watch, type Ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const ResultsSBOM = defineAsyncComponent({
     loader: () => import('./sbom/ResultsSBOM.vue'),
@@ -137,7 +135,7 @@ async function init() {
     const project_id = searchParams.get('project_id');
     const run_index = searchParams.get('run_index');
 
-    if (analysis_id == null || project_id == null) {
+    if (analysis_id === null || project_id === null) {
         throw new Error('Missing analysis_id or project_id');
     }
     analysisID.value = analysis_id;
@@ -153,19 +151,19 @@ async function init() {
 
     for (const step of analysis.value.steps) {
         for (const result of step) {
-            if (result.Status != 'success') {
+            if (result.Status !== 'success') {
                 continue;
             }
-            if (result.Name == 'js-sbom' || result.Name == 'php-sbom') {
-                tab.value['sbom'] = true;
-            } else if (result.Name == 'vuln-finder') {
+            if (result.Name === 'js-sbom' || result.Name === 'php-sbom') {
+                tab.value.sbom = true;
+            } else if (result.Name === 'vuln-finder') {
                 tab.value['vuln-finder'] = true;
-            } else if (result.Name == 'js-patching') {
+            } else if (result.Name === 'js-patching') {
                 tab.value['js-patching'] = true;
-            } else if (result.Name == 'license-finder') {
+            } else if (result.Name === 'license-finder') {
                 tab.value['license-finder'] = true;
-            } else if (result.Name == 'codeql') {
-                tab.value['codeql'] = true;
+            } else if (result.Name === 'codeql') {
+                tab.value.codeql = true;
             }
         }
     }
@@ -174,15 +172,15 @@ async function init() {
 async function getProject(projectID: string) {
     let res: DataResponse<Project>;
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
 
-        if (projectID == null) {
+        if (projectID === null) {
             throw new Error('No project id');
         }
 
@@ -210,11 +208,11 @@ async function getProject(projectID: string) {
 async function getAnalysis(projectID: string, analysisID: string) {
     let res: DataResponse<Analysis>;
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
 
@@ -289,10 +287,10 @@ onBeforeMount(async () => {
             </div>
         </div>
         <ResultsVulnerabilitiesDetails
-            v-if="props.page == 'vulnerabilities_details'"
+            v-if="props.page === 'vulnerabilities_details'"
             :run-index="runIndex"
         />
-        <ResultsSBOMDetails v-else-if="props.page == 'sbom_details'" :run-index="runIndex" />
+        <ResultsSBOMDetails v-else-if="props.page === 'sbom_details'" :run-index="runIndex" />
         <Tabs
             v-else-if="!loading"
             v-model:value="current_tab"

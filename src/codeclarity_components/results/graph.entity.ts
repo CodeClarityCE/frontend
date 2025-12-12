@@ -8,8 +8,8 @@ export class GraphDependency {
 
 export class Dependency {
     bundled!: boolean;
-    bundled_dependencies!: Array<string>;
-    dependencies!: Array<string>;
+    bundled_dependencies!: string[];
+    dependencies!: string[];
     deprecated!: boolean;
     deprecated_message!: string;
     dev!: boolean;
@@ -26,7 +26,7 @@ export class Dependency {
     is_prod_count!: number;
     key!: string;
     last_published!: string;
-    licenses!: Array<any>;
+    licenses!: any[];
     link_type!: string;
     linked_git_url!: any;
     name!: string;
@@ -37,7 +37,7 @@ export class Dependency {
     optional_dependencies!: any;
     outdated!: boolean;
     outdated_message!: string;
-    parents!: Array<string>;
+    parents!: string[];
     peer!: boolean;
     peer_dependencies!: any;
     purl!: string;

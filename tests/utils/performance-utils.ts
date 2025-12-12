@@ -25,16 +25,16 @@ export interface PerformanceMetrics {
 export interface BundleMetrics {
   totalSize: number;
   gzipSize: number;
-  assets: Array<{
+  assets: {
     name: string;
     size: number;
     gzipSize?: number;
-  }>;
-  chunks: Array<{
+  }[];
+  chunks: {
     name: string;
     size: number;
     modules: number;
-  }>;
+  }[];
 }
 
 /**
@@ -152,11 +152,11 @@ export async function measureUpdatePerformance(
 export async function stressTestComponent(
   renderComponent: (dataSize: number) => VueWrapper<any>,
   dataSizes: number[] = [10, 50, 100, 500, 1000]
-): Promise<Array<{
+): Promise<{
   dataSize: number;
   metrics: PerformanceMetrics;
   rating: 'excellent' | 'good' | 'fair' | 'poor';
-}>> {
+}[]> {
   const results = [];
   
   for (const size of dataSizes) {
@@ -266,9 +266,9 @@ export async function runLighthouseAudit(): Promise<LighthouseMetrics> {
  */
 export class FPSMonitor {
   private frames: number[] = [];
-  private startTime: number = 0;
-  private rafId: number = 0;
-  private isRunning: boolean = false;
+  private startTime = 0;
+  private rafId = 0;
+  private isRunning = false;
 
   start(): void {
     this.frames = [];
@@ -309,7 +309,7 @@ export class FPSMonitor {
  * Component rerender counting
  */
 export class RerenderCounter {
-  private count: number = 0;
+  private count = 0;
   private originalUpdate: any;
 
   constructor(private wrapper: VueWrapper<any>) {}
@@ -345,13 +345,13 @@ export class RerenderCounter {
  * Performance test suite runner
  */
 export class PerformanceTestSuite {
-  private results: Array<{
+  private results: {
     component: string;
     test: string;
     metrics: PerformanceMetrics;
     passed: boolean;
     issues: string[];
-  }> = [];
+  }[] = [];
 
   async runTest(
     componentName: string,
@@ -518,12 +518,12 @@ function getRenderPerformanceRating(renderTime: number): 'excellent' | 'good' | 
  * Real User Monitoring (RUM) utilities
  */
 export class RUMCollector {
-  private metrics: Array<{
+  private metrics: {
     timestamp: number;
     type: string;
     value: number;
     metadata?: any;
-  }> = [];
+  }[] = [];
 
   recordMetric(type: string, value: number, metadata?: any): void {
     this.metrics.push({

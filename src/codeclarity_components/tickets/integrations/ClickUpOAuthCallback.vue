@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth';
+import { Icon } from '@iconify/vue';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Icon } from '@iconify/vue';
-import { useAuthStore } from '@/stores/auth';
 import { TicketsRepository } from '../tickets.repository';
 
 const route = useRoute();

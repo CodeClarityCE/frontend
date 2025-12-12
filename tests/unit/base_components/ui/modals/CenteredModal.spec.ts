@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect } from 'vitest';
+import { nextTick } from 'vue';
 
 describe('CenteredModal', () => {
     describe('Basic Rendering', () => {

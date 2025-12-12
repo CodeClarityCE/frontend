@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { RouterView, useRoute } from 'vue-router';
-import Toaster from '@/shadcn/ui/toast/Toaster.vue';
-
-import { useAuthStore } from '@/stores/auth';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import Toaster from '@/shadcn/ui/toast/Toaster.vue';
+import { useAuthStore } from '@/stores/auth';
 import { defineAsyncComponent } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
 
 const HeaderComponent = defineAsyncComponent({
     loader: () => import('@/codeclarity_components/header/HeaderComponent.vue'),

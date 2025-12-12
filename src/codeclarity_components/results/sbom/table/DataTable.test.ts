@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
-import DataTable from './DataTable.vue';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import DataTable from './DataTable.vue';
 
 // Mock shadcn components
 vi.mock('@/shadcn/ui/dropdown-menu', () => ({

@@ -14,7 +14,7 @@ const YEAR_MS = 365 * DAY_MS;
 /**
  * Format a date according to common patterns used in the application
  */
-export function formatDate(date: Date | string | null | undefined, format: string = 'LL'): string {
+export function formatDate(date: Date | string | null | undefined, format = 'LL'): string {
     if (!date) return '';
 
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -199,7 +199,7 @@ export function calculateDateDifference(
  */
 export function isDateExpiring(
     date: Date | string | null | undefined,
-    thresholdDays: number = 14
+    thresholdDays = 14
 ): boolean {
     if (!date) return false;
 
@@ -251,7 +251,7 @@ export function isValidDate(date: Date | string | null | undefined): boolean {
  * Format current date in MMM DD format
  * Replaces moment().format('MMM DD')
  */
-export function formatCurrentDate(format: string = 'MMM DD'): string {
+export function formatCurrentDate(format = 'MMM DD'): string {
     return formatDate(new Date(), format);
 }
 
@@ -261,7 +261,7 @@ export function formatCurrentDate(format: string = 'MMM DD'): string {
  */
 export function isPackageOutdated(
     date: Date | string | null | undefined,
-    thresholdDays: number = 182
+    thresholdDays = 182
 ): boolean {
     if (!date) return false;
 
@@ -304,7 +304,7 @@ export function getWeekRange(weekNumber: number, year: number): { start: Date; e
  * Format a date range
  * Common pattern for displaying week ranges
  */
-export function formatDateRange(startDate: Date, endDate: Date, format: string = 'MMM DD'): string {
+export function formatDateRange(startDate: Date, endDate: Date, format = 'MMM DD'): string {
     return `${formatDate(startDate, format)} - ${formatDate(endDate, format)}`;
 }
 

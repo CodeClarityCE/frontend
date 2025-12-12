@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user';
+import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import router from '@/router';
-import { ref, watch } from 'vue';
-
 import { cn } from '@/shadcn/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shadcn/ui/avatar';
 import { Button } from '@/shadcn/ui/button';
-
-import { Dialog, DialogTrigger } from '@/shadcn/ui/dialog';
 import {
     Command,
     CommandEmpty,
@@ -17,14 +14,14 @@ import {
     CommandList,
     CommandSeparator
 } from '@/shadcn/ui/command';
+import { Dialog, DialogTrigger } from '@/shadcn/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
-import { CheckIcon } from 'lucide-vue-next';
-
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { Icon } from '@iconify/vue';
 import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { errorToast, successToast } from '@/utils/toasts';
-import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import { Icon } from '@iconify/vue';
+import { CheckIcon } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -39,7 +36,7 @@ interface TeamGroup {
     teams: TeamItem[];
 }
 
-const groups: Array<TeamGroup> = [];
+const groups: TeamGroup[] = [];
 
 groups.push({
     label: 'Activated',
@@ -106,7 +103,7 @@ async function fetch() {
 
 async function switchOrg(org: TeamItem) {
     if (!userStore.getDefaultOrg) return;
-    if (org.value != userStore.getDefaultOrg.id) {
+    if (org.value !== userStore.getDefaultOrg.id) {
         if (authStore.getAuthenticated && userStore.getUser) {
             try {
                 await userRepo.setDefaultOrg({

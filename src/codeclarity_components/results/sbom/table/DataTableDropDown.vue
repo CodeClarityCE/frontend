@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizontal } from 'lucide-vue-next';
+import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,7 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import { Button } from '@/shadcn/ui/button';
+import { MoreHorizontal } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{

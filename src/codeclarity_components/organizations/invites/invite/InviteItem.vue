@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-import { isMemberRoleGreaterThan, MemberRole, Organization } from '../../organization.entity';
-import type { Invitation } from '../invitation.entity';
-import { OrgRepository } from '../../organization.repository';
+import LoadingButton from '@/base_components/ui/loaders/LoadingButton.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
-import { useUserStore } from '@/stores/user';
-import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import LoadingButton from '@/base_components/ui/loaders/LoadingButton.vue';
 import { errorToast, successToast } from '@/utils/toasts';
-import Button from '@/shadcn/ui/button/Button.vue';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import { isMemberRoleGreaterThan, MemberRole, type Organization } from '../../organization.entity';
+import { OrgRepository } from '../../organization.repository';
+import type { Invitation } from '../invitation.entity';
 
 enum ModalAction {
     REVOKE = 'REVOKE',
@@ -55,13 +55,13 @@ async function revokeInvitation() {
     } catch (err) {
         if (err instanceof BusinessLogicError) {
             if (
-                err.error_code == APIErrors.PersonalOrgCannotBeModified ||
-                err.error_code == APIErrors.InternalError
+                err.error_code === APIErrors.PersonalOrgCannotBeModified ||
+                err.error_code === APIErrors.InternalError
             ) {
                 errorToast('Failed to revoke the invitation.');
-            } else if (err.error_code == APIErrors.NotAuthorized) {
+            } else if (err.error_code === APIErrors.NotAuthorized) {
                 errorToast('You are not authorized to perform this action');
-            } else if (err.error_code == APIErrors.EntityNotFound) {
+            } else if (err.error_code === APIErrors.EntityNotFound) {
                 successToast('Successfully revoked the invitation');
             }
         } else {
@@ -93,13 +93,13 @@ async function resendInvitation() {
     } catch (err) {
         if (err instanceof BusinessLogicError) {
             if (
-                err.error_code == APIErrors.PersonalOrgCannotBeModified ||
-                err.error_code == APIErrors.InternalError
+                err.error_code === APIErrors.PersonalOrgCannotBeModified ||
+                err.error_code === APIErrors.InternalError
             ) {
                 errorToast('Failed to resend the invitation.');
-            } else if (err.error_code == APIErrors.NotAuthorized) {
+            } else if (err.error_code === APIErrors.NotAuthorized) {
                 errorToast('You are not authorized to perform this action');
-            } else if (err.error_code == APIErrors.EntityNotFound) {
+            } else if (err.error_code === APIErrors.EntityNotFound) {
                 successToast('Successfully resent the invitation');
             }
         } else {
@@ -116,7 +116,7 @@ async function resendInvitation() {
 
 async function performModalAction() {
     try {
-        if (centeredModalAction.value == ModalAction.REVOKE) {
+        if (centeredModalAction.value === ModalAction.REVOKE) {
             await revokeInvitation();
         }
         emit('refetch');
@@ -131,9 +131,7 @@ function openModalAction(action: ModalAction) {
     if (centeredModalRef.value) centeredModalRef.value.toggle();
 }
 
-const emit = defineEmits<{
-    (e: 'refetch'): void;
-}>();
+const emit = defineEmits<(e: 'refetch') => void>();
 </script>
 <template>
     <tr>
@@ -141,19 +139,19 @@ const emit = defineEmits<{
             <div>{{ invitation.user_email }}</div>
         </td>
         <td>
-            <div v-if="invitation.role == MemberRole.OWNER" class="org-membership membership-owner">
+            <div v-if="invitation.role === MemberRole.OWNER" class="org-membership membership-owner">
                 Owner
             </div>
-            <div v-if="invitation.role == MemberRole.ADMIN" class="org-membership membership-admin">
+            <div v-if="invitation.role === MemberRole.ADMIN" class="org-membership membership-admin">
                 Admin
             </div>
             <div
-                v-if="invitation.role == MemberRole.MODERATOR"
+                v-if="invitation.role === MemberRole.MODERATOR"
                 class="org-membership membership-moderator"
             >
                 Moderator
             </div>
-            <div v-if="invitation.role == MemberRole.USER" class="org-membership membership-user">
+            <div v-if="invitation.role === MemberRole.USER" class="org-membership membership-user">
                 User
             </div>
         </td>
@@ -171,25 +169,25 @@ const emit = defineEmits<{
                 <div class="flex flex-col gap-0.5">
                     <div v-if="invitation.created_by">
                         <div
-                            v-if="invitation.created_by.role == MemberRole.OWNER"
+                            v-if="invitation.created_by.role === MemberRole.OWNER"
                             class="org-membership membership-owner"
                         >
                             Owner
                         </div>
                         <div
-                            v-if="invitation.created_by.role == MemberRole.ADMIN"
+                            v-if="invitation.created_by.role === MemberRole.ADMIN"
                             class="org-membership membership-admin"
                         >
                             Admin
                         </div>
                         <div
-                            v-if="invitation.created_by.role == MemberRole.MODERATOR"
+                            v-if="invitation.created_by.role === MemberRole.MODERATOR"
                             class="org-membership membership-moderator"
                         >
                             Moderator
                         </div>
                         <div
-                            v-if="invitation.created_by.role == MemberRole.USER"
+                            v-if="invitation.created_by.role === MemberRole.USER"
                             class="org-membership membership-user"
                         >
                             User
@@ -231,7 +229,7 @@ const emit = defineEmits<{
                 <Button
                     v-if="
                         !invitation.created_by ||
-                        invitation.created_by.id == userStore.getUser!.id ||
+                        invitation.created_by.id === userStore.getUser!.id ||
                         isMemberRoleGreaterThan(orgInfo.role, invitation.created_by.role)
                     "
                     variant="destructive"
@@ -254,7 +252,7 @@ const emit = defineEmits<{
                     justify-content: space-between;
                 "
             >
-                <div v-if="centeredModalAction == ModalAction.REVOKE">Revoke the invitation?</div>
+                <div v-if="centeredModalAction === ModalAction.REVOKE">Revoke the invitation?</div>
             </div>
         </template>
         <template #content>
@@ -267,7 +265,7 @@ const emit = defineEmits<{
                     width: 100vw;
                 "
             >
-                <div v-if="centeredModalAction == ModalAction.REVOKE">
+                <div v-if="centeredModalAction === ModalAction.REVOKE">
                     <div>
                         Are you sure you want to revoke the invitation to join the organization?
                     </div>
@@ -277,7 +275,7 @@ const emit = defineEmits<{
         </template>
         <template #buttons>
             <Button
-                v-if="centeredModalAction == ModalAction.REVOKE"
+                v-if="centeredModalAction === ModalAction.REVOKE"
                 variant="destructive"
                 @click="performModalAction()"
             >

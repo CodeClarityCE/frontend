@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
+import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { 
   measureComponentPerformance, 
   measureUpdatePerformance,
@@ -13,9 +16,6 @@ import {
 // import { createTestWrapper } from '../utils/test-utils';
 
 // Import components to test
-import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 
 describe.skip('Component Performance Tests', () => {
   let performanceSuite: PerformanceTestSuite;

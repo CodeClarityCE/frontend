@@ -1,26 +1,25 @@
 <script lang="ts" setup>
-import { ref, type Ref, watch, computed } from 'vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { Icon } from '@iconify/vue';
-
-import LicenseComponent from './LicenseComponent.vue';
-import SelectWorkspace from '../SelectWorkspace.vue';
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { License } from '@/codeclarity_components/results/licenses/License';
-import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
     type FilterState
 } from '@/base_components/filters/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import type { License } from '@/codeclarity_components/results/licenses/License';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, watch, computed } from 'vue';
+import SelectWorkspace from '../SelectWorkspace.vue';
+import LicenseComponent from './LicenseComponent.vue';
+// Import stores
 
 export interface Props {
     analysisID?: string;
@@ -47,7 +46,7 @@ const filterApplied = ref(false);
 const searchKey = ref('');
 const placeholder = 'Search by licenses';
 // const licenses_used = ref([]);
-const licensesUsed: Ref<Array<License>> = ref([]);
+const licensesUsed: Ref<License[]> = ref([]);
 const selected_workspace = ref('.');
 const selectedEcosystemFilter: Ref<string | null> = ref(null);
 
@@ -107,7 +106,7 @@ async function init() {
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    if (props.projectID == '' || props.analysisID == '') {
+    if (props.projectID === '' || props.analysisID === '') {
         return;
     }
     try {
@@ -353,10 +352,10 @@ init();
             </div>
 
             <!-- No Results Messages -->
-            <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
+            <div v-if="matchingItemsCount === 0 && filterApplied && render" class="mt-5">
                 <div style="text-align: center">No licenses match the filter</div>
             </div>
-            <div v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5">
+            <div v-if="matchingItemsCount === 0 && !filterApplied && render" class="mt-5">
                 <div style="text-align: center">No licenses</div>
             </div>
 

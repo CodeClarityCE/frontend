@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
-import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
-import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import { TicketsRepository } from '../tickets.repository';
+import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { ref, onMounted } from 'vue';
 import {
     ExternalTicketProvider,
     ExternalProviderLabels,
@@ -13,6 +12,7 @@ import {
     type IntegrationConfigSummary,
     type ConnectionTestResult
 } from '../tickets.entity';
+import { TicketsRepository } from '../tickets.repository';
 import ClickUpConfigModal from './ClickUpConfigModal.vue';
 
 const { defaultOrg } = storeToRefs(useUserStore());

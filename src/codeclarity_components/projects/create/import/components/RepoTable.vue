@@ -1,36 +1,35 @@
 <script lang="ts">
-import {
-    GetRepositoriesSortInterface,
-    type GetRepositoriesRequestOptions
-} from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { debounce } from '@/utils/searchUtils';
-import router from '@/router';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
+import SortableTable, {
+    type TableHeader
+} from '@/base_components/data-display/tables/SortableTable.vue';
 import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import FilterBox from '@/base_components/filters/UtilitiesFilters.vue';
-import { Icon } from '@iconify/vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import type { Repository } from '@/codeclarity_components/projects/project.entity';
-import {
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import FilterBox, {
     createNewFilterState,
     FilterType,
     type FilterState,
     type ActiveFilter
 } from '@/base_components/filters/UtilitiesFilters.vue';
-import { ref, watch, type Ref } from 'vue';
-import { formatDate } from '@/utils/dateUtils';
-import SortableTable, {
-    type TableHeader
-} from '@/base_components/data-display/tables/SortableTable.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
+import {
+    GetRepositoriesSortInterface,
+    type GetRepositoriesRequestOptions
+} from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import type { Repository } from '@/codeclarity_components/projects/project.entity';
+import router from '@/router';
 import { Badge } from '@/shadcn/ui/badge';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
+import { formatDate } from '@/utils/dateUtils';
+import { debounce } from '@/utils/searchUtils';
+import { Icon } from '@iconify/vue';
+import { ref, watch, type Ref } from 'vue';
 
 // Types
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
@@ -107,12 +106,12 @@ watch([activeFilters, repos], () => {
 
 // Methods
 async function updateSort(key: any) {
-    if (key == undefined) return;
-    if (key != undefined)
-        if (key == sortKey.value) {
+    if (key === undefined) return;
+    if (key !== undefined)
+        if (key === sortKey.value) {
             // If we select the same column then we reverse the direction
             sortDirection.value =
-                sortDirection.value == SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+                sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
         } else {
             // Default direction
             sortDirection.value = SortDirection.DESC;
@@ -130,7 +129,7 @@ watch([page, entriesPerPage], async () => {
  * @param refresh Whether it is a refresh, if no shows the loading skeleton
  * @param forceRefresh Whether it is a force refresh, if yes refetches the repos from the vcs provider
  */
-async function fetchRepos(refresh: boolean = false, forceRefresh: boolean = false) {
+async function fetchRepos(refresh = false, forceRefresh = false) {
     if (!userStore.getDefaultOrg) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -151,7 +150,7 @@ async function fetchRepos(refresh: boolean = false, forceRefresh: boolean = fals
             search: {
                 searchKey: searchKey.value
             },
-            bearerToken: authStore.getToken!,
+            bearerToken: authStore.getToken,
             handleBusinessErrors: true,
             sort: {
                 sortKey: sortKey.value,
@@ -179,7 +178,7 @@ function selectRepo(repo: Repository) {
     const selectedReposIds = selectedRepos.value.map((x) => x.id);
 
     if (!selectedReposIds.includes(repo.id)) selectedRepos.value.push(repo);
-    else selectedRepos.value = selectedRepos.value.filter((x) => x.id != repo.id);
+    else selectedRepos.value = selectedRepos.value.filter((x) => x.id !== repo.id);
 
     // Update select all checkbox state
     updateSelectAllState();
@@ -277,12 +276,12 @@ defineExpose({
                         <div v-if="errorCode" class="text-sm">
                             <div
                                 v-if="
-                                    errorCode == APIErrors.IntegrationInvalidToken ||
-                                    errorCode == APIErrors.FailedToRetrieveReposFromProvider ||
+                                    errorCode === APIErrors.IntegrationInvalidToken ||
+                                    errorCode === APIErrors.FailedToRetrieveReposFromProvider ||
                                     errorCode ==
                                         APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                                    errorCode == APIErrors.IntegrationTokenExpired ||
-                                    errorCode == APIErrors.IntegrationTokenRetrievalFailed
+                                    errorCode === APIErrors.IntegrationTokenExpired ||
+                                    errorCode === APIErrors.IntegrationTokenRetrievalFailed
                                 "
                             >
                                 The integration is not valid. Please update the integration in the
@@ -336,7 +335,7 @@ defineExpose({
         >
             <template #content>
                 <div
-                    v-if="totalEntries == 0 && searchKey != ''"
+                    v-if="totalEntries === 0 && searchKey !== ''"
                     class="flex flex-col items-center gap-4 py-16"
                 >
                     <Icon icon="lucide:search-x" class="text-6xl text-gray-300" />
@@ -346,7 +345,7 @@ defineExpose({
                     </div>
                 </div>
                 <div
-                    v-else-if="totalEntries == 0 && searchKey == ''"
+                    v-else-if="totalEntries === 0 && searchKey === ''"
                     class="flex flex-col items-center gap-4 py-16"
                 >
                     <Icon icon="octicon:repo-24" class="text-6xl text-gray-300" />

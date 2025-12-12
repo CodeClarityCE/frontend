@@ -1,36 +1,36 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
-import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { formatDate } from '@/utils/dateUtils';
-import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
-import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
-import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
-import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
-import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { Icon } from '@iconify/vue';
-import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
-import router from '@/router.ts';
-import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
+import router from '@/router.ts';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
+import { formatDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import AddToPolicyButton from './components/AddToPolicyButton.vue';
+import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
+import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
+import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
 import VulnReferences from './VulnDetails/VulnReferences.vue';
 import VulnSecurityAnalysis from './VulnDetails/VulnSecurityAnalysis.vue';
-import AddToPolicyButton from './components/AddToPolicyButton.vue';
+import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 
-type Props = {
+interface Props {
     [key: string]: any;
     showBack?: boolean;
     analysisID: string;
     projectID: string;
     runIndex?: number | null;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     showBack: false,
@@ -52,7 +52,7 @@ const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const chart_version: Ref<string> = ref('');
 
 function toggleReferences() {
-    if (references_limit.value != finding.value.references.length)
+    if (references_limit.value !== finding.value.references.length)
         references_limit.value = finding.value.references.length;
     else references_limit.value = 8;
 }
@@ -82,15 +82,15 @@ async function getFinding(projectID: string, analysisID: string) {
     } else {
         finding_id = props.analysisID;
     }
-    if (finding_id == '') {
+    if (finding_id === '') {
         return;
     }
     let res: DataResponse<VulnerabilityDetails>;
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
         res = await resultsRepository.getFinding({
@@ -104,11 +104,11 @@ async function getFinding(projectID: string, analysisID: string) {
             workspace: '.'
         });
         finding.value = res.data;
-        if (finding.value?.severities?.cvss_31 != null) {
+        if (finding.value?.severities?.cvss_31 !== null) {
             chart_version.value = 'cvss31';
-        } else if (finding.value?.severities?.cvss_3 != null) {
+        } else if (finding.value?.severities?.cvss_3 !== null) {
             chart_version.value = 'cvss3';
-        } else if (finding.value?.severities?.cvss_2 != null) {
+        } else if (finding.value?.severities?.cvss_2 !== null) {
             chart_version.value = 'cvss2';
         }
         render.value = true;
@@ -120,11 +120,11 @@ getFinding(props.projectID, props.analysisID);
 
 // --- Stat Card Logic ---
 function getBaseScore(finding: VulnerabilityDetails): number | null {
-    if (finding.severities.cvss_31 && finding.severities.cvss_31.base_score != null) {
+    if (finding.severities.cvss_31?.base_score !== null) {
         return finding.severities.cvss_31.base_score;
-    } else if (finding.severities.cvss_3 && finding.severities.cvss_3.base_score != null) {
+    } else if (finding.severities.cvss_3?.base_score !== null) {
         return finding.severities.cvss_3.base_score;
-    } else if (finding.severities.cvss_2 && finding.severities.cvss_2.base_score != null) {
+    } else if (finding.severities.cvss_2?.base_score !== null) {
         return finding.severities.cvss_2.base_score;
     }
     return null;
@@ -134,7 +134,7 @@ function getSeverityLevel(
     finding: VulnerabilityDetails
 ): 'critical' | 'high' | 'medium' | 'low' | 'none' {
     const score = getBaseScore(finding);
-    if (score == null) return 'none';
+    if (score === null) return 'none';
     if (score >= 9.0) return 'critical';
     if (score >= 7.0) return 'high';
     if (score >= 4.0) return 'medium';
@@ -488,11 +488,11 @@ function getPackageManagerSubtitleIcon(): string {
                                     .versions"
                                 :key="version_obj.version"
                                 :class="{
-                                    affected: version_obj.status == 'affected',
-                                    not_affected: version_obj.status == 'not_affected'
+                                    affected: version_obj.status === 'affected',
+                                    not_affected: version_obj.status === 'not_affected'
                                 }"
                             >
-                                <div v-if="version_obj.status == 'not_affected'">
+                                <div v-if="version_obj.status === 'not_affected'">
                                     <div
                                         style="
                                             display: flex;
@@ -528,11 +528,11 @@ function getPackageManagerSubtitleIcon(): string {
                                     .versions"
                                 :key="version_obj.version"
                                 :class="{
-                                    affected: version_obj.status == 'affected',
-                                    not_affected: version_obj.status == 'not_affected'
+                                    affected: version_obj.status === 'affected',
+                                    not_affected: version_obj.status === 'not_affected'
                                 }"
                             >
-                                <div v-if="version_obj.status == 'affected'">
+                                <div v-if="version_obj.status === 'affected'">
                                     <div
                                         style="
                                             display: flex;
@@ -581,12 +581,12 @@ function getPackageManagerSubtitleIcon(): string {
                     <div class="cvss-field-value" style="font-weight: 900">
                         <div v-for="field_value in cvss_info[cvss_field].values" :key="field_value">
                             <div
-                                v-if="field_value[0] == cvss_field_value"
+                                v-if="field_value[0] === cvss_field_value"
                                 :class="cvss_info[cvss_field].class[cvss_field_value]"
                             >
                                 {{ field_value }}
                             </div>
-                            <div v-if="field_value[0] != cvss_field_value">
+                            <div v-if="field_value[0] !== cvss_field_value">
                                 {{ field_value }}
                             </div>
                         </div>

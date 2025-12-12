@@ -1,24 +1,24 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-import router from '@/router';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
-import * as z from 'zod';
-import { Form } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
+import FormInlineCheckboxField from '@/base_components/forms/FormInlineCheckboxField.vue';
+import FormTextField from '@/base_components/forms/FormTextField.vue';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { Icon } from '@iconify/vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
-import { APIErrors } from '@/utils/api/ApiErrors';
 import type { RefreshToken } from '@/codeclarity_components/authentication/refresh_token.entity';
+import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import FormTextField from '@/base_components/forms/FormTextField.vue';
-import FormInlineCheckboxField from '@/base_components/forms/FormInlineCheckboxField.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
+import router from '@/router';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { Form } from 'vee-validate';
+import { ref, type Ref } from 'vue';
+import * as z from 'zod';
 
 // Props
 const props = defineProps<{
@@ -60,15 +60,15 @@ const formValidationSchema = toTypedSchema(
 );
 
 // Sanity Checks
-if (authStore.getAuthenticated == true) {
+if (authStore.getAuthenticated === true) {
     router.push('/');
 }
 
-if (props.provider != SocialProvider.GITLAB && props.provider != SocialProvider.GITHUB) {
+if (props.provider !== SocialProvider.GITLAB && props.provider !== SocialProvider.GITHUB) {
     router.push('/login');
 }
 
-if (token == undefined) {
+if (token === undefined) {
     router.push('/login');
 }
 
@@ -109,9 +109,9 @@ async function submit() {
             validationError.value = _err;
         } else if (_err instanceof BusinessLogicError) {
             errorCode.value = _err.error_code;
-            if (_err.error_code == APIErrors.EntityNotFound) {
+            if (_err.error_code === APIErrors.EntityNotFound) {
                 errorNonRecoverable.value = true;
-            } else if (_err.error_code == APIErrors.NotAuthenticated) {
+            } else if (_err.error_code === APIErrors.NotAuthenticated) {
                 if (tokenRefreshedAlready.value || !authStore.getRefreshToken) {
                     errorNonRecoverable.value = true;
                 } else {
@@ -146,10 +146,10 @@ function nonRecoverableErrorRedirect() {
     <div class="flex flex-col justify-center items-center my-20">
         <div class="max-w-lg w-full flex flex-col">
             <div class="flex flex-row gap-8">
-                <div v-if="props.provider == SocialProvider.GITLAB">
+                <div v-if="props.provider === SocialProvider.GITLAB">
                     <Icon class="text-7xl" icon="devicon:gitlab" />
                 </div>
-                <div v-if="props.provider == SocialProvider.GITHUB">
+                <div v-if="props.provider === SocialProvider.GITHUB">
                     <span class="text-black">
                         <Icon class="text-7xl" icon="simple-icons:github" />
                     </span>
@@ -189,11 +189,11 @@ function nonRecoverableErrorRedirect() {
                     <AlertDescription class="flex flex-row gap-2 items-center">
                         <Icon icon="material-symbols:error-outline" />
                         <div>
-                            <div v-if="errorCode == APIErrors.HandleAlreadyExists">
+                            <div v-if="errorCode === APIErrors.HandleAlreadyExists">
                                 A user with that handle already exists, choose a different handle.
                             </div>
                             <div
-                                v-else-if="errorCode == APIErrors.ValidationFailed"
+                                v-else-if="errorCode === APIErrors.ValidationFailed"
                                 style="white-space: break-spaces"
                             >
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->

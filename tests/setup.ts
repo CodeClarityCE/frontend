@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import '@testing-library/jest-dom'
-import { vi, beforeEach } from 'vitest'
 import { config } from '@vue/test-utils'
+import { vi, beforeEach } from 'vitest'
 import { getPiniaMock, resetPiniaMock } from './test-utils/setup.js'
 
 // Mock Icon component globally for tests

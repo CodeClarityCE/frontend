@@ -36,7 +36,7 @@ export class BaseRepository {
                 if (Array.isArray(value)) {
                     value.forEach((value) => searchParams.append(key, value.toString()));
                 } else {
-                    if (value != undefined) {
+                    if (value !== undefined) {
                         searchParams.append(key, value.toString());
                     }
                 }
@@ -51,7 +51,7 @@ export class BaseRepository {
      * @returns {string} - URL of the endpoint
      */
     protected buildUrl(relativeUrl: string) {
-        if (relativeUrl.substring(0, 1) == '/') return `${this.getBaseUrl()}${relativeUrl}`;
+        if (relativeUrl.startsWith('/')) return `${this.getBaseUrl()}${relativeUrl}`;
         else return `${this.getBaseUrl()}/${relativeUrl}`;
     }
 
@@ -104,7 +104,7 @@ export class BaseRepository {
             return result;
         } else {
             // Status code 1xx, 3xx, 4xx, 5xx
-            const error = this.errorHandler({
+            this.errorHandler({
                 request: {
                     status: response.status,
                     statusText: response.statusText,
@@ -115,7 +115,6 @@ export class BaseRepository {
                 defaultBusinessLogicErrorHandlerTextPrefix:
                     options.defaultBusinessLogicErrorHandlerTextPrefix
             });
-            throw error;
         }
     }
 
@@ -162,7 +161,7 @@ export class BaseRepository {
         };
 
         if (options.data) {
-            fetchOptions['body'] = JSON.stringify(options.data);
+            fetchOptions.body = JSON.stringify(options.data);
         }
 
         // Send the request
@@ -175,7 +174,7 @@ export class BaseRepository {
             return result;
         } else {
             // Status code 1xx, 3xx, 4xx, 5xx
-            const error = this.errorHandler({
+            this.errorHandler({
                 request: {
                     status: response.status,
                     statusText: response.statusText,
@@ -186,7 +185,6 @@ export class BaseRepository {
                 defaultBusinessLogicErrorHandlerTextPrefix:
                     options.defaultBusinessLogicErrorHandlerTextPrefix
             });
-            throw error;
         }
     }
 
@@ -236,7 +234,7 @@ export class BaseRepository {
         };
 
         if (options.data) {
-            fetchOptions['body'] = JSON.stringify(options.data);
+            fetchOptions.body = JSON.stringify(options.data);
         }
 
         // Send the request
@@ -249,7 +247,7 @@ export class BaseRepository {
             return result;
         } else {
             // Status code 1xx, 3xx, 4xx, 5xx
-            const error = this.errorHandler({
+            this.errorHandler({
                 request: {
                     status: response.status,
                     statusText: response.statusText,
@@ -260,7 +258,6 @@ export class BaseRepository {
                 defaultBusinessLogicErrorHandlerTextPrefix:
                     options.defaultBusinessLogicErrorHandlerTextPrefix
             });
-            throw error;
         }
     }
 
@@ -307,7 +304,7 @@ export class BaseRepository {
         };
 
         if (options.data) {
-            fetchOptions['body'] = JSON.stringify(options.data);
+            fetchOptions.body = JSON.stringify(options.data);
         }
 
         // Send the request
@@ -320,7 +317,7 @@ export class BaseRepository {
             return result;
         } else {
             // Status code 1xx, 3xx, 4xx, 5xx
-            const error = this.errorHandler({
+            this.errorHandler({
                 request: {
                     status: response.status,
                     statusText: response.statusText,
@@ -331,7 +328,6 @@ export class BaseRepository {
                 defaultBusinessLogicErrorHandlerTextPrefix:
                     options.defaultBusinessLogicErrorHandlerTextPrefix
             });
-            throw error;
         }
     }
 
@@ -378,7 +374,7 @@ export class BaseRepository {
         };
 
         if (options.data) {
-            fetchOptions['body'] = JSON.stringify(options.data);
+            fetchOptions.body = JSON.stringify(options.data);
         }
 
         // Send the request
@@ -391,7 +387,7 @@ export class BaseRepository {
             return result;
         } else {
             // Status code 1xx, 3xx, 4xx, 5xx
-            const error = this.errorHandler({
+            this.errorHandler({
                 request: {
                     status: response.status,
                     statusText: response.statusText,
@@ -402,7 +398,6 @@ export class BaseRepository {
                 defaultBusinessLogicErrorHandlerTextPrefix:
                     options.defaultBusinessLogicErrorHandlerTextPrefix
             });
-            throw error;
         }
     }
 
@@ -417,32 +412,32 @@ export class BaseRepository {
      * @param {Object} options.handleHTTPErrors - Options
      * @param {string} options.defaultBusinessLogicErrorHandlerTextPrefix In case you want the default business error handler to handle the error but you wish to add some defined prefix to the error message it shows to users.
      */
-    private errorHandler(options: ErrorHandlerOptions) {
+    private errorHandler(options: ErrorHandlerOptions): never {
         const status = options.request.status;
         const statusText = options.request.statusText;
         const responseBody = options.request.responseBody;
 
-        if (responseBody != undefined && 'error_code' in responseBody) {
-            if (responseBody['error_code'] == APIErrors.NotAuthenticated) {
+        if (responseBody !== undefined && 'error_code' in responseBody) {
+            if (responseBody.error_code === APIErrors.NotAuthenticated) {
                 router.push('/login');
             }
         }
 
-        if (responseBody != undefined && 'error_code' in responseBody) {
+        if (responseBody !== undefined && 'error_code' in responseBody) {
             let business_logic_error = new BusinessLogicError(
-                responseBody['error_code'],
-                responseBody['error_message']
+                responseBody.error_code,
+                responseBody.error_message
             );
 
-            if (business_logic_error.error_code == APIErrors.ValidationFailed) {
+            if (business_logic_error.error_code === APIErrors.ValidationFailed) {
                 business_logic_error = new ValidationError(
-                    responseBody['error_code'],
-                    responseBody['error_message'],
-                    responseBody['validation_errors']
+                    responseBody.error_code,
+                    responseBody.error_message,
+                    responseBody.validation_errors
                 );
             }
 
-            if (options.handleBusinessErrors != undefined && options.handleBusinessErrors == true) {
+            if (options.handleBusinessErrors !== undefined && options.handleBusinessErrors === true) {
                 throw business_logic_error;
             } else {
                 this.defaultBusinessErrorHandler(
@@ -453,7 +448,7 @@ export class BaseRepository {
             }
         } else {
             const http_error = new HttpError(status, statusText);
-            if (options.handleHTTPErrors != undefined && options.handleHTTPErrors == true) {
+            if (options.handleHTTPErrors !== undefined && options.handleHTTPErrors === true) {
                 throw http_error;
             } else {
                 this.defaultHttpErrorHandler(http_error);
@@ -470,7 +465,7 @@ export class BaseRepository {
         defaultBusinessLogicErrorHandlerTextPrefix?: string
     ) {
         let prefix = 'An error occured during the processing of the request.';
-        if (defaultBusinessLogicErrorHandlerTextPrefix != undefined) {
+        if (defaultBusinessLogicErrorHandlerTextPrefix !== undefined) {
             prefix = defaultBusinessLogicErrorHandlerTextPrefix;
         }
         this.toast.error(
@@ -502,13 +497,15 @@ export class BaseRepository {
  * @param {string} error_code - API Error Name
  * @param {string} error_message - API Error elaboration message
  */
-export class BusinessLogicError {
+export class BusinessLogicError extends Error {
     error_code: string;
     error_message: string;
 
     constructor(error_code: string, error_message: string /* mitigation: any*/) {
+        super(error_message);
         this.error_code = error_code;
         this.error_message = error_message;
+        this.name = 'BusinessLogicError';
     }
 }
 
@@ -552,17 +549,19 @@ export class ValidationError extends BusinessLogicError {
  * @param {string} code - HTTP status code.
  * @param {string} status - When an HTTP error occurs, status receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
  */
-export class HttpError {
+export class HttpError extends Error {
     code: any;
     status: any;
 
     constructor(code: any, status: any) {
+        super(`HTTP Error ${code}: ${status}`);
         this.code = code;
         this.status = status;
+        this.name = 'HttpError';
     }
 }
 
-type QueryParams = { [key: string]: string | number | undefined | string[] | number[] };
+type QueryParams = Record<string, string | number | undefined | string[] | number[]>;
 
 interface RequestOptions {
     url: string;

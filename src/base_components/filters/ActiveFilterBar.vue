@@ -18,7 +18,7 @@ function removeFilter(filter: ActiveFilter) {
             >
                 <div>{{ filter.label }}</div>
                 <div
-                    v-if="filter.type == 'checkbox'"
+                    v-if="filter.type === 'checkbox'"
                     title="Remove filter"
                     style="cursor: pointer; color: #bfbfbf"
                     class="cursor-pointer text-gray-400"
@@ -26,7 +26,7 @@ function removeFilter(filter: ActiveFilter) {
                 >
                     <Icon class="text-lg" icon="solar:close-circle-bold"></Icon>
                 </div>
-                <div v-if="filter.type == 'radio'" class="text-gray-400"></div>
+                <div v-if="filter.type === 'radio'" class="text-gray-400"></div>
             </div>
         </div>
     </div>

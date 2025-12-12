@@ -20,12 +20,15 @@
   <ScheduleSelector v-model="scheduleConfig" />
 -->
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
+import { cn } from '@/shadcn/lib/utils';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { FormField } from '@/shadcn/ui/form';
-import FormItem from '@/shadcn/ui/form/FormItem.vue';
-import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
 import FormControl from '@/shadcn/ui/form/FormControl.vue';
 import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
+import FormItem from '@/shadcn/ui/form/FormItem.vue';
+import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
+import { Input } from '@/shadcn/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
 import {
     Select,
     SelectContent,
@@ -34,12 +37,9 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
-import { Icon } from '@iconify/vue';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
-import Button from '@/shadcn/ui/button/Button.vue';
 import { formatDate } from '@/utils/dateUtils';
-import { cn } from '@/shadcn/lib/utils';
-import { Input } from '@/shadcn/ui/input';
+import { Icon } from '@iconify/vue';
+import { ref, computed, watch } from 'vue';
 
 /**
  * Type definition for schedule configuration data

@@ -1,19 +1,17 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue';
-
-import { ref, watch, computed } from 'vue';
-import type { Ref } from 'vue';
+import { InfoCard, StatCard } from '@/base_components';
 import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { ref, watch, computed, type Ref } from 'vue';
 
 // Import base components
-import { InfoCard, StatCard } from '@/base_components';
 
 // Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import SelectWorkspace from '../SelectWorkspace.vue';
 
 export interface Props {
@@ -78,7 +76,7 @@ function handleEcosystemFilterChanged(ecosystemType: string | null) {
 }
 
 // Methods
-async function getVulnerabilitiesStats(refresh: boolean = false) {
+async function getVulnerabilitiesStats(refresh = false) {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -87,7 +85,7 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
     if (!refresh) loading.value = true;
 
     if (!props.projectID || !props.analysisID) return;
-    if (props.projectID == '' || props.analysisID == '') return;
+    if (props.projectID === '' || props.analysisID === '') return;
 
     let res: DataResponse<any>;
     try {

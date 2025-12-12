@@ -1,5 +1,5 @@
 export function isNoneSeverity(n: number) {
-    return n == 0.0 || n == undefined;
+    return n === 0.0 || n === undefined;
 }
 export function isLowSeverity(n: number) {
     return n < 4.0 && n > 0.0;

@@ -18,7 +18,7 @@ withDefaults(defineProps<Props>(), {
 
         <div class="rounded pl-6 flex flex-col gap-1">
             <div class="text-2xl font-extrabold text-gray-700">
-                <span v-if="analyzerData.name == 'JS'">SCA Analyzer for Javascript</span>
+                <span v-if="analyzerData.name === 'JS'">SCA Analyzer for Javascript</span>
                 <span v-else>{{ analyzerData.name }}</span>
             </div>
             <div>

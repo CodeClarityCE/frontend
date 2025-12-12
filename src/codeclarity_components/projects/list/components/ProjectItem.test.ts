@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ProjectItem from './ProjectItem.vue';
 
 // Mock all dependencies

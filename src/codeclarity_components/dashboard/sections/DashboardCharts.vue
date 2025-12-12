@@ -62,11 +62,11 @@
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 
 // Simple direct imports - no async complexity
-import LicenseDist from '../charts/LicenseDist.vue';
-import ExposureOverview from '../charts/ExposureOverview.vue';
-import VulnerabilityImpact from '../charts/VulnerabilityImpact.vue';
 import CurrentVulns from '../charts/CurrentVulns.vue';
+import ExposureOverview from '../charts/ExposureOverview.vue';
+import LicenseDist from '../charts/LicenseDist.vue';
 import TicketsDashboardCard from '../charts/TicketsDashboardCard.vue';
+import VulnerabilityImpact from '../charts/VulnerabilityImpact.vue';
 
 /**
  * DashboardCharts - Simple chart grid layout

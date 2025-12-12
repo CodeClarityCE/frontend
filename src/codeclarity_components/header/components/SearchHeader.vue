@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useMagicKeys } from '@vueuse/core';
 
-import { ref, watch } from 'vue';
+import router from '@/router';
+import { Button } from '@/shadcn/ui/button';
 import {
     CommandDialog,
     CommandEmpty,
@@ -11,10 +11,10 @@ import {
     CommandList,
     CommandSeparator
 } from '@/shadcn/ui/command';
-import router from '@/router';
 import { useUserStore } from '@/stores/user';
-import { Button } from '@/shadcn/ui/button';
 import { Icon } from '@iconify/vue';
+import { useMagicKeys } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
 const userStore = useUserStore();
 

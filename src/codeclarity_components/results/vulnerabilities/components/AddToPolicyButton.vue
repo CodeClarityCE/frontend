@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
+import { useVulnerabilityPolicyActions } from '@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions';
 import Button from '@/shadcn/ui/button/Button.vue';
 import {
     DropdownMenu,
@@ -9,7 +8,8 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator
 } from '@/shadcn/ui/dropdown-menu';
-import { useVulnerabilityPolicyActions } from '@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
 
 interface Props {
     vulnerabilityId: string;

@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, type Ref } from 'vue';
-import { WorkspacesOutput } from './workspace.entity';
-import { ResultsRepository } from './results.repository';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
+import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
 import {
     Select,
     SelectContent,
@@ -13,8 +9,12 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { ECOSYSTEMS } from '@/utils/packageEcosystem';
-import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
+import { onMounted, ref, computed, type Ref } from 'vue';
+import { ResultsRepository } from './results.repository';
+import { WorkspacesOutput } from './workspace.entity';
 
 export interface Props {
     analysisID?: string;

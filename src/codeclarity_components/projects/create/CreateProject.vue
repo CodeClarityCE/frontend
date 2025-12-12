@@ -1,25 +1,24 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import {
-    VCS,
-    IntegrationProvider
-} from '@/codeclarity_components/organizations/integrations/Integrations';
-import { useStateStore } from '@/stores/state';
 import { PageHeader, InfoCard } from '@/base_components';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import {
+    IntegrationProvider,
+    type VCS
+} from '@/codeclarity_components/organizations/integrations/Integrations';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { Icon } from '@iconify/vue';
-import router from '@/router';
+import { storeToRefs } from 'pinia';
+import { ref, watch, type Ref } from 'vue';
 import GithubImportComponent from './import/GithubImportComponent.vue';
 import GitlabImportComponent from './import/GitlabImportComponent.vue';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { storeToRefs } from 'pinia';
-import NoIntegration from './integrations/NoIntegration.vue';
 import Integrations from './integrations/IntegrationsComponent.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
+import NoIntegration from './integrations/NoIntegration.vue';
 
 // Repositories
 const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
@@ -48,7 +47,7 @@ const selectedVCS: Ref<VCS | undefined> = ref();
 const vcsIntegrations: Ref<VCS[]> = ref([]);
 
 // Methods
-async function fetchVcsIntegrations(refresh: boolean = false) {
+async function fetchVcsIntegrations(refresh = false) {
     if (!defaultOrg!.value!.id) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -67,7 +66,7 @@ async function fetchVcsIntegrations(refresh: boolean = false) {
             handleBusinessErrors: true
         });
         vcsIntegrations.value = resp.data.filter((vcs) => !vcs.invalid);
-        if (vcsIntegrations.value.length == 1) {
+        if (vcsIntegrations.value.length === 1) {
             selectedVCS.value = vcsIntegrations.value[0];
         }
     } catch (_err) {
@@ -164,7 +163,7 @@ fetchVcsIntegrations();
             <!-- VCS Selection State -->
             <template v-else-if="!error && !selectedVCS">
                 <!-- No Integrations -->
-                <div v-if="vcsIntegrations.length == 0">
+                <div v-if="vcsIntegrations.length === 0">
                     <NoIntegration :default-org="defaultOrg!" @on-refresh="onIntegrationsRefresh" />
                 </div>
 
@@ -199,14 +198,14 @@ fetchVcsIntegrations();
                         <div class="p-2 bg-theme-primary/10 rounded-lg">
                             <Icon
                                 v-if="
-                                    selectedVCS.integration_provider == IntegrationProvider.GITHUB
+                                    selectedVCS.integration_provider === IntegrationProvider.GITHUB
                                 "
                                 icon="simple-icons:github"
                                 class="h-6 w-6 text-theme-black"
                             />
                             <Icon
                                 v-else-if="
-                                    selectedVCS.integration_provider == IntegrationProvider.GITLAB
+                                    selectedVCS.integration_provider === IntegrationProvider.GITLAB
                                 "
                                 icon="simple-icons:gitlab"
                                 class="h-6 w-6 text-theme-black"
@@ -228,11 +227,11 @@ fetchVcsIntegrations();
 
                 <!-- Repository Import Component -->
                 <GithubImportComponent
-                    v-if="selectedVCS.integration_provider == IntegrationProvider.GITHUB"
+                    v-if="selectedVCS.integration_provider === IntegrationProvider.GITHUB"
                     :integration="selectedVCS.id"
                 />
                 <GitlabImportComponent
-                    v-if="selectedVCS.integration_provider == IntegrationProvider.GITLAB"
+                    v-if="selectedVCS.integration_provider === IntegrationProvider.GITLAB"
                     :integration="selectedVCS.id"
                 />
             </div>

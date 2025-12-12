@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent } from 'vue';
 import SSOAuth from '@/enterprise_components/sso/SSOAuth.vue';
 import { createOAuthState } from '@/enterprise_components/sso/utils';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { defineComponent } from 'vue';
 
 const mockAuthStore = {
   setSocialAuthState: vi.fn()

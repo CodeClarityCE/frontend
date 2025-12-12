@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { useAuthStore } from '@/stores/auth';
-import { ref, watch, type Ref } from 'vue';
-import { Icon } from '@iconify/vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
-import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
-import OrgListItem from './ListItem.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { ref, watch, type Ref } from 'vue';
+import OrgListItem from './ListItem.vue';
 
 const search = ref('');
 const placeholder = 'Search by organization name or role';
@@ -25,7 +25,7 @@ const error: Ref<boolean> = ref(false);
 const orgRepo = new OrgRepository();
 const memberships: Ref<OrganizationMembership[]> = ref([]);
 
-async function fetch(refresh: boolean = false) {
+async function fetch(refresh = false) {
     errorCode.value = '';
     error.value = false;
     if (authStore.getAuthenticated && authStore.getToken) {

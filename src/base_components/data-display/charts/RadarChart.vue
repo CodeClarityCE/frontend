@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import * as d3 from 'd3';
-import { RadarChart, type RadarChartData, type RadarChartOptions } from './radarChart';
 import { onMounted } from 'vue';
+import { RadarChart, type RadarChartData, type RadarChartOptions } from './radarChart';
 
 const props = defineProps<{
     data: RadarChartData;
@@ -42,7 +42,7 @@ config = { ...config, ...props.options };
 
 onMounted(() => {
     // let svg_radar = RadarChart(".radarChart", props.data, config);
-    RadarChart('#' + props.id, props.data, config);
+    RadarChart(`#${  props.id}`, props.data, config);
 });
 </script>
 <template>

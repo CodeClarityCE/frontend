@@ -5,9 +5,9 @@ export interface SortOption {
 }
 </script>
 <script setup lang="ts">
+import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { Icon } from '@iconify/vue';
-import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
 
 // Props
 const props = defineProps<{
@@ -18,9 +18,7 @@ const props = defineProps<{
 }>();
 
 // Emits
-const emit = defineEmits<{
-    (e: 'onSortChange', sortKey: string, sortDirection: SortDirection): void;
-}>();
+const emit = defineEmits<(e: 'onSortChange', sortKey: string, sortDirection: SortDirection) => void>();
 
 async function updateSort(key: string | null, sortDirection?: SortDirection) {
     if (!key) return;
@@ -43,11 +41,11 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
         >
             <option
                 v-for="(sort_option, index) in sortOptions.filter(
-                    (option: SortOption | TableHeader) => option.key != null
+                    (option: SortOption | TableHeader) => option.key !== null
                 )"
                 :key="index"
                 :value="sort_option.key"
-                :selected="sortKey == sort_option.key"
+                :selected="sortKey === sort_option.key"
                 @click="updateSort(sort_option.key!, props.sortDirection)"
             >
                 {{ sort_option.label }}
@@ -55,7 +53,7 @@ async function updateSort(key: string | null, sortDirection?: SortDirection) {
         </select>
         <div style="cursor: pointer">
             <Icon
-                v-if="sortDirection == SortDirection.DESC"
+                v-if="sortDirection === SortDirection.DESC"
                 icon="iconoir:sort-down"
                 style="font-size: 2em"
                 @click="updateSort(sortKey || null, SortDirection.ASC)"

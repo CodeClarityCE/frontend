@@ -1,9 +1,10 @@
 <script lang="ts">
-import { type GetRepositoriesRequestOptions } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import Button from '@/shadcn/ui/button/Button.vue';
-import router from '@/router';
-import Input from '@/shadcn/ui/input/Input.vue';
 import { InfoCard } from '@/base_components';
+import { type GetRepositoriesRequestOptions } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import { type Repository } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
 import {
     FormControl,
     FormDescription,
@@ -12,6 +13,7 @@ import {
     FormLabel,
     FormMessage
 } from '@/shadcn/ui/form';
+import Input from '@/shadcn/ui/input/Input.vue';
 
 // Types
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
@@ -25,23 +27,20 @@ export interface FailedProjectImport {
 }
 </script>
 <script lang="ts" setup>
-import { ref } from 'vue';
-import type { Ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { Repository } from '@/codeclarity_components/projects/project.entity';
-import { Icon } from '@iconify/vue';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
 import { APIErrors } from '@/utils/api/ApiErrors';
-import { errorToast, successToast } from '@/utils/toasts';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
-import Faq from './components/FaqComponent.vue';
-import RepoTable from './components/RepoTable.vue';
-import ImportErrorTable from './components/ImportErrorTable.vue';
-import { useForm } from 'vee-validate';
+import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
 import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import { ref, type Ref } from 'vue';
 import * as z from 'zod';
+import Faq from './components/FaqComponent.vue';
+import ImportErrorTable from './components/ImportErrorTable.vue';
+import RepoTable from './components/RepoTable.vue';
 
 // Repositories
 const projectsRepo: ProjectRepository = new ProjectRepository();
@@ -58,7 +57,7 @@ const props = defineProps<{
 // State
 const repoTableRef: any = ref(null);
 const reposFailedToImportPage: Ref<number> = ref(0);
-const reposFailedToImport: Ref<{ [key: string]: FailedProjectImport }> = ref({});
+const reposFailedToImport: Ref<Record<string, FailedProjectImport>> = ref({});
 const selectedRepos: Ref<Repository[]> = ref([]);
 
 const formSchema = toTypedSchema(
@@ -109,7 +108,7 @@ async function importProjectsBulk() {
     if (!userStore.getDefaultOrg) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
-    const _reposFailedToImport: { [key: string]: FailedProjectImport } = {};
+    const _reposFailedToImport: Record<string, FailedProjectImport> = {};
     reposFailedToImport.value = {};
 
     for (const repo of selectedRepos.value) {
@@ -119,15 +118,15 @@ async function importProjectsBulk() {
             let errorMessage = '';
 
             if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.AlreadyExists) {
+                if (err.error_code === APIErrors.AlreadyExists) {
                     errorMessage = 'Already imported';
                     // continue;
                 } else if (
-                    err.error_code == APIErrors.InternalError ||
-                    err.error_code == APIErrors.EntityNotFound
+                    err.error_code === APIErrors.InternalError ||
+                    err.error_code === APIErrors.EntityNotFound
                 ) {
                     errorMessage = 'An error occured during the project import.';
-                } else if (err.error_code == APIErrors.NotAuthorized) {
+                } else if (err.error_code === APIErrors.NotAuthorized) {
                     errorMessage = 'You do not have permission to import this repository';
                 } else {
                     errorMessage = 'An error occured during the project import.';
@@ -146,7 +145,7 @@ async function importProjectsBulk() {
     reposFailedToImport.value = { ..._reposFailedToImport };
 
     const nmbFailedImports = Object.keys(reposFailedToImport.value).length;
-    if (nmbFailedImports != selectedRepos.value.length) {
+    if (nmbFailedImports !== selectedRepos.value.length) {
         successToast(
             `Succesfully imported ${selectedRepos.value.length - nmbFailedImports} repositories`
         );
@@ -184,7 +183,7 @@ async function onSelectedReposChange(repos: Repository[]) {
     <main class="min-h-screen bg-white p-6">
         <div class="space-y-8">
             <!-- Repository Selection -->
-            <div v-if="Object.keys(reposFailedToImport).length == 0">
+            <div v-if="Object.keys(reposFailedToImport).length === 0">
                 <InfoCard
                     title="Select Repositories"
                     description="Browse available repositories and select the ones you want to import"
@@ -253,7 +252,7 @@ async function onSelectedReposChange(repos: Repository[]) {
             </div>
 
             <!-- Bulk Import Action -->
-            <div v-if="selectedRepos.length > 0 && Object.keys(reposFailedToImport).length == 0">
+            <div v-if="selectedRepos.length > 0 && Object.keys(reposFailedToImport).length === 0">
                 <InfoCard
                     title="Ready to Import"
                     description="You have selected repositories for import"

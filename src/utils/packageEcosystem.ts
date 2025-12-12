@@ -125,7 +125,7 @@ export class EcosystemDetector {
      * PURL format: pkg:type/namespace/name@version?qualifiers#subpath
      */
     static detectFromPURL(purl: string): EcosystemInfoExtended {
-        if (!purl || !purl.startsWith('pkg:')) {
+        if (!purl?.startsWith('pkg:')) {
             return ECOSYSTEMS[PackageEcosystem.UNKNOWN];
         }
 

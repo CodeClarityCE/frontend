@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue';
 import type { DetectedLanguage } from '@/utils/languageDetection';
+import { Icon } from '@iconify/vue';
 
 defineProps<{
     language: DetectedLanguage;

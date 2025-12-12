@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent } from 'vue';
 
 const Privacy = defineAsyncComponent({
@@ -38,6 +37,6 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Privacy v-if="props.page == 'privacy'" />
+    <Privacy v-if="props.page === 'privacy'" />
     <Service v-else />
 </template>

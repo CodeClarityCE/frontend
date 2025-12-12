@@ -1,5 +1,4 @@
-import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisStatus, type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import type { DetectedLanguage } from './ecosystem-shared';
 
@@ -79,7 +78,7 @@ export class LanguageDetectionService {
     /**
      * Gets languages from a completed analysis
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     getLanguagesFromAnalysis(_analysis: Analysis): DetectedLanguage[] {
         // This method can be extended to check analysis metadata if language detection
         // information is stored in the analysis object itself in the future
@@ -96,7 +95,7 @@ export class LanguageDetectionService {
      * Gets the most recent successful analysis for language detection
      */
     getMostRecentCompletedAnalysis(analyses: Analysis[]): Analysis | null {
-        if (!analyses || analyses.length === 0) return null;
+        if (analyses?.length === 0) return null;
 
         const completedAnalyses = analyses.filter(
             (analysis) =>

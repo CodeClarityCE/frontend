@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
 import {
     Dialog,
@@ -12,17 +10,19 @@ import {
 } from '@/shadcn/ui/dialog';
 import { Input } from '@/shadcn/ui/input';
 import { Label } from '@/shadcn/ui/label';
-import { Textarea } from '@/shadcn/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
-import { useUserStore } from '@/stores/user';
+import { Textarea } from '@/shadcn/ui/textarea';
 import { useAuthStore } from '@/stores/auth';
-import { TicketsRepository } from '../tickets.repository';
+import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/vue';
+import { ref, computed, watch } from 'vue';
 import {
     TicketPriority,
     TicketType,
     TicketPriorityLabels,
     TicketTypeLabels
 } from '../tickets.entity';
+import { TicketsRepository } from '../tickets.repository';
 
 export interface VulnerabilityData {
     vulnerability_id: string;

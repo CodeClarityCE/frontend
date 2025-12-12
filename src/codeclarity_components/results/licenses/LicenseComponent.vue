@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
-import { License } from '@/codeclarity_components/results/licenses/License';
-import Popover from '@/shadcn/ui/popover/Popover.vue';
-import PopoverTrigger from '@/shadcn/ui/popover/PopoverTrigger.vue';
-import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
+import { type License } from '@/codeclarity_components/results/licenses/License';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Card, CardContent } from '@/shadcn/ui/card';
 import { Button } from '@/shadcn/ui/button';
+import { Card, CardContent } from '@/shadcn/ui/card';
+import Popover from '@/shadcn/ui/popover/Popover.vue';
+import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
+import PopoverTrigger from '@/shadcn/ui/popover/PopoverTrigger.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
 
 const isExpanded = ref(false);
 
@@ -163,12 +163,12 @@ const formatPropertyName = (property: string) => {
         .join(' ');
 };
 
-type Props = {
+interface Props {
     license: License;
     last?: boolean;
     analysisID?: string;
     projectID?: string;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     last: false,

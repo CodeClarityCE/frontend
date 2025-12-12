@@ -4,7 +4,7 @@ import { ref, nextTick, type Ref } from 'vue';
 const compRef = ref(null);
 const show_modal: Ref<any> = ref(false);
 
-type Props = {
+interface Props {
     tracker?: any;
     leftOffset?: number;
     topOffset?: number;
@@ -14,7 +14,7 @@ type Props = {
     showSubTitle?: boolean;
     padding?: boolean;
     marginTarget?: number;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     tracker: null,
@@ -32,7 +32,7 @@ const top = ref(0);
 const left: Ref<any> = ref(0);
 const right: Ref<any> = ref(0);
 const tip_top = ref(10);
-const id = 'id-' + random().toString();
+const id = `id-${  random().toString()}`;
 
 const listener = (event: any) => {
     if (event.target !== compRef.value && event.composedPath().includes(compRef.value)) {
@@ -122,7 +122,7 @@ function reposition() {
         overwritePosition = 'bottom';
     }
 
-    if (props.position == 'bottom' || overwritePosition == 'bottom') {
+    if (props.position === 'bottom' || overwritePosition === 'bottom') {
         console.log('bottom');
 
         let subtract = modalHeight;
@@ -135,12 +135,12 @@ function reposition() {
                 `#${id} > .centered-modal-title-content-divider`
             )!.clientHeight;
         top.value -= subtract;
-        if (trackedDom && props.position == 'top') {
+        if (trackedDom && props.position === 'top') {
             top.value += trackedDom.clientHeight;
         }
         tip_top.value += subtract;
     }
-    if (props.position == 'middle') {
+    if (props.position === 'middle') {
         let subtract = modalHeight / 2;
         const subtitle = document.querySelector(`#${id} > .centered-modal-subtitle`);
         if (subtitle) subtract += subtitle.clientHeight;
@@ -165,32 +165,32 @@ function hide() {
 function getOffset(el: any, position: string) {
     const top = el.offsetTop;
     const left = el.offsetLeft;
-    if (position == 'top') {
+    if (position === 'top') {
         return {
             left: left + el.offsetWidth + props.marginTarget,
             top: top
         };
-    } else if (position == 'middle') {
+    } else if (position === 'middle') {
         return {
             left: left + el.offsetWidth + props.marginTarget,
             top: top + el.offsetHeight / 2
         };
-    } else if (position == 'bottom') {
+    } else if (position === 'bottom') {
         return {
             left: left + el.offsetWidth + props.marginTarget,
             top: top + el.offsetHeight
         };
-    } else if (position == 'top-left') {
+    } else if (position === 'top-left') {
         return {
             left: left + el.offsetWidth - props.marginTarget,
             top: top
         };
-    } else if (position == 'middle-left') {
+    } else if (position === 'middle-left') {
         return {
             left: left + el.offsetWidth - props.marginTarget,
             top: top + el.offsetHeight / 2
         };
-    } else if (position == 'bottom-left') {
+    } else if (position === 'bottom-left') {
         return {
             left: left + el.offsetWidth - props.marginTarget,
             top: top + el.offsetHeight

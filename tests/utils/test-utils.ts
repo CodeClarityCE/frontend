@@ -1,8 +1,8 @@
 import { render, type RenderOptions } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { createRouter, createWebHistory } from 'vue-router'
-import type { Component } from 'vue'
 import { vi } from 'vitest'
+import type { Component } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
 
 // Basic router for testing
 const router = createRouter({

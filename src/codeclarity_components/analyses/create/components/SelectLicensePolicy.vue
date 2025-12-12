@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { ref, type Ref } from 'vue';
 import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue';
-import { LicensePolicy } from '@/codeclarity_components/organizations/policy/license_policy.entity';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import { type LicensePolicy } from '@/codeclarity_components/organizations/policy/license_policy.entity';
 import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
+import { ref, type Ref } from 'vue';
 import { RouterLink } from 'vue-router';
 const user = useUserStore();
 const auth = useAuthStore();
 
-const selected_license_policy = defineModel<Array<string>>('selected_license_policy', {
+const selected_license_policy = defineModel<string[]>('selected_license_policy', {
     default: []
 });
 
@@ -20,9 +20,9 @@ const selected_license_policy_object = ref<LicensePolicy>();
 
 const projectRepository: LicensePolicyRepository = new LicensePolicyRepository();
 
-const license_policies_list: Ref<Array<LicensePolicy>> = ref([]);
-const license_policies_list_loading_ref: Ref<typeof LoadingContainer | undefined> = ref();
-const license_policies_list_loading_error: Ref<any> = ref(null);
+const license_policies_list: Ref<LicensePolicy[]> = ref([]);
+const license_policies_list_loading_ref = ref<InstanceType<typeof LoadingContainer>>();
+const license_policies_list_loading_error: Ref<unknown> = ref(null);
 
 const currentPage: Ref<number> = ref(0);
 const defaultEntriesPerPage: Ref<number> = ref(3);
@@ -78,7 +78,7 @@ fetchLicensePolicies();
                 <div v-if="license_policies_list.length > 0" class="license-policies-list-wrapper">
                     <!-- No Policy Option -->
                     <div
-                        v-if="selected_license_policy_object == null"
+                        v-if="selected_license_policy_object === null"
                         class="license-policy license-policy-selected"
                     >
                         <div class="license-policy-header">
@@ -118,7 +118,7 @@ fetchLicensePolicies();
                     </div>
 
                     <div
-                        v-if="selected_license_policy_object != null"
+                        v-if="selected_license_policy_object !== null"
                         class="license-policy license-policy-selected"
                     >
                         <div class="license-policy-header">
@@ -127,7 +127,7 @@ fetchLicensePolicies();
                                     {{ selected_license_policy_object.name }}
                                     <Badge class="ml-2">Selected</Badge>
                                     <Badge
-                                        v-if="selected_license_policy_object.default == true"
+                                        v-if="selected_license_policy_object.default === true"
                                         class="ml-2"
                                         >Default
                                     </Badge>
@@ -153,14 +153,14 @@ fetchLicensePolicies();
                         "
                     >
                         <div
-                            v-if="license_policy.id != selected_license_policy_object?.id"
+                            v-if="license_policy.id !== selected_license_policy_object?.id"
                             class="license-policy cursor-pointer"
                         >
                             <div class="license-policy-header">
                                 <div>
                                     <div>
                                         {{ license_policy.name }}
-                                        <Badge v-if="license_policy.default == true" class="ml-2"
+                                        <Badge v-if="license_policy.default === true" class="ml-2"
                                             >Default</Badge
                                         >
                                     </div>

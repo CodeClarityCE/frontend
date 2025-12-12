@@ -119,7 +119,7 @@ export function getOwaspInfoById(owaspId: string): OwaspCategory {
 /**
  * Get unique OWASP IDs from a list of weaknesses
  */
-export function getUniqueOwaspIds(weaknesses: Array<{ OWASPTop10Id?: string }>): string[] {
+export function getUniqueOwaspIds(weaknesses: { OWASPTop10Id?: string }[]): string[] {
     const owaspIds = weaknesses
         .map((w) => w.OWASPTop10Id)
         .filter((id): id is string => !!id && id !== '');

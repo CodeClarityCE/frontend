@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import Collapsible from '@/shadcn/ui/collapsible/Collapsible.vue';
 import CollapsibleContent from '@/shadcn/ui/collapsible/CollapsibleContent.vue';
 import CollapsibleTrigger from '@/shadcn/ui/collapsible/CollapsibleTrigger.vue';
+import { Icon } from '@iconify/vue';
 import { ref, computed } from 'vue';
 import AnalysisItem from './AnalysisItem.vue';
-import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Icon } from '@iconify/vue';
 
 const isOpen = ref(false);
 

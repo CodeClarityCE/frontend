@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import { Icon } from '@iconify/vue';
-import router from '@/router';
-import { useAuthStore } from '@/stores/auth';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import ClickUpConfigModal from '@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue';
-import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
 import {
     ExternalTicketProvider,
     type IntegrationConfigSummary
 } from '@/codeclarity_components/tickets/tickets.entity';
+import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
 import { successToast, errorToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref, onMounted } from 'vue';
 
 const props = defineProps<{
     orgId: string;

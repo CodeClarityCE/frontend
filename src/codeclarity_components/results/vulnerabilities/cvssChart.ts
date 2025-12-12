@@ -1,5 +1,5 @@
 function getData(finding: any) {
-    if (finding.severities.cvss_31 != null) {
+    if (finding.severities.cvss_31 !== null) {
         const base_score = finding.severities.cvss_31.base_score ?? 0.0;
         const exploitability = finding.severities.cvss_31.exploitability_score ?? 0.0;
         const impact = finding.severities.cvss_31.impact_score ?? 0.0;
@@ -7,11 +7,11 @@ function getData(finding: any) {
         const max_impact = 6.0;
         const max_base_score = 10.0;
         return [
-            base_score / max_base_score == 0 ? 0.1 : base_score / max_base_score,
-            impact / max_impact == 0 ? 0.1 : impact / max_impact,
-            exploitability / max_exploitability == 0 ? 0.1 : exploitability / max_exploitability
+            base_score / max_base_score === 0 ? 0.1 : base_score / max_base_score,
+            impact / max_impact === 0 ? 0.1 : impact / max_impact,
+            exploitability / max_exploitability === 0 ? 0.1 : exploitability / max_exploitability
         ];
-    } else if (finding.severities.cvss_3 != null) {
+    } else if (finding.severities.cvss_3 !== null) {
         const base_score = finding.severities.cvss_3.base_score ?? 0.0;
         const exploitability = finding.severities.cvss_3.exploitability_score ?? 0.0;
         const impact = finding.severities.cvss_3.impact_score ?? 0.0;
@@ -19,11 +19,11 @@ function getData(finding: any) {
         const max_impact = 6.0;
         const max_base_score = 10.0;
         return [
-            base_score / max_base_score == 0 ? 0.1 : base_score / max_base_score,
-            impact / max_impact == 0 ? 0.1 : impact / max_impact,
-            exploitability / max_exploitability == 0 ? 0.1 : exploitability / max_exploitability
+            base_score / max_base_score === 0 ? 0.1 : base_score / max_base_score,
+            impact / max_impact === 0 ? 0.1 : impact / max_impact,
+            exploitability / max_exploitability === 0 ? 0.1 : exploitability / max_exploitability
         ];
-    } else if (finding.severities.cvss_2 != null) {
+    } else if (finding.severities.cvss_2 !== null) {
         const base_score = finding.severities.cvss_2.base_score ?? 0.0;
         const exploitability = finding.severities.cvss_2.exploitability_score ?? 0.0;
         const impact = finding.severities.cvss_2.impact_score ?? 0.0;
@@ -31,9 +31,9 @@ function getData(finding: any) {
         const max_impact = 10.0;
         const max_base_score = 10.0;
         return [
-            base_score / max_base_score == 0 ? 0.1 : base_score / max_base_score,
-            impact / max_impact == 0 ? 0.1 : impact / max_impact,
-            exploitability / max_exploitability == 0 ? 0.1 : exploitability / max_exploitability
+            base_score / max_base_score === 0 ? 0.1 : base_score / max_base_score,
+            impact / max_impact === 0 ? 0.1 : impact / max_impact,
+            exploitability / max_exploitability === 0 ? 0.1 : exploitability / max_exploitability
         ];
     }
     return null;

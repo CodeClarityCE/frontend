@@ -2,14 +2,14 @@
 global.Reflect = global.Reflect || {};
 global.Reflect.getMetadata = global.Reflect.getMetadata || vi.fn();
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent, nextTick } from 'vue';
 import OAuth2Callback from '@/codeclarity_components/authentication/oauth/OAuth2Callback.vue';
-import router from '@/router';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import router from '@/router';
 import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { defineComponent, nextTick } from 'vue';
 
 interface MockAuthRepository {
   gitlabAuthFinalize: ReturnType<typeof vi.fn>;

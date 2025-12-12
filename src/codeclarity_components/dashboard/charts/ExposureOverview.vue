@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
+import LineChart from '@/base_components/data-display/charts/LineChart.vue';
+import { type SeverityInfoByWeek } from '@/codeclarity_components/dashboard/dashboard.entity';
 import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
-import { SeverityInfoByWeek } from '@/codeclarity_components/dashboard/dashboard.entity';
+import { Badge } from '@/shadcn/ui/badge';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { Skeleton } from '@/shadcn/ui/skeleton';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { storeToRefs } from 'pinia';
-import { ref, watch, type Ref } from 'vue';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { getWeekRange, formatDateRange } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
-import LineChart from '@/base_components/data-display/charts/LineChart.vue';
-import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
-import { Badge } from '@/shadcn/ui/badge';
-import { Skeleton } from '@/shadcn/ui/skeleton';
-import Button from '@/shadcn/ui/button/Button.vue';
+import { storeToRefs } from 'pinia';
+import { ref, watch, type Ref } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -37,11 +37,11 @@ const data: Ref<SeverityInfoByWeek[] | undefined> = ref();
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const chartData: Ref<any | undefined> = ref();
+const chartData: Ref<any> = ref();
 const noData: Ref<boolean> = ref(false);
 
-async function fetch(refresh: boolean = false) {
-    if (!defaultOrg || !defaultOrg.value) return;
+async function fetch(refresh = false) {
+    if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     if (!refresh) loading.value = true;
@@ -57,7 +57,7 @@ async function fetch(refresh: boolean = false) {
             handleBusinessErrors: true,
             integrationIds: props.integrationIds
         });
-        if (resp.data.length == 0) noData.value = true;
+        if (resp.data.length === 0) noData.value = true;
         else generateChart(resp.data);
         data.value = resp.data;
     } catch (_err) {
@@ -76,7 +76,7 @@ function getWeekFormat(weekNumber: number, year: number) {
     if (start.getFullYear() !== end.getFullYear()) {
         return formatDateRange(start, end, 'MMM DD, YY');
     } else {
-        return formatDateRange(start, end, 'MMM DD') + `, ${end.getFullYear()}`;
+        return `${formatDateRange(start, end, 'MMM DD')  }, ${end.getFullYear()}`;
     }
 }
 

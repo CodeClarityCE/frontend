@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import AnalyzersList from './AnalyzersList.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import AnalyzersList from './AnalyzersList.vue';
 
 // Mock router
 vi.mock('@/router', () => ({

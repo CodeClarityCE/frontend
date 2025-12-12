@@ -1,30 +1,30 @@
 <script lang="ts" setup>
-import {
-    isMemberRoleGreaterOrEqualTo,
-    MemberRole,
-    Organization
-} from '@/codeclarity_components/organizations/organization.entity';
-import router from '@/router';
-import { Icon } from '@iconify/vue';
-import { ref, type Ref } from 'vue';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import {
     IntegrationProvider,
     type VCS
 } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { getDaysUntilExpiry } from '@/utils/dateUtils';
-import Button from '@/shadcn/ui/button/Button.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
+import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import {
+    isMemberRoleGreaterOrEqualTo,
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import {
     ExternalTicketProvider,
     type IntegrationConfigSummary
 } from '@/codeclarity_components/tickets/tickets.entity';
+import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { getDaysUntilExpiry } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 // Constants
 const EXPIRES_IN_DAYS_RISK = 14;
@@ -61,7 +61,7 @@ async function init() {
     await Promise.all([fetchVcsIntegrations(), fetchTicketingIntegrations()]);
 }
 
-async function fetchVcsIntegrations(refresh: boolean = false) {
+async function fetchVcsIntegrations(refresh = false) {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -89,7 +89,7 @@ async function fetchVcsIntegrations(refresh: boolean = false) {
     }
 }
 
-async function fetchTicketingIntegrations(refresh: boolean = false) {
+async function fetchTicketingIntegrations(refresh = false) {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     ticketingError.value = false;

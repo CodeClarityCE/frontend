@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import BaseImportComponent, { type GetReposOptions } from './BaseImportComponent.vue';
-import { Icon } from '@iconify/vue';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
 import type { Repository } from '@/codeclarity_components/projects/project.entity';
+import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
+import { Icon } from '@iconify/vue';
+import BaseImportComponent, { type GetReposOptions } from './BaseImportComponent.vue';
 
 // Repositories
 const integrationRepo: IntegrationsRepository = new IntegrationsRepository();

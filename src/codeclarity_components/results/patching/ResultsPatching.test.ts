@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { Project } from '@/codeclarity_components/projects/project.entity';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 // Pinia imports removed to prevent plugin duplication warnings
 import ResultsPatching from './ResultsPatching.vue';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 
 // Mock child components
 vi.mock('./PatchingContent.vue', () => ({

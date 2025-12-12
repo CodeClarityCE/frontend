@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import FormSelectField from '@/base_components/forms/FormSelectField.vue';
 import { render, screen } from '@testing-library/vue';
 import { Form } from 'vee-validate';
-import FormSelectField from '@/base_components/forms/FormSelectField.vue';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock vee-validate Field and ErrorMessage components
 vi.mock('vee-validate', async () => {

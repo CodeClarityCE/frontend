@@ -1,7 +1,5 @@
 <script setup lang="ts">
 // Imports
-import { Icon } from '@iconify/vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import {
     Select,
     SelectContent,
@@ -11,11 +9,13 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
 
 // Props
 defineProps<{
-    selectionPageLimit: Array<number>;
-    sortOptions: Array<any>;
+    selectionPageLimit: number[];
+    sortOptions: any[];
     showing: number;
     total: number;
 }>();
@@ -88,7 +88,7 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                 </Select>
                 <div class="cursor-pointer flex gap-1 items-center">
                     <Icon
-                        v-if="sortDirection == SortDirection.DESC"
+                        v-if="sortDirection === SortDirection.DESC"
                         icon="oi:sort-descending"
                         class="h-5 w-5"
                         role="button"

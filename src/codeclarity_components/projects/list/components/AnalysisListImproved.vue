@@ -1,20 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { formatDate, formatDistanceToNow } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
-import type {
-    Analysis,
-    AnalysisStatus as AnalysisStatusType
-} from '@/codeclarity_components/analyses/analysis.entity';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
-import { Button } from '@/shadcn/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/shadcn/ui/dropdown-menu';
+    AnalysisStatus,
+    type Analysis,
+    type AnalysisStatus as AnalysisStatusType
+} from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import router from '@/router';
+import { Button } from '@/shadcn/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -23,12 +15,20 @@ import {
     DialogDescription,
     DialogFooter
 } from '@/shadcn/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/shadcn/ui/dropdown-menu';
 import { Progress } from '@/shadcn/ui/progress';
-import router from '@/router';
-import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
+import { formatDate, formatDistanceToNow } from '@/utils/dateUtils';
 import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
 import AnalysisRuns from './AnalysisRuns.vue';
 
 const props = defineProps({
@@ -129,7 +129,7 @@ const shouldShowSteps = (analysis: Analysis): boolean => {
     // Don't show steps if analysis is in pending state (not started yet)
     const pendingStates = [AnalysisStatus.REQUESTED, AnalysisStatus.TRIGGERED];
 
-    if (pendingStates.includes(analysis.status as AnalysisStatus)) {
+    if (pendingStates.includes(analysis.status)) {
         return false;
     }
 

@@ -1,11 +1,9 @@
 <script setup lang="ts">
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { cn } from '@/shadcn/lib/utils';
 import { buttonVariants } from '@/shadcn/ui/button';
-
 import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const UserAuthForm = defineAsyncComponent({

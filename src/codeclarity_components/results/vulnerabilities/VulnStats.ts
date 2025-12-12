@@ -1,5 +1,5 @@
 export interface Output {
-    workspaces: { [key: string]: WorkSpaceData };
+    workspaces: Record<string, WorkSpaceData>;
     analysis_info: AnalysisInfo;
 }
 
@@ -42,7 +42,7 @@ export interface SeverityDist {
 
 export interface WorkSpaceData {
     Vulnerabilities: Vulnerability[];
-    DependencyInfo: { [key: string]: DependencyInfo };
+    DependencyInfo: Record<string, DependencyInfo>;
 }
 
 export interface DependencyInfo {
@@ -97,7 +97,7 @@ interface Conflict {
 export interface Vulnerability {
     Id: string;
     Sources: Source[];
-    Affected: { [key: string]: AffectedInfo };
+    Affected: Record<string, AffectedInfo>;
     AffectedDependencyName: string;
     AffectedDependencyVersion: string;
     AffectedDependency: string;
@@ -139,7 +139,7 @@ export interface EPSS {
 }
 
 export interface AffectedDeps {
-    Affected: { [key: string]: AffectedInfo };
+    Affected: Record<string, AffectedInfo>;
     AffectedDependencyName: string;
     AffectedVersion: string;
     AffectedDependency: string;

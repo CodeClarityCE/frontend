@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import VulnDetailsHeader from './VulnDetailsHeader.vue';
+import { describe, it, expect, vi } from 'vitest';
 import { VulnerabilityDetails } from './VulnDetails';
+import VulnDetailsHeader from './VulnDetailsHeader.vue';
 
 // Mock Icon component
 vi.mock('@iconify/vue', () => ({

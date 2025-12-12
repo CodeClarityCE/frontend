@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import SearchHeader from '@/codeclarity_components/header/components/SearchHeader.vue';
-
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ref } from 'vue';
 
 // Mock external dependencies

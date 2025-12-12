@@ -11,30 +11,35 @@
  * - Interactive charts and statistics
  */
 
-import { Icon } from '@iconify/vue';
-import { Button } from '@/shadcn/ui/button';
-
-import { ref, watch, computed } from 'vue';
-import type { Ref } from 'vue';
-import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
-import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
-import { SbomStats } from '@/codeclarity_components/results/stats.entity';
-import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue';
 import type { DoughnutChartData } from '@/base_components/data-display/charts/doughnutChart';
+import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { SbomStats } from '@/codeclarity_components/results/stats.entity';
+import { Button } from '@/shadcn/ui/button';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { ref, watch, computed, type Ref } from 'vue';
 
 // Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
 
 // Import components
-import SbomTable from './SbomTable.vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
-import SbomExportMenu from './SbomExportMenu.vue';
+import {
+    convertToCSV,
+    convertToHTML,
+    convertToCycloneDX,
+    sortDependenciesByPriority,
+    type ExportOptions
+} from './exports/sbomExportUtils';
 import PackageJsonUpdatesModal from './PackageJsonUpdatesModal.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import SbomExportMenu from './SbomExportMenu.vue';
+import SbomTable from './SbomTable.vue';
 
 // Import utilities
 import {
@@ -44,13 +49,6 @@ import {
     convertToPackageUpdates,
     type Dependency
 } from './utils/sbomUtils';
-import {
-    convertToCSV,
-    convertToHTML,
-    convertToCycloneDX,
-    sortDependenciesByPriority,
-    type ExportOptions
-} from './exports/sbomExportUtils';
 
 export interface Props {
     analysisID?: string;
@@ -321,7 +319,7 @@ async function fetchDependencies() {
 
 // Methods
 getSbomStats();
-async function getSbomStats(refresh: boolean = false) {
+async function getSbomStats(refresh = false) {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 

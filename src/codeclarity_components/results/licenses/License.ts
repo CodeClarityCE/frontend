@@ -1,7 +1,7 @@
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 export class License {
     @IsNotEmpty()
-    deps_using_license!: Array<string>;
+    deps_using_license!: string[];
 
     @IsString()
     description!: string;
@@ -19,16 +19,16 @@ export class License {
     license_compliance_violation!: boolean;
 
     license_properties!: {
-        permissions: Array<string>;
-        conditions: Array<string>;
-        limitations: Array<string>;
+        permissions: string[];
+        conditions: string[];
+        limitations: string[];
         usage: string;
     };
 
     @IsString()
     name!: string;
 
-    references!: Array<string>;
+    references!: string[];
 
     unable_to_infer!: boolean;
 

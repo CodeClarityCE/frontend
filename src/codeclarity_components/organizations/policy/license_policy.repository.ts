@@ -1,16 +1,16 @@
 import { Entity } from '../../../utils/api/BaseEntity';
-import { LicensePolicy } from './license_policy.entity';
-import { PaginatedResponse } from '../../../utils/api/responses/PaginatedResponse';
 import {
     BaseRepository,
     type AuthRepoMethodGetRequestOptions,
     type AuthRepoMethodPostRequestOptions,
     type AuthRepoMethodPatchRequestOptions
 } from '../../../utils/api/BaseRepository';
-import type { CreatePolicy } from './create/create_policy.http';
-import type { PolicyUpdate } from './edit/update_policy.http';
 import { CreatedResponse } from '../../../utils/api/responses/CreatedResponse';
 import { NoDataResponse } from '../../../utils/api/responses/NoDataResponse';
+import { PaginatedResponse } from '../../../utils/api/responses/PaginatedResponse';
+import type { CreatePolicy } from './create/create_policy.http';
+import type { PolicyUpdate } from './edit/update_policy.http';
+import { type LicensePolicy } from './license_policy.entity';
 
 export interface GetLicensePoliciesRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;

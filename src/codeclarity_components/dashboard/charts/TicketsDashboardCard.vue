@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, watch, type Ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { Icon } from '@iconify/vue';
-import { storeToRefs } from 'pinia';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
-import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
 import {
     TicketPriorityLabels,
     TicketPriorityColors,
     type TicketDashboardStats
 } from '@/codeclarity_components/tickets/tickets.entity';
-import { Skeleton } from '@/shadcn/ui/skeleton';
+import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
 import { Button } from '@/shadcn/ui/button';
 import { ScrollArea } from '@/shadcn/ui/scroll-area';
+import { Skeleton } from '@/shadcn/ui/skeleton';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { ref, watch, type Ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 // Props
 const props = defineProps<{
@@ -41,8 +41,8 @@ const loading: Ref<boolean> = ref(true);
 const noData: Ref<boolean> = ref(false);
 const stats: Ref<TicketDashboardStats | null> = ref(null);
 
-async function fetch(refresh: boolean = false) {
-    if (!defaultOrg || !defaultOrg.value) return;
+async function fetch(refresh = false) {
+    if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     if (!refresh) loading.value = true;

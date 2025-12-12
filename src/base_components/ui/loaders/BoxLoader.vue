@@ -14,7 +14,7 @@ withDefaults(defineProps<Props>(), {
 <template>
     <div
         class="skeleton skeleton-box"
-        :class="{ 'skeleton-static': static == true }"
+        :class="{ 'skeleton-static': static === true }"
         :style="dimensions"
     ></div>
 </template>

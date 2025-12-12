@@ -1,39 +1,36 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-
-import SbomDetailsLoader from './SbomDetails/SbomDetailsLoader.vue';
-import SbomDetailsHeader from './SbomDetails/SbomDetailsHeader.vue';
-import SbomInformation from './SbomDetails/SbomInformation.vue';
-import SbomDependencyHealth from './SbomDetails/SbomDependencyHealth.vue';
-
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-
-import { Icon } from '@iconify/vue';
-
-import router from '@/router';
 import {
     DependencyDetails,
     type SeverityDist
 } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import router from '@/router';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import SbomDependencyHealth from './SbomDetails/SbomDependencyHealth.vue';
+import SbomDetailsHeader from './SbomDetails/SbomDetailsHeader.vue';
+import SbomDetailsLoader from './SbomDetails/SbomDetailsLoader.vue';
 import SbomImportPaths from './SbomDetails/SbomImportPaths.vue';
+import SbomInformation from './SbomDetails/SbomInformation.vue';
+
+
+// Import stores
 
 // Import common components
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
 
-type Props = {
+interface Props {
     [key: string]: any;
     showBack?: boolean;
     analysisID: string;
     projectID: string;
     runIndex?: number | null;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     showBack: false,
@@ -150,15 +147,15 @@ async function getDependency(projectID: string, analysisID: string) {
     const urlParams = new URLSearchParams(window.location.search);
     const package_id_param = urlParams.get('package_id');
 
-    if (package_id_param == null) return;
+    if (package_id_param === null) return;
 
     let res: DataResponse<DependencyDetails>;
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
 

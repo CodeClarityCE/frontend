@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import { GitlabTokenType } from '@/codeclarity_components/organizations/integrations/integration_add.http';
 import {
     IntegrationProvider,
-    GitlabIntegration
+    type GitlabIntegration
 } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { errorToast, successToast } from '@/utils/toasts';
 import { Icon } from '@iconify/vue';
 import { ref, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import OrgIntegrationManageTokenBasedIntegration from '../IntegrationManageTokenBasedIntegration.vue';
-import { errorToast, successToast } from '@/utils/toasts';
-import { GitlabTokenType } from '@/codeclarity_components/organizations/integrations/integration_add.http';
 
 const integration: Ref<GitlabIntegration | undefined> = ref();
 
@@ -90,11 +90,11 @@ async function deleteIntegration() {
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            if (_err.error_code == APIErrors.NotAuthorized) {
+            if (_err.error_code === APIErrors.NotAuthorized) {
                 errorToast('You are not authorized to perform this action.');
-            } else if (_err.error_code == APIErrors.EntityNotFound) {
+            } else if (_err.error_code === APIErrors.EntityNotFound) {
                 errorToast('Succesfully deleted the integration');
-            } else if (_err.error_code == APIErrors.InternalError) {
+            } else if (_err.error_code === APIErrors.InternalError) {
                 errorToast('Failed to delete the integration.');
             } else {
                 errorToast('Failed to delete the integration.');
@@ -109,7 +109,7 @@ init();
 </script>
 <template>
     <OrgIntegrationManageTokenBasedIntegration
-        v-if="!loading && integration != undefined && integration != null"
+        v-if="!loading && integration !== undefined && integration !== null"
         :error="error"
         :error-code="errorCode"
         :integration="integration"
@@ -130,10 +130,10 @@ init();
             Your organization is linked to GitLab.
         </template>
         <template #token-type>
-            <div v-if="integration.token_type == GitlabTokenType.PERSONAL_ACCESS_TOKEN">
+            <div v-if="integration.token_type === GitlabTokenType.PERSONAL_ACCESS_TOKEN">
                 Personal Access Token
             </div>
-            <div v-else-if="integration.token_type == GitlabTokenType.OAUTH_TOKEN">OAuth Token</div>
+            <div v-else-if="integration.token_type === GitlabTokenType.OAUTH_TOKEN">OAuth Token</div>
         </template>
     </OrgIntegrationManageTokenBasedIntegration>
 </template>

@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue';
 import { calculateDateDifference, formatRelativeTime } from '@/utils/dateUtils';
-import type { PropType } from 'vue';
-import { computed } from 'vue';
+import { Icon } from '@iconify/vue';
+import { computed, type PropType } from 'vue';
 
 const props = defineProps({
     dependency: {
@@ -121,7 +120,7 @@ const getHealthStatusDescription = (): string => {
                 </div>
 
                 <!-- Unlicensed Warning -->
-                <div v-if="dependency.license == ''" class="health-issue-card unlicensed">
+                <div v-if="dependency.license === ''" class="health-issue-card unlicensed">
                     <div class="issue-header">
                         <Icon icon="solar:document-text-broken-bold" class="issue-icon" />
                         <span class="issue-title">Unlicensed</span>

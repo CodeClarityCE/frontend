@@ -4,6 +4,6 @@ export interface CreatePolicy {
     name: string;
     description: string;
     type: LicensePolicyType;
-    licenses: Array<any>;
+    licenses: any[];
     default: boolean;
 }

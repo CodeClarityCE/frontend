@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
+import {
+    type Notification,
+    NotificationContentType
+} from '@/codeclarity_components/header/notification.entity';
+import { NotificationRepository } from '@/codeclarity_components/header/notification.repository';
 import router from '@/router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shadcn/ui/avatar';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
 import { Button } from '@/shadcn/ui/button';
+import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
+import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
+import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
+import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
+import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
+import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,33 +24,23 @@ import {
     DropdownMenuShortcut,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue';
-import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
-import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
-import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
-import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
-import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
 import { Input } from '@/shadcn/ui/input';
-import { NotificationRepository } from '@/codeclarity_components/header/notification.repository';
-import { ref, type Ref, computed, watch } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import {
-    type Notification,
-    NotificationContentType
-} from '@/codeclarity_components/header/notification.entity';
-import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
 import {
     isGreaterThan,
     isPrerelease as semverIsPrerelease,
     shouldRecommendUpgrade,
     getUpgradeType
 } from '@/utils/semver';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, computed, watch } from 'vue';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const allNotifications: Ref<Array<Notification>> = ref([]);
+const allNotifications: Ref<Notification[]> = ref([]);
 const total_notifications: Ref<number> = ref(0);
 const currentPage: Ref<number> = ref(0);
 const searchQuery: Ref<string> = ref('');
@@ -265,7 +265,7 @@ async function fetchAllNotifications() {
     try {
         // Fetch a larger number to get all notifications for better sorting/filtering
         const resp = await notificationRepository.getNotifications({
-            bearerToken: authStore.getToken as string,
+            bearerToken: authStore.getToken!,
             handleBusinessErrors: true,
             page: 0,
             entries_per_page: 100 // Fetch more notifications for better overview
@@ -284,7 +284,7 @@ async function fetchAllNotifications() {
 async function deleteNotification(notification_id: string) {
     try {
         await notificationRepository.deleteNotification({
-            bearerToken: authStore.getToken as string,
+            bearerToken: authStore.getToken!,
             handleBusinessErrors: true,
             notification_id: notification_id
         });
@@ -302,7 +302,7 @@ async function deleteNotification(notification_id: string) {
 async function deleteAllNotifications() {
     try {
         await notificationRepository.deleteAllNotifications({
-            bearerToken: authStore.getToken as string,
+            bearerToken: authStore.getToken!,
             handleBusinessErrors: true
         });
     } catch (_err) {
@@ -490,7 +490,7 @@ fetchAllNotifications();
                         :key="notification.id"
                         class="border-b pb-4 last:border-b-0"
                     >
-                        <div v-if="notification.content_type == 'new_version'">
+                        <div v-if="notification.content_type === 'new_version'">
                             <span class="font-semibold"
                                 >{{ notification.content['package'] }} can be upgraded</span
                             >
@@ -503,7 +503,7 @@ fetchAllNotifications();
                                 }}</span
                             >
                         </div>
-                        <div v-else-if="notification.content_type == 'fix_available'">
+                        <div v-else-if="notification.content_type === 'fix_available'">
                             <span class="font-semibold"
                                 >Fix available for {{ notification.content['package'] }}</span
                             >

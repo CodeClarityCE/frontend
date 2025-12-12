@@ -27,7 +27,7 @@ const config = { ...defaultConfig, ...props.options };
 
 onMounted(() => {
     // Select the container using the dynamic id prop
-    const container = d3.select('#' + props.id);
+    const container = d3.select(`#${  props.id}`);
 
     // Clear any previous content to prevent duplicate renderings
     container.selectAll('*').remove();

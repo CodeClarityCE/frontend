@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
-import VulnDetails from './VulnDetails.vue';
-import { VulnerabilityDetails } from './VulnDetails/VulnDetails';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ResultsRepository } from '../results.repository';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { VulnerabilityDetails } from './VulnDetails/VulnDetails';
+import VulnDetails from './VulnDetails.vue';
 
 // Mock modules
 vi.mock('@/router.ts', () => ({

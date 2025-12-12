@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import {
     MemberRole,
     type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import router from '@/router';
-import { useAuthStore } from '@/stores/auth';
-import { ref, type Ref, watch } from 'vue';
-import { Icon } from '@iconify/vue';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import { errorToast, successToast } from '@/utils/toasts';
+import router from '@/router';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Switch } from '@/shadcn/ui/switch';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, watch } from 'vue';
 
 const authStore = useAuthStore();
 
@@ -37,9 +37,9 @@ enum OrgAction {
 }
 
 function performOrgAction() {
-    if (orgAction.value == OrgAction.DELETE) {
+    if (orgAction.value === OrgAction.DELETE) {
         deleteOrg(orgActionId.value);
-    } else if (orgAction.value == OrgAction.LEAVE) {
+    } else if (orgAction.value === OrgAction.LEAVE) {
         leaveOrg(orgActionId.value);
     }
 }
@@ -56,9 +56,9 @@ async function deleteOrg(orgId: string) {
             router.push({ name: 'orgs', params: { page: 'list' } });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if (err.error_code == APIErrors.PersonalOrgCannotBeModified) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -80,11 +80,11 @@ async function leaveOrg(orgId: string) {
             router.push({ name: 'orgs', params: { page: 'list' } });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if (err.error_code == APIErrors.PersonalOrgCannotBeModified) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot leave a personal organization.`);
-                } else if (err.error_code == APIErrors.CannotLeaveAsLastOwner) {
+                } else if (err.error_code === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
                         `You cannot leave as the last owner of this organization. Instead delete the organization.`
                     );
@@ -156,7 +156,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
                         <!-- Integration Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -208,9 +208,9 @@ async function updateAutoResolveSetting(enabled: boolean) {
                         <RouterLink
                             v-if="
                                 !orgInfo.personal &&
-                                (orgInfo.role == MemberRole.OWNER ||
-                                    orgInfo.role == MemberRole.ADMIN ||
-                                    orgInfo.role == MemberRole.MODERATOR)
+                                (orgInfo.role === MemberRole.OWNER ||
+                                    orgInfo.role === MemberRole.ADMIN ||
+                                    orgInfo.role === MemberRole.MODERATOR)
                             "
                             :to="{
                                 name: 'orgs',
@@ -238,9 +238,9 @@ async function updateAutoResolveSetting(enabled: boolean) {
                         <RouterLink
                             v-if="
                                 !orgInfo.personal &&
-                                (orgInfo.role == MemberRole.OWNER ||
-                                    orgInfo.role == MemberRole.ADMIN ||
-                                    orgInfo.role == MemberRole.MODERATOR)
+                                (orgInfo.role === MemberRole.OWNER ||
+                                    orgInfo.role === MemberRole.ADMIN ||
+                                    orgInfo.role === MemberRole.MODERATOR)
                             "
                             :to="{
                                 name: 'orgs',
@@ -291,7 +291,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
                         <!-- Analyzer Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -320,7 +320,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
 
             <!-- Ticket Settings Card -->
             <InfoCard
-                v-if="orgInfo.role == MemberRole.OWNER || orgInfo.role == MemberRole.ADMIN"
+                v-if="orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN"
                 title="Ticket Settings"
                 description="Configure automatic ticket management behavior"
                 icon="solar:ticket-bold-duotone"
@@ -388,7 +388,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
 
                         <!-- Delete Organization -->
                         <div
-                            v-if="orgInfo.role == MemberRole.OWNER"
+                            v-if="orgInfo.role === MemberRole.OWNER"
                             class="flex items-center gap-4 p-4 border border-red-300 rounded-lg cursor-pointer hover:border-red-400 hover:shadow-md transition-all duration-200 bg-red-100"
                             @click="
                                 orgActionId = orgId;
@@ -574,13 +574,13 @@ async function updateAutoResolveSetting(enabled: boolean) {
         <template #title>
             <div class="flex items-center gap-3">
                 <div
-                    v-if="orgAction == OrgAction.DELETE"
+                    v-if="orgAction === OrgAction.DELETE"
                     class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
                 >
                     <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
                 </div>
                 <div
-                    v-if="orgAction == OrgAction.LEAVE"
+                    v-if="orgAction === OrgAction.LEAVE"
                     class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center"
                 >
                     <Icon icon="solar:exit-bold" class="text-orange-600" />
@@ -588,7 +588,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
                 <div>
                     <h3 class="text-lg font-bold text-theme-black">
                         {{
-                            orgAction == OrgAction.DELETE
+                            orgAction === OrgAction.DELETE
                                 ? 'Delete Organization'
                                 : 'Leave Organization'
                         }}
@@ -599,16 +599,16 @@ async function updateAutoResolveSetting(enabled: boolean) {
         <template #content>
             <div class="space-y-3">
                 <p class="text-theme-gray">
-                    <span v-if="orgAction == OrgAction.DELETE">
+                    <span v-if="orgAction === OrgAction.DELETE">
                         Are you sure you want to permanently delete this organization?
                     </span>
-                    <span v-if="orgAction == OrgAction.LEAVE">
+                    <span v-if="orgAction === OrgAction.LEAVE">
                         Are you sure you want to leave this organization?
                     </span>
                 </p>
 
                 <div
-                    v-if="orgAction == OrgAction.DELETE"
+                    v-if="orgAction === OrgAction.DELETE"
                     class="bg-red-50 border border-red-200 rounded-lg p-3"
                 >
                     <div class="flex items-center gap-2">
@@ -628,7 +628,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
                     orgActionModalRef.toggle();
                 "
             >
-                {{ orgAction == OrgAction.DELETE ? 'Delete' : 'Leave' }}
+                {{ orgAction === OrgAction.DELETE ? 'Delete' : 'Leave' }}
             </button>
             <button
                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition-colors"

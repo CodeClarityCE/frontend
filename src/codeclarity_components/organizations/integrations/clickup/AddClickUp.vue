@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import { useRoute } from 'vue-router';
-import router from '@/router';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import ClickUpConfigModal from '@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 // State
 const orgId = ref('');
@@ -32,7 +32,7 @@ async function init() {
         return;
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
     } else {
         router.back();

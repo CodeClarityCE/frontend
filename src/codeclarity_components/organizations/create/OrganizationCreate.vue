@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '../organization.repository';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { Button } from '@/shadcn/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
 import { Textarea } from '@/shadcn/ui/textarea';
 import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
-import { ZodError } from 'zod';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { Icon } from '@iconify/vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import { ZodError } from 'zod';
 import * as z from 'zod';
+import { OrgRepository } from '../organization.repository';
 
 const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();

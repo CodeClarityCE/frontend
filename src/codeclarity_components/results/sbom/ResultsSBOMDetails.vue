@@ -1,14 +1,14 @@
 <script lang="ts" setup>
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { onMounted, onUpdated, ref, type Ref, watch } from 'vue';
 import Details from './SbomDetails.vue';
 // Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
 
 const project: Ref<Project> = ref(new Project());
 const analysis: Ref<Analysis> = ref(new Analysis());
@@ -52,13 +52,13 @@ onUpdated(() => {
     if (mainContainer) mainContainer.scrollTop = 0;
     setTimeout(() => {
         const container = document.getElementsByClassName('main-container')[0];
-        if (y_position != 0 && details.value == false && container)
+        if (y_position !== 0 && details.value === false && container)
             container.scrollTop = y_position;
     }, 50);
 });
 
 watch(active_tab, async (newTab, oldTab) => {
-    if (newTab != oldTab) {
+    if (newTab !== oldTab) {
         y_position = 0;
         reference_click_element.value = '';
     }
@@ -70,7 +70,7 @@ async function init() {
 
     const analysis_id = searchParams.get('analysis_id');
     const project_id = searchParams.get('project_id');
-    if (analysis_id == null || project_id == null) {
+    if (analysis_id === null || project_id === null) {
         throw new Error('Missing analysis_id or project_id');
     }
     analysisID.value = analysis_id;
@@ -82,11 +82,11 @@ async function init() {
 async function getProject(projectID: string) {
     let res: DataResponse<Project>;
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
 
@@ -114,11 +114,11 @@ async function getProject(projectID: string) {
 async function getAnalysis(projectID: string, analysisID: string) {
     let res: DataResponse<Analysis>;
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
 

@@ -1,14 +1,14 @@
 <script lang="ts" setup>
+import FormTextField from '@/base_components/forms/FormTextField.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
+import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { Form } from 'vee-validate';
 import { ref, type Ref } from 'vue';
 import * as z from 'zod';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { Form } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
-import { Icon } from '@iconify/vue';
-import FormTextField from '@/base_components/forms/FormTextField.vue';
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -75,7 +75,7 @@ async function submit() {
                                 <Icon icon="material-symbols:error-outline" />
                                 <div v-if="errorCode">
                                     <div
-                                        v-if="errorCode == APIErrors.ValidationFailed"
+                                        v-if="errorCode === APIErrors.ValidationFailed"
                                         style="white-space: break-spaces"
                                     >
                                         <!-- Note: this should never happen unless our client and server side validation are out of sync -->

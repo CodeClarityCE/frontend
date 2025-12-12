@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { ref, computed } from 'vue';
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ref, type computed } from 'vue';
 
 // Mock stores
 vi.mock('@/stores/state', () => ({

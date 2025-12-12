@@ -1,29 +1,26 @@
 <script setup lang="ts">
-import { ref, type Ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
 
-import { cn } from '@/shadcn/lib/utils';
 
-import { Icon } from '@iconify/vue';
-import type { Token } from '@/codeclarity_components/authentication/token.entity';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
+import type { Token } from '@/codeclarity_components/authentication/token.entity';
 import router from '@/router';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
-
-import { Button } from '@/shadcn/ui/button';
-
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
-import { vAutoAnimate } from '@formkit/auto-animate/vue';
-
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
-import { Input } from '@/shadcn/ui/input';
+import { cn } from '@/shadcn/lib/utils';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import { Button } from '@/shadcn/ui/button';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
+import { Input } from '@/shadcn/ui/input';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { vAutoAnimate } from '@formkit/auto-animate/vue';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import { ref, type Ref } from 'vue';
+import * as z from 'zod';
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -57,7 +54,7 @@ const authStore = useAuthStore();
 
 // Sanity checks
 // Check if the use is logged in, and if redirect him
-if (authStore.getAuthenticated == true) {
+if (authStore.getAuthenticated === true) {
     router.push('/');
 }
 
@@ -92,7 +89,7 @@ async function submit(values: any) {
             errorCode.value = _err.error_code;
             validationError.value = _err;
         } else if (_err instanceof BusinessLogicError) {
-            if (_err.error_code == 'AccountNotActivated') {
+            if (_err.error_code === 'AccountNotActivated') {
                 router.push('/trial');
             }
             errorCode.value = _err.error_code;
@@ -109,24 +106,24 @@ async function submit(values: any) {
         <Icon icon="material-symbols:error-outline" />
         <AlertDescription>
             <div v-if="errorCode">
-                <div v-if="errorCode == APIErrors.InternalError">
+                <div v-if="errorCode === APIErrors.InternalError">
                     An error occured during the processing of the request.
                 </div>
-                <div v-else-if="errorCode == APIErrors.WrongCredentials">Wrong credentials.</div>
-                <div v-else-if="errorCode == APIErrors.RegistrationNotVerified">
+                <div v-else-if="errorCode === APIErrors.WrongCredentials">Wrong credentials.</div>
+                <div v-else-if="errorCode === APIErrors.RegistrationNotVerified">
                     You have not yet verified your registration. Please go to your email inbox and
                     follow the instructions therein.
                 </div>
-                <div v-else-if="errorCode == APIErrors.CannotPerformActionOnSocialAccount">
+                <div v-else-if="errorCode === APIErrors.CannotPerformActionOnSocialAccount">
                     To connected using your Social account, click on the respective Social button
                     below.
                 </div>
-                <div v-else-if="errorCode == APIErrors.EntityNotFound">
+                <div v-else-if="errorCode === APIErrors.EntityNotFound">
                     This should not have happened. Please try again.
                     <!-- Race condition -->
                 </div>
                 <div
-                    v-else-if="errorCode == APIErrors.ValidationFailed"
+                    v-else-if="errorCode === APIErrors.ValidationFailed"
                     class="whitespace-break-spaces"
                 >
                     <!-- Note: this should never happen unless our client and server side validation are out of sync -->

@@ -1,24 +1,24 @@
 <script lang="ts" setup>
-import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
-import { Form } from 'vee-validate';
-import { ref, type Ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import { useRoute } from 'vue-router';
-import router from '@/router';
-import { useAuthStore } from '@/stores/auth';
-import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import { GitlabTokenType } from '@/codeclarity_components/organizations/integrations/integration_add.http';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import * as z from 'zod';
-import { toTypedSchema } from '@vee-validate/zod';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { successToast } from '@/utils/toasts';
 import FormTextField from '@/base_components/forms/FormTextField.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import { GitlabTokenType } from '@/codeclarity_components/organizations/integrations/integration_add.http';
+import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import router from '@/router';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { Form } from 'vee-validate';
+import { ref, type Ref } from 'vue';
+import { useRoute } from 'vue-router';
+import * as z from 'zod';
 
 enum FormMode {
     UPDATE = 'UPDATE',
@@ -51,7 +51,7 @@ const formGitlabInstanceUrl: Ref<string> = ref('https://gitlab.com');
 const formGitlabInstanceUrlError: Ref<string> = ref('');
 
 async function setSelfHosted(_selfHosted: boolean) {
-    if (_selfHosted == true) {
+    if (_selfHosted === true) {
         selfHosted.value = true;
         selfHostedModalRef.value.toggle();
     } else {
@@ -75,7 +75,7 @@ async function submit() {
         let url = formGitlabInstanceUrl.value;
         url = url.endsWith('/') ? url.slice(0, -1) : url;
 
-        if (mode.value == FormMode.CREATE) {
+        if (mode.value === FormMode.CREATE) {
             await integrationRepo.addGitlabIntegration({
                 orgId: orgId.value,
                 bearerToken: authStore.getToken,
@@ -90,7 +90,7 @@ async function submit() {
                 name: 'orgs',
                 params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
             });
-        } else if (mode.value == FormMode.UPDATE) {
+        } else if (mode.value === FormMode.UPDATE) {
             await integrationRepo.updateGitlabIntegration({
                 orgId: orgId.value,
                 integrationId: updateId.value!,
@@ -166,12 +166,12 @@ async function init() {
     const urlParams = new URLSearchParams(window.location.search);
     const _updateId = urlParams.get('update');
 
-    if (typeof _updateId == 'string') {
+    if (typeof _updateId === 'string') {
         updateId.value = _updateId;
         mode.value = FormMode.UPDATE;
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
     } else {
         router.back();
@@ -215,9 +215,9 @@ init();
                             <div v-if="errorCode">
                                 <div
                                     v-if="
-                                        errorCode == APIErrors.IntegrationTokenExpired ||
-                                        errorCode == APIErrors.IntegrationInvalidToken ||
-                                        errorCode == APIErrors.IntegrationWrongTokenType
+                                        errorCode === APIErrors.IntegrationTokenExpired ||
+                                        errorCode === APIErrors.IntegrationInvalidToken ||
+                                        errorCode === APIErrors.IntegrationWrongTokenType
                                     "
                                     class="text-red-700"
                                 >
@@ -242,30 +242,30 @@ init();
                                     scopes.
                                 </div>
                                 <div
-                                    v-else-if="errorCode == APIErrors.DuplicateIntegration"
+                                    v-else-if="errorCode === APIErrors.DuplicateIntegration"
                                     class="text-red-700"
                                 >
                                     You already have an integration with GitLab for the same host.
                                 </div>
                                 <div
-                                    v-else-if="errorCode == APIErrors.EntityNotFound"
+                                    v-else-if="errorCode === APIErrors.EntityNotFound"
                                     class="text-red-700"
                                 >
-                                    <div v-if="mode == FormMode.CREATE">
+                                    <div v-if="mode === FormMode.CREATE">
                                         This should not have happened. Please try again.
                                     </div>
-                                    <div v-if="mode == FormMode.UPDATE">
+                                    <div v-if="mode === FormMode.UPDATE">
                                         The integration you are trying to update does not exist.
                                     </div>
                                 </div>
                                 <div
-                                    v-else-if="errorCode == APIErrors.ValidationFailed"
+                                    v-else-if="errorCode === APIErrors.ValidationFailed"
                                     class="text-red-700 whitespace-pre-line"
                                 >
                                     {{ validationError!.toMessage('Invalid form:') }}
                                 </div>
                                 <div
-                                    v-else-if="errorCode == APIErrors.NotAuthorized"
+                                    v-else-if="errorCode === APIErrors.NotAuthorized"
                                     class="text-red-700"
                                 >
                                     You are not authorized to perform this action.
@@ -383,8 +383,8 @@ init();
                             class="w-full bg-theme-black hover:bg-theme-gray text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
                         >
                             <Icon icon="devicon:gitlab" class="mr-2 text-lg" />
-                            <span v-if="mode == FormMode.CREATE">Connect GitLab Integration</span>
-                            <span v-else-if="mode == FormMode.UPDATE"
+                            <span v-if="mode === FormMode.CREATE">Connect GitLab Integration</span>
+                            <span v-else-if="mode === FormMode.UPDATE"
                                 >Update GitLab Integration</span
                             >
                         </LoadingSubmitButton>

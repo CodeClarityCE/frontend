@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
 import SbomDependencyHealth from './SbomDependencyHealth.vue';
-import { DependencyDetails } from './SbomDetails';
+import { type DependencyDetails } from './SbomDetails';
 
 // Mock Icon component
 vi.mock('@iconify/vue', () => ({

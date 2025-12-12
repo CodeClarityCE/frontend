@@ -1,18 +1,29 @@
 <script lang="ts" setup>
-import { type Ref, ref, watch, computed } from 'vue';
+import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
+import UtilitiesFilters, {
+    createNewFilterState,
+    FilterType,
+    type FilterState
+} from '@/base_components/filters/UtilitiesFilters.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type {
-    VulnerabilityMerged,
-    WeaknessInfo
-} from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import { Icon } from '@iconify/vue';
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
+import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import {
+    PatchType,
+    type VulnerabilityMerged,
+    type WeaknessInfo
+} from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
+import { Badge } from '@/shadcn/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import {
     isNoneSeverity,
     isCriticalSeverity,
@@ -20,21 +31,10 @@ import {
     isLowSeverity,
     isMediumSeverity
 } from '@/utils/severity';
-import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
-import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
-import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import UtilitiesFilters, {
-    createNewFilterState,
-    FilterType,
-    type FilterState
-} from '@/base_components/filters/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
-import { Badge } from '@/shadcn/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { Icon } from '@iconify/vue';
+// Import stores
+import { ref, watch, computed, type Ref } from 'vue';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
-import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 
 export interface Props {
     [key: string]: any;
@@ -76,7 +76,7 @@ const pageNumber: Ref<number> = ref(0);
 const totalPages: Ref<number> = ref(0);
 const filterApplied: Ref<boolean> = ref(false);
 const searchKey: Ref<string> = ref<string>('');
-const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
+const findings: Ref<VulnerabilityMerged[]> = ref([]);
 const sortKey: Ref<string> = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
@@ -243,7 +243,7 @@ function isCardExpanded(vulnerabilityId: string) {
     return expandedCards.value.has(vulnerabilityId);
 }
 
-function truncateDescription(description: string, maxLength: number = 150) {
+function truncateDescription(description: string, maxLength = 150) {
     if (description.length <= maxLength) return description;
 
     // Remove markdown formatting like ####
@@ -256,10 +256,10 @@ function truncateDescription(description: string, maxLength: number = 150) {
     const lastSpaceIndex = truncated.lastIndexOf(' ');
 
     if (lastSpaceIndex > maxLength * 0.7) {
-        return truncated.substring(0, lastSpaceIndex) + '...';
+        return `${truncated.substring(0, lastSpaceIndex)  }...`;
     }
 
-    return truncated + '...';
+    return `${truncated  }...`;
 }
 
 function getSeverityBorderColor(severityValue: number) {
@@ -277,7 +277,7 @@ async function init() {
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    if (props.projectID == '' || props.analysisID == '') {
+    if (props.projectID === '' || props.analysisID === '') {
         return;
     }
     try {
@@ -1002,22 +1002,22 @@ const exploitableCount = computed(() => {
                                 :key="vla.Source"
                                 class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border severity-badge-bg"
                                 :class="{
-                                    'severity-critical-bg': vla.Score == 'critical',
-                                    'severity-high-bg': vla.Score == 'high',
-                                    'severity-medium-bg': vla.Score == 'medium',
-                                    'severity-low-bg': vla.Score == 'low',
-                                    'severity-none-bg': vla.Score == 'none'
+                                    'severity-critical-bg': vla.Score === 'critical',
+                                    'severity-high-bg': vla.Score === 'high',
+                                    'severity-medium-bg': vla.Score === 'medium',
+                                    'severity-low-bg': vla.Score === 'low',
+                                    'severity-none-bg': vla.Score === 'none'
                                 }"
                             >
                                 <!-- Source icon/name -->
                                 <span
                                     class="font-semibold"
                                     :class="{
-                                        'text-severity-critical': vla.Score == 'critical',
-                                        'text-severity-high': vla.Score == 'high',
-                                        'text-severity-medium': vla.Score == 'medium',
-                                        'text-severity-low': vla.Score == 'low',
-                                        'text-severity-none': vla.Score == 'none'
+                                        'text-severity-critical': vla.Score === 'critical',
+                                        'text-severity-high': vla.Score === 'high',
+                                        'text-severity-medium': vla.Score === 'medium',
+                                        'text-severity-low': vla.Score === 'low',
+                                        'text-severity-none': vla.Score === 'none'
                                     }"
                                 >
                                     {{ vla.Source }}
@@ -1644,10 +1644,10 @@ const exploitableCount = computed(() => {
             <!--                     Filter result empty indicator                     -->
             <!--------------------------------------------------------------------------->
 
-            <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
+            <div v-if="matchingItemsCount === 0 && filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings match the filter</div>
             </div>
-            <div v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5">
+            <div v-if="matchingItemsCount === 0 && !filterApplied && render" class="mt-5">
                 <div style="text-align: center">No findings</div>
             </div>
 

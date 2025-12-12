@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
-import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue'
 import type { GroupedBarChartData, GroupedBarChartOptions } from '@/base_components/data-display'
+import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Create comprehensive D3 mock chain
 interface MockNode {
@@ -492,7 +492,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.categories[0]!).toBe('Very Long Category Name That Might Cause Layout Issues')
+      expect(wrapper.props().data.categories[0]).toBe('Very Long Category Name That Might Cause Layout Issues')
     })
 
     it('handles long group names', () => {
@@ -528,7 +528,7 @@ describe('GroupedBarChart', () => {
         }
       })
 
-      expect(wrapper.props().data.categories[0]!).toBe('Category@#$%')
+      expect(wrapper.props().data.categories[0]).toBe('Category@#$%')
       expect(wrapper.props().data.groups[0]!.name).toBe('Group!@#')
     })
 

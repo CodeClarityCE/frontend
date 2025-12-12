@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
 import StatCard from '../../../../../src/base_components/ui/cards/StatCard.vue'
 
 // Mock the Card components and Icon

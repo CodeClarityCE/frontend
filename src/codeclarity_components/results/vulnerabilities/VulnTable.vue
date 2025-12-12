@@ -1,33 +1,31 @@
 <script lang="ts" setup>
-import { ref, watch, computed } from 'vue';
-import type { Ref } from 'vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import { Icon } from '@iconify/vue';
-import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
 import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
     type FilterState
 } from '@/base_components/filters/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { PatchType, type VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import { ref, watch, computed, type Ref } from 'vue';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
-import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 
 export interface Props {
     [key: string]: any;
@@ -85,7 +83,7 @@ const filterApplied = ref(false);
 const searchKey = ref('');
 const placeholder = 'Search by dependency, dependency version, or cve';
 
-const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
+const findings: Ref<VulnerabilityMerged[]> = ref([]);
 const sortKey = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
@@ -142,7 +140,7 @@ const filterState: Ref<FilterState> = ref(
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
 function isNoneSeverity(n: number) {
-    return n == 0.0 || n == undefined;
+    return n === 0.0 || n === undefined;
 }
 function isLowSeverity(n: number) {
     return n < 4.0 && n > 0.0;
@@ -285,9 +283,7 @@ function getUniqueOWASP(weaknessInfo: any[]) {
 }
 
 // DEFINE THE OPTIONS IN FILTER
-interface Options {
-    [key: string]: any;
-}
+type Options = Record<string, any>;
 const options = ref<Options>({
     OwaspTop10: {
         iconScale: '2',
@@ -413,8 +409,8 @@ const options = ref<Options>({
 });
 
 for (const category in options.value) {
-    for (const option in options.value[category]['data']) {
-        options.value[category]['data'][option]['value'] = false;
+    for (const option in options.value[category].data) {
+        options.value[category].data[option].value = false;
     }
 }
 
@@ -433,7 +429,7 @@ async function init() {
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    if (props.projectID == '' || props.analysisID == '') {
+    if (props.projectID === '' || props.analysisID === '') {
         return;
     }
     try {
@@ -803,7 +799,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                     v-if="
                                         report.Conflict.ConflictFlag ==
                                             'MATCH_POSSIBLE_INCORRECT' ||
-                                        report.Conflict.ConflictFlag == 'MATCH_INCORRECT'
+                                        report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                     "
                                 >
                                     <Tooltip>
@@ -954,13 +950,13 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                         class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border severity-badge-bg cursor-help"
                                                         :class="{
                                                             'severity-critical-bg':
-                                                                vla.Score == 'critical',
-                                                            'severity-high-bg': vla.Score == 'high',
+                                                                vla.Score === 'critical',
+                                                            'severity-high-bg': vla.Score === 'high',
                                                             'severity-medium-bg':
-                                                                vla.Score == 'medium',
-                                                            'severity-low-bg': vla.Score == 'low',
+                                                                vla.Score === 'medium',
+                                                            'severity-low-bg': vla.Score === 'low',
                                                             'severity-none-bg':
-                                                                vla.Score == 'none' || !vla.Score
+                                                                vla.Score === 'none' || !vla.Score
                                                         }"
                                                     >
                                                         <!-- Source icon/name -->
@@ -968,15 +964,15 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                             class="font-semibold"
                                                             :class="{
                                                                 'text-severity-critical':
-                                                                    vla.Score == 'critical',
+                                                                    vla.Score === 'critical',
                                                                 'text-severity-high':
-                                                                    vla.Score == 'high',
+                                                                    vla.Score === 'high',
                                                                 'text-severity-medium':
-                                                                    vla.Score == 'medium',
+                                                                    vla.Score === 'medium',
                                                                 'text-severity-low':
-                                                                    vla.Score == 'low',
+                                                                    vla.Score === 'low',
                                                                 'text-severity-none':
-                                                                    vla.Score == 'none' ||
+                                                                    vla.Score === 'none' ||
                                                                     !vla.Score
                                                             }"
                                                         >
@@ -989,15 +985,15 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                             class="ml-1 font-bold text-xs uppercase"
                                                             :class="{
                                                                 'text-severity-critical':
-                                                                    vla.Score == 'critical',
+                                                                    vla.Score === 'critical',
                                                                 'text-severity-high':
-                                                                    vla.Score == 'high',
+                                                                    vla.Score === 'high',
                                                                 'text-severity-medium':
-                                                                    vla.Score == 'medium',
+                                                                    vla.Score === 'medium',
                                                                 'text-severity-low':
-                                                                    vla.Score == 'low',
+                                                                    vla.Score === 'low',
                                                                 'text-severity-none':
-                                                                    vla.Score == 'none'
+                                                                    vla.Score === 'none'
                                                             }"
                                                         >
                                                             {{ vla.Score.charAt(0) }}
@@ -1064,15 +1060,15 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                     class="font-bold capitalize px-2 py-1 rounded text-xs severity-badge-bg"
                                                                     :class="{
                                                                         'severity-critical-bg text-severity-critical':
-                                                                            vla.Score == 'critical',
+                                                                            vla.Score === 'critical',
                                                                         'severity-high-bg text-severity-high':
-                                                                            vla.Score == 'high',
+                                                                            vla.Score === 'high',
                                                                         'severity-medium-bg text-severity-medium':
-                                                                            vla.Score == 'medium',
+                                                                            vla.Score === 'medium',
                                                                         'severity-low-bg text-severity-low':
-                                                                            vla.Score == 'low',
+                                                                            vla.Score === 'low',
                                                                         'severity-none-bg text-severity-none':
-                                                                            vla.Score == 'none' ||
+                                                                            vla.Score === 'none' ||
                                                                             !vla.Score
                                                                     }"
                                                                     >{{
@@ -1147,7 +1143,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                             <TooltipTrigger as-child>
                                                 <div class="cursor-help">
                                                     <BubbleComponent
-                                                        v-if="affected.PatchType == 'NONE'"
+                                                        v-if="affected.PatchType === 'NONE'"
                                                         :not-patchable="true"
                                                         :slim="true"
                                                         class="text-xs"
@@ -1163,7 +1159,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                         </template>
                                                     </BubbleComponent>
                                                     <BubbleComponent
-                                                        v-else-if="affected.PatchType == 'PARTIAL'"
+                                                        v-else-if="affected.PatchType === 'PARTIAL'"
                                                         :partially-patchable="true"
                                                         :slim="true"
                                                         class="text-xs"
@@ -1310,7 +1306,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                     v-if="
                                         report.Weaknesses &&
                                         report.Weaknesses.some(
-                                            (weakness: any) => weakness.OWASPTop10Id != ''
+                                            (weakness: any) => weakness.OWASPTop10Id !== ''
                                         )
                                     "
                                     class="flex flex-wrap gap-1"
@@ -1440,8 +1436,8 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                 <TooltipProvider
                                     v-if="
                                         report.Severity &&
-                                        report.Severity.ConfidentialityImpact != 'NONE' &&
-                                        report.Severity.ConfidentialityImpact != ''
+                                        report.Severity.ConfidentialityImpact !== 'NONE' &&
+                                        report.Severity.ConfidentialityImpact !== ''
                                     "
                                 >
                                     <Tooltip>
@@ -1548,8 +1544,8 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                 <TooltipProvider
                                     v-if="
                                         report.Severity &&
-                                        report.Severity.AvailabilityImpact != 'NONE' &&
-                                        report.Severity.AvailabilityImpact != ''
+                                        report.Severity.AvailabilityImpact !== 'NONE' &&
+                                        report.Severity.AvailabilityImpact !== ''
                                     "
                                 >
                                     <Tooltip>
@@ -1651,8 +1647,8 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                 <TooltipProvider
                                     v-if="
                                         report.Severity &&
-                                        report.Severity.IntegrityImpact != 'NONE' &&
-                                        report.Severity.IntegrityImpact != ''
+                                        report.Severity.IntegrityImpact !== 'NONE' &&
+                                        report.Severity.IntegrityImpact !== ''
                                     "
                                 >
                                     <Tooltip>
@@ -1803,7 +1799,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
             </SortableTable>
 
             <!-- Empty State -->
-            <div v-if="matchingItemsCount == 0" class="p-8 text-center">
+            <div v-if="matchingItemsCount === 0" class="p-8 text-center">
                 <Icon
                     :icon="filterApplied ? 'tabler:filter-off' : 'tabler:shield-check'"
                     class="w-12 h-12 text-gray-400 mx-auto mb-4"

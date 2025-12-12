@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent } from 'vue';
 
 const PasswordResetRequestForm = defineAsyncComponent({

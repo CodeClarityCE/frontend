@@ -253,13 +253,13 @@ export class TestAnalyticsCollector {
   /**
    * Identify frequently failing tests
    */
-  getFailurePatterns(): Array<{
+  getFailurePatterns(): {
     testName: string;
     suiteName: string;
     failureCount: number;
     errorPatterns: string[];
     lastFailure: Date;
-  }> {
+  }[] {
     const failures = this.metrics.filter(m => m.status === 'failed');
     const grouped = new Map<string, TestMetrics[]>();
     
@@ -455,12 +455,12 @@ export class TestAnalyticsCollector {
       .map(data => data.testName);
   }
 
-  private generateTrendData(): Array<{
+  private generateTrendData(): {
     date: string;
     successRate: number;
     averageDuration: number;
     testCount: number;
-  }> {
+  }[] {
     // Generate mock trend data - in real implementation, would use historical data
     return [];
   }

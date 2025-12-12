@@ -1,3 +1,4 @@
+import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import { Entity } from '../../utils/api/BaseEntity';
 import {
     BaseRepository,
@@ -6,16 +7,15 @@ import {
     type SortableRepoMethodRequestOptions
 } from '../../utils/api/BaseRepository';
 import { DataResponse } from '../../utils/api/responses/DataResponse';
-import type { AnalysisStats, PatchingStats, SbomStats } from './stats.entity';
 import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import type { License } from './licenses/License';
-import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patching/Patching';
-import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
-import { DependencyDetails } from './sbom/SbomDetails/SbomDetails';
-import type { Result } from './result.entity';
-import type { WorkspacesOutput } from './workspace.entity';
 import type { Dependency, GraphDependency } from './graph.entity';
+import type { License } from './licenses/License';
+import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patching/Patching';
+import type { Result } from './result.entity';
+import { type DependencyDetails } from './sbom/SbomDetails/SbomDetails';
+import type { AnalysisStats, PatchingStats, SbomStats } from './stats.entity';
+import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
+import type { WorkspacesOutput } from './workspace.entity';
 
 export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
@@ -195,7 +195,7 @@ export class ResultsRepository extends BaseRepository {
 
     async getDependencyGraph(
         options: GetDependencyRequestOptions
-    ): Promise<DataResponse<Array<GraphDependency>>> {
+    ): Promise<DataResponse<GraphDependency[]>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency/graph`;
 
         const queryParams: any = {
@@ -207,7 +207,7 @@ export class ResultsRepository extends BaseRepository {
             queryParams.run_index = options.runIndex;
         }
 
-        const response = await this.getRequest<DataResponse<Array<GraphDependency>>>({
+        const response = await this.getRequest<DataResponse<GraphDependency[]>>({
             queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
@@ -216,9 +216,9 @@ export class ResultsRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        return Entity.unMarshal<DataResponse<Array<GraphDependency>>>(
+        return Entity.unMarshal<DataResponse<GraphDependency[]>>(
             response,
-            DataResponse<Array<GraphDependency>>
+            DataResponse<GraphDependency[]>
         );
     }
 

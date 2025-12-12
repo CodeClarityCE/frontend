@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/shadcn/ui/button';
+import { useAuthStore } from '@/stores/auth';
 import { Icon } from '@iconify/vue';
 import { createOAuthState } from './utils';
-import { useAuthStore } from '@/stores/auth';
 
 // Stores
 const authStore = useAuthStore();

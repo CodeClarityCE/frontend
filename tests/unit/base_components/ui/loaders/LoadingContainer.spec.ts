@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
 import LoadingContainer from '@/base_components/ui/loaders/LoadingContainer.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock the shadcn Alert components
 vi.mock('@/shadcn/ui/alert/Alert.vue', () => ({

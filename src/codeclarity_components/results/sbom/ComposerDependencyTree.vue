@@ -11,9 +11,9 @@
  * - Interactive expand/collapse functionality
  */
 
-import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shadcn/ui/collapsible';
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
 interface Dependency {
     name: string;
     version: string;

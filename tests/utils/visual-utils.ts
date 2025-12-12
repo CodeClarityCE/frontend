@@ -186,19 +186,19 @@ export async function waitForVisualStability(
 export function createResponsiveVisualTest(
   componentName: string,
   renderComponent: () => VueWrapper<any>,
-  scenarios: Array<{
+  scenarios: {
     name: string;
     setup?: (wrapper: VueWrapper<any>) => void | Promise<void>;
-  }>
+  }[]
 ) {
   return {
     run: async () => {
-      const results: Array<{
+      const results: {
         breakpoint: string;
         scenario: string;
         success: boolean;
         error?: string;
-      }> = [];
+      }[] = [];
 
       for (const breakpoint of Object.keys(VISUAL_BREAKPOINTS)) {
         for (const scenario of scenarios) {

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach } from 'vitest'
 
 describe('BubbleComponent', () => {
   let wrapper: any

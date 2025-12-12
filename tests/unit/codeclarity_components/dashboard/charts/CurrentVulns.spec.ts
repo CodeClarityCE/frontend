@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import CurrentVulns from '@/codeclarity_components/dashboard/charts/CurrentVulns.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock external dependencies
 vi.mock('@/utils/api/BaseRepository', () => ({

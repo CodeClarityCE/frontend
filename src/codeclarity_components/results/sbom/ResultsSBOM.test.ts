@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
+import { type Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createPinia } from 'pinia';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ResultsSBOM from './ResultsSBOM.vue';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
 
 // Mock child components
 vi.mock('./SbomContent.vue', () => ({

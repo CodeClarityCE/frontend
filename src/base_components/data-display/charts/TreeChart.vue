@@ -11,7 +11,7 @@ import TreeChartLegend from './TreeChartLegend.vue';
  * @param targetDependency - Optional: The dependency to highlight in the tree (can appear multiple times)
  */
 const props = defineProps<{
-    data: Array<GraphDependency>;
+    data: GraphDependency[];
     id: string;
     targetDependency?: string;
 }>();
@@ -41,7 +41,7 @@ onMounted(() => {
         });
 
         // Create unique nodes for each parent-child relationship
-        const expandedNodes: Array<GraphDependency & { uniqueId: string }> = [];
+        const expandedNodes: (GraphDependency & { uniqueId: string })[] = [];
         const processedRelationships = new Set<string>();
 
         // Process each node and create instances for each parent relationship
@@ -99,8 +99,7 @@ onMounted(() => {
                     const childInstances = expandedNodes.filter(
                         (expanded) =>
                             expanded.id === childId &&
-                            expanded.parentIds &&
-                            expanded.parentIds.includes(node.id)
+                            expanded.parentIds?.includes(node.id)
                     );
 
                     if (childInstances.length > 0) {
@@ -134,7 +133,7 @@ onMounted(() => {
         // Strategy: For nodes that appear multiple times, mark those that appear at greater depth
         // when the same node already appears at a shallower depth (closer to root)
         const prunedNodes = new Set<string>();
-        const nodesByDepth = new Map<number, Array<{ nodeId: string; uniqueId: string }>>();
+        const nodesByDepth = new Map<number, { nodeId: string; uniqueId: string }[]>();
         const seenNodes = new Set<string>(); // Track which nodeIds we've already seen
 
         // First, collect all nodes organized by depth using breadth-first traversal
@@ -303,7 +302,7 @@ onMounted(() => {
          * ViewBox allows the chart to be responsive while maintaining aspect ratio
          */
         const svg = d3
-            .select('#' + props.id)
+            .select(`#${  props.id}`)
             .append('svg')
             .attr('width', '100%')
             .attr('height', height + marginTop + marginBottom + legendSpace)
@@ -545,7 +544,7 @@ onMounted(() => {
         node.append('rect')
             .attr('x', (d) => {
                 const text = d.data.id === '__VIRTUAL_ROOT__' ? 'ROOT' : d.data.id;
-                const displayText = text.length > 25 ? text.substring(0, 22) + '...' : text;
+                const displayText = text.length > 25 ? `${text.substring(0, 22)  }...` : text;
                 const textWidth = Math.max(displayText.length * 8 + 16, 60); // More generous width calculation
 
                 // Position rect based on whether node has children (left vs right side)
@@ -558,7 +557,7 @@ onMounted(() => {
             .attr('y', -14)
             .attr('width', (d) => {
                 const text = d.data.id === '__VIRTUAL_ROOT__' ? 'ROOT' : d.data.id;
-                const displayText = text.length > 25 ? text.substring(0, 22) + '...' : text;
+                const displayText = text.length > 25 ? `${text.substring(0, 22)  }...` : text;
                 return Math.max(displayText.length * 8 + 16, 60);
             })
             .attr('height', 28)
@@ -606,7 +605,7 @@ onMounted(() => {
             .attr('dy', '0.32em')
             .attr('x', (d) => {
                 const text = d.data.id === '__VIRTUAL_ROOT__' ? 'ROOT' : d.data.id;
-                const displayText = text.length > 25 ? text.substring(0, 22) + '...' : text;
+                const displayText = text.length > 25 ? `${text.substring(0, 22)  }...` : text;
                 const textWidth = Math.max(displayText.length * 8 + 16, 60);
                 // Center text within the rectangle
                 if (d.children) {
@@ -621,7 +620,7 @@ onMounted(() => {
                 // Truncate long dependency names for better layout
                 const name = d.data.id;
                 const isPruned = prunedNodes.has(d.data.uniqueId);
-                const displayName = name.length > 25 ? name.substring(0, 22) + '...' : name;
+                const displayName = name.length > 25 ? `${name.substring(0, 22)  }...` : name;
                 // Add indicator for pruned nodes
                 return isPruned ? `${displayName} (⋯)` : displayName;
             })
@@ -662,7 +661,7 @@ onMounted(() => {
             .attr('x', (d) => {
                 // Place badge just after the text label, with extra spacing
                 const text = d.data.id === '__VIRTUAL_ROOT__' ? 'ROOT' : d.data.id;
-                const displayText = text.length > 25 ? text.substring(0, 22) + '...' : text;
+                const displayText = text.length > 25 ? `${text.substring(0, 22)  }...` : text;
                 const textWidth = Math.max(displayText.length * 8 + 16, 60);
                 // Always place badge to the right of the label rect
                 return (d.children ? -textWidth - 32 : 8) + textWidth;
@@ -688,7 +687,7 @@ onMounted(() => {
             .attr('x', (d) => {
                 // Center badge text inside the badge
                 const text = d.data.id === '__VIRTUAL_ROOT__' ? 'ROOT' : d.data.id;
-                const displayText = text.length > 25 ? text.substring(0, 22) + '...' : text;
+                const displayText = text.length > 25 ? `${text.substring(0, 22)  }...` : text;
                 const textWidth = Math.max(displayText.length * 8 + 16, 60);
                 const badgeText = d.data.dev ? 'DEV' : 'PROD';
                 const badgeWidth = badgeText.length * 8 + 1;
@@ -715,7 +714,7 @@ onMounted(() => {
 
         // Prepare legendProps for the legend component
         legendProps.value = {
-            svgSelector: '#' + props.id + ' svg',
+            svgSelector: `#${  props.id  } svg`,
             marginLeft,
             x0,
             marginTop,
@@ -742,7 +741,7 @@ onMounted(() => {
         console.error('Data that caused the error:', props.data);
 
         // Display error message in the container
-        d3.select('#' + props.id)
+        d3.select(`#${  props.id}`)
             .append('div')
             .style('color', 'red')
             .style('padding', '20px')

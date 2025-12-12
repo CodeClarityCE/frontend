@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
-import ResultsView from './ResultsView.vue';
 import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import { mount, flushPromises } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import ResultsView from './ResultsView.vue';
 
 // Mock vue router
 vi.mock('vue-router', () => ({

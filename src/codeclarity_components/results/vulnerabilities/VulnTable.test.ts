@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock BaseRepository before any imports that depend on it
 vi.mock('@/base_repository/base.repository', () => ({

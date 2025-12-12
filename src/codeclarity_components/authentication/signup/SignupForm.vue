@@ -1,19 +1,11 @@
 <script lang="ts" setup>
-import { RouterLink } from 'vue-router';
-import { ref, type Ref } from 'vue';
-import router from '@/router';
-import { Icon } from '@iconify/vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import router from '@/router';
 import { cn } from '@/shadcn/lib/utils';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
 import { Button, buttonVariants } from '@/shadcn/ui/button';
-import { useAuthStore } from '@/stores/auth';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
-import { vAutoAnimate } from '@formkit/auto-animate/vue';
-
+import { Checkbox } from '@/shadcn/ui/checkbox';
 import {
     FormControl,
     FormDescription,
@@ -23,11 +15,17 @@ import {
     FormMessage
 } from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
-import { Checkbox } from '@/shadcn/ui/checkbox';
 import { toast } from '@/shadcn/ui/toast';
-
-import Alert from '@/shadcn/ui/alert/Alert.vue';
-import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { vAutoAnimate } from '@formkit/auto-animate/vue';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import { ref, type Ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import * as z from 'zod';
 
 // Stores
 const authStore = useAuthStore();
@@ -58,7 +56,7 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit((values) => {
-    if (values.agreeTerms == false) {
+    if (values.agreeTerms === false) {
         toast({
             title: 'You must agree to our terms and conditions to continue',
             description: 'Please check the box to continue'
@@ -74,7 +72,7 @@ const onSubmit = handleSubmit((values) => {
 
 // Sanity Checks
 // In case the user is logged in and visits this page, redirect them
-if (authStore.getAuthenticated == true) {
+if (authStore.getAuthenticated === true) {
     router.push('/');
 }
 
@@ -144,20 +142,20 @@ async function submit(values: any) {
                     <Icon icon="material-symbols:error-outline" />
                     <AlertDescription>
                         <div v-if="errorCode">
-                            <div v-if="errorCode == APIErrors.InternalError">
+                            <div v-if="errorCode === APIErrors.InternalError">
                                 An error occured during the processing of the request.
                             </div>
-                            <div v-else-if="errorCode == APIErrors.PasswordsDoNotMatch">
+                            <div v-else-if="errorCode === APIErrors.PasswordsDoNotMatch">
                                 Passwords do not match.
                             </div>
-                            <div v-else-if="errorCode == APIErrors.EmailAlreadyExists">
+                            <div v-else-if="errorCode === APIErrors.EmailAlreadyExists">
                                 A user with that email already exists.
                             </div>
-                            <div v-else-if="errorCode == APIErrors.HandleAlreadyExists">
+                            <div v-else-if="errorCode === APIErrors.HandleAlreadyExists">
                                 A user with that handle already exists, choose a different handle.
                             </div>
                             <div
-                                v-else-if="errorCode == APIErrors.ValidationFailed"
+                                v-else-if="errorCode === APIErrors.ValidationFailed"
                                 style="white-space: break-spaces"
                             >
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->

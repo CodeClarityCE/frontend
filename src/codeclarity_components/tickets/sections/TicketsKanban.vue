@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue';
 import {
     type TicketSummary,
-    TicketStatus,
+    type TicketStatus,
     TicketPriorityColors,
     TicketPriorityLabels,
     KanbanColumns

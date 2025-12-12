@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent, ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { Icon } from '@iconify/vue';
-
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-
-import { useTicketsData } from './composables/useTicketsData';
 import { Button } from '@/shadcn/ui/button';
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { defineAsyncComponent, ref, onMounted, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useTicketsData } from './composables/useTicketsData';
 import IntegrationsConfigPanel from './integrations/IntegrationsConfigPanel.vue';
 import { TicketsRepository } from './tickets.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const router = useRouter();

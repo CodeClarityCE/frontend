@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import SbomImportPaths from './SbomImportPaths.vue';
-import { DependencyDetails } from './SbomDetails';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { GraphDependency } from '../../graph.entity';
+import { type DependencyDetails } from './SbomDetails';
+import SbomImportPaths from './SbomImportPaths.vue';
 
 // Mock Icon component
 vi.mock('@iconify/vue', () => ({

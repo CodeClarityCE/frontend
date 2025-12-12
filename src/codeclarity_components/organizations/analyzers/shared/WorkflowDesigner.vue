@@ -4,6 +4,8 @@ import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
+import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
+import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import {
     layoutNodes,
@@ -11,8 +13,6 @@ import {
     type AnalyzerNode,
     type ConfigNode
 } from '@/utils/vueFlow';
-import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
-import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 import { Icon } from '@iconify/vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 

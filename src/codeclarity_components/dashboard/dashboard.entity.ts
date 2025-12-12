@@ -92,7 +92,7 @@ export class QuickStats {
 export class LatestVulns {
     @IsDefined()
     // @Type(() => LatestVuln)
-    vulns!: { [vuln_id: string]: LatestVulnInfo };
+    vulns!: Record<string, LatestVulnInfo>;
     @IsDefined()
     @Type(() => SeverityClassCount)
     severity_count!: SeverityClassCount[];

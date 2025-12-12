@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/vue';
 import FormSelectLicense from '@/base_components/forms/FormSelectLicense.vue';
 import type { License } from '@/codeclarity_components/results/licenses/License';
+import { render, screen } from '@testing-library/vue';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock SearchBar component
 vi.mock('@/base_components/filters/SearchBar.vue', () => ({

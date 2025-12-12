@@ -5,7 +5,7 @@ import { MalformedResponse } from './ApiErrors';
 export abstract class Entity {
     static unMarshal<T>(plain: T, classConstructor: ClassConstructor<T>, validate?: boolean): T {
         const entity = plainToInstance(classConstructor, plain, { excludeExtraneousValues: false });
-        if (validate == undefined || validate == true) Entity.validate(entity);
+        if (validate === undefined || validate === true) Entity.validate(entity);
         return entity;
     }
 
@@ -17,18 +17,18 @@ export abstract class Entity {
         const entities = plainToInstance(classConstructor, plain, {
             excludeExtraneousValues: false
         });
-        if (validate == undefined || validate == true) return Entity.validateMany(entities);
+        if (validate === undefined || validate === true) return Entity.validateMany(entities);
         return entities;
     }
 
     static marshal<T>(instance: T, validate?: boolean): any {
-        if (validate == undefined || validate == true) Entity.validate(instance);
+        if (validate === undefined || validate === true) Entity.validate(instance);
         return instanceToPlain(instance, { excludeExtraneousValues: false });
     }
 
     static marshalMany<T>(instances: T[], validate?: boolean): any[] {
         const validInstances: T[] = [];
-        if (validate == undefined || validate == true)
+        if (validate === undefined || validate === true)
             validInstances.push(...Entity.validateMany<T>(instances));
         const instancesPlain = [];
         for (const instance of validInstances) {

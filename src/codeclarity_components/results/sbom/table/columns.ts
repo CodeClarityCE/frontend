@@ -1,13 +1,13 @@
-import { h } from 'vue';
-import DropdownAction from './DataTableDropDown.vue';
-import { ArrowUpDown } from 'lucide-vue-next';
+import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
+import type { Dependency } from '@/codeclarity_components/results/graph.entity';
 import { Button } from '@/shadcn/ui/button';
 import { formatRelativeTime } from '@/utils/dateUtils';
-import type { Dependency } from '@/codeclarity_components/results/graph.entity';
-import type { ColumnDef } from '@tanstack/vue-table';
-import { Icon } from '@iconify/vue';
-import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
 import { EcosystemDetector } from '@/utils/packageEcosystem';
+import { Icon } from '@iconify/vue';
+import type { ColumnDef } from '@tanstack/vue-table';
+import { ArrowUpDown } from 'lucide-vue-next';
+import { h } from 'vue';
+import DropdownAction from './DataTableDropDown.vue';
 
 export const columns: ColumnDef<Dependency>[] = [
     // {
@@ -46,7 +46,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const name = row.getValue('name') as string;
+            const name = row.getValue('name');
 
             return h(
                 'span',
@@ -121,7 +121,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const version = row.getValue('version') as string;
+            const version = row.getValue('version');
             if (!version) {
                 return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
             }
@@ -170,8 +170,8 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const currentVersion = row.getValue('version') as string;
-            const newestVersion = row.getValue('newest_release') as string;
+            const currentVersion = row.getValue('version');
+            const newestVersion = row.getValue('newest_release');
 
             if (!currentVersion || !newestVersion) {
                 return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
@@ -290,7 +290,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDeprecated = row.getValue('deprecated') as boolean;
+            const isDeprecated = row.getValue('deprecated');
             const deprecatedMessage = (row.original as any).deprecated_message as string;
 
             if (isDeprecated) {
@@ -349,7 +349,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDev = row.getValue('dev') as boolean;
+            const isDev = row.getValue('dev');
 
             if (isDev) {
                 return h(
@@ -400,7 +400,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isProd = row.getValue('prod') as boolean;
+            const isProd = row.getValue('prod');
 
             if (isProd) {
                 return h(
@@ -451,7 +451,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDirectCount = row.getValue('is_direct_count') as number;
+            const isDirectCount = row.getValue('is_direct_count');
             const isDirect = isDirectCount > 0;
 
             return h(
@@ -487,7 +487,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isTransitiveCount = row.getValue('is_transitive_count') as number;
+            const isTransitiveCount = row.getValue('is_transitive_count');
             const isTransitive = isTransitiveCount > 0;
 
             return h(
@@ -577,7 +577,7 @@ export const columns: ColumnDef<Dependency>[] = [
 
 function formatLastPublished(dateString: string) {
     const date = formatRelativeTime(dateString);
-    if (date == '2023 years ago') {
+    if (date === '2023 years ago') {
         return 'N/A';
     }
     return date;

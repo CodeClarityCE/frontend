@@ -1,7 +1,7 @@
 export interface CreateAnalyzer {
     name: string;
     description: string;
-    steps: Array<any>;
+    steps: any[];
     supported_languages?: string[];
     language_config?: {
         javascript?: { plugins: string[] };

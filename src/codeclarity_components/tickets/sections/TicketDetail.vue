@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
-import { Icon } from '@iconify/vue';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger
+} from '@/shadcn/ui/accordion';
 import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
@@ -9,16 +12,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger
-} from '@/shadcn/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
-import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import { TicketsRepository } from '../tickets.repository';
+import { useUserStore } from '@/stores/user';
+import { getOwaspInfoById } from '@/utils/owasp';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { ref, computed, onMounted } from 'vue';
+import RiskScoreGauge from '../components/RiskScoreGauge.vue';
+import ScoreProgressBar from '../components/ScoreProgressBar.vue';
 import {
     type TicketDetails,
     type VulnerabilityDetailsReport,
@@ -29,14 +31,12 @@ import {
     TicketTypeLabels,
     TicketTypeColors,
     TicketStatus,
-    ExternalTicketProvider,
+    type ExternalTicketProvider,
     ExternalProviderLabels,
     ExternalProviderIcons,
     type IntegrationConfigSummary
 } from '../tickets.entity';
-import RiskScoreGauge from '../components/RiskScoreGauge.vue';
-import ScoreProgressBar from '../components/ScoreProgressBar.vue';
-import { getOwaspInfoById } from '@/utils/owasp';
+import { TicketsRepository } from '../tickets.repository';
 
 const props = defineProps<{
     ticket: TicketDetails;
@@ -189,7 +189,7 @@ function formatDate(date: Date | undefined): string {
 const availableSyncProviders = computed(() => {
     const linkedProviders = new Set(props.ticket.external_links.map((link) => link.provider));
     return availableIntegrations.value.filter(
-        (integration) => !linkedProviders.has(integration.provider as ExternalTicketProvider)
+        (integration) => !linkedProviders.has(integration.provider)
     );
 });
 
@@ -209,9 +209,9 @@ const epssFormatted = computed(() => {
     const percentile = props.vulnerabilityDetails?.other?.epss_percentile;
     if (score === undefined || score === null) return null;
     return {
-        score: (score * 100).toFixed(2) + '%',
+        score: `${(score * 100).toFixed(2)  }%`,
         scoreRaw: score * 100,
-        percentile: percentile !== undefined ? (percentile * 100).toFixed(1) + '%' : null,
+        percentile: percentile !== undefined ? `${(percentile * 100).toFixed(1)  }%` : null,
         percentileRaw: percentile !== undefined ? percentile * 100 : null
     };
 });
@@ -249,9 +249,9 @@ const overallRiskLevel = computed(() => {
 });
 
 // Risk banner styling
-type RiskConfig = { bg: string; text: string; icon: string; label: string; recommendation: string };
+interface RiskConfig { bg: string; text: string; icon: string; label: string; recommendation: string }
 const riskBannerConfig = computed((): RiskConfig => {
-    const configs: { [K in 'critical' | 'high' | 'medium' | 'low' | 'none']: RiskConfig } = {
+    const configs: Record<'critical' | 'high' | 'medium' | 'low' | 'none', RiskConfig> = {
         critical: {
             bg: 'bg-black',
             text: 'text-white',
@@ -288,7 +288,7 @@ const riskBannerConfig = computed((): RiskConfig => {
             recommendation: 'No immediate action required'
         }
     };
-    return configs[overallRiskLevel.value as keyof typeof configs] ?? configs.none;
+    return configs[overallRiskLevel.value] ?? configs.none;
 });
 
 // Check if we have any scores to show in risk overview

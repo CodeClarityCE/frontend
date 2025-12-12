@@ -1,6 +1,6 @@
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
-import { Position } from '@vue-flow/core';
 import type { AnalyzerNode } from '@/utils/vueFlow';
+import { Position } from '@vue-flow/core';
 
 export interface AnalyzerFormData {
     name: string;

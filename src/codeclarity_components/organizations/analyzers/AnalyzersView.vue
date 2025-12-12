@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent } from 'vue';
 
 const OrgAnalyzersList = defineAsyncComponent({
@@ -50,7 +49,7 @@ defineProps<{
 }>();
 </script>
 <template>
-    <OrgAnalyzersList v-if="action == 'manage'" :page="page" :org-id="orgId" />
-    <OrgAnalyzerEdit v-else-if="action == 'edit'" :page="page" :org-id="orgId" />
-    <OrgAnalyzerCreate v-else-if="action == 'add'" :page="page" :org-id="orgId" />
+    <OrgAnalyzersList v-if="action === 'manage'" :page="page" :org-id="orgId" />
+    <OrgAnalyzerEdit v-else-if="action === 'edit'" :page="page" :org-id="orgId" />
+    <OrgAnalyzerCreate v-else-if="action === 'add'" :page="page" :org-id="orgId" />
 </template>

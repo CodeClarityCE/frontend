@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { defineAsyncComponent } from 'vue';
 
 const OrgIntegrationsList = defineAsyncComponent({
@@ -43,7 +43,7 @@ defineProps<{
 }>();
 </script>
 <template>
-    <OrgIntegrationsList v-if="action == 'manage'" :page="page" :org-id="orgId" />
-    <OrgIntegrationCreate v-else-if="action == 'add'" :page="page" :org-id="orgId" />
-    <OrgIntegrationEdit v-else-if="action == 'edit'" :page="page" :org-id="orgId" />
+    <OrgIntegrationsList v-if="action === 'manage'" :page="page" :org-id="orgId" />
+    <OrgIntegrationCreate v-else-if="action === 'add'" :page="page" :org-id="orgId" />
+    <OrgIntegrationEdit v-else-if="action === 'edit'" :page="page" :org-id="orgId" />
 </template>

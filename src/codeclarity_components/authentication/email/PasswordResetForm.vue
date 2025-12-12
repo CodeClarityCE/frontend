@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import { onMounted, ref, type Ref } from 'vue';
-import * as z from 'zod';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { Form } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
+import FormTextField from '@/base_components/forms/FormTextField.vue';
 import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import router from '@/router';
-import { Icon } from '@iconify/vue';
-import FormTextField from '@/base_components/forms/FormTextField.vue';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { Form } from 'vee-validate';
+import { onMounted, ref, type Ref } from 'vue';
+import * as z from 'zod';
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -74,8 +74,8 @@ async function submit() {
         } else if (_err instanceof BusinessLogicError) {
             errorCode.value = _err.error_code;
             if (
-                _err.error_code == APIErrors.PasswordResetTokenInvalidOrExpired ||
-                _err.error_code == APIErrors.InternalError
+                _err.error_code === APIErrors.PasswordResetTokenInvalidOrExpired ||
+                _err.error_code === APIErrors.InternalError
             ) {
                 nonRecoverableError.value = true;
             }
@@ -121,13 +121,13 @@ onMounted(() => {
                         <Icon icon="material-symbols:error-outline" />
                         <div v-if="errorCode">
                             <div
-                                v-if="errorCode == APIErrors.ValidationFailed"
+                                v-if="errorCode === APIErrors.ValidationFailed"
                                 style="white-space: break-spaces"
                             >
                                 <!-- Note: this should never happen unless our client and server side validation are out of sync -->
                                 {{ validationError!.toMessage('Invalid form:') }}
                             </div>
-                            <div v-else-if="errorCode == APIErrors.PasswordsDoNotMatch">
+                            <div v-else-if="errorCode === APIErrors.PasswordsDoNotMatch">
                                 Passwords do not match.
                             </div>
                             <div v-else>An error occured during the processing of the request.</div>
@@ -172,7 +172,7 @@ onMounted(() => {
                 <div>
                     <div class="title">Failed</div>
                     <div
-                        v-if="errorCode == APIErrors.PasswordResetTokenInvalidOrExpired"
+                        v-if="errorCode === APIErrors.PasswordResetTokenInvalidOrExpired"
                         class="subtitle"
                     >
                         Your password was

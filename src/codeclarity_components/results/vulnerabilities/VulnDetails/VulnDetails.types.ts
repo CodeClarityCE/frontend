@@ -92,7 +92,7 @@ export class VulnerabilityDetails {
     owasp_top_10!: OwaspInfo | null;
     weaknesses!: WeaknessInfo[];
     patch!: PatchInfo;
-    common_consequences!: { [key: string]: CommonConsequencesInfo[] };
+    common_consequences!: Record<string, CommonConsequencesInfo[]>;
     references!: ReferenceInfo[];
     location!: string[];
     other!: OtherInfo;

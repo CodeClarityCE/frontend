@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
+import { mount, flushPromises } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { nextTick } from 'vue';
 
 // Mock stores
@@ -154,7 +154,7 @@ vi.mock('@/shadcn/ui/alert/AlertDescription.vue', () => ({
 // Mock vee-validate
 vi.mock('vee-validate', () => ({
   useForm: () => ({
-    handleSubmit: (fn: Function) => (e: Event) => {
+    handleSubmit: (fn: (values: { email: string; password: string }) => void) => (e: Event) => {
       e?.preventDefault?.();
       fn({ email: 'test@example.com', password: 'password123' });
     }

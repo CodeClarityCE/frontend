@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted, type Ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import { AnalyzerTemplatesRepository, type AnalyzerTemplate } from '../AnalyzerTemplatesRepository';
 import { useAuthStore } from '@/stores/auth';
+import { Icon } from '@iconify/vue';
+import { ref, computed, onMounted, type Ref } from 'vue';
+import { AnalyzerTemplatesRepository, type AnalyzerTemplate } from '../AnalyzerTemplatesRepository';
 
 const props = defineProps<{
     selectedTemplate?: AnalyzerTemplate | null;

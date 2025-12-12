@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
-import { ref, type PropType, type Ref, onMounted } from 'vue';
+import TreeChart from '@/base_components/data-display/charts/TreeChart.vue';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { Icon } from '@iconify/vue';
+import { ref, type PropType, type Ref, onMounted } from 'vue';
 
 // Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '../../results.repository';
 import type { GraphDependency } from '../../graph.entity';
-import TreeChart from '@/base_components/data-display/charts/TreeChart.vue';
+import { ResultsRepository } from '../../results.repository';
 
 const props = defineProps({
     dependency: {
@@ -31,15 +31,15 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const hierarchy: Ref<Array<GraphDependency>> = ref([]);
+const hierarchy: Ref<GraphDependency[]> = ref([]);
 
 async function init() {
     try {
-        if (userStore.getDefaultOrg == null) {
+        if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken == null) {
+        if (authStore.getToken === null) {
             throw new Error('No token');
         }
         const res = await resultsRepository.getDependencyGraph({
@@ -47,7 +47,7 @@ async function init() {
             projectId: props.projectID,
             analysisId: props.analysisID,
             workspace: '.',
-            dependency: props.dependency.name + '@' + props.dependency.version,
+            dependency: `${props.dependency.name  }@${  props.dependency.version}`,
             bearerToken: authStore.getToken
         });
         hierarchy.value = res.data;

@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import { onUpdated, ref, watch } from 'vue';
-import type { Ref } from 'vue';
+import { type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { type Project } from '@/codeclarity_components/projects/project.entity';
+import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import { onUpdated, ref, watch, type Ref } from 'vue';
 import SbomContent from './SbomContent.vue';
 
 // Import stores
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 
 defineProps<{
     analysis: Analysis;
@@ -30,7 +29,7 @@ onUpdated(() => {
         mainContainer.scrollTop = 0;
     }
     setTimeout(() => {
-        if (y_position != 0 && details.value == false)
+        if (y_position !== 0 && details.value === false)
             if (mainContainer) {
                 mainContainer.scrollTop = y_position;
             }
@@ -38,7 +37,7 @@ onUpdated(() => {
 });
 
 watch(activeTab, async (newTab, oldTab) => {
-    if (newTab != oldTab) {
+    if (newTab !== oldTab) {
         y_position = 0;
         reference_click_element.value = '';
     }
@@ -53,7 +52,7 @@ watch(activeTab, async (newTab, oldTab) => {
         class="w-full flex flex-col gap-14"
     >
         <template
-            v-if="(bill_of_materials == null || bill_of_materials.length == 0) && !is_loading"
+            v-if="(bill_of_materials === null || bill_of_materials.length === 0) && !is_loading"
         >
             <div style="margin-bottom: 100px">
                 <Alert>

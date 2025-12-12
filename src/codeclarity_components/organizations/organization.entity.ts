@@ -195,7 +195,7 @@ export function isMemberRoleGreaterOrEqualTo(memberRole1: MemberRole, memberRole
 }
 
 export function isMemberRoleEqualThan(memberRole1: MemberRole, memberRole2: MemberRole) {
-    return memberRole1 == memberRole2;
+    return memberRole1 === memberRole2;
 }
 
 export function isMemberRoleLessThan(memberRole1: MemberRole, memberRole2: MemberRole) {

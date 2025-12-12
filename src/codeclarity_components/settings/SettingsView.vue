@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { useStateStore } from '@/stores/state';
 import { PageHeader, InfoCard, StatCard } from '@/base_components';
-import { User, Lock, Trash2, Shield } from 'lucide-vue-next';
-import { Button } from '@/shadcn/ui/button';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { Button } from '@/shadcn/ui/button';
+import { useStateStore } from '@/stores/state';
+import { User, Lock, Trash2, Shield } from 'lucide-vue-next';
 import { defineAsyncComponent } from 'vue';
 
 const SettingAccount = defineAsyncComponent({
@@ -83,7 +82,7 @@ const accountStats = {
         </div>
 
         <!-- Settings Content -->
-        <div v-if="props.page == 'account'">
+        <div v-if="props.page === 'account'">
             <SettingAccount />
         </div>
 

@@ -1,43 +1,43 @@
 <script lang="ts" setup>
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
-    Organization
+    type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
-import router from '@/router';
-import { onBeforeMount, ref, type Ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import { z } from 'zod';
-import { storeToRefs } from 'pinia';
-import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
-import { LicenseRepository } from '@/codeclarity_components/results/licenses/LicenseRepository';
 import { LicensePolicyType } from '@/codeclarity_components/organizations/policy/license_policy.entity';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import type { License } from '@/codeclarity_components/results/licenses/License';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { LicenseRepository } from '@/codeclarity_components/results/licenses/LicenseRepository';
+import router from '@/router';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import { Badge } from '@/shadcn/ui/badge';
 import Button from '@/shadcn/ui/button/Button.vue';
-import { Icon } from '@iconify/vue';
+import Checkbox from '@/shadcn/ui/checkbox/Checkbox.vue';
+import { FormField } from '@/shadcn/ui/form';
+import FormControl from '@/shadcn/ui/form/FormControl.vue';
 import FormItem from '@/shadcn/ui/form/FormItem.vue';
 import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
-import FormControl from '@/shadcn/ui/form/FormControl.vue';
 import FormMessage from '@/shadcn/ui/form/FormMessage.vue';
 import Input from '@/shadcn/ui/input/Input.vue';
-import { FormField } from '@/shadcn/ui/form';
 import Select from '@/shadcn/ui/select/Select.vue';
-import SelectTrigger from '@/shadcn/ui/select/SelectTrigger.vue';
-import SelectValue from '@/shadcn/ui/select/SelectValue.vue';
 import SelectContent from '@/shadcn/ui/select/SelectContent.vue';
 import SelectGroup from '@/shadcn/ui/select/SelectGroup.vue';
 import SelectItem from '@/shadcn/ui/select/SelectItem.vue';
-import Checkbox from '@/shadcn/ui/checkbox/Checkbox.vue';
-import { Badge } from '@/shadcn/ui/badge';
+import SelectTrigger from '@/shadcn/ui/select/SelectTrigger.vue';
+import SelectValue from '@/shadcn/ui/select/SelectValue.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { storeToRefs } from 'pinia';
+import { useForm } from 'vee-validate';
+import { onBeforeMount, ref, type Ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { z } from 'zod';
 
 const orgId: Ref<string> = ref('');
 const orgInfo: Ref<Organization | undefined> = ref();
@@ -53,7 +53,7 @@ const authStore = useAuthStore();
 const { defaultOrg } = storeToRefs(userStore);
 
 // Form Data
-const choices: Ref<Array<License>> = ref([]);
+const choices: Ref<License[]> = ref([]);
 const policy_id: Ref<string> = ref('');
 
 const error: Ref<boolean> = ref(false);
@@ -146,7 +146,7 @@ async function init() {
         router.back();
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
     } else {
         router.back();

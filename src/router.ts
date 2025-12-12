@@ -1,29 +1,29 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import { loadAuthStoreFromLocalStorage, useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
-import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
-import { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
-import ProjectsView from '@/codeclarity_components/projects/ProjectsView.vue';
-import ResultsView from '@/codeclarity_components/results/ResultsView.vue';
-import NotFoundView from '@/codeclarity_components/views/NotFoundView.vue';
-import TermsView from '@/codeclarity_components/views/TermsView.vue';
 import AnalysesView from '@/codeclarity_components/analyses/AnalysesView.vue';
-import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue';
-import SignupView from '@/codeclarity_components/authentication/signup/SignupView.vue';
-import SettingsView from '@/codeclarity_components/settings/SettingsView.vue';
+import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
+import { type AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
+import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
 import OAuthCallbackView from '@/codeclarity_components/authentication/oauth/OAuthCallbackView.vue';
 import PasswordResetRequestView from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue';
-import OrganizationView from '@/codeclarity_components/organizations/OrganizationView.vue';
+import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue';
+import SignupView from '@/codeclarity_components/authentication/signup/SignupView.vue';
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
-import HelpView from '@/codeclarity_components/views/HelpView.vue';
-import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
-import TicketsView from '@/codeclarity_components/tickets/TicketsView.vue';
+import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import OrganizationView from '@/codeclarity_components/organizations/OrganizationView.vue';
+import ProjectsView from '@/codeclarity_components/projects/ProjectsView.vue';
+import ResultsView from '@/codeclarity_components/results/ResultsView.vue';
+import SettingsView from '@/codeclarity_components/settings/SettingsView.vue';
 import ClickUpOAuthCallback from '@/codeclarity_components/tickets/integrations/ClickUpOAuthCallback.vue';
+import TicketsView from '@/codeclarity_components/tickets/TicketsView.vue';
+import HelpView from '@/codeclarity_components/views/HelpView.vue';
+import NotFoundView from '@/codeclarity_components/views/NotFoundView.vue';
+import TermsView from '@/codeclarity_components/views/TermsView.vue';
+import { loadAuthStoreFromLocalStorage, useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -169,7 +169,7 @@ router.beforeEach(async (to) => {
     const authRepository = new AuthRepository();
     const orgRepository = new OrgRepository();
 
-    if (authStore.getInitialized == false) {
+    if (authStore.getInitialized === false) {
         loadAuthStoreFromLocalStorage();
     }
 
@@ -209,7 +209,7 @@ router.beforeEach(async (to) => {
     // Instead of getting this from local store we will re-fetch it
     // This happens only if the user refreshes the page (F5, or reload button) and thus the SPA state is lost
     // The overhead is very small
-    if (authRequired && authStore.getToken != undefined && userStore.getUser == undefined) {
+    if (authRequired && authStore.getToken !== undefined && userStore.getUser === undefined) {
         try {
             const user: AuthenticatedUser = await authRepository.getAuthenticatedUser({
                 bearerToken: authStore.getToken,
@@ -217,7 +217,7 @@ router.beforeEach(async (to) => {
                 handleBusinessErrors: true
             });
 
-            if (user.activated == false) {
+            if (user.activated === false) {
                 userStore.$reset();
                 authStore.$reset();
                 return { path: '/login' };
@@ -234,8 +234,8 @@ router.beforeEach(async (to) => {
     // Fetch default org info
     if (
         authRequired &&
-        authStore.getToken != undefined &&
-        userStore.getUser != undefined &&
+        authStore.getToken !== undefined &&
+        userStore.getUser !== undefined &&
         userStore.getUser.default_org
     ) {
         try {
@@ -253,8 +253,8 @@ router.beforeEach(async (to) => {
                 // Similarly a user might have been removed from an org he had set as the default org
                 // In that case we fetch the personal org instead as well
                 if (
-                    error.error_code == APIErrors.EntityNotFound ||
-                    error.error_code == APIErrors.NotAuthorized
+                    error.error_code === APIErrors.EntityNotFound ||
+                    error.error_code === APIErrors.NotAuthorized
                 ) {
                     try {
                         const org: Organization = await orgRepository.get({
@@ -282,23 +282,23 @@ router.beforeEach(async (to) => {
     // In case a user has not yet completed is social account setup, send him back
     // We cannot send him to /signup/gitlab or /signup/github, because it requires
     // the code returned from the oauth flow
-    if (authRequired && user && user.social && user.setup_done == false && to.path != '/signup/') {
+    if (authRequired && user && user.social && user.setup_done === false && to.path !== '/signup/') {
         userStore.$reset();
         authStore.$reset();
         return { path: '/login' };
     }
 
-    if (authRequired && user && user.activated == false) {
+    if (authRequired && user?.activated === false) {
         userStore.$reset();
         authStore.$reset();
         return { path: '/login' };
     }
 
-    if (authRequired && authStore.getAuthenticated == false) {
+    if (authRequired && authStore.getAuthenticated === false) {
         userStore.$reset();
         authStore.$reset();
         return { path: '/login' };
-    } else if (to.path === '/login' && authStore.getAuthenticated == true) {
+    } else if (to.path === '/login' && authStore.getAuthenticated === true) {
         return { path: '/' };
     }
 });

@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { mount, flushPromises } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { ResultsRepository } from './results.repository';
 import SelectWorkspace from './SelectWorkspace.vue';
 import { WorkspacesOutput } from './workspace.entity';
-import { ResultsRepository } from './results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 
 // Mock stores
 const mockUserStore = {

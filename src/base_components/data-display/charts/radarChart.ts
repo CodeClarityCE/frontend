@@ -11,18 +11,18 @@ const sin = Math.sin;
 const cos = Math.cos;
 const HALF_PI = Math.PI / 2;
 
-export type RadarChartData = Array<{
+export type RadarChartData = {
     name: string;
-    axes: Array<Axis>;
-}>;
+    axes: Axis[];
+}[];
 
-type Axis = {
+interface Axis {
     axis: string;
     value: number;
     id?: string;
-};
+}
 
-export type RadarChartOptions = {
+export interface RadarChartOptions {
     w: number;
     h: number;
     margin: { top: number; right: number; bottom: number; left: number };
@@ -39,7 +39,7 @@ export type RadarChartOptions = {
     format: string;
     unit: string;
     legend: boolean | { title?: string; translateX: number; translateY: number };
-};
+}
 
 export const RadarChart = function RadarChart(
     parent_selector: string,
@@ -60,13 +60,13 @@ export const RadarChart = function RadarChart(
 
             let word,
                 lineNumber = 0,
-                line: Array<string> = [],
+                line: string[] = [],
                 tspan = text
                     .text(null)
                     .append('tspan')
                     .attr('x', x)
                     .attr('y', y)
-                    .attr('dy', dy + 'em');
+                    .attr('dy', `${dy  }em`);
 
             while ((word = words.pop())) {
                 line.push(word);
@@ -80,7 +80,7 @@ export const RadarChart = function RadarChart(
                         .append('tspan')
                         .attr('x', x)
                         .attr('y', y)
-                        .attr('dy', ++lineNumber * lineHeight + dy + 'em')
+                        .attr('dy', `${++lineNumber * lineHeight + dy  }em`)
                         .text(word);
                 }
             }
@@ -141,7 +141,7 @@ export const RadarChart = function RadarChart(
         .append('g')
         .attr(
             'transform',
-            'translate(' + (cfg.w / 2 + cfg.margin.left) + ',' + (cfg.h / 2 + cfg.margin.top) + ')'
+            `translate(${  cfg.w / 2 + cfg.margin.left  },${  cfg.h / 2 + cfg.margin.top  })`
         );
 
     /////////////////////////////////////////////////////////
@@ -261,7 +261,7 @@ export const RadarChart = function RadarChart(
         .attr('d', function (d) {
             return radarLine(d.axes);
         })
-        .style('stroke-width', cfg.strokeWidth + 'px')
+        .style('stroke-width', `${cfg.strokeWidth  }px`)
         .style('stroke', (d, i) => cfg.color(i.toString()))
         .style('fill', 'none');
 
@@ -296,8 +296,8 @@ export const RadarChart = function RadarChart(
     const mousemove = function (event: MouseEvent, d: Axis) {
         tooltip
             .html(Format(d.value) + cfg.unit)
-            .style('left', event.x + 'px')
-            .style('top', event.y - 18 * 2 + 'px');
+            .style('left', `${event.x  }px`)
+            .style('top', `${event.y - 18 * 2  }px`);
     };
     const mouseleave = function () {
         tooltip.style('opacity', 0);

@@ -1,35 +1,30 @@
 <script setup lang="ts" generic="TData, TValue">
-import type {
-    ColumnDef,
-    SortingState,
-    ColumnFiltersState,
-    VisibilityState
-} from '@tanstack/vue-table';
 
 import { valueUpdater } from '@/shadcn/lib/utils';
-
-import {
-    FlexRender,
-    getCoreRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    getFilteredRowModel,
-    useVueTable
-} from '@tanstack/vue-table';
-
+import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shadcn/ui/table';
-import { Button } from '@/shadcn/ui/button';
 import { Input } from '@/shadcn/ui/input';
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shadcn/ui/table';
+import { Icon } from '@iconify/vue';
+import {
+    FlexRender,
+    getCoreRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    getFilteredRowModel,
+    useVueTable,
+    type ColumnDef,
+    type SortingState,
+    type ColumnFiltersState,
+    type VisibilityState
+} from '@tanstack/vue-table';
+import { ref } from 'vue';
 
 const props = defineProps<{
     columns: ColumnDef<TData, TValue>[];

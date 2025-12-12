@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import { PageHeader } from '@/base_components';
 import { useStateStore } from '@/stores/state';
 import { useDashboardData } from './composables/useDashboardData';
 
 // Simple component imports
-import { PageHeader } from '@/base_components';
-import DashboardQuickStats from './sections/DashboardQuickStats.vue';
-import DashboardCharts from './sections/DashboardCharts.vue';
-// import DashboardFooter from './layout/DashboardFooter.vue';
 import DashboardEmptyState from './layout/DashboardEmptyState.vue';
+import DashboardCharts from './sections/DashboardCharts.vue';
+import DashboardQuickStats from './sections/DashboardQuickStats.vue';
+// import DashboardFooter from './layout/DashboardFooter.vue';
 
 /**
  * DashboardView - Main dashboard entry point

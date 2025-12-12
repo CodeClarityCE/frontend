@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
-import SbomTable from './SbomTable.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import SbomTable from './SbomTable.vue';
 
 // Mock entire Vue router to avoid dependency issues
 vi.mock('vue-router', () => ({

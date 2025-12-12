@@ -1,8 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import UtilitiesFilters, { FilterType, FilterState, createNewFilterState, type FilterConfig, type FilterCategory } from '@/base_components/filters/UtilitiesFilters.vue';
 import { mount } from '@vue/test-utils';
-import UtilitiesFilters from '@/base_components/filters/UtilitiesFilters.vue';
-import { FilterType, FilterState, createNewFilterState } from '@/base_components/filters/UtilitiesFilters.vue';
-import type { FilterConfig, FilterCategory } from '@/base_components/filters/UtilitiesFilters.vue';
+import { describe, it, expect } from 'vitest';
 
 describe('UtilitiesFilters', () => {
   const createMockFilterConfig = (): FilterConfig => ({

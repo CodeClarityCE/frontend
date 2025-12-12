@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
 import { Button } from '@/shadcn/ui/button';
-import { Separator } from '@/shadcn/ui/separator';
-import { RadioGroup, RadioGroupItem } from '@/shadcn/ui/radio-group';
-import { Label } from '@/shadcn/ui/label';
 import { Checkbox } from '@/shadcn/ui/checkbox';
+import { Label } from '@/shadcn/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/shadcn/ui/radio-group';
+import { Separator } from '@/shadcn/ui/separator';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
 
 // Props
 defineProps<{
@@ -20,17 +20,17 @@ const options_count: any = ref({});
 
 function optionClick(filter: FilterCategory, category_name: string, option_name: string) {
     // Modify the filter state (view)
-    if (filter?.type == FilterType.CHECKBOX) {
+    if (filter?.type === FilterType.CHECKBOX) {
         if (filterState.value?.filterConfig?.[category_name]?.data?.[option_name]) {
             filterState.value.filterConfig[category_name].data[option_name].value =
                 !filterState.value.filterConfig[category_name].data[option_name].value;
         }
-    } else if (filter?.type == FilterType.RADIO) {
+    } else if (filter?.type === FilterType.RADIO) {
         // Set all other radio buttons in the same category to false
         if (filterState.value?.filterConfig?.[category_name]?.data) {
             Object.entries(filterState.value.filterConfig[category_name].data).forEach(([key]) => {
                 if (filterState.value?.filterConfig?.[category_name]?.data?.[key]) {
-                    if (key == option_name) {
+                    if (key === option_name) {
                         filterState.value.filterConfig[category_name].data[key].value = true;
                     } else {
                         filterState.value.filterConfig[category_name].data[key].value = false;
@@ -52,7 +52,7 @@ function isActive() {
         if (!categoryObj) continue;
         for (const option in categoryObj.data) {
             const optionObj = categoryObj.data[option];
-            if (optionObj?.value == true) {
+            if (optionObj?.value === true) {
                 return true;
             }
         }
@@ -60,7 +60,7 @@ function isActive() {
     return false;
 }
 
-function setFilterCount(new_filter_count: { [key: string]: number }) {
+function setFilterCount(new_filter_count: Record<string, number>) {
     options_count.value = new_filter_count;
 }
 
@@ -127,16 +127,14 @@ export class FilterState {
     }
 }
 
-export interface FilterConfig {
-    [key: string]: FilterCategory;
-}
+export type FilterConfig = Record<string, FilterCategory>;
 
 export interface FilterCategory {
     iconScale?: string;
     icon?: string;
     name: string;
     type: FilterType;
-    data: { [key: string]: FilterOption };
+    data: Record<string, FilterOption>;
 }
 
 export interface FilterOption {
@@ -156,7 +154,7 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
         if (!categoryObj) continue;
         for (const option in categoryObj.data) {
             const optionObj = categoryObj.data[option];
-            if (optionObj?.value == true) {
+            if (optionObj?.value === true) {
                 activeFilters.push({
                     label: `${categoryObj.name}: ${optionObj.title}`,
                     category: category,
@@ -173,7 +171,7 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
     <Popover>
         <PopoverTrigger as-child>
             <Button variant="outline">
-                <Icon v-if="isActive() == true" class="text-primary" icon="pajamas:status-active" />
+                <Icon v-if="isActive() === true" class="text-primary" icon="pajamas:status-active" />
                 Filters
                 <Icon icon="ion:chevron-down-outline" />
             </Button>
@@ -186,7 +184,7 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
             >
                 <!-- IF TYPE DIVIDER DIPLAY IT -->
                 <Separator
-                    v-if="filter.type == FilterType.DIVIDER"
+                    v-if="filter.type === FilterType.DIVIDER"
                     orientation="vertical"
                     class="mx-4"
                 ></Separator>
@@ -207,7 +205,7 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
                     </div>
 
                     <!-- CHECKBOX -->
-                    <div v-if="filter.type == FilterType.CHECKBOX" class="flex flex-col gap-2">
+                    <div v-if="filter.type === FilterType.CHECKBOX" class="flex flex-col gap-2">
                         <div
                             v-for="[attribute_name, attribute] in Object.entries(filter.data)"
                             :key="attribute_name"
@@ -223,7 +221,7 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
                         </div>
                     </div>
                     <!-- RADIO -->
-                    <div v-else-if="filter.type == FilterType.RADIO">
+                    <div v-else-if="filter.type === FilterType.RADIO">
                         <RadioGroup>
                             <div
                                 v-for="[attribute_name, attribute] in Object.entries(filter.data)"

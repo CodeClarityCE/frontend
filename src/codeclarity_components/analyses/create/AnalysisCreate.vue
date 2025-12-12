@@ -1,39 +1,24 @@
 <script lang="ts" setup>
-import { type Ref, ref, h } from 'vue';
 
-import { useStateStore } from '@/stores/state';
 import { PageHeader } from '@/base_components';
-
-// API imports
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
-import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 import type { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
-import { watchDeep } from '@vueuse/core';
-import { Form } from 'vee-validate';
+import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import type { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import router from '@/router';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { FormField } from '@/shadcn/ui/form';
+import FormControl from '@/shadcn/ui/form/FormControl.vue';
+import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import FormItem from '@/shadcn/ui/form/FormItem.vue';
 import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
-import FormControl from '@/shadcn/ui/form/FormControl.vue';
-import Input from '@/shadcn/ui/input/Input.vue';
-import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import FormMessage from '@/shadcn/ui/form/FormMessage.vue';
-import { FormField } from '@/shadcn/ui/form';
-import SelectLicensePolicy from './components/SelectLicensePolicy.vue';
-import SelectVulnerabilityPolicy from './components/SelectVulnerabilityPolicy.vue';
-import ScheduleSelector from './components/ScheduleSelector.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
-import { toast } from '@/shadcn/ui/toast';
-import router from '@/router';
-import { RouterLink } from 'vue-router';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { Icon } from '@iconify/vue';
-import Alert from '@/shadcn/ui/alert/Alert.vue';
-import { AlertCircle } from 'lucide-vue-next';
-import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
-import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import Input from '@/shadcn/ui/input/Input.vue';
 import {
     Select,
     SelectContent,
@@ -42,11 +27,25 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
+import { toast } from '@/shadcn/ui/toast';
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+
+// API imports
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { watchDeep } from '@vueuse/core';
+import { AlertCircle } from 'lucide-vue-next';
+import { Form } from 'vee-validate';
+import { type Ref, ref, h } from 'vue';
+import { RouterLink } from 'vue-router';
+import ScheduleSelector from './components/ScheduleSelector.vue';
+import SelectLicensePolicy from './components/SelectLicensePolicy.vue';
+import SelectVulnerabilityPolicy from './components/SelectVulnerabilityPolicy.vue';
 
 // Project info imports
-import type { Project } from '@/codeclarity_components/projects/project.entity';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 
 const user = useUserStore();
 const auth = useAuthStore();
@@ -65,11 +64,11 @@ const projectRepo: ProjectRepository = new ProjectRepository();
 
 const selected_branch: Ref<string> = ref('');
 const selected_commit_hash: Ref<string> = ref('');
-const selected_analyzers: Ref<Array<number>> = ref([]);
-const selected_license_policy: Ref<Array<string>> = ref([]);
+const selected_analyzers: Ref<number[]> = ref([]);
+const selected_license_policy: Ref<string[]> = ref([]);
 const selected_vulnerability_policy: Ref<string | null> = ref(null);
-const selected_analyzers_list: Ref<Array<Analyzer>> = ref([]);
-const availableAnalyzers: Ref<Array<any>> = ref([]);
+const selected_analyzers_list: Ref<Analyzer[]> = ref([]);
+const availableAnalyzers: Ref<any[]> = ref([]);
 
 const configuration: Ref<Record<string, any>> = ref({});
 
@@ -93,7 +92,7 @@ const project: Ref<Project | undefined> = ref();
 
 const urlParams = new URLSearchParams(window.location.search);
 const projectId = urlParams.get('id');
-if (projectId == null) {
+if (projectId === null) {
     throw new Error('Project id not found');
 }
 project_id.value = projectId;
@@ -297,10 +296,10 @@ async function validateAllConfigurations() {
     // 1. Apply SBOM configuration if needed
     if (hasSBOMPlugins(analyzer)) {
         // Get actual form values from the SBOM form inputs
-        const branchInput = document.querySelector('input[placeholder="main"]') as HTMLInputElement;
+        const branchInput = document.querySelector('input[placeholder="main"]')!;
         const commitHashInput = document.querySelector(
             'input[placeholder="latest"]'
-        ) as HTMLInputElement;
+        )!;
 
         const actualBranch = branchInput?.value || 'main';
         const actualCommitHash = commitHashInput?.value || '';
@@ -351,15 +350,15 @@ function applyConfigSilently(values: any, plugin_name: string) {
     else configuration.value[plugin_name] = values;
 
     if (plugin_name === 'license-finder') {
-        configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
+        configuration.value[plugin_name].licensePolicy = selected_license_policy.value;
     }
     if (plugin_name === 'vuln-finder') {
         // Send policy ID if one is selected, otherwise send empty array for no policy
-        configuration.value[plugin_name]['vulnerabilityPolicy'] =
+        configuration.value[plugin_name].vulnerabilityPolicy =
             selected_vulnerability_policy.value ? [selected_vulnerability_policy.value] : [];
     }
     if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
-        configuration.value[plugin_name]['project'] =
+        configuration.value[plugin_name].project =
             `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
         selected_branch.value = values.branch;
     }
@@ -459,12 +458,12 @@ async function createAnalysisStart() {
         <div v-if="project" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div class="flex items-center gap-3">
                 <Icon
-                    v-if="project?.type == IntegrationProvider.GITHUB"
+                    v-if="project?.type === IntegrationProvider.GITHUB"
                     icon="simple-icons:github"
                     class="h-6 w-6 text-gray-700"
                 />
                 <Icon
-                    v-else-if="project?.type == IntegrationProvider.GITLAB"
+                    v-else-if="project?.type === IntegrationProvider.GITLAB"
                     icon="simple-icons:gitlab"
                     class="h-6 w-6 text-gray-700"
                 />

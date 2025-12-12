@@ -69,10 +69,10 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import { InfoCard } from '@/base_components';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
-import { InfoCard } from '@/base_components';
+import { Icon } from '@iconify/vue';
 
 /**
  * DashboardEmptyState - Shows when dashboard has no data

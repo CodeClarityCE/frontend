@@ -5,7 +5,7 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-    <div class="skeleton skeleton-text" :class="{ 'skeleton-static': props.static == true }"></div>
+    <div class="skeleton skeleton-text" :class="{ 'skeleton-static': props.static === true }"></div>
 </template>
 
 <style scoped lang="scss">

@@ -1,5 +1,4 @@
 import { Entity } from '../../utils/api/BaseEntity';
-import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
 import {
     BaseRepository,
     type AuthRepoMethodEmptyDeleteRequestOptions,
@@ -8,6 +7,7 @@ import {
 } from '../../utils/api/BaseRepository';
 import { DataResponse } from '../../utils/api/responses/DataResponse';
 import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
+import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
 import type { Notification } from './notification.entity';
 
 export interface GetNotificationsRequestOptions extends AuthRepoMethodGetRequestOptions {

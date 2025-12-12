@@ -1,10 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { RadarChart as mockRadarChart, type RadarChartData, type RadarChartOptions } from '@/base_components/data-display/charts/radarChart'
 import RadarChart from '@/base_components/data-display/charts/RadarChart.vue'
-import type { RadarChartData, RadarChartOptions } from '@/base_components/data-display/charts/radarChart'
-
-// Import the mock to use in tests
-import { RadarChart as mockRadarChart } from '@/base_components/data-display/charts/radarChart'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock D3 with comprehensive methods for RadarChart
 const createMockNode = (): any => {

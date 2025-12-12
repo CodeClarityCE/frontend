@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent } from 'vue';
 import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { defineComponent } from 'vue';
 
 const mockStateStore = {
   $reset: vi.fn(),

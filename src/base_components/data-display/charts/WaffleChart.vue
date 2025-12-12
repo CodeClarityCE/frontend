@@ -1,5 +1,4 @@
 <script lang="ts">
-import * as d3 from 'd3';
 import { interpolateColors } from '@/base_components/data-display/charts/colors-waffle';
 import Button from '@/shadcn/ui/button/Button.vue';
 import {
@@ -10,6 +9,7 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/shadcn/ui/dialog';
+import * as d3 from 'd3';
 
 export interface WaffleChartEntry {
     label: string;
@@ -121,9 +121,9 @@ function createData() {
             '#40E0D0',
             '#D3D3D3'
         ]);
-    if (props.data.length == 0) return;
+    if (props.data.length === 0) return;
 
-    const colorsDefinedInData = props.data.every((entry) => entry.color != undefined);
+    const colorsDefinedInData = props.data.every((entry) => entry.color !== undefined);
 
     // "Normalize" the data
     // Each group has a value from 0.0 to 1.0
@@ -235,7 +235,7 @@ function createSquares(
         i++;
     }
 
-    if (othersEntries.length == normalizedData.length) {
+    if (othersEntries.length === normalizedData.length) {
         indicesToRemove = [];
         othersEntries = [];
         for (const entry of normalizedData) {
@@ -274,9 +274,9 @@ function stopAnimateGroup() {
 }
 
 function styleSelected(group: string) {
-    if (groupToAnimate.value == undefined) return 'none';
+    if (groupToAnimate.value === undefined) return 'none';
     else {
-        if (groupToAnimate.value == group) return 'none';
+        if (groupToAnimate.value === group) return 'none';
         else return 'opacity(25%)';
     }
 }

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { type SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent } from 'vue';
 
 const SocialSetup = defineAsyncComponent({
@@ -37,7 +36,7 @@ state.publicPage = true;
 const urlParams = new URLSearchParams(window.location.search);
 const _provider = urlParams.get('provider');
 let provider: SocialProvider | undefined;
-if (_provider != '') {
+if (_provider !== '') {
     provider = _provider as SocialProvider;
 }
 </script>

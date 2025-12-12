@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { License } from '@/codeclarity_components/results/licenses/License';
-import SearchBar from '../filters/SearchBar.vue';
 import { ref, toRef, watch } from 'vue';
+import SearchBar from '../filters/SearchBar.vue';
 
 const props = defineProps<{
     placeholder: string;
     name: string;
-    licenses: Array<License>;
+    licenses: License[];
     disabled?: boolean;
 }>();
 
@@ -24,7 +24,7 @@ function updateList() {
     licenseList.value.clear();
     for (let i = 0; i < props.licenses.length; i++) {
         const license = props.licenses[i];
-        if (license && license.name.toLowerCase().includes(search.value.toLowerCase())) {
+        if (license?.name.toLowerCase().includes(search.value.toLowerCase())) {
             licenseList.value.add(license);
         }
     }

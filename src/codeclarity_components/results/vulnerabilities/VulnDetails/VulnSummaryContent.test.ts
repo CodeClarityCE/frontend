@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import VulnSummaryContent from './VulnSummaryContent.vue';
+import { describe, it, expect, vi } from 'vitest';
 import { VulnerabilityDetails } from './VulnDetails';
+import VulnSummaryContent from './VulnSummaryContent.vue';
 
 // Mock date utils
 vi.mock('@/utils/dateUtils', () => ({

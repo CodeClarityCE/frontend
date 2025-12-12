@@ -1,18 +1,18 @@
 <script lang="ts" setup>
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 
-import { useStateStore } from '@/stores/state';
-import { useAuthStore } from '@/stores/auth';
 
 const state = useStateStore();
 const authStore = useAuthStore();
 state.menu = 'settingsAccount';
 
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
-
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import * as z from 'zod';
 import { Button } from '@/shadcn/ui/button';
 import {
     FormControl,
@@ -23,7 +23,6 @@ import {
     FormDescription
 } from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
-import { useUserStore } from '@/stores/user';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
 
 const userRepository: UserRepository = new UserRepository();

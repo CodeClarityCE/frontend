@@ -1,11 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Analysis , AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
+import { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
+import { Project } from '@/codeclarity_components/projects/project.entity';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ResultsLicenses from './ResultsLicenses.vue';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 
 // Mock child components
 vi.mock('./LicensesComponent.vue', () => ({

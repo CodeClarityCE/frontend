@@ -1,17 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 // Pinia imports removed to prevent plugin duplication warnings
-import ResultsCodeQL from './ResultsCodeQL.vue';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { Analysis, AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
-import { useUserStore } from '@/stores/user';
+import { Project } from '@/codeclarity_components/projects/project.entity';
 import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '../results.repository';
-import { Result } from '../result.entity';
-import type { CodeQLResult } from './codeql.entity';
+import { useUserStore } from '@/stores/user';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Result } from '../result.entity';
+import { ResultsRepository } from '../results.repository';
+import type { CodeQLResult } from './codeql.entity';
+import ResultsCodeQL from './ResultsCodeQL.vue';
 
 // Mock modules
 vi.mock('../results.repository');

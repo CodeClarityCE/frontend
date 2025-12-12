@@ -1,5 +1,5 @@
-import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { Entity } from '@/utils/api/BaseEntity';
+import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 import { defineStore } from 'pinia';
@@ -123,7 +123,7 @@ export function loadAuthStoreFromLocalStorage() {
 function getFromLocalStorageOrDefault(): AuthStoreState {
     try {
         const authState = localStorage.getItem(storePeristantName);
-        return authState == null
+        return authState === null
             ? defaultValues()
             : Entity.unMarshal<AuthStoreState>(JSON.parse(authState), AuthStoreState);
     } catch (err) {

@@ -32,13 +32,13 @@ interface Vuln {
 }
 
 export interface Output {
-    workspaces: { [key: string]: Workspace };
+    workspaces: Record<string, Workspace>;
     analysis_info: AnalysisInfo;
 }
 
 export interface Workspace {
-    patches: { [key: string]: PatchInfo };
-    dev_patches: { [key: string]: PatchInfo };
+    patches: Record<string, PatchInfo>;
+    dev_patches: Record<string, PatchInfo>;
 }
 
 export interface PatchInfo {
@@ -47,7 +47,7 @@ export interface PatchInfo {
     Unpatchable: ToPatch[];
     Patchable: ToPatch[];
     Introduced: ToPatch[];
-    Patches: { [key: string]: SemVer };
+    Patches: Record<string, SemVer>;
     Update: SemVer;
 }
 
@@ -98,8 +98,8 @@ export interface Stats {}
 export interface WorkspaceData {
     OriginalManifestFile: string;
     Upgrades: PatchedManifest;
-    VulnerabilityPatchInfo: { [key: string]: PatchInfo };
-    IntroducedVulnerabilitiesInfo: { [key: string]: any };
+    VulnerabilityPatchInfo: Record<string, PatchInfo>;
+    IntroducedVulnerabilitiesInfo: Record<string, any>;
 }
 
 export interface VulnerabilitySummary {

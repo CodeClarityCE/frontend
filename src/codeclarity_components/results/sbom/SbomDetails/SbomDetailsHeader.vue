@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
 import { Icon } from '@iconify/vue';
 import type { PropType } from 'vue';
@@ -48,7 +48,7 @@ defineProps({
 
             <Badge v-if="dependency.source" variant="secondary" class="link-badge">
                 <a
-                    v-if="dependency.source.Type == 'git'"
+                    v-if="dependency.source.Type === 'git'"
                     :href="`${dependency.source.Url.replace('git+', '')}`"
                     target="_blank"
                     class="link-content"

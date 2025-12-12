@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Icon } from '@iconify/vue';
-import { formatDate } from '@/utils/dateUtils';
-import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
 import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import router from '@/router';
 import { Button } from '@/shadcn/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shadcn/ui/dialog';
 import { Skeleton } from '@/shadcn/ui/skeleton';
-import router from '@/router';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { formatDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, onMounted } from 'vue';
 
 const props = defineProps({
     analysis: {
@@ -22,9 +22,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits<{
-    (e: 'close'): void;
-}>();
+const emit = defineEmits<(e: 'close') => void>();
 
 // Repositories
 const analysisRepository = new AnalysisRepository();
@@ -45,7 +43,7 @@ async function fetchAnalysisRuns() {
     loading.value = true;
     try {
         const response = await analysisRepository.getAnalysisRuns({
-            orgId: userStore.getUser!.default_org.id,
+            orgId: userStore.getUser.default_org.id,
             projectId: props.projectID,
             analysisId: props.analysis.id,
             bearerToken: authStore.getToken!

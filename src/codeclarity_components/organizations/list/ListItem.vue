@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
-import { Icon } from '@iconify/vue';
-import { formatDate } from '@/utils/dateUtils';
-import { ref, type Ref } from 'vue';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { errorToast, successToast } from '@/utils/toasts';
 import type { OrganizationMembership } from '@/codeclarity_components/organizations/organization_membership.entity';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { formatDate } from '@/utils/dateUtils';
+import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 enum OrgAction {
     DELETE = 'delete',
@@ -28,9 +28,7 @@ defineProps<{
     membership: OrganizationMembership;
 }>();
 
-const emit = defineEmits<{
-    (e: 'refresh'): void;
-}>();
+const emit = defineEmits<(e: 'refresh') => void>();
 
 async function deleteOrg(orgId: string) {
     if (authStore.getAuthenticated && authStore.getToken) {
@@ -44,9 +42,9 @@ async function deleteOrg(orgId: string) {
             emit('refresh');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     emit('refresh');
-                } else if (err.error_code == APIErrors.PersonalOrgCannotBeModified) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -70,11 +68,11 @@ async function leaveOrg(orgId: string) {
             emit('refresh');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     emit('refresh');
-                } else if (err.error_code == APIErrors.PersonalOrgCannotBeModified) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot leave a personal organization.`);
-                } else if (err.error_code == APIErrors.CannotLeaveAsLastOwner) {
+                } else if (err.error_code === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
                         `You cannot leave as the last owner of this organization. Instead delete the organization.`
                     );
@@ -87,9 +85,9 @@ async function leaveOrg(orgId: string) {
 }
 
 function performOrgAction() {
-    if (orgAction.value == OrgAction.DELETE) {
+    if (orgAction.value === OrgAction.DELETE) {
         deleteOrg(orgActionId.value);
-    } else if (orgAction.value == OrgAction.LEAVE) {
+    } else if (orgAction.value === OrgAction.LEAVE) {
         leaveOrg(orgActionId.value);
     }
 }
@@ -108,28 +106,28 @@ function performOrgAction() {
                 <!-- Role and Personal Badges -->
                 <div class="flex items-center gap-2 flex-wrap mb-3">
                     <span
-                        v-if="membership.organization.role == MemberRole.OWNER"
+                        v-if="membership.organization.role === MemberRole.OWNER"
                         class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-primary bg-theme-primary/10 rounded border border-theme-primary/20"
                     >
                         <Icon icon="solar:crown-bold" class="text-xs" />
                         Owner
                     </span>
                     <span
-                        v-else-if="membership.organization.role == MemberRole.ADMIN"
+                        v-else-if="membership.organization.role === MemberRole.ADMIN"
                         class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-black bg-theme-black/10 rounded border border-theme-black/20"
                     >
                         <Icon icon="solar:shield-check-bold" class="text-xs" />
                         Admin
                     </span>
                     <span
-                        v-else-if="membership.organization.role == MemberRole.MODERATOR"
+                        v-else-if="membership.organization.role === MemberRole.MODERATOR"
                         class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-primary bg-theme-primary/10 rounded border border-theme-primary/20"
                     >
                         <Icon icon="solar:star-bold" class="text-xs" />
                         Moderator
                     </span>
                     <span
-                        v-else-if="membership.organization.role == MemberRole.USER"
+                        v-else-if="membership.organization.role === MemberRole.USER"
                         class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-theme-primary bg-theme-primary/10 rounded border border-theme-primary/20"
                     >
                         <Icon icon="solar:user-bold" class="text-xs" />
@@ -174,7 +172,7 @@ function performOrgAction() {
                                 Leave
                             </button>
                             <button
-                                v-if="membership.organization.role == MemberRole.OWNER"
+                                v-if="membership.organization.role === MemberRole.OWNER"
                                 class="flex items-center gap-3 px-3 py-2 text-sm text-red-700 hover:bg-red-50 rounded transition-colors duration-150"
                                 @click="
                                     orgActionId = membership.organization.id;
@@ -300,13 +298,13 @@ function performOrgAction() {
         <template #title>
             <div class="flex items-center gap-3">
                 <div
-                    v-if="orgAction == OrgAction.DELETE"
+                    v-if="orgAction === OrgAction.DELETE"
                     class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
                 >
                     <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
                 </div>
                 <div
-                    v-if="orgAction == OrgAction.LEAVE"
+                    v-if="orgAction === OrgAction.LEAVE"
                     class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center"
                 >
                     <Icon icon="solar:exit-bold" class="text-orange-600" />
@@ -314,7 +312,7 @@ function performOrgAction() {
                 <div>
                     <h3 class="text-lg font-bold text-theme-black">
                         {{
-                            orgAction == OrgAction.DELETE
+                            orgAction === OrgAction.DELETE
                                 ? 'Delete Organization'
                                 : 'Leave Organization'
                         }}
@@ -325,16 +323,16 @@ function performOrgAction() {
         <template #content>
             <div class="space-y-3">
                 <p class="text-theme-gray">
-                    <span v-if="orgAction == OrgAction.DELETE">
+                    <span v-if="orgAction === OrgAction.DELETE">
                         Are you sure you want to permanently delete this organization?
                     </span>
-                    <span v-if="orgAction == OrgAction.LEAVE">
+                    <span v-if="orgAction === OrgAction.LEAVE">
                         Are you sure you want to leave this organization?
                     </span>
                 </p>
 
                 <div
-                    v-if="orgAction == OrgAction.DELETE"
+                    v-if="orgAction === OrgAction.DELETE"
                     class="bg-red-50 border border-red-200 rounded-lg p-3"
                 >
                     <div class="flex items-center gap-2">
@@ -354,7 +352,7 @@ function performOrgAction() {
                     orgActionModalRef.toggle();
                 "
             >
-                {{ orgAction == OrgAction.DELETE ? 'Delete' : 'Leave' }}
+                {{ orgAction === OrgAction.DELETE ? 'Delete' : 'Leave' }}
             </button>
             <button
                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition-colors"

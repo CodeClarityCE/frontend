@@ -1,6 +1,5 @@
-import { run as axeRun } from 'axe-core';
 import type { VueWrapper } from '@vue/test-utils';
-import type { AxeResults, Result, RunOptions } from 'axe-core';
+import { run as axeRun, type AxeResults, type Result, type RunOptions } from 'axe-core';
 
 /**
  * Default axe configuration for CodeClarity accessibility testing
@@ -48,7 +47,7 @@ Help URL: ${violation.helpUrl}
 Affected nodes:
 ${nodeInfo}
 `;
-  }).join('\n' + '='.repeat(80) + '\n');
+  }).join(`\n${  '='.repeat(80)  }\n`);
 }
 
 /**

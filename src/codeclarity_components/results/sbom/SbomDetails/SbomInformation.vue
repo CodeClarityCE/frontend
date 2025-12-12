@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
-import { Icon } from '@iconify/vue';
 import { calculateDateDifference, formatRelativeTime, isValidDate } from '@/utils/dateUtils';
-import type { PropType } from 'vue';
-import { computed } from 'vue';
 import { EcosystemDetector, EcosystemMetadataExtractor } from '@/utils/packageEcosystem';
+import { Icon } from '@iconify/vue';
+import { computed, type PropType } from 'vue';
 
 const props = defineProps({
     dependency: {
@@ -49,7 +48,7 @@ const getVersionLag = () => {
 
 // Engine icon mapping
 const getEngineIcon = (engineName: string): string => {
-    const iconMap: { [key: string]: string } = {
+    const iconMap: Record<string, string> = {
         node: 'akar-icons:node-fill',
         npm: 'akar-icons:npm-fill',
         yarn: 'akar-icons:yarn-fill',
@@ -86,7 +85,7 @@ const getAgeClass = (): string => {
 
 const getAgeIcon = (): string => {
     const ageClass = getAgeClass();
-    const iconMap: { [key: string]: string } = {
+    const iconMap: Record<string, string> = {
         fresh: 'solar:star-bold',
         moderate: 'solar:clock-circle-bold',
         old: 'solar:history-bold',
@@ -98,7 +97,7 @@ const getAgeIcon = (): string => {
 
 const getAgeDescription = (): string => {
     const ageClass = getAgeClass();
-    const descriptions: { [key: string]: string } = {
+    const descriptions: Record<string, string> = {
         fresh: 'Recently released package',
         moderate: 'Moderately aged package',
         old: 'Older package, consider checking for updates',

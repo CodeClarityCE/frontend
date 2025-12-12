@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createPinia } from 'pinia';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PatchingPatches from './PatchingPatches.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -425,7 +425,7 @@ describe.skip('PatchingPatches.vue', () => {
             // Find and click the copy icon for NPM command
             const npmCopyIcon = wrapper.findAll('[data-testid="icon"]').find((icon: any) => {
                 const parent = icon.element.parentElement;
-                return parent && parent.getAttribute('class')?.includes('click-scale');
+                return parent?.getAttribute('class')?.includes('click-scale');
             });
 
             if (npmCopyIcon) {
@@ -450,7 +450,7 @@ describe.skip('PatchingPatches.vue', () => {
             // Find and click the copy icon for YARN command
             const yarnCopyIcon = wrapper.findAll('[data-testid="icon"]').find((icon: any) => {
                 const parent = icon.element.parentElement;
-                return parent && parent.style.cursor === 'pointer';
+                return parent?.style.cursor === 'pointer';
             });
 
             if (yarnCopyIcon) {

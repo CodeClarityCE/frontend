@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import ProjectItem from './ProjectItemImproved.vue';
-import NoProjects from './NoProjects.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
-import { ref, watch, type Ref } from 'vue';
 import {
     ProjectsSortInterface,
     ProjectRepository
 } from '@/codeclarity_components/projects/project.repository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import ProjectsListHeader from './ProjectsListHeader.vue';
 import { useProjectsMainStore } from '@/stores/StateStore';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { debounce } from '@/utils/searchUtils';
 import { Icon } from '@iconify/vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import router from '@/router';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
+import { ref, watch, type Ref } from 'vue';
+import NoProjects from './NoProjects.vue';
+import ProjectItem from './ProjectItemImproved.vue';
+import ProjectsListHeader from './ProjectsListHeader.vue';
 
 // Stores
 const authStore = useAuthStore();
@@ -40,7 +40,7 @@ const errorCode: Ref<string | undefined> = ref();
 const sortKey: Ref<ProjectsSortInterface> = ref(ProjectsSortInterface.NAME);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
-async function fetchProjects(refresh: boolean = false) {
+async function fetchProjects(refresh = false) {
     if (!viewState.orgId) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -114,7 +114,7 @@ fetchProjects();
                             We failed to retrieve your projects
                         </div>
                         <div class="text-sm text-theme-gray/60">
-                            <div v-if="errorCode == APIErrors.NotAuthorized">
+                            <div v-if="errorCode === APIErrors.NotAuthorized">
                                 You do not have permission to access this page.
                             </div>
                             <div v-else>An error occurred while retrieving your projects.</div>
@@ -122,7 +122,7 @@ fetchProjects();
                     </div>
                     <div class="flex flex-row gap-2 items-center flex-wrap">
                         <Button
-                            v-if="errorCode != APIErrors.NotAuthorized"
+                            v-if="errorCode !== APIErrors.NotAuthorized"
                             class="bg-theme-primary hover:bg-theme-primary-dark text-white"
                             @click="fetchProjects(true)"
                         >
@@ -152,7 +152,7 @@ fetchProjects();
         </div>
 
         <div v-else>
-            <div v-if="projects.length == 0">
+            <div v-if="projects.length === 0">
                 <NoProjects />
             </div>
 

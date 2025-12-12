@@ -1,17 +1,7 @@
 <script lang="ts" setup>
-import { ref, onBeforeMount, computed } from 'vue';
-import type { Ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { LicensePolicyRepository } from '../license_policy.repository';
-import type { LicensePolicy } from '../license_policy.entity';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-// Organization imports removed since we're in a tab view context
-import LicensePolicyDataTable from '../license/LicensePolicyDataTable.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
-import { Icon } from '@iconify/vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 import {
     Dialog,
     DialogContent,
@@ -20,6 +10,15 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/shadcn/ui/dialog';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { ref, onBeforeMount, computed, type Ref } from 'vue';
+import { useRouter } from 'vue-router';
+import LicensePolicyDataTable from '../license/LicensePolicyDataTable.vue';
+import type { LicensePolicy } from '../license_policy.entity';
+import { LicensePolicyRepository } from '../license_policy.repository';
+// Organization imports removed since we're in a tab view context
 const props = defineProps<{
     page: string;
     orgId: string;

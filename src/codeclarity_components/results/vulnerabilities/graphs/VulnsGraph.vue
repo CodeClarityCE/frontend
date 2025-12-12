@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import type { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Icon } from '@iconify/vue';

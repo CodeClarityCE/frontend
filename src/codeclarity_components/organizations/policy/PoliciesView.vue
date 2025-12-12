@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
-import { defineAsyncComponent, ref, computed } from 'vue';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
+import { defineAsyncComponent, ref, computed } from 'vue';
 
 const OrgPoliciesList = defineAsyncComponent({
     loader: () => import('./list/PoliciesList.vue'),
@@ -104,18 +104,18 @@ function setOrgInfo(_orgInfo: Organization) {
 
     <!-- Direct policy type views for add/edit actions -->
     <OrgPoliciesCreate
-        v-else-if="action == 'add' && policyType == 'license'"
+        v-else-if="action === 'add' && policyType === 'license'"
         :page="page"
         :org-id="orgId"
     />
     <OrgPoliciesEdit
-        v-else-if="action == 'edit' && policyType == 'license'"
+        v-else-if="action === 'edit' && policyType === 'license'"
         :page="page"
         :org-id="orgId"
     />
 
     <VulnerabilityPoliciesView
-        v-else-if="(action == 'add' || action == 'edit') && policyType == 'vulnerability'"
+        v-else-if="(action === 'add' || action === 'edit') && policyType === 'vulnerability'"
         :page="page"
         :org-id="orgId"
         :action="action"

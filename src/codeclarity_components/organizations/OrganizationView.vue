@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import PageHeader from '@/base_components/layout/PageHeader.vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent } from 'vue';
 
 const OrgsList = defineAsyncComponent({
@@ -190,13 +189,13 @@ function getPageDescription(): string {
 
             <!-- Main Content Area -->
             <div class="space-y-6">
-                <CreateOrg v-if="props.action == 'add' && !props.orgId" />
-                <OrgsList v-else-if="props.action == 'list' && !props.orgId" />
+                <CreateOrg v-if="props.action === 'add' && !props.orgId" />
+                <OrgsList v-else-if="props.action === 'list' && !props.orgId" />
                 <OrgPolicies
                     v-if="
-                        (props.page == 'policies' ||
-                            props.page == 'policy' ||
-                            props.page == 'vulnerability-policy') &&
+                        (props.page === 'policies' ||
+                            props.page === 'policy' ||
+                            props.page === 'vulnerability-policy') &&
                         props.orgId
                     "
                     :page="props.page"
@@ -204,28 +203,28 @@ function getPageDescription(): string {
                     :action="props.action"
                 />
                 <OrgManageAuditLogs
-                    v-else-if="props.page == 'logs' && props.orgId"
+                    v-else-if="props.page === 'logs' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                 />
                 <OrgManageMembers
-                    v-else-if="props.page == 'members' && props.orgId"
+                    v-else-if="props.page === 'members' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                 />
                 <OrgManageInvites
-                    v-else-if="props.page == 'invites' && props.orgId"
+                    v-else-if="props.page === 'invites' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                 />
                 <OrgManageIntegrations
-                    v-else-if="props.page == 'integrations' && props.orgId"
+                    v-else-if="props.page === 'integrations' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                     :action="props.action"
                 />
                 <OrgAnalyzers
-                    v-else-if="props.page == 'analyzers' && props.orgId"
+                    v-else-if="props.page === 'analyzers' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                     :action="props.action"

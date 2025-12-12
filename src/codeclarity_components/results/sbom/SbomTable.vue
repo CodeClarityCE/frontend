@@ -1,16 +1,16 @@
 <script setup lang="ts">
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import type { Dependency } from '@/codeclarity_components/results/graph.entity';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
 import { ref, onMounted, type Ref, watch, shallowRef, computed } from 'vue';
 import { columns } from './table/columns';
 import DataTable from './table/DataTable.vue';
-import type { Dependency } from '@/codeclarity_components/results/graph.entity';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
-import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
-import { Icon } from '@iconify/vue';
 
 export interface Props {
     projectID?: string;
@@ -31,7 +31,7 @@ const authStore = useAuthStore();
 
 const sbomRepository: ResultsRepository = new ResultsRepository();
 
-const data: Ref<Array<Dependency>> = shallowRef([]);
+const data: Ref<Dependency[]> = shallowRef([]);
 const selected_workspace = defineModel<string>('selected_workspace', { default: '' });
 
 const pageNumber = ref(0);

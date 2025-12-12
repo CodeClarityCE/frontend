@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import UtilitiesSort from '../../../../src/base_components/utilities/UtilitiesSort.vue';
 import { SortDirection } from '../../../../src/utils/api/PaginatedRequestOptions';
 

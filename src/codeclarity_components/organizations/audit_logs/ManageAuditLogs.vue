@@ -1,26 +1,25 @@
 <script lang="ts" setup>
+import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import type { AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
 import {
     isMemberRoleGreaterThan,
     MemberRole,
     type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
+import AuditLogsTable from '@/enterprise_components/activity_logs/AuditLogsTable.vue';
 import router from '@/router';
+import { Card, CardContent } from '@/shadcn/ui/card';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { debounce } from '@/utils/searchUtils';
+import { Icon } from '@iconify/vue';
 import { ref, watch, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { debounce } from '@/utils/searchUtils';
-import type { AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { Icon } from '@iconify/vue';
-
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import type { TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
-import AuditLogsTable from '@/enterprise_components/activity_logs/AuditLogsTable.vue';
-import { Card, CardContent } from '@/shadcn/ui/card';
 
 const orgRepo = new OrgRepository();
 const authStore = useAuthStore();
@@ -72,12 +71,12 @@ async function changePage(_page: number) {
 }
 
 async function updateSort(_sortKey: string, _sortDirection: SortDirection) {
-    // if (key == undefined) return;
-    // if (key != undefined)
-    //     if (key == sortKey.value) {
+    // if (key === undefined) return;
+    // if (key !== undefined)
+    //     if (key === sortKey.value) {
     //         // If we select the same column then we reverse the direction
     //         sortDirection.value =
-    //             sortDirection.value == SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+    //             sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
     //     } else {
     //         // Default direction
     //         sortDirection.value = SortDirection.DESC;
@@ -92,7 +91,7 @@ async function onRefetch() {
     await fetchOrgAuditLogs(true);
 }
 
-async function fetchOrgAuditLogs(refresh: boolean = false) {
+async function fetchOrgAuditLogs(refresh = false) {
     if (!orgId.value) return;
     if (authStore.getAuthenticated && authStore.getToken) {
         error.value = false;
@@ -138,11 +137,11 @@ async function init() {
         router.back();
     }
 
-    if (_search && typeof _search == 'string') {
+    if (_search && typeof _search === 'string') {
         search.value = _search;
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
         await fetchOrgAuditLogs();
     } else {
@@ -158,9 +157,9 @@ init();
         <div v-if="orgInfo" class="flex flex-col gap-8 p-12">
             <div
                 v-if="
-                    (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                    orgInfo.role == MemberRole.ADMIN ||
-                    orgInfo.role == MemberRole.MODERATOR
+                    (!orgInfo.personal && orgInfo.role === MemberRole.OWNER) ||
+                    orgInfo.role === MemberRole.ADMIN ||
+                    orgInfo.role === MemberRole.MODERATOR
                 "
             >
                 <h2 class="text-2xl font-semibold">Related Actions</h2>
@@ -217,10 +216,10 @@ init();
                                             We failed to retrieve the organization's audit logs
                                         </div>
                                         <div style="font-size: 0.7em">
-                                            <div v-if="errorCode == APIErrors.EntityNotFound">
+                                            <div v-if="errorCode === APIErrors.EntityNotFound">
                                                 This organization does not exist.
                                             </div>
-                                            <div v-if="errorCode == APIErrors.NotAuthorized">
+                                            <div v-if="errorCode === APIErrors.NotAuthorized">
                                                 You do not have permission to access the
                                                 organization's audit logs..
                                             </div>
@@ -232,7 +231,7 @@ init();
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
                                         <Button
-                                            v-if="errorCode != APIErrors.NotAuthorized"
+                                            v-if="errorCode !== APIErrors.NotAuthorized"
                                             @click="fetchOrgAuditLogs()"
                                         >
                                             Try again

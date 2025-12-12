@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createPinia } from 'pinia';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PatchingSummary from './PatchingSummary.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({

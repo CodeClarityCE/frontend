@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { nextTick } from 'vue';
 import { 
   expectNoAccessibilityViolations,
   expectAccessibilityRule,

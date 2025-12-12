@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import router from '@/router';
 import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import router from '@/router';
+import { ref } from 'vue';
 
 const text = ref('Confirming registration...');
 const counter = ref(0);
@@ -30,7 +30,7 @@ async function init() {
         let successInterval: NodeJS.Timeout | null = null;
         successInterval = setInterval(() => {
             counter.value -= 1;
-            if (counter.value == 0) {
+            if (counter.value === 0) {
                 if (successInterval) {
                     clearInterval(successInterval);
                 }
@@ -45,7 +45,7 @@ async function init() {
         let errorInterval: NodeJS.Timeout | null = null;
         errorInterval = setInterval(() => {
             counter.value -= 1;
-            if (counter.value == 0) {
+            if (counter.value === 0) {
                 if (errorInterval) {
                     clearInterval(errorInterval);
                 }

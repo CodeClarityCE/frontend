@@ -8,7 +8,23 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+
+    // Strict Type Checking
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+
+    // Module & File System
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true
   },
   "vueCompilerOptions": {
     "globalTypesPath": "./src/vue-global-types.d.ts"

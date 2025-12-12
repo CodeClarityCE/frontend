@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
+import { Checkbox } from '@/shadcn/ui/checkbox';
 import { Input } from '@/shadcn/ui/input';
 import { Label } from '@/shadcn/ui/label';
-import { Checkbox } from '@/shadcn/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import { TicketsRepository } from '../tickets.repository';
+import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import {
     ExternalTicketProvider,
     type IntegrationConfigSummary,
     type IntegrationHierarchyItem
 } from '../tickets.entity';
+import { TicketsRepository } from '../tickets.repository';
 
 const props = defineProps<{
     existingConfig?: IntegrationConfigSummary;

@@ -100,10 +100,10 @@ describe('VulnReferences.vue', () => {
             const wrapper = createWrapper();
 
             const images = wrapper.findAll('img');
-            expect(images[0].attributes('src')).toBe(
+            expect(images[0]!.attributes('src')).toBe(
                 'https://s2.googleusercontent.com/s2/favicons?sz=64&domain=example.com'
             );
-            expect(images[1].attributes('src')).toBe(
+            expect(images[1]!.attributes('src')).toBe(
                 'https://s2.googleusercontent.com/s2/favicons?sz=64&domain=github.com'
             );
         });
@@ -127,7 +127,7 @@ describe('VulnReferences.vue', () => {
             expect(links.length).toBe(3);
 
             links.forEach((link, index) => {
-                expect(link.attributes('href')).toBe(mockReferences[index].url);
+                expect(link.attributes('href')).toBe(mockReferences[index]!.url);
                 expect(link.attributes('target')).toBe('_blank');
             });
         });

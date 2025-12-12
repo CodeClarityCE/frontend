@@ -6,7 +6,10 @@ import type { AxeResults, Result, RunOptions } from 'axe-core';
  * Default axe configuration for CodeClarity accessibility testing
  */
 export const defaultAxeConfig: RunOptions = {
-  tags: ['wcag2a', 'wcag2aa', 'wcag21aa', 'best-practice']
+  runOnly: {
+    type: 'tag',
+    values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'best-practice']
+  }
 };
 
 /**
@@ -178,30 +181,30 @@ export async function testKeyboardNavigation(wrapper: VueWrapper<any>): Promise<
     '[tabindex]:not([tabindex^="-"])'
   ];
   
-  const focusableElements = Array.from(
+  const focusableElements: Element[] = Array.from(
     element.querySelectorAll(focusableSelectors.join(', '))
-  ).filter(el => {
+  ).filter((el): el is Element => {
     // Additional check for visibility
-    const style = window.getComputedStyle(el);
+    const style = window.getComputedStyle(el as Element);
     return style.display !== 'none' && style.visibility !== 'hidden';
   });
-  
+
   // Test tab order
   const tabOrder: Element[] = [];
   if (focusableElements.length > 0) {
-    focusableElements[0].focus();
+    (focusableElements[0] as HTMLElement).focus();
     tabOrder.push(document.activeElement!);
-    
+
     // Simulate tab navigation
     for (let i = 1; i < focusableElements.length; i++) {
       // In a real test, you would simulate Tab key press
-      focusableElements[i].focus();
+      (focusableElements[i] as HTMLElement).focus();
       if (document.activeElement) {
         tabOrder.push(document.activeElement);
       }
     }
   }
-  
+
   return {
     focusableElements,
     tabOrder,
@@ -301,11 +304,11 @@ export async function runFullAccessibilityAudit(
   
   // Run specific scenario tests
   for (const scenario of scenarios) {
-    if (accessibilityTestScenarios[scenario]) {
+    if (accessibilityTestScenarios[scenario as keyof typeof accessibilityTestScenarios]) {
       try {
-        await accessibilityTestScenarios[scenario](wrapper);
+        await accessibilityTestScenarios[scenario as keyof typeof accessibilityTestScenarios](wrapper);
       } catch (error) {
-        throw new Error(`Accessibility test '${scenario}' failed: ${error.message}`);
+        throw new Error(`Accessibility test '${scenario}' failed: ${(error as Error).message}`);
       }
     }
   }

@@ -42,20 +42,20 @@ const mockScale = vi.fn((value: any) => {
 
 // Mock D3 with comprehensive methods
 const mockBandScale = {
-  rangeRound: vi.fn(function() { return this }),
-  padding: vi.fn(function() { return this }),
+  rangeRound: vi.fn(function(this: typeof mockBandScale) { return this }),
+  padding: vi.fn(function(this: typeof mockBandScale) { return this }),
   domain: vi.fn(() => mockScale)
 }
 
 const mockLinearScale = {
-  domain: vi.fn(function() { return this }),
+  domain: vi.fn(function(this: typeof mockLinearScale) { return this }),
   range: vi.fn(() => mockScale)
 }
 
 const mockArea = {
-  x: vi.fn(function() { return this }),
-  y: vi.fn(function() { return this }),
-  curve: vi.fn(function() { return this })
+  x: vi.fn(function(this: typeof mockArea) { return this }),
+  y: vi.fn(function(this: typeof mockArea) { return this }),
+  curve: vi.fn(function(this: typeof mockArea) { return this })
 }
 
 const mockAreaGenerator = vi.fn(() => 'M10,10L20,20L30,30Z')
@@ -64,8 +64,8 @@ Object.assign(mockAreaGenerator, mockArea)
 // Mock D3
 vi.mock('d3', () => {
   const mockAxis = {
-    ticks: vi.fn(function() { return this }),
-    tickSizeOuter: vi.fn(function() { return this })
+    ticks: vi.fn(function(this: typeof mockAxis) { return this }),
+    tickSizeOuter: vi.fn(function(this: typeof mockAxis) { return this })
   }
 
   return {
@@ -152,7 +152,7 @@ describe('LineChart', () => {
 
       expect(wrapper.props().chartData).toEqual(mockData)
       expect(wrapper.props().chartData.labels).toHaveLength(5)
-      expect(wrapper.props().chartData.datasets[0].data).toHaveLength(5)
+      expect(wrapper.props().chartData.datasets[0]!.data).toHaveLength(5)
     })
 
     it('handles single data point', () => {
@@ -170,7 +170,7 @@ describe('LineChart', () => {
       })
 
       expect(wrapper.props().chartData.labels).toEqual(['Single'])
-      expect(wrapper.props().chartData.datasets[0].data).toEqual([42])
+      expect(wrapper.props().chartData.datasets[0]!.data).toEqual([42])
     })
 
     it('handles multiple datasets', () => {
@@ -189,8 +189,8 @@ describe('LineChart', () => {
       })
 
       expect(wrapper.props().chartData.datasets).toHaveLength(2)
-      expect(wrapper.props().chartData.datasets[0].data).toEqual([1, 2])
-      expect(wrapper.props().chartData.datasets[1].data).toEqual([3, 4])
+      expect(wrapper.props().chartData.datasets[0]!.data).toEqual([1, 2])
+      expect(wrapper.props().chartData.datasets[1]!.data).toEqual([3, 4])
     })
 
     it('handles data with zero values', () => {
@@ -207,7 +207,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.datasets[0].data).toEqual([0, 5])
+      expect(wrapper.props().chartData.datasets[0]!.data).toEqual([0, 5])
     })
 
     it('handles negative values', () => {
@@ -224,7 +224,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.datasets[0].data).toEqual([-5, 10])
+      expect(wrapper.props().chartData.datasets[0]!.data).toEqual([-5, 10])
     })
 
     it('handles large numbers', () => {
@@ -241,7 +241,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.datasets[0].data[0]).toBe(999999)
+      expect(wrapper.props().chartData.datasets[0]!.data[0]).toBe(999999)
     })
 
     it('handles decimal values', () => {
@@ -258,7 +258,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.datasets[0].data[0]).toBe(3.14159)
+      expect(wrapper.props().chartData.datasets[0]!.data[0]).toBe(3.14159)
     })
   })
 
@@ -307,8 +307,8 @@ describe('LineChart', () => {
 
       const chartData = wrapper.props().chartData
       const labelCount = chartData.labels.length
-      const dataCount = chartData.datasets[0].data.length
-      
+      const dataCount = chartData.datasets[0]!.data.length
+
       expect(labelCount).toBe(dataCount)
     })
   })
@@ -360,7 +360,7 @@ describe('LineChart', () => {
       })
 
       expect(wrapper.props().chartData.labels).toHaveLength(3)
-      expect(wrapper.props().chartData.datasets[0].data).toHaveLength(2)
+      expect(wrapper.props().chartData.datasets[0]!.data).toHaveLength(2)
     })
 
     it('handles extremely small decimal values', () => {
@@ -377,7 +377,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.datasets[0].data[0]).toBe(0.000001)
+      expect(wrapper.props().chartData.datasets[0]!.data[0]).toBe(0.000001)
     })
 
     it('handles long label names', () => {
@@ -394,7 +394,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.labels[0]).toBe('Very Long Label Name That Might Cause Layout Issues')
+      expect(wrapper.props().chartData.labels[0]!).toBe('Very Long Label Name That Might Cause Layout Issues')
     })
 
     it('handles special characters in labels', () => {
@@ -411,7 +411,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.labels[0]).toBe('Label@#$%')
+      expect(wrapper.props().chartData.labels[0]!).toBe('Label@#$%')
     })
 
     it('handles empty dataset array gracefully', () => {
@@ -447,7 +447,7 @@ describe('LineChart', () => {
       })
 
       expect(wrapper.props().chartData.labels).toHaveLength(100)
-      expect(wrapper.props().chartData.datasets[0].data).toHaveLength(100)
+      expect(wrapper.props().chartData.datasets[0]!.data).toHaveLength(100)
     })
   })
 

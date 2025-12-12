@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SemverToString from '@/base_components/utilities/SemverToString.vue'
 
@@ -19,7 +19,8 @@ describe('SemverToString', () => {
         Major: 1,
         Minor: 2,
         Patch: 3,
-        PreReleaseTag: ''
+        PreReleaseTag: '',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -38,7 +39,8 @@ describe('SemverToString', () => {
         Major: 2,
         Minor: 0,
         Patch: 0,
-        PreReleaseTag: 'alpha.1'
+        PreReleaseTag: 'alpha.1',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -56,7 +58,8 @@ describe('SemverToString', () => {
         Major: 0,
         Minor: 0,
         Patch: 1,
-        PreReleaseTag: ''
+        PreReleaseTag: '',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -74,7 +77,8 @@ describe('SemverToString', () => {
         Major: 1,
         Minor: 0,
         Patch: 0,
-        PreReleaseTag: ''
+        PreReleaseTag: '',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -93,7 +97,8 @@ describe('SemverToString', () => {
         Major: 1,
         Minor: 0,
         Patch: 0,
-        PreReleaseTag: 'beta'
+        PreReleaseTag: 'beta',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -113,9 +118,9 @@ describe('SemverToString', () => {
       // Suppress Vue warning for intentional null prop test
       const originalWarn = console.warn;
       console.warn = vi.fn();
-      
+
       const wrapper = mount(SemverToString, {
-        props: { semver: null },
+        props: { semver: undefined },
         global: {
           components: globalComponents
         }
@@ -157,7 +162,8 @@ describe('SemverToString', () => {
         Major: 1,
         Minor: 2,
         Patch: 3,
-        PreReleaseTag: ''
+        PreReleaseTag: '',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -175,9 +181,9 @@ describe('SemverToString', () => {
       // Suppress Vue warning for intentional null prop test
       const originalWarn = console.warn;
       console.warn = vi.fn();
-      
+
       const wrapper = mount(SemverToString, {
-        props: { semver: null },
+        props: { semver: undefined },
         global: {
           components: globalComponents
         }
@@ -197,7 +203,8 @@ describe('SemverToString', () => {
         Major: 999,
         Minor: 888,
         Patch: 777,
-        PreReleaseTag: ''
+        PreReleaseTag: '',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {
@@ -215,7 +222,8 @@ describe('SemverToString', () => {
         Major: 1,
         Minor: 0,
         Patch: 0,
-        PreReleaseTag: 'alpha.beta.1+build.123'
+        PreReleaseTag: 'alpha.beta.1+build.123',
+        MetaData: ''
       }
 
       const wrapper = mount(SemverToString, {

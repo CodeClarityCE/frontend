@@ -100,8 +100,35 @@ function handleEdit(policy: LicensePolicy) {
 }
 
 function handleDelete(policy: LicensePolicy) {
-    // TODO: Implement delete functionality when API endpoint is available
-    console.log('Delete policy:', policy);
+    policyToDelete.value = policy;
+    deleteDialog.value = true;
+}
+
+async function confirmDelete() {
+    if (!policyToDelete.value || !authStore.getToken) return;
+
+    deleting.value = true;
+    try {
+        // TODO: Implement delete API call when endpoint is available
+        // await licensePolicyRepository.deleteLicensePolicy({
+        //     orgId: props.orgId,
+        //     policyId: policyToDelete.value.id,
+        //     bearerToken: authStore.getToken
+        // });
+        console.log('Delete policy:', policyToDelete.value);
+        await loadPolicies();
+    } catch (err) {
+        console.error('Error deleting policy:', err);
+        if (err instanceof BusinessLogicError) {
+            error.value = err.error_message || 'Failed to delete policy';
+        } else {
+            error.value = 'Failed to delete policy. Please try again.';
+        }
+    } finally {
+        deleting.value = false;
+        deleteDialog.value = false;
+        policyToDelete.value = null;
+    }
 }
 
 // Initialize component

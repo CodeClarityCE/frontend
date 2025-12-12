@@ -23,8 +23,9 @@ watch([search, licensesRef], () => {
 function updateList() {
     licenseList.value.clear();
     for (let i = 0; i < props.licenses.length; i++) {
-        if (props.licenses[i].name.toLowerCase().includes(search.value.toLowerCase())) {
-            licenseList.value.add(props.licenses[i]);
+        const license = props.licenses[i];
+        if (license && license.name.toLowerCase().includes(search.value.toLowerCase())) {
+            licenseList.value.add(license);
         }
     }
 }

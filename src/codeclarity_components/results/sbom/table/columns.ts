@@ -215,10 +215,10 @@ export const columns: ColumnDef<Dependency>[] = [
             let updateType = 'patch';
             let severity: 'low' | 'medium' | 'high' = 'low';
 
-            if (newestParts[0] > currentParts[0]) {
+            if ((newestParts[0] ?? 0) > (currentParts[0] ?? 0)) {
                 updateType = 'major';
                 severity = 'high';
-            } else if (newestParts[1] > currentParts[1]) {
+            } else if ((newestParts[1] ?? 0) > (currentParts[1] ?? 0)) {
                 updateType = 'minor';
                 severity = 'medium';
             }

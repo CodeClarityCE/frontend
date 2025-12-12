@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { ref, computed } from 'vue';
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
 
 // Mock stores
@@ -10,16 +11,27 @@ vi.mock('@/stores/state', () => ({
   }))
 }));
 
+interface MockDashboardData {
+  activeIntegrationIds: ReturnType<typeof computed<string[]>>;
+  shouldShowEmptyState: ReturnType<typeof computed<boolean>>;
+  hasIntegrations: ReturnType<typeof computed<boolean>>;
+  hasProjects: ReturnType<typeof computed<boolean>>;
+  hasError: ReturnType<typeof ref<boolean>>;
+  isLoading: ReturnType<typeof ref<boolean>>;
+  defaultOrg: ReturnType<typeof ref<{ id: string } | null>>;
+  refreshData: ReturnType<typeof vi.fn>;
+}
+
 // Mock composable
 vi.mock('@/codeclarity_components/dashboard/composables/useDashboardData', () => ({
-  useDashboardData: vi.fn(() => ({
-    activeIntegrationIds: ['test-id'],
-    shouldShowEmptyState: false,
-    hasIntegrations: true,
-    hasProjects: true,
-    hasError: false,
-    isLoading: false,
-    defaultOrg: { id: 'org-123' },
+  useDashboardData: vi.fn((): MockDashboardData => ({
+    activeIntegrationIds: ref(['test-id']) as any,
+    shouldShowEmptyState: ref(false) as any,
+    hasIntegrations: ref(true) as any,
+    hasProjects: ref(true) as any,
+    hasError: ref(false),
+    isLoading: ref(false),
+    defaultOrg: ref({ id: 'org-123' }),
     refreshData: vi.fn()
   }))
 }));
@@ -87,18 +99,18 @@ describe('DashboardView', () => {
   it('should show empty state when shouldShowEmptyState is true', async () => {
     const { useDashboardData } = await import('@/codeclarity_components/dashboard/composables/useDashboardData');
     vi.mocked(useDashboardData).mockReturnValueOnce({
-      activeIntegrationIds: [],
-      shouldShowEmptyState: true,
-      hasIntegrations: false,
-      hasProjects: false,
-      hasError: false,
-      isLoading: false,
-      defaultOrg: { id: 'org-123' },
+      activeIntegrationIds: ref([]) as any,
+      shouldShowEmptyState: ref(true) as any,
+      hasIntegrations: ref(false) as any,
+      hasProjects: ref(false) as any,
+      hasError: ref(false),
+      isLoading: ref(false),
+      defaultOrg: ref({ id: 'org-123' } as any),
       refreshData: vi.fn()
     });
 
     const wrapper = mount(DashboardView);
-    
+
     expect(wrapper.find('[data-testid="dashboard-empty-state"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="page-header"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="dashboard-quick-stats"]').exists()).toBe(false);
@@ -110,12 +122,17 @@ describe('DashboardView', () => {
     const { useStateStore } = await import('@/stores/state');
     const mockStore = {
       $reset: vi.fn(),
-      page: ''
+      page: '',
+      $patch: vi.fn(),
+      $subscribe: vi.fn(),
+      $onAction: vi.fn(),
+      $state: {},
+      $id: 'state'
     };
-    vi.mocked(useStateStore).mockReturnValue(mockStore);
+    vi.mocked(useStateStore).mockReturnValue(mockStore as any);
 
     mount(DashboardView);
-    
+
     expect(mockStore.$reset).toHaveBeenCalled();
     expect(mockStore.page).toBe('dashboard');
   });
@@ -134,19 +151,19 @@ describe('DashboardView', () => {
   it('should pass correct props to empty state component', async () => {
     const { useDashboardData } = await import('@/codeclarity_components/dashboard/composables/useDashboardData');
     vi.mocked(useDashboardData).mockReturnValueOnce({
-      activeIntegrationIds: [],
-      shouldShowEmptyState: true,
-      hasIntegrations: false,
-      hasProjects: true,
-      hasError: true,
-      isLoading: false,
-      defaultOrg: { id: 'org-123' },
+      activeIntegrationIds: ref([]) as any,
+      shouldShowEmptyState: ref(true) as any,
+      hasIntegrations: ref(false) as any,
+      hasProjects: ref(true) as any,
+      hasError: ref(true),
+      isLoading: ref(false),
+      defaultOrg: ref({ id: 'org-123' } as any),
       refreshData: vi.fn()
     });
 
     const wrapper = mount(DashboardView);
     const emptyStateComponent = wrapper.findComponent({ name: 'DashboardEmptyState' });
-    
+
     expect(emptyStateComponent.exists()).toBe(true);
     expect(emptyStateComponent.props()).toEqual({
       isError: true,

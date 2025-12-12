@@ -133,18 +133,18 @@ describe('PasswordResetForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAuthRepository.resetPassword.mockResolvedValue({});
-    
+
     originalLocation = window.location;
-    
+
     delete (window as any).location;
-    window.location = {
+    (window as any).location = {
       href: 'https://example.com?token=test-token&userid=test-userid',
       search: '?token=test-token&userid=test-userid'
-    } as Location;
+    };
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
   });
 
   describe('Component Structure', () => {
@@ -192,11 +192,11 @@ describe('PasswordResetForm', () => {
     });
 
     it('should redirect to login when token is missing', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com?userid=test-userid',
         search: '?userid=test-userid'
-      } as Location;
-      
+      };
+
       mount(PasswordResetForm);
       await nextTick();
       
@@ -204,11 +204,11 @@ describe('PasswordResetForm', () => {
     });
 
     it('should redirect to login when userid is missing', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com?token=test-token',
         search: '?token=test-token'
-      } as Location;
-      
+      };
+
       mount(PasswordResetForm);
       await nextTick();
       
@@ -216,11 +216,11 @@ describe('PasswordResetForm', () => {
     });
 
     it('should redirect to login when both parameters are missing', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com',
         search: ''
-      } as Location;
-      
+      };
+
       mount(PasswordResetForm);
       await nextTick();
       
@@ -275,40 +275,40 @@ describe('PasswordResetForm', () => {
     it('should handle button loading state during submission', async () => {
       const wrapper = mount(PasswordResetForm);
       await nextTick();
-      
+
       const loadingButton = wrapper.findComponent('[data-testid="submit-button"]');
       const form = wrapper.find('[data-testid="password-reset-form"]');
       await form.trigger('submit');
-      
-      expect(loadingButton.vm.setLoading).toHaveBeenCalledWith(true);
-      expect(loadingButton.vm.setDisabled).toHaveBeenCalledWith(true);
-      
+
+      expect((loadingButton as any).vm.setLoading).toHaveBeenCalledWith(true);
+      expect((loadingButton as any).vm.setDisabled).toHaveBeenCalledWith(true);
+
       await nextTick();
-      
-      expect(loadingButton.vm.setLoading).toHaveBeenCalledWith(false);
-      expect(loadingButton.vm.setDisabled).toHaveBeenCalledWith(false);
+
+      expect((loadingButton as any).vm.setLoading).toHaveBeenCalledWith(false);
+      expect((loadingButton as any).vm.setDisabled).toHaveBeenCalledWith(false);
     });
   });
 
   describe('Error Handling', () => {
     it('should display validation error', async () => {
-      const validationError = new ValidationError('validation-error', { new_password: ['Too short'] });
+      const validationError = new ValidationError('validation-error', 'Validation failed', { new_password: ['Too short'] } as any);
       mockAuthRepository.resetPassword.mockRejectedValue(validationError);
-      
+
       const wrapper = mount(PasswordResetForm);
       await nextTick();
-      
+
       const form = wrapper.find('[data-testid="password-reset-form"]');
       await form.trigger('submit');
       await nextTick();
-      
+
       const alert = wrapper.find('[data-testid="alert"]');
       expect(alert.exists()).toBe(true);
       expect(alert.classes()).toContain('destructive');
     });
 
     it('should display password mismatch error', async () => {
-      const businessError = new BusinessLogicError(APIErrors.PasswordsDoNotMatch);
+      const businessError = new BusinessLogicError(APIErrors.PasswordsDoNotMatch, 'Passwords do not match');
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
       
       const wrapper = mount(PasswordResetForm);
@@ -323,7 +323,7 @@ describe('PasswordResetForm', () => {
     });
 
     it('should show non-recoverable error for expired token', async () => {
-      const businessError = new BusinessLogicError(APIErrors.PasswordResetTokenInvalidOrExpired);
+      const businessError = new BusinessLogicError(APIErrors.PasswordResetTokenInvalidOrExpired, 'Token is invalid or expired');
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
       
       const wrapper = mount(PasswordResetForm);
@@ -342,7 +342,7 @@ describe('PasswordResetForm', () => {
     });
 
     it('should show non-recoverable error for internal error', async () => {
-      const businessError = new BusinessLogicError(APIErrors.InternalError);
+      const businessError = new BusinessLogicError(APIErrors.InternalError, 'Internal server error');
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
       
       const wrapper = mount(PasswordResetForm);
@@ -427,9 +427,9 @@ describe('PasswordResetForm', () => {
     });
 
     it('should show recovery request and login links in non-recoverable error state', async () => {
-      const businessError = new BusinessLogicError(APIErrors.PasswordResetTokenInvalidOrExpired);
+      const businessError = new BusinessLogicError(APIErrors.PasswordResetTokenInvalidOrExpired, 'Token is invalid or expired');
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
-      
+
       const wrapper = mount(PasswordResetForm, {
         global: {
           components: {
@@ -438,15 +438,15 @@ describe('PasswordResetForm', () => {
         }
       });
       await nextTick();
-      
+
       const form = wrapper.find('[data-testid="password-reset-form"]');
       await form.trigger('submit');
       await nextTick();
-      
+
       const links = wrapper.findAll('a');
       expect(links).toHaveLength(2);
-      expect(links[0].text()).toBe('Request a new password reset');
-      expect(links[1].text()).toBe('Back to login');
+      expect(links[0]?.text()).toBe('Request a new password reset');
+      expect(links[1]?.text()).toBe('Back to login');
     });
   });
 
@@ -454,15 +454,15 @@ describe('PasswordResetForm', () => {
     it('should update password values when inputs change', async () => {
       const wrapper = mount(PasswordResetForm);
       await nextTick();
-      
+
       const passwordInput = wrapper.find('[data-testid="new_password-input"]');
       const confirmInput = wrapper.find('[data-testid="new_password_comfirmation-input"]');
-      
+
       await passwordInput.setValue('newpassword123');
       await confirmInput.setValue('newpassword123');
-      
-      expect(passwordInput.element.value).toBe('newpassword123');
-      expect(confirmInput.element.value).toBe('newpassword123');
+
+      expect((passwordInput.element as HTMLInputElement).value).toBe('newpassword123');
+      expect((confirmInput.element as HTMLInputElement).value).toBe('newpassword123');
     });
 
     it('should have proper input types for password fields', async () => {

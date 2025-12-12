@@ -9,6 +9,7 @@ import {
     type TicketDetails,
     type TicketFilters,
     type TicketSortField,
+    type VulnerabilityDetailsReport,
     TicketStatus,
     TicketPriority
 } from '../tickets.entity';
@@ -65,6 +66,10 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     // Selected ticket
     const selectedTicket = ref<TicketDetails | null>(null);
     const isLoadingDetail = ref(false);
+
+    // Vulnerability details for selected ticket
+    const vulnerabilityDetails = ref<VulnerabilityDetailsReport | null>(null);
+    const isLoadingVulnDetails = ref(false);
 
     // View mode (list or kanban)
     const viewMode = ref<'list' | 'kanban'>('list');
@@ -231,11 +236,49 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
             });
 
             selectedTicket.value = response.data;
+
+            // Auto-load vulnerability details if this is a vulnerability ticket
+            // The backend will use source_analysis if available, otherwise fall back to knowledge DB
+            if (response.data.vulnerability_id) {
+                loadVulnerabilityDetails(ticketId);
+            } else {
+                vulnerabilityDetails.value = null;
+            }
         } catch (error) {
             console.error('Failed to load ticket detail:', error);
             selectedTicket.value = null;
+            vulnerabilityDetails.value = null;
         } finally {
             isLoadingDetail.value = false;
+        }
+    }
+
+    /**
+     * Load vulnerability details for a ticket
+     */
+    async function loadVulnerabilityDetails(ticketId: string) {
+        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+            return;
+        }
+
+        isLoadingVulnDetails.value = true;
+
+        try {
+            const response = await ticketsRepository.getVulnerabilityDetails({
+                orgId: defaultOrg.value.id,
+                ticketId,
+                bearerToken: auth.getToken,
+                handleBusinessErrors: true,
+                handleHTTPErrors: true,
+                handleOtherErrors: true
+            });
+
+            vulnerabilityDetails.value = response.data;
+        } catch (error) {
+            console.error('Failed to load vulnerability details:', error);
+            vulnerabilityDetails.value = null;
+        } finally {
+            isLoadingVulnDetails.value = false;
         }
     }
 
@@ -312,6 +355,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
      */
     function clearSelectedTicket() {
         selectedTicket.value = null;
+        vulnerabilityDetails.value = null;
     }
 
     /**
@@ -370,6 +414,10 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
         selectedTicket,
         isLoadingDetail,
 
+        // Vulnerability details
+        vulnerabilityDetails,
+        isLoadingVulnDetails,
+
         // View mode
         viewMode,
 
@@ -383,6 +431,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
         loadTickets,
         loadAllTickets,
         loadTicketDetail,
+        loadVulnerabilityDetails,
         updateTicketStatus,
         setFilters,
         setSort,

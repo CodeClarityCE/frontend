@@ -93,7 +93,7 @@ const getAgeIcon = (): string => {
         'very-old': 'solar:danger-triangle-bold',
         unknown: 'solar:question-circle-bold'
     };
-    return iconMap[ageClass];
+    return iconMap[ageClass] ?? 'solar:question-circle-bold';
 };
 
 const getAgeDescription = (): string => {
@@ -105,7 +105,7 @@ const getAgeDescription = (): string => {
         'very-old': 'Very old package, review maintenance status',
         unknown: 'Release date unavailable'
     };
-    return descriptions[ageClass];
+    return descriptions[ageClass] ?? 'Release date unavailable';
 };
 </script>
 

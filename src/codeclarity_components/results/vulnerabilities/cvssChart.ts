@@ -50,15 +50,15 @@ function getRadarChartData(finding: any) {
             axes: [
                 {
                     axis: 'Base Score',
-                    value: data[0] * 100 // Convert to percentage for d3
+                    value: (data[0] ?? 0) * 100 // Convert to percentage for d3
                 },
                 {
                     axis: 'Impact',
-                    value: data[1] * 100
+                    value: (data[1] ?? 0) * 100
                 },
                 {
                     axis: 'Exploitability',
-                    value: data[2] * 100
+                    value: (data[2] ?? 0) * 100
                 }
             ]
         }

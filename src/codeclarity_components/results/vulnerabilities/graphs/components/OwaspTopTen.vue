@@ -70,9 +70,9 @@ let owaspTotal = 0;
 // only consider non null values
 owaspValues.forEach((value, index) => {
     if (value > 0) {
-        barChartLabels.push(owaspLabels[index]);
+        barChartLabels.push(owaspLabels[index] ?? '');
         barChartValues.push(value);
-        barChartColors.push(owaspColors[colorIndex]);
+        barChartColors.push(owaspColors[colorIndex] ?? '#D3D3D3');
         owaspTotal += value;
         colorIndex++;
     }
@@ -83,7 +83,7 @@ if (owaspTotal < props.stats.number_of_vulnerabilities) {
     const uncategorizedCount = props.stats.number_of_vulnerabilities - owaspTotal;
     barChartLabels.push('Uncategorized');
     barChartValues.push(uncategorizedCount);
-    barChartColors.push(owaspColors[10]);
+    barChartColors.push(owaspColors[10] ?? '#D3D3D3');
 }
 
 // construction of barChartData
@@ -91,9 +91,9 @@ const barChartData: BarChartData = [];
 
 for (let i = 0; i < barChartLabels.length; i++) {
     barChartData.push({
-        label: barChartLabels[i],
-        color: barChartColors[i],
-        count: barChartValues[i]
+        label: barChartLabels[i] ?? '',
+        color: barChartColors[i] ?? '#D3D3D3',
+        count: barChartValues[i] ?? 0
     });
 }
 

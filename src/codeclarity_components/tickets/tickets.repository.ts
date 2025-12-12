@@ -31,7 +31,10 @@ import {
     type ConnectionTestResult,
     type ConfigureClickUpRequest,
     type SyncResult,
-    type BulkSyncResult
+    type BulkSyncResult,
+    type SyncFromExternalResult,
+    type BulkSyncFromExternalResult,
+    type VulnerabilityDetailsReport
 } from './tickets.entity';
 
 // ============================================
@@ -63,6 +66,11 @@ export interface GetTicketByIdRequestOptions extends AuthRepoMethodGetRequestOpt
 export interface GetTicketEventsRequestOptions
     extends AuthRepoMethodGetRequestOptions,
         PaginatedRepoMethodRequestOptions {
+    orgId: string;
+    ticketId: string;
+}
+
+export interface GetVulnerabilityDetailsRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
     ticketId: string;
 }
@@ -152,6 +160,17 @@ export interface BulkSyncRequestOptions
 export interface GetExternalLinksRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
     ticketId: string;
+}
+
+export interface SyncFromExternalRequestOptions extends AuthRepoMethodGetRequestOptions {
+    orgId: string;
+    ticketId: string;
+    linkId: string;
+}
+
+export interface BulkSyncFromExternalRequestOptions
+    extends AuthRepoMethodPostRequestOptions<{ ticket_ids: string[] }> {
+    orgId: string;
 }
 
 // OAuth Request Options
@@ -329,6 +348,29 @@ export class TicketsRepository extends BaseRepository {
         );
         paginatedData.data = Entity.unMarshalMany<TicketEvent>(paginatedData.data, TicketEvent);
         return paginatedData;
+    }
+
+    /**
+     * Get vulnerability details for a ticket
+     * Returns full vulnerability information including CVSS, EPSS, VLAI, weaknesses, and references
+     */
+    async getVulnerabilityDetails(
+        options: GetVulnerabilityDetailsRequestOptions
+    ): Promise<DataResponse<VulnerabilityDetailsReport | null>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/vulnerability`;
+
+        const response = await this.getRequest<DataResponse<VulnerabilityDetailsReport | null>>({
+            bearerToken: options.bearerToken,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<VulnerabilityDetailsReport | null>>(
+            response,
+            DataResponse<VulnerabilityDetailsReport | null>
+        );
     }
 
     /**
@@ -885,6 +927,64 @@ export class TicketsRepository extends BaseRepository {
         return Entity.unMarshal<DataResponse<{ access_token: string }>>(
             response,
             DataResponse<{ access_token: string }>
+        );
+    }
+
+    // ============================================
+    // Sync FROM External Methods
+    // ============================================
+
+    /**
+     * Sync ticket status from external provider
+     * Fetches the current status from the external system and updates CodeClarity ticket if changed
+     */
+    async syncFromExternal(
+        options: SyncFromExternalRequestOptions
+    ): Promise<DataResponse<SyncFromExternalResult>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/sync-from-external/${options.linkId}`;
+
+        const response = await this.postRequest<
+            DataResponse<SyncFromExternalResult>,
+            Record<string, never>
+        >({
+            bearerToken: options.bearerToken,
+            data: {},
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<SyncFromExternalResult>>(
+            response,
+            DataResponse<SyncFromExternalResult>
+        );
+    }
+
+    /**
+     * Bulk sync tickets from external providers
+     * Fetches current status from external providers for multiple tickets
+     */
+    async bulkSyncFromExternal(
+        options: BulkSyncFromExternalRequestOptions
+    ): Promise<DataResponse<BulkSyncFromExternalResult>> {
+        const RELATIVE_URL = `/org/${options.orgId}/tickets/bulk-sync-from-external`;
+
+        const response = await this.postRequest<
+            DataResponse<BulkSyncFromExternalResult>,
+            { ticket_ids: string[] }
+        >({
+            bearerToken: options.bearerToken,
+            data: options.data,
+            url: this.buildUrl(RELATIVE_URL),
+            handleBusinessErrors: options.handleBusinessErrors,
+            handleHTTPErrors: options.handleHTTPErrors,
+            handleOtherErrors: options.handleOtherErrors
+        });
+
+        return Entity.unMarshal<DataResponse<BulkSyncFromExternalResult>>(
+            response,
+            DataResponse<BulkSyncFromExternalResult>
         );
     }
 }

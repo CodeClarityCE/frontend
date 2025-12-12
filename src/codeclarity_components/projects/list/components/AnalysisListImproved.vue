@@ -108,7 +108,7 @@ const remainingCounts = computed(() => {
 });
 
 // Format execution time for display
-const formatExecutionTime = (startTime: string, endTime: string): string => {
+const formatExecutionTime = (startTime: string | Date, endTime: string | Date): string => {
     const durationMs = new Date(endTime).getTime() - new Date(startTime).getTime();
     const durationSeconds = durationMs / 1000;
 
@@ -525,7 +525,7 @@ function showOneTimeHistory() {
                                                         stage.Status === AnalysisStatus.STARTED,
                                                     'text-gray-400':
                                                         !stage.Status ||
-                                                        stage.Status === AnalysisStatus.PENDING
+                                                        stage.Status === AnalysisStatus.REQUESTED
                                                 }"
                                             />
                                             <span class="text-gray-700">{{
@@ -774,7 +774,7 @@ function showOneTimeHistory() {
                                                         stage.Status === AnalysisStatus.STARTED,
                                                     'text-gray-400':
                                                         !stage.Status ||
-                                                        stage.Status === AnalysisStatus.PENDING
+                                                        stage.Status === AnalysisStatus.REQUESTED
                                                 }"
                                             />
                                             <span class="text-gray-700">{{

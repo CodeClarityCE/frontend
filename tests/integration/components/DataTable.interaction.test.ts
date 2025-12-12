@@ -43,14 +43,14 @@ describe.skip('DataTable User Interaction Tests', () => {
   const mockColumns: ColumnDef<TestData, any>[] = [
     {
       id: 'select',
-      header: ({ table }) => h('input', {
+      header: ({ table }: any) => h('input', {
         type: 'checkbox',
         checked: table.getIsAllPageRowsSelected(),
         onChange: (event: Event) => {
           table.toggleAllPageRowsSelected(!!(event.target as HTMLInputElement).checked);
         }
       }),
-      cell: ({ row }) => h('input', {
+      cell: ({ row }: any) => h('input', {
         type: 'checkbox',
         checked: row.getIsSelected(),
         onChange: (event: Event) => {
@@ -104,7 +104,7 @@ describe.skip('DataTable User Interaction Tests', () => {
   const mountComponent = (props = {}) => {
     wrapper = mount(DataTable, {
       props: {
-        columns: mockColumns,
+        columns: mockColumns as ColumnDef<unknown, unknown>[],
         data: mockData,
         ...props
       },
@@ -181,7 +181,7 @@ describe.skip('DataTable User Interaction Tests', () => {
       expect(headers.length).toBeGreaterThan(0);
       
       // Check for specific column headers
-      const headerTexts = headers.map(h => h.text());
+      const headerTexts = headers.map((h: any) => h.text());
       expect(headerTexts).toContain('Package Name');
       expect(headerTexts).toContain('Version');
       expect(headerTexts).toContain('License');
@@ -336,7 +336,7 @@ describe.skip('DataTable User Interaction Tests', () => {
       const paginationButtons = wrapper.findAll('.button');
       
       // Look for next/previous buttons
-      const nextButton = paginationButtons.find(btn => 
+      const nextButton = paginationButtons.find((btn: any) =>
         btn.text().includes('Next') || btn.text().includes('>')
       );
       

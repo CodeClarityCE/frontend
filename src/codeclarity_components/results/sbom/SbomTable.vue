@@ -155,9 +155,10 @@ watch([searchKey], async () => {
 });
 
 watch(sorting, () => {
-    if (sorting.value.length > 0) {
-        sortKey.value = sorting.value[0].id as ProjectsSortInterface;
-        sortDirection.value = sorting.value[0].desc ? SortDirection.DESC : SortDirection.ASC;
+    const firstSort = sorting.value[0];
+    if (sorting.value.length > 0 && firstSort) {
+        sortKey.value = firstSort.id as ProjectsSortInterface;
+        sortDirection.value = firstSort.desc ? SortDirection.DESC : SortDirection.ASC;
     }
 });
 watch([selected_workspace], () => init());

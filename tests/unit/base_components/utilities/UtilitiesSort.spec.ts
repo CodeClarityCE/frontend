@@ -60,7 +60,16 @@ describe('UtilitiesSort', () => {
         total: 100
     };
 
-    const createWrapper = (props: any = {}, modelValues: any = {}) => {
+    interface ModelValues {
+        pageLimitSelected?: number;
+        'onUpdate:pageLimitSelected'?: ReturnType<typeof vi.fn>;
+        sortKey?: string;
+        'onUpdate:sortKey'?: ReturnType<typeof vi.fn>;
+        sortDirection?: SortDirection;
+        'onUpdate:sortDirection'?: ReturnType<typeof vi.fn>;
+    }
+
+    const createWrapper = (props: Record<string, unknown> = {}, modelValues: ModelValues = {}) => {
         return mount(UtilitiesSort, {
             props: {
                 ...defaultProps,
@@ -124,10 +133,10 @@ describe('UtilitiesSort', () => {
             const pageItems = wrapper.findAll('[data-testid="select-item"]');
             
             // First 4 items should be page limits
-            expect(pageItems[0].text()).toBe('10');
-            expect(pageItems[1].text()).toBe('25');
-            expect(pageItems[2].text()).toBe('50');
-            expect(pageItems[3].text()).toBe('100');
+            expect(pageItems[0]!.text()).toBe('10');
+            expect(pageItems[1]!.text()).toBe('25');
+            expect(pageItems[2]!.text()).toBe('50');
+            expect(pageItems[3]!.text()).toBe('100');
         });
 
         it('displays all sort options', () => {
@@ -135,9 +144,9 @@ describe('UtilitiesSort', () => {
             const sortItems = wrapper.findAll('[data-testid="select-item"]');
             
             // Last 3 items should be sort options
-            expect(sortItems[4].text()).toBe('Name');
-            expect(sortItems[5].text()).toBe('Date');
-            expect(sortItems[6].text()).toBe('Severity');
+            expect(sortItems[4]!.text()).toBe('Name');
+            expect(sortItems[5]!.text()).toBe('Date');
+            expect(sortItems[6]!.text()).toBe('Severity');
         });
 
         it('displays correct entry count with custom values', () => {
@@ -244,7 +253,7 @@ describe('UtilitiesSort', () => {
         it('has changeSort method available', () => {
             const wrapper = createWrapper();
 
-            expect(typeof wrapper.vm.changeSort).toBe('function');
+            expect(typeof (wrapper.vm as any).changeSort).toBe('function');
         });
 
         it('changeSort method accepts correct parameters', () => {
@@ -252,7 +261,7 @@ describe('UtilitiesSort', () => {
 
             // Test that the method can be called without errors
             expect(() => {
-                wrapper.vm.changeSort('name', SortDirection.ASC);
+                (wrapper.vm as any).changeSort('name', SortDirection.ASC);
             }).not.toThrow();
         });
 
@@ -261,9 +270,9 @@ describe('UtilitiesSort', () => {
 
             // Test different parameter combinations
             expect(() => {
-                wrapper.vm.changeSort('date', SortDirection.DESC);
-                wrapper.vm.changeSort('severity', SortDirection.ASC);
-                wrapper.vm.changeSort('', SortDirection.DESC);
+                (wrapper.vm as any).changeSort('date', SortDirection.DESC);
+                (wrapper.vm as any).changeSort('severity', SortDirection.ASC);
+                (wrapper.vm as any).changeSort('', SortDirection.DESC);
             }).not.toThrow();
         });
     });
@@ -323,7 +332,7 @@ describe('UtilitiesSort', () => {
             const pageItems = wrapper.findAll('[data-testid="select-item"]');
             const pageLimitItems = pageItems.slice(0, 1);
             expect(pageLimitItems).toHaveLength(1);
-            expect(pageLimitItems[0].text()).toBe('10');
+            expect(pageLimitItems[0]!.text()).toBe('10');
         });
 
         it('handles single sort option', () => {
@@ -334,7 +343,7 @@ describe('UtilitiesSort', () => {
             const allItems = wrapper.findAll('[data-testid="select-item"]');
             const sortItems = allItems.slice(4); // Skip page limit items
             expect(sortItems).toHaveLength(1);
-            expect(sortItems[0].text()).toBe('Name');
+            expect(sortItems[0]!.text()).toBe('Name');
         });
 
         it('handles sort option with special characters', () => {
@@ -354,16 +363,16 @@ describe('UtilitiesSort', () => {
             const wrapper = createWrapper();
             
             const selectValues = wrapper.findAll('[data-testid="select-value"]');
-            expect(selectValues[0].text()).toBe('Select entries');
-            expect(selectValues[1].text()).toBe('Select option');
+            expect(selectValues[0]!.text()).toBe('Select entries');
+            expect(selectValues[1]!.text()).toBe('Select option');
         });
 
         it('provides proper labels for select groups', () => {
             const wrapper = createWrapper();
             
             const labels = wrapper.findAll('[data-testid="select-label"]');
-            expect(labels[0].text()).toBe('Entries per page');
-            expect(labels[1].text()).toBe('Sort by');
+            expect(labels[0]!.text()).toBe('Entries per page');
+            expect(labels[1]!.text()).toBe('Sort by');
         });
 
         it('maintains keyboard accessibility for sort direction toggle', () => {
@@ -401,12 +410,12 @@ describe('UtilitiesSort', () => {
             const selectItems = wrapper.findAll('[data-testid="select-item"]');
             
             // Check page limit items have correct values
-            expect(selectItems[0].attributes('data-value')).toBe('10');
-            expect(selectItems[1].attributes('data-value')).toBe('25');
-            
+            expect(selectItems[0]!.attributes('data-value')).toBe('10');
+            expect(selectItems[1]!.attributes('data-value')).toBe('25');
+
             // Check sort option items have correct values
-            expect(selectItems[4].attributes('data-value')).toBe('name');
-            expect(selectItems[5].attributes('data-value')).toBe('date');
+            expect(selectItems[4]!.attributes('data-value')).toBe('name');
+            expect(selectItems[5]!.attributes('data-value')).toBe('date');
         });
 
         it('maintains reactive updates across model changes', async () => {

@@ -184,8 +184,9 @@ function createData() {
         });
 
         for (let i = 0; i < othersEntries.length; i++) {
-            if (othersEntries[i]) {
-                othersEntries[i].color = colors[i] ?? '#000000';
+            const entry = othersEntries[i];
+            if (entry) {
+                entry.color = colors[i] ?? '#000000';
             }
         }
     }

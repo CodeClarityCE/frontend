@@ -124,8 +124,8 @@ describe('SortSelector', () => {
 
       const options = mixedOptionsWrapper.findAll('option')
       expect(options).toHaveLength(2) // Should exclude the null key option
-      expect(options[0].text()).toBe('Name')
-      expect(options[1].text()).toBe('Email')
+      expect(options[0]!.text()).toBe('Name')
+      expect(options[1]!.text()).toBe('Email')
     })
   })
 
@@ -141,8 +141,8 @@ describe('SortSelector', () => {
 
       const options = headerWrapper.findAll('option')
       expect(options).toHaveLength(2) // Should exclude null key header
-      expect(options[0].text()).toBe('Name')
-      expect(options[1].text()).toBe('Email')
+      expect(options[0]!.text()).toBe('Name')
+      expect(options[1]!.text()).toBe('Email')
     })
 
     it('filters out headers with null keys', () => {
@@ -362,7 +362,7 @@ describe('SortSelector', () => {
       const options = wrapper.findAll('option')
       const expectedOrder = ['Name', 'Email', 'Created Date']
       
-      options.forEach((option, index) => {
+      options.forEach((option: any, index: number) => {
         expect(option.text()).toBe(expectedOrder[index])
       })
     })
@@ -391,7 +391,7 @@ describe('SortSelector', () => {
       })
 
       const options = customWrapper.findAll('option')
-      await options[1].trigger('click')
+      await options[1]!.trigger('click')
 
       const emitted = customWrapper.emitted('onSortChange')
       expect(emitted).toBeTruthy()

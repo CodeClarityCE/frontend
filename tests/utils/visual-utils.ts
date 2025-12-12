@@ -60,25 +60,25 @@ export const COMMON_VIEWPORTS = [
 export function prepareComponentForVisualTest(wrapper: VueWrapper<any>): void {
   // Hide or replace dynamic content
   const dynamicElements = wrapper.element.querySelectorAll('[data-dynamic]');
-  dynamicElements.forEach(el => {
+  dynamicElements.forEach((el: Element) => {
     (el as HTMLElement).style.visibility = 'hidden';
   });
 
   // Replace timestamps with fixed values
   const timeElements = wrapper.element.querySelectorAll('[data-timestamp]');
-  timeElements.forEach(el => {
+  timeElements.forEach((el: Element) => {
     el.textContent = '2025-01-01 12:00:00';
   });
 
   // Hide loading indicators
   const loadingElements = wrapper.element.querySelectorAll('.loading, .spinner, [data-loading]');
-  loadingElements.forEach(el => {
+  loadingElements.forEach((el: Element) => {
     (el as HTMLElement).style.display = 'none';
   });
 
   // Stabilize animations
   const animatedElements = wrapper.element.querySelectorAll('[data-animate]');
-  animatedElements.forEach(el => {
+  animatedElements.forEach((el: Element) => {
     (el as HTMLElement).style.animation = 'none';
     (el as HTMLElement).style.transition = 'none';
   });
@@ -279,28 +279,25 @@ export async function measureVisualRenderTime(
 }
 
 /**
+ * Visual test result type
+ */
+interface VisualTestResult {
+  component: string;
+  scenario: string;
+  breakpoint: string;
+  passed: boolean;
+  differences?: number;
+  renderTime?: number;
+  error?: string;
+}
+
+/**
  * Visual test reporter
  */
 export class VisualTestReporter {
-  private results: Array<{
-    component: string;
-    scenario: string;
-    breakpoint: string;
-    passed: boolean;
-    differences?: number;
-    renderTime?: number;
-    error?: string;
-  }> = [];
+  private results: VisualTestResult[] = [];
 
-  addResult(result: {
-    component: string;
-    scenario: string;
-    breakpoint: string;
-    passed: boolean;
-    differences?: number;
-    renderTime?: number;
-    error?: string;
-  }) {
+  addResult(result: VisualTestResult) {
     this.results.push(result);
   }
 
@@ -316,8 +313,8 @@ export class VisualTestReporter {
       passed: number;
       failed: number;
     }>;
-    failures: typeof this.results;
-    slowests: typeof this.results;
+    failures: VisualTestResult[];
+    slowests: VisualTestResult[];
   } {
     const total = this.results.length;
     const passed = this.results.filter(r => r.passed).length;
@@ -327,11 +324,12 @@ export class VisualTestReporter {
       if (!acc[result.component]) {
         acc[result.component] = { total: 0, passed: 0, failed: 0 };
       }
-      acc[result.component].total++;
+      const componentStats = acc[result.component]!;
+      componentStats.total++;
       if (result.passed) {
-        acc[result.component].passed++;
+        componentStats.passed++;
       } else {
-        acc[result.component].failed++;
+        componentStats.failed++;
       }
       return acc;
     }, {} as Record<string, { total: number; passed: number; failed: number }>);
@@ -367,14 +365,14 @@ export class VisualTestReporter {
     
     if (report.failures.length > 0) {
       console.log('\n❌ Failures:');
-      report.failures.forEach(failure => {
+      report.failures.forEach((failure: VisualTestResult) => {
         console.log(`  ${failure.component} - ${failure.scenario} (${failure.breakpoint}): ${failure.error}`);
       });
     }
-    
+
     if (report.slowests.length > 0) {
       console.log('\n🐌 Slowest Renders:');
-      report.slowests.forEach(slow => {
+      report.slowests.forEach((slow: VisualTestResult) => {
         console.log(`  ${slow.component} - ${slow.scenario}: ${slow.renderTime}ms`);
       });
     }

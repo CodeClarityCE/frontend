@@ -151,7 +151,7 @@ describe('SearchHeader - Simplified', () => {
     it('renders search icon in button', () => {
       wrapper = createWrapper();
       const icons = wrapper.findAllComponents({ name: 'Icon' });
-      const searchIcon = icons.find(icon => 
+      const searchIcon = icons.find((icon: any) =>
         icon.props('icon') === 'lucide:search'
       );
       expect(searchIcon).toBeTruthy();
@@ -261,7 +261,7 @@ describe('SearchHeader - Simplified', () => {
     });
 
     it('renders without crashing when stores are undefined', () => {
-      vi.mocked(mockUserStore).defaultOrg = undefined;
+      (mockUserStore as any).defaultOrg = undefined;
       wrapper = createWrapper();
       expect(wrapper.exists()).toBe(true);
     });

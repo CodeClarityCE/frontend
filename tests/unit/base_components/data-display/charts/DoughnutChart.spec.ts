@@ -36,7 +36,7 @@ const mockColorScale = vi.fn((key: string) => {
   return colors[key] || '#6b7280'
 })
 
-const mockPieGenerator = vi.fn((data) => 
+const mockPieGenerator = vi.fn((data) =>
   data.map((entry: [VulnerabilityLabel, number], index: number) => ({
     data: entry,
     index,
@@ -45,10 +45,10 @@ const mockPieGenerator = vi.fn((data) =>
     endAngle: (index + 1) * 1.5,
     padAngle: 0
   }))
-)
+) as any
 mockPieGenerator.value = vi.fn(() => mockPieGenerator)
 
-const mockArcGenerator = vi.fn(() => 'M10,10L20,20L30,30Z')
+const mockArcGenerator = vi.fn(() => 'M10,10L20,20L30,30Z') as any
 mockArcGenerator.innerRadius = vi.fn(() => mockArcGenerator)
 mockArcGenerator.outerRadius = vi.fn(() => mockArcGenerator)
 
@@ -199,7 +199,7 @@ describe('DoughnutChart', () => {
       })
 
       expect(wrapper.props().data).toEqual(zeroData)
-      expect(wrapper.props().data[0].count).toBe(0)
+      expect(wrapper.props().data[0]!.count).toBe(0)
     })
 
     it('handles large numbers', () => {
@@ -214,7 +214,7 @@ describe('DoughnutChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].count).toBe(999999)
+      expect(wrapper.props().data[0]!.count).toBe(999999)
     })
 
     it('preserves color mapping from data', () => {
@@ -230,8 +230,8 @@ describe('DoughnutChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].color).toBe('#custom1')
-      expect(wrapper.props().data[1].color).toBe('#custom2')
+      expect(wrapper.props().data[0]!.color).toBe('#custom1')
+      expect(wrapper.props().data[1]!.color).toBe('#custom2')
     })
   })
 
@@ -364,7 +364,7 @@ describe('DoughnutChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].count).toBe(0.001)
+      expect(wrapper.props().data[0]!.count).toBe(0.001)
     })
 
     it('handles invalid color values gracefully', () => {
@@ -379,7 +379,7 @@ describe('DoughnutChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].color).toBe('not-a-color')
+      expect(wrapper.props().data[0]!.color).toBe('not-a-color')
     })
 
     it('handles all zero data', () => {

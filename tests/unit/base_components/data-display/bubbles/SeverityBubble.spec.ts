@@ -39,8 +39,8 @@ describe.skip('SeverityBubble', () => {
       const severityBox = criticalWrapper.find('.flex.flex-row')
       expect(severityBox.exists()).toBe(true)
 
-      const severityLabel = severityBox.findAll('div').at(0)
-      const severityValue = severityBox.findAll('div').at(1)
+      const severityLabel = severityBox.findAll('div')[0]
+      const severityValue = severityBox.findAll('div')[1]
 
       expect(severityLabel?.exists()).toBe(true)
       expect(severityLabel?.text()).toBe('C')
@@ -393,14 +393,14 @@ describe.skip('SeverityBubble', () => {
 
       const severityBoxes = mixedWrapper.findAll('.severity-box')
       expect(severityBoxes).toHaveLength(2)
-      
+
       // Critical should use its specific slot + content
-      const criticalValue = severityBoxes[0].find('.severity-value')
+      const criticalValue = severityBoxes[0]!.find('.severity-value')
       expect(criticalValue.text()).toContain('10')
       expect(criticalValue.text()).toContain('5')
-      
+
       // High should use only content slot
-      const highValue = severityBoxes[1].find('.severity-value')
+      const highValue = severityBoxes[1]!.find('.severity-value')
       expect(highValue.text()).toBe('5')
     })
 

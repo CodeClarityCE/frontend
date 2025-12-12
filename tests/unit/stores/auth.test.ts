@@ -253,13 +253,13 @@ describe.skip('Auth Store', () => {
 
     it('should handle social authentication state', () => {
       const socialState = 'github-oauth-state-123'
-      
+
       authStore.setSocialAuthState(socialState)
       expect(authStore.socialAuthState).toBe(socialState)
       expect(authStore.getSocialAuthState).toBe(socialState)
-      
+
       // Clear social state after auth
-      authStore.setSocialAuthState(undefined)
+      authStore.setSocialAuthState(undefined as any)
       expect(authStore.socialAuthState).toBeUndefined()
     })
   })

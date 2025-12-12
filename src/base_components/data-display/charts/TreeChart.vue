@@ -57,6 +57,7 @@ onMounted(() => {
                 // Node with parents - create instance for each parent
                 for (let i = 0; i < node.parentIds.length; i++) {
                     const parentId = node.parentIds[i];
+                    if (!parentId) continue;
                     const relationshipKey = `${parentId}->${node.id}`;
 
                     if (!processedRelationships.has(relationshipKey)) {

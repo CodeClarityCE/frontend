@@ -274,10 +274,10 @@ describe('OAuthCallbackView', () => {
           provider: SocialProvider.GITHUB
         }
       });
-      
+
       const oauth2Component = wrapper.findComponent('[data-testid="oauth2-callback"]');
       expect(oauth2Component.exists()).toBe(true);
-      expect(oauth2Component.props('provider')).toBe(SocialProvider.GITHUB);
+      expect((oauth2Component as any).props('provider')).toBe(SocialProvider.GITHUB);
     });
   });
 

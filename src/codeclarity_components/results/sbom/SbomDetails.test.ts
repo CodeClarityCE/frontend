@@ -277,7 +277,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const scoreCard = wrapper.findAll('.mock-stat-card')[0];
+            const scoreCard = wrapper.findAll('.mock-stat-card')[0]!;
             expect(scoreCard.text()).toBe('A');
         });
 
@@ -286,7 +286,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const scoreCard = wrapper.findAll('.mock-stat-card')[0];
+            const scoreCard = wrapper.findAll('.mock-stat-card')[0]!;
             expect(scoreCard.text()).toBe('F');
         });
 
@@ -301,7 +301,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const scoreCard = wrapper.findAll('.mock-stat-card')[0];
+            const scoreCard = wrapper.findAll('.mock-stat-card')[0]!;
             expect(scoreCard.text()).toBe('D');
         });
     });
@@ -312,7 +312,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const vulnCard = wrapper.findAll('.mock-stat-card')[1];
+            const vulnCard = wrapper.findAll('.mock-stat-card')[1]!;
             expect(vulnCard.text()).toBe('2');
         });
 
@@ -321,7 +321,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const criticalHighCard = wrapper.findAll('.mock-stat-card')[2];
+            const criticalHighCard = wrapper.findAll('.mock-stat-card')[2]!;
             expect(criticalHighCard.text()).toBe('2');
         });
 
@@ -330,7 +330,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const versionCard = wrapper.findAll('.mock-stat-card')[3];
+            const versionCard = wrapper.findAll('.mock-stat-card')[3]!;
             expect(versionCard.text()).toBe('v1.0.0');
         });
 
@@ -339,7 +339,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const licenseCard = wrapper.findAll('.mock-stat-card')[4];
+            const licenseCard = wrapper.findAll('.mock-stat-card')[4]!;
             expect(licenseCard.text()).toBe('MIT');
         });
 
@@ -348,7 +348,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const pmCard = wrapper.findAll('.mock-stat-card')[5];
+            const pmCard = wrapper.findAll('.mock-stat-card')[5]!;
             expect(pmCard.text()).toBe('npm');
         });
     });
@@ -411,8 +411,8 @@ describe.skip('SbomDetails.vue', () => {
 
             const vulnBadges = wrapper.findAll('.vulnerability-badge');
             expect(vulnBadges.length).toBe(2);
-            expect(vulnBadges[0].text()).toBe('CVE-2021-1234');
-            expect(vulnBadges[1].text()).toBe('CVE-2021-5678');
+            expect(vulnBadges[0]!.text()).toBe('CVE-2021-1234');
+            expect(vulnBadges[1]!.text()).toBe('CVE-2021-5678');
         });
 
         it('should display severity distribution', async () => {
@@ -524,7 +524,7 @@ describe.skip('SbomDetails.vue', () => {
             await wrapper.vm.$nextTick();
 
             // Package is outdated (release dates differ by a year)
-            const versionCard = wrapper.findAll('.mock-stat-card')[3];
+            const versionCard = wrapper.findAll('.mock-stat-card')[3]!;
             expect(versionCard.text()).toBe('v1.0.0');
         });
 
@@ -536,7 +536,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const versionCard = wrapper.findAll('.mock-stat-card')[3];
+            const versionCard = wrapper.findAll('.mock-stat-card')[3]!;
             expect(versionCard.text()).toBe('Unknown');
         });
 
@@ -548,7 +548,7 @@ describe.skip('SbomDetails.vue', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
             await wrapper.vm.$nextTick();
 
-            const versionCard = wrapper.findAll('.mock-stat-card')[3];
+            const versionCard = wrapper.findAll('.mock-stat-card')[3]!;
             expect(versionCard.text()).toBe('Latest');
         });
     });

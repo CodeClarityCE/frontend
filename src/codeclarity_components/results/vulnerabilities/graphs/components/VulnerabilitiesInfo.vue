@@ -30,27 +30,27 @@ const doughnutColors = [
 const doughnutChartData: DoughnutChartData = [
     {
         label: 'Critical',
-        color: doughnutColors[0],
+        color: doughnutColors[0] ?? '#000000',
         count: props.stats.number_of_critical
     },
     {
         label: 'High',
-        color: doughnutColors[1],
+        color: doughnutColors[1] ?? '#bf1313',
         count: props.stats.number_of_high
     },
     {
         label: 'Medium',
-        color: doughnutColors[2],
+        color: doughnutColors[2] ?? '#ffc107',
         count: props.stats.number_of_medium
     },
     {
         label: 'Low',
-        color: doughnutColors[3],
+        color: doughnutColors[3] ?? '#5a9d09',
         count: props.stats.number_of_low
     },
     {
         label: 'None',
-        color: doughnutColors[4],
+        color: doughnutColors[4] ?? '#09889d',
         count: props.stats.number_of_none
     }
 ];

@@ -227,7 +227,7 @@ async function getAnalysis(projectID: string, analysisID: string) {
         });
         analysis.value = res.data;
         // Map plugin names to tab names
-        const pluginName = res.data.steps[0][0].Name;
+        const pluginName = res.data.steps?.[0]?.[0]?.Name ?? '';
         let tabName = pluginName;
         if (pluginName === 'js-sbom' || pluginName === 'php-sbom') {
             tabName = 'sbom';

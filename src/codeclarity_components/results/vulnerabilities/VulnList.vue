@@ -592,7 +592,7 @@ const exploitableCount = computed(() => {
                                     v-if="report.Weaknesses && report.Weaknesses.length > 0"
                                     class="text-sm text-gray-500 font-medium"
                                 >
-                                    {{ report.Weaknesses[0].WeaknessName }}
+                                    {{ report.Weaknesses[0]?.WeaknessName }}
                                 </div>
                             </div>
 

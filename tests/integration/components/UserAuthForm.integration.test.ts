@@ -15,8 +15,8 @@ vi.mock('@/utils/api/BaseRepository', () => ({
     constructor() {}
   },
   BusinessLogicError: class MockBusinessLogicError extends Error {
-    constructor(public error_code: string) {
-      super();
+    constructor(message: string, public error_code: string) {
+      super(message);
     }
   },
   ValidationError: class MockValidationError extends Error {
@@ -46,11 +46,18 @@ describe.skip('UserAuthForm Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Reset stores
     mockStores.auth.$reset();
     mockStores.user.$reset();
-    
+
+    // Add missing methods to mock auth store
+    mockStores.auth.setToken = vi.fn();
+    mockStores.auth.setRefreshToken = vi.fn();
+    mockStores.auth.setTokenExpiry = vi.fn();
+    mockStores.auth.setRefreshTokenExpiry = vi.fn();
+    mockStores.auth.setSocialAuthState = vi.fn();
+
     // Setup AuthRepository mock instance
     authRepositoryInstance = {
       login: vi.fn(),
@@ -128,17 +135,27 @@ describe.skip('UserAuthForm Integration Tests', () => {
     it('should successfully authenticate user with valid credentials', async () => {
       // Setup successful authentication response
       const mockToken: Token = {
-        access_token: 'mock-access-token',
+        token: 'mock-access-token',
         refresh_token: 'mock-refresh-token',
-        token_type: 'Bearer',
-        expires_in: 3600
+        token_expiry: new Date(Date.now() + 3600000),
+        refresh_token_expiry: new Date(Date.now() + 7200000)
       };
-      
+
       const mockUser: AuthenticatedUser = {
         id: '1',
         email: 'test@example.com',
-        name: 'Test User',
-        active: true
+        first_name: 'Test',
+        last_name: 'User',
+        handle: 'test-user',
+        default_org: {
+          id: 'org-1',
+          name: 'Test Org',
+          created_on: new Date()
+        } as any,
+        activated: true,
+        social: false,
+        setup_done: true,
+        created_on: new Date()
       };
 
       authRepositoryInstance.login.mockResolvedValue(mockToken);
@@ -164,7 +181,8 @@ describe.skip('UserAuthForm Integration Tests', () => {
       expect(authRepositoryInstance.getAccountInformation).toHaveBeenCalled();
 
       // Verify store updates
-      expect(mockStores.auth.setTokens).toHaveBeenCalledWith(mockToken);
+      expect(mockStores.auth.setToken).toHaveBeenCalledWith(mockToken.token);
+      expect(mockStores.auth.setRefreshToken).toHaveBeenCalledWith(mockToken.refresh_token);
       expect(mockStores.user.setUser).toHaveBeenCalledWith(mockUser);
 
       // Verify navigation
@@ -192,9 +210,10 @@ describe.skip('UserAuthForm Integration Tests', () => {
       // Verify error state
       expect(wrapper.find('.alert').exists()).toBe(true);
       expect(wrapper.text()).toContain('Invalid credentials');
-      
+
       // Verify stores not updated
-      expect(mockStores.auth.setTokens).not.toHaveBeenCalled();
+      expect(mockStores.auth.setToken).not.toHaveBeenCalled();
+      expect(mockStores.auth.setRefreshToken).not.toHaveBeenCalled();
       expect(mockStores.user.setUser).not.toHaveBeenCalled();
       
       // Verify no navigation
@@ -203,10 +222,11 @@ describe.skip('UserAuthForm Integration Tests', () => {
 
     it('should handle validation errors from server', async () => {
       // Setup validation error
-      const validationError = new ValidationError({
+      const validationError = new ValidationError('VALIDATION_ERROR', 'Validation failed', []);
+      (validationError as any).details = {
         email: ['Email is already taken'],
         password: ['Password is too weak']
-      });
+      };
       authRepositoryInstance.login.mockRejectedValue(validationError);
 
       mountComponent();
@@ -278,10 +298,10 @@ describe.skip('UserAuthForm Integration Tests', () => {
 
       // Resolve the login
       resolveLogin!({
-        access_token: 'token',
+        token: 'token',
         refresh_token: 'refresh',
-        token_type: 'Bearer',
-        expires_in: 3600
+        token_expiry: new Date(Date.now() + 3600000),
+        refresh_token_expiry: new Date(Date.now() + 7200000)
       });
       await nextTick();
 
@@ -338,34 +358,26 @@ describe.skip('UserAuthForm Integration Tests', () => {
   describe('Social Authentication Integration', () => {
     it('should handle Google OAuth flow', async () => {
       mountComponent();
-      
+
       const googleButton = wrapper.find('button[data-testid="google-auth"]');
       expect(googleButton.exists()).toBe(true);
-      
+
       await googleButton.trigger('click');
-      
-      // Verify Google OAuth state is set
-      expect(mockStores.auth.setSocialAuthState).toHaveBeenCalledWith({
-        provider: 'google',
-        state: expect.any(String),
-        redirectUri: expect.any(String)
-      });
+
+      // Verify Google OAuth state is set (setSocialAuthState takes a string)
+      expect(mockStores.auth.setSocialAuthState).toHaveBeenCalledWith(expect.any(String));
     });
 
     it('should handle GitHub OAuth flow', async () => {
       mountComponent();
-      
+
       const githubButton = wrapper.find('button[data-testid="github-auth"]');
       expect(githubButton.exists()).toBe(true);
-      
+
       await githubButton.trigger('click');
-      
-      // Verify GitHub OAuth state is set
-      expect(mockStores.auth.setSocialAuthState).toHaveBeenCalledWith({
-        provider: 'github',
-        state: expect.any(String),
-        redirectUri: expect.any(String)
-      });
+
+      // Verify GitHub OAuth state is set (setSocialAuthState takes a string)
+      expect(mockStores.auth.setSocialAuthState).toHaveBeenCalledWith(expect.any(String));
     });
   });
 

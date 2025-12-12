@@ -13,8 +13,8 @@ const router = createRouter({
   ]
 })
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'global'> {
-  global?: RenderOptions['global'] & {
+interface CustomRenderOptions extends Omit<RenderOptions<any>, 'global'> {
+  global?: RenderOptions<any>['global'] & {
     plugins?: any[]
     mocks?: Record<string, any>
   }
@@ -73,6 +73,11 @@ export const mockStores = {
     authenticated: true,
     token: 'mock-token',
     refreshToken: 'mock-refresh-token',
+    setToken: vi.fn(),
+    setRefreshToken: vi.fn(),
+    setTokenExpiry: vi.fn(),
+    setRefreshTokenExpiry: vi.fn(),
+    setSocialAuthState: vi.fn(),
     $reset: vi.fn()
   },
   router: {

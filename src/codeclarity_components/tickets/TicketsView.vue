@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent, ref, onMounted } from 'vue';
+import { defineAsyncComponent, ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 import { Icon } from '@iconify/vue';
 
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
@@ -10,6 +11,9 @@ import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { useTicketsData } from './composables/useTicketsData';
 import { Button } from '@/shadcn/ui/button';
 import IntegrationsConfigPanel from './integrations/IntegrationsConfigPanel.vue';
+import { TicketsRepository } from './tickets.repository';
+import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -58,6 +62,8 @@ const {
     viewMode,
     selectedTicket,
     isLoadingDetail,
+    vulnerabilityDetails,
+    isLoadingVulnDetails,
     quickStats,
     currentPage,
     totalPages,
@@ -71,8 +77,86 @@ const {
     goToPage
 } = useTicketsData({ autoLoad: true });
 
+// Stores and repository
+const { defaultOrg } = storeToRefs(useUserStore());
+const auth = useAuthStore();
+const ticketsRepository = new TicketsRepository();
+
 // Integrations modal state
 const showIntegrationsModal = ref(false);
+
+// Bulk sync state
+const isBulkSyncing = ref(false);
+
+// Get tickets that have external links
+const ticketsWithExternalLinks = computed(() => {
+    return tickets.value.filter((t) => t.has_external_links);
+});
+
+// Perform bulk sync from external providers (silently updates external_status)
+async function bulkSyncFromExternal(): Promise<boolean> {
+    const orgId = defaultOrg?.value?.id;
+    if (!orgId || !auth.getToken) return false;
+    if (ticketsWithExternalLinks.value.length === 0) return false;
+
+    isBulkSyncing.value = true;
+
+    try {
+        const ticketIds = ticketsWithExternalLinks.value.map((t) => t.id);
+        await ticketsRepository.bulkSyncFromExternal({
+            orgId,
+            data: { ticket_ids: ticketIds },
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        return true;
+    } catch (error) {
+        console.error('Failed to bulk sync from external:', error);
+        return false;
+    } finally {
+        isBulkSyncing.value = false;
+    }
+}
+
+// Handle refresh: sync from external providers first, then refresh the list
+async function handleRefresh() {
+    // First sync from external providers if there are linked tickets
+    if (ticketsWithExternalLinks.value.length > 0) {
+        await bulkSyncFromExternal();
+    }
+    // Always refresh the list after (external_status might have been updated)
+    refresh();
+}
+
+// Track if initial sync has been done
+const hasAutoSynced = ref(false);
+
+// Auto-sync from external when tickets are first loaded
+watch(
+    () => ticketsWithExternalLinks.value.length,
+    async (newLength) => {
+        if (newLength > 0 && !hasAutoSynced.value && !isLoading.value) {
+            hasAutoSynced.value = true;
+            // Small delay to let the UI settle before syncing
+            setTimeout(async () => {
+                await bulkSyncFromExternal();
+                // Refresh to show updated external_status
+                refresh();
+            }, 500);
+        }
+    }
+);
+
+// Handle ticket updated event (reload both list and selected ticket detail)
+async function handleTicketUpdated() {
+    refresh();
+    // Also reload the selected ticket to show updated status
+    if (selectedTicket.value) {
+        loadTicketDetail(selectedTicket.value.id);
+    }
+}
 
 // Check for OAuth callback on mount
 onMounted(() => {
@@ -141,13 +225,13 @@ onMounted(() => {
                             Integrations
                         </Button>
 
-                        <!-- Refresh Button -->
+                        <!-- Refresh Button (also syncs from external providers) -->
                         <Button
                             variant="outline"
                             size="sm"
                             class="hidden sm:flex items-center gap-2 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
-                            :disabled="isLoading"
-                            @click="refresh"
+                            :disabled="isLoading || isBulkSyncing"
+                            @click="handleRefresh"
                         >
                             <Icon
                                 :icon="isLoading ? 'solar:loading-linear' : 'solar:refresh-linear'"
@@ -265,8 +349,10 @@ onMounted(() => {
                 v-if="selectedTicket"
                 :ticket="selectedTicket"
                 :is-loading="isLoadingDetail"
+                :vulnerability-details="vulnerabilityDetails"
+                :is-loading-vuln-details="isLoadingVulnDetails"
                 @close="clearSelectedTicket"
-                @updated="refresh"
+                @updated="handleTicketUpdated"
             />
 
             <!-- Integrations Modal -->

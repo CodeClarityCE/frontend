@@ -113,10 +113,10 @@ function getRelativeTime(date: Date): string {
                     <!-- Status -->
                     <div class="col-span-2">
                         <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
                             :class="TicketStatusColors[ticket.status]"
                         >
-                            {{ TicketStatusLabels[ticket.status] }}
+                            {{ ticket.external_status || TicketStatusLabels[ticket.status] }}
                         </span>
                     </div>
 
@@ -185,10 +185,10 @@ function getRelativeTime(date: Date): string {
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
                         <span
-                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
                             :class="TicketStatusColors[ticket.status]"
                         >
-                            {{ TicketStatusLabels[ticket.status] }}
+                            {{ ticket.external_status || TicketStatusLabels[ticket.status] }}
                         </span>
                         <span
                             class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"

@@ -152,9 +152,12 @@ const updateScheduleData = (updates: Partial<ScheduleData>) => {
     scheduleData.value = { ...scheduleData.value, ...updates };
 };
 
-const updateScheduleType = (type: string) => {
+const updateScheduleType = (
+    type: string | number | boolean | bigint | Record<string, unknown> | null
+) => {
+    if (typeof type !== 'string') return;
     updateScheduleData({
-        schedule_type: type as any,
+        schedule_type: type as ScheduleData['schedule_type'],
         is_active: type !== 'once' // Automatically enable for recurring schedules
     });
     if (type !== 'once') {
@@ -162,13 +165,13 @@ const updateScheduleType = (type: string) => {
     }
 };
 
-const setDate = (dateStr: string) => {
-    selectedDate.value = dateStr;
+const setDate = (dateStr: string | number) => {
+    selectedDate.value = String(dateStr);
     updateDateTimeIfComplete();
 };
 
-const setTime = (timeStr: string) => {
-    selectedTime.value = timeStr;
+const setTime = (timeStr: string | number) => {
+    selectedTime.value = String(timeStr);
     updateDateTimeIfComplete();
 };
 

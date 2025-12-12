@@ -21,7 +21,7 @@ defineProps<{
         <!--                      Vulnerability type in library                    -->
         <!--------------------------------------------------------------------------->
         <div class="text-3xl my-1 text-gray-700">
-            <span v-if="finding.weaknesses.length > 0">{{ finding.weaknesses[0].name }}</span>
+            <span v-if="finding.weaknesses.length > 0">{{ finding.weaknesses[0]?.name }}</span>
             in
             <span class="font-black text-theme-primary">
                 {{ finding.dependency_info?.name + '@' + finding.dependency_info?.version }}
@@ -83,10 +83,10 @@ defineProps<{
                                 class="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-800 font-mono whitespace-pre-line"
                             >
                                 {{
-                                    finding.vulnerability_info.version_info.source_comparison.nvdAllVersions.replace(
+                                    finding.vulnerability_info.version_info.source_comparison.nvdAllVersions?.replace(
                                         /, /g,
                                         ',\n'
-                                    )
+                                    ) ?? ''
                                 }}
                             </div>
                         </details>
@@ -118,10 +118,10 @@ defineProps<{
                                 class="mt-2 p-2 bg-green-100 rounded text-xs text-green-800 font-mono whitespace-pre-line"
                             >
                                 {{
-                                    finding.vulnerability_info.version_info.source_comparison.osvAllVersions.replace(
+                                    finding.vulnerability_info.version_info.source_comparison.osvAllVersions?.replace(
                                         /, /g,
                                         ',\n'
-                                    )
+                                    ) ?? ''
                                 }}
                             </div>
                         </details>

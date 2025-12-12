@@ -150,11 +150,11 @@ describe('PasswordResetRequestForm', () => {
   describe('Form Validation', () => {
     it('should update email value when input changes', async () => {
       const wrapper = mount(PasswordResetRequestForm);
-      
+
       const emailInput = wrapper.find('[data-testid="email-input"]');
       await emailInput.setValue('test@example.com');
-      
-      expect(emailInput.element.value).toBe('test@example.com');
+
+      expect((emailInput.element as HTMLInputElement).value).toBe('test@example.com');
     });
 
     it('should have proper form attributes', () => {
@@ -199,23 +199,23 @@ describe('PasswordResetRequestForm', () => {
     it('should handle button loading state during submission', async () => {
       const wrapper = mount(PasswordResetRequestForm);
       const loadingButton = wrapper.findComponent('[data-testid="submit-button"]');
-      
+
       const form = wrapper.find('[data-testid="password-reset-form"]');
       await form.trigger('submit');
-      
-      expect(loadingButton.vm.setLoading).toHaveBeenCalledWith(true);
-      expect(loadingButton.vm.setDisabled).toHaveBeenCalledWith(true);
-      
+
+      expect((loadingButton as any).vm.setLoading).toHaveBeenCalledWith(true);
+      expect((loadingButton as any).vm.setDisabled).toHaveBeenCalledWith(true);
+
       await nextTick();
-      
-      expect(loadingButton.vm.setLoading).toHaveBeenCalledWith(false);
-      expect(loadingButton.vm.setDisabled).toHaveBeenCalledWith(false);
+
+      expect((loadingButton as any).vm.setLoading).toHaveBeenCalledWith(false);
+      expect((loadingButton as any).vm.setDisabled).toHaveBeenCalledWith(false);
     });
   });
 
   describe('Error Handling', () => {
     it('should display error message on ValidationError', async () => {
-      const validationError = new ValidationError('validation-error', { email: ['Invalid email'] });
+      const validationError = new ValidationError('validation-error', 'Validation failed', [{ property: 'email', errors: ['Invalid email'] }]);
       mockAuthRepository.requestPasswordReset.mockRejectedValue(validationError);
       
       const wrapper = mount(PasswordResetRequestForm);
@@ -229,7 +229,7 @@ describe('PasswordResetRequestForm', () => {
     });
 
     it('should display error message on BusinessLogicError', async () => {
-      const businessError = new BusinessLogicError('business-error');
+      const businessError = new BusinessLogicError('business-error', 'Business logic error occurred');
       mockAuthRepository.requestPasswordReset.mockRejectedValue(businessError);
       
       const wrapper = mount(PasswordResetRequestForm);

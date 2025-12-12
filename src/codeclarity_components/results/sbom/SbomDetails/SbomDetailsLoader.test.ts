@@ -7,8 +7,7 @@ vi.mock('@/base_components/ui/loaders/BoxLoader.vue', () => ({
     default: {
         name: 'BoxLoader',
         props: ['dimensions'],
-        template:
-            '<div class="mock-box-loader" :style="`width: ${dimensions?.width}; height: ${dimensions?.height}`">BoxLoader</div>'
+        template: '<div class="mock-box-loader">BoxLoader</div>'
     }
 }));
 
@@ -51,7 +50,7 @@ describe('SbomDetailsLoader.vue', () => {
             const wrapper = createWrapper();
 
             const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
-            const headerBoxLoader = boxLoaders[0];
+            const headerBoxLoader = boxLoaders[0]!;
 
             expect(headerBoxLoader.exists()).toBe(true);
             expect(headerBoxLoader.props('dimensions')).toEqual({
@@ -69,8 +68,10 @@ describe('SbomDetailsLoader.vue', () => {
             expect(textLoaders.length).toBeGreaterThanOrEqual(2);
 
             // Check the first two text loaders have max-width styling
-            expect(textLoaders[0].attributes('style')).toContain('max-width: 50%');
-            expect(textLoaders[1].attributes('style')).toContain('max-width: 50%');
+            const firstStyle = textLoaders[0]!.attributes('style') ?? '';
+            const secondStyle = textLoaders[1]!.attributes('style') ?? '';
+            expect(firstStyle).toContain('max-width: 50%');
+            expect(secondStyle).toContain('max-width: 50%');
         });
     });
 
@@ -92,7 +93,7 @@ describe('SbomDetailsLoader.vue', () => {
             );
 
             sectionContainers.forEach((container) => {
-                const style = container.attributes('style');
+                const style = container.attributes('style') ?? '';
                 expect(style).toContain('display: flex');
                 expect(style).toContain('flex-direction: row');
                 expect(style).toContain('justify-content: space-between');
@@ -159,7 +160,7 @@ describe('SbomDetailsLoader.vue', () => {
             expect(mainContainer.exists()).toBe(true);
 
             // Header section (1 box loader + 2 text loaders)
-            const headerBoxLoader = wrapper.findAllComponents({ name: 'BoxLoader' })[0];
+            const headerBoxLoader = wrapper.findAllComponents({ name: 'BoxLoader' })[0]!;
             const textLoaders = wrapper.findAllComponents({ name: 'TextLoader' });
 
             expect(headerBoxLoader.exists()).toBe(true);
@@ -178,7 +179,8 @@ describe('SbomDetailsLoader.vue', () => {
 
             const contentSections = wrapper.findAll('div[style*="margin-top: 100px"]');
             contentSections.forEach((section) => {
-                expect(section.attributes('style')).toContain('margin-top: 100px');
+                const style = section.attributes('style') ?? '';
+                expect(style).toContain('margin-top: 100px');
             });
         });
     });
@@ -190,14 +192,14 @@ describe('SbomDetailsLoader.vue', () => {
             const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
 
             // Header box loader
-            expect(boxLoaders[0].props('dimensions')).toEqual({
+            expect(boxLoaders[0]!.props('dimensions')).toEqual({
                 width: '30%',
                 height: '100px'
             });
 
             // Content box loaders
             for (let i = 1; i < boxLoaders.length; i++) {
-                expect(boxLoaders[i].props('dimensions')).toEqual({
+                expect(boxLoaders[i]!.props('dimensions')).toEqual({
                     width: '49%',
                     height: '300px'
                 });
@@ -210,7 +212,8 @@ describe('SbomDetailsLoader.vue', () => {
             const textLoaders = wrapper.findAllComponents({ name: 'TextLoader' });
 
             textLoaders.forEach((loader) => {
-                expect(loader.attributes('style')).toContain('max-width: 50%');
+                const style = loader.attributes('style') ?? '';
+                expect(style).toContain('max-width: 50%');
             });
         });
     });
@@ -222,10 +225,10 @@ describe('SbomDetailsLoader.vue', () => {
             const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
 
             // Check that all box loaders use percentage widths
-            expect(boxLoaders[0].props('dimensions').width).toBe('30%');
+            expect(boxLoaders[0]!.props('dimensions')?.width).toBe('30%');
 
             for (let i = 1; i < boxLoaders.length; i++) {
-                expect(boxLoaders[i].props('dimensions').width).toBe('49%');
+                expect(boxLoaders[i]!.props('dimensions')?.width).toBe('49%');
             }
         });
 
@@ -235,7 +238,8 @@ describe('SbomDetailsLoader.vue', () => {
             const textLoaders = wrapper.findAllComponents({ name: 'TextLoader' });
 
             textLoaders.forEach((loader) => {
-                expect(loader.attributes('style')).toContain('max-width: 50%');
+                const style = loader.attributes('style') ?? '';
+                expect(style).toContain('max-width: 50%');
             });
         });
     });

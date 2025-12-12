@@ -170,7 +170,7 @@ describe('SignupForm.vue', () => {
       const routerLinks = wrapper.findAllComponents({ name: 'RouterLink' });
       expect(routerLinks.length).toBeGreaterThanOrEqual(1);
 
-      const signInLink = routerLinks.find(link => link.text().includes('Sign In'));
+      const signInLink = routerLinks.find((link: any) => link.text().includes('Sign In'));
       expect(signInLink).toBeTruthy();
     });
 

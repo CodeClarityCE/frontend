@@ -160,7 +160,7 @@ describe('BarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].count).toBe(999999)
+      expect(wrapper.props().data[0]!.count).toBe(999999)
     })
   })
 
@@ -339,7 +339,7 @@ describe('BarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].count).toBe(0.001)
+      expect(wrapper.props().data[0]!.count).toBe(0.001)
     })
 
     it('handles long label names', () => {
@@ -354,7 +354,7 @@ describe('BarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].label).toBe('Very Long Label Name That Might Cause Layout Issues')
+      expect(wrapper.props().data[0]!.label).toBe('Very Long Label Name That Might Cause Layout Issues')
     })
 
     it('handles special characters in labels', () => {
@@ -369,7 +369,7 @@ describe('BarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].label).toBe('Label with @#$% special chars!')
+      expect(wrapper.props().data[0]!.label).toBe('Label with @#$% special chars!')
     })
 
     it('handles invalid color values gracefully', () => {
@@ -384,7 +384,7 @@ describe('BarChart', () => {
         }
       })
 
-      expect(wrapper.props().data[0].color).toBe('not-a-color')
+      expect(wrapper.props().data[0]!.color).toBe('not-a-color')
     })
   })
 

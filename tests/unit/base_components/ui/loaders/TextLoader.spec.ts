@@ -299,12 +299,12 @@ describe('TextLoader', () => {
         { props: undefined, expectStatic: false },
         { props: {}, expectStatic: false },
         { props: { static: false }, expectStatic: false },
-        { props: { static: true }, expectStatic: true }
+        { props: { static: true } as any, expectStatic: true }
       ]
-      
+
       testCases.forEach(({ props, expectStatic }) => {
         const wrapper = mount(TextLoader, { props })
-        
+
         if (expectStatic) {
           expect(wrapper.classes()).toContain('skeleton-static')
         } else {

@@ -7,8 +7,7 @@ vi.mock('@/base_components/ui/loaders/BoxLoader.vue', () => ({
     default: {
         name: 'BoxLoader',
         props: ['dimensions'],
-        template:
-            '<div class="mock-box-loader" :style="`width: ${dimensions.width}; height: ${dimensions.height}`">BoxLoader</div>'
+        template: '<div class="mock-box-loader">BoxLoader</div>'
     }
 }));
 
@@ -41,8 +40,10 @@ describe('VulnDetailsLoader.vue', () => {
             expect(boxLoaders.length).toBeGreaterThan(0);
 
             // Check first two header loaders have correct dimensions
-            expect(boxLoaders[0].props('dimensions')).toEqual({ width: '30%', height: '50px' });
-            expect(boxLoaders[1].props('dimensions')).toEqual({ width: '35%', height: '40px' });
+            const firstDimensions = boxLoaders[0]!.props('dimensions');
+            const secondDimensions = boxLoaders[1]!.props('dimensions');
+            expect(firstDimensions).toEqual({ width: '30%', height: '50px' });
+            expect(secondDimensions).toEqual({ width: '35%', height: '40px' });
         });
 
         it('should render text loaders', () => {
@@ -74,8 +75,8 @@ describe('VulnDetailsLoader.vue', () => {
             // Should have one full-width loader
             const fullWidthLoader = boxLoaders.find(
                 (loader) =>
-                    loader.props('dimensions').width === '100%' &&
-                    loader.props('dimensions').height === '300px'
+                    loader.props('dimensions')?.width === '100%' &&
+                    loader.props('dimensions')?.height === '300px'
             );
             expect(fullWidthLoader).toBeDefined();
         });
@@ -88,8 +89,8 @@ describe('VulnDetailsLoader.vue', () => {
             // Should have 4 footer loaders with 24% width
             const footerLoaders = boxLoaders.filter(
                 (loader) =>
-                    loader.props('dimensions').width === '24%' &&
-                    loader.props('dimensions').height === '100px'
+                    loader.props('dimensions')?.width === '24%' &&
+                    loader.props('dimensions')?.height === '100px'
             );
             expect(footerLoaders.length).toBe(4);
         });
@@ -113,14 +114,13 @@ describe('VulnDetailsLoader.vue', () => {
             boxLoaders.forEach((loader, index) => {
                 if (index >= 2) {
                     // Skip header loaders
-                    const element = loader.element;
+                    const element = loader.element as HTMLElement;
                     // Either the loader itself or its parent should have margin-top
                     const hasMargin =
-                        element.style.marginTop || element.parentElement?.style.marginTop;
-                    if (
-                        loader.props('dimensions').height === '300px' ||
-                        loader.props('dimensions').height === '100px'
-                    ) {
+                        element.style.marginTop ||
+                        (element.parentElement as HTMLElement | null)?.style.marginTop;
+                    const dimensions = loader.props('dimensions');
+                    if (dimensions?.height === '300px' || dimensions?.height === '100px') {
                         expect(hasMargin).toBeTruthy();
                     }
                 }
@@ -153,19 +153,19 @@ describe('VulnDetailsLoader.vue', () => {
 
             // Header section (small loaders)
             const headerLoaders = wrapper.findAllComponents({ name: 'BoxLoader' }).slice(0, 2);
-            expect(headerLoaders[0].props('dimensions').height).toBe('50px');
-            expect(headerLoaders[1].props('dimensions').height).toBe('40px');
+            expect(headerLoaders[0]!.props('dimensions')?.height).toBe('50px');
+            expect(headerLoaders[1]!.props('dimensions')?.height).toBe('40px');
 
             // Content section (large loaders)
             const contentLoaders = wrapper
                 .findAllComponents({ name: 'BoxLoader' })
-                .filter((loader) => loader.props('dimensions').height === '300px');
+                .filter((loader) => loader.props('dimensions')?.height === '300px');
             expect(contentLoaders.length).toBe(5); // 4 grid + 1 full width
 
             // Footer section (medium loaders)
             const footerLoaders = wrapper
                 .findAllComponents({ name: 'BoxLoader' })
-                .filter((loader) => loader.props('dimensions').height === '100px');
+                .filter((loader) => loader.props('dimensions')?.height === '100px');
             expect(footerLoaders.length).toBe(4);
         });
     });
@@ -177,7 +177,7 @@ describe('VulnDetailsLoader.vue', () => {
             const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
 
             boxLoaders.forEach((loader) => {
-                const width = loader.props('dimensions').width;
+                const width = loader.props('dimensions')?.width ?? '';
                 expect(width).toMatch(/^\d+%$/); // Should be percentage
             });
         });
@@ -192,7 +192,8 @@ describe('VulnDetailsLoader.vue', () => {
             // Check that flex rows have space-between
             const flexRows = wrapper.findAll('div[style*="justify-content: space-between"]');
             flexRows.forEach((row) => {
-                expect(row.attributes('style')).toContain('justify-content: space-between');
+                const style = row.attributes('style') ?? '';
+                expect(style).toContain('justify-content: space-between');
             });
         });
     });
@@ -227,7 +228,7 @@ describe('VulnDetailsLoader.vue', () => {
             const wrapper = createWrapper();
 
             const boxLoaders = wrapper.findAllComponents({ name: 'BoxLoader' });
-            const heights = boxLoaders.map((loader) => loader.props('dimensions').height);
+            const heights = boxLoaders.map((loader) => loader.props('dimensions')?.height ?? '');
 
             // Should have variety in heights
             const uniqueHeights = [...new Set(heights)];

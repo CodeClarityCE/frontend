@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/vue';
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 

@@ -175,7 +175,7 @@ async function fetchWorkspaces() {
         workspaces.value = response.data;
 
         if (workspaces.value.length === 1) {
-            workspaceId.value = workspaces.value[0].id;
+            workspaceId.value = workspaces.value[0]?.id ?? '';
         }
 
         testResult.value = { success: true, message: 'API key valid! Select your workspace.' };

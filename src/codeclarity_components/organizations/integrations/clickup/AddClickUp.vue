@@ -70,10 +70,7 @@ init();
                             <div
                                 class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
                             >
-                                <Icon
-                                    icon="simple-icons:clickup"
-                                    class="w-5 h-5 text-purple-600"
-                                />
+                                <Icon icon="simple-icons:clickup" class="w-5 h-5 text-purple-600" />
                             </div>
                             <div>
                                 <h4 class="font-semibold text-gray-900 mb-1">
@@ -234,10 +231,6 @@ init();
         </div>
 
         <!-- ClickUp Config Modal -->
-        <ClickUpConfigModal
-            v-if="showConfigModal"
-            @close="onClose"
-            @configured="onConfigured"
-        />
+        <ClickUpConfigModal v-if="showConfigModal" @close="onClose" @configured="onConfigured" />
     </div>
 </template>

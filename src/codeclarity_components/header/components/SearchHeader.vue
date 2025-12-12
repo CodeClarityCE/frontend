@@ -31,11 +31,13 @@ watch([Meta_K, Ctrl_K], (v) => {
     if (v[0] || v[1]) handleOpenChange();
 });
 
-watch(enter, (v) => {
-    if (v) {
-        handleCommandSelect();
-    }
-});
+if (enter) {
+    watch(enter, (v) => {
+        if (v) {
+            handleCommandSelect();
+        }
+    });
+}
 
 watch(open, (v) => {
     console.log('open', v, open);

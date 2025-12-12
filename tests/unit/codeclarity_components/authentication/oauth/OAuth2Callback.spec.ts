@@ -11,13 +11,35 @@ import { SocialProvider } from '@/codeclarity_components/organizations/integrati
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
 
-const mockAuthRepository = {
+interface MockAuthRepository {
+  gitlabAuthFinalize: ReturnType<typeof vi.fn>;
+  githubAuthFinalize: ReturnType<typeof vi.fn>;
+  getAuthenticatedUser: ReturnType<typeof vi.fn>;
+}
+
+interface MockAuthStore {
+  getSocialAuthState: string | undefined;
+  socialAuthState: string | undefined;
+  setToken: ReturnType<typeof vi.fn>;
+  setTokenExpiry: ReturnType<typeof vi.fn>;
+  setRefreshToken: ReturnType<typeof vi.fn>;
+  setRefreshTokenExpiry: ReturnType<typeof vi.fn>;
+  setAuthenticated: ReturnType<typeof vi.fn>;
+  $reset: ReturnType<typeof vi.fn>;
+}
+
+interface MockUserStore {
+  setUser: ReturnType<typeof vi.fn>;
+  $reset: ReturnType<typeof vi.fn>;
+}
+
+const mockAuthRepository: MockAuthRepository = {
   gitlabAuthFinalize: vi.fn(),
   githubAuthFinalize: vi.fn(),
   getAuthenticatedUser: vi.fn()
 };
 
-const mockAuthStore = {
+const mockAuthStore: MockAuthStore = {
   getSocialAuthState: 'test-state',
   socialAuthState: undefined,
   setToken: vi.fn(),
@@ -28,7 +50,7 @@ const mockAuthStore = {
   $reset: vi.fn()
 };
 
-const mockUserStore = {
+const mockUserStore: MockUserStore = {
   setUser: vi.fn(),
   $reset: vi.fn()
 };
@@ -84,41 +106,41 @@ describe('OAuth2Callback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockAuthRepository.gitlabAuthFinalize.mockResolvedValue({
       token: 'test-token',
       token_expiry: 3600,
       refresh_token: 'refresh-token',
       refresh_token_expiry: 7200
     });
-    
+
     mockAuthRepository.githubAuthFinalize.mockResolvedValue({
       token: 'test-token',
       token_expiry: 3600,
       refresh_token: 'refresh-token',
       refresh_token_expiry: 7200
     });
-    
+
     mockAuthRepository.getAuthenticatedUser.mockResolvedValue({
       setup_done: true,
       id: 'user-id',
       email: 'test@example.com'
     });
-    
+
     originalLocation = window.location;
-    
+
     delete (window as any).location;
-    window.location = {
+    (window as any).location = {
       href: 'https://example.com?state=test-state&code=test-code',
       search: '?state=test-state&code=test-code'
-    } as Location;
-    
+    };
+
     mockAuthStore.getSocialAuthState = 'test-state';
     mockAuthStore.socialAuthState = undefined;
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
   });
 
   describe('Component Structure', () => {
@@ -175,11 +197,11 @@ describe('OAuth2Callback', () => {
 
   describe('URL Parameter Validation', () => {
     it('should redirect to login when state parameter is missing', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com?code=test-code',
         search: '?code=test-code'
-      } as Location;
-      
+      };
+
       mount(OAuth2Callback, {
         props: {
           provider: SocialProvider.GITLAB
@@ -191,11 +213,11 @@ describe('OAuth2Callback', () => {
     });
 
     it('should redirect to login when code parameter is missing', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com?state=test-state',
         search: '?state=test-state'
-      } as Location;
-      
+      };
+
       mount(OAuth2Callback, {
         props: {
           provider: SocialProvider.GITLAB
@@ -379,7 +401,7 @@ describe('OAuth2Callback', () => {
 
   describe('Error Handling', () => {
     it('should handle business logic error with account not activated', async () => {
-      const businessError = new BusinessLogicError('AccountNotActivated');
+      const businessError = new BusinessLogicError('AccountNotActivated', 'Account not activated');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       mount(OAuth2Callback, {
@@ -393,7 +415,7 @@ describe('OAuth2Callback', () => {
     });
 
     it('should display non-recoverable error for failed social authentication', async () => {
-      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount);
+      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount, 'Failed to authenticate social account');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       const wrapper = mount(OAuth2Callback, {
@@ -410,7 +432,7 @@ describe('OAuth2Callback', () => {
     });
 
     it('should display error code for non-recoverable errors', async () => {
-      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount);
+      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount, 'Failed to authenticate social account');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       const wrapper = mount(OAuth2Callback, {
@@ -426,7 +448,7 @@ describe('OAuth2Callback', () => {
     });
 
     it('should display "already exists" error message', async () => {
-      const businessError = new BusinessLogicError(APIErrors.AlreadyExists);
+      const businessError = new BusinessLogicError(APIErrors.AlreadyExists, 'User already exists');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       const wrapper = mount(OAuth2Callback, {
@@ -441,7 +463,7 @@ describe('OAuth2Callback', () => {
     });
 
     it('should hide loading spinner when error occurs', async () => {
-      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount);
+      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount, 'Failed to authenticate social account');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       const wrapper = mount(OAuth2Callback, {
@@ -459,7 +481,7 @@ describe('OAuth2Callback', () => {
 
   describe('Error Recovery Actions', () => {
     it('should reset stores and redirect to login on non-recoverable error button click', async () => {
-      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount);
+      const businessError = new BusinessLogicError(APIErrors.FailedToAuthenticateSocialAccount, 'Failed to authenticate social account');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       const wrapper = mount(OAuth2Callback, {
@@ -479,7 +501,7 @@ describe('OAuth2Callback', () => {
     });
 
     it('should redirect to login on recoverable error button click', async () => {
-      const businessError = new BusinessLogicError(APIErrors.AlreadyExists);
+      const businessError = new BusinessLogicError(APIErrors.AlreadyExists, 'User already exists');
       mockAuthRepository.gitlabAuthFinalize.mockRejectedValue(businessError);
       
       const wrapper = mount(OAuth2Callback, {

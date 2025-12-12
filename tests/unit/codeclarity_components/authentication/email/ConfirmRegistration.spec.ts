@@ -20,22 +20,22 @@ vi.mock('@/router', () => ({
 
 describe.skip('ConfirmRegistration', () => {
   let originalLocation: Location;
-  let mockSetInterval: any;
-  let mockClearInterval: any;
+  let mockSetInterval: ReturnType<typeof vi.fn>;
+  let mockClearInterval: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockUserRepository.confirmRegistration.mockResolvedValue({});
-    
+
     originalLocation = window.location;
-    
+
     delete (window as any).location;
-    window.location = {
+    (window as any).location = {
       href: 'https://example.com?token=test-token&userid=test-userid',
       search: '?token=test-token&userid=test-userid'
-    } as Location;
+    };
 
-    mockSetInterval = vi.fn((callback, _delay) => {
+    mockSetInterval = vi.fn((callback: () => void, _delay: number) => {
       // Immediately execute the callback to simulate timer behavior
       callback();
       return 1;
@@ -47,7 +47,7 @@ describe.skip('ConfirmRegistration', () => {
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
     vi.restoreAllMocks();
   });
 
@@ -86,7 +86,7 @@ describe.skip('ConfirmRegistration', () => {
     });
 
     it('should show success message after confirmation', async () => {
-      mockSetInterval.mockImplementation((_callback, _delay) => {
+      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
         // Don't execute callback immediately for this test
         return 1;
       });
@@ -106,7 +106,7 @@ describe.skip('ConfirmRegistration', () => {
     });
 
     it('should redirect to login page after countdown', async () => {
-      mockSetInterval.mockImplementation((callback, _delay) => {
+      mockSetInterval.mockImplementation((callback: () => void, _delay: number) => {
         // Simulate timer finishing
         for (let i = 0; i < 5; i++) {
           callback();
@@ -124,7 +124,7 @@ describe.skip('ConfirmRegistration', () => {
   describe('Error Handling', () => {
     it('should handle registration confirmation error', async () => {
       mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Confirmation failed'));
-      mockSetInterval.mockImplementation((_callback, _delay) => {
+      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
         // Don't execute callback immediately for this test
         return 1;
       });
@@ -147,7 +147,7 @@ describe.skip('ConfirmRegistration', () => {
 
     it('should redirect to login page after error countdown', async () => {
       mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Confirmation failed'));
-      mockSetInterval.mockImplementation((callback, _delay) => {
+      mockSetInterval.mockImplementation((callback: () => void, _delay: number) => {
         // Simulate timer finishing
         for (let i = 0; i < 5; i++) {
           callback();
@@ -177,11 +177,11 @@ describe.skip('ConfirmRegistration', () => {
 
   describe('URL Parameter Handling', () => {
     it('should handle missing token parameter', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com?userid=test-userid',
         search: '?userid=test-userid'
-      } as Location;
-      
+      };
+
       mount(ConfirmRegistration);
       await nextTick();
       
@@ -197,11 +197,11 @@ describe.skip('ConfirmRegistration', () => {
     });
 
     it('should handle missing userid parameter', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com?token=test-token',
         search: '?token=test-token'
-      } as Location;
-      
+      };
+
       mount(ConfirmRegistration);
       await nextTick();
       
@@ -217,11 +217,11 @@ describe.skip('ConfirmRegistration', () => {
     });
 
     it('should handle empty URL parameters', async () => {
-      window.location = {
+      (window as any).location = {
         href: 'https://example.com',
         search: ''
-      } as Location;
-      
+      };
+
       mount(ConfirmRegistration);
       await nextTick();
       
@@ -239,7 +239,7 @@ describe.skip('ConfirmRegistration', () => {
 
   describe('Counter Display', () => {
     it('should show counter in success state', async () => {
-      mockSetInterval.mockImplementation((_callback, _delay) => {
+      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
         // Don't execute callback to keep counter active
         return 1;
       });
@@ -253,7 +253,7 @@ describe.skip('ConfirmRegistration', () => {
 
     it('should show counter in error state', async () => {
       mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Error'));
-      mockSetInterval.mockImplementation((_callback, _delay) => {
+      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
         // Don't execute callback to keep counter active
         return 1;
       });

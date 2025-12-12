@@ -9,12 +9,15 @@ defineProps<{
     logo?: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
     'update:name': [value: string];
     'update:description': [value: string];
     'update:supportedLanguages': [value: string[]];
     'update:logo': [value: string];
 }>();
+
+const updateName = (value: string | undefined) => emit('update:name', value ?? '');
+const updateDescription = (value: string | undefined) => emit('update:description', value ?? '');
 
 // These options can be used for future language and logo selection features
 // const languageOptions = [
@@ -43,7 +46,7 @@ defineEmits<{
                 :placeholder="'Enter analyzer name...'"
                 :type="'text'"
                 :name="'name'"
-                @update:model-value="$emit('update:name', $event)"
+                @update:model-value="updateName"
             >
                 <template #name>
                     <span class="block text-sm font-semibold text-theme-black mb-2">
@@ -59,7 +62,7 @@ defineEmits<{
                 :placeholder="'Enter analyzer description...'"
                 :type="'text'"
                 :name="'description'"
-                @update:model-value="$emit('update:description', $event)"
+                @update:model-value="updateDescription"
             >
                 <template #name>
                     <span class="block text-sm font-semibold text-theme-black mb-2">

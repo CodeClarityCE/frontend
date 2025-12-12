@@ -53,12 +53,13 @@ const availableProviders = [
 ];
 
 async function loadIntegrations() {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    const orgId = defaultOrg?.value?.id;
+    if (!orgId || !auth.getToken) return;
 
     isLoading.value = true;
     try {
         const response = await ticketsRepository.getIntegrations({
-            orgId: defaultOrg.value.id,
+            orgId,
             bearerToken: auth.getToken,
             handleBusinessErrors: true,
             handleHTTPErrors: true,
@@ -73,12 +74,13 @@ async function loadIntegrations() {
 }
 
 async function testConnection(provider: ExternalTicketProvider) {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    const orgId = defaultOrg?.value?.id;
+    if (!orgId || !auth.getToken) return;
 
     testingProvider.value = provider;
     try {
         const response = await ticketsRepository.testIntegration({
-            orgId: defaultOrg.value.id,
+            orgId,
             provider,
             bearerToken: auth.getToken,
             handleBusinessErrors: true,
@@ -97,12 +99,13 @@ async function testConnection(provider: ExternalTicketProvider) {
 }
 
 async function deleteIntegration(provider: ExternalTicketProvider) {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    const orgId = defaultOrg?.value?.id;
+    if (!orgId || !auth.getToken) return;
 
     deletingProvider.value = provider;
     try {
         await ticketsRepository.deleteIntegration({
-            orgId: defaultOrg.value.id,
+            orgId,
             provider,
             bearerToken: auth.getToken,
             handleBusinessErrors: true,

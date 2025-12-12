@@ -439,7 +439,7 @@ describe('TeamSwitcher - Simplified', () => {
     });
 
     it('handles undefined user store data', () => {
-      mockUserStore.getUser = undefined;
+      mockUserStore.getUser = undefined as any;
       wrapper = createWrapper();
       expect(wrapper.exists()).toBe(true);
     });

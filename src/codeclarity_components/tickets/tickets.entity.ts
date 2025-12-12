@@ -105,6 +105,10 @@ export class TicketSummary {
 
     @IsDefined()
     has_external_links!: boolean;
+
+    @IsOptional()
+    @IsString()
+    external_status?: string;
 }
 
 // ============================================
@@ -426,6 +430,22 @@ export interface BulkSyncResult {
     failed: { ticket_id: string; error: string }[];
 }
 
+/** Result from syncing a single ticket FROM external provider */
+export interface SyncFromExternalResult {
+    ticket_id: string;
+    updated: boolean;
+    old_status?: TicketStatus;
+    new_status?: TicketStatus;
+    external_status?: string;
+}
+
+/** Result from bulk syncing tickets FROM external provider */
+export interface BulkSyncFromExternalResult {
+    updated: SyncFromExternalResult[];
+    unchanged: string[];
+    failed: { ticket_id: string; error: string }[];
+}
+
 // Provider labels and icons
 export const ExternalProviderLabels: Record<ExternalTicketProvider, string> = {
     [ExternalTicketProvider.CLICKUP]: 'ClickUp',
@@ -438,3 +458,118 @@ export const ExternalProviderIcons: Record<ExternalTicketProvider, string> = {
     [ExternalTicketProvider.JIRA]: 'simple-icons:jira',
     [ExternalTicketProvider.LINEAR]: 'simple-icons:linear'
 };
+
+// ============================================
+// Vulnerability Details Types
+// ============================================
+
+export interface CVSS2 {
+    base_score: number;
+    exploitability_score?: number;
+    impact_score?: number;
+    access_vector?: string;
+    access_complexity?: string;
+    confidentiality_impact?: string;
+    availability_impact?: string;
+    integrity_impact?: string;
+    authentication?: string;
+}
+
+export interface CVSS3 {
+    base_score: number;
+    exploitability_score?: number;
+    impact_score?: number;
+    attack_vector?: string;
+    attack_complexity?: string;
+    confidentiality_impact?: string;
+    availability_impact?: string;
+    integrity_impact?: string;
+    user_interaction?: string;
+    scope?: string;
+    privileges_required?: string;
+}
+
+export interface SeverityInfo {
+    cvss_31?: CVSS3;
+    cvss_3?: CVSS3;
+    cvss_2?: CVSS2;
+}
+
+export interface WeaknessInfo {
+    id: string;
+    name: string;
+    description: string;
+}
+
+export interface ReferenceInfo {
+    url: string;
+    tags: string[];
+}
+
+export interface VulnSourceInfo {
+    source: string;
+    vulnerability_id: string;
+}
+
+export interface VersionInfoReport {
+    affected_version: string;
+    recommended_version?: string;
+    patched_versions?: string[];
+}
+
+export interface VulnerabilityInfoReport {
+    vulnerability_id: string;
+    description: string;
+    version_info: VersionInfoReport;
+    published: string;
+    last_modified: string;
+    sources: VulnSourceInfo[];
+    aliases: string[];
+}
+
+export interface DependencyInfoReport {
+    name: string;
+    version: string;
+    ecosystem?: string;
+    direct: boolean;
+}
+
+export interface PatchInfo {
+    fix_available: boolean;
+    recommended_version?: string;
+    patched_versions?: string[];
+    patch_notes?: string;
+}
+
+export interface CommonConsequencesInfo {
+    scope: string[];
+    impact: string[];
+    description: string;
+}
+
+export interface OwaspTop10Info {
+    id: string;
+    name: string;
+    description?: string;
+}
+
+export interface OtherInfo {
+    package_manager: string;
+    epss_score?: number;
+    epss_percentile?: number;
+    vlai_score?: string;
+    vlai_confidence?: number;
+}
+
+export interface VulnerabilityDetailsReport {
+    vulnerability_info: VulnerabilityInfoReport;
+    dependency_info?: DependencyInfoReport;
+    severities: SeverityInfo;
+    owasp_top_10: OwaspTop10Info | null;
+    weaknesses: WeaknessInfo[];
+    patch: PatchInfo;
+    common_consequences: Record<string, CommonConsequencesInfo[]>;
+    references: ReferenceInfo[];
+    location: string[];
+    other: OtherInfo;
+}

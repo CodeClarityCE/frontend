@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/auth';
 import { TicketsRepository } from '../tickets.repository';
 import {
     type TicketDetails,
+    type VulnerabilityDetailsReport,
     TicketStatusLabels,
     TicketStatusColors,
     TicketPriorityLabels,
@@ -30,6 +31,8 @@ import {
 const props = defineProps<{
     ticket: TicketDetails;
     isLoading: boolean;
+    vulnerabilityDetails?: VulnerabilityDetailsReport | null;
+    isLoadingVulnDetails?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -44,6 +47,8 @@ const ticketsRepository = new TicketsRepository();
 const isOpen = ref(true);
 const isSyncing = ref(false);
 const isUnlinking = ref<string | null>(null);
+const isSyncingFromExternal = ref<string | null>(null);
+const isUpdatingStatus = ref(false);
 const availableIntegrations = ref<IntegrationConfigSummary[]>([]);
 
 async function loadIntegrations() {
@@ -107,6 +112,52 @@ async function unlinkFromProvider(linkId: string) {
     }
 }
 
+async function syncFromExternalLink(linkId: string) {
+    if (!defaultOrg.value?.id || !auth.getToken) return;
+
+    isSyncingFromExternal.value = linkId;
+    try {
+        const result = await ticketsRepository.syncFromExternal({
+            orgId: defaultOrg.value.id,
+            ticketId: props.ticket.id,
+            linkId,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        if (result.data.updated) {
+            emit('updated');
+        }
+    } catch (error) {
+        console.error('Failed to sync from external:', error);
+    } finally {
+        isSyncingFromExternal.value = null;
+    }
+}
+
+async function updateStatus(newStatus: TicketStatus) {
+    if (!defaultOrg.value?.id || !auth.getToken) return;
+
+    isUpdatingStatus.value = true;
+    try {
+        await ticketsRepository.updateTicket({
+            orgId: defaultOrg.value.id,
+            ticketId: props.ticket.id,
+            data: { status: newStatus },
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            handleHTTPErrors: true,
+            handleOtherErrors: true
+        });
+        emit('updated');
+    } catch (error) {
+        console.error('Failed to update ticket status:', error);
+    } finally {
+        isUpdatingStatus.value = false;
+    }
+}
+
 function close() {
     isOpen.value = false;
     setTimeout(() => emit('close'), 300);
@@ -139,6 +190,47 @@ const availableSyncProviders = computed(() => {
         (integration) => !linkedProviders.has(integration.provider as ExternalTicketProvider)
     );
 });
+
+// Get the best available CVSS score (prefer v3.1 > v3 > v2)
+const cvssData = computed(() => {
+    if (!props.vulnerabilityDetails?.severities) return null;
+    const { cvss_31, cvss_3, cvss_2 } = props.vulnerabilityDetails.severities;
+    if (cvss_31) return { version: '3.1', data: cvss_31 };
+    if (cvss_3) return { version: '3.0', data: cvss_3 };
+    if (cvss_2) return { version: '2.0', data: cvss_2 };
+    return null;
+});
+
+// Format EPSS score as percentage
+const epssFormatted = computed(() => {
+    const score = props.vulnerabilityDetails?.other?.epss_score;
+    const percentile = props.vulnerabilityDetails?.other?.epss_percentile;
+    if (score === undefined || score === null) return null;
+    return {
+        score: (score * 100).toFixed(2) + '%',
+        percentile: percentile !== undefined ? (percentile * 100).toFixed(1) + '%' : null
+    };
+});
+
+// Get CVSS severity class from score
+function getCvssSeverityClass(score: number | undefined): string {
+    if (!score) return 'None';
+    if (score >= 9.0) return 'Critical';
+    if (score >= 7.0) return 'High';
+    if (score >= 4.0) return 'Medium';
+    if (score >= 0.1) return 'Low';
+    return 'None';
+}
+
+// Get color for CVSS vector value
+function getCvssValueColor(value: string | undefined): string {
+    if (!value) return 'text-gray-500';
+    const lowRisk = ['LOCAL', 'PHYSICAL', 'HIGH', 'REQUIRED', 'NONE', 'UNCHANGED'];
+    const highRisk = ['NETWORK', 'LOW', 'CHANGED'];
+    if (highRisk.some((h) => value.toUpperCase().includes(h))) return 'text-red-600';
+    if (lowRisk.some((l) => value.toUpperCase().includes(l))) return 'text-green-600';
+    return 'text-yellow-600';
+}
 
 onMounted(() => {
     loadIntegrations();
@@ -256,6 +348,254 @@ onMounted(() => {
                                 {{ ticket.recommended_version }}
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Enriched Vulnerability Details -->
+                <div
+                    v-if="vulnerabilityDetails && !isLoadingVulnDetails"
+                    class="space-y-4"
+                >
+                    <!-- CVSS Score Breakdown -->
+                    <div v-if="cvssData" class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                            <Icon icon="solar:shield-check-bold" class="w-4 h-4" />
+                            CVSS v{{ cvssData.version }} Score Breakdown
+                        </h4>
+
+                        <!-- Base Score -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="text-2xl font-bold"
+                                :class="severityColor"
+                            >
+                                {{ cvssData.data.base_score?.toFixed(1) || 'N/A' }}
+                            </div>
+                            <span
+                                class="px-2 py-1 rounded text-xs font-medium"
+                                :class="{
+                                    'bg-red-100 text-red-800':
+                                        getCvssSeverityClass(cvssData.data.base_score) === 'Critical',
+                                    'bg-orange-100 text-orange-800':
+                                        getCvssSeverityClass(cvssData.data.base_score) === 'High',
+                                    'bg-yellow-100 text-yellow-800':
+                                        getCvssSeverityClass(cvssData.data.base_score) === 'Medium',
+                                    'bg-green-100 text-green-800':
+                                        getCvssSeverityClass(cvssData.data.base_score) === 'Low',
+                                    'bg-gray-100 text-gray-800':
+                                        getCvssSeverityClass(cvssData.data.base_score) === 'None'
+                                }"
+                            >
+                                {{ getCvssSeverityClass(cvssData.data.base_score) }}
+                            </span>
+                        </div>
+
+                        <!-- CVSS Vector Components -->
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div v-if="cvssData.data.attack_vector" class="flex justify-between">
+                                <span class="text-gray-500">Attack Vector</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.attack_vector)"
+                                >
+                                    {{ cvssData.data.attack_vector }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.attack_complexity" class="flex justify-between">
+                                <span class="text-gray-500">Attack Complexity</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.attack_complexity)"
+                                >
+                                    {{ cvssData.data.attack_complexity }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.privileges_required" class="flex justify-between">
+                                <span class="text-gray-500">Privileges Required</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.privileges_required)"
+                                >
+                                    {{ cvssData.data.privileges_required }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.user_interaction" class="flex justify-between">
+                                <span class="text-gray-500">User Interaction</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.user_interaction)"
+                                >
+                                    {{ cvssData.data.user_interaction }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.scope" class="flex justify-between">
+                                <span class="text-gray-500">Scope</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.scope)"
+                                >
+                                    {{ cvssData.data.scope }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.confidentiality_impact" class="flex justify-between">
+                                <span class="text-gray-500">Confidentiality</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.confidentiality_impact)"
+                                >
+                                    {{ cvssData.data.confidentiality_impact }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.integrity_impact" class="flex justify-between">
+                                <span class="text-gray-500">Integrity</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.integrity_impact)"
+                                >
+                                    {{ cvssData.data.integrity_impact }}
+                                </span>
+                            </div>
+                            <div v-if="cvssData.data.availability_impact" class="flex justify-between">
+                                <span class="text-gray-500">Availability</span>
+                                <span
+                                    class="font-medium"
+                                    :class="getCvssValueColor(cvssData.data.availability_impact)"
+                                >
+                                    {{ cvssData.data.availability_impact }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EPSS Score -->
+                    <div v-if="epssFormatted" class="bg-purple-50 rounded-lg p-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <Icon icon="solar:graph-up-bold" class="w-4 h-4 text-purple-600" />
+                            EPSS (Exploit Prediction)
+                        </h4>
+                        <div class="flex items-center gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500">Probability</p>
+                                <p class="text-lg font-semibold text-purple-700">
+                                    {{ epssFormatted.score }}
+                                </p>
+                            </div>
+                            <div v-if="epssFormatted.percentile">
+                                <p class="text-xs text-gray-500">Percentile</p>
+                                <p class="text-lg font-semibold text-purple-700">
+                                    {{ epssFormatted.percentile }}
+                                </p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Likelihood this vulnerability will be exploited in the wild
+                        </p>
+                    </div>
+
+                    <!-- VLAI Score -->
+                    <div
+                        v-if="vulnerabilityDetails.other?.vlai_score"
+                        class="bg-blue-50 rounded-lg p-4"
+                    >
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <Icon icon="solar:cpu-bolt-bold" class="w-4 h-4 text-blue-600" />
+                            VLAI (AI Assessment)
+                        </h4>
+                        <div class="flex items-center gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500">Risk Level</p>
+                                <p
+                                    class="text-lg font-semibold"
+                                    :class="{
+                                        'text-red-600':
+                                            vulnerabilityDetails.other.vlai_score === 'CRITICAL',
+                                        'text-orange-600':
+                                            vulnerabilityDetails.other.vlai_score === 'HIGH',
+                                        'text-yellow-600':
+                                            vulnerabilityDetails.other.vlai_score === 'MEDIUM',
+                                        'text-green-600':
+                                            vulnerabilityDetails.other.vlai_score === 'LOW',
+                                        'text-gray-600': ![
+                                            'CRITICAL',
+                                            'HIGH',
+                                            'MEDIUM',
+                                            'LOW'
+                                        ].includes(vulnerabilityDetails.other.vlai_score || '')
+                                    }"
+                                >
+                                    {{ vulnerabilityDetails.other.vlai_score }}
+                                </p>
+                            </div>
+                            <div v-if="vulnerabilityDetails.other.vlai_confidence">
+                                <p class="text-xs text-gray-500">Confidence</p>
+                                <p class="text-lg font-semibold text-blue-700">
+                                    {{
+                                        (vulnerabilityDetails.other.vlai_confidence * 100).toFixed(0)
+                                    }}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CWE Weaknesses -->
+                    <div
+                        v-if="vulnerabilityDetails.weaknesses?.length"
+                        class="bg-gray-50 rounded-lg p-4"
+                    >
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <Icon icon="solar:bug-bold" class="w-4 h-4 text-gray-600" />
+                            Related Weaknesses (CWE)
+                        </h4>
+                        <div class="space-y-2">
+                            <div
+                                v-for="weakness in vulnerabilityDetails.weaknesses.slice(0, 3)"
+                                :key="weakness.id"
+                                class="text-sm"
+                            >
+                                <span class="font-mono text-xs text-gray-500">{{
+                                    weakness.id
+                                }}</span>
+                                <span class="ml-2 text-gray-700">{{ weakness.name }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- References -->
+                    <div
+                        v-if="vulnerabilityDetails.references?.length"
+                        class="bg-gray-50 rounded-lg p-4"
+                    >
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <Icon icon="solar:link-bold" class="w-4 h-4 text-gray-600" />
+                            References
+                        </h4>
+                        <div class="space-y-1 max-h-32 overflow-y-auto">
+                            <a
+                                v-for="(ref, index) in vulnerabilityDetails.references.slice(0, 5)"
+                                :key="index"
+                                :href="ref.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center gap-2 text-xs text-blue-600 hover:underline truncate"
+                            >
+                                <Icon icon="solar:arrow-right-up-linear" class="w-3 h-3 flex-shrink-0" />
+                                <span class="truncate">{{ ref.url }}</span>
+                            </a>
+                            <p
+                                v-if="vulnerabilityDetails.references.length > 5"
+                                class="text-xs text-gray-500 mt-1"
+                            >
+                                +{{ vulnerabilityDetails.references.length - 5 }} more references
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading vulnerability details -->
+                <div v-if="isLoadingVulnDetails" class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center gap-2 text-gray-500">
+                        <Icon icon="solar:spinner-outline" class="w-4 h-4 animate-spin" />
+                        <span class="text-sm">Loading vulnerability details...</span>
                     </div>
                 </div>
 
@@ -377,8 +717,23 @@ onMounted(() => {
                                     class="w-4 h-4 text-gray-400"
                                 />
                             </a>
+                            <!-- Sync from external button -->
                             <button
-                                class="p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                class="p-1.5 text-gray-400 hover:text-blue-500 rounded-md hover:bg-blue-50 transition-colors"
+                                title="Sync status from external"
+                                :disabled="isSyncingFromExternal === link.id"
+                                @click.stop="syncFromExternalLink(link.id)"
+                            >
+                                <Icon
+                                    v-if="isSyncingFromExternal === link.id"
+                                    icon="solar:spinner-outline"
+                                    class="w-4 h-4 animate-spin"
+                                />
+                                <Icon v-else icon="solar:refresh-linear" class="w-4 h-4" />
+                            </button>
+                            <!-- Unlink button -->
+                            <button
+                                class="p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors"
                                 title="Unlink from external"
                                 :disabled="isUnlinking === link.id"
                                 @click.stop="unlinkFromProvider(link.id)"
@@ -441,20 +796,74 @@ onMounted(() => {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
+                    <!-- Start Progress (shown for OPEN tickets) -->
                     <Button
                         v-if="ticket.status === TicketStatus.OPEN"
                         variant="outline"
                         class="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                        :disabled="isUpdatingStatus"
+                        @click="updateStatus(TicketStatus.IN_PROGRESS)"
                     >
-                        <Icon icon="solar:play-bold" class="w-4 h-4 mr-2" />
+                        <Icon
+                            v-if="isUpdatingStatus"
+                            icon="solar:spinner-outline"
+                            class="w-4 h-4 mr-2 animate-spin"
+                        />
+                        <Icon v-else icon="solar:play-bold" class="w-4 h-4 mr-2" />
                         Start Progress
                     </Button>
+
+                    <!-- Mark Resolved (shown for IN_PROGRESS tickets) -->
                     <Button
                         v-if="ticket.status === TicketStatus.IN_PROGRESS"
                         class="bg-green-600 hover:bg-green-700"
+                        :disabled="isUpdatingStatus"
+                        @click="updateStatus(TicketStatus.RESOLVED)"
                     >
-                        <Icon icon="solar:check-circle-bold" class="w-4 h-4 mr-2" />
+                        <Icon
+                            v-if="isUpdatingStatus"
+                            icon="solar:spinner-outline"
+                            class="w-4 h-4 mr-2 animate-spin"
+                        />
+                        <Icon v-else icon="solar:check-circle-bold" class="w-4 h-4 mr-2" />
                         Mark Resolved
+                    </Button>
+
+                    <!-- Won't Fix (shown for OPEN or IN_PROGRESS tickets) -->
+                    <Button
+                        v-if="
+                            ticket.status === TicketStatus.OPEN ||
+                            ticket.status === TicketStatus.IN_PROGRESS
+                        "
+                        variant="outline"
+                        class="text-gray-600 border-gray-300 hover:bg-gray-50"
+                        :disabled="isUpdatingStatus"
+                        @click="updateStatus(TicketStatus.WONT_FIX)"
+                    >
+                        <Icon
+                            v-if="isUpdatingStatus"
+                            icon="solar:spinner-outline"
+                            class="w-4 h-4 mr-2 animate-spin"
+                        />
+                        <Icon v-else icon="solar:close-circle-bold" class="w-4 h-4 mr-2" />
+                        Won't Fix
+                    </Button>
+
+                    <!-- Close (shown for RESOLVED tickets) -->
+                    <Button
+                        v-if="ticket.status === TicketStatus.RESOLVED"
+                        variant="outline"
+                        class="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        :disabled="isUpdatingStatus"
+                        @click="updateStatus(TicketStatus.CLOSED)"
+                    >
+                        <Icon
+                            v-if="isUpdatingStatus"
+                            icon="solar:spinner-outline"
+                            class="w-4 h-4 mr-2 animate-spin"
+                        />
+                        <Icon v-else icon="solar:archive-bold" class="w-4 h-4 mr-2" />
+                        Close
                     </Button>
                 </div>
             </div>

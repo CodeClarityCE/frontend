@@ -9,6 +9,18 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger
+} from '@/shadcn/ui/accordion';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger
+} from '@/shadcn/ui/tooltip';
 import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
 import { TicketsRepository } from '../tickets.repository';
@@ -27,6 +39,9 @@ import {
     ExternalProviderIcons,
     type IntegrationConfigSummary
 } from '../tickets.entity';
+import RiskScoreGauge from '../components/RiskScoreGauge.vue';
+import ScoreProgressBar from '../components/ScoreProgressBar.vue';
+import { getOwaspInfoById } from '@/utils/owasp';
 
 const props = defineProps<{
     ticket: TicketDetails;
@@ -50,6 +65,7 @@ const isUnlinking = ref<string | null>(null);
 const isSyncingFromExternal = ref<string | null>(null);
 const isUpdatingStatus = ref(false);
 const availableIntegrations = ref<IntegrationConfigSummary[]>([]);
+const openAccordionItems = ref<string[]>([]);
 
 async function loadIntegrations() {
     if (!defaultOrg.value?.id || !auth.getToken) return;
@@ -174,15 +190,6 @@ function formatDate(date: Date | undefined): string {
     });
 }
 
-const severityColor = computed(() => {
-    const score = props.ticket.severity_score;
-    if (!score) return 'text-gray-500';
-    if (score >= 9) return 'text-red-600';
-    if (score >= 7) return 'text-orange-600';
-    if (score >= 4) return 'text-yellow-600';
-    return 'text-green-600';
-});
-
 // Get providers that aren't already linked
 const availableSyncProviders = computed(() => {
     const linkedProviders = new Set(props.ticket.external_links.map((link) => link.provider));
@@ -208,19 +215,11 @@ const epssFormatted = computed(() => {
     if (score === undefined || score === null) return null;
     return {
         score: (score * 100).toFixed(2) + '%',
-        percentile: percentile !== undefined ? (percentile * 100).toFixed(1) + '%' : null
+        scoreRaw: score * 100,
+        percentile: percentile !== undefined ? (percentile * 100).toFixed(1) + '%' : null,
+        percentileRaw: percentile !== undefined ? percentile * 100 : null
     };
 });
-
-// Get CVSS severity class from score
-function getCvssSeverityClass(score: number | undefined): string {
-    if (!score) return 'None';
-    if (score >= 9.0) return 'Critical';
-    if (score >= 7.0) return 'High';
-    if (score >= 4.0) return 'Medium';
-    if (score >= 0.1) return 'Low';
-    return 'None';
-}
 
 // Get color for CVSS vector value
 function getCvssValueColor(value: string | undefined): string {
@@ -231,6 +230,86 @@ function getCvssValueColor(value: string | undefined): string {
     if (lowRisk.some((l) => value.toUpperCase().includes(l))) return 'text-green-600';
     return 'text-yellow-600';
 }
+
+// Convert VLAI score string to numeric value for gauge
+function getVlaiNumericScore(vlaiScore: string | undefined): number {
+    if (!vlaiScore) return 0;
+    const mapping: Record<string, number> = {
+        CRITICAL: 10,
+        HIGH: 7.5,
+        MEDIUM: 5,
+        LOW: 2.5
+    };
+    return mapping[vlaiScore.toUpperCase()] || 0;
+}
+
+// Get overall risk level
+const overallRiskLevel = computed(() => {
+    const cvss = cvssData.value?.data.base_score || 0;
+    if (cvss >= 9.0) return 'critical';
+    if (cvss >= 7.0) return 'high';
+    if (cvss >= 4.0) return 'medium';
+    if (cvss >= 0.1) return 'low';
+    return 'none';
+});
+
+// Risk banner styling
+const riskBannerConfig = computed(() => {
+    const configs: Record<string, { bg: string; text: string; icon: string; label: string; recommendation: string }> = {
+        critical: {
+            bg: 'bg-black',
+            text: 'text-white',
+            icon: 'solar:danger-triangle-bold',
+            label: 'Critical',
+            recommendation: 'Immediate action required'
+        },
+        high: {
+            bg: 'bg-red-600',
+            text: 'text-white',
+            icon: 'solar:shield-warning-bold',
+            label: 'High',
+            recommendation: 'Address as soon as possible'
+        },
+        medium: {
+            bg: 'bg-amber-500',
+            text: 'text-white',
+            icon: 'solar:shield-warning-linear',
+            label: 'Medium',
+            recommendation: 'Plan remediation in upcoming cycle'
+        },
+        low: {
+            bg: 'bg-green-600',
+            text: 'text-white',
+            icon: 'solar:shield-check-bold',
+            label: 'Low',
+            recommendation: 'Monitor and address when convenient'
+        },
+        none: {
+            bg: 'bg-gray-100',
+            text: 'text-gray-700',
+            icon: 'solar:info-circle-bold',
+            label: 'Info',
+            recommendation: 'No immediate action required'
+        }
+    };
+    return configs[overallRiskLevel.value] || configs.none;
+});
+
+// Check if we have any scores to show in risk overview
+const hasRiskScores = computed(() => {
+    return (
+        cvssData.value ||
+        epssFormatted.value ||
+        props.vulnerabilityDetails?.other?.vlai_score
+    );
+});
+
+// Get OWASP info if available
+const owaspInfo = computed(() => {
+    const owasp = props.vulnerabilityDetails?.owasp_top_10;
+    if (!owasp?.id) return null;
+    return getOwaspInfoById(owasp.id);
+});
 
 onMounted(() => {
     loadIntegrations();
@@ -306,286 +385,204 @@ onMounted(() => {
                             {{ TicketPriorityLabels[ticket.priority] }}
                         </span>
                     </div>
+                    <!-- CVE ID Link (only if not already in title) -->
+                    <a
+                        v-if="ticket.vulnerability_id && !ticket.title.includes(ticket.vulnerability_id)"
+                        :href="`https://nvd.nist.gov/vuln/detail/${ticket.vulnerability_id}`"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1.5 mt-2 font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                        {{ ticket.vulnerability_id }}
+                        <Icon icon="solar:arrow-right-up-linear" class="w-3.5 h-3.5" />
+                    </a>
                 </div>
 
-                <!-- Vulnerability Info -->
-                <div v-if="ticket.vulnerability_id" class="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <h4 class="text-sm font-medium text-gray-700">Vulnerability Information</h4>
+                <!-- Risk Banner (shown when vulnerability details available) -->
+                <div
+                    v-if="vulnerabilityDetails && hasRiskScores && !isLoadingVulnDetails"
+                    :class="['flex items-center gap-3 p-4 rounded-lg', riskBannerConfig.bg, riskBannerConfig.text]"
+                >
+                    <Icon :icon="riskBannerConfig.icon" class="w-6 h-6 flex-shrink-0" />
+                    <div>
+                        <p class="font-semibold">{{ riskBannerConfig.label }} Risk</p>
+                        <p class="text-sm opacity-90">{{ riskBannerConfig.recommendation }}</p>
+                    </div>
+                </div>
+
+                <!-- Risk Overview Section -->
+                <div
+                    v-if="vulnerabilityDetails && hasRiskScores && !isLoadingVulnDetails"
+                    class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200"
+                >
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <Icon icon="solar:chart-2-bold" class="w-5 h-5" />
+                        Risk Overview
+                    </h4>
+
+                    <!-- Score Gauges Grid -->
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <!-- CVSS Gauge -->
+                        <TooltipProvider v-if="cvssData">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <div class="cursor-help">
+                                        <RiskScoreGauge
+                                            :score="cvssData.data.base_score || 0"
+                                            :max-score="10"
+                                            :label="'CVSS v' + cvssData.version"
+                                            type="cvss"
+                                            size="md"
+                                        />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                    <div class="space-y-2">
+                                        <h5 class="font-semibold">CVSS Score</h5>
+                                        <p class="text-sm text-gray-600">
+                                            Common Vulnerability Scoring System - industry standard for assessing severity.
+                                        </p>
+                                        <div class="text-xs space-y-1 mt-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded bg-black flex-shrink-0"></span>
+                                                <span>Critical: 9.0-10.0</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded bg-red-600 flex-shrink-0"></span>
+                                                <span>High: 7.0-8.9</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded bg-amber-500 flex-shrink-0"></span>
+                                                <span>Medium: 4.0-6.9</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded bg-green-500 flex-shrink-0"></span>
+                                                <span>Low: 0.1-3.9</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <!-- EPSS Gauge -->
+                        <TooltipProvider v-if="epssFormatted">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <div class="cursor-help">
+                                        <RiskScoreGauge
+                                            :score="epssFormatted.scoreRaw"
+                                            :max-score="100"
+                                            label="EPSS"
+                                            type="epss"
+                                            size="md"
+                                            :sublabel="epssFormatted.percentile ? 'Top ' + epssFormatted.percentile : ''"
+                                        />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                    <div class="space-y-2">
+                                        <h5 class="font-semibold">EPSS Score</h5>
+                                        <p class="text-sm text-gray-600">
+                                            Exploit Prediction Scoring System - probability this vulnerability will be exploited in the wild within 30 days.
+                                        </p>
+                                        <div v-if="epssFormatted.percentile" class="text-xs text-gray-500 mt-2">
+                                            Percentile: {{ epssFormatted.percentile }} of all CVEs
+                                        </div>
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <!-- VLAI Gauge -->
+                        <TooltipProvider v-if="vulnerabilityDetails.other?.vlai_score">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <div class="cursor-help">
+                                        <RiskScoreGauge
+                                            :score="getVlaiNumericScore(vulnerabilityDetails.other.vlai_score)"
+                                            :max-score="10"
+                                            label="VLAI"
+                                            type="vlai"
+                                            size="md"
+                                            :sublabel="vulnerabilityDetails.other.vlai_score"
+                                        />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                    <div class="space-y-2">
+                                        <h5 class="font-semibold">VLAI Score</h5>
+                                        <p class="text-sm text-gray-600">
+                                            AI-powered risk assessment considering real-world exploitability and context.
+                                        </p>
+                                        <div v-if="vulnerabilityDetails.other.vlai_confidence" class="text-xs text-gray-500 mt-2">
+                                            Confidence: {{ (vulnerabilityDetails.other.vlai_confidence * 100).toFixed(0) }}%
+                                        </div>
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+
+                    <!-- OWASP Badge -->
+                    <div
+                        v-if="vulnerabilityDetails.owasp_top_10?.id"
+                        class="pt-4 border-t border-gray-200"
+                    >
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <div
+                                        :class="[
+                                            'inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium cursor-help',
+                                            owaspInfo?.color || 'bg-gray-50 border-gray-200 text-gray-800'
+                                        ]"
+                                    >
+                                        <Icon icon="simple-icons:owasp" class="w-4 h-4" />
+                                        <span>
+                                            OWASP {{ vulnerabilityDetails.owasp_top_10.id }}:
+                                            {{ vulnerabilityDetails.owasp_top_10.name }}
+                                        </span>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent class="max-w-sm !bg-white !text-gray-900 border shadow-lg p-4" side="bottom">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <Icon icon="simple-icons:owasp" class="w-4 h-4 text-orange-600" />
+                                            <span class="font-semibold">
+                                                OWASP Top 10 - {{ owaspInfo?.id }}
+                                            </span>
+                                        </div>
+                                        <h5 class="font-medium">{{ owaspInfo?.name }}</h5>
+                                        <p class="text-sm text-gray-600">{{ owaspInfo?.description }}</p>
+                                        <div class="pt-2 border-t border-gray-100">
+                                            <p class="text-xs font-medium text-gray-700">Potential Impact:</p>
+                                            <p class="text-xs text-gray-600">{{ owaspInfo?.impact }}</p>
+                                        </div>
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                </div>
+
+                <!-- Affected Component (Compact) -->
+                <div v-if="ticket.affected_package" class="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700">Affected Component</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-xs text-gray-500">CVE ID</p>
-                            <p class="font-mono text-sm font-medium text-gray-900">
-                                {{ ticket.vulnerability_id }}
+                            <p class="text-xs text-gray-500">Package</p>
+                            <p class="text-sm text-gray-900 truncate" :title="ticket.affected_package">
+                                {{ ticket.affected_package }}
                             </p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500">Severity Score</p>
-                            <p class="text-sm font-semibold" :class="severityColor">
-                                {{ ticket.severity_score?.toFixed(1) || 'N/A' }}
-                                <span
-                                    v-if="ticket.severity_class"
-                                    class="text-xs font-normal text-gray-500"
-                                >
-                                    ({{ ticket.severity_class }})
-                                </span>
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500">Affected Package</p>
-                            <p class="text-sm text-gray-900">
-                                {{ ticket.affected_package || 'N/A' }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500">Affected Version</p>
+                            <p class="text-xs text-gray-500">Version</p>
                             <p class="text-sm text-gray-900">
                                 {{ ticket.affected_version || 'N/A' }}
-                            </p>
-                        </div>
-                        <div v-if="ticket.recommended_version" class="col-span-2">
-                            <p class="text-xs text-gray-500">Recommended Version</p>
-                            <p class="text-sm text-green-600 font-medium">
-                                {{ ticket.recommended_version }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Enriched Vulnerability Details -->
-                <div
-                    v-if="vulnerabilityDetails && !isLoadingVulnDetails"
-                    class="space-y-4"
-                >
-                    <!-- CVSS Score Breakdown -->
-                    <div v-if="cvssData" class="bg-gray-50 rounded-lg p-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                            <Icon icon="solar:shield-check-bold" class="w-4 h-4" />
-                            CVSS v{{ cvssData.version }} Score Breakdown
-                        </h4>
-
-                        <!-- Base Score -->
-                        <div class="flex items-center gap-3 mb-4">
-                            <div
-                                class="text-2xl font-bold"
-                                :class="severityColor"
-                            >
-                                {{ cvssData.data.base_score?.toFixed(1) || 'N/A' }}
-                            </div>
-                            <span
-                                class="px-2 py-1 rounded text-xs font-medium"
-                                :class="{
-                                    'bg-red-100 text-red-800':
-                                        getCvssSeverityClass(cvssData.data.base_score) === 'Critical',
-                                    'bg-orange-100 text-orange-800':
-                                        getCvssSeverityClass(cvssData.data.base_score) === 'High',
-                                    'bg-yellow-100 text-yellow-800':
-                                        getCvssSeverityClass(cvssData.data.base_score) === 'Medium',
-                                    'bg-green-100 text-green-800':
-                                        getCvssSeverityClass(cvssData.data.base_score) === 'Low',
-                                    'bg-gray-100 text-gray-800':
-                                        getCvssSeverityClass(cvssData.data.base_score) === 'None'
-                                }"
-                            >
-                                {{ getCvssSeverityClass(cvssData.data.base_score) }}
-                            </span>
-                        </div>
-
-                        <!-- CVSS Vector Components -->
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div v-if="cvssData.data.attack_vector" class="flex justify-between">
-                                <span class="text-gray-500">Attack Vector</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.attack_vector)"
-                                >
-                                    {{ cvssData.data.attack_vector }}
+                                <span v-if="ticket.recommended_version" class="text-green-600">
+                                    → {{ ticket.recommended_version }}
                                 </span>
-                            </div>
-                            <div v-if="cvssData.data.attack_complexity" class="flex justify-between">
-                                <span class="text-gray-500">Attack Complexity</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.attack_complexity)"
-                                >
-                                    {{ cvssData.data.attack_complexity }}
-                                </span>
-                            </div>
-                            <div v-if="cvssData.data.privileges_required" class="flex justify-between">
-                                <span class="text-gray-500">Privileges Required</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.privileges_required)"
-                                >
-                                    {{ cvssData.data.privileges_required }}
-                                </span>
-                            </div>
-                            <div v-if="cvssData.data.user_interaction" class="flex justify-between">
-                                <span class="text-gray-500">User Interaction</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.user_interaction)"
-                                >
-                                    {{ cvssData.data.user_interaction }}
-                                </span>
-                            </div>
-                            <div v-if="cvssData.data.scope" class="flex justify-between">
-                                <span class="text-gray-500">Scope</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.scope)"
-                                >
-                                    {{ cvssData.data.scope }}
-                                </span>
-                            </div>
-                            <div v-if="cvssData.data.confidentiality_impact" class="flex justify-between">
-                                <span class="text-gray-500">Confidentiality</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.confidentiality_impact)"
-                                >
-                                    {{ cvssData.data.confidentiality_impact }}
-                                </span>
-                            </div>
-                            <div v-if="cvssData.data.integrity_impact" class="flex justify-between">
-                                <span class="text-gray-500">Integrity</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.integrity_impact)"
-                                >
-                                    {{ cvssData.data.integrity_impact }}
-                                </span>
-                            </div>
-                            <div v-if="cvssData.data.availability_impact" class="flex justify-between">
-                                <span class="text-gray-500">Availability</span>
-                                <span
-                                    class="font-medium"
-                                    :class="getCvssValueColor(cvssData.data.availability_impact)"
-                                >
-                                    {{ cvssData.data.availability_impact }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- EPSS Score -->
-                    <div v-if="epssFormatted" class="bg-purple-50 rounded-lg p-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Icon icon="solar:graph-up-bold" class="w-4 h-4 text-purple-600" />
-                            EPSS (Exploit Prediction)
-                        </h4>
-                        <div class="flex items-center gap-4">
-                            <div>
-                                <p class="text-xs text-gray-500">Probability</p>
-                                <p class="text-lg font-semibold text-purple-700">
-                                    {{ epssFormatted.score }}
-                                </p>
-                            </div>
-                            <div v-if="epssFormatted.percentile">
-                                <p class="text-xs text-gray-500">Percentile</p>
-                                <p class="text-lg font-semibold text-purple-700">
-                                    {{ epssFormatted.percentile }}
-                                </p>
-                            </div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">
-                            Likelihood this vulnerability will be exploited in the wild
-                        </p>
-                    </div>
-
-                    <!-- VLAI Score -->
-                    <div
-                        v-if="vulnerabilityDetails.other?.vlai_score"
-                        class="bg-blue-50 rounded-lg p-4"
-                    >
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Icon icon="solar:cpu-bolt-bold" class="w-4 h-4 text-blue-600" />
-                            VLAI (AI Assessment)
-                        </h4>
-                        <div class="flex items-center gap-4">
-                            <div>
-                                <p class="text-xs text-gray-500">Risk Level</p>
-                                <p
-                                    class="text-lg font-semibold"
-                                    :class="{
-                                        'text-red-600':
-                                            vulnerabilityDetails.other.vlai_score === 'CRITICAL',
-                                        'text-orange-600':
-                                            vulnerabilityDetails.other.vlai_score === 'HIGH',
-                                        'text-yellow-600':
-                                            vulnerabilityDetails.other.vlai_score === 'MEDIUM',
-                                        'text-green-600':
-                                            vulnerabilityDetails.other.vlai_score === 'LOW',
-                                        'text-gray-600': ![
-                                            'CRITICAL',
-                                            'HIGH',
-                                            'MEDIUM',
-                                            'LOW'
-                                        ].includes(vulnerabilityDetails.other.vlai_score || '')
-                                    }"
-                                >
-                                    {{ vulnerabilityDetails.other.vlai_score }}
-                                </p>
-                            </div>
-                            <div v-if="vulnerabilityDetails.other.vlai_confidence">
-                                <p class="text-xs text-gray-500">Confidence</p>
-                                <p class="text-lg font-semibold text-blue-700">
-                                    {{
-                                        (vulnerabilityDetails.other.vlai_confidence * 100).toFixed(0)
-                                    }}%
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CWE Weaknesses -->
-                    <div
-                        v-if="vulnerabilityDetails.weaknesses?.length"
-                        class="bg-gray-50 rounded-lg p-4"
-                    >
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Icon icon="solar:bug-bold" class="w-4 h-4 text-gray-600" />
-                            Related Weaknesses (CWE)
-                        </h4>
-                        <div class="space-y-2">
-                            <div
-                                v-for="weakness in vulnerabilityDetails.weaknesses.slice(0, 3)"
-                                :key="weakness.id"
-                                class="text-sm"
-                            >
-                                <span class="font-mono text-xs text-gray-500">{{
-                                    weakness.id
-                                }}</span>
-                                <span class="ml-2 text-gray-700">{{ weakness.name }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- References -->
-                    <div
-                        v-if="vulnerabilityDetails.references?.length"
-                        class="bg-gray-50 rounded-lg p-4"
-                    >
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Icon icon="solar:link-bold" class="w-4 h-4 text-gray-600" />
-                            References
-                        </h4>
-                        <div class="space-y-1 max-h-32 overflow-y-auto">
-                            <a
-                                v-for="(ref, index) in vulnerabilityDetails.references.slice(0, 5)"
-                                :key="index"
-                                :href="ref.url"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="flex items-center gap-2 text-xs text-blue-600 hover:underline truncate"
-                            >
-                                <Icon icon="solar:arrow-right-up-linear" class="w-3 h-3 flex-shrink-0" />
-                                <span class="truncate">{{ ref.url }}</span>
-                            </a>
-                            <p
-                                v-if="vulnerabilityDetails.references.length > 5"
-                                class="text-xs text-gray-500 mt-1"
-                            >
-                                +{{ vulnerabilityDetails.references.length - 5 }} more references
                             </p>
                         </div>
                     </div>
@@ -598,6 +595,213 @@ onMounted(() => {
                         <span class="text-sm">Loading vulnerability details...</span>
                     </div>
                 </div>
+
+                <!-- Detailed Breakdowns (Accordion) -->
+                <Accordion
+                    v-if="vulnerabilityDetails && !isLoadingVulnDetails"
+                    v-model="openAccordionItems"
+                    type="multiple"
+                    class="space-y-2"
+                >
+                    <!-- CVSS Details Section -->
+                    <AccordionItem v-if="cvssData" value="cvss-details" class="border rounded-lg overflow-hidden">
+                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <Icon icon="solar:shield-check-bold" class="w-4 h-4 text-gray-600" />
+                                CVSS v{{ cvssData.version }} Breakdown
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent class="px-4 pb-4 pt-2">
+                            <!-- Exploitability & Impact Sub-scores -->
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div v-if="cvssData.data.exploitability_score" class="bg-white rounded-lg p-3 border">
+                                    <ScoreProgressBar
+                                        :value="cvssData.data.exploitability_score"
+                                        :max="3.9"
+                                        label="Exploitability"
+                                        color-scheme="severity"
+                                        size="sm"
+                                    />
+                                </div>
+                                <div v-if="cvssData.data.impact_score" class="bg-white rounded-lg p-3 border">
+                                    <ScoreProgressBar
+                                        :value="cvssData.data.impact_score"
+                                        :max="6.1"
+                                        label="Impact"
+                                        color-scheme="severity"
+                                        size="sm"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- CVSS Vector Components -->
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div v-if="cvssData.data.attack_vector" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Attack Vector</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.attack_vector)"
+                                    >
+                                        {{ cvssData.data.attack_vector }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.attack_complexity" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Attack Complexity</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.attack_complexity)"
+                                    >
+                                        {{ cvssData.data.attack_complexity }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.privileges_required" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Privileges Required</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.privileges_required)"
+                                    >
+                                        {{ cvssData.data.privileges_required }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.user_interaction" class="flex justify-between py-1">
+                                    <span class="text-gray-500">User Interaction</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.user_interaction)"
+                                    >
+                                        {{ cvssData.data.user_interaction }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.scope" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Scope</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.scope)"
+                                    >
+                                        {{ cvssData.data.scope }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.confidentiality_impact" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Confidentiality</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.confidentiality_impact)"
+                                    >
+                                        {{ cvssData.data.confidentiality_impact }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.integrity_impact" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Integrity</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.integrity_impact)"
+                                    >
+                                        {{ cvssData.data.integrity_impact }}
+                                    </span>
+                                </div>
+                                <div v-if="cvssData.data.availability_impact" class="flex justify-between py-1">
+                                    <span class="text-gray-500">Availability</span>
+                                    <span
+                                        class="font-medium"
+                                        :class="getCvssValueColor(cvssData.data.availability_impact)"
+                                    >
+                                        {{ cvssData.data.availability_impact }}
+                                    </span>
+                                </div>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <!-- CWE Weaknesses Section -->
+                    <AccordionItem
+                        v-if="vulnerabilityDetails.weaknesses?.length"
+                        value="weaknesses"
+                        class="border rounded-lg overflow-hidden"
+                    >
+                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <Icon icon="solar:bug-bold" class="w-4 h-4 text-gray-600" />
+                                Weaknesses ({{ vulnerabilityDetails.weaknesses.length }})
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent class="px-4 pb-4 pt-2">
+                            <div class="space-y-3">
+                                <div
+                                    v-for="weakness in vulnerabilityDetails.weaknesses"
+                                    :key="weakness.id"
+                                    class="bg-white rounded-lg p-3 border"
+                                >
+                                    <div class="flex items-start gap-2">
+                                        <span class="font-mono text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                            {{ weakness.id }}
+                                        </span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">{{ weakness.name }}</p>
+                                            <p v-if="weakness.description" class="text-xs text-gray-500 mt-1 line-clamp-2">
+                                                {{ weakness.description }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <!-- Affected Locations Section -->
+                    <AccordionItem
+                        v-if="vulnerabilityDetails.location?.length"
+                        value="locations"
+                        class="border rounded-lg overflow-hidden"
+                    >
+                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <Icon icon="solar:folder-path-connect-bold" class="w-4 h-4 text-gray-600" />
+                                Affected Locations ({{ vulnerabilityDetails.location.length }})
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent class="px-4 pb-4 pt-2">
+                            <div class="space-y-2 max-h-48 overflow-y-auto">
+                                <div
+                                    v-for="(path, index) in vulnerabilityDetails.location"
+                                    :key="index"
+                                    class="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border font-mono text-xs"
+                                >
+                                    <Icon icon="solar:document-text-linear" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                    <span class="truncate text-gray-700" :title="path">{{ path }}</span>
+                                </div>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <!-- References Section -->
+                    <AccordionItem
+                        v-if="vulnerabilityDetails.references?.length"
+                        value="references"
+                        class="border rounded-lg overflow-hidden"
+                    >
+                        <AccordionTrigger class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <Icon icon="solar:link-bold" class="w-4 h-4 text-gray-600" />
+                                References ({{ vulnerabilityDetails.references.length }})
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent class="px-4 pb-4 pt-2">
+                            <div class="space-y-1 max-h-48 overflow-y-auto">
+                                <a
+                                    v-for="(reference, index) in vulnerabilityDetails.references"
+                                    :key="index"
+                                    :href="reference.url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center gap-2 px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                    <Icon icon="solar:arrow-right-up-linear" class="w-3 h-3 flex-shrink-0" />
+                                    <span class="truncate">{{ reference.url }}</span>
+                                </a>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
 
                 <!-- Description -->
                 <div>
@@ -647,8 +851,11 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Occurrence Stats -->
-                <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
+                <!-- Occurrence Stats (only shown if there are occurrences) -->
+                <div
+                    v-if="ticket.occurrence_count > 0"
+                    class="flex items-center gap-4 pt-4 border-t border-gray-200"
+                >
                     <div class="flex items-center gap-2">
                         <Icon icon="solar:document-bold" class="w-4 h-4 text-gray-400" />
                         <span class="text-sm text-gray-600">

@@ -238,7 +238,8 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
             selectedTicket.value = response.data;
 
             // Auto-load vulnerability details if this is a vulnerability ticket
-            if (response.data.vulnerability_id && response.data.source_analysis_id) {
+            // The backend will use source_analysis if available, otherwise fall back to knowledge DB
+            if (response.data.vulnerability_id) {
                 loadVulnerabilityDetails(ticketId);
             } else {
                 vulnerabilityDetails.value = null;

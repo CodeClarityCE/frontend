@@ -431,8 +431,8 @@ function createDepTypeChart() {
     // Convert to d3 DoughnutChart format
     const d3_data: DoughnutChartData = labels.map((label, index) => ({
         label: label as any, // Cast to satisfy the type requirement
-        count: data[index],
-        color: colors[index]
+        count: data[index] ?? 0,
+        color: colors[index] ?? '#000000'
     }));
 
     donut_data.value = d3_data;

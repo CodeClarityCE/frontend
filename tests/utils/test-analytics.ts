@@ -1,10 +1,11 @@
 /**
  * Test Analytics and Monitoring Utilities
- * 
+ *
  * Tools for collecting, analyzing, and reporting test execution metrics
  */
 
 import { performance } from 'perf_hooks';
+import type { MemoryInfo } from './types';
 
 /**
  * Test execution metrics interface

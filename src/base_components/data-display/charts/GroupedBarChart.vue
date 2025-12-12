@@ -106,7 +106,7 @@ onMounted(() => {
             .attr('x', x1(group.name)!)
             .attr('y', (d, i) => y(group.data[i] ?? 0))
             .attr('width', x1.bandwidth())
-            .attr('height', (d, i) => height - y(group.data[i]))
+            .attr('height', (d, i) => height - y(group.data[i] ?? 0))
             .attr('fill', group.color)
             .attr('rx', config.rounded ? 6 : 0);
 

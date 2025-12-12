@@ -15,10 +15,19 @@ export interface VulnerabilityInfo {
     aliases: string[];
 }
 
+export interface SourceComparison {
+    agree: boolean;
+    nvdReason?: string;
+    nvdAllVersions?: string;
+    osvReason?: string;
+    osvAllVersions?: string;
+}
+
 export interface VersionInfo {
     affected_versions_string: string;
     patched_versions_string: string;
     versions: VulnerableVersionInfo[];
+    source_comparison?: SourceComparison;
 }
 
 export interface VulnerableVersionInfo {

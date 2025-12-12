@@ -220,8 +220,8 @@ defineProps<{
                                                     v-if="
                                                         weakness.id in
                                                             finding.common_consequences &&
-                                                        finding.common_consequences[weakness.id]
-                                                            .length > 0
+                                                        (finding.common_consequences[weakness.id]
+                                                            ?.length ?? 0) > 0
                                                     "
                                                     class="mt-4"
                                                 >
@@ -229,7 +229,7 @@ defineProps<{
                                                     <span
                                                         >{{
                                                             finding.common_consequences[weakness.id]
-                                                                .map((conseq: any) =>
+                                                                ?.map((conseq: any) =>
                                                                     conseq.impact.join(', ')
                                                                 )
                                                                 .join('; ')

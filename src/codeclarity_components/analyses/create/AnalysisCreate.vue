@@ -78,7 +78,7 @@ const availableLanguages = ['javascript', 'php'];
 
 // Schedule data
 const scheduleData = ref({
-    schedule_type: 'once' as 'once' | '10min' | 'hourly' | 'daily' | 'weekly' | 'monthly',
+    schedule_type: 'once' as 'once' | 'daily' | 'weekly',
     next_scheduled_run: undefined as Date | undefined,
     is_active: true
 });
@@ -159,8 +159,9 @@ function onSubmit(values: any, plugin_name: string) {
 
 watchDeep(selected_analyzers, () => {
     selected_analyzers_list.value = [];
-    if (selected_analyzers.value.length > 0) {
-        getAnalyzer(selected_analyzers.value[0].toString());
+    const firstAnalyzer = selected_analyzers.value[0];
+    if (selected_analyzers.value.length > 0 && firstAnalyzer) {
+        getAnalyzer(firstAnalyzer.toString());
     }
 });
 
@@ -289,6 +290,9 @@ async function validateAllConfigurations() {
     }
 
     const analyzer = selected_analyzers_list.value[0];
+    if (!analyzer) {
+        throw new Error('No analyzer found');
+    }
 
     // 1. Apply SBOM configuration if needed
     if (hasSBOMPlugins(analyzer)) {
@@ -393,8 +397,12 @@ async function createAnalysisStart() {
             }
 
             // Prepare analysis data with scheduling information
+            const firstAnalyzerId = selected_analyzers.value[0];
+            if (!firstAnalyzerId) {
+                throw new Error('No analyzer selected');
+            }
             const analysisData: any = {
-                analyzer_id: selected_analyzers.value[0].toString(),
+                analyzer_id: firstAnalyzerId.toString(),
                 branch: selected_branch.value,
                 commit_hash: selected_commit_hash.value,
                 config: configuration.value

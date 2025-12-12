@@ -2,12 +2,9 @@
 import type { SemVer } from '@/codeclarity_components/results/patching/Patching';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 
-defineProps({
-    semver: {
-        type: Object as () => SemVer,
-        required: true
-    }
-});
+defineProps<{
+    semver?: SemVer;
+}>();
 </script>
 <template>
     <Badge v-if="semver">

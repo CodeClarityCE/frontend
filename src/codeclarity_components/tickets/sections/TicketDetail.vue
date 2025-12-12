@@ -68,7 +68,7 @@ const availableIntegrations = ref<IntegrationConfigSummary[]>([]);
 const openAccordionItems = ref<string[]>([]);
 
 async function loadIntegrations() {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     try {
         const response = await ticketsRepository.getIntegrations({
@@ -85,7 +85,7 @@ async function loadIntegrations() {
 }
 
 async function syncToProvider(provider: ExternalTicketProvider) {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isSyncing.value = true;
     try {
@@ -107,7 +107,7 @@ async function syncToProvider(provider: ExternalTicketProvider) {
 }
 
 async function unlinkFromProvider(linkId: string) {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isUnlinking.value = linkId;
     try {
@@ -129,7 +129,7 @@ async function unlinkFromProvider(linkId: string) {
 }
 
 async function syncFromExternalLink(linkId: string) {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isSyncingFromExternal.value = linkId;
     try {
@@ -153,7 +153,7 @@ async function syncFromExternalLink(linkId: string) {
 }
 
 async function updateStatus(newStatus: TicketStatus) {
-    if (!defaultOrg.value?.id || !auth.getToken) return;
+    if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isUpdatingStatus.value = true;
     try {
@@ -199,7 +199,7 @@ const availableSyncProviders = computed(() => {
 });
 
 // Get the best available CVSS score (prefer v3.1 > v3 > v2)
-const cvssData = computed(() => {
+const cvssData = computed((): { version: string; data: any } | null => {
     if (!props.vulnerabilityDetails?.severities) return null;
     const { cvss_31, cvss_3, cvss_2 } = props.vulnerabilityDetails.severities;
     if (cvss_31) return { version: '3.1', data: cvss_31 };
@@ -254,8 +254,9 @@ const overallRiskLevel = computed(() => {
 });
 
 // Risk banner styling
-const riskBannerConfig = computed(() => {
-    const configs: Record<string, { bg: string; text: string; icon: string; label: string; recommendation: string }> = {
+type RiskConfig = { bg: string; text: string; icon: string; label: string; recommendation: string };
+const riskBannerConfig = computed((): RiskConfig => {
+    const configs: { [K in 'critical' | 'high' | 'medium' | 'low' | 'none']: RiskConfig } = {
         critical: {
             bg: 'bg-black',
             text: 'text-white',
@@ -292,7 +293,7 @@ const riskBannerConfig = computed(() => {
             recommendation: 'No immediate action required'
         }
     };
-    return configs[overallRiskLevel.value] || configs.none;
+    return configs[overallRiskLevel.value as keyof typeof configs] ?? configs.none;
 });
 
 // Check if we have any scores to show in risk overview

@@ -21,18 +21,28 @@ const delegatedProps = computed(() => {
     return undefined;
 });
 
+const resolvedComponent = computed(() => {
+    if (isValidConfig(props.config)) {
+        return typeof props.config.component === 'string'
+            ? INPUT_COMPONENTS[props.config.component]
+            : props.config.component;
+    }
+    const shapeType = props.shape.type;
+    if (shapeType) {
+        const handlerKey = DEFAULT_ZOD_HANDLERS[shapeType];
+        if (handlerKey) {
+            return INPUT_COMPONENTS[handlerKey];
+        }
+    }
+    return undefined;
+});
+
 const { isDisabled, isHidden, isRequired, overrideOptions } = useDependencies(props.fieldName);
 </script>
 
 <template>
     <component
-        :is="
-            isValidConfig(config)
-                ? typeof config.component === 'string'
-                    ? INPUT_COMPONENTS[config.component!]
-                    : config.component
-                : INPUT_COMPONENTS[DEFAULT_ZOD_HANDLERS[shape.type]]
-        "
+        :is="resolvedComponent"
         v-if="!isHidden"
         :field-name="fieldName"
         :label="shape.schema?.description"

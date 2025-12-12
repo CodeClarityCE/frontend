@@ -74,7 +74,7 @@ function generateChartData(licenseDistData: LicenseDist) {
     const waffleChartData: WaffleChartEntry[] = [];
 
     for (const key of Object.keys(licenseDistData)) {
-        waffleChartData.push({ label: key, value: licenseDistData[key] });
+        waffleChartData.push({ label: key, value: licenseDistData[key] ?? 0 });
     }
     chartData.value = waffleChartData;
 }

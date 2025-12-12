@@ -1,10 +1,11 @@
 /**
  * Performance Testing Utilities
- * 
+ *
  * Utilities for measuring and testing frontend performance
  */
 
 import type { VueWrapper } from '@vue/test-utils';
+import type { MemoryInfo } from './types';
 
 /**
  * Performance metrics interface

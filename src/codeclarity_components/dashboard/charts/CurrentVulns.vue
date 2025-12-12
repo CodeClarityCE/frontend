@@ -77,10 +77,12 @@ async function fetch(refresh: boolean = false) {
             }
 
             for (const vuln of Object.keys(resp.data.vulns)) {
+                const vulnData = resp.data.vulns[vuln];
+                if (!vulnData) continue;
                 vulns.value.push({
-                    severity: resp.data.vulns[vuln].severity ?? 0,
-                    class: resp.data.vulns[vuln].severity_class ?? '',
-                    cve: resp.data.vulns[vuln].cwe_name
+                    severity: vulnData.severity ?? 0,
+                    class: vulnData.severity_class ?? '',
+                    cve: vulnData.cwe_name
                 });
             }
             vulns.value.sort((a, b) => {

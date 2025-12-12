@@ -48,10 +48,12 @@ onMounted(() => {
 });
 
 onUpdated(() => {
-    document.getElementsByClassName('main-container')[0].scrollTop = 0;
+    const mainContainer = document.getElementsByClassName('main-container')[0];
+    if (mainContainer) mainContainer.scrollTop = 0;
     setTimeout(() => {
-        if (y_position != 0 && details.value == false)
-            document.getElementsByClassName('main-container')[0].scrollTop = y_position;
+        const container = document.getElementsByClassName('main-container')[0];
+        if (y_position != 0 && details.value == false && container)
+            container.scrollTop = y_position;
     }, 50);
 });
 

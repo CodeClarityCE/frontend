@@ -13,8 +13,8 @@ const router = createRouter({
   ]
 })
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'global'> {
-  global?: RenderOptions['global'] & {
+interface CustomRenderOptions extends Omit<RenderOptions<any>, 'global'> {
+  global?: RenderOptions<any>['global'] & {
     plugins?: any[]
     mocks?: Record<string, any>
   }

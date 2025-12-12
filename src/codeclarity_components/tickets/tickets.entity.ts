@@ -388,6 +388,8 @@ export interface IntegrationConfigSummary {
     has_config: boolean;
     workspace_name?: string;
     list_name?: string;
+    auto_sync_on_create?: boolean;
+    sync_status_changes?: boolean;
 }
 
 export interface IntegrationHierarchyItem {

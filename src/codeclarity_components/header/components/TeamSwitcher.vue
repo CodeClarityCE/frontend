@@ -55,7 +55,7 @@ type Team = (typeof groups)[number]['teams'][number];
 
 const open = ref(false);
 const showNewTeamDialog = ref(false);
-const selectedTeam = ref<Team>(groups[0].teams[0]);
+const selectedTeam = ref<Team | undefined>(groups[0]?.teams[0]);
 
 const orgsRepository: OrgRepository = new OrgRepository();
 const userRepo: UserRepository = new UserRepository();
@@ -166,12 +166,12 @@ fetch();
                 >
                     <Avatar class="mr-2 h-5 w-5">
                         <AvatarImage
-                            :src="`https://avatar.vercel.sh/${selectedTeam.value}.png`"
-                            :alt="selectedTeam.label"
+                            :src="`https://avatar.vercel.sh/${selectedTeam?.value}.png`"
+                            :alt="selectedTeam?.label"
                         />
                         <AvatarFallback>SC</AvatarFallback>
                     </Avatar>
-                    {{ selectedTeam.label }}
+                    {{ selectedTeam?.label }}
                     <Icon
                         icon="radix-icons:caret-sort"
                         class="ml-auto h-4 w-4 shrink-0 opacity-50"
@@ -219,7 +219,7 @@ fetch();
                                     :class="
                                         cn(
                                             'ml-auto h-4 w-4',
-                                            selectedTeam.value === team.value
+                                            selectedTeam?.value === team.value
                                                 ? 'opacity-100'
                                                 : 'opacity-0'
                                         )

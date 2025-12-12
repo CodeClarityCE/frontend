@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class Result {
     @IsNotEmpty()
     @IsString()
@@ -6,6 +6,10 @@ export class Result {
 
     @IsNotEmpty()
     result!: any;
+
+    @IsOptional()
+    @IsString()
+    created_on?: string;
 }
 
 export interface ResultObject {

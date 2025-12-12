@@ -90,15 +90,15 @@ function getRadarChartData(finding: any) {
             axes: [
                 {
                     axis: 'Confidentiality',
-                    value: data[0] * 100 // Convert to percentage for d3
+                    value: (data[0] ?? 0) * 100 // Convert to percentage for d3
                 },
                 {
                     axis: 'Integrity',
-                    value: data[1] * 100
+                    value: (data[1] ?? 0) * 100
                 },
                 {
                     axis: 'Availability',
-                    value: data[2] * 100
+                    value: (data[2] ?? 0) * 100
                 }
             ]
         }

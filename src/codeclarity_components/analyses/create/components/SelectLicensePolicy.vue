@@ -101,7 +101,7 @@ fetchLicensePolicies();
                         class="license-policy cursor-pointer"
                         @click="
                             selected_license_policy = [];
-                            selected_license_policy_object = null;
+                            selected_license_policy_object = undefined;
                         "
                     >
                         <div class="license-policy-header">

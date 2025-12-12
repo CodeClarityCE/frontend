@@ -38,10 +38,11 @@ try {
 
 const { fitView } = vueFlowInstance || { fitView: () => {} };
 
+// Using type assertion to satisfy VueFlow's expected node types
 const nodeTypes = {
     analyzer: AnalyzerNodeComponent,
     config: ConfigNodeComponent
-};
+} as any;
 
 // Context menu for adding nodes
 const showContextMenu = ref(false);

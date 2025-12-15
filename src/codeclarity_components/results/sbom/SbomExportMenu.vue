@@ -49,17 +49,17 @@ const exportFormats = [
     }
 ] as const;
 
-function handleExport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
+function handleExport(format: 'csv' | 'json' | 'cyclonedx' | 'html'): void {
     isExporting.value = true;
     exportProgress.value = 'Preparing export...';
-    emit('export', format);
+    void emit('export', format);
 }
 
-function setExportProgress(progress: string) {
+function setExportProgress(progress: string): void {
     exportProgress.value = progress;
 }
 
-function resetExportState() {
+function resetExportState(): void {
     isExporting.value = false;
     exportProgress.value = '';
 }

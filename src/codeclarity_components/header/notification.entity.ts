@@ -14,6 +14,30 @@ export enum NotificationContentType {
     PackageUpdate = 'package_update'
 }
 
+export interface NotificationContent {
+    package_name?: string;
+    project_name?: string;
+    current_version?: string;
+    new_version?: string;
+    dependency_type?: 'production' | 'development';
+    max_severity?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
+    severity_counts?: {
+        CRITICAL?: number;
+        HIGH?: number;
+        MEDIUM?: number;
+        LOW?: number;
+    };
+    total?: number;
+    analysis_id?: string;
+    project_id?: string;
+    release_notes_url?: string;
+    package?: string;
+    version?: string;
+    fixed_version?: string;
+    vulnerable_version?: string;
+    [key: string]: unknown;
+}
+
 export class Notification {
     @IsNotEmpty()
     id!: string;
@@ -25,7 +49,7 @@ export class Notification {
     description!: string;
 
     @IsNotEmpty()
-    content!: Record<string, any>;
+    content!: NotificationContent;
 
     @IsNotEmpty()
     type!: NotificationType;

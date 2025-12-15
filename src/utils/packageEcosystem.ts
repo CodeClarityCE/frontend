@@ -3,6 +3,15 @@ import type { EcosystemInfo } from './ecosystem-shared';
 // Re-export types for components that depend on them
 export type { EcosystemInfo };
 
+// Interface for dependency objects
+interface Dependency {
+    name?: string;
+    ecosystem?: string;
+    purl?: string;
+    package_url?: string;
+    extra?: Record<string, unknown>;
+}
+
 export enum PackageEcosystem {
     NPM = 'npm',
     PACKAGIST = 'packagist', // PHP Composer
@@ -152,7 +161,7 @@ export class EcosystemDetector {
     /**
      * Detects ecosystem from dependency object
      */
-    static detectFromDependency(dependency: any): EcosystemInfoExtended {
+    static detectFromDependency(dependency: Dependency): EcosystemInfoExtended {
         // First check explicit ecosystem field from backend (most reliable)
         if (dependency.ecosystem) {
             switch (dependency.ecosystem.toLowerCase()) {
@@ -168,12 +177,15 @@ export class EcosystemDetector {
                     return ECOSYSTEMS[PackageEcosystem.MAVEN_CENTRAL];
                 case 'nuget':
                     return ECOSYSTEMS[PackageEcosystem.NUGET];
+                default:
+                    // Continue to fallback detection methods
+                    break;
             }
         }
 
         // Fallback to PURL detection if available
-        if (dependency.purl || dependency.package_url) {
-            const purl = dependency.purl || dependency.package_url;
+        if (dependency.purl ?? dependency.package_url) {
+            const purl = dependency.purl ?? dependency.package_url;
             const detected = this.detectFromPURL(purl);
             if (detected.type !== PackageEcosystem.UNKNOWN) {
                 return detected;
@@ -223,44 +235,46 @@ export class EcosystemMetadataExtractor {
     /**
      * Extracts NPM-specific metadata from dependency extra field
      */
-    static extractNpmMetadata(dependency: any): any {
+    static extractNpmMetadata(dependency: Dependency): Record<string, unknown> {
         if (!dependency.extra?.npm) return {};
 
+        const npm = dependency.extra.npm as Record<string, unknown>;
         return {
-            scripts: dependency.extra.npm.scripts,
-            engines: dependency.extra.npm.engines,
-            peerDependencies: dependency.extra.npm.peerDependencies,
-            keywords: dependency.extra.npm.keywords,
-            ...dependency.extra.npm
+            scripts: npm.scripts,
+            engines: npm.engines,
+            peerDependencies: npm.peerDependencies,
+            keywords: npm.keywords,
+            ...npm
         };
     }
 
     /**
      * Extracts Composer/Packagist-specific metadata from dependency extra field
      */
-    static extractComposerMetadata(dependency: any): any {
+    static extractComposerMetadata(dependency: Dependency): Record<string, unknown> {
         if (!dependency.extra?.composer) return {};
 
+        const composer = dependency.extra.composer as Record<string, unknown>;
         return {
-            type: dependency.extra.composer.type,
-            autoload: dependency.extra.composer.autoload,
-            autoloadDev: dependency.extra.composer['autoload-dev'],
-            require: dependency.extra.composer.require,
-            requireDev: dependency.extra.composer['require-dev'],
-            suggest: dependency.extra.composer.suggest,
-            provide: dependency.extra.composer.provide,
-            conflict: dependency.extra.composer.conflict,
-            replace: dependency.extra.composer.replace,
-            scripts: dependency.extra.composer.scripts,
-            config: dependency.extra.composer.config,
-            ...dependency.extra.composer
+            type: composer.type,
+            autoload: composer.autoload,
+            autoloadDev: composer['autoload-dev'],
+            require: composer.require,
+            requireDev: composer['require-dev'],
+            suggest: composer.suggest,
+            provide: composer.provide,
+            conflict: composer.conflict,
+            replace: composer.replace,
+            scripts: composer.scripts,
+            config: composer.config,
+            ...composer
         };
     }
 
     /**
      * Extracts ecosystem-specific metadata
      */
-    static extractMetadata(dependency: any, ecosystem: EcosystemInfo): any {
+    static extractMetadata(dependency: Dependency, ecosystem: EcosystemInfo): Record<string, unknown> {
         // Use ecosystem name instead of type since shared EcosystemInfo doesn't have type
         switch (ecosystem.ecosystem) {
             case 'npm':
@@ -268,7 +282,7 @@ export class EcosystemMetadataExtractor {
             case 'packagist':
                 return this.extractComposerMetadata(dependency);
             default:
-                return dependency.extra || {};
+                return (dependency.extra ?? {});
         }
     }
 }

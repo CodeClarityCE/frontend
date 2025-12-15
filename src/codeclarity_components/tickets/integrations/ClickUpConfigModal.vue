@@ -86,7 +86,7 @@ const canSave = computed(() => {
     return listId.value.length > 0;
 });
 
-function close() {
+function close(): void {
     isOpen.value = false;
     setTimeout(() => emit('close'), 300);
 }
@@ -96,7 +96,7 @@ function getOAuthRedirectUri(): string {
     return `${window.location.origin}/tickets/integrations/clickup/callback`;
 }
 
-async function copyRedirectUri() {
+async function copyRedirectUri(): Promise<void> {
     try {
         await navigator.clipboard.writeText(getOAuthRedirectUri());
         testResult.value = { success: true, message: 'Redirect URL copied to clipboard!' };
@@ -110,7 +110,7 @@ async function copyRedirectUri() {
     }
 }
 
-async function startOAuthFlow() {
+async function startOAuthFlow(): Promise<void> {
     const orgId = userStore.defaultOrg?.id;
     const token = auth.getToken;
     if (!orgId || !token) return;
@@ -142,7 +142,7 @@ async function startOAuthFlow() {
     }
 }
 
-async function fetchWorkspaces() {
+async function fetchWorkspaces(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken || !canFetchWorkspaces.value) return;
 
     // First save the API key temporarily to fetch workspaces
@@ -190,7 +190,7 @@ async function fetchWorkspaces() {
     }
 }
 
-async function fetchSpaces() {
+async function fetchSpaces(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken || !workspaceId.value) return;
 
     isLoadingSpaces.value = true;
@@ -219,7 +219,7 @@ async function fetchSpaces() {
     }
 }
 
-async function fetchFolders() {
+async function fetchFolders(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken || !spaceId.value) return;
 
     isLoadingFolders.value = true;
@@ -249,12 +249,12 @@ async function fetchFolders() {
     }
 }
 
-async function fetchListsFromSpace() {
+async function fetchListsFromSpace(): Promise<void> {
     // This fetches lists that are directly in a space (not in folders)
     // For simplicity, we'll load folder lists when folder is selected
 }
 
-async function fetchLists() {
+async function fetchLists(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken || !folderId.value) return;
 
     isLoadingLists.value = true;
@@ -280,7 +280,7 @@ async function fetchLists() {
 }
 
 // Create functions
-async function createSpace() {
+async function createSpace(): Promise<void> {
     if (
         !userStore.defaultOrg?.id ||
         !auth.getToken ||
@@ -315,7 +315,7 @@ async function createSpace() {
     }
 }
 
-async function createFolder() {
+async function createFolder(): Promise<void> {
     if (
         !userStore.defaultOrg?.id ||
         !auth.getToken ||
@@ -350,7 +350,7 @@ async function createFolder() {
     }
 }
 
-async function createList() {
+async function createList(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken || !newListName.value.trim()) return;
 
     isCreatingList.value = true;
@@ -405,7 +405,7 @@ async function createList() {
 }
 
 // Save configuration without closing the modal
-async function saveConfigQuietly() {
+async function saveConfigQuietly(): Promise<void> {
     const orgId = userStore.defaultOrg?.id;
     const token = auth.getToken;
     if (!orgId || !token || !listId.value) return;
@@ -417,9 +417,9 @@ async function saveConfigQuietly() {
             api_key: authMethod.value === 'API_KEY' && apiKey.value ? apiKey.value : undefined,
             access_token:
                 authMethod.value === 'OAUTH' && accessToken.value ? accessToken.value : undefined,
-            workspace_id: workspaceId.value || undefined,
-            space_id: spaceId.value || undefined,
-            folder_id: folderId.value || undefined,
+            workspace_id: workspaceId.value ?? undefined,
+            space_id: spaceId.value ?? undefined,
+            folder_id: folderId.value ?? undefined,
             list_id: listId.value,
             auto_sync_on_create: autoSyncOnCreate.value,
             sync_status_changes: syncStatusChanges.value
@@ -431,7 +431,7 @@ async function saveConfigQuietly() {
     });
 }
 
-async function testConnection() {
+async function testConnection(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken) return;
 
     isTesting.value = true;
@@ -448,12 +448,12 @@ async function testConnection() {
         if (response.data.success) {
             testResult.value = {
                 success: true,
-                message: `Connected as ${response.data.user_info?.name || 'Unknown'}`
+                message: `Connected as ${response.data.user_info?.name ?? 'Unknown'}`
             };
         } else {
             testResult.value = {
                 success: false,
-                message: response.data.error || 'Connection test failed'
+                message: response.data.error ?? 'Connection test failed'
             };
         }
     } catch {
@@ -466,7 +466,7 @@ async function testConnection() {
     }
 }
 
-async function saveConfiguration() {
+async function saveConfiguration(): Promise<void> {
     const orgId = userStore.defaultOrg?.id;
     const token = auth.getToken;
     if (!orgId || !token || !canSave.value) return;
@@ -485,9 +485,9 @@ async function saveConfiguration() {
                     authMethod.value === 'OAUTH' && accessToken.value
                         ? accessToken.value
                         : undefined,
-                workspace_id: workspaceId.value || undefined,
-                space_id: spaceId.value || undefined,
-                folder_id: folderId.value || undefined,
+                workspace_id: workspaceId.value ?? undefined,
+                space_id: spaceId.value ?? undefined,
+                folder_id: folderId.value ?? undefined,
                 list_id: listId.value,
                 auto_sync_on_create: autoSyncOnCreate.value,
                 sync_status_changes: syncStatusChanges.value
@@ -497,7 +497,7 @@ async function saveConfiguration() {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('configured');
+        void emit('configured');
     } catch (error) {
         console.error('Failed to save configuration:', error);
         testResult.value = {
@@ -512,24 +512,24 @@ async function saveConfiguration() {
 // Watch for hierarchy changes
 watch(workspaceId, () => {
     if (workspaceId.value) {
-        fetchSpaces();
+        void fetchSpaces();
     }
 });
 
 watch(spaceId, () => {
     if (spaceId.value) {
-        fetchFolders();
+        void fetchFolders();
     }
 });
 
 watch(folderId, () => {
     if (folderId.value) {
-        fetchLists();
+        void fetchLists();
     }
 });
 
 // Check for OAuth token from callback or existing config on mount
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
     const storedToken = sessionStorage.getItem('clickup_oauth_access_token');
     if (storedToken) {
         // Switch to OAuth tab and use the stored token
@@ -550,7 +550,7 @@ onMounted(async () => {
     }
 });
 
-async function loadExistingConfigWorkspaces() {
+async function loadExistingConfigWorkspaces(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken) return;
 
     isLoadingWorkspaces.value = true;
@@ -587,7 +587,7 @@ async function loadExistingConfigWorkspaces() {
     }
 }
 
-async function fetchWorkspacesWithOAuth() {
+async function fetchWorkspacesWithOAuth(): Promise<void> {
     if (!userStore.defaultOrg?.id || !auth.getToken || !accessToken.value) return;
 
     isLoadingWorkspaces.value = true;

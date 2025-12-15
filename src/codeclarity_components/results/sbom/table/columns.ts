@@ -9,6 +9,16 @@ import { ArrowUpDown } from 'lucide-vue-next';
 import { h } from 'vue';
 import DropdownAction from './DataTableDropDown.vue';
 
+function getUpdateIcon(updateType: string): string {
+    if (updateType === 'major') {
+        return 'tabler:arrow-big-up';
+    }
+    if (updateType === 'minor') {
+        return 'tabler:arrow-up';
+    }
+    return 'tabler:arrow-narrow-up';
+}
+
 export const columns: ColumnDef<Dependency>[] = [
     // {
     //     id: 'select',
@@ -96,7 +106,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         enableSorting: false,
-        filterFn: (row, _id, value) => {
+        filterFn: (row, _id, value: string[]) => {
             const dependency = row.original;
             const ecosystem = EcosystemDetector.detectFromDependency(dependency);
             return value.includes(ecosystem.type);
@@ -122,10 +132,10 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const version = row.getValue('version');
-            if (!version) {
+            if (!version || typeof version !== 'string') {
                 return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
             }
-            const parts = version.split('.');
+            const parts: string[] = version.split('.');
 
             return h(
                 'div',
@@ -139,9 +149,9 @@ export const columns: ColumnDef<Dependency>[] = [
                             class: 'font-mono text-sm bg-slate-100 text-slate-700 px-2 py-1 rounded border font-medium'
                         },
                         [
-                            h('span', { class: 'text-emerald-600 font-semibold' }, parts[0] || '0'),
+                            h('span', { class: 'text-emerald-600 font-semibold' }, parts[0] ?? '0'),
                             h('span', { class: 'text-slate-400' }, '.'),
-                            h('span', { class: 'text-blue-600 font-semibold' }, parts[1] || '0'),
+                            h('span', { class: 'text-blue-600 font-semibold' }, parts[1] ?? '0'),
                             h('span', { class: 'text-slate-400' }, '.'),
                             h('span', { class: 'text-purple-600' }, parts.slice(2).join('.') || '0')
                         ]
@@ -173,7 +183,12 @@ export const columns: ColumnDef<Dependency>[] = [
             const currentVersion = row.getValue('version');
             const newestVersion = row.getValue('newest_release');
 
-            if (!currentVersion || !newestVersion) {
+            if (
+                !currentVersion ||
+                !newestVersion ||
+                typeof currentVersion !== 'string' ||
+                typeof newestVersion !== 'string'
+            ) {
                 return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
             }
 
@@ -210,8 +225,8 @@ export const columns: ColumnDef<Dependency>[] = [
             }
 
             // Determine update severity (major, minor, patch)
-            const currentParts = currentVersion.split('.').map(Number);
-            const newestParts = newestVersion.split('.').map(Number);
+            const currentParts: number[] = currentVersion.split('.').map(Number);
+            const newestParts: number[] = newestVersion.split('.').map(Number);
             let updateType = 'patch';
             let severity: 'low' | 'medium' | 'high' = 'low';
 
@@ -242,12 +257,7 @@ export const columns: ColumnDef<Dependency>[] = [
                         },
                         [
                             h(Icon, {
-                                icon:
-                                    updateType === 'major'
-                                        ? 'tabler:arrow-big-up'
-                                        : updateType === 'minor'
-                                          ? 'tabler:arrow-up'
-                                          : 'tabler:arrow-narrow-up',
+                                icon: getUpdateIcon(updateType),
                                 class: 'w-4 h-4'
                             }),
                             h(
@@ -291,7 +301,7 @@ export const columns: ColumnDef<Dependency>[] = [
         },
         cell: ({ row }) => {
             const isDeprecated = row.getValue('deprecated');
-            const deprecatedMessage = (row.original as any).deprecated_message as string;
+            const deprecatedMessage: string = row.original.deprecated_message ?? '';
 
             if (isDeprecated) {
                 return h(
@@ -575,7 +585,7 @@ export const columns: ColumnDef<Dependency>[] = [
     }
 ];
 
-function formatLastPublished(dateString: string) {
+function formatLastPublished(dateString: string): string {
     const date = formatRelativeTime(dateString);
     if (date === '2023 years ago') {
         return 'N/A';

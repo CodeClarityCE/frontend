@@ -53,6 +53,7 @@ export enum APIErrors {
 
 export class MalformedResponse extends Error {
     constructor() {
+        // Call parent constructor with error message
         super('Resource response from the API was malformed');
     }
 }

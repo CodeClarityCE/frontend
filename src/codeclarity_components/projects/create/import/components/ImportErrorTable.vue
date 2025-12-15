@@ -32,9 +32,9 @@ const totalPages = ref(
 );
 
 watch([entriesPerPage, totalEntries, page], () => {
-    changePage(page.value);
+    void changePage(page.value);
 });
-function changePage(_page: number) {
+function changePage(_page: number): void {
     page.value = _page;
 }
 </script>

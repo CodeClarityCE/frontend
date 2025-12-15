@@ -111,11 +111,11 @@ const formatScheduleTime = computed(() => {
  * Initialize default date/time when switching to recurring schedule
  * Sets the next run time to one hour from now as a sensible default
  */
-const initializeSchedule = () => {
+const initializeSchedule = (): void => {
     if (!scheduleData.value.next_scheduled_run && isRecurring.value) {
         const nextHour = new Date();
         nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0); // Round to next hour
-        updateScheduleData({ next_scheduled_run: nextHour });
+        void updateScheduleData({ next_scheduled_run: nextHour });
 
         // Update form fields to match the default
         selectedDate.value = getLocalDateString(nextHour);
@@ -148,46 +148,46 @@ watch(
     { immediate: true }
 );
 
-const updateScheduleData = (updates: Partial<ScheduleData>) => {
+const updateScheduleData = (updates: Partial<ScheduleData>): void => {
     scheduleData.value = { ...scheduleData.value, ...updates };
 };
 
 const updateScheduleType = (
     type: string | number | boolean | bigint | Record<string, unknown> | null
-) => {
+): void => {
     if (typeof type !== 'string') return;
     updateScheduleData({
         schedule_type: type as ScheduleData['schedule_type'],
         is_active: type !== 'once' // Automatically enable for recurring schedules
     });
     if (type !== 'once') {
-        initializeSchedule();
+        void initializeSchedule();
     }
 };
 
-const setDate = (dateStr: string | number) => {
+const setDate = (dateStr: string | number): void => {
     selectedDate.value = String(dateStr);
     updateDateTimeIfComplete();
 };
 
-const setTime = (timeStr: string | number) => {
+const setTime = (timeStr: string | number): void => {
     selectedTime.value = String(timeStr);
     updateDateTimeIfComplete();
 };
 
-const updateDateTimeIfComplete = () => {
+const updateDateTimeIfComplete = (): void => {
     if (selectedDate.value && selectedTime.value) {
         // Create date in user's local timezone
         const dateTime = new Date(`${selectedDate.value}T${selectedTime.value}`);
-        updateScheduleData({ next_scheduled_run: dateTime });
+        void updateScheduleData({ next_scheduled_run: dateTime });
     }
 };
 
-const confirmDateTime = () => {
+const confirmDateTime = (): void => {
     if (selectedDate.value && selectedTime.value) {
         // Create date in user's local timezone
         const dateTime = new Date(`${selectedDate.value}T${selectedTime.value}`);
-        updateScheduleData({ next_scheduled_run: dateTime });
+        void updateScheduleData({ next_scheduled_run: dateTime });
         calendarOpen.value = false;
     }
 };

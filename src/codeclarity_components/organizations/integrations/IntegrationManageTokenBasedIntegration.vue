@@ -43,7 +43,7 @@ const EXPIRES_IN_DAYS_RISK = 14;
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref('');
 
-function isAtRisk() {
+function isAtRisk(): boolean {
     if (props.integration?.expiry_date)
         return getDaysUntilExpiry(props.integration.expiry_date) <= EXPIRES_IN_DAYS_RISK;
     else return false;

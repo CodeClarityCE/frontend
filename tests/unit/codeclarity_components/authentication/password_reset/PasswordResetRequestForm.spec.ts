@@ -1,6 +1,6 @@
 // Mock reflect-metadata for TypeScript decorators
-global.Reflect = global.Reflect || {};
-global.Reflect.getMetadata = global.Reflect.getMetadata || vi.fn();
+global.Reflect = global.Reflect ?? {};
+global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
 import PasswordResetRequestForm from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';

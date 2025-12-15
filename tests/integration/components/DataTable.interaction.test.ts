@@ -337,7 +337,7 @@ describe.skip('DataTable User Interaction Tests', () => {
       
       // Look for next/previous buttons
       const nextButton = paginationButtons.find((btn: any) =>
-        btn.text().includes('Next') || btn.text().includes('>')
+        btn.text().includes('Next') ?? btn.text().includes('>')
       );
       
       if (nextButton) {

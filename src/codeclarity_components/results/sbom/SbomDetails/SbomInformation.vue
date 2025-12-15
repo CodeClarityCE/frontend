@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
+import { useAuthStore } from '@/stores/auth';
 import { calculateDateDifference, formatRelativeTime, isValidDate } from '@/utils/dateUtils';
 import { EcosystemDetector, EcosystemMetadataExtractor } from '@/utils/packageEcosystem';
 import { Icon } from '@iconify/vue';
 import { computed, type PropType } from 'vue';
+
+const authStore = useAuthStore();
 
 const props = defineProps({
     dependency: {
@@ -24,7 +27,7 @@ const ecosystemMetadata = computed(() => {
 
 // Computed properties for version management
 const isVersionOutdated = computed(() => {
-    if (!props.dependency.release_date || !props.dependency.lastest_release_date) return false;
+    if (!authStore.getAuthenticated || !props.dependency.lastest_release_date) return false;
     const diffDays = calculateDateDifference(
         props.dependency.lastest_release_date,
         props.dependency.release_date,
@@ -33,8 +36,8 @@ const isVersionOutdated = computed(() => {
     return diffDays > 182; // 6 months
 });
 
-const getVersionLag = () => {
-    if (!props.dependency.release_date || !props.dependency.lastest_release_date) return '';
+const getVersionLag = (): string => {
+    if (!authStore.getAuthenticated || !props.dependency.lastest_release_date) return '';
     const diffDays = calculateDateDifference(
         props.dependency.lastest_release_date,
         props.dependency.release_date,
@@ -58,7 +61,7 @@ const getEngineIcon = (engineName: string): string => {
         rust: 'skill-icons:rust',
         php: 'skill-icons:php-dark'
     };
-    return iconMap[engineName.toLowerCase()] || 'solar:cpu-bolt-bold';
+    return iconMap[engineName.toLowerCase()] ?? 'solar:cpu-bolt-bold';
 };
 
 // Package age calculations

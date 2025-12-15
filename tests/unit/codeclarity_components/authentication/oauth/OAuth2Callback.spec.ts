@@ -1,6 +1,6 @@
 // Mock reflect-metadata for TypeScript decorators
-global.Reflect = global.Reflect || {};
-global.Reflect.getMetadata = global.Reflect.getMetadata || vi.fn();
+global.Reflect = global.Reflect ?? {};
+global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
 import OAuth2Callback from '@/codeclarity_components/authentication/oauth/OAuth2Callback.vue';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';

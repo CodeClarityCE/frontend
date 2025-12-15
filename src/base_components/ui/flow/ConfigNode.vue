@@ -63,18 +63,20 @@ import { Icon } from '@iconify/vue';
 import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
 
+type ConfigValue = string | number | boolean | string[] | null | undefined;
+
 interface Props {
     data: {
         label: string;
         configKey: string;
         configType: string;
-        value: any;
+        value: ConfigValue;
     };
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-    'update:data': [value: any];
+    'update:data': [value: { label: string; configKey: string; configType: string; value: ConfigValue }];
 }>();
 
 const localValue = computed({

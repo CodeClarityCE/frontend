@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue'
 
 // Import real stores (not mocked) for integration testing
 vi.doUnmock('@/stores/auth')
 vi.doUnmock('@/stores/user')
-import { useAuthStore } from '@/stores/auth'
-import { useUserStore } from '@/stores/user'
 
 // Mock the auth repository with specific responses for integration tests
 const mockAuthRepo = {

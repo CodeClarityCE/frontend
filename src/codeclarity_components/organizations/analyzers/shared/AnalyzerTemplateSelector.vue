@@ -39,7 +39,7 @@ const languageLogos = {
 };
 
 // Methods
-async function loadTemplates() {
+async function loadTemplates(): Promise<void> {
     if (!authStore.getToken) return;
 
     try {
@@ -57,12 +57,12 @@ async function loadTemplates() {
     }
 }
 
-function selectTemplate(template: AnalyzerTemplate) {
+function selectTemplate(template: AnalyzerTemplate): void {
     selectedTemplate.value = template;
-    emit('templateChanged', template);
+    void emit('templateChanged', template);
 }
 
-function clearSelection() {
+function clearSelection(): void {
     selectedTemplate.value = null;
 }
 
@@ -76,16 +76,16 @@ function getLanguageDisplayName(language: string): string {
         go: 'Go',
         rust: 'Rust'
     };
-    return displayNames[language] || language.charAt(0).toUpperCase() + language.slice(1);
+    return displayNames[language] ?? language.charAt(0).toUpperCase() + language.slice(1);
 }
 
 function getTemplateLogo(logo: string): string {
-    return languageLogos[logo as keyof typeof languageLogos] || '📋';
+    return languageLogos[logo as keyof typeof languageLogos] ?? '📋';
 }
 
 // Lifecycle
 onMounted(() => {
-    loadTemplates();
+    void loadTemplates();
 });
 </script>
 

@@ -280,12 +280,12 @@ describe('SignupView.vue', () => {
       const hasSignupForm = wrapper.find('.signup-form').exists();
       const hasSocialSetup = wrapper.find('.social-setup').exists();
       
-      expect(hasSignupForm || hasSocialSetup).toBe(true);
+      expect(hasSignupForm ?? hasSocialSetup).toBe(true);
     });
 
     it('handles async component loading states', () => {
       // Components should be rendered (even if stubbed)
-      const componentExists = wrapper.find('.signup-form').exists() || wrapper.find('.social-setup').exists();
+      const componentExists = wrapper.find('.signup-form').exists() ?? wrapper.find('.social-setup').exists();
       expect(componentExists).toBe(true);
     });
   });

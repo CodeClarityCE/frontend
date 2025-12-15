@@ -11,7 +11,7 @@ export const useProjectsMainStore = defineStore('projectsMain', () => {
     const orgId: Ref<string | undefined> = ref();
 
     // Reset
-    function $reset() {
+    function $reset(): void {
         projectsResponse.value = undefined;
         reposLoading.value = false;
         reposFetchError.value = false;
@@ -41,23 +41,23 @@ export const useProjectsMainStore = defineStore('projectsMain', () => {
     }
 
     // Setters
-    function setProjectsResponse(_projectsResponse: PaginatedResponse<Project>) {
+    function setProjectsResponse(_projectsResponse: PaginatedResponse<Project>): void {
         projectsResponse.value = _projectsResponse;
     }
 
-    function setOrgId(_orgId: string) {
+    function setOrgId(_orgId: string): void {
         orgId.value = _orgId;
     }
 
-    function setReposLoading(_reposLoading: boolean) {
+    function setReposLoading(_reposLoading: boolean): void {
         reposLoading.value = _reposLoading;
     }
 
-    function setReposFetchError(_reposFetchError: boolean) {
+    function setReposFetchError(_reposFetchError: boolean): void {
         reposFetchError.value = _reposFetchError;
     }
 
-    function setReposFetchErrorCode(_reposFetchErrorCode: string | undefined) {
+    function setReposFetchErrorCode(_reposFetchErrorCode: string | undefined): void {
         reposFetchErrorCode.value = _reposFetchErrorCode;
     }
 

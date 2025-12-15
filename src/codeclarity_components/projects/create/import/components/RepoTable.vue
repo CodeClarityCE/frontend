@@ -64,9 +64,11 @@ const headers: TableHeader[] = [
 ];
 
 // Filters
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 const filterState: FilterState = createNewFilterState({
     ImportState: {
         name: 'Import State',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         type: FilterType.RADIO,
         data: {
             only_non_imported: {
@@ -101,11 +103,11 @@ const selectedRepos: Ref<Repository[]> = ref([]);
 
 // Watchers
 watch([activeFilters, repos], () => {
-    updateSelectAllState();
+    void updateSelectAllState();
 });
 
 // Methods
-async function updateSort(key: any) {
+async function updateSort(key: string | null): Promise<void> {
     if (key === undefined) return;
     if (key !== undefined)
         if (key === sortKey.value) {
@@ -129,7 +131,7 @@ watch([page, entriesPerPage], async () => {
  * @param refresh Whether it is a refresh, if no shows the loading skeleton
  * @param forceRefresh Whether it is a force refresh, if yes refetches the repos from the vcs provider
  */
-async function fetchRepos(refresh = false, forceRefresh = false) {
+async function fetchRepos(refresh = false, forceRefresh = false): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -174,18 +176,18 @@ async function fetchRepos(refresh = false, forceRefresh = false) {
  * Adds a repo selected by the user to the tally of selected repos and emits the new list
  * @param repo The selected repo
  */
-function selectRepo(repo: Repository) {
+function selectRepo(repo: Repository): void {
     const selectedReposIds = selectedRepos.value.map((x) => x.id);
 
     if (!selectedReposIds.includes(repo.id)) selectedRepos.value.push(repo);
     else selectedRepos.value = selectedRepos.value.filter((x) => x.id !== repo.id);
 
     // Update select all checkbox state
-    updateSelectAllState();
-    emit('onSelectedReposChange', selectedRepos.value);
+    void updateSelectAllState();
+    void emit('onSelectedReposChange', selectedRepos.value);
 }
 
-function toggleSelectAll() {
+function toggleSelectAll(): void {
     if (selectAll.value) {
         // Deselect all
         selectedRepos.value = [];
@@ -195,18 +197,18 @@ function toggleSelectAll() {
         const availableRepos =
             repos.value?.filter((repo) =>
                 activeFilters.value.includes('only_non_imported') ? !repo.imported_already : true
-            ) || [];
+            ) ?? [];
         selectedRepos.value = [...availableRepos];
         selectAll.value = true;
     }
-    emit('onSelectedReposChange', selectedRepos.value);
+    void emit('onSelectedReposChange', selectedRepos.value);
 }
 
-function updateSelectAllState() {
+function updateSelectAllState(): void {
     const availableRepos =
         repos.value?.filter((repo) =>
             activeFilters.value.includes('only_non_imported') ? !repo.imported_already : true
-        ) || [];
+        ) ?? [];
 
     if (availableRepos.length === 0) {
         selectAll.value = false;
@@ -223,8 +225,9 @@ function updateSelectAllState() {
  * and fetch the repos matching this filter
  * @param newActiveFilters List of active filters
  */
-async function setActiveFilters(newActiveFilters: ActiveFilter[]) {
-    activeFilters.value = newActiveFilters.map((activeFilter: ActiveFilter) => activeFilter.option);
+async function setActiveFilters(newActiveFilters: ActiveFilter[]): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    activeFilters.value = newActiveFilters.map((activeFilter: ActiveFilter) => activeFilter.option as string);
     await fetchRepos(true);
 }
 
@@ -237,15 +240,15 @@ watch([searchKey], async () => {
 /**
  * Clears the selected repos
  */
-async function clearSelection() {
+function clearSelection(): void {
     selectedRepos.value = [];
 }
 
-async function init() {
+async function init(): Promise<void> {
     await fetchRepos(false, false);
 }
 
-init();
+void init();
 
 defineExpose({
     fetchRepos,
@@ -359,7 +362,7 @@ defineExpose({
                     <div
                         v-if="
                             repos &&
-                            repos.filter((repo: any) =>
+                            repos.filter((repo: Repository) =>
                                 activeFilters.includes('only_non_imported')
                                     ? !repo.imported_already
                                     : true
@@ -384,7 +387,7 @@ defineExpose({
                     <div
                         v-else-if="
                             repos &&
-                            repos.filter((repo: any) =>
+                            repos.filter((repo: Repository) =>
                                 activeFilters.includes('only_non_imported')
                                     ? !repo.imported_already
                                     : true
@@ -405,11 +408,11 @@ defineExpose({
                                 </div>
                                 <div class="text-gray-600 text-xs mt-1">
                                     {{
-                                        repos?.filter((repo: any) =>
+                                        repos?.filter((repo: Repository) =>
                                             activeFilters.includes('only_non_imported')
                                                 ? !repo.imported_already
                                                 : true
-                                        ).length || 0
+                                        ).length ?? 0
                                     }}
                                     repositories available for selection
                                 </div>
@@ -444,7 +447,7 @@ defineExpose({
                                 class="text-blue-700 border-blue-300 hover:bg-blue-100"
                                 @click="
                                     selectedRepos = [];
-                                    updateSelectAllState();
+                                    void updateSelectAllState();
                                 "
                             >
                                 Clear Selection
@@ -471,7 +474,7 @@ defineExpose({
                                     class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150"
                                     :class="{
                                         'bg-blue-50/30 border-blue-200': selectedRepos
-                                            .map((x: any) => x.id)
+                                            .map((x: Repository) => x.id)
                                             .includes(repo.id)
                                     }"
                                 >
@@ -480,7 +483,7 @@ defineExpose({
                                             type="checkbox"
                                             :checked="
                                                 selectedRepos
-                                                    .map((x: any) => x.id)
+                                                    .map((x: Repository) => x.id)
                                                     .includes(repo.id)
                                             "
                                             class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
@@ -523,7 +526,7 @@ defineExpose({
                                     </td>
                                     <td class="p-4">
                                         <div class="text-gray-700 text-sm line-clamp-2 max-w-md">
-                                            {{ repo.description || 'No description available' }}
+                                            {{ repo.description ?? 'No description available' }}
                                         </div>
                                     </td>
                                     <td class="p-4">

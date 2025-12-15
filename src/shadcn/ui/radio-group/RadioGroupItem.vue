@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { RadioGroupItemProps } from 'reka-ui';
-import type { HTMLAttributes } from 'vue';
 import { cn } from '@/shadcn/lib/utils';
 import { Check } from 'lucide-vue-next';
+import type { RadioGroupItemProps } from 'reka-ui';
 import { RadioGroupIndicator, RadioGroupItem, useForwardProps } from 'reka-ui';
+import type { HTMLAttributes } from 'vue';
 import { computed } from 'vue';
 
 const props = defineProps<RadioGroupItemProps & { class?: HTMLAttributes['class'] }>();

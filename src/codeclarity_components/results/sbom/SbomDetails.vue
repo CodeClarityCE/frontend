@@ -25,7 +25,6 @@ import SbomInformation from './SbomDetails/SbomInformation.vue';
 // Import common components
 
 interface Props {
-    [key: string]: any;
     showBack?: boolean;
     analysisID: string;
     projectID: string;
@@ -40,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
 const render: Ref<boolean> = ref(false);
 const dependency: Ref<DependencyDetails> = ref(new DependencyDetails());
 
-function goBack() {
+function goBack(): void {
     router.back();
 }
 
@@ -97,18 +96,18 @@ function getVulnerabilityDescription(count: number): string {
 
 function getCriticalHighCount(severityDist?: SeverityDist): number {
     if (!severityDist) return 0;
-    return (severityDist.critical || 0) + (severityDist.high || 0);
+    return (severityDist.critical ?? 0) + (severityDist.high ?? 0);
 }
 
 function getVersionStatus(dependency: DependencyDetails): string {
-    if (!dependency.latest_version || !dependency.version) return 'Unknown';
+    if (!authStore.getAuthenticated || !dependency.version) return 'Unknown';
     if (dependency.version === dependency.latest_version) return 'Latest';
     // Check if version already starts with 'v' to avoid duplication
     return dependency.version.startsWith('v') ? dependency.version : `v${dependency.version}`;
 }
 
 function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'primary' | 'default' {
-    if (!dependency.latest_version || !dependency.version) return 'default';
+    if (!authStore.getAuthenticated || !dependency.version) return 'default';
     if (dependency.version === dependency.latest_version) return 'success';
     if (isPackageOutdated(dependency.release_date, dependency.lastest_release_date))
         return 'primary';
@@ -116,7 +115,7 @@ function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'pr
 }
 
 function getVersionStatusDescription(dependency: DependencyDetails): string {
-    if (!dependency.latest_version || !dependency.version) return 'Version information unavailable';
+    if (!authStore.getAuthenticated || !dependency.version) return 'Version information unavailable';
     if (dependency.version === dependency.latest_version) return 'Using latest version';
     // Check if version already starts with 'v' to avoid duplication
     const latestVersion = dependency.latest_version.startsWith('v')
@@ -133,7 +132,7 @@ function getLicenseDescription(license?: string): string {
 }
 
 function shouldRecommendUpdate(dependency: DependencyDetails): boolean {
-    if (!dependency.latest_version || !dependency.version) return false;
+    if (!authStore.getAuthenticated || !dependency.version) return false;
     return dependency.version !== dependency.latest_version;
 }
 
@@ -143,7 +142,7 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-async function getDependency(projectID: string, analysisID: string) {
+async function getDependency(projectID: string, analysisID: string): Promise<void> {
     const urlParams = new URLSearchParams(window.location.search);
     const package_id_param = urlParams.get('package_id');
 
@@ -186,7 +185,7 @@ async function getDependency(projectID: string, analysisID: string) {
     }
 }
 
-getDependency(props.projectID, props.analysisID);
+void getDependency(props.projectID, props.analysisID);
 </script>
 
 <template>
@@ -215,8 +214,8 @@ getDependency(props.projectID, props.analysisID);
         <div v-if="render" class="content-wrapper">
             <!-- Header Section with Package Info -->
             <InfoCard
-                :title="dependency.name || 'Dependency Details'"
-                :description="`Version ${dependency.version || 'unknown'} - Package information and external links`"
+                :title="dependency.name ?? 'Dependency Details'"
+                :description="`Version ${dependency.version ?? 'unknown'} - Package information and external links`"
                 icon="solar:box-bold"
                 variant="primary"
                 class="header-section"
@@ -266,7 +265,7 @@ getDependency(props.projectID, props.analysisID);
 
                 <StatCard
                     label="License"
-                    :value="dependency.license || 'Unlicensed'"
+                    :value="dependency.license ?? 'Unlicensed'"
                     icon="solar:document-text-bold"
                     :variant="dependency.license ? 'success' : 'danger'"
                     :subtitle="getLicenseDescription(dependency.license)"
@@ -275,7 +274,7 @@ getDependency(props.projectID, props.analysisID);
 
                 <StatCard
                     label="Package Manager"
-                    :value="dependency.package_manager || 'Unknown'"
+                    :value="dependency.package_manager ?? 'Unknown'"
                     icon="solar:box-bold"
                     variant="default"
                     :subtitle="

@@ -32,8 +32,21 @@ const analysisRepository: AnalysisRepository = new AnalysisRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-const chartData: Ref<any> = ref();
-const chartOptions: Ref<any> = ref();
+interface ChartDataset {
+    data: object[];
+}
+
+interface ChartData {
+    datasets: ChartDataset[];
+}
+
+const chartData: Ref<ChartData> = ref({
+    datasets: [
+        {
+            data: []
+        }
+    ]
+});
 
 const props = defineProps({
     analysis: {
@@ -46,20 +59,7 @@ const props = defineProps({
     }
 });
 
-chartData.value = {
-    datasets: [
-        {
-            data: []
-        }
-    ]
-};
-chartOptions.value = {
-    h: 50,
-    w: 300,
-    margin: { top: 0, right: 0, bottom: 120, left: 50 }
-};
-
-async function deleteAnalysis() {
+async function deleteAnalysis(): Promise<void> {
     if (!userStore.defaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -75,11 +75,11 @@ async function deleteAnalysis() {
         successToast('Succesfully deleted the integration');
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            if (_err.error_code === APIErrors.NotAuthorized) {
-                errorToast('You are not authorized to perform this action.');
-            } else if (_err.error_code === APIErrors.EntityNotFound) {
+            if ((_err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+                void errorToast('You are not authorized to perform this action.');
+            } else if ((_err.error_code as APIErrors) === APIErrors.EntityNotFound) {
                 errorToast('Succesfully deleted the integration');
-            } else if (_err.error_code === APIErrors.InternalError) {
+            } else if ((_err.error_code as APIErrors) === APIErrors.InternalError) {
                 errorToast('Failed to delete the integration.');
             } else {
                 errorToast('Failed to delete the integration.');
@@ -92,7 +92,8 @@ async function deleteAnalysis() {
     }
 }
 
-function getAllStages(steps: AnalysisStage[][]): AnalysisStage[] {
+function getAllStages(steps: AnalysisStage[][] | undefined): AnalysisStage[] {
+    if (!steps) return [];
     let stages: AnalysisStage[] = [];
     for (const step of steps) {
         stages = stages.concat(step);
@@ -100,7 +101,8 @@ function getAllStages(steps: AnalysisStage[][]): AnalysisStage[] {
     return stages;
 }
 
-function getTotalSteps(steps: AnalysisStage[][]) {
+function getTotalSteps(steps: AnalysisStage[][] | undefined): number {
+    if (!steps) return 0;
     let count = 0;
     for (const step of steps) {
         count += step.length;
@@ -108,7 +110,8 @@ function getTotalSteps(steps: AnalysisStage[][]) {
     return count;
 }
 
-function getStepsDone(steps: AnalysisStage[][]) {
+function getStepsDone(steps: AnalysisStage[][] | undefined): number {
+    if (!steps) return 0;
     let count = 0;
     for (const step of steps) {
         count += step.filter((stage) => stage.Status === AnalysisStatus.SUCCESS).length;
@@ -116,8 +119,8 @@ function getStepsDone(steps: AnalysisStage[][]) {
     return count;
 }
 
-function getTimeDiff(stage: AnalysisStage) {
-    if (!stage.Ended_on || !stage.Started_on) return '';
+function getTimeDiff(stage: AnalysisStage): string {
+    if (!authStore.getAuthenticated || !stage.Started_on) return '';
 
     let time = '';
 
@@ -131,15 +134,15 @@ function getTimeDiff(stage: AnalysisStage) {
     if (minutes > 0) time += `${minutes  }m `;
     if (seconds > 0) time += `${seconds  }s `;
     if (time === '' && milliseconds > 0) time += `${milliseconds  }ms `;
-    return time;
+    return time ?? '';
 }
 
-function getStepName(index: number) {
+function getStepName(index: number): string {
     const stepNames = ['SBOM Generation', 'Vulnerability Scan', 'License Check', 'Code Analysis'];
-    return stepNames[index] || `Step ${index + 1}`;
+    return stepNames[index] ?? `Step ${index + 1}`;
 }
 
-async function getChart(projectID: string, analysisID: string) {
+async function getChart(projectID: string, analysisID: string): Promise<void> {
     let res: DataResponse<object[]>;
     try {
         if (userStore.getDefaultOrg === null) {
@@ -171,7 +174,7 @@ async function getChart(projectID: string, analysisID: string) {
         // createDepStatusDistChart();
     }
 }
-getChart(props.projectID, props.analysis.id);
+void getChart(props.projectID, props.analysis.id);
 </script>
 <template>
     <div v-if="props.analysis !== null" class="w-full">
@@ -257,7 +260,7 @@ getChart(props.projectID, props.analysis.id);
                                                 <div
                                                     class="text-xs font-medium text-slate-900 uppercase"
                                                 >
-                                                    {{ stage.Name || getStepName(index) }}
+                                                    {{ stage.Name ?? getStepName(index) }}
                                                 </div>
                                             </div>
 
@@ -408,7 +411,7 @@ getChart(props.projectID, props.analysis.id);
                                                     <div
                                                         class="text-xs font-medium text-slate-900 uppercase"
                                                     >
-                                                        {{ stage.Name || getStepName(index) }}
+                                                        {{ stage.Name ?? getStepName(index) }}
                                                     </div>
                                                 </div>
 
@@ -565,7 +568,7 @@ getChart(props.projectID, props.analysis.id);
                                                     <div
                                                         class="text-xs font-medium text-slate-900 uppercase"
                                                     >
-                                                        {{ stage.Name || getStepName(index) }}
+                                                        {{ stage.Name ?? getStepName(index) }}
                                                     </div>
                                                 </div>
 

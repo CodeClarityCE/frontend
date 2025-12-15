@@ -20,7 +20,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Repositories
@@ -37,10 +37,10 @@ const data: Ref<SeverityInfoByWeek[] | undefined> = ref();
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const chartData: Ref<any> = ref();
+const chartData: Ref<unknown> = ref();
 const noData: Ref<boolean> = ref(false);
 
-async function fetch(refresh = false) {
+async function fetch(refresh = false): Promise<void> {
     if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -69,9 +69,9 @@ async function fetch(refresh = false) {
         if (!refresh) loading.value = false;
     }
 }
-fetch();
+void fetch();
 
-function getWeekFormat(weekNumber: number, year: number) {
+function getWeekFormat(weekNumber: number, year: number): string {
     const { start, end } = getWeekRange(weekNumber, year);
     if (start.getFullYear() !== end.getFullYear()) {
         return formatDateRange(start, end, 'MMM DD, YY');
@@ -80,7 +80,7 @@ function getWeekFormat(weekNumber: number, year: number) {
     }
 }
 
-function generateChart(stats: SeverityInfoByWeek[]) {
+function generateChart(stats: SeverityInfoByWeek[]): void {
     let max = 0;
     const data: number[] = [];
     const labels: string[] = [];
@@ -140,7 +140,7 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                                     <div>Failed to load the dashboard component</div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetch()"> Try again </Button>
+                                    <Button @click="() => void fetch()"> Try again </Button>
                                 </div>
                             </div>
                         </div>

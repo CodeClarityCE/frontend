@@ -22,10 +22,10 @@ defineProps<{
 
 const orgInfo: Ref<Organization | undefined> = ref();
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 

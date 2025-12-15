@@ -22,6 +22,7 @@ export class LanguageDetectionService {
     private resultsRepository: ResultsRepository;
 
     constructor() {
+        // Initialize results repository for API calls
         this.resultsRepository = new ResultsRepository();
     }
 

@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-
-// Import stores
 import { PatchedManifestData, type PatchInfo, type UpgradeInfo } from '@/codeclarity_components/results/patching/Patching';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
@@ -34,25 +32,25 @@ const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 const patchedManifestData: Ref<PatchedManifestData> = ref(new PatchedManifestData());
 
 watch([pageNumber, pageLimitSelected, sortOptionSelected, sortDirection, pageNumber], () => {
-    init();
+    void init();
 });
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-function copyPatchedManfiest() {
-    navigator.clipboard.writeText(
+function copyPatchedManfiest(): void {
+    void navigator.clipboard.writeText(
         JSON.stringify(patchedManifestData.value.patched_manifest_raw, null, '\t')
     );
 }
 
-function copyPatchedText(text: string) {
-    navigator.clipboard.writeText(text);
+function copyPatchedText(text: string): void {
+    void navigator.clipboard.writeText(text);
 }
 
 // Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
@@ -81,7 +79,7 @@ async function init() {
             search_key: searchKey.value
         });
         // Extract patches array from workspace data
-        patches.value = Object.values(res.data.patches || {});
+        patches.value = Object.values(res.data.patches ?? {});
 
         render.value = true;
     } catch (_err) {
@@ -107,7 +105,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

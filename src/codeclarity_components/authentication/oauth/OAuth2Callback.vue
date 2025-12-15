@@ -31,7 +31,7 @@ const error = ref(false);
 const errorCode = ref();
 
 // Methods
-async function finalizeAutentication() {
+async function finalizeAutentication(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
 
@@ -42,12 +42,12 @@ async function finalizeAutentication() {
     const code = searchParams.get('code');
 
     if (!state || !code) {
-        router.push('/login');
+        void router.push('/login');
         return;
     }
 
-    if (props.provider !== SocialProvider.GITLAB && props.provider !== SocialProvider.GITHUB) {
-        router.push('/login');
+    if ((props.provider) !== SocialProvider.GITLAB && (props.provider) !== SocialProvider.GITHUB) {
+        void router.push('/login');
         return;
     }
 
@@ -56,7 +56,7 @@ async function finalizeAutentication() {
     // clicked on the gitlab/github connect button
     // If the state is different then the user clicked on a link send by an adversary
     if (authStore.getSocialAuthState === undefined || authStore.getSocialAuthState !== state) {
-        router.push('/login');
+        void router.push('/login');
         return;
     } else {
         authStore.socialAuthState = undefined;
@@ -77,7 +77,7 @@ async function finalizeAutentication() {
                 handleBusinessErrors: true
             });
         } else {
-            router.push('/login');
+            void router.push('/login');
             return;
         }
 
@@ -94,33 +94,33 @@ async function finalizeAutentication() {
 
         if (user.setup_done === false) {
             if (props.provider === SocialProvider.GITLAB) {
-                router.push({ name: 'signup', query: { provider: SocialProvider.GITLAB } });
+                void router.push({ name: 'signup', query: { provider: SocialProvider.GITLAB } });
             } else if (props.provider === SocialProvider.GITHUB) {
-                router.push({ name: 'signup', query: { provider: SocialProvider.GITHUB } });
+                void router.push({ name: 'signup', query: { provider: SocialProvider.GITHUB } });
             } else {
-                router.push('/login');
+                void router.push('/login');
             }
             return;
         } else {
             authStore.setAuthenticated(true);
             userStore.setUser(user);
-            router.push('/');
+            void router.push('/');
             return;
         }
     } catch (_error) {
         error.value = true;
         if (_error instanceof BusinessLogicError) {
             if (_error.error_code === 'AccountNotActivated') {
-                router.push('/trial');
+                void router.push('/trial');
             }
             errorCode.value = _error.error_code;
             if (
-                _error.error_code === APIErrors.FailedToAuthenticateSocialAccount ||
-                _error.error_code === APIErrors.IntegrationTokenRetrievalFailed ||
-                _error.error_code === APIErrors.IntegrationInvalidToken ||
-                _error.error_code === APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                _error.error_code === APIErrors.IntegrationTokenExpired ||
-                _error.error_code === APIErrors.InternalError
+                (_error.error_code as APIErrors) === APIErrors.FailedToAuthenticateSocialAccount ||
+                (_error.error_code as APIErrors) === APIErrors.IntegrationTokenRetrievalFailed ||
+                (_error.error_code as APIErrors) === APIErrors.IntegrationInvalidToken ||
+                (_error.error_code as APIErrors) === APIErrors.IntegrationIntegrationTokenMissingPermissions ||
+                (_error.error_code as APIErrors) === APIErrors.IntegrationTokenExpired ||
+                (_error.error_code as APIErrors) === APIErrors.InternalError
             ) {
                 errorNonRecoverable.value = true;
             }
@@ -130,10 +130,10 @@ async function finalizeAutentication() {
     }
 }
 
-function nonRecoverableErrorRedirect() {
+function nonRecoverableErrorRedirect(): void {
     authStore.$reset();
     userStore.$reset();
-    router.push('/login');
+    void router.push('/login');
 }
 
 // Lifecycle

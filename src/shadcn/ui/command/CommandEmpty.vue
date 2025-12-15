@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from 'reka-ui';
 import { cn } from '@/shadcn/lib/utils';
+import type { PrimitiveProps } from 'reka-ui';
 import { Primitive } from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
 import { useCommand } from '.';

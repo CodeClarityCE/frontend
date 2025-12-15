@@ -22,8 +22,8 @@ const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
 
 const orgInfo: Ref<Organization | undefined> = ref();
-const orgActionModalRef: any = ref(null);
-const orgAction: Ref<string> = ref('');
+const orgActionModalRef = ref<{ toggle: () => void } | null>(null);
+const orgAction: Ref<OrgAction | ''> = ref('');
 const orgActionId: Ref<string> = ref('');
 
 defineProps<{
@@ -36,15 +36,15 @@ enum OrgAction {
     LEAVE = 'leave'
 }
 
-function performOrgAction() {
+function performOrgAction(): void {
     if (orgAction.value === OrgAction.DELETE) {
-        deleteOrg(orgActionId.value);
+        void deleteOrg(orgActionId.value);
     } else if (orgAction.value === OrgAction.LEAVE) {
-        leaveOrg(orgActionId.value);
+        void leaveOrg(orgActionId.value);
     }
 }
 
-async function deleteOrg(orgId: string) {
+async function deleteOrg(orgId: string): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await orgRepo.delete({
@@ -53,12 +53,12 @@ async function deleteOrg(orgId: string) {
                 handleBusinessErrors: true
             });
             successToast('Successfully deleted the organization.');
-            router.push({ name: 'orgs', params: { page: 'list' } });
+            void router.push({ name: 'orgs', params: { page: 'list' } });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code === APIErrors.EntityNotFound) {
-                    router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
+                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                    void router.push({ name: 'orgs', params: { page: 'list' } });
+                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -68,7 +68,7 @@ async function deleteOrg(orgId: string) {
     }
 }
 
-async function leaveOrg(orgId: string) {
+async function leaveOrg(orgId: string): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await orgRepo.leave({
@@ -76,27 +76,27 @@ async function leaveOrg(orgId: string) {
                 bearerToken: authStore.getToken,
                 handleBusinessErrors: true
             });
-            successToast('Successfully left the organization.');
-            router.push({ name: 'orgs', params: { page: 'list' } });
+            void successToast('Successfully left the organization.');
+            void router.push({ name: 'orgs', params: { page: 'list' } });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code === APIErrors.EntityNotFound) {
-                    router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
-                    errorToast(`You cannot leave a personal organization.`);
-                } else if (err.error_code === APIErrors.CannotLeaveAsLastOwner) {
+                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                    void router.push({ name: 'orgs', params: { page: 'list' } });
+                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
+                    void errorToast(`You cannot leave a personal organization.`);
+                } else if ((err.error_code as APIErrors) === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
                         `You cannot leave as the last owner of this organization. Instead delete the organization.`
                     );
                 } else {
-                    errorToast(`Failed to leave the organization.`);
+                    void errorToast(`Failed to leave the organization.`);
                 }
             }
         }
     }
 }
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     autoResolveTickets.value = _orgInfo.auto_resolve_tickets ?? false;
 }
@@ -111,7 +111,7 @@ watch(autoResolveTickets, async (newValue) => {
     await updateAutoResolveSetting(newValue);
 });
 
-async function updateAutoResolveSetting(enabled: boolean) {
+async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
     if (!authStore.getAuthenticated || !authStore.getToken || !orgInfo.value) return;
 
     savingSettings.value = true;
@@ -122,15 +122,15 @@ async function updateAutoResolveSetting(enabled: boolean) {
             data: { auto_resolve_tickets: enabled },
             handleBusinessErrors: true
         });
-        successToast(enabled ? 'Auto-resolve tickets enabled' : 'Auto-resolve tickets disabled');
+        void successToast(enabled ? 'Auto-resolve tickets enabled' : 'Auto-resolve tickets disabled');
     } catch (err) {
         // Revert on error
         autoResolveTickets.value = !enabled;
         if (err instanceof BusinessLogicError) {
-            if (err.error_code === APIErrors.NotAuthorized) {
-                errorToast('You do not have permission to change this setting.');
+            if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+                void errorToast('You do not have permission to change this setting.');
             } else {
-                errorToast('Failed to update settings.');
+                void errorToast('Failed to update settings.');
             }
         }
     } finally {
@@ -156,7 +156,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
                         <!-- Integration Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER ?? orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -291,7 +291,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
                         <!-- Analyzer Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER ?? orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -320,7 +320,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
 
             <!-- Ticket Settings Card -->
             <InfoCard
-                v-if="orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN"
+                v-if="orgInfo.role === MemberRole.OWNER ?? orgInfo.role === MemberRole.ADMIN"
                 title="Ticket Settings"
                 description="Configure automatic ticket management behavior"
                 icon="solar:ticket-bold-duotone"
@@ -624,7 +624,7 @@ async function updateAutoResolveSetting(enabled: boolean) {
             <button
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors"
                 @click="
-                    performOrgAction();
+                    void performOrgAction();
                     orgActionModalRef.toggle();
                 "
             >

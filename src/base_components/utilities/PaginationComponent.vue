@@ -19,7 +19,7 @@ const nmbEntriesTotal = defineModel<number>('nmbEntriesTotal', { default: 12 });
 const totalPages = defineModel<number>('totalPages', { default: 12 });
 
 // Methods
-function changePage(_page: number) {
+function changePage(_page: number): void {
     pageModel.value = Math.min(Math.max(_page, 0), totalPages.value - 1);
 }
 </script>

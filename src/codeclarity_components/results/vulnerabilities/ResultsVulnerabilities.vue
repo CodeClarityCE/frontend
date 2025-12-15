@@ -19,8 +19,8 @@ defineProps<{
 const no_deps = false;
 
 const active_tab = ref('List');
-const list_ref: any = ref(null);
-const table_ref: any = ref(null);
+const list_ref = ref(null);
+const table_ref = ref(null);
 
 const selected_workspace: Ref<string> = ref('.');
 const selectedEcosystemFilter: Ref<string | null> = ref(null);

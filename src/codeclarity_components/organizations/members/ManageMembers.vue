@@ -53,7 +53,7 @@ watch([currentPage, entriesPerPage], async () => {
     await fetchOrganizationMembers(true);
 });
 
-async function fetchOrganizationMembers(refresh = false) {
+async function fetchOrganizationMembers(refresh = false): Promise<void> {
     if (!orgId.value) return;
     if (authStore.getAuthenticated && authStore.getToken) {
         errorMembers.value = false;
@@ -90,13 +90,13 @@ async function fetchOrganizationMembers(refresh = false) {
     }
 }
 
-async function updateSort(key: any) {
+async function updateSort(key: string | null | undefined): Promise<void> {
     if (key === undefined) return;
     if (key !== undefined)
         if (key === sortKey.value) {
             // If we select the same column then we reverse the direction
             sortDirection.value =
-                sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+                (sortDirection.value) === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
         } else {
             // Default direction
             sortDirection.value = SortDirection.DESC;
@@ -106,7 +106,7 @@ async function updateSort(key: any) {
 }
 
 onMounted(() => {
-    init();
+    void init();
 });
 
 watch([search], async () => {
@@ -115,30 +115,31 @@ watch([search], async () => {
     }, 250);
 });
 
-function init() {
+function init(): void {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
     if (!_orgId) {
         router.back();
+        return;
     }
 
     if (typeof _orgId === 'string') {
         orgId.value = _orgId;
-        fetchOrganizationMembers();
+        void fetchOrganizationMembers();
     } else {
         router.back();
     }
 }
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
-async function onRefetch() {
+async function onRefetch(): Promise<void> {
     await fetchOrganizationMembers(true);
 }
 </script>

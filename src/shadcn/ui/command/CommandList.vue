@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ListboxContentProps } from 'reka-ui';
 import { cn } from '@/shadcn/lib/utils';
+import type { ListboxContentProps } from 'reka-ui';
 import { ListboxContent, useForwardProps } from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
 

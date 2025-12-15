@@ -242,7 +242,7 @@ const getHealthStatusDescription = (): string => {
                         <div class="indicator-content">
                             <span class="indicator-title">Licensed</span>
                             <span class="indicator-desc">{{
-                                dependency.license || 'Standard license'
+                                dependency.license ?? 'Standard license'
                             }}</span>
                         </div>
                     </div>

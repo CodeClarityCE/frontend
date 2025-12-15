@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const expand = ref(props.expand);
 
-function expandBox() {
+function expandBox(): void {
     if (expand.value === true) {
         if (props.closeCallBack) props.closeCallBack();
     } else {

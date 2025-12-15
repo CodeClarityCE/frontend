@@ -23,7 +23,7 @@ export function beautifyObjectName(string: string) {
 export function getIndexIfArray(string: string) {
     const indexRegex = /\[(\d+)\]/;
     // Match the index
-    const match = string.match(indexRegex);
+    const match = indexRegex.exec(string);
     // Extract the index (number)
     const index = match ? Number.parseInt(match[1] ?? '0') : undefined;
     return index;
@@ -39,7 +39,7 @@ export function getBaseSchema<ChildType extends z.ZodAny | z.ZodObject<any, any>
     if (!schema) return null;
     if ('innerType' in schema._def) return getBaseSchema(schema._def.innerType as ChildType);
 
-    if ('schema' in schema._def) return getBaseSchema(schema._def.schema as ChildType);
+    if ('schema' in schema._def) return getBaseSchema(schema._def.schema);
 
     return schema as ChildType;
 }
@@ -117,7 +117,7 @@ function isObject(obj: unknown): obj is Record<string, unknown> {
     return obj !== null && !!obj && typeof obj === 'object' && !Array.isArray(obj);
 }
 function isContainerValue(value: unknown): value is Record<string, unknown> {
-    return isObject(value) || Array.isArray(value);
+    return isObject(value) ?? Array.isArray(value);
 }
 function cleanupNonNestedPath(path: string) {
     if (isNotNestedPath(path)) return path.replace(/\[|\]/g, '');

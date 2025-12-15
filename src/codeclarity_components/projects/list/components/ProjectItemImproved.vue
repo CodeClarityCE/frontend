@@ -69,16 +69,16 @@ const analysisStats = computed(() => {
 
     props.project.analyses.forEach((analysis) => {
         if (
-            analysis.status === AnalysisStatus.COMPLETED ||
-            analysis.status === AnalysisStatus.FINISHED
+            (analysis.status) === AnalysisStatus.COMPLETED ||
+            (analysis.status) === AnalysisStatus.FINISHED
         ) {
             stats.completed++;
         } else if (
-            analysis.status === AnalysisStatus.FAILED ||
-            analysis.status === AnalysisStatus.FAILURE
+            (analysis.status) === AnalysisStatus.FAILED ||
+            (analysis.status) === AnalysisStatus.FAILURE
         ) {
             stats.failed++;
-        } else if (analysis.status === AnalysisStatus.STARTED) {
+        } else if ((analysis.status) === AnalysisStatus.STARTED) {
             stats.running++;
         }
 
@@ -105,7 +105,7 @@ const cardVariant = computed(() => {
 });
 
 // Methods
-async function deleteProject() {
+async function deleteProject(): Promise<void> {
     if (!viewState.orgId) return;
     if (!auth.getAuthenticated || !auth.getToken) return;
 
@@ -118,10 +118,10 @@ async function deleteProject() {
             handleBusinessErrors: true
         });
         successToast('Project successfully deleted');
-        emit('onRefresh');
+        void emit('onRefresh');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
-            if (err.error_code === APIErrors.EntityNotFound) {
+            if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
                 successToast(`Successfully deleted project\n${props.project.url}`);
             } else {
                 errorToast(`Failed to delete the project\n${props.project.url}`);
@@ -135,11 +135,11 @@ async function deleteProject() {
     }
 }
 
-function navigateToNewAnalysis() {
-    router.push(`/analyses/add?id=${props.project.id}`);
+function navigateToNewAnalysis(): void {
+    void router.push(`/analyses/add?id=${props.project.id}`);
 }
 
-function getProjectIcon() {
+function getProjectIcon(): string {
     if (props.project.type === IntegrationProvider.GITLAB) return 'devicon:gitlab';
     if (props.project.type === IntegrationProvider.GITHUB) return 'devicon:github';
     return 'solar:folder-bold';

@@ -37,6 +37,6 @@ export interface StageBase {
 }
 
 export interface Stage extends StageBase {
-    config: Record<string, any>;
-    persistant_config: Record<string, any>;
+    config: Record<string, unknown>;
+    persistant_config: Record<string, unknown>;
 }

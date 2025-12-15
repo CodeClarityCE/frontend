@@ -9,17 +9,17 @@ const counter = ref(0);
 // Repositories
 const userRepository: UserRepository = new UserRepository();
 
-async function init() {
+async function init(): Promise<void> {
     try {
         const url = new URL(window.location.href);
         const searchParams = url.searchParams;
 
         await userRepository.confirmRegistration({
-            userId: searchParams.get('userid') || '',
+            userId: searchParams.get('userid') ?? '',
             bearerToken: '',
             data: {
-                token: searchParams.get('token') || '',
-                userIdHash: searchParams.get('userid') || ''
+                token: searchParams.get('token') ?? '',
+                userIdHash: searchParams.get('userid') ?? ''
             },
             handleBusinessErrors: true
         });
@@ -32,9 +32,9 @@ async function init() {
             counter.value -= 1;
             if (counter.value === 0) {
                 if (successInterval) {
-                    clearInterval(successInterval);
+                    void clearInterval(successInterval);
                 }
-                router.push({ name: 'login' });
+                void router.push({ name: 'login' });
             }
         }, 1000);
     } catch (_err) {
@@ -47,15 +47,15 @@ async function init() {
             counter.value -= 1;
             if (counter.value === 0) {
                 if (errorInterval) {
-                    clearInterval(errorInterval);
+                    void clearInterval(errorInterval);
                 }
-                router.push({ name: 'login' });
+                void router.push({ name: 'login' });
             }
         }, 1000);
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="flex flex-col justify-center items-center my-20">

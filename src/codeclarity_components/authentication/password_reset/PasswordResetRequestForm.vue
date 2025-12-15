@@ -14,7 +14,7 @@ import * as z from 'zod';
 const authRepository: AuthRepository = new AuthRepository();
 
 // State
-const loadingButtonRef: any = ref(null);
+const loadingButtonRef: Ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null> = ref(null);
 const success: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
@@ -31,9 +31,9 @@ const formValidationSchema = toTypedSchema(
 );
 
 // Methods
-async function submit() {
-    loadingButtonRef.value.setLoading(true);
-    loadingButtonRef.value.setDisabled(true);
+async function submit(): Promise<void> {
+    loadingButtonRef.value?.setLoading(true);
+    loadingButtonRef.value?.setDisabled(true);
 
     errorCode.value = undefined;
     success.value = false;
@@ -57,8 +57,8 @@ async function submit() {
             errorCode.value = _error.error_code;
         }
     } finally {
-        loadingButtonRef.value.setLoading(false);
-        loadingButtonRef.value.setDisabled(false);
+        loadingButtonRef.value?.setLoading(false);
+        loadingButtonRef.value?.setDisabled(false);
     }
 }
 </script>

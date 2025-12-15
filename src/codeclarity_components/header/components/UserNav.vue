@@ -51,10 +51,10 @@ const isLoading: Ref<boolean> = ref(false);
 // Repositories
 const notificationRepository: NotificationRepository = new NotificationRepository();
 
-async function logout() {
+async function logout(): Promise<void> {
     userStore.$reset();
     authStore.$reset();
-    router.push('/login');
+    void router.push('/login');
 }
 
 // Priority mapping for sorting
@@ -95,8 +95,8 @@ const filteredNotifications = computed(() => {
             (notification) =>
                 notification.title.toLowerCase().includes(query) ||
                 notification.description.toLowerCase().includes(query) ||
-                notification.content?.package_name?.toLowerCase().includes(query) ||
-                notification.content?.project_name?.toLowerCase().includes(query)
+                (notification.content.package_name?.toLowerCase().includes(query) ?? false) ||
+                (notification.content.project_name?.toLowerCase().includes(query) ?? false)
         );
     }
 
@@ -202,8 +202,8 @@ const totalPages = computed(() => Math.ceil(totalFilteredCount.value / entriesPe
 const shouldFilterNotification = (notification: Notification): boolean => {
     // Filter out package update notifications that shouldn't be recommended
     if (notification.content_type === NotificationContentType.PackageUpdate) {
-        const currentVersion = notification.content?.current_version;
-        const newVersion = notification.content?.new_version;
+        const currentVersion = notification.content.current_version;
+        const newVersion = notification.content.new_version;
 
         if (currentVersion && newVersion) {
             // Use the semver utility to determine if this upgrade should be recommended
@@ -214,12 +214,18 @@ const shouldFilterNotification = (notification: Notification): boolean => {
 };
 
 // Helper function to get properly ordered versions with upgrade analysis
-const getVersionInfo = (notification: Notification) => {
+const getVersionInfo = (notification: Notification): {
+    fromVersion: string;
+    toVersion: string;
+    isUpgrade: boolean;
+    isPrerelease: boolean;
+    upgradeType: 'major' | 'minor' | 'patch' | 'prerelease' | 'downgrade' | 'same';
+} => {
     const content = notification.content;
-    if (!content?.current_version || !content?.new_version) {
+    if (!content.current_version || !content.new_version) {
         return {
-            fromVersion: content?.current_version || '',
-            toVersion: content?.new_version || '',
+            fromVersion: content.current_version ?? '',
+            toVersion: content.new_version ?? '',
             isUpgrade: true,
             isPrerelease: false,
             upgradeType: 'minor' as const
@@ -260,7 +266,7 @@ watch([searchQuery, selectedFilter], () => {
     currentPage.value = 0;
 });
 
-async function fetchAllNotifications() {
+async function fetchAllNotifications(): Promise<void> {
     isLoading.value = true;
     try {
         // Fetch a larger number to get all notifications for better sorting/filtering
@@ -274,14 +280,14 @@ async function fetchAllNotifications() {
         total_notifications.value = resp.matching_count;
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            console.log(_err);
+            console.error(_err);
         }
     } finally {
         isLoading.value = false;
     }
 }
 
-async function deleteNotification(notification_id: string) {
+async function deleteNotification(notification_id: string): Promise<void> {
     try {
         await notificationRepository.deleteNotification({
             bearerToken: authStore.getToken!,
@@ -290,7 +296,7 @@ async function deleteNotification(notification_id: string) {
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            console.log(_err);
+            console.error(_err);
         }
     }
     allNotifications.value = allNotifications.value.filter(
@@ -299,7 +305,7 @@ async function deleteNotification(notification_id: string) {
     total_notifications.value -= 1;
 }
 
-async function deleteAllNotifications() {
+async function deleteAllNotifications(): Promise<void> {
     try {
         await notificationRepository.deleteAllNotifications({
             bearerToken: authStore.getToken!,
@@ -307,7 +313,7 @@ async function deleteAllNotifications() {
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            console.log(_err);
+            console.error(_err);
         }
     }
     allNotifications.value = [];
@@ -315,25 +321,25 @@ async function deleteAllNotifications() {
 }
 
 // Pagination functions
-function nextPage() {
+function nextPage(): void {
     if (currentPage.value < totalPages.value - 1) {
         currentPage.value++;
     }
 }
 
-function prevPage() {
+function prevPage(): void {
     if (currentPage.value > 0) {
         currentPage.value--;
     }
 }
 
-function goToPage(page: number) {
+function goToPage(page: number): void {
     if (page >= 0 && page < totalPages.value) {
         currentPage.value = page;
     }
 }
 
-fetchAllNotifications();
+void fetchAllNotifications();
 </script>
 
 <template>
@@ -564,7 +570,7 @@ fetchAllNotifications();
                                                 class="font-semibold text-base text-gray-900 flex-1"
                                             >
                                                 {{
-                                                    notification.title || 'Package Update Available'
+                                                    notification.title ?? 'Package Update Available'
                                                 }}
                                             </h3>
                                             <!-- Production/Dev badge -->
@@ -872,7 +878,7 @@ fetchAllNotifications();
                                     </div>
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-base text-gray-900">
-                                            {{ notification.title || 'Vulnerability Summary' }}
+                                            {{ notification.title ?? 'Vulnerability Summary' }}
                                         </h3>
                                         <p
                                             v-if="

@@ -9,6 +9,7 @@ import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
+    type FilterConfig,
     type FilterState
 } from '@/base_components/filters/UtilitiesFilters.vue';
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
@@ -28,7 +29,6 @@ import { ref, watch, computed, type Ref } from 'vue';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
 
 export interface Props {
-    [key: string]: any;
     highlightElem: string;
     forceOpenNewTab?: boolean;
     analysisID?: string;
@@ -88,70 +88,74 @@ const sortKey = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
 // Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            icon: 'meteor-icons:language',
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        },
-        Divider: {
-            name: 'Language',
-            type: FilterType.DIVIDER,
-            data: {}
-        },
-        AttributeState: {
-            name: 'Matching',
-            type: FilterType.CHECKBOX,
-            data: {
-                hide_correct_matching: {
-                    title: 'Hide correct',
-                    value: false
-                },
-                hide_possibly_incorrect_matching: {
-                    title: 'Hide possibly incorrect',
-                    value: false
-                },
-                hide_incorrect_matching: {
-                    title: 'Hide incorrect',
-                    value: false
-                }
-            }
-        },
-        BlacklistState: {
-            name: 'Policy Status',
-            type: FilterType.CHECKBOX,
-            data: {
-                show_blacklisted: {
-                    title: 'Show blacklisted vulnerabilities',
-                    value: props.showBlacklisted
-                }
+const filterConfigDef: FilterConfig = {
+    ImportState: {
+        name: 'Language',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.RADIO,
+        icon: 'meteor-icons:language',
+        data: {
+            js: {
+                title: 'JavaScript',
+                value: true
             }
         }
-    })
-);
+    },
+    Divider: {
+        name: 'Language',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.DIVIDER,
+        data: {}
+    },
+    AttributeState: {
+        name: 'Matching',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.CHECKBOX,
+        data: {
+            hide_correct_matching: {
+                title: 'Hide correct',
+                value: false
+            },
+            hide_possibly_incorrect_matching: {
+                title: 'Hide possibly incorrect',
+                value: false
+            },
+            hide_incorrect_matching: {
+                title: 'Hide incorrect',
+                value: false
+            }
+        }
+    },
+    BlacklistState: {
+        name: 'Policy Status',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.CHECKBOX,
+        data: {
+            show_blacklisted: {
+                title: 'Show blacklisted vulnerabilities',
+                value: props.showBlacklisted
+            }
+        }
+    }
+};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+const filterState = ref<FilterState>(createNewFilterState(filterConfigDef));
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
-function isNoneSeverity(n: number) {
+function isNoneSeverity(n: number): boolean {
     return n === 0.0 || n === undefined;
 }
-function isLowSeverity(n: number) {
+function isLowSeverity(n: number): boolean {
     return n < 4.0 && n > 0.0;
 }
-function isMediumSeverity(n: number) {
+function isMediumSeverity(n: number): boolean {
     return n >= 4.0 && n < 7.0;
 }
-function isHighSeverity(n: number) {
+function isHighSeverity(n: number): boolean {
     return n >= 7.0 && n < 9.0;
 }
-function isCriticalSeverity(n: number) {
+function isCriticalSeverity(n: number): boolean {
     return n >= 9.0;
 }
 
@@ -262,9 +266,17 @@ const owaspMapping: Record<
     }
 };
 
-function getOwaspInfo(owaspId: string) {
+interface OwaspInfoResult {
+    id: string;
+    name: string;
+    description: string;
+    impact: string;
+    color: string;
+}
+
+function getOwaspInfo(owaspId: string): OwaspInfoResult {
     return (
-        owaspMapping[owaspId] || {
+        owaspMapping[owaspId] ?? {
             id: 'Unknown',
             name: 'Uncategorized',
             description: 'This vulnerability does not map to a specific OWASP Top 10 category.',
@@ -274,7 +286,7 @@ function getOwaspInfo(owaspId: string) {
     );
 }
 
-function getUniqueOWASP(weaknessInfo: any[]) {
+function getUniqueOWASP(weaknessInfo: {OWASPTop10Id: string}[]): string[] {
     const owaspIds = weaknessInfo
         .map((weakness) => weakness.OWASPTop10Id)
         .filter((id) => id && id !== '');
@@ -283,7 +295,7 @@ function getUniqueOWASP(weaknessInfo: any[]) {
 }
 
 // DEFINE THE OPTIONS IN FILTER
-type Options = Record<string, any>;
+type Options = Record<string, unknown>;
 const options = ref<Options>({
     OwaspTop10: {
         iconScale: '2',
@@ -409,20 +421,21 @@ const options = ref<Options>({
 });
 
 for (const category in options.value) {
-    for (const option in options.value[category].data) {
-        options.value[category].data[option].value = false;
+    const categoryData = options.value[category] as {data: Record<string, {value: boolean}>};
+    for (const option in categoryData.data) {
+        categoryData.data[option].value = false;
     }
 }
 
-function updateSort(_sortKey: ProjectsSortInterface, _sortDirection: SortDirection) {
+function updateSort(_sortKey: ProjectsSortInterface, _sortDirection: SortDirection): void {
     sortKey.value = _sortKey;
     sortDirection.value = _sortDirection;
-    init();
+    void init();
 }
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
@@ -447,9 +460,10 @@ async function init() {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             active_filters: filterState.value.toString(),
             search_key: searchKey.value,
-            ecosystem_filter: props.ecosystemFilter || undefined,
+            ecosystem_filter: props.ecosystemFilter ?? undefined,
             show_blacklisted: props.showBlacklisted
         });
         findings.value = res.data;
@@ -466,7 +480,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 
 watch(
     [
@@ -480,14 +494,16 @@ watch(
         () => props.showBlacklisted
     ],
     () => {
-        init();
+        void init();
     }
 );
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
 watch(() => filterState.value.activeFilters, init);
 
 // Sync blacklisted filter with parent component
-const showBlacklistedFromFilter = computed(() => {
-    return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value || false;
+const showBlacklistedFromFilter = computed<boolean>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+    return filterState.value.filterConfig.BlacklistState?.data?.show_blacklisted?.value ?? false;
 });
 
 // Define emit for updating parent's showBlacklisted value
@@ -496,8 +512,8 @@ const emit = defineEmits<{
 }>();
 
 // Watch for changes in the filter and emit to parent
-watch(showBlacklistedFromFilter, (newValue) => {
-    emit('update:showBlacklisted', newValue);
+watch(showBlacklistedFromFilter, (newValue: boolean) => {
+    void emit('update:showBlacklisted', newValue);
 });
 </script>
 
@@ -1072,7 +1088,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                             !vla.Score
                                                                     }"
                                                                     >{{
-                                                                        vla.Score || 'Not Available'
+                                                                        vla.Score ?? 'Not Available'
                                                                     }}</span
                                                                 >
                                                             </div>

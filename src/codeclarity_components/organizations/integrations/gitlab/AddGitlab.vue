@@ -36,8 +36,8 @@ const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
 
 // State
 const validationError: Ref<ValidationError | undefined> = ref();
-const selfHostedModalRef: any = ref(null);
-const loadingButtonRef: any = ref(null);
+const selfHostedModalRef: Ref<{ toggle: () => void } | null> = ref(null);
+const loadingButtonRef: Ref<{ setLoading: (val: boolean) => void; setDisabled: (val: boolean) => void; value: () => void } | null> = ref(null);
 const orgId: Ref<string> = ref('');
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
@@ -50,19 +50,19 @@ const formPersonalAccessToken: Ref<string> = ref('');
 const formGitlabInstanceUrl: Ref<string> = ref('https://gitlab.com');
 const formGitlabInstanceUrlError: Ref<string> = ref('');
 
-async function setSelfHosted(_selfHosted: boolean) {
+async function setSelfHosted(_selfHosted: boolean): Promise<void> {
     if (_selfHosted === true) {
         selfHosted.value = true;
-        selfHostedModalRef.value.toggle();
+        selfHostedModalRef.value?.toggle();
     } else {
         selfHosted.value = false;
         formGitlabInstanceUrl.value = 'https://gitlab.com';
     }
 }
 
-async function submit() {
-    loadingButtonRef.value.setLoading(true);
-    loadingButtonRef.value.setDisabled(true);
+async function submit(): Promise<void> {
+    loadingButtonRef.value?.setLoading(true);
+    loadingButtonRef.value?.setDisabled(true);
 
     if (!orgId.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
@@ -85,8 +85,8 @@ async function submit() {
                     gitlab_instance_url: url
                 }
             });
-            successToast('Successfully added the integration');
-            router.push({
+            void successToast('Successfully added the integration');
+            void router.push({
                 name: 'orgs',
                 params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
             });
@@ -101,8 +101,8 @@ async function submit() {
                     gitlab_instance_url: url
                 }
             });
-            successToast('Successfully updated the integration');
-            router.push({
+            void successToast('Successfully updated the integration');
+            void router.push({
                 name: 'orgs',
                 params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
             });
@@ -119,8 +119,8 @@ async function submit() {
             errorCode.value = _err.error_code;
         }
     } finally {
-        loadingButtonRef.value.setLoading(false);
-        loadingButtonRef.value.setDisabled(false);
+        loadingButtonRef.value?.setLoading(false);
+        loadingButtonRef.value?.setDisabled(false);
     }
 }
 
@@ -144,18 +144,18 @@ const gitlabInstanceUrlValidationSchema = z.object({
         .url('Please enter a valid url')
 });
 
-async function validateGitlabInstanceUrl() {
+async function validateGitlabInstanceUrl(): Promise<void> {
     try {
         gitlabInstanceUrlValidationSchema.parse({ url: formGitlabInstanceUrl.value });
         formGitlabInstanceUrlError.value = '';
     } catch (err) {
         if (err instanceof z.ZodError) {
-            formGitlabInstanceUrlError.value = err.errors[0]?.message || 'Invalid URL';
+            formGitlabInstanceUrlError.value = err.errors[0]?.message ?? 'Invalid URL';
         }
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
@@ -178,7 +178,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="min-h-screen bg-gray-50">

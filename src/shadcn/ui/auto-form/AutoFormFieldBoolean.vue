@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { FieldProps } from './interface';
 import { Checkbox } from '@/shadcn/ui/checkbox';
 import { FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/shadcn/ui/form';
 import { Switch } from '@/shadcn/ui/switch';
 import { computed } from 'vue';
 import AutoFormLabel from './AutoFormLabel.vue';
+import type { FieldProps } from './interface';
 import { beautifyObjectName, maybeBooleanishToBoolean } from './utils';
 
 const props = defineProps<FieldProps>();

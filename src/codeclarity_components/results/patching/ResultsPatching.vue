@@ -2,8 +2,6 @@
 import { type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
 import { type Project } from '@/codeclarity_components/projects/project.entity';
 import { onMounted, ref } from 'vue';
-
-// Import stores
 import PatchingContent from './PatchingContent.vue';
 
 defineProps<{

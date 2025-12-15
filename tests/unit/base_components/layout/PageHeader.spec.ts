@@ -14,7 +14,7 @@ vi.mock('@iconify/vue', () => ({
 vi.mock('@/shadcn/ui/button/Button.vue', () => ({
   default: {
     name: 'Button',
-    template: '<button data-testid="button" :class="$attrs.class" :disabled="disabled || undefined" @click="$emit(\'click\')"><slot /></button>',
+    template: '<button data-testid="button" :class="$attrs.class" :disabled="disabled ?? undefined" @click="$emit(\'click\')"><slot /></button>',
     props: ['variant', 'size', 'disabled'],
     emits: ['click']
   }

@@ -9,7 +9,7 @@ config.global.stubs = {
   Icon: {
     name: 'Icon',
     props: ['icon', 'class', 'width', 'height', 'style'],
-    template: '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ icon || "mock-icon" }}</span>'
+    template: '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ icon ?? "mock-icon" }}</span>'
   },
   tippy: {
     name: 'tippy',
@@ -18,7 +18,7 @@ config.global.stubs = {
   },
   RouterLink: {
     name: 'RouterLink',
-    template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name || to.path || \'#\')"><slot /></a>',
+    template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name ?? to.path ?? \'#\')"><slot /></a>',
     props: ['to', 'replace', 'activeClass', 'exactActiveClass', 'custom', 'ariaCurrentValue', 'viewTransition']
   }
 }
@@ -53,7 +53,7 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query: string): MediaQueryList => ({
     matches: false,
     media: query,
     onchange: null,
@@ -62,7 +62,7 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
-  })),
+  } as unknown as MediaQueryList)),
 })
 
 // Mock scrollTo
@@ -72,7 +72,7 @@ Object.defineProperty(window, 'scrollTo', {
 })
 
 // Mock requestAnimationFrame for auto-animate library
-global.requestAnimationFrame = vi.fn((cb) => {
+global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback): number => {
   cb(0)
   return 0
 })
@@ -111,7 +111,7 @@ if (typeof Element !== 'undefined') {
 
 // Mock router
 vi.mock('vue-router', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = (await importOriginal())
   return {
     ...actual,
     useRouter: () => ({
@@ -130,10 +130,10 @@ vi.mock('vue-router', async (importOriginal) => {
     }),
     RouterLink: {
       name: 'RouterLink',
-      template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name || to.path || \'#\')"><slot /></a>',
+      template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name ?? to.path ?? \'#\')"><slot /></a>',
       props: ['to', 'replace', 'activeClass', 'exactActiveClass', 'custom', 'ariaCurrentValue', 'viewTransition']
     }
-  }
+  } as Record<string, unknown>
 })
 
 // Mock Pinia with singleton instance
@@ -143,7 +143,7 @@ vi.mock('pinia', () => ({
   createPinia: vi.fn(() => mockPinia),
   defineStore: vi.fn(),
   setActivePinia: vi.fn(),
-  storeToRefs: vi.fn((store) => store),
+  storeToRefs: vi.fn(<T>(store: T): T => store),
 }))
 
 // Mock VueCookies plugin with proper install function
@@ -172,7 +172,6 @@ beforeEach(() => {
 // Mock all repository classes to prevent "is not a function" errors
 vi.mock('@/utils/api/BaseRepository', () => ({
   BaseRepository: class MockBaseRepository {
-    constructor() {}
     buildUrl = vi.fn()
     getRequest = vi.fn()
     postRequest = vi.fn()
@@ -182,8 +181,8 @@ vi.mock('@/utils/api/BaseRepository', () => ({
 }))
 
 // Create comprehensive repository mocks
-const createRepositoryMock = (methods: string[]) => {
-  const mock: any = {}
+const createRepositoryMock = (methods: string[]): Record<string, ReturnType<typeof vi.fn>> => {
+  const mock: Record<string, ReturnType<typeof vi.fn>> = {}
   methods.forEach(method => {
     mock[method] = vi.fn().mockResolvedValue({ data: {} })
   })
@@ -192,7 +191,7 @@ const createRepositoryMock = (methods: string[]) => {
 
 // Mock all main repositories
 vi.mock('@/codeclarity_components/results/results.repository', () => ({
-  ResultsRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  ResultsRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'getSbomStat', 'getSbomWorkspaces', 'getSbom', 'getDependency', 'getVulnerabilities',
     'getVulnerability', 'getFinding', 'getLicenses', 'getPatches', 'getPatchedManifest',
     'getCodeQLResults', 'getResults'
@@ -200,43 +199,43 @@ vi.mock('@/codeclarity_components/results/results.repository', () => ({
 }))
 
 vi.mock('@/codeclarity_components/analyses/analysis.repository', () => ({
-  AnalysisRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  AnalysisRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'createAnalysis', 'getAnalyses', 'getAnalysisById', 'getProjectById', 'deleteAnalysis'
   ]))
 }))
 
 vi.mock('@/codeclarity_components/projects/project.repository', () => ({
-  ProjectRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  ProjectRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'createProject', 'getProjects', 'getProjectById', 'updateProject', 'deleteProject'
   ]))
 }))
 
 vi.mock('@/codeclarity_components/organizations/organization.repository', () => ({
-  OrgRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  OrgRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'createOrganization', 'getOrganizations', 'getOrganizationById', 'updateOrganization', 'deleteOrganization'
   ]))
 }))
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  AuthRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'login', 'logout', 'register', 'resetPassword', 'confirmEmail'
   ]))
 }))
 
 vi.mock('@/codeclarity_components/authentication/user.repository', () => ({
-  UserRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  UserRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'getCurrentUser', 'updateUser', 'deleteUser'
   ]))
 }))
 
 vi.mock('@/codeclarity_components/dashboard/dashboard.repository', () => ({
-  DashboardRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  DashboardRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'getDashboardStats', 'getChartData'
   ]))
 }))
 
 vi.mock('@/codeclarity_components/results/licenses/LicenseRepository', () => ({
-  LicenseRepository: vi.fn().mockImplementation(() => createRepositoryMock([
+  LicenseRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
     'getLicenses', 'getLicenseById'
   ]))
 }))

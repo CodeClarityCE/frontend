@@ -1,4 +1,20 @@
-function getData(finding: any) {
+interface CvssScore {
+    base_score?: number;
+    exploitability_score?: number;
+    impact_score?: number;
+}
+
+interface FindingSeverities {
+    cvss_31: CvssScore | null;
+    cvss_3: CvssScore | null;
+    cvss_2: CvssScore | null;
+}
+
+interface Finding {
+    severities: FindingSeverities;
+}
+
+function getData(finding: Finding): number[] | null {
     if (finding.severities.cvss_31 !== null) {
         const base_score = finding.severities.cvss_31.base_score ?? 0.0;
         const exploitability = finding.severities.cvss_31.exploitability_score ?? 0.0;
@@ -39,7 +55,7 @@ function getData(finding: any) {
     return null;
 }
 
-function getRadarChartData(finding: any) {
+function getRadarChartData(finding: Finding): { name: string; axes: { axis: string; value: number }[] }[] | null {
     const data = getData(finding);
     if (!data) return null;
 
@@ -66,7 +82,21 @@ function getRadarChartData(finding: any) {
     return d3_data;
 }
 
-function getRadarChartConfig() {
+function getRadarChartConfig(): {
+    w: number;
+    h: number;
+    margin: { top: number; right: number; bottom: number; left: number };
+    levels: number;
+    maxValue: number;
+    labelFactor: number;
+    wrapWidth: number;
+    opacityArea: number;
+    dotRadius: number;
+    opacityCircles: number;
+    strokeWidth: number;
+    roundStrokes: boolean;
+    legend: boolean;
+} {
     // Return d3 RadarChart configuration
     const d3_config = {
         w: 300,

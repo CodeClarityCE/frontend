@@ -25,7 +25,7 @@ const error: Ref<boolean> = ref(false);
 const orgRepo = new OrgRepository();
 const memberships: Ref<OrganizationMembership[]> = ref([]);
 
-async function fetch(refresh = false) {
+async function fetch(refresh = false): Promise<void> {
     errorCode.value = '';
     error.value = false;
     if (authStore.getAuthenticated && authStore.getToken) {
@@ -53,15 +53,15 @@ async function fetch(refresh = false) {
     }
 }
 
-function refresh() {
-    fetch(true);
+function refresh(): void {
+    void fetch(true);
 }
 
 watch([search, currentPage], async () => {
     await fetch(true);
 });
 
-fetch();
+void fetch();
 </script>
 <template>
     <div class="space-y-6">

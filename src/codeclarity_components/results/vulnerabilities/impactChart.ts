@@ -1,4 +1,20 @@
-function getData(finding: any) {
+interface CvssImpact {
+    confidentiality_impact?: string;
+    availability_impact?: string;
+    integrity_impact?: string;
+}
+
+interface FindingSeverities {
+    cvss_31: CvssImpact | null;
+    cvss_3: CvssImpact | null;
+    cvss_2: CvssImpact | null;
+}
+
+interface Finding {
+    severities: FindingSeverities;
+}
+
+function getData(finding: Finding): number[] | null {
     if (finding.severities.cvss_31 !== null) {
         const confidentiality = getContinousFromDiscreteCVSS3(
             finding.severities.cvss_31.confidentiality_impact
@@ -59,7 +75,7 @@ function getData(finding: any) {
     return null;
 }
 
-function getContinousFromDiscreteCVSS2(value: string) {
+function getContinousFromDiscreteCVSS2(value: string | undefined): number {
     if (value === 'COMPLETE') {
         return 0.66;
     } else if (value === 'PARTIAL') {
@@ -69,7 +85,7 @@ function getContinousFromDiscreteCVSS2(value: string) {
     }
 }
 
-function getContinousFromDiscreteCVSS3(value: string) {
+function getContinousFromDiscreteCVSS3(value: string | undefined): number {
     if (value === 'HIGH') {
         return 0.56;
     } else if (value === 'LOW') {
@@ -79,7 +95,7 @@ function getContinousFromDiscreteCVSS3(value: string) {
     }
 }
 
-function getRadarChartData(finding: any) {
+function getRadarChartData(finding: Finding): { name: string; axes: { axis: string; value: number }[] }[] | null {
     const data = getData(finding);
     if (!data) return null;
 
@@ -106,7 +122,21 @@ function getRadarChartData(finding: any) {
     return d3_data;
 }
 
-function getRadarChartConfig() {
+function getRadarChartConfig(): {
+    w: number;
+    h: number;
+    margin: { top: number; right: number; bottom: number; left: number };
+    levels: number;
+    maxValue: number;
+    labelFactor: number;
+    wrapWidth: number;
+    opacityArea: number;
+    dotRadius: number;
+    opacityCircles: number;
+    strokeWidth: number;
+    roundStrokes: boolean;
+    legend: boolean;
+} {
     // Return d3 RadarChart configuration
     const d3_config = {
         w: 300,

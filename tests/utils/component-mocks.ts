@@ -9,7 +9,13 @@ import { vi } from 'vitest';
  * @param componentDef - The component definition object
  * @returns Mock object with Vue 3 internal properties
  */
-export function createVueComponentMock(componentDef: any) {
+export function createVueComponentMock(componentDef: Record<string, unknown>): {
+  default: Record<string, unknown>;
+  __isTeleport: boolean;
+  __isKeepAlive: boolean;
+  __isSuspense: boolean;
+  __isFragment: boolean;
+} {
   return {
     default: componentDef,
     __isTeleport: false,
@@ -32,12 +38,12 @@ export function createSimpleComponentMock(
   template?: string,
   props?: string[],
   emits?: string[]
-) {
+): ReturnType<typeof createVueComponentMock> {
   return createVueComponentMock({
     name,
-    template: template || `<div data-testid="${name.toLowerCase()}">${name}</div>`,
-    props: props || [],
-    emits: emits || []
+    template: template ?? `<div data-testid="${name.toLowerCase()}">${name}</div>`,
+    props: props ?? [],
+    emits: emits ?? []
   });
 }
 
@@ -46,7 +52,7 @@ export function createSimpleComponentMock(
  */
 export const BaseRepositoryMock = {
   BaseRepository: class MockBaseRepository {
-    constructor() {}
+    // Empty constructor for mocking purposes
   },
   BusinessLogicError: class MockBusinessLogicError extends Error {
     constructor(public error_code: string) {
@@ -54,7 +60,7 @@ export const BaseRepositoryMock = {
     }
   },
   ValidationError: class MockValidationError extends Error {
-    constructor(public error_code: string, public details?: any) {
+    constructor(public error_code: string, public details?: unknown) {
       super();
     }
   }
@@ -74,7 +80,7 @@ export const RouterMock = {
 /**
  * Creates a standard Icon component mock
  */
-export function createIconMock() {
+export function createIconMock(): ReturnType<typeof createVueComponentMock> {
   return createVueComponentMock({
     name: 'Icon',
     props: ['icon', 'class', 'width', 'height'],
@@ -85,7 +91,7 @@ export function createIconMock() {
 /**
  * Creates a standard Button component mock
  */
-export function createButtonMock() {
+export function createButtonMock(): ReturnType<typeof createVueComponentMock> {
   return createVueComponentMock({
     name: 'Button',
     props: ['variant', 'type', 'disabled', 'size'],

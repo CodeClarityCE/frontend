@@ -3,12 +3,9 @@ import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UtilitiesFilters, {
     createNewFilterState,
-    FilterType,
     type FilterState
 } from '@/base_components/filters/UtilitiesFilters.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-
-// Import stores
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
@@ -50,17 +47,19 @@ const patchedManifestData: Ref<PatchedManifestData> = ref(new PatchedManifestDat
 const sortOptions = [{ key: 'patch_type', label: 'Type' }];
 
 watch([pageNumber, pageLimitSelected, sortOptionSelected, sortDirection, pageNumber], () => {
-    init();
+    void init();
 });
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
 // Filters
-const filterState: Ref<FilterState> = ref(
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const filterState: Ref<FilterState> = ref<FilterState>(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     createNewFilterState({
         ImportState: {
             name: 'Language',
-            type: FilterType.RADIO,
+            type: 'radio' as const,
             data: {
                 js: {
                     title: 'JavaScript',
@@ -68,13 +67,13 @@ const filterState: Ref<FilterState> = ref(
                 }
             }
         }
-    })
+    }) as FilterState
 );
 
 // Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
@@ -128,7 +127,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

@@ -226,7 +226,7 @@ describe('SortSelector', () => {
     it('does not emit when option with null key is clicked', async () => {
       // This test verifies the filter works correctly
       const options = wrapper.findAll('option')
-      const initialEmitCount = wrapper.emitted('onSortChange')?.length || 0
+      const initialEmitCount = wrapper.emitted('onSortChange')?.length ?? 0
 
       // All visible options should have valid keys since nulls are filtered
       await options[0].trigger('click')

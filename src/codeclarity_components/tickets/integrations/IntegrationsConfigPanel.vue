@@ -52,7 +52,7 @@ const availableProviders = [
     }
 ];
 
-async function loadIntegrations() {
+async function loadIntegrations(): Promise<void> {
     const orgId = defaultOrg?.value?.id;
     if (!orgId || !auth.getToken) return;
 
@@ -73,7 +73,7 @@ async function loadIntegrations() {
     }
 }
 
-async function testConnection(provider: ExternalTicketProvider) {
+async function testConnection(provider: ExternalTicketProvider): Promise<void> {
     const orgId = defaultOrg?.value?.id;
     if (!orgId || !auth.getToken) return;
 
@@ -98,7 +98,7 @@ async function testConnection(provider: ExternalTicketProvider) {
     }
 }
 
-async function deleteIntegration(provider: ExternalTicketProvider) {
+async function deleteIntegration(provider: ExternalTicketProvider): Promise<void> {
     const orgId = defaultOrg?.value?.id;
     if (!orgId || !auth.getToken) return;
 
@@ -121,7 +121,7 @@ async function deleteIntegration(provider: ExternalTicketProvider) {
     }
 }
 
-function openConfigModal(provider: ExternalTicketProvider) {
+function openConfigModal(provider: ExternalTicketProvider): void {
     if (provider === ExternalTicketProvider.CLICKUP) {
         showClickUpModal.value = true;
     }
@@ -135,13 +135,13 @@ function getTestResult(provider: ExternalTicketProvider): ConnectionTestResult |
     return testResults.value.get(provider);
 }
 
-function handleClickUpConfigured() {
+function handleClickUpConfigured(): void {
     showClickUpModal.value = false;
-    loadIntegrations();
+    void loadIntegrations();
 }
 
 onMounted(() => {
-    loadIntegrations();
+    void loadIntegrations();
 });
 </script>
 

@@ -60,7 +60,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                     class: 'max-w-xs text-gray-600 truncate',
                     title: description
                 },
-                description || 'No description'
+                description ?? 'No description'
             );
         }
     },
@@ -92,15 +92,16 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'content',
         header: 'Licenses',
         cell: ({ row }) => {
-            const licenses = row.getValue('content');
-            const count = licenses?.length || 0;
+             
+            const licenses: string[] | undefined = row.getValue('content');
+            const count = licenses?.length ?? 0;
             return h('div', { class: 'flex items-center gap-2' }, [
                 h(
                     Badge,
                     {
                         variant: 'secondary'
                     },
-                    count.toString()
+                    String(count)
                 ),
                 h('span', { class: 'text-sm text-gray-600' }, count === 1 ? 'license' : 'licenses')
             ]);
@@ -111,7 +112,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         header: 'Created By',
         cell: ({ row }) => {
             const createdBy = row.getValue('created_by');
-            return h('div', { class: 'text-sm text-gray-600' }, createdBy || 'Unknown');
+            return h('div', { class: 'text-sm text-gray-600' }, createdBy ?? 'Unknown');
         }
     },
     {
@@ -146,7 +147,8 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                         size: 'sm',
                         onClick: () => {
                             // Emit edit event through table meta
-                            (table.options.meta as any)?.onEdit?.(policy);
+                            const meta = table.options.meta as { onEdit?: (policy: LicensePolicy) => void } | undefined;
+                            meta?.onEdit?.(policy);
                         }
                     },
                     [h(Icon, { icon: 'solar:pen-bold', class: 'h-4 w-4' })]
@@ -158,7 +160,8 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                         size: 'sm',
                         onClick: () => {
                             // Emit delete event through table meta
-                            (table.options.meta as any)?.onDelete?.(policy);
+                            const meta = table.options.meta as { onDelete?: (policy: LicensePolicy) => void } | undefined;
+                            meta?.onDelete?.(policy);
                         }
                     },
                     [

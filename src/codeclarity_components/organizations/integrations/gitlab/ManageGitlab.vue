@@ -33,7 +33,7 @@ const props = defineProps<{
 // Stores
 const authStore = useAuthStore();
 
-async function fetchIntegration() {
+async function fetchIntegration(): Promise<void> {
     if (!integrationId.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -59,7 +59,7 @@ async function fetchIntegration() {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _integrationId = route.query.integrationId as string;
 
@@ -71,7 +71,7 @@ async function init() {
     await fetchIntegration();
 }
 
-async function deleteIntegration() {
+async function deleteIntegration(): Promise<void> {
     if (!integrationId.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -84,17 +84,17 @@ async function deleteIntegration() {
         });
 
         successToast('Succesfully deleted the integration');
-        router.push({
+        void router.push({
             name: 'orgs',
             params: { orgId: props.orgId, page: 'integrations', action: 'manage' }
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            if (_err.error_code === APIErrors.NotAuthorized) {
-                errorToast('You are not authorized to perform this action.');
-            } else if (_err.error_code === APIErrors.EntityNotFound) {
+            if ((_err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+                void errorToast('You are not authorized to perform this action.');
+            } else if ((_err.error_code as APIErrors) === APIErrors.EntityNotFound) {
                 errorToast('Succesfully deleted the integration');
-            } else if (_err.error_code === APIErrors.InternalError) {
+            } else if ((_err.error_code as APIErrors) === APIErrors.InternalError) {
                 errorToast('Failed to delete the integration.');
             } else {
                 errorToast('Failed to delete the integration.');
@@ -105,7 +105,7 @@ async function deleteIntegration() {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <OrgIntegrationManageTokenBasedIntegration

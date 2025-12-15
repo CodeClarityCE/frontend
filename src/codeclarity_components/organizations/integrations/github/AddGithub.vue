@@ -35,7 +35,7 @@ const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
 
 // State
 const validationError: Ref<ValidationError | undefined> = ref();
-const loadingButtonRef: any = ref(null);
+const loadingButtonRef: Ref<{ setLoading: (val: boolean) => void; setDisabled: (val: boolean) => void } | null> = ref(null);
 const orgId: Ref<string> = ref('');
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
@@ -45,9 +45,9 @@ const updateId: Ref<string | undefined> = ref();
 // Form Data
 const formPersonalClassicToken: Ref<string> = ref('');
 
-async function submit() {
-    loadingButtonRef.value.setLoading(true);
-    loadingButtonRef.value.setDisabled(true);
+async function submit(): Promise<void> {
+    loadingButtonRef.value?.setLoading(true);
+    loadingButtonRef.value?.setDisabled(true);
 
     if (!orgId.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
@@ -66,8 +66,8 @@ async function submit() {
                     token_type: GithubTokenType.CLASSIC_TOKEN
                 }
             });
-            successToast('Successfully added the integration');
-            router.push({
+            void successToast('Successfully added the integration');
+            void router.push({
                 name: 'orgs',
                 params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
             });
@@ -81,8 +81,8 @@ async function submit() {
                     token_type: GithubTokenType.CLASSIC_TOKEN
                 }
             });
-            successToast('Successfully updated the integration');
-            router.push({
+            void successToast('Successfully updated the integration');
+            void router.push({
                 name: 'orgs',
                 params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
             });
@@ -98,8 +98,8 @@ async function submit() {
             errorCode.value = _err.error_code;
         }
     } finally {
-        loadingButtonRef.value.setLoading(false);
-        loadingButtonRef.value.setDisabled(false);
+        loadingButtonRef.value?.setLoading(false);
+        loadingButtonRef.value?.setDisabled(false);
     }
 }
 // Form Validation
@@ -112,7 +112,7 @@ const formValidationSchema = toTypedSchema(
     })
 );
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
@@ -135,7 +135,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="min-h-screen bg-gray-50">

@@ -64,7 +64,7 @@ describe('UserAuthForm Accessibility Tests', () => {
             props: ['disabled']
           },
           Input: {
-            template: '<input v-bind="$attrs" :type="type" :name="name" :id="id" :required="required" :aria-describedby="ariaDescribedBy" :aria-label="$attrs[\'aria-label\'] || placeholder" :placeholder="placeholder" />',
+            template: '<input v-bind="$attrs" :type="type" :name="name" :id="id" :required="required" :aria-describedby="ariaDescribedBy" :aria-label="$attrs[\'aria-label\'] ?? placeholder" :placeholder="placeholder" />',
             props: ['type', 'name', 'id', 'required', 'ariaDescribedBy', 'placeholder'],
             inheritAttrs: false
           },
@@ -326,7 +326,7 @@ describe('UserAuthForm Accessibility Tests', () => {
         const hasText = element.textContent && element.textContent.trim().length > 0;
         const hasAriaLabel = element.hasAttribute('aria-label');
         
-        expect(hasText || hasAriaLabel).toBe(true);
+        expect(hasText ?? hasAriaLabel).toBe(true);
       }
     });
 
@@ -336,13 +336,13 @@ describe('UserAuthForm Accessibility Tests', () => {
       
       const googleButton = wrapper.find('[data-testid="google-auth"]');
       if (googleButton.exists()) {
-        const text = googleButton.text() || googleButton.attributes('aria-label') || '';
+        const text = googleButton.text() ?? googleButton.attributes('aria-label') ?? '';
         expect(text.toLowerCase()).toContain('google');
       }
       
       const githubButton = wrapper.find('[data-testid="github-auth"]');
       if (githubButton.exists()) {
-        const text = githubButton.text() || githubButton.attributes('aria-label') || '';
+        const text = githubButton.text() ?? githubButton.attributes('aria-label') ?? '';
         expect(text.toLowerCase()).toContain('github');
       }
     });

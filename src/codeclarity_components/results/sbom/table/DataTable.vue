@@ -70,19 +70,19 @@ const table = useVueTable({
 });
 table.setPageSize(pageLimitSelected.value);
 
-function setPageSize(pageSize: any) {
+function setPageSize(pageSize: string | number): void {
     const size = typeof pageSize === 'string' ? parseInt(pageSize) : (pageSize ?? 15);
     table.setPageSize(size);
     pageLimitSelected.value = size;
 }
 
-function search(_searchKey: any) {
-    searchKey.value = String(_searchKey || '');
+function search(_searchKey: string | number | null | undefined): void {
+    searchKey.value = String(_searchKey ?? '');
 }
 
-function toggleFilter(filterType: string) {
+function toggleFilter(_filterType: string): void {
     // This would integrate with your actual filtering logic
-    console.log('Toggle filter:', filterType);
+    // Filter toggle functionality placeholder
 }
 </script>
 

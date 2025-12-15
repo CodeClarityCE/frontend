@@ -17,7 +17,18 @@ const props = defineProps<{
 }>();
 
 // Add these refs to expose legend props for the legend component
-const legendProps = ref<any>(null);
+interface LegendProps {
+    svgSelector: string;
+    marginLeft: number;
+    x0: number;
+    marginTop: number;
+    legendSpace: number;
+    hasPrunedNodes: boolean;
+    prunedNodes: Set<string>;
+    targetDependency?: string;
+}
+
+const legendProps = ref<LegendProps | null>(null);
 
 onMounted(() => {
     try {
@@ -44,8 +55,37 @@ onMounted(() => {
         const expandedNodes: (GraphDependency & { uniqueId: string })[] = [];
         const processedRelationships = new Set<string>();
 
-        // Process each node and create instances for each parent relationship
-        for (const node of props.data) {
+        /**
+         * Process a single parent-child relationship and add to expanded nodes
+         */
+        const processParentRelationship = (
+            node: GraphDependency,
+            parentId: string,
+            index: number,
+            parentCount: number
+        ): void => {
+            const relationshipKey = `${parentId}->${node.id}`;
+
+            if (!processedRelationships.has(relationshipKey)) {
+                const uniqueId = parentCount > 1
+                    ? `${node.id}_instance_${index}`
+                    : node.id;
+
+                expandedNodes.push({
+                    ...node,
+                    uniqueId: uniqueId ?? '',
+                    parentIds: [parentId],
+                    childrenIds: node.childrenIds ?? []
+                });
+
+                processedRelationships.add(relationshipKey);
+            }
+        };
+
+        /**
+         * Process a node and create appropriate instances
+         */
+        const processNode = (node: GraphDependency): void => {
             if (!node.parentIds || node.parentIds.length === 0) {
                 // Root node - create single instance
                 expandedNodes.push({
@@ -53,68 +93,57 @@ onMounted(() => {
                     uniqueId: node.id,
                     parentIds: []
                 });
-            } else {
-                // Node with parents - create instance for each parent
-                for (let i = 0; i < node.parentIds.length; i++) {
-                    const parentId = node.parentIds[i];
-                    if (!parentId) continue;
-                    const relationshipKey = `${parentId}->${node.id}`;
+                return;
+            }
 
-                    if (!processedRelationships.has(relationshipKey)) {
-                        const uniqueId =
-                            node.parentIds.length > 1 ? `${node.id}_instance_${i}` : node.id;
-
-                        expandedNodes.push({
-                            ...node,
-                            uniqueId: uniqueId ?? '',
-                            parentIds: [parentId],
-                            childrenIds: node.childrenIds || []
-                        });
-
-                        processedRelationships.add(relationshipKey);
-                    }
+            // Node with parents - create instance for each parent
+            const parentCount = node.parentIds.length;
+            for (let i = 0; i < parentCount; i++) {
+                const parentId = node.parentIds[i];
+                if (parentId) {
+                    processParentRelationship(node, parentId, i, parentCount);
                 }
             }
+        };
+
+        // Process each node and create instances for each parent relationship
+        for (const node of props.data) {
+            processNode(node);
         }
 
-        console.log('Expanded nodes for tree (with unique instances):', expandedNodes.length);
-        console.log(
-            'Sample expanded nodes:',
-            expandedNodes.slice(0, 5).map((n) => ({
-                id: n.id,
-                uniqueId: n.uniqueId,
-                parents: n.parentIds?.length || 0
-            }))
-        );
 
-        // Update child references to point to the correct unique instances
-        const updatedNodes = expandedNodes.map((node) => {
-            const updatedNode = { ...node };
-
-            if (node.childrenIds && node.childrenIds.length > 0) {
-                const updatedChildren: string[] = [];
-
-                for (const childId of node.childrenIds) {
-                    // Find all instances of this child that have this node as parent
-                    const childInstances = expandedNodes.filter(
-                        (expanded) =>
-                            expanded.id === childId &&
-                            expanded.parentIds?.includes(node.id)
-                    );
-
-                    if (childInstances.length > 0) {
-                        updatedChildren.push(...childInstances.map((ci) => ci.uniqueId));
-                    } else {
-                        // Fallback - use original child ID
-                        updatedChildren.push(childId);
-                    }
-                }
-
-                updatedNode.childrenIds = updatedChildren;
+        /**
+         * Update child IDs to reference the correct unique instances
+         */
+        const updateChildReferences = (
+            node: GraphDependency & { uniqueId: string }
+        ): GraphDependency & { uniqueId: string } => {
+            if (!node.childrenIds || node.childrenIds.length === 0) {
+                return node;
             }
 
-            return updatedNode;
-        });
+            const updatedChildren: string[] = [];
+            for (const childId of node.childrenIds) {
+                // Find all instances of this child that have this node as parent
+                const childInstances = expandedNodes.filter(
+                    (expanded) =>
+                        expanded.id === childId &&
+                        expanded.parentIds?.includes(node.id)
+                );
+
+                if (childInstances.length > 0) {
+                    updatedChildren.push(...childInstances.map((ci) => ci.uniqueId));
+                } else {
+                    // Fallback - use original child ID
+                    updatedChildren.push(childId);
+                }
+            }
+
+            return { ...node, childrenIds: updatedChildren };
+        };
+
+        // Update child references to point to the correct unique instances
+        const updatedNodes = expandedNodes.map(updateChildReferences);
 
         // Create the initial tree structure to determine which nodes should be pruned
         const tempRoot = d3
@@ -156,13 +185,14 @@ onMounted(() => {
             }
         }
 
-        // Process nodes level by level, marking duplicates at deeper levels as pruned
-        const sortedDepths = Array.from(nodesByDepth.keys()).sort((a, b) => a - b);
-        console.log('Processing nodes by depth levels:', sortedDepths);
-
-        for (const depth of sortedDepths) {
-            const nodesAtDepth = nodesByDepth.get(depth)!;
-            console.log(`Processing depth ${depth} with ${nodesAtDepth.length} nodes`);
+        /**
+         * Process nodes at a specific depth level and mark duplicates as pruned
+         */
+        const processDepthLevel = (depth: number): void => {
+            const nodesAtDepth = nodesByDepth.get(depth);
+            if (!nodesAtDepth) {
+                return;
+            }
 
             for (const { nodeId, uniqueId } of nodesAtDepth) {
                 if (seenNodes.has(nodeId)) {
@@ -170,43 +200,22 @@ onMounted(() => {
                     // BUT: Never prune the target dependency - users need to see all instances
                     if (nodeId !== props.targetDependency) {
                         prunedNodes.add(uniqueId);
-                        console.log(
-                            `Marking ${uniqueId} as pruned duplicate (${nodeId} at depth ${depth}, first seen at shallower depth)`
-                        );
-                    } else {
-                        console.log(
-                            `Skipping pruning for target dependency ${uniqueId} (${nodeId} at depth ${depth}) - target must remain visible`
-                        );
                     }
                 } else {
                     // First time seeing this node - record it
                     seenNodes.add(nodeId);
-                    console.log(
-                        `First occurrence of ${nodeId} at depth ${depth} (uniqueId: ${uniqueId})`
-                    );
                 }
             }
-        }
+        };
 
-        console.log('Nodes seen at each depth:', Array.from(nodesByDepth.entries()));
-        console.log(`Found ${prunedNodes.size} pruned duplicate nodes:`, Array.from(prunedNodes));
+        // Process nodes level by level, marking duplicates at deeper levels as pruned
+        const sortedDepths = Array.from(nodesByDepth.keys()).sort((a, b) => a - b);
+        for (const depth of sortedDepths) {
+            processDepthLevel(depth);
+        }
 
         // Use the already created tree structure
         const root = tempRoot;
-
-        // Debug: Log the tree structure
-        console.log('Updated nodes used for tree:', updatedNodes.length);
-        console.log('Tree root:', root);
-        console.log('Tree height:', root.height);
-        console.log(
-            'Tree descendants:',
-            root.descendants().map((d) => ({
-                id: d.data.id,
-                uniqueId: d.data.uniqueId,
-                depth: d.depth,
-                children: d.children?.map((c) => c.data.uniqueId) || []
-            }))
-        );
 
         /**
          * Tree layout spacing configuration
@@ -236,7 +245,7 @@ onMounted(() => {
             if (a.data.dev && !b.data.dev) return -1;
             if (!a.data.dev && b.data.dev) return 1;
             // Otherwise, alphabetical
-            return (a.data.id || '').localeCompare(b.data.id || '');
+            return (a.data.id ?? '').localeCompare(b.data.id ?? '');
         });
 
         /**
@@ -277,21 +286,10 @@ onMounted(() => {
 
         // Reserve extra space for legend if present
         const hasPrunedNodes = prunedNodes.size > 0;
-        const legendSpace = props.targetDependency ? (hasPrunedNodes ? 140 : 120) : 0; // Dynamic legend space
-
-        // Debug: Log layout calculations
-        console.log('Tree extent - x0:', x0, 'x1:', x1);
-        console.log('Calculated height:', height);
-        console.log(
-            'Margins - top:',
-            marginTop,
-            'bottom:',
-            marginBottom,
-            'left:',
-            marginLeft,
-            'right:',
-            marginRight
-        );
+        let legendSpace = 0;
+        if (props.targetDependency) {
+            legendSpace = hasPrunedNodes ? 140 : 120;
+        }
 
         // ===========================================
         // 4. CREATE SVG CONTAINER
@@ -432,7 +430,7 @@ onMounted(() => {
                 'd',
                 d3
                     .linkHorizontal<
-                        any,
+                        d3.HierarchyPointLink<GraphDependency & { uniqueId: string }>,
                         d3.HierarchyPointNode<GraphDependency & { uniqueId: string }>
                     >()
                     .x((d) => d.y)
@@ -456,7 +454,7 @@ onMounted(() => {
 
         // Add glow effect for target dependencies (all instances)
         node.filter(
-            (d: any) => props.targetDependency !== undefined && d.data.id === props.targetDependency
+            (d) => props.targetDependency !== undefined && d.data.id === props.targetDependency
         )
             .append('circle')
             .attr('r', 12)
@@ -656,7 +654,7 @@ onMounted(() => {
         node.append('rect')
             .filter(
                 (d) =>
-                    (d.data.dev || d.data.prod) && d.depth === 1 && d.data.id !== '__VIRTUAL_ROOT__'
+                    (d.data.dev ?? d.data.prod) && d.depth === 1 && d.data.id !== '__VIRTUAL_ROOT__'
             )
             .attr('x', (d) => {
                 // Place badge just after the text label, with extra spacing
@@ -682,7 +680,7 @@ onMounted(() => {
         node.append('text')
             .filter(
                 (d) =>
-                    (d.data.dev || d.data.prod) && d.depth === 1 && d.data.id !== '__VIRTUAL_ROOT__'
+                    (d.data.dev ?? d.data.prod) && d.depth === 1 && d.data.id !== '__VIRTUAL_ROOT__'
             )
             .attr('x', (d) => {
                 // Center badge text inside the badge
@@ -709,7 +707,7 @@ onMounted(() => {
             const instanceText =
                 d.data.uniqueId !== d.data.id ? ` (Instance: ${d.data.uniqueId})` : '';
             const prunedText = isPruned ? '\n[PRUNED] - Children shown elsewhere in tree' : '';
-            return `${d.data.id}${targetText}${instanceText}\nDepth: ${d.depth}\nChildren: ${d.children?.length || 0}${prunedText}`;
+            return `${d.data.id}${targetText}${instanceText}\nDepth: ${d.depth}\nChildren: ${d.children?.length ?? 0}${prunedText}`;
         });
 
         // Prepare legendProps for the legend component
@@ -741,11 +739,12 @@ onMounted(() => {
         console.error('Data that caused the error:', props.data);
 
         // Display error message in the container
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         d3.select(`#${  props.id}`)
             .append('div')
             .style('color', 'red')
             .style('padding', '20px')
-            .text(`Error rendering tree chart: ${error}`);
+            .text(`Error rendering tree chart: ${errorMessage}`);
     }
 });
 </script>

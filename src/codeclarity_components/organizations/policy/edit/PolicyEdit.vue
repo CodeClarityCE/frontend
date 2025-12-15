@@ -77,10 +77,10 @@ const formSchema = toTypedSchema(
     })
 );
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -96,7 +96,7 @@ const { handleSubmit, values } = useForm({
     }
 });
 
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values): Promise<void> => {
     try {
         await licensePolicyRepository.updatePolicy({
             orgId: defaultOrg!.value!.id,
@@ -120,7 +120,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
 });
 
-async function fetchLicenses() {
+async function fetchLicenses(): Promise<void> {
     try {
         const resp = await licenseRepository.getAllLicenses({
             bearerToken: authStore.getToken ?? ''
@@ -134,7 +134,7 @@ async function fetchLicenses() {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
     policy_id.value = searchParams.get('policyId') ?? '';

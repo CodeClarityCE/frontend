@@ -14,10 +14,12 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shadcn/ui/collapsible';
 import { Icon } from '@iconify/vue';
 import { ref, computed } from 'vue';
+type VersionInfo = Record<string, unknown>;
+
 interface Dependency {
     name: string;
     version: string;
-    version_info?: any;
+    version_info?: VersionInfo;
     framework?: string;
     package_url?: string;
     ecosystem?: string;
@@ -61,9 +63,10 @@ const composerPackages = computed(() => {
     // Filter for PHP/Composer dependencies only
     const phpDeps = props.dependencies.filter(
         (dep) =>
-            dep.package_url?.includes('pkg:composer/') ||
+            dep.package_url?.includes('pkg:composer/') ??
+            false ||
             dep.ecosystem === 'composer' ||
-            dep.name?.includes('/') // Composer packages typically have vendor/package format
+            (dep.name?.includes('/') ?? false) // Composer packages typically have vendor/package format
     );
 
     return buildPackageTree(phpDeps);
@@ -97,16 +100,12 @@ function buildPackageTree(dependencies: Dependency[]): ComposerPackage[] {
     // Convert dependencies to ComposerPackage format
     dependencies.forEach((dep) => {
         const pkg: ComposerPackage = {
-            name: dep.name || 'unknown',
-            version: dep.version || 'unknown',
+            name: dep.name ?? 'unknown',
+            version: dep.version ?? 'unknown',
             type: dep.type,
             description: dep.description,
-            license: Array.isArray(dep.license)
-                ? dep.license
-                : dep.license
-                  ? [dep.license]
-                  : undefined,
-            framework: detectFramework(dep.name || ''),
+            license: getLicenseArray(dep.license),
+            framework: detectFramework(dep.name ?? ''),
             isDev: dep.scope === 'dev' || dep.scope === 'development',
             dependencies: [],
             expanded: false
@@ -149,7 +148,17 @@ function detectFramework(packageName: string): string | undefined {
     return undefined;
 }
 
-function togglePackage(packageName: string) {
+function getLicenseArray(license: string | string[] | undefined): string[] | undefined {
+    if (Array.isArray(license)) {
+        return license;
+    }
+    if (license !== undefined) {
+        return [license];
+    }
+    return undefined;
+}
+
+function togglePackage(packageName: string): void {
     if (expandedPackages.value.has(packageName)) {
         expandedPackages.value.delete(packageName);
     } else {
@@ -171,8 +180,8 @@ function getPackageColor(pkg: ComposerPackage): string {
     return 'text-gray-600';
 }
 
-function selectPackage(packageName: string) {
-    emit('packageSelected', packageName);
+function selectPackage(packageName: string): void {
+    void emit('packageSelected', packageName);
 }
 </script>
 

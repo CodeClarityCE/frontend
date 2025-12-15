@@ -40,7 +40,7 @@ const errorCode: Ref<string | undefined> = ref();
 const sortKey: Ref<ProjectsSortInterface> = ref(ProjectsSortInterface.NAME);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
-async function fetchProjects(refresh = false) {
+async function fetchProjects(refresh = false): Promise<void> {
     if (!viewState.orgId) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -95,7 +95,7 @@ watch([page, entriesPerPage, sortKey, sortDirection], async () => {
     await fetchProjects(true);
 });
 
-fetchProjects();
+void fetchProjects();
 </script>
 <template>
     <template v-if="error">

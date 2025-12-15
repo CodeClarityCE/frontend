@@ -1,20 +1,20 @@
 <script lang="ts" setup>
-import { VueFlow, useVueFlow, Position, type Edge } from '@vue-flow/core';
-import { Background } from '@vue-flow/background';
-import { Controls } from '@vue-flow/controls';
-import '@vue-flow/core/dist/style.css';
-import '@vue-flow/core/dist/theme-default.css';
 import AnalyzerNodeComponent from '@/base_components/ui/flow/AnalyzerNode.vue';
 import ConfigNodeComponent from '@/base_components/ui/flow/ConfigNode.vue';
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
 import {
-    layoutNodes,
     createEdgesFromNodes,
+    layoutNodes,
     type AnalyzerNode,
     type ConfigNode
 } from '@/utils/vueFlow';
 import { Icon } from '@iconify/vue';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { Background } from '@vue-flow/background';
+import { Controls } from '@vue-flow/controls';
+import { Position, type Edge, useVueFlow, VueFlow } from '@vue-flow/core';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/core/dist/theme-default.css';
 
 const props = defineProps<{
     nodes: (AnalyzerNode | ConfigNode)[];
@@ -28,26 +28,26 @@ const emit = defineEmits<{
     'update:edges': [edges: Edge[]];
 }>();
 
-let vueFlowInstance: any = null;
+let vueFlowInstance: ReturnType<typeof useVueFlow> | null = null;
 try {
     const vueFlow = useVueFlow();
     vueFlowInstance = vueFlow;
 } catch (error) {
-    console.log('Could not get VueFlow instance:', error);
+    console.warn('Could not get VueFlow instance:', error);
 }
 
-const { fitView } = vueFlowInstance || { fitView: () => {} };
+const { fitView } = vueFlowInstance ?? { fitView: () => { /* no-op fallback */ } };
 
 // Using type assertion to satisfy VueFlow's expected node types
 const nodeTypes = {
     analyzer: AnalyzerNodeComponent,
     config: ConfigNodeComponent
-} as any;
+} as Record<string, unknown>;
 
 // Context menu for adding nodes
 const showContextMenu = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
-const selectedNodes = ref<any[]>([]);
+const selectedNodes = ref<(AnalyzerNode | ConfigNode)[]>([]);
 
 // Computed property that dynamically shows available plugins
 const availablePlugins = computed(() => {
@@ -60,14 +60,14 @@ const availablePlugins = computed(() => {
     );
 });
 
-function onPaneContextMenu(event: MouseEvent) {
+function onPaneContextMenu(event: MouseEvent): void {
     if (props.readonly) return;
     event.preventDefault();
     contextMenuPosition.value = { x: event.clientX, y: event.clientY };
     showContextMenu.value = true;
 }
 
-function addNodeToGraph(plugin: Plugin) {
+function addNodeToGraph(plugin: Plugin): void {
     // Build all nodes including dependencies first
     const nodesToAdd = buildPluginWithDependencies(plugin, props.nodes, props.plugins);
 
@@ -85,13 +85,13 @@ function addNodeToGraph(plugin: Plugin) {
     const layoutedNodes = layoutNodes(allNodes);
 
     // Emit both updates
-    emit('update:nodes', layoutedNodes);
-    emit('update:edges', newEdges);
+    void emit('update:nodes', layoutedNodes);
+    void emit('update:edges', newEdges);
 
     // Fit view if available
     setTimeout(() => {
         if (typeof fitView === 'function') {
-            fitView({ padding: 0.1 });
+            void fitView({ padding: 0.1 });
         }
     }, 100);
 
@@ -166,16 +166,16 @@ function buildPluginWithDependencies(
     return nodesToAdd;
 }
 
-function closeContextMenu() {
+function closeContextMenu(): void {
     showContextMenu.value = false;
 }
 
-function handleKeyDown(event: KeyboardEvent) {
+function handleKeyDown(event: KeyboardEvent): void {
     if (props.readonly) return;
     if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
 
-        let nodesToDelete: any[] = [];
+        let nodesToDelete: (AnalyzerNode | ConfigNode)[] = [];
 
         if (selectedNodes.value.length > 0) {
             nodesToDelete = selectedNodes.value;
@@ -183,20 +183,21 @@ function handleKeyDown(event: KeyboardEvent) {
 
         if (nodesToDelete.length === 0 && vueFlowInstance) {
             try {
-                const vueFlowSelected =
-                    vueFlowInstance.getSelectedNodes?.value ||
-                    vueFlowInstance.selectedNodes?.value ||
-                    [];
+                const instance = vueFlowInstance as unknown as {
+                    getSelectedNodes?: { value: (AnalyzerNode | ConfigNode)[] };
+                    selectedNodes?: { value: (AnalyzerNode | ConfigNode)[] };
+                };
+                const vueFlowSelected = instance.getSelectedNodes?.value ?? instance.selectedNodes?.value ?? [];
                 if (vueFlowSelected.length > 0) {
                     nodesToDelete = vueFlowSelected;
                 }
             } catch (error) {
-                console.log('Could not get VueFlow selected nodes:', error);
+                console.warn('Could not get VueFlow selected nodes:', error);
             }
         }
 
         if (nodesToDelete.length === 0) {
-            const selectedFromArray = props.nodes.filter((n: any) => n.selected === true);
+            const selectedFromArray = props.nodes.filter((n) => 'selected' in n && n.selected === true);
             if (selectedFromArray.length > 0) {
                 nodesToDelete = selectedFromArray;
             }
@@ -211,16 +212,16 @@ function handleKeyDown(event: KeyboardEvent) {
     }
 }
 
-function onSelectionChange(selection: any) {
+function onSelectionChange(selection: { nodes?: (AnalyzerNode | ConfigNode)[] }): void {
     try {
-        const selectedNodesList = selection?.nodes || [];
+        const selectedNodesList = selection?.nodes ?? [];
         selectedNodes.value = selectedNodesList;
     } catch (error) {
         console.error('Error in onSelectionChange:', error);
     }
 }
 
-function onNodeClick(eventData: any) {
+function onNodeClick(eventData: { node?: AnalyzerNode | ConfigNode; data?: unknown; id?: string; target?: unknown }): void {
     if (props.readonly) return;
     try {
         let node = null;
@@ -234,12 +235,12 @@ function onNodeClick(eventData: any) {
         }
 
         if (node?.id) {
-            const updatedNodes = props.nodes.map((n: any) => ({
+            const updatedNodes = props.nodes.map((n) => ({
                 ...n,
-                selected: n.id === node.id
-            }));
+                selected: n.id === (node as { id: string }).id
+            })) as (AnalyzerNode | ConfigNode)[];
 
-            emit('update:nodes', updatedNodes);
+            void emit('update:nodes', updatedNodes);
 
             const foundNode = updatedNodes.find((n) => n.id === node.id);
             if (foundNode) {
@@ -251,7 +252,7 @@ function onNodeClick(eventData: any) {
     }
 }
 
-function deleteNode(node: any) {
+function deleteNode(node: { id?: string }): void {
     if (!node?.id) {
         return;
     }
@@ -264,26 +265,26 @@ function deleteNode(node: any) {
     if (remainingNodes.length > 0) {
         const newEdges = createEdgesFromNodes(remainingNodes);
         const layoutedNodes = layoutNodes(filteredNodes);
-        emit('update:nodes', layoutedNodes);
-        emit('update:edges', newEdges);
+        void emit('update:nodes', layoutedNodes);
+        void emit('update:edges', newEdges);
         setTimeout(() => {
-            fitView({ padding: 0.1 });
+            void fitView({ padding: 0.1 });
         }, 100);
     } else {
-        emit('update:nodes', filteredNodes);
-        emit('update:edges', filteredEdges);
+        void emit('update:nodes', filteredNodes);
+        void emit('update:edges', filteredEdges);
     }
 }
 
-function onNodeContextMenu(event: any) {
+function onNodeContextMenu(event: { event?: MouseEvent; node?: { id?: string }; target?: unknown }): void {
     if (props.readonly) return;
     try {
-        const mouseEvent = event.event || event;
-        const node = event.node || (event.target ? event : null);
+        const mouseEvent = event.event ?? (event as unknown as MouseEvent);
+        const node = event.node ?? (event.target ? event : null);
 
-        if (mouseEvent?.preventDefault) {
+        if (mouseEvent && 'preventDefault' in mouseEvent && typeof mouseEvent.preventDefault === 'function') {
             mouseEvent.preventDefault();
-            mouseEvent.stopPropagation();
+            (mouseEvent).stopPropagation();
         }
 
         if (node) {
@@ -418,7 +419,7 @@ onUnmounted(() => {
                                 <Icon icon="solar:widget-bold" class="w-3 h-3 text-theme-primary" />
                                 <span
                                     >{{
-                                        nodes.filter((n: any) => n.type === 'analyzer').length
+                                        nodes.filter((n) => n.type === 'analyzer').length
                                     }}
                                     nodes</span
                                 >

@@ -25,7 +25,7 @@ describe('UtilitiesFilters', () => {
   });
 
   const createWrapper = (filterConfig?: FilterConfig, lockedCategories?: string[]) => {
-    const config = filterConfig || createMockFilterConfig();
+    const config = filterConfig ?? createMockFilterConfig();
     const filterState = createNewFilterState(config);
     
     return mount(UtilitiesFilters, {

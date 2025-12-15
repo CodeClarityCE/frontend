@@ -60,8 +60,6 @@
 
 <script setup lang="ts">
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-
-// Simple direct imports - no async complexity
 import CurrentVulns from '../charts/CurrentVulns.vue';
 import ExposureOverview from '../charts/ExposureOverview.vue';
 import LicenseDist from '../charts/LicenseDist.vue';

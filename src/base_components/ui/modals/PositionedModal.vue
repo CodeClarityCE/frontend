@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-import { ref, nextTick, type Ref } from 'vue';
+import { ref, nextTick } from 'vue';
 
-const compRef = ref(null);
-const show_modal: Ref<any> = ref(false);
+const compRef = ref<HTMLElement | null>(null);
+const show_modal = ref<boolean>(false);
+
+type PositionType = 'top' | 'middle' | 'bottom' | 'top-left' | 'middle-left' | 'bottom-left';
 
 interface Props {
-    tracker?: any;
+    tracker?: string | null;
     leftOffset?: number;
     topOffset?: number;
-    position?: any;
+    position?: PositionType;
     showTitleDivider?: boolean;
     showTitle?: boolean;
     showSubTitle?: boolean;
@@ -29,19 +31,21 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const top = ref(0);
-const left: Ref<any> = ref(0);
-const right: Ref<any> = ref(0);
+const left = ref<number | null>(0);
+const right = ref<number | null>(0);
 const tip_top = ref(10);
-const id = `id-${  random().toString()}`;
+const id = `id-${random().toString()}`;
 
-const listener = (event: any) => {
-    if (event.target !== compRef.value && event.composedPath().includes(compRef.value)) {
+const listener = (event: MouseEvent): void => {
+    const target = event.target as Node;
+    const path = event.composedPath();
+    if (target !== compRef.value && compRef.value && path.includes(compRef.value)) {
         return;
     }
     hide();
 };
 
-function toggle() {
+function toggle(): void {
     if (!show_modal.value) {
         show();
     } else {
@@ -49,15 +53,16 @@ function toggle() {
     }
 }
 
-function show() {
+function show(): void {
     tip_top.value = 10;
+    if (!props.tracker) return;
     const trackedDom = document.getElementById(props.tracker);
     if (trackedDom) {
         const offset = getOffset(trackedDom, props.position);
         // console.log(offset);
         if (offset) {
             top.value = offset.top + props.topOffset;
-            if (props.position.includes('-left')) {
+            if (props.position?.includes('-left')) {
                 right.value = offset.left;
                 left.value = null;
             } else {
@@ -71,7 +76,7 @@ function show() {
     setTimeout(() => {
         window.addEventListener('click', listener);
     }, 10);
-    nextTick(() => {
+    void nextTick(() => {
         reposition();
     });
     window.addEventListener('resize', () => {
@@ -79,7 +84,8 @@ function show() {
     });
 }
 
-function reposition() {
+function reposition(): void {
+    if (!props.tracker) return;
     const trackedDom = document.getElementById(props.tracker);
     const modal = document.querySelector(`#${id} > .centered-modal-content`);
     if (!modal || !trackedDom) {
@@ -93,10 +99,12 @@ function reposition() {
         if (offset) {
             // console.log(offset);
             top.value = offset.top + props.topOffset;
-            if (props.position.includes('-left')) {
+            if (props.position?.includes('-left')) {
                 left.value = offset.left;
-                left.value -= modalWidth;
-                left.value -= trackedDom.clientWidth;
+                if (left.value !== null) {
+                    left.value -= modalWidth;
+                    left.value -= trackedDom.clientWidth;
+                }
             } else {
                 left.value = offset.left;
             }
@@ -109,7 +117,7 @@ function reposition() {
     let topPos = top.value;
 
     if (parentRelative) {
-        const isScrolledParent = parentRelative ? parentRelative.scrollTop > 0 : false;
+        const isScrolledParent = parentRelative.scrollTop > 0;
         if (isScrolledParent) {
             topPos -= parentRelative.scrollTop;
         }
@@ -123,8 +131,6 @@ function reposition() {
     }
 
     if (props.position === 'bottom' || overwritePosition === 'bottom') {
-        console.log('bottom');
-
         let subtract = modalHeight;
         const subtitle = document.querySelector(`#${id} > .centered-modal-subtitle`);
         if (subtitle) subtract += subtitle.clientHeight;
@@ -155,14 +161,17 @@ function reposition() {
     }
 }
 
-function hide() {
+function hide(): void {
     show_modal.value = false;
     setTimeout(() => {
         window.removeEventListener('click', listener);
     }, 10);
 }
 
-function getOffset(el: any, position: string) {
+function getOffset(
+    el: HTMLElement,
+    position?: PositionType
+): { left: number; top: number } {
     const top = el.offsetTop;
     const left = el.offsetLeft;
     if (position === 'top') {
@@ -196,9 +205,14 @@ function getOffset(el: any, position: string) {
             top: top + el.offsetHeight
         };
     }
+    // Default to 'top' behavior if position is undefined
+    return {
+        left: left + el.offsetWidth + props.marginTarget,
+        top: top
+    };
 }
 
-function random() {
+function random(): number {
     return Math.floor(Math.random() * (100000000000 - 0 + 1)) + 0;
 }
 

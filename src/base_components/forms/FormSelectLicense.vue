@@ -20,18 +20,17 @@ watch([search, licensesRef], () => {
     updateList();
 });
 
-function updateList() {
+function updateList(): void {
     licenseList.value.clear();
-    for (let i = 0; i < props.licenses.length; i++) {
-        const license = props.licenses[i];
+    for (const license of props.licenses) {
         if (license?.name.toLowerCase().includes(search.value.toLowerCase())) {
             licenseList.value.add(license);
         }
     }
 }
 
-function select(license: License) {
-    const licenseName = Object.values(license)[0];
+function select(license: License): void {
+    const licenseName = Object.values(license)[0] as string;
 
     if (data.value.has(licenseName)) {
         data.value.delete(licenseName);

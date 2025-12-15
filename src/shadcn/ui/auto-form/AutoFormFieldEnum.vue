@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { FieldProps } from './interface';
 import { FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/shadcn/ui/form';
 import { Label } from '@/shadcn/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shadcn/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
 import AutoFormLabel from './AutoFormLabel.vue';
+import type { FieldProps } from './interface';
 import { beautifyObjectName, maybeBooleanishToBoolean } from './utils';
 
 defineProps<

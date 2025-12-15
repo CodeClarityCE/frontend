@@ -22,7 +22,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Stores
@@ -41,7 +41,7 @@ const loading: Ref<boolean> = ref(true);
 const noData: Ref<boolean> = ref(false);
 const stats: Ref<TicketDashboardStats | null> = ref(null);
 
-async function fetch(refresh = false) {
+async function fetch(refresh = false): Promise<void> {
     if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -76,8 +76,8 @@ async function fetch(refresh = false) {
     }
 }
 
-function navigateToTickets() {
-    router.push({ name: 'tickets' });
+function navigateToTickets(): void {
+    void router.push({ name: 'tickets' });
 }
 
 function formatDate(date: Date | string): string {
@@ -88,7 +88,7 @@ function formatDate(date: Date | string): string {
     });
 }
 
-fetch();
+void fetch();
 </script>
 
 <template>

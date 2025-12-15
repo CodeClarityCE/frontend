@@ -19,8 +19,8 @@ enum OrgAction {
 
 const authStore = useAuthStore();
 
-const orgActionModalRef: any = ref(null);
-const orgAction: Ref<string> = ref('');
+const orgActionModalRef = ref<{ toggle: () => void } | null>(null);
+const orgAction: Ref<OrgAction | ''> = ref('');
 const orgActionId: Ref<string> = ref('');
 const orgRepo: OrgRepository = new OrgRepository();
 
@@ -30,7 +30,7 @@ defineProps<{
 
 const emit = defineEmits<(e: 'refresh') => void>();
 
-async function deleteOrg(orgId: string) {
+async function deleteOrg(orgId: string): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await orgRepo.delete({
@@ -39,12 +39,12 @@ async function deleteOrg(orgId: string) {
                 handleBusinessErrors: true
             });
             successToast('Successfully deleted the organization.');
-            emit('refresh');
+            void emit('refresh');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code === APIErrors.EntityNotFound) {
-                    emit('refresh');
-                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
+                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                    void emit('refresh');
+                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -56,7 +56,7 @@ async function deleteOrg(orgId: string) {
     }
 }
 
-async function leaveOrg(orgId: string) {
+async function leaveOrg(orgId: string): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await orgRepo.leave({
@@ -64,31 +64,31 @@ async function leaveOrg(orgId: string) {
                 bearerToken: authStore.getToken,
                 handleBusinessErrors: true
             });
-            successToast('Successfully left the organization.');
-            emit('refresh');
+            void successToast('Successfully left the organization.');
+            void emit('refresh');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code === APIErrors.EntityNotFound) {
-                    emit('refresh');
-                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
-                    errorToast(`You cannot leave a personal organization.`);
-                } else if (err.error_code === APIErrors.CannotLeaveAsLastOwner) {
+                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                    void emit('refresh');
+                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
+                    void errorToast(`You cannot leave a personal organization.`);
+                } else if ((err.error_code as APIErrors) === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
                         `You cannot leave as the last owner of this organization. Instead delete the organization.`
                     );
                 } else {
-                    errorToast(`Failed to leave the organization.`);
+                    void errorToast(`Failed to leave the organization.`);
                 }
             }
         }
     }
 }
 
-function performOrgAction() {
+function performOrgAction(): void {
     if (orgAction.value === OrgAction.DELETE) {
-        deleteOrg(orgActionId.value);
+        void deleteOrg(orgActionId.value);
     } else if (orgAction.value === OrgAction.LEAVE) {
-        leaveOrg(orgActionId.value);
+        void leaveOrg(orgActionId.value);
     }
 }
 </script>
@@ -146,7 +146,7 @@ function performOrgAction() {
 
                 <!-- Description -->
                 <p class="text-theme-gray text-sm line-clamp-2">
-                    {{ membership.organization.description || 'No description provided.' }}
+                    {{ membership.organization.description ?? 'No description provided.' }}
                 </p>
             </div>
 
@@ -348,7 +348,7 @@ function performOrgAction() {
             <button
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors"
                 @click="
-                    performOrgAction();
+                    void performOrgAction();
                     orgActionModalRef.toggle();
                 "
             >

@@ -2,40 +2,40 @@
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 
 const OrgAnalyzersList = defineAsyncComponent({
-    loader: () => import('./AnalyzersList.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./AnalyzersList.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgAnalyzerEdit = defineAsyncComponent({
-    loader: () => import('./AnalyzerEdit.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./AnalyzerEdit.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgAnalyzerCreate = defineAsyncComponent({
-    loader: () => import('./AnalyzerCreate.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./AnalyzerCreate.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const state = useStateStore();
 state.$reset();

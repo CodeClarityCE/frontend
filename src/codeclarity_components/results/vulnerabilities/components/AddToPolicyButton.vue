@@ -27,19 +27,19 @@ const { isLoading, availablePolicies, loadPolicies, addToPolicy, addToDefaultPol
 
 const dropdownOpen = ref(false);
 
-const handleDropdownOpen = async (open: boolean) => {
+const handleDropdownOpen = async (open: boolean): Promise<void> => {
     dropdownOpen.value = open;
     if (open) {
         await loadPolicies();
     }
 };
 
-const handleAddToDefaultPolicy = async () => {
+const handleAddToDefaultPolicy = async (): Promise<void> => {
     await addToDefaultPolicy(props.vulnerabilityId);
     dropdownOpen.value = false;
 };
 
-const handleAddToSpecificPolicy = async (policyId: string) => {
+const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
     await addToPolicy(policyId, props.vulnerabilityId);
     dropdownOpen.value = false;
 };

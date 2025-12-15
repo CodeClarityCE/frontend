@@ -4,6 +4,6 @@ export interface PolicyUpdate {
     name: string;
     description: string;
     type: LicensePolicyType;
-    licenses: any[];
+    licenses: string[];
     default: boolean;
 }

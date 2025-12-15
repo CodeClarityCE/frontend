@@ -32,11 +32,11 @@ const orgRepo = new OrgRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-const centeredModalRef: any = ref(null);
+const centeredModalRef = ref<{ toggle: () => void } | null>(null);
 const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
 const centeredModalActionId: Ref<string | undefined> = ref();
 
-async function kickUser() {
+async function kickUser(): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             const resp = await orgRepo.revokeMembership({
@@ -49,43 +49,43 @@ async function kickUser() {
             if (resp) successToast('Succesfully kicked the user');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code === APIErrors.NotAuthorized) {
+                if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
                     errorToast(
                         'Failed to kick the user, because you do not have the correct role to be able to kick them.'
                     );
-                } else if (err.error_code === APIErrors.CannotRevokeOwnMembership) {
-                    errorToast('Failed to kick the user, because you cannot kick yourself.');
-                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
+                } else if ((err.error_code as APIErrors) === APIErrors.CannotRevokeOwnMembership) {
+                    void errorToast('Failed to kick the user, because you cannot kick yourself.');
+                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(
                         'Failed to kick the user, because this is a personal organization, and personal organizations cannot be modified.'
                     );
-                } else if (err.error_code === APIErrors.NotAMember) {
-                    successToast('Succesfully kicked the user');
+                } else if ((err.error_code as APIErrors) === APIErrors.NotAMember) {
+                    void successToast('Succesfully kicked the user');
                 } else {
-                    errorToast('Failed to kick the user.');
+                    void errorToast('Failed to kick the user.');
                 }
             } else {
-                errorToast('Failed to kick the user.');
+                void errorToast('Failed to kick the user.');
             }
         } finally {
-            emit('refetch');
+            void emit('refetch');
         }
     }
 }
 
-async function performModalAction() {
+async function performModalAction(): Promise<void> {
     try {
         if (centeredModalAction.value === ModalAction.Kick) {
             await kickUser();
         }
-        emit('refetch');
+        void emit('refetch');
     } finally {
         centeredModalAction.value = ModalAction.NONE;
         if (centeredModalRef.value) centeredModalRef.value.toggle();
     }
 }
 
-function openModalAction(action: ModalAction) {
+function openModalAction(action: ModalAction): void {
     centeredModalAction.value = action;
     if (centeredModalRef.value) centeredModalRef.value.toggle();
 }

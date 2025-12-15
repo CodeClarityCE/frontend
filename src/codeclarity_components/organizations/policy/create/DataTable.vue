@@ -46,14 +46,14 @@ const table = useVueTable({
     onColumnFiltersChange: (updaterOrValue) => valueUpdater(updaterOrValue, columnFilters),
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: (updaterOrValue) => {
-        valueUpdater(updaterOrValue, rowSelection);
+        void valueUpdater(updaterOrValue, rowSelection);
 
         const selectedRows: string[] = [];
         table.getFilteredSelectedRowModel().rows.forEach((row) => {
             selectedRows.push((row.original as License).licenseId);
         });
 
-        emit('update:rowSelection', selectedRows);
+        void emit('update:rowSelection', selectedRows);
     },
     state: {
         get columnFilters() {

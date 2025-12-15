@@ -34,12 +34,12 @@ const userStore = useUserStore();
 const orgRepository: OrgRepository = new OrgRepository();
 
 // State
-const resendInvitationLoadingButtonRef: any = ref(null);
-const centeredModalRef: any = ref(null);
+const resendInvitationLoadingButtonRef = ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null>(null);
+const centeredModalRef = ref<{ toggle: () => void } | null>(null);
 const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
 
 // Methods
-async function revokeInvitation() {
+async function revokeInvitation(): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     try {
@@ -51,28 +51,28 @@ async function revokeInvitation() {
             handleHTTPErrors: true
         });
 
-        successToast('Successfully revoked the invitation');
+        void successToast('Successfully revoked the invitation');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
             if (
-                err.error_code === APIErrors.PersonalOrgCannotBeModified ||
-                err.error_code === APIErrors.InternalError
+                (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified ||
+                (err.error_code as APIErrors) === APIErrors.InternalError
             ) {
-                errorToast('Failed to revoke the invitation.');
-            } else if (err.error_code === APIErrors.NotAuthorized) {
-                errorToast('You are not authorized to perform this action');
-            } else if (err.error_code === APIErrors.EntityNotFound) {
-                successToast('Successfully revoked the invitation');
+                void errorToast('Failed to revoke the invitation.');
+            } else if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+                void errorToast('You are not authorized to perform this action');
+            } else if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                void successToast('Successfully revoked the invitation');
             }
         } else {
-            errorToast('Failed to revoke the invitation.');
+            void errorToast('Failed to revoke the invitation.');
         }
     } finally {
-        emit('refetch');
+        void emit('refetch');
     }
 }
 
-async function resendInvitation() {
+async function resendInvitation(): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     if (resendInvitationLoadingButtonRef.value) {
@@ -89,44 +89,44 @@ async function resendInvitation() {
             handleHTTPErrors: true
         });
 
-        successToast('Successfully resent the invitation');
+        void successToast('Successfully resent the invitation');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
             if (
-                err.error_code === APIErrors.PersonalOrgCannotBeModified ||
-                err.error_code === APIErrors.InternalError
+                (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified ||
+                (err.error_code as APIErrors) === APIErrors.InternalError
             ) {
-                errorToast('Failed to resend the invitation.');
-            } else if (err.error_code === APIErrors.NotAuthorized) {
-                errorToast('You are not authorized to perform this action');
-            } else if (err.error_code === APIErrors.EntityNotFound) {
-                successToast('Successfully resent the invitation');
+                void errorToast('Failed to resend the invitation.');
+            } else if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+                void errorToast('You are not authorized to perform this action');
+            } else if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                void successToast('Successfully resent the invitation');
             }
         } else {
-            errorToast('Failed to resend the invitation.');
+            void errorToast('Failed to resend the invitation.');
         }
     } finally {
         if (resendInvitationLoadingButtonRef.value) {
             resendInvitationLoadingButtonRef.value.setLoading(false);
             resendInvitationLoadingButtonRef.value.setDisabled(false);
         }
-        emit('refetch');
+        void emit('refetch');
     }
 }
 
-async function performModalAction() {
+async function performModalAction(): Promise<void> {
     try {
         if (centeredModalAction.value === ModalAction.REVOKE) {
             await revokeInvitation();
         }
-        emit('refetch');
+        void emit('refetch');
     } finally {
         centeredModalAction.value = ModalAction.NONE;
         if (centeredModalRef.value) centeredModalRef.value.toggle();
     }
 }
 
-function openModalAction(action: ModalAction) {
+function openModalAction(action: ModalAction): void {
     centeredModalAction.value = action;
     if (centeredModalRef.value) centeredModalRef.value.toggle();
 }

@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
  * Fetches meta data about an org
  * including amongst other things: whether an integration was added, a projects was addded, and anlyses have been started
  */
-async function fetchOrgMetaData() {
+async function fetchOrgMetaData(): Promise<void> {
     if (!defaultOrg?.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -68,7 +68,7 @@ async function fetchOrgMetaData() {
     }
 }
 
-fetchOrgMetaData();
+void fetchOrgMetaData();
 
 // Helper functions for statistics
 function getCompletedAnalysesCount(): number {

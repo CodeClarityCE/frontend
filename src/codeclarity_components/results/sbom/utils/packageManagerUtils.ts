@@ -84,6 +84,9 @@ export function generateUpdateCommands(
             case 'bun':
                 commands.push(`bun update ${prodPackages}`);
                 break;
+            default:
+                // No-op for unknown package managers
+                break;
         }
     }
 
@@ -105,6 +108,9 @@ export function generateUpdateCommands(
                 break;
             case 'bun':
                 commands.push(`bun update ${devPackages}`);
+                break;
+            default:
+                // No-op for unknown package managers
                 break;
         }
     }

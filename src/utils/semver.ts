@@ -28,9 +28,9 @@ export function parseSemver(version: string): ParsedSemver {
     const [major, minor = '0', patch = '0'] = (core ?? '0.0.0').split('.');
 
     return {
-        major: parseInt(major ?? '0', 10) || 0,
-        minor: parseInt(minor, 10) || 0,
-        patch: parseInt(patch, 10) || 0,
+        major: parseInt(major ?? '0', 10) ?? 0,
+        minor: parseInt(minor, 10) ?? 0,
+        patch: parseInt(patch, 10) ?? 0,
         prerelease: prereleaseParts,
         build: buildParts
     };
@@ -65,13 +65,16 @@ export function compareSemver(version1: string, version2: string): number {
 
 function compareCore(v1: ParsedSemver, v2: ParsedSemver): number {
     if (v1.major !== v2.major) {
-        return v1.major > v2.major ? 1 : -1;
+        if (v1.major > v2.major) return 1;
+        return -1;
     }
     if (v1.minor !== v2.minor) {
-        return v1.minor > v2.minor ? 1 : -1;
+        if (v1.minor > v2.minor) return 1;
+        return -1;
     }
     if (v1.patch !== v2.patch) {
-        return v1.patch > v2.patch ? 1 : -1;
+        if (v1.patch > v2.patch) return 1;
+        return -1;
     }
     return 0;
 }
@@ -113,7 +116,9 @@ function compareIdentifier(a: string, b: string): number {
     if (aIsNumeric && bIsNumeric) {
         const aNum = parseInt(a, 10);
         const bNum = parseInt(b, 10);
-        return aNum > bNum ? 1 : aNum < bNum ? -1 : 0;
+        if (aNum > bNum) return 1;
+        if (aNum < bNum) return -1;
+        return 0;
     }
 
     // Both non-numeric - compare lexically

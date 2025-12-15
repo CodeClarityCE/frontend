@@ -31,7 +31,7 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const result: Ref<Result> = ref(new Result());
 const codeql_results: Ref<CodeQLResult[]> = ref([]);
 
-async function init() {
+async function init(): Promise<void> {
     try {
         const res = await resultsRepository.getResultByType({
             orgId: userStore.getDefaultOrg?.id ?? '',
@@ -42,13 +42,15 @@ async function init() {
             runIndex: props.runIndex
         });
         result.value = res.data;
-        codeql_results.value = res.data.result.workspaces['.'].results as CodeQLResult[];
+        const workspaces = res.data.result.workspaces as Record<string, {results?: CodeQLResult[]}>;
+        const workspace = workspaces['.'];
+        codeql_results.value = (workspace?.results ?? []);
     } catch (e) {
         console.error(e);
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

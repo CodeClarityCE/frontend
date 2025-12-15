@@ -135,7 +135,7 @@ defineProps<{
             <div>
                 <div
                     v-if="
-                        (!finding.weaknesses || finding.weaknesses.length === 0) &&
+                        (!finding.weaknesses ?? finding.weaknesses.length === 0) &&
                         !finding.owasp_top_10
                     "
                 >

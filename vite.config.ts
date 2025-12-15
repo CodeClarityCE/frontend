@@ -1,9 +1,9 @@
 import { fileURLToPath, URL } from 'node:url';
-import EnvironmentPlugin from 'vite-plugin-environment';
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite';
+import EnvironmentPlugin from 'vite-plugin-environment';
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig({

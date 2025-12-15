@@ -7,7 +7,7 @@ import router from '@/router';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import { type APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
@@ -24,7 +24,7 @@ const props = defineProps<{
     orgId: string;
 }>();
 
-async function fetchOrgInfo() {
+async function fetchOrgInfo(): Promise<void> {
     if (!props.orgId) return;
     if (authStore.getAuthenticated && authStore.getToken) {
         loading.value = true;
@@ -37,30 +37,30 @@ async function fetchOrgInfo() {
                 handleBusinessErrors: true
             });
             orgInfo.value = org;
-            emit('onOrgInfo', org);
+            void emit('onOrgInfo', org);
         } catch (err) {
             error.value = true;
             if (err instanceof BusinessLogicError) {
                 errorCode.value = err.error_code;
             }
             console.error(err);
-            emit('onOrgInfoError', err);
+            void emit('onOrgInfoError', err);
         } finally {
             loading.value = false;
         }
     }
 }
 
-function init() {
-    fetchOrgInfo();
+function init(): void {
+    void fetchOrgInfo();
 }
 
 const emit = defineEmits<{
     (e: 'onOrgInfo', orgInfo: Organization): void;
-    (e: 'onOrgInfoError', error: any): void;
+    (e: 'onOrgInfoError', error: Error | BusinessLogicError): void;
 }>();
 
-init();
+void init();
 </script>
 <template>
     <div v-if="loading" class="org-header-item-wrapper">
@@ -87,10 +87,10 @@ init();
                         <div class="flex flex-col gap-2">
                             <div>We failed to retrieve information on the organization</div>
                             <div v-if="errorCode" style="font-size: 0.7em">
-                                <div v-if="errorCode === APIErrors.EntityNotFound">
+                                <div v-if="(errorCode as APIErrors) === APIErrors.EntityNotFound">
                                     This organization does not exist.
                                 </div>
-                                <div v-if="errorCode === APIErrors.NotAuthorized">
+                                <div v-if="(errorCode as APIErrors) === APIErrors.NotAuthorized">
                                     You do not have the correct permissions to view this
                                     organization.
                                 </div>
@@ -108,7 +108,7 @@ init();
                         </div>
                         <div class="flex flex-row gap2 items-center flex-wrap">
                             <Button
-                                v-if="errorCode !== APIErrors.NotAuthorized"
+                                v-if="(errorCode as APIErrors) !== APIErrors.NotAuthorized"
                                 @click="fetchOrgInfo()"
                             >
                                 Try again

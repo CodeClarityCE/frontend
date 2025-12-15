@@ -42,14 +42,14 @@ const props = defineProps<{
     orgId: string;
 }>();
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
-async function deleteAnalyzer(analyzerId: string) {
+async function deleteAnalyzer(analyzerId: string): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -74,11 +74,11 @@ async function deleteAnalyzer(analyzerId: string) {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     await fetchAnalyzers();
 }
 
-async function fetchAnalyzers(refresh = false) {
+async function fetchAnalyzers(refresh = false): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -105,7 +105,7 @@ async function fetchAnalyzers(refresh = false) {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="min-h-screen bg-gray-50">

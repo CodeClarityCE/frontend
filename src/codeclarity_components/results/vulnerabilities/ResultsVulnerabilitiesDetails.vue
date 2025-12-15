@@ -28,14 +28,14 @@ const props = defineProps<{
 
 const only_details = ref(false);
 const active_tab = ref('List');
-const finding: any = ref({});
+const finding = ref<Record<string, unknown>>({});
 
 // VIEW DATA
 const details = ref(false);
 let y_position = 0;
 const reference_click_element = ref('');
 
-function resetView() {
+function resetView(): void {
     finding.value = {};
     details.value = false;
 }
@@ -64,7 +64,7 @@ watch(active_tab, async (newTab, oldTab) => {
     }
 });
 
-async function init() {
+async function init(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
 
@@ -76,10 +76,10 @@ async function init() {
     analysisID.value = analysis_id;
     projectID.value = project_id;
 
-    getProject(project_id);
-    getAnalysis(project_id, analysis_id);
+    void getProject(project_id);
+    void getAnalysis(project_id, analysis_id);
 }
-async function getProject(projectID: string) {
+async function getProject(projectID: string): Promise<void> {
     let res: DataResponse<Project>;
     try {
         if (userStore.getDefaultOrg === null) {
@@ -111,7 +111,7 @@ async function getProject(projectID: string) {
     }
 }
 
-async function getAnalysis(projectID: string, analysisID: string) {
+async function getAnalysis(projectID: string, analysisID: string): Promise<void> {
     let res: DataResponse<Analysis>;
     try {
         if (userStore.getDefaultOrg === null) {
@@ -144,7 +144,7 @@ async function getAnalysis(projectID: string, analysisID: string) {
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

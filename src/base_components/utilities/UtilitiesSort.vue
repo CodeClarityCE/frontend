@@ -12,10 +12,16 @@ import {
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { Icon } from '@iconify/vue';
 
+// Types
+interface SortOption {
+    key: string;
+    label: string;
+}
+
 // Props
 defineProps<{
     selectionPageLimit: number[];
-    sortOptions: any[];
+    sortOptions: SortOption[];
     showing: number;
     total: number;
 }>();
@@ -28,7 +34,7 @@ const sortKey = defineModel<string>('sortKey', {
 const sortDirection = defineModel<SortDirection>('sortDirection', { default: SortDirection.DESC });
 
 // Methods
-function changeSort(_sortKey: string, _sortDirection: SortDirection) {
+function changeSort(_sortKey: string, _sortDirection: SortDirection): void {
     sortKey.value = _sortKey;
     sortDirection.value = _sortDirection;
 }
@@ -76,8 +82,8 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                         <SelectGroup>
                             <SelectLabel>Sort by</SelectLabel>
                             <SelectItem
-                                v-for="(sort_option, index) in sortOptions"
-                                :key="index"
+                                v-for="sort_option in sortOptions"
+                                :key="sort_option['key']"
                                 :value="sort_option['key']"
                                 @click="changeSort(sort_option['key'], sortDirection)"
                             >

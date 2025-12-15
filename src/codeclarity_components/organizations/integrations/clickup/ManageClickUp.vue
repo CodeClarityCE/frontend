@@ -31,7 +31,7 @@ const isDeleting = ref(false);
 const isTesting = ref(false);
 const testResult = ref<{ success: boolean; message: string } | null>(null);
 
-async function fetchClickUpConfig() {
+async function fetchClickUpConfig(): Promise<void> {
     if (!authStore.getToken) return;
 
     loading.value = true;
@@ -50,7 +50,7 @@ async function fetchClickUpConfig() {
         const clickUp = response.data.find(
             (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config
         );
-        clickUpConfig.value = clickUp || null;
+        clickUpConfig.value = clickUp ?? null;
     } catch {
         error.value = true;
     } finally {
@@ -58,7 +58,7 @@ async function fetchClickUpConfig() {
     }
 }
 
-async function testConnection() {
+async function testConnection(): Promise<void> {
     if (!authStore.getToken) return;
 
     isTesting.value = true;
@@ -77,12 +77,12 @@ async function testConnection() {
         if (response.data.success) {
             testResult.value = {
                 success: true,
-                message: `Connected as ${response.data.user_info?.name || 'Unknown'}`
+                message: `Connected as ${response.data.user_info?.name ?? 'Unknown'}`
             };
         } else {
             testResult.value = {
                 success: false,
-                message: response.data.error || 'Connection test failed'
+                message: response.data.error ?? 'Connection test failed'
             };
         }
     } catch {
@@ -95,7 +95,7 @@ async function testConnection() {
     }
 }
 
-async function deleteIntegration() {
+async function deleteIntegration(): Promise<void> {
     if (!authStore.getToken) return;
 
     if (!confirm('Are you sure you want to delete the ClickUp integration?')) {
@@ -115,7 +115,7 @@ async function deleteIntegration() {
         });
 
         successToast('ClickUp integration deleted successfully');
-        router.push({
+        void router.push({
             name: 'orgs',
             params: { orgId: props.orgId, page: 'integrations', action: 'manage' }
         });
@@ -126,18 +126,18 @@ async function deleteIntegration() {
     }
 }
 
-function onConfigured() {
+function onConfigured(): void {
     showConfigModal.value = false;
-    fetchClickUpConfig();
-    successToast('ClickUp integration updated successfully');
+    void fetchClickUpConfig();
+    void successToast('ClickUp integration updated successfully');
 }
 
-function onClose() {
+function onClose(): void {
     showConfigModal.value = false;
 }
 
 onMounted(() => {
-    fetchClickUpConfig();
+    void fetchClickUpConfig();
 });
 </script>
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // @ts-nocheck
-import type { ListboxItemEmits, ListboxItemProps } from 'reka-ui';
 import { cn } from '@/shadcn/lib/utils';
 import { useCurrentElement } from '@vueuse/core';
+import type { ListboxItemEmits, ListboxItemProps } from 'reka-ui';
 import { ListboxItem, useForwardPropsEmits, useId } from 'reka-ui';
 import { computed, type HTMLAttributes, onMounted, onUnmounted, ref } from 'vue';
 import { useCommand, useCommandGroup } from '.';

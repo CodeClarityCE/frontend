@@ -48,10 +48,10 @@ const headers: TableHeader[] = [
     { label: 'Date', key: 'created_on' }
 ];
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -65,12 +65,12 @@ watch([currentPage, entriesPerPage], async () => {
     await changePage(currentPage.value);
 });
 
-async function changePage(_page: number) {
+async function changePage(_page: number): Promise<void> {
     currentPage.value = _page;
     await fetchOrgAuditLogs(true);
 }
 
-async function updateSort(_sortKey: string, _sortDirection: SortDirection) {
+async function updateSort(_sortKey: string, _sortDirection: SortDirection): Promise<void> {
     // if (key === undefined) return;
     // if (key !== undefined)
     //     if (key === sortKey.value) {
@@ -87,11 +87,11 @@ async function updateSort(_sortKey: string, _sortDirection: SortDirection) {
     await fetchOrgAuditLogs(true);
 }
 
-async function onRefetch() {
+async function onRefetch(): Promise<void> {
     await fetchOrgAuditLogs(true);
 }
 
-async function fetchOrgAuditLogs(refresh = false) {
+async function fetchOrgAuditLogs(refresh = false): Promise<void> {
     if (!orgId.value) return;
     if (authStore.getAuthenticated && authStore.getToken) {
         error.value = false;
@@ -128,7 +128,7 @@ async function fetchOrgAuditLogs(refresh = false) {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
     const _search = route.query.search;
@@ -149,7 +149,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="flex flex-col gap-8 org-audit-log-wrapper">

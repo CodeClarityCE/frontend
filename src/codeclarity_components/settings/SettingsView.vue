@@ -5,18 +5,18 @@ import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { Button } from '@/shadcn/ui/button';
 import { useStateStore } from '@/stores/state';
 import { User, Lock, Trash2, Shield } from 'lucide-vue-next';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 
 const SettingAccount = defineAsyncComponent({
-    loader: () => import('./forms/SettingAccount.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./forms/SettingAccount.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const state = useStateStore();
 state.$reset();

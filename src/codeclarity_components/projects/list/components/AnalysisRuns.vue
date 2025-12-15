@@ -31,13 +31,20 @@ const analysisRepository = new AnalysisRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
+interface AnalysisRun {
+    run_date: string;
+    plugin_count: number;
+    result_count: number;
+    plugins?: string[];
+}
+
 // State
 const loading = ref(true);
-const runs = ref<any[]>([]);
+const runs = ref<AnalysisRun[]>([]);
 const selectedRun = ref<number>(0);
 
 // Methods
-async function fetchAnalysisRuns() {
+async function fetchAnalysisRuns(): Promise<void> {
     if (!userStore.getUser?.default_org?.id) return;
 
     loading.value = true;
@@ -48,7 +55,7 @@ async function fetchAnalysisRuns() {
             analysisId: props.analysis.id,
             bearerToken: authStore.getToken!
         });
-        runs.value = response.data || [];
+        runs.value = response.data ?? [];
     } catch (error) {
         console.error('Failed to fetch analysis runs:', error);
     } finally {
@@ -56,11 +63,11 @@ async function fetchAnalysisRuns() {
     }
 }
 
-function viewRunResults(runIndex: number) {
+function viewRunResults(runIndex: number): void {
     selectedRun.value = runIndex;
     // For now, navigate to the regular results view
     // In the future, we can add a run_index parameter to filter specific run results
-    router.push({
+    void router.push({
         name: 'results',
         query: {
             analysis_id: props.analysis.id,
@@ -68,11 +75,11 @@ function viewRunResults(runIndex: number) {
             run_index: runIndex
         }
     });
-    emit('close');
+    void emit('close');
 }
 
 onMounted(() => {
-    fetchAnalysisRuns();
+    void fetchAnalysisRuns();
 });
 </script>
 

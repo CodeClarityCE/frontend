@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const legendGroupId = 'tree-chart-legend-group';
 
-function renderLegend() {
+function renderLegend(): void {
     // Remove previous legend if exists
     d3.select(`${props.svgSelector  } #${  legendGroupId}`).remove();
 

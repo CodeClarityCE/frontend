@@ -42,10 +42,8 @@ const { handleSubmit } = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = handleSubmit((values) => {
-    console.log(values);
-
-    submit(values);
+const onSubmit = handleSubmit((values): void => {
+    void submit(values);
 });
 
 // Stores
@@ -55,10 +53,10 @@ const authStore = useAuthStore();
 // Sanity checks
 // Check if the use is logged in, and if redirect him
 if (authStore.getAuthenticated === true) {
-    router.push('/');
+    void router.push('/');
 }
 
-async function submit(values: any) {
+async function submit(values: { email: string; password: string }): Promise<void> {
     loading.value = true;
     errorCode.value = undefined;
     error.value = false;
@@ -81,7 +79,7 @@ async function submit(values: any) {
         authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
         authStore.setAuthenticated(true);
         userStore.setUser(user);
-        router.push('/');
+        void router.push('/');
     } catch (_err) {
         error.value = true;
 
@@ -90,7 +88,7 @@ async function submit(values: any) {
             validationError.value = _err;
         } else if (_err instanceof BusinessLogicError) {
             if (_err.error_code === 'AccountNotActivated') {
-                router.push('/trial');
+                void router.push('/trial');
             }
             errorCode.value = _err.error_code;
         }

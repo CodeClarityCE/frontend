@@ -1,3 +1,9 @@
+export interface ErrorInfo {
+    message?: string;
+    code?: string;
+    [key: string]: unknown;
+}
+
 export interface Output {
     workspaces: Record<string, WorkSpaceData>;
     analysis_info: AnalysisInfo;
@@ -10,8 +16,8 @@ export enum Status {
 
 export interface AnalysisInfo {
     status: Status;
-    private_errors: any[];
-    public_errors: any[];
+    private_errors: ErrorInfo[];
+    public_errors: ErrorInfo[];
     analysis_start_time: string;
     analysis_end_time: string;
     analysis_delta_time: number;
@@ -94,6 +100,12 @@ interface Conflict {
     ConflictFlag: string;
 }
 
+export interface DependencyObject {
+    name?: string;
+    version?: string;
+    [key: string]: unknown;
+}
+
 export interface Vulnerability {
     Id: string;
     Sources: Source[];
@@ -102,7 +114,7 @@ export interface Vulnerability {
     AffectedDependencyVersion: string;
     AffectedDependency: string;
     AffectedDependencyFilePath: string;
-    AffectedDependencyObject?: any;
+    AffectedDependencyObject?: DependencyObject;
     Vulnerability: string;
     Severity: Severity;
     Weaknesses?: WeaknessInfo[];
@@ -145,7 +157,7 @@ export interface AffectedDeps {
     AffectedDependency: string;
     AffectedDependencyFilePath: string;
     AffectedDependencyImportPaths: string[];
-    AffectedDependencyObject?: any;
+    AffectedDependencyObject?: DependencyObject;
     PatchType: PatchType;
 }
 

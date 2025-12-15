@@ -55,7 +55,7 @@ const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
 const selectedTemplate: Ref<AnalyzerTemplate | null> = ref(null);
 const supportedLanguages: Ref<string[]> = ref(['javascript']);
-const languageConfig: Ref<any> = ref({});
+const languageConfig: Ref<Record<string, unknown>> = ref({});
 const logo: Ref<string> = ref('js');
 const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
@@ -64,15 +64,15 @@ const edges: Ref<Edge[]> = ref([]);
 // Form Validation
 const formValidationSchema = analyzerValidationSchema;
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
 // Methods
-function onTemplateChanged(template: AnalyzerTemplate) {
+function onTemplateChanged(template: AnalyzerTemplate): void {
     // Update form fields based on selected template
     name.value = template.name;
     description.value = template.description;
@@ -92,7 +92,7 @@ function onTemplateChanged(template: AnalyzerTemplate) {
     }
 }
 
-async function submit() {
+async function submit(): Promise<void> {
     const arr = retrieveWorkflowSteps(nodes.value, edges.value);
 
     try {
@@ -119,7 +119,7 @@ async function submit() {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
@@ -162,7 +162,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="min-h-screen bg-slate-50">

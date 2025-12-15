@@ -1,5 +1,4 @@
 <script setup lang="ts" generic="T extends z.ZodAny">
-import type { Config, ConfigItem } from './interface';
 import {
     Accordion,
     AccordionContent,
@@ -15,6 +14,7 @@ import { computed, provide } from 'vue';
 import * as z from 'zod';
 import AutoFormField from './AutoFormField.vue';
 import AutoFormLabel from './AutoFormLabel.vue';
+import type { Config, ConfigItem } from './interface';
 import { beautifyObjectName, getBaseType } from './utils';
 
 const props = defineProps<{

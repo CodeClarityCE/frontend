@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ArrowLeft } from 'lucide-vue-next';
-import { useCarousel } from './useCarousel';
-import type { WithClassAsProps } from './interface';
 import { cn } from '@/shadcn/lib/utils';
 import { Button } from '@/shadcn/ui/button';
+import { ArrowLeft } from 'lucide-vue-next';
+import type { WithClassAsProps } from './interface';
+import { useCarousel } from './useCarousel';
 
 const props = defineProps<WithClassAsProps>();
 

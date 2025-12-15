@@ -46,7 +46,7 @@ const table = useVueTable({
     onColumnFiltersChange: (updaterOrValue) => valueUpdater(updaterOrValue, columnFilters),
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: (updaterOrValue) => {
-        valueUpdater(updaterOrValue, rowSelection);
+        void valueUpdater(updaterOrValue, rowSelection);
     },
     state: {
         get columnFilters() {

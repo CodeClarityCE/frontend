@@ -35,7 +35,7 @@ const authRepository: AuthRepository = new AuthRepository();
 
 // State
 const token = authStore.getToken;
-const loadingButtonRef: any = ref(null);
+const loadingButtonRef: Ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null> = ref(null);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const tokenRefreshedAlready: Ref<boolean> = ref(false);
@@ -60,22 +60,22 @@ const formValidationSchema = toTypedSchema(
 );
 
 // Sanity Checks
-if (authStore.getAuthenticated === true) {
-    router.push('/');
+if (authStore.getAuthenticated) {
+    void router.push('/');
 }
 
 if (props.provider !== SocialProvider.GITLAB && props.provider !== SocialProvider.GITHUB) {
-    router.push('/login');
+    void router.push('/login');
 }
 
-if (token === undefined) {
-    router.push('/login');
+if (!token) {
+    void router.push('/login');
 }
 
 // Methods
-async function submit() {
-    loadingButtonRef.value.setLoading(true);
-    loadingButtonRef.value.setDisabled(true);
+async function submit(): Promise<void> {
+    loadingButtonRef.value?.setLoading(true);
+    loadingButtonRef.value?.setDisabled(true);
 
     errorCode.value = undefined;
     validationError.value = undefined;
@@ -100,46 +100,57 @@ async function submit() {
 
         userStore.setUser(user);
         authStore.setAuthenticated(true);
-        router.push('/');
+        void router.push('/');
     } catch (_err) {
         error.value = true;
 
         if (_err instanceof ValidationError) {
             errorCode.value = _err.error_code;
             validationError.value = _err;
-        } else if (_err instanceof BusinessLogicError) {
-            errorCode.value = _err.error_code;
-            if (_err.error_code === APIErrors.EntityNotFound) {
-                errorNonRecoverable.value = true;
-            } else if (_err.error_code === APIErrors.NotAuthenticated) {
-                if (tokenRefreshedAlready.value || !authStore.getRefreshToken) {
-                    errorNonRecoverable.value = true;
-                } else {
-                    try {
-                        const token: RefreshToken = await authRepository.refresh({
-                            data: { refresh_token: authStore.getRefreshToken }
-                        });
-                        authStore.token = token.token;
-                        authStore.tokenExpiry = token.token_expiry;
-                        tokenRefreshedAlready.value = true;
-                    } catch (err) {
-                        console.error(err);
+            return;
+        }
 
-                        errorNonRecoverable.value = true;
-                    }
-                }
-            }
+        if (!(_err instanceof BusinessLogicError)) {
+            return;
+        }
+
+        errorCode.value = _err.error_code;
+
+        if ((_err.error_code) === (APIErrors.EntityNotFound as string)) {
+            errorNonRecoverable.value = true;
+            return;
+        }
+
+        if ((_err.error_code) !== (APIErrors.NotAuthenticated as string)) {
+            return;
+        }
+
+        if (tokenRefreshedAlready.value ?? !authStore.getRefreshToken) {
+            errorNonRecoverable.value = true;
+            return;
+        }
+
+        try {
+            const token: RefreshToken = await authRepository.refresh({
+                data: { refresh_token: authStore.getRefreshToken }
+            });
+            authStore.token = token.token;
+            authStore.tokenExpiry = token.token_expiry;
+            tokenRefreshedAlready.value = true;
+        } catch (err) {
+            console.error(err);
+            errorNonRecoverable.value = true;
         }
     } finally {
-        loadingButtonRef.value.setLoading(false);
-        loadingButtonRef.value.setDisabled(false);
+        loadingButtonRef.value?.setLoading(false);
+        loadingButtonRef.value?.setDisabled(false);
     }
 }
 
-function nonRecoverableErrorRedirect() {
+function nonRecoverableErrorRedirect(): void {
     authStore.$reset();
     userStore.$reset();
-    router.push('/login');
+    void router.push('/login');
 }
 </script>
 <template>

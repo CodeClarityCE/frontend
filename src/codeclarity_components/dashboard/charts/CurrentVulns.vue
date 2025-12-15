@@ -16,7 +16,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Repositories
@@ -46,7 +46,7 @@ const severityCountsShort: Ref<Record<string, number>> = ref({
 const noData: Ref<boolean> = ref(false);
 const vulns: Ref<Vuln[]> = ref([]);
 
-async function fetch(refresh = false) {
+async function fetch(refresh = false): Promise<void> {
     if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -98,7 +98,7 @@ async function fetch(refresh = false) {
         if (!refresh) loading.value = false;
     }
 }
-fetch();
+void fetch();
 </script>
 <template>
     <div class="w-full">
@@ -130,7 +130,7 @@ fetch();
                                 <div>Failed to load the dashboard component</div>
                             </div>
                             <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <Button @click="fetch()"> Try again </Button>
+                                <Button @click="() => void fetch()"> Try again </Button>
                             </div>
                         </div>
                     </div>

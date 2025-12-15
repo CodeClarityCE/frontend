@@ -45,12 +45,12 @@ export const RadarChart = function RadarChart(
     parent_selector: string,
     data: RadarChartData,
     cfg: RadarChartOptions
-) {
+): d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown> {
     const wrap = (
         text: d3.Selection<SVGTextElement, string, SVGGElement, unknown>,
         width: number
-    ) => {
-        text.each(function () {
+    ): void => {
+        text.each(function (this: SVGTextElement): void {
             const text = d3.select(this),
                 words = text.text().split(/\s+/).reverse(),
                 lineHeight = 1.4, // ems
@@ -90,11 +90,9 @@ export const RadarChart = function RadarChart(
     //If the supplied maxValue is smaller than the actual one, replace by the max in the data
     // var maxValue = max(cfg.maxValue, d3.max(data, function(i){return d3.max(i.map(function(o){return o.value;}))}));
     let maxValue = 0;
-    for (let j = 0; j < data.length; j++) {
-        const dataItem = data[j];
+    for (const dataItem of data) {
         if (!dataItem?.axes) continue;
-        for (let i = 0; i < dataItem.axes.length; i++) {
-            const axis = dataItem.axes[i];
+        for (const axis of dataItem.axes) {
             if (axis) {
                 axis.id = dataItem.name ?? '';
                 if ((axis.value ?? 0) > maxValue) {
@@ -239,7 +237,7 @@ export const RadarChart = function RadarChart(
         .attr('d', (d) => radarLine(d.axes))
         .style('fill', (_d, i) => cfg.color(i.toString()))
         .style('fill-opacity', cfg.opacityArea)
-        .on('mouseover', function () {
+        .on('mouseover', function (this: SVGPathElement): void {
             //Dim all blobs
             parent.selectAll('.radarArea').transition().duration(200).style('fill-opacity', 0.1);
             //Bring back the hovered over blob
@@ -258,7 +256,7 @@ export const RadarChart = function RadarChart(
     blobWrapper
         .append('path')
         .attr('class', 'radarStroke')
-        .attr('d', function (d) {
+        .attr('d', function (d): string | null {
             return radarLine(d.axes);
         })
         .style('stroke-width', `${cfg.strokeWidth  }px`)
@@ -290,16 +288,16 @@ export const RadarChart = function RadarChart(
         .attr('class', 'radarCircleWrapper');
 
     // Three function that change the tooltip when user hover / move / leave a cell
-    const mouseover = function () {
+    const mouseover = function (this: SVGCircleElement): void {
         tooltip.style('opacity', 1);
     };
-    const mousemove = function (event: MouseEvent, d: Axis) {
+    const mousemove = function (this: SVGCircleElement, event: MouseEvent, d: Axis): void {
         tooltip
             .html(Format(d.value) + cfg.unit)
             .style('left', `${event.x  }px`)
             .style('top', `${event.y - 18 * 2  }px`);
     };
-    const mouseleave = function () {
+    const mouseleave = function (this: SVGCircleElement): void {
         tooltip.style('opacity', 0);
     };
     //Append a set of invisible circles on top for the mouseover pop-up

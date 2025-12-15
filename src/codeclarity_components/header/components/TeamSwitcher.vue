@@ -57,7 +57,7 @@ const selectedTeam = ref<Team | undefined>(groups[0]?.teams[0]);
 const orgsRepository: OrgRepository = new OrgRepository();
 const userRepo: UserRepository = new UserRepository();
 
-async function fetch() {
+async function fetch(): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             const _orgs = await orgsRepository.getMany({
@@ -101,7 +101,7 @@ async function fetch() {
     }
 }
 
-async function switchOrg(org: TeamItem) {
+async function switchOrg(org: TeamItem): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (org.value !== userStore.getDefaultOrg.id) {
         if (authStore.getAuthenticated && userStore.getUser) {
@@ -122,14 +122,14 @@ async function switchOrg(org: TeamItem) {
                 if (router.currentRoute.value.name === 'home') {
                     router.go(0);
                 } else {
-                    router.push({ name: 'home' });
+                    void router.push({ name: 'home' });
                 }
 
-                successToast(`Succesfully switched to org ${org.label}`);
+                void successToast(`Succesfully switched to org ${org.label}`);
             } catch (error) {
                 console.error(error);
 
-                errorToast('Failed to switch org');
+                void errorToast('Failed to switch org');
             }
         }
     }
@@ -138,10 +138,10 @@ async function switchOrg(org: TeamItem) {
 watch(
     () => userStore.getUser,
     () => {
-        fetch();
+    void fetch();
     }
 );
-fetch();
+void fetch();
 </script>
 
 <template>
@@ -197,7 +197,7 @@ fetch();
                                 class="text-sm"
                                 @select="
                                     () => {
-                                        switchOrg(team);
+                                        void switchOrg(team);
                                         selectedTeam = team;
                                         open = false;
                                     }

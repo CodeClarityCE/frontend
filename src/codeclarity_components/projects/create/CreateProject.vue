@@ -31,7 +31,7 @@ const stateStore = useStateStore();
 const { defaultOrg } = storeToRefs(userStore);
 
 watch(defaultOrg!, () => {
-    fetchVcsIntegrations(true);
+    void fetchVcsIntegrations(true);
 });
 
 stateStore.$reset();
@@ -47,7 +47,7 @@ const selectedVCS: Ref<VCS | undefined> = ref();
 const vcsIntegrations: Ref<VCS[]> = ref([]);
 
 // Methods
-async function fetchVcsIntegrations(refresh = false) {
+async function fetchVcsIntegrations(refresh = false): Promise<void> {
     if (!defaultOrg!.value!.id) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -79,15 +79,15 @@ async function fetchVcsIntegrations(refresh = false) {
     }
 }
 
-async function onIntegrationsRefresh() {
+async function onIntegrationsRefresh(): Promise<void> {
     await fetchVcsIntegrations();
 }
 
-async function onSelectedVCS(vcs: VCS) {
+async function onSelectedVCS(vcs: VCS): Promise<void> {
     selectedVCS.value = vcs;
 }
 
-fetchVcsIntegrations();
+void fetchVcsIntegrations();
 </script>
 
 <template>

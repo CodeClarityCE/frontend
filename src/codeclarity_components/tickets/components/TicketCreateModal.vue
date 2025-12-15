@@ -78,22 +78,22 @@ watch(
     () => props.vulnerability,
     (vuln) => {
         if (vuln) {
-            title.value = `${vuln.vulnerability_id}: ${vuln.affected_package || 'Unknown package'}`;
-            description.value = vuln.description || '';
+            title.value = `${vuln.vulnerability_id}: ${vuln.affected_package ?? 'Unknown package'}`;
+            description.value = vuln.description ?? '';
             priority.value = suggestedPriority.value;
 
             if (vuln.recommended_version) {
-                remediationNotes.value = `Upgrade ${vuln.affected_package} from ${vuln.affected_version || 'current version'} to ${vuln.recommended_version}`;
+                remediationNotes.value = `Upgrade ${vuln.affected_package} from ${vuln.affected_version ?? 'current version'} to ${vuln.recommended_version}`;
             }
 
             // Check for duplicate
-            checkDuplicate();
+            void checkDuplicate();
         }
     },
     { immediate: true }
 );
 
-async function checkDuplicate() {
+async function checkDuplicate(): Promise<void> {
     if (!props.vulnerability?.vulnerability_id || !props.projectId) return;
 
     const orgId = userStore.getDefaultOrg?.id;
@@ -117,7 +117,7 @@ async function checkDuplicate() {
         if (result.exists && result.existing_ticket_id) {
             duplicateTicket.value = {
                 id: result.existing_ticket_id,
-                title: result.existing_ticket_title || 'Existing ticket'
+                title: result.existing_ticket_title ?? 'Existing ticket'
             };
         }
     } catch (err) {
@@ -127,7 +127,7 @@ async function checkDuplicate() {
     }
 }
 
-async function handleSubmit() {
+async function handleSubmit(): Promise<void> {
     const orgId = userStore.getDefaultOrg?.id;
     const token = authStore.getToken;
     if (!orgId || !token) {
@@ -159,13 +159,13 @@ async function handleSubmit() {
                 severity_score: props.vulnerability?.severity_score,
                 severity_class: props.vulnerability?.severity_class,
                 recommended_version: props.vulnerability?.recommended_version,
-                remediation_notes: remediationNotes.value || undefined
+                remediation_notes: remediationNotes.value ?? undefined
             }
         });
 
-        emit('created', result.id);
+        void emit('created', result.id);
         isOpen.value = false;
-        resetForm();
+        void resetForm();
     } catch (err) {
         console.error('Error creating ticket:', err);
         error.value = 'Failed to create ticket. Please try again.';
@@ -174,7 +174,7 @@ async function handleSubmit() {
     }
 }
 
-function resetForm() {
+function resetForm(): void {
     title.value = '';
     description.value = '';
     priority.value = TicketPriority.MEDIUM;
@@ -184,12 +184,12 @@ function resetForm() {
     duplicateTicket.value = null;
 }
 
-function handleClose() {
+function handleClose(): void {
     isOpen.value = false;
-    emit('close');
+    void emit('close');
 }
 
-function viewExistingTicket() {
+function viewExistingTicket(): void {
     if (duplicateTicket.value) {
         // Navigate to existing ticket
         window.location.href = `/tickets?ticket_id=${duplicateTicket.value.id}`;
@@ -255,14 +255,14 @@ function viewExistingTicket() {
                     <span
                         class="text-sm font-medium"
                         :class="{
-                            'text-red-600': (vulnerability.severity_score || 0) >= 9,
+                            'text-red-600': (vulnerability.severity_score ?? 0) >= 9,
                             'text-orange-600':
-                                (vulnerability.severity_score || 0) >= 7 &&
-                                (vulnerability.severity_score || 0) < 9,
+                                (vulnerability.severity_score ?? 0) >= 7 &&
+                                (vulnerability.severity_score ?? 0) < 9,
                             'text-yellow-600':
-                                (vulnerability.severity_score || 0) >= 4 &&
-                                (vulnerability.severity_score || 0) < 7,
-                            'text-green-600': (vulnerability.severity_score || 0) < 4
+                                (vulnerability.severity_score ?? 0) >= 4 &&
+                                (vulnerability.severity_score ?? 0) < 7,
+                            'text-green-600': (vulnerability.severity_score ?? 0) < 4
                         }"
                     >
                         {{ vulnerability.severity_score?.toFixed(1) }}

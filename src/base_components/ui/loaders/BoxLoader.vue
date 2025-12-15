@@ -1,14 +1,17 @@
 <script lang="ts" setup>
 export interface Props {
-    dimensions?: any;
+    dimensions?: {
+        width?: string;
+        height?: string;
+    };
     static?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-    dimensions: {
+    dimensions: () => ({
         width: '4rem',
         height: '4rem'
-    }
+    })
 });
 </script>
 <template>

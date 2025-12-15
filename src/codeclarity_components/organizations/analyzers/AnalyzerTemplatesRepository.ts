@@ -10,7 +10,7 @@ export interface AnalyzerTemplate {
     supported_languages: string[];
     language_config: Record<string, { plugins: string[] }>;
     logo: string;
-    steps: any[];
+    steps: Record<string, unknown>[];
 }
 
 export interface GetTemplatesRequestOptions extends AuthRepoMethodGetRequestOptions {}

@@ -24,29 +24,23 @@ import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { Icon } from '@iconify/vue';
-import { ref, watch, computed, type Ref } from 'vue';
-
-// Import stores
-
-// Import components
+import { computed, ref, type Ref, watch } from 'vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
 import {
+    convertToCycloneDX,
     convertToCSV,
     convertToHTML,
-    convertToCycloneDX,
     sortDependenciesByPriority,
     type ExportOptions
 } from './exports/sbomExportUtils';
 import PackageJsonUpdatesModal from './PackageJsonUpdatesModal.vue';
 import SbomExportMenu from './SbomExportMenu.vue';
 import SbomTable from './SbomTable.vue';
-
-// Import utilities
 import {
     calculateHealthScore,
     calculateSecurityIssues,
-    getDirectDependenciesNeedingUpdates,
     convertToPackageUpdates,
+    getDirectDependenciesNeedingUpdates,
     type Dependency
 } from './utils/sbomUtils';
 
@@ -128,36 +122,39 @@ const packageUpdates = computed(() =>
 );
 
 // Event handlers
-function handleUpdateOutdated() {
+function handleUpdateOutdated(): void {
     /** Opens the package.json updates modal if there are direct dependencies needing updates */
     if (directUpdatesCount.value > 0) {
         showUpdatesModal.value = true;
     }
 }
 
-function handleCopyToClipboard(content: string) {
+function handleCopyToClipboard(_content: string): void {
     /** Handles clipboard copy events from the modal */
-    console.log('Copied to clipboard:', content);
+    // Content copied to clipboard
 }
 
-function handlePackageManagerLoaded(manager: string) {
+function handlePackageManagerLoaded(manager: string): void {
     /** Receives package manager info from SelectWorkspace component */
     packageManager.value = manager.toLowerCase();
 }
 
-function handleEcosystemFilterChanged(ecosystemType: string | null) {
+function handleEcosystemFilterChanged(ecosystemType: string | null): void {
     /** Handles ecosystem filter changes from SelectWorkspace component */
     selectedEcosystemFilter.value = ecosystemType;
     // Refresh both dependencies and stats with the new filter
-    getSbomStats(true); // This will call fetchDependencies() as well
+    void getSbomStats(true); // This will call fetchDependencies() as well
 }
 
-async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
-    if (!userStore.getDefaultOrg || !authStore.getToken) return;
-    if (!props.projectID || !props.analysisID) return;
+async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html'): Promise<void> {
+    if (!authStore.getAuthenticated || !authStore.getToken) return;
+    if (!authStore.getAuthenticated || !props.analysisID) return;
 
     try {
-        exportMenuRef.value?.setExportProgress('Fetching dependencies...');
+        const exportMenu = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
+        if (exportMenu?.setExportProgress) {
+            exportMenu.setExportProgress('Fetching dependencies...');
+        }
 
         // First, get the initial page to know the total count
         const firstPage = await sbomRepo.getSbom({
@@ -170,7 +167,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
             sort: { sortKey: 'name', sortDirection: 'asc' },
             active_filters: '',
             search_key: '',
-            ecosystem_filter: selectedEcosystemFilter.value || undefined,
+            ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
             handleBusinessErrors: true
         });
 
@@ -179,7 +176,10 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
         // If there are more pages, fetch them all
         if (firstPage.total_pages > 1) {
-            exportMenuRef.value?.setExportProgress(`Fetching ${firstPage.total_pages} pages...`);
+            const exportMenu = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
+            if (exportMenu?.setExportProgress) {
+                exportMenu.setExportProgress(`Fetching ${firstPage.total_pages} pages...`);
+            }
 
             const promises = [];
             for (let page = 1; page < firstPage.total_pages; page++) {
@@ -194,7 +194,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
                         sort: { sortKey: 'name', sortDirection: 'asc' },
                         active_filters: '',
                         search_key: '',
-                        ecosystem_filter: selectedEcosystemFilter.value || undefined,
+                        ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
                         handleBusinessErrors: true
                     })
                 );
@@ -206,18 +206,21 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
             });
         }
 
-        exportMenuRef.value?.setExportProgress(`Generating ${format.toUpperCase()} file...`);
+        const exportMenu2 = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
+        if (exportMenu2?.setExportProgress) {
+            exportMenu2.setExportProgress(`Generating ${format.toUpperCase()} file...`);
+        }
 
         const exportOptions: ExportOptions = {
-            projectName: props.projectName || '',
-            projectId: props.projectID || ''
+            projectName: props.projectName ?? '',
+            projectId: props.projectID ?? ''
         };
 
         let content: string;
         let filename: string;
         let mimeType: string;
         const dateStr = new Date().toISOString().split('T')[0];
-        const projectName = props.projectName || props.projectID;
+        const projectName = props.projectName ?? props.projectID;
 
         switch (format) {
             case 'csv':
@@ -240,6 +243,8 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
                 filename = `sbom-${projectName}-${dateStr}-cyclonedx.json`;
                 mimeType = 'application/json';
                 break;
+            default:
+                throw new Error(`Unsupported export format: ${format as string}`);
         }
 
         // Create and trigger download
@@ -254,16 +259,22 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
         URL.revokeObjectURL(url);
 
         // Reset export state
-        exportMenuRef.value?.resetExportState();
+        const exportMenu3 = exportMenuRef.value as { resetExportState?: () => void } | null;
+        if (exportMenu3?.resetExportState) {
+            exportMenu3.resetExportState();
+        }
     } catch (error) {
         console.error('Export failed:', error);
-        exportMenuRef.value?.resetExportState();
+        const exportMenu4 = exportMenuRef.value as { resetExportState?: () => void } | null;
+        if (exportMenu4?.resetExportState) {
+            exportMenu4.resetExportState();
+        }
     }
 }
 
-async function fetchDependencies() {
-    if (!userStore.getDefaultOrg || !authStore.getToken) return;
-    if (!props.projectID || !props.analysisID) return;
+async function fetchDependencies(): Promise<void> {
+    if (!authStore.getAuthenticated || !authStore.getToken) return;
+    if (!authStore.getAuthenticated || !props.analysisID) return;
 
     try {
         // Fetch first page to get total count
@@ -277,7 +288,7 @@ async function fetchDependencies() {
             sort: { sortKey: 'name', sortDirection: 'asc' },
             active_filters: '',
             search_key: '',
-            ecosystem_filter: selectedEcosystemFilter.value || undefined,
+            ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
             handleBusinessErrors: true
         });
 
@@ -298,7 +309,7 @@ async function fetchDependencies() {
                         sort: { sortKey: 'name', sortDirection: 'asc' },
                         active_filters: '',
                         search_key: '',
-                        ecosystem_filter: selectedEcosystemFilter.value || undefined,
+                        ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
                         handleBusinessErrors: true
                     })
                 );
@@ -318,8 +329,8 @@ async function fetchDependencies() {
 }
 
 // Methods
-getSbomStats();
-async function getSbomStats(refresh = false) {
+void getSbomStats();
+async function getSbomStats(refresh = false): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -327,7 +338,7 @@ async function getSbomStats(refresh = false) {
     errorCode.value = undefined;
     if (!refresh) loading.value = true;
 
-    if (!props.projectID || !props.analysisID) return;
+    if (!authStore.getAuthenticated || !props.analysisID) return;
 
     let res: DataResponse<SbomStats>;
     try {
@@ -337,7 +348,7 @@ async function getSbomStats(refresh = false) {
             analysisId: props.analysisID,
             workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
-            ecosystem_filter: selectedEcosystemFilter.value || undefined,
+            ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
             handleBusinessErrors: true
         });
         stats.value = res.data;
@@ -356,13 +367,13 @@ async function getSbomStats(refresh = false) {
         // }
     } finally {
         loading.value = false;
-        createDepTypeChart();
-        createDepStatusDistChart();
+        void createDepTypeChart();
+        void createDepStatusDistChart();
     }
 }
 
 // Create charts
-function createDepStatusDistChart() {
+function createDepStatusDistChart(): void {
     const labels = ['Deprecated', 'Unlicensed', 'Outdated'];
     const data = [
         stats.value.number_of_deprecated_dependencies,
@@ -416,7 +427,7 @@ function createDepStatusDistChart() {
     };
 }
 
-function createDepTypeChart() {
+function createDepTypeChart(): void {
     const labels = ['Direct', 'Transitive', 'Both'];
     const data = [
         stats.value.number_of_direct_dependencies,
@@ -428,7 +439,7 @@ function createDepTypeChart() {
 
     // Convert to d3 DoughnutChart format
     const d3_data: DoughnutChartData = labels.map((label, index) => ({
-        label: label as any, // Cast to satisfy the type requirement
+        label: String(label),
         count: data[index] ?? 0,
         color: colors[index] ?? '#000000'
     }));

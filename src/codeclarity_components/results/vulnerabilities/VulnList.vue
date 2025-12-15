@@ -5,6 +5,7 @@ import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
+    type FilterConfig,
     type FilterState
 } from '@/base_components/filters/UtilitiesFilters.vue';
 import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
@@ -15,8 +16,7 @@ import { ProjectsSortInterface } from '@/codeclarity_components/projects/project
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import {
     PatchType,
-    type VulnerabilityMerged,
-    type WeaknessInfo
+    type VulnerabilityMerged
 } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 import { Badge } from '@/shadcn/ui/badge';
@@ -37,7 +37,6 @@ import { ref, watch, computed, type Ref } from 'vue';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
 
 export interface Props {
-    [key: string]: any;
     highlightElem: string;
     forceOpenNewTab?: boolean;
     analysisID?: string;
@@ -81,38 +80,40 @@ const sortKey: Ref<string> = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
 // Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        AttributeState: {
-            name: 'Matching',
-            type: FilterType.CHECKBOX,
-            data: {
-                hide_correct_matching: {
-                    title: 'Hide correct',
-                    value: false
-                },
-                hide_possibly_incorrect_matching: {
-                    title: 'Hide possibly incorrect',
-                    value: false
-                },
-                hide_incorrect_matching: {
-                    title: 'Hide incorrect',
-                    value: false
-                }
-            }
-        },
-        BlacklistState: {
-            name: 'Policy Status',
-            type: FilterType.CHECKBOX,
-            data: {
-                show_blacklisted: {
-                    title: 'Show blacklisted vulnerabilities',
-                    value: props.showBlacklisted
-                }
+const filterConfigDef: FilterConfig = {
+    AttributeState: {
+        name: 'Matching',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.CHECKBOX,
+        data: {
+            hide_correct_matching: {
+                title: 'Hide correct',
+                value: false
+            },
+            hide_possibly_incorrect_matching: {
+                title: 'Hide possibly incorrect',
+                value: false
+            },
+            hide_incorrect_matching: {
+                title: 'Hide incorrect',
+                value: false
             }
         }
-    })
-);
+    },
+    BlacklistState: {
+        name: 'Policy Status',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.CHECKBOX,
+        data: {
+            show_blacklisted: {
+                title: 'Show blacklisted vulnerabilities',
+                value: props.showBlacklisted
+            }
+        }
+    }
+};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+const filterState = ref<FilterState>(createNewFilterState(filterConfigDef));
 
 const sortByOptions = [
     { label: 'CVE', key: 'cve' },
@@ -211,7 +212,7 @@ const owaspMapping: Record<
     }
 };
 
-function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
+function getUniqueOWASP(weaknessInfo: {OWASPTop10Id: string}[]): string[] {
     const owaspIds = weaknessInfo
         .map((weakness) => weakness.OWASPTop10Id)
         .filter((id) => id && id !== '');
@@ -219,9 +220,17 @@ function getUniqueOWASP(weaknessInfo: WeaknessInfo[]) {
     return uniqueOwaspIds;
 }
 
-function getOwaspInfo(owaspId: string) {
+interface OwaspInfoResult {
+    id: string;
+    name: string;
+    description: string;
+    impact: string;
+    color: string;
+}
+
+function getOwaspInfo(owaspId: string): OwaspInfoResult {
     return (
-        owaspMapping[owaspId] || {
+        owaspMapping[owaspId] ?? {
             id: 'Unknown',
             name: 'Uncategorized',
             description: 'This vulnerability does not map to a specific OWASP Top 10 category.',
@@ -231,7 +240,7 @@ function getOwaspInfo(owaspId: string) {
     );
 }
 
-function toggleCardExpansion(vulnerabilityId: string) {
+function toggleCardExpansion(vulnerabilityId: string): void {
     if (expandedCards.value.has(vulnerabilityId)) {
         expandedCards.value.delete(vulnerabilityId);
     } else {
@@ -239,11 +248,11 @@ function toggleCardExpansion(vulnerabilityId: string) {
     }
 }
 
-function isCardExpanded(vulnerabilityId: string) {
+function isCardExpanded(vulnerabilityId: string): boolean {
     return expandedCards.value.has(vulnerabilityId);
 }
 
-function truncateDescription(description: string, maxLength = 150) {
+function truncateDescription(description: string, maxLength = 150): string {
     if (description.length <= maxLength) return description;
 
     // Remove markdown formatting like ####
@@ -262,7 +271,7 @@ function truncateDescription(description: string, maxLength = 150) {
     return `${truncated  }...`;
 }
 
-function getSeverityBorderColor(severityValue: number) {
+function getSeverityBorderColor(severityValue: number): string {
     if (isCriticalSeverity(severityValue)) return 'border-l-red-600';
     if (isHighSeverity(severityValue)) return 'border-l-orange-500';
     if (isMediumSeverity(severityValue)) return 'border-l-yellow-500';
@@ -270,7 +279,7 @@ function getSeverityBorderColor(severityValue: number) {
     return 'border-l-gray-400';
 }
 
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
@@ -295,9 +304,10 @@ async function init() {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             active_filters: filterState.value.toString(),
             search_key: searchKey.value,
-            ecosystem_filter: props.ecosystemFilter || undefined,
+            ecosystem_filter: props.ecosystemFilter ?? undefined,
             show_blacklisted: props.showBlacklisted
         });
         findings.value = res.data;
@@ -309,12 +319,12 @@ async function init() {
         nmbEntriesTotal.value = res.total_entries;
         totalPages.value = res.total_pages;
     } catch (error) {
-        console.log(error);
+        console.error(error);
         render.value = false;
     }
 }
 
-init();
+void init();
 
 watch(
     [
@@ -328,15 +338,19 @@ watch(
         () => props.showBlacklisted
     ],
     () => {
-        init();
+        void init();
     }
 );
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
 watch(() => filterState.value.activeFilters, init);
 
 // Sync blacklisted filter with parent component
-const showBlacklistedFromFilter = computed(() => {
-    return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value || false;
+const showBlacklistedFromFilter = computed<boolean>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const blacklistState = filterState.value.filterConfig.BlacklistState;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+    return blacklistState?.data?.show_blacklisted?.value ?? false;
 });
 
 // Define emit for updating parent's showBlacklisted value
@@ -345,8 +359,8 @@ const emit = defineEmits<{
 }>();
 
 // Watch for changes in the filter and emit to parent
-watch(showBlacklistedFromFilter, (newValue) => {
-    emit('update:showBlacklisted', newValue);
+watch(showBlacklistedFromFilter, (newValue: boolean) => {
+    void emit('update:showBlacklisted', newValue);
 });
 
 // Computed statistics for dashboard
@@ -1153,7 +1167,7 @@ const exploitableCount = computed(() => {
 
                             <!-- CWE Badges -->
                             <TooltipProvider
-                                v-for="weakness in report.Weaknesses || []"
+                                v-for="weakness in report.Weaknesses ?? []"
                                 :key="weakness.WeaknessId"
                             >
                                 <Tooltip>
@@ -1540,7 +1554,7 @@ const exploitableCount = computed(() => {
                         >
                             <div class="flex flex-wrap gap-2">
                                 <div
-                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses || [])"
+                                    v-for="owaspID in getUniqueOWASP(report.Weaknesses ?? [])"
                                     :key="owaspID"
                                 >
                                     <TooltipProvider>

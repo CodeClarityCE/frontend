@@ -21,12 +21,12 @@ export abstract class Entity {
         return entities;
     }
 
-    static marshal<T>(instance: T, validate?: boolean): any {
+    static marshal<T>(instance: T, validate?: boolean): unknown {
         if (validate === undefined || validate === true) Entity.validate(instance);
         return instanceToPlain(instance, { excludeExtraneousValues: false });
     }
 
-    static marshalMany<T>(instances: T[], validate?: boolean): any[] {
+    static marshalMany<T>(instances: T[], validate?: boolean): unknown[] {
         const validInstances: T[] = [];
         if (validate === undefined || validate === true)
             validInstances.push(...Entity.validateMany<T>(instances));
@@ -37,7 +37,7 @@ export abstract class Entity {
         return instancesPlain;
     }
 
-    static validate(instance: any) {
+    static validate(instance: unknown): void {
         const errors = validateSync(instance, { stopAtFirstError: true });
         if (errors.length > 0) {
             console.error(errors);
@@ -45,12 +45,15 @@ export abstract class Entity {
         }
     }
 
-    static validateMany<T>(instances: any): T[] {
+    static validateMany<T>(instances: unknown): T[] {
+        if (!Array.isArray(instances)) {
+            throw new MalformedResponse();
+        }
         const validItems: T[] = [];
         for (const instance of instances) {
             try {
                 Entity.validate(instance);
-                validItems.push(instance);
+                validItems.push(instance as T);
             } catch (error) {
                 console.error(error);
                 console.error('Entity failed validation:');

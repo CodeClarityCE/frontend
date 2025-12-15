@@ -25,7 +25,6 @@ import VulnSecurityAnalysis from './VulnDetails/VulnSecurityAnalysis.vue';
 import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 
 interface Props {
-    [key: string]: any;
     showBack?: boolean;
     analysisID: string;
     projectID: string;
@@ -44,20 +43,22 @@ const versions_modal_ref: Ref<typeof PositionedModal> = ref(PositionedModal);
 const cvss_field: Ref<string> = ref('');
 const cvss_field_value: Ref<string> = ref('');
 const cvss_field_version: Ref<string> = ref('');
-const cvss_info: Ref<any> = ref({});
-const cvss_field_info_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
+type CvssInfo = Record<string, string | number | boolean | undefined>;
+
+const cvss_info: Ref<CvssInfo> = ref({});
+const cvss_field_info_modal_ref = ref(null);
 const active_view: Ref<string> = ref('patches');
 const readme: Ref<string> = ref('');
 const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const chart_version: Ref<string> = ref('');
 
-function toggleReferences() {
+function toggleReferences(): void {
     if (references_limit.value !== finding.value.references.length)
         references_limit.value = finding.value.references.length;
     else references_limit.value = 8;
 }
 
-function goBack() {
+function goBack(): void {
     router.back();
 }
 
@@ -65,15 +66,25 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-function openModal(data: any) {
+interface CvssModalData {
+    cvss_field: string;
+    cvss_field_value: string;
+    cvss_field_version: string;
+    cvss_info: CvssInfo;
+}
+
+function openModal(data: CvssModalData): void {
     cvss_field.value = data.cvss_field;
     cvss_field_value.value = data.cvss_field_value;
     cvss_field_version.value = data.cvss_field_version;
     cvss_info.value = data.cvss_info;
-    cvss_field_info_modal_ref.value.show();
+    const modal = cvss_field_info_modal_ref.value as { show?: () => void } | null;
+    if (modal?.show) {
+        modal.show();
+    }
 }
 
-async function getFinding(projectID: string, analysisID: string) {
+async function getFinding(projectID: string, analysisID: string): Promise<void> {
     const urlParams = new URLSearchParams(window.location.search);
     const finding_id_param = urlParams.get('finding_id');
     let finding_id = '';
@@ -116,15 +127,15 @@ async function getFinding(projectID: string, analysisID: string) {
         console.error(_err);
     }
 }
-getFinding(props.projectID, props.analysisID);
+void getFinding(props.projectID, props.analysisID);
 
 // --- Stat Card Logic ---
-function getBaseScore(finding: VulnerabilityDetails): number | null {
-    if (finding.severities.cvss_31?.base_score !== null) {
+function getBaseScore(finding: VulnerabilityDetails): number | null | undefined {
+    if (finding.severities.cvss_31?.base_score !== null && finding.severities.cvss_31?.base_score !== undefined) {
         return finding.severities.cvss_31.base_score;
-    } else if (finding.severities.cvss_3?.base_score !== null) {
+    } else if (finding.severities.cvss_3?.base_score !== null && finding.severities.cvss_3?.base_score !== undefined) {
         return finding.severities.cvss_3.base_score;
-    } else if (finding.severities.cvss_2?.base_score !== null) {
+    } else if (finding.severities.cvss_2?.base_score !== null && finding.severities.cvss_2?.base_score !== undefined) {
         return finding.severities.cvss_2.base_score;
     }
     return null;

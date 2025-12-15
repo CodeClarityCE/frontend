@@ -1,7 +1,7 @@
-import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
-import { APIErrors } from './ApiErrors';
 import router from '@/router';
+import { useToast, type ToastPluginApi } from 'vue-toast-notification';
+import { APIErrors } from './ApiErrors';
 
 /**
  * @class BaseRepository
@@ -12,9 +12,10 @@ import router from '@/router';
  */
 export class BaseRepository {
     private BASE_URL: string;
-    private toast: any;
+    private toast: ToastPluginApi;
 
     constructor() {
+        // Initialize base URL and toast notification service
         this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
         this.toast = useToast();
     }
@@ -22,7 +23,7 @@ export class BaseRepository {
     /**
      * @returns {string} - BASE API Url
      */
-    private getBaseUrl() {
+    private getBaseUrl(): string {
         return this.BASE_URL;
     }
 
@@ -30,7 +31,7 @@ export class BaseRepository {
      * Attach query params
      * @param {QueryParams|undefined} queryParams Query paramaters
      */
-    private attachSearchParams(searchParams: URLSearchParams, queryParams?: QueryParams) {
+    private attachSearchParams(searchParams: URLSearchParams, queryParams?: QueryParams): void {
         if (queryParams) {
             for (const [key, value] of Object.entries(queryParams)) {
                 if (Array.isArray(value)) {
@@ -50,7 +51,7 @@ export class BaseRepository {
      * @param {string} relativeUrl - Endpoint url
      * @returns {string} - URL of the endpoint
      */
-    protected buildUrl(relativeUrl: string) {
+    protected buildUrl(relativeUrl: string): string {
         if (relativeUrl.startsWith('/')) return `${this.getBaseUrl()}${relativeUrl}`;
         else return `${this.getBaseUrl()}/${relativeUrl}`;
     }
@@ -89,14 +90,14 @@ export class BaseRepository {
         }
 
         // Construct fetch options
-        const fetchOptions: any = {
+        const fetchOptions: RequestInit = {
             method: 'GET',
             headers: headers
         };
 
         // Send the request
         const response = await fetch(url.toString(), fetchOptions);
-        const result = await response.json();
+        const result = (await response.json()) as R;
 
         // Check the response
         if (response.ok) {
@@ -155,7 +156,7 @@ export class BaseRepository {
         }
 
         // Construct fetch options
-        const fetchOptions: any = {
+        const fetchOptions: RequestInit = {
             method: 'POST',
             headers: headers
         };
@@ -166,7 +167,7 @@ export class BaseRepository {
 
         // Send the request
         const response = await fetch(url.toString(), fetchOptions);
-        const result = await response.json();
+        const result = (await response.json()) as R;
 
         // Check the response
         if (response.ok) {
@@ -228,7 +229,7 @@ export class BaseRepository {
         }
 
         // Construct fetch options
-        const fetchOptions: any = {
+        const fetchOptions: RequestInit = {
             method: 'DELETE',
             headers: headers
         };
@@ -239,7 +240,7 @@ export class BaseRepository {
 
         // Send the request
         const response = await fetch(url.toString(), fetchOptions);
-        const result = await response.json();
+        const result = (await response.json()) as R;
 
         // Check the response
         if (response.ok) {
@@ -298,7 +299,7 @@ export class BaseRepository {
         }
 
         // Construct fetch options
-        const fetchOptions: any = {
+        const fetchOptions: RequestInit = {
             method: 'PUT',
             headers: headers
         };
@@ -309,7 +310,7 @@ export class BaseRepository {
 
         // Send the request
         const response = await fetch(url.toString(), fetchOptions);
-        const result = await response.json();
+        const result = (await response.json()) as R;
 
         // Check the response
         if (response.ok) {
@@ -368,7 +369,7 @@ export class BaseRepository {
         }
 
         // Construct fetch options
-        const fetchOptions: any = {
+        const fetchOptions: RequestInit = {
             method: 'PATCH',
             headers: headers
         };
@@ -379,7 +380,7 @@ export class BaseRepository {
 
         // Send the request
         const response = await fetch(url.toString(), fetchOptions);
-        const result = await response.json();
+        const result = (await response.json()) as R;
 
         // Check the response
         if (response.ok) {
@@ -417,30 +418,28 @@ export class BaseRepository {
         const statusText = options.request.statusText;
         const responseBody = options.request.responseBody;
 
-        if (responseBody !== undefined && 'error_code' in responseBody) {
-            if (responseBody.error_code === APIErrors.NotAuthenticated) {
-                router.push('/login');
+        if (isApiErrorResponse(responseBody)) {
+            if (responseBody.error_code === (APIErrors.NotAuthenticated as string)) {
+                void router.push('/login');
             }
-        }
 
-        if (responseBody !== undefined && 'error_code' in responseBody) {
             let business_logic_error = new BusinessLogicError(
                 responseBody.error_code,
                 responseBody.error_message
             );
 
-            if (business_logic_error.error_code === APIErrors.ValidationFailed) {
+            if (business_logic_error.error_code === (APIErrors.ValidationFailed as string)) {
                 business_logic_error = new ValidationError(
                     responseBody.error_code,
                     responseBody.error_message,
-                    responseBody.validation_errors
+                    responseBody.validation_errors ?? []
                 );
             }
 
             if (options.handleBusinessErrors !== undefined && options.handleBusinessErrors === true) {
                 throw business_logic_error;
             } else {
-                this.defaultBusinessErrorHandler(
+                void this.defaultBusinessErrorHandler(
                     business_logic_error,
                     options.defaultBusinessLogicErrorHandlerTextPrefix
                 );
@@ -451,7 +450,7 @@ export class BaseRepository {
             if (options.handleHTTPErrors !== undefined && options.handleHTTPErrors === true) {
                 throw http_error;
             } else {
-                this.defaultHttpErrorHandler(http_error);
+                void this.defaultHttpErrorHandler(http_error);
                 throw http_error;
             }
         }
@@ -463,7 +462,7 @@ export class BaseRepository {
     private async defaultBusinessErrorHandler(
         business_logic_error: BusinessLogicError,
         defaultBusinessLogicErrorHandlerTextPrefix?: string
-    ) {
+    ): Promise<void> {
         let prefix = 'An error occured during the processing of the request.';
         if (defaultBusinessLogicErrorHandlerTextPrefix !== undefined) {
             prefix = defaultBusinessLogicErrorHandlerTextPrefix;
@@ -477,7 +476,7 @@ export class BaseRepository {
     /**
      * Default http error handler that runs in case no http error handler was supplied by the user.
      */
-    private async defaultHttpErrorHandler(http_error: HttpError) {
+    private async defaultHttpErrorHandler(http_error: HttpError): Promise<void> {
         console.error(http_error);
         this.toast.error('Request failed to be processed. Please reload the page and try again.', {
             position: 'bottom-right'
@@ -509,18 +508,35 @@ export class BusinessLogicError extends Error {
     }
 }
 
-interface _ValidationError {
+interface ValidationErrorDetail {
     property: string;
     errors: string[];
 }
 
+interface ApiErrorResponse {
+    error_code: string;
+    error_message: string;
+    validation_errors?: ValidationErrorDetail[];
+}
+
+function isApiErrorResponse(obj: unknown): obj is ApiErrorResponse {
+    return (
+        typeof obj === 'object' &&
+        obj !== null &&
+        'error_code' in obj &&
+        'error_message' in obj &&
+        typeof (obj as ApiErrorResponse).error_code === 'string' &&
+        typeof (obj as ApiErrorResponse).error_message === 'string'
+    );
+}
+
 export class ValidationError extends BusinessLogicError {
-    validation_errors: _ValidationError[];
+    validation_errors: ValidationErrorDetail[];
 
     constructor(
         error_code: string,
         error_message: string,
-        validation_errors: _ValidationError[] /* mitigation: any*/
+        validation_errors: ValidationErrorDetail[] /* mitigation: any*/
     ) {
         super(error_code, error_message);
         this.validation_errors = validation_errors;
@@ -543,17 +559,17 @@ export class ValidationError extends BusinessLogicError {
  *
  * @typedef {Object} HttpError
  *
- * @property {string} code - HTTP status code.
+ * @property {number} code - HTTP status code.
  * @property {string} status - When an HTTP error occurs, status receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
  *
- * @param {string} code - HTTP status code.
+ * @param {number} code - HTTP status code.
  * @param {string} status - When an HTTP error occurs, status receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
  */
 export class HttpError extends Error {
-    code: any;
-    status: any;
+    code: number;
+    status: string;
 
-    constructor(code: any, status: any) {
+    constructor(code: number, status: string) {
         super(`HTTP Error ${code}: ${status}`);
         this.code = code;
         this.status = status;
@@ -592,7 +608,7 @@ interface ErrorHandlerOptions {
     request: {
         status: number;
         statusText: string;
-        responseBody: any;
+        responseBody: unknown;
     };
     handleBusinessErrors?: boolean;
     handleHTTPErrors?: boolean;

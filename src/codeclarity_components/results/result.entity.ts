@@ -1,11 +1,20 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export interface AnalysisInfo {
+    status?: string;
+    errors?: unknown[];
+    [key: string]: unknown;
+}
+
+export type WorkspaceData = Record<string, unknown>;
+
 export class Result {
     @IsNotEmpty()
     @IsString()
     plugin!: string;
 
     @IsNotEmpty()
-    result!: any;
+    result!: unknown;
 
     @IsOptional()
     @IsString()
@@ -14,7 +23,7 @@ export class Result {
 
 export interface ResultObject {
     result: {
-        workspaces: Map<string, any>;
+        workspaces: Map<string, WorkspaceData>;
     };
-    analysis_info: any;
+    analysis_info: AnalysisInfo;
 }

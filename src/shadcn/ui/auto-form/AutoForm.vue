@@ -1,12 +1,12 @@
 <script setup lang="ts" generic="T extends ZodObjectOrWrapped">
-import type { FormContext, GenericObject } from 'vee-validate';
-import type { z, ZodAny } from 'zod';
-import type { Config, ConfigItem, Dependency, Shape } from './interface';
 import { Form } from '@/shadcn/ui/form';
 import { toTypedSchema } from '@vee-validate/zod';
+import type { FormContext, GenericObject } from 'vee-validate';
 import { computed, toRefs } from 'vue';
+import type { z, ZodAny } from 'zod';
 import AutoFormField from './AutoFormField.vue';
 import { provideDependencies } from './dependencies';
+import type { Config, ConfigItem, Dependency, Shape } from './interface';
 import {
     getBaseSchema,
     getBaseType,
@@ -36,7 +36,7 @@ const shapes = computed(() => {
     const shape = baseSchema.shape;
     Object.keys(shape).forEach((name) => {
         const item = shape[name] as ZodAny;
-        const baseItem = getBaseSchema(item) as ZodAny;
+        const baseItem = getBaseSchema(item)!;
         let options =
             baseItem && 'values' in baseItem._def ? (baseItem._def.values as string[]) : undefined;
         if (!Array.isArray(options) && typeof options === 'object')

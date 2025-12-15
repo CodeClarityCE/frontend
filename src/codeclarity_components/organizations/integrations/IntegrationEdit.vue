@@ -23,10 +23,10 @@ defineProps<{
 
 const orgInfo: Ref<Organization | undefined> = ref();
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({
+        void router.push({
             name: 'orgs',
             params: { action: 'manage', page: 'integrations', orgId: _orgInfo.id }
         });

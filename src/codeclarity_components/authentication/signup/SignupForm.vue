@@ -55,7 +55,7 @@ const { handleSubmit } = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit((values): void => {
     if (values.agreeTerms === false) {
         toast({
             title: 'You must agree to our terms and conditions to continue',
@@ -67,17 +67,25 @@ const onSubmit = handleSubmit((values) => {
     //     title: 'You submitted the following values:',
     //     description: h('pre', { class: 'mt-2 w-[340px] rounded-md bg-slate-950 p-4' }, h('code', { class: 'text-white' }, JSON.stringify(values, null, 2))),
     // })
-    submit(values);
+    void submit(values);
 });
 
 // Sanity Checks
 // In case the user is logged in and visits this page, redirect them
 if (authStore.getAuthenticated === true) {
-    router.push('/');
+    void router.push('/');
 }
 
 // Methods
-async function submit(values: any) {
+async function submit(values: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    handle: string;
+    plainPassword: string;
+    plainPasswordConfirm: string;
+    agreeTerms: boolean;
+}): Promise<void> {
     loading.value = true;
     errorCode.value = undefined;
     validationError.value = undefined;
@@ -99,7 +107,7 @@ async function submit(values: any) {
             title: 'Account successfully created',
             description: 'Please check your email to verify your account'
         });
-        router.push({ name: 'login' });
+        void router.push({ name: 'login' });
     } catch (_err) {
         error.value = true;
 

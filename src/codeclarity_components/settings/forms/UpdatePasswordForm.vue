@@ -1,29 +1,27 @@
 <script lang="ts" setup>
+import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import { Button } from '@/shadcn/ui/button';
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
+} from '@/shadcn/ui/form';
+import { Input } from '@/shadcn/ui/input';
 import { useAuthStore } from '@/stores/auth';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-
-
-const state = useStateStore();
-const authStore = useAuthStore();
-state.menu = 'settingsAccount';
-
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 import { toTypedSchema } from '@vee-validate/zod';
 import { useForm } from 'vee-validate';
 import * as z from 'zod';
-import { Button } from '@/shadcn/ui/button';
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    FormDescription
-} from '@/shadcn/ui/form';
-import { Input } from '@/shadcn/ui/input';
-import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+
+const state = useStateStore();
+const authStore = useAuthStore();
+state.menu = 'settingsAccount';
 
 const userRepository: UserRepository = new UserRepository();
 
@@ -43,8 +41,8 @@ const form = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = form.handleSubmit((values) => {
-    updatePassword(values.old_password, values.password, values.password_confirmation);
+const onSubmit = form.handleSubmit((values): void => {
+    void updatePassword(values.old_password, values.password, values.password_confirmation);
 });
 
 /*****************************************************************************/
@@ -55,7 +53,7 @@ async function updatePassword(
     password: string,
     new_password: string,
     new_password_confirmation: string
-) {
+): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await userRepository.patchPassword({

@@ -57,7 +57,7 @@ onMounted(async () => {
 
         // Redirect to tickets page with query param to open integration modal
         setTimeout(() => {
-            router.push({ path: '/tickets', query: { clickup_oauth: 'success' } });
+            void router.push({ path: '/tickets', query: { clickup_oauth: 'success' } });
         }, 1500);
     } catch (error) {
         console.error('OAuth exchange failed:', error);
@@ -67,8 +67,8 @@ onMounted(async () => {
     }
 });
 
-function goToTickets() {
-    router.push('/tickets');
+function goToTickets(): void {
+    void router.push('/tickets');
 }
 </script>
 

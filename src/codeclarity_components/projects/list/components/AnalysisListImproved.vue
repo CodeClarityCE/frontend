@@ -92,8 +92,8 @@ const groupedAnalyses = computed(() => {
 // Get latest analyses for simplified display
 const latestAnalyses = computed(() => {
     const latest = {
-        scheduled: groupedAnalyses.value.scheduled[0] || null,
-        oneTime: groupedAnalyses.value.oneTime[0] || null
+        scheduled: groupedAnalyses.value.scheduled[0] ?? null,
+        oneTime: groupedAnalyses.value.oneTime[0] ?? null
     };
 
     return latest;
@@ -153,15 +153,15 @@ const getFrequencyText = (scheduleType: string): string => {
         daily: 'daily',
         weekly: 'weekly'
     };
-    return frequencies[scheduleType] || scheduleType;
+    return frequencies[scheduleType] ?? scheduleType;
 };
 
 // Methods
-function toggleAnalysis(analysisId: string) {
+function toggleAnalysis(analysisId: string): void {
     expandedAnalysisId.value = expandedAnalysisId.value === analysisId ? null : analysisId;
 }
 
-function getStatusIcon(status: AnalysisStatusType) {
+function getStatusIcon(status: AnalysisStatusType): string {
     switch (status) {
         case AnalysisStatus.COMPLETED:
         case AnalysisStatus.FINISHED:
@@ -176,7 +176,7 @@ function getStatusIcon(status: AnalysisStatusType) {
     }
 }
 
-function getStatusColor(status: AnalysisStatusType) {
+function getStatusColor(status: AnalysisStatusType): string {
     switch (status) {
         case AnalysisStatus.COMPLETED:
         case AnalysisStatus.FINISHED:
@@ -204,34 +204,34 @@ function getAnalysisProgress(analysis: Analysis): number {
     return Math.round((completedSteps / totalSteps) * 100);
 }
 
-function viewResults(analysis: Analysis, runIndex?: number) {
-    const query: any = {
+function viewResults(analysis: Analysis, runIndex?: number): void {
+    const query: Record<string, string | number> = {
         analysis_id: analysis.id,
         project_id: props.projectID
     };
 
     // For scheduled analyses, add run_index (default to 0 for latest)
     if (analysis.schedule_type && analysis.schedule_type !== 'once') {
-        query.run_index = runIndex !== undefined ? runIndex : 0;
+        query.run_index = runIndex ?? 0;
     }
 
-    router.push({
+    void router.push({
         name: 'results',
         query
     });
 }
 
-function viewHistory(analysis: Analysis) {
+function viewHistory(analysis: Analysis): void {
     selectedAnalysis.value = analysis;
     showRunsModal.value = true;
 }
 
-function confirmDelete(analysis: Analysis) {
+function confirmDelete(analysis: Analysis): void {
     analysisToDelete.value = analysis;
     showDeleteModal.value = true;
 }
 
-async function deleteAnalysis() {
+async function deleteAnalysis(): Promise<void> {
     if (!analysisToDelete.value || !userStore.getUser?.default_org?.id) return;
 
     isDeletingAnalysis.value = true;
@@ -254,11 +254,11 @@ async function deleteAnalysis() {
     }
 }
 
-function showScheduledHistory() {
+function showScheduledHistory(): void {
     showScheduledHistoryModal.value = true;
 }
 
-function showOneTimeHistory() {
+function showOneTimeHistory(): void {
     showOneTimeHistoryModal.value = true;
 }
 </script>
@@ -327,7 +327,7 @@ function showOneTimeHistory() {
                                     >
                                         {{
                                             getFrequencyText(
-                                                latestAnalyses.scheduled.schedule_type || ''
+                                                latestAnalyses.scheduled.schedule_type ?? ''
                                             )
                                         }}
                                     </span>
@@ -529,7 +529,7 @@ function showOneTimeHistory() {
                                                 }"
                                             />
                                             <span class="text-gray-700">{{
-                                                stage.Name || 'Unknown Step'
+                                                stage.Name ?? 'Unknown Step'
                                             }}</span>
                                         </div>
                                         <span
@@ -778,7 +778,7 @@ function showOneTimeHistory() {
                                                 }"
                                             />
                                             <span class="text-gray-700">{{
-                                                stage.Name || 'Unknown Step'
+                                                stage.Name ?? 'Unknown Step'
                                             }}</span>
                                         </div>
                                         <span
@@ -910,7 +910,7 @@ function showOneTimeHistory() {
                                             background-color: rgba(29, 206, 121, 0.1);
                                         "
                                     >
-                                        {{ getFrequencyText(analysis.schedule_type || '') }}
+                                        {{ getFrequencyText(analysis.schedule_type ?? '') }}
                                     </span>
                                 </div>
                                 <div class="text-xs text-gray-500">

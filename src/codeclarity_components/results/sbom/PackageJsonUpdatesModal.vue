@@ -39,7 +39,7 @@ const developmentUpdates = computed(() =>
     props.updates.filter((update) => update.isDev && !update.isProd)
 );
 const detectedPackageManager = computed(
-    () => (props.packageManager?.toLowerCase() || 'yarn') as PackageManager
+    () => (props.packageManager?.toLowerCase() ?? 'yarn') as PackageManager
 );
 
 // Package manager info using utilities
@@ -54,8 +54,8 @@ const updateCommands = computed(() =>
 );
 
 // Package.json snippet generation
-const packageJsonSnippet = computed(() => {
-    const snippet: any = {};
+const packageJsonSnippet = computed((): string => {
+    const snippet: Record<string, Record<string, string>> = {};
 
     if (productionUpdates.value.length > 0) {
         snippet.dependencies = Object.fromEntries(
@@ -73,14 +73,14 @@ const packageJsonSnippet = computed(() => {
 });
 
 // Simple functions
-function copyToClipboard(content: string) {
-    navigator.clipboard.writeText(content).then(() => {
-        emit('copy-to-clipboard', content);
+function copyToClipboard(content: string): void {
+    void navigator.clipboard.writeText(content).then(() => {
+        void emit('copy-to-clipboard', content);
     });
 }
 
-function closeModal() {
-    emit('update:open', false);
+function closeModal(): void {
+    void emit('update:open', false);
 }
 </script>
 

@@ -62,7 +62,7 @@ const isUpdatingStatus = ref(false);
 const availableIntegrations = ref<IntegrationConfigSummary[]>([]);
 const openAccordionItems = ref<string[]>([]);
 
-async function loadIntegrations() {
+async function loadIntegrations(): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     try {
@@ -79,7 +79,7 @@ async function loadIntegrations() {
     }
 }
 
-async function syncToProvider(provider: ExternalTicketProvider) {
+async function syncToProvider(provider: ExternalTicketProvider): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isSyncing.value = true;
@@ -93,7 +93,7 @@ async function syncToProvider(provider: ExternalTicketProvider) {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('updated');
+        void emit('updated');
     } catch (error) {
         console.error('Failed to sync ticket:', error);
     } finally {
@@ -101,7 +101,7 @@ async function syncToProvider(provider: ExternalTicketProvider) {
     }
 }
 
-async function unlinkFromProvider(linkId: string) {
+async function unlinkFromProvider(linkId: string): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isUnlinking.value = linkId;
@@ -115,7 +115,7 @@ async function unlinkFromProvider(linkId: string) {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('updated');
+        void emit('updated');
     } catch (error) {
         console.error('Failed to unlink ticket:', error);
     } finally {
@@ -123,7 +123,7 @@ async function unlinkFromProvider(linkId: string) {
     }
 }
 
-async function syncFromExternalLink(linkId: string) {
+async function syncFromExternalLink(linkId: string): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isSyncingFromExternal.value = linkId;
@@ -138,7 +138,7 @@ async function syncFromExternalLink(linkId: string) {
             handleOtherErrors: true
         });
         if (result.data.updated) {
-            emit('updated');
+            void emit('updated');
         }
     } catch (error) {
         console.error('Failed to sync from external:', error);
@@ -147,7 +147,7 @@ async function syncFromExternalLink(linkId: string) {
     }
 }
 
-async function updateStatus(newStatus: TicketStatus) {
+async function updateStatus(newStatus: TicketStatus): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isUpdatingStatus.value = true;
@@ -161,7 +161,7 @@ async function updateStatus(newStatus: TicketStatus) {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('updated');
+        void emit('updated');
     } catch (error) {
         console.error('Failed to update ticket status:', error);
     } finally {
@@ -169,7 +169,7 @@ async function updateStatus(newStatus: TicketStatus) {
     }
 }
 
-function close() {
+function close(): void {
     isOpen.value = false;
     setTimeout(() => emit('close'), 300);
 }
@@ -194,6 +194,7 @@ const availableSyncProviders = computed(() => {
 });
 
 // Get the best available CVSS score (prefer v3.1 > v3 > v2)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const cvssData = computed((): { version: string; data: any } | null => {
     if (!props.vulnerabilityDetails?.severities) return null;
     const { cvss_31, cvss_3, cvss_2 } = props.vulnerabilityDetails.severities;
@@ -226,6 +227,12 @@ function getCvssValueColor(value: string | undefined): string {
     return 'text-yellow-600';
 }
 
+// Get CVSS base score safely
+function getCvssBaseScore(): number {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (cvssData.value?.data?.base_score as number) ?? 0;
+}
+
 // Convert VLAI score string to numeric value for gauge
 function getVlaiNumericScore(vlaiScore: string | undefined): number {
     if (!vlaiScore) return 0;
@@ -235,12 +242,12 @@ function getVlaiNumericScore(vlaiScore: string | undefined): number {
         MEDIUM: 5,
         LOW: 2.5
     };
-    return mapping[vlaiScore.toUpperCase()] || 0;
+    return mapping[vlaiScore.toUpperCase()] ?? 0;
 }
 
 // Get overall risk level
 const overallRiskLevel = computed(() => {
-    const cvss = cvssData.value?.data.base_score || 0;
+    const cvss = getCvssBaseScore();
     if (cvss >= 9.0) return 'critical';
     if (cvss >= 7.0) return 'high';
     if (cvss >= 4.0) return 'medium';
@@ -293,7 +300,7 @@ const riskBannerConfig = computed((): RiskConfig => {
 
 // Check if we have any scores to show in risk overview
 const hasRiskScores = computed(() => {
-    return cvssData.value || epssFormatted.value || props.vulnerabilityDetails?.other?.vlai_score;
+    return Boolean(cvssData.value ?? epssFormatted.value ?? props.vulnerabilityDetails?.other?.vlai_score);
 });
 
 // Get OWASP info if available
@@ -304,7 +311,7 @@ const owaspInfo = computed(() => {
 });
 
 onMounted(() => {
-    loadIntegrations();
+    void loadIntegrations();
 });
 </script>
 
@@ -427,7 +434,7 @@ onMounted(() => {
                                 <TooltipTrigger as-child>
                                     <div class="cursor-help">
                                         <RiskScoreGauge
-                                            :score="cvssData.data.base_score || 0"
+                                            :score="getCvssBaseScore()"
                                             :max-score="10"
                                             :label="'CVSS v' + cvssData.version"
                                             type="cvss"
@@ -634,7 +641,7 @@ onMounted(() => {
                         <div>
                             <p class="text-xs text-gray-500">Version</p>
                             <p class="text-sm text-gray-900">
-                                {{ ticket.affected_version || 'N/A' }}
+                                {{ ticket.affected_version ?? 'N/A' }}
                                 <span v-if="ticket.recommended_version" class="text-green-600">
                                     → {{ ticket.recommended_version }}
                                 </span>
@@ -955,7 +962,7 @@ onMounted(() => {
                     <div>
                         <p class="text-xs text-gray-500">Assigned To</p>
                         <p class="text-sm text-gray-900">
-                            {{ ticket.assigned_to_name || 'Unassigned' }}
+                            {{ ticket.assigned_to_name ?? 'Unassigned' }}
                         </p>
                     </div>
                     <div>

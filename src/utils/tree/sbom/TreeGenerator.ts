@@ -13,7 +13,7 @@ export interface NodeData {
     outdated?: boolean;
     outdatedMessage?: string;
     deprecated?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface FlatTreeNode {
@@ -42,7 +42,7 @@ export class TreeGenerator {
             key: node.key,
             level,
             fencesToDraw: [...fencesToDraw],
-            isDev: node.isDev || false,
+            isDev: node.isDev ?? false,
             root: level === 0,
             data: node.data,
             pruned: false

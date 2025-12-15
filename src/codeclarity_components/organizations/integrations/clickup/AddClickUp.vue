@@ -11,19 +11,19 @@ import { useRoute } from 'vue-router';
 const orgId = ref('');
 const showConfigModal = ref(false);
 
-function onConfigured() {
+function onConfigured(): void {
     showConfigModal.value = false;
-    router.push({
+    void router.push({
         name: 'orgs',
         params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
     });
 }
 
-function onClose() {
+function onClose(): void {
     showConfigModal.value = false;
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
@@ -39,7 +39,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

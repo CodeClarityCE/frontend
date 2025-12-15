@@ -3,29 +3,34 @@ import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue'
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { type SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
+import type SignupFormComponent from './SignupForm.vue';
+import type SocialSetupComponent from './SocialSetup.vue';
 
-const SocialSetup = defineAsyncComponent({
-    loader: () => import('./SocialSetup.vue'),
-    loadingComponent: LoadingComponent,
+const socialSetupLoader: AsyncComponentLoader<typeof SocialSetupComponent> = async () => await import('./SocialSetup.vue');
+const signupFormLoader: AsyncComponentLoader<typeof SignupFormComponent> = async () => await import('./SignupForm.vue');
+
+const SocialSetup: Component = defineAsyncComponent({
+    loader: socialSetupLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
-const SignupForm = defineAsyncComponent({
-    loader: () => import('./SignupForm.vue'),
-    loadingComponent: LoadingComponent,
+const SignupForm: Component = defineAsyncComponent({
+    loader: signupFormLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const state = useStateStore();
 state.$reset();

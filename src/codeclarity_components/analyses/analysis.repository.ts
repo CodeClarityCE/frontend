@@ -182,10 +182,12 @@ export class AnalysisRepository extends BaseRepository {
         return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
     }
 
-    async getAnalysisRuns(options: GetAnalysisByIdRequestOptions): Promise<DataResponse<any[]>> {
+    async getAnalysisRuns(
+        options: GetAnalysisByIdRequestOptions
+    ): Promise<DataResponse<Analysis[]>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/runs`;
 
-        const response = await this.getRequest<DataResponse<any[]>>({
+        const response = await this.getRequest<DataResponse<Analysis[]>>({
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -193,6 +195,6 @@ export class AnalysisRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        return Entity.unMarshal<DataResponse<any[]>>(response, DataResponse<any[]>);
+        return Entity.unMarshal<DataResponse<Analysis[]>>(response, DataResponse<Analysis[]>);
     }
 }

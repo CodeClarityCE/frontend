@@ -52,7 +52,7 @@ watch([currentPage, entriesPerPage], async () => {
     await fetchInvitations(true);
 });
 
-async function fetchInvitations(refresh = false) {
+async function fetchInvitations(refresh = false): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -88,10 +88,10 @@ async function fetchInvitations(refresh = false) {
     }
 }
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -101,13 +101,13 @@ watch([search], async () => {
     }, 250);
 });
 
-async function updateSort(key: any) {
+async function updateSort(key: string | null | undefined): Promise<void> {
     if (key === undefined) return;
     if (key !== undefined)
         if (key === sortKey.value) {
             // If we select the same column then we reverse the direction
             sortDirection.value =
-                sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+                (sortDirection.value) === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
         } else {
             // Default direction
             sortDirection.value = SortDirection.DESC;
@@ -116,12 +116,12 @@ async function updateSort(key: any) {
     await fetchInvitations(true);
 }
 
-async function onRefetch() {
+async function onRefetch(): Promise<void> {
     await fetchInvitations(true);
 }
 
 onMounted(() => {
-    fetchInvitations();
+    void fetchInvitations();
 });
 </script>
 <template>

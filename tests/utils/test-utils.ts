@@ -13,29 +13,32 @@ const router = createRouter({
   ]
 })
 
-interface CustomRenderOptions extends Omit<RenderOptions<any>, 'global'> {
-  global?: RenderOptions<any>['global'] & {
-    plugins?: any[]
-    mocks?: Record<string, any>
+interface CustomRenderOptions extends Omit<RenderOptions, 'global'> {
+  global?: {
+    plugins?: unknown[]
+    mocks?: Record<string, unknown>
+    stubs?: Record<string, unknown>
   }
 }
 
 export function renderWithProviders(
   component: Component,
   options: CustomRenderOptions = {}
-) {
+): ReturnType<typeof render> {
   const pinia = createPinia()
-  
+
   const defaultGlobal = {
     plugins: [pinia, router],
     mocks: {
-      $t: (key: string) => key, // Mock i18n
+      $t: (key: string): string => key, // Mock i18n
     },
     stubs: {
       'router-link': true,
       'router-view': true,
     },
   }
+
+  const optionsPlugins = (options.global?.plugins ?? []);
 
   return render(component, {
     ...options,
@@ -44,7 +47,7 @@ export function renderWithProviders(
       ...options.global,
       plugins: [
         ...defaultGlobal.plugins,
-        ...(options.global?.plugins || [])
+        ...(optionsPlugins as [])
       ],
       mocks: {
         ...defaultGlobal.mocks,
@@ -102,13 +105,13 @@ export const mockStores = {
 }
 
 // Helper to create component wrapper with common mocks
-export const createTestWrapper = (component: Component, options: CustomRenderOptions = {}) => {
+export const createTestWrapper = (component: Component, options: CustomRenderOptions = {}): ReturnType<typeof renderWithProviders> => {
   return renderWithProviders(component, {
     ...options,
     global: {
       ...options.global,
       mocks: {
-        ...mockStores,
+        ...mockStores as Record<string, unknown>,
         ...options.global?.mocks
       }
     }
@@ -116,19 +119,20 @@ export const createTestWrapper = (component: Component, options: CustomRenderOpt
 }
 
 // Helper to mock repositories
-export const createRepositoryMock = <T extends Record<string, any>>(methods: Partial<T> = {}) => {
-  const mockRepo: Record<string, any> = {}
-  
+export const createRepositoryMock = <T extends Record<string, unknown>>(methods: Partial<T> = {}): T => {
+  const mockRepo: Record<string, unknown> = {}
+
   // Create vi.fn() mocks for all methods
   for (const [key, value] of Object.entries(methods)) {
     if (typeof value === 'function') {
-      mockRepo[key] = vi.fn().mockImplementation(value)
+      // Type assertion for function values
+      mockRepo[key] = vi.fn().mockImplementation(value as (...args: unknown[]) => unknown)
     } else {
       mockRepo[key] = vi.fn().mockResolvedValue(value)
     }
   }
-  
-  return mockRepo as any
+
+  return mockRepo as T
 }
 
 export * from '@testing-library/vue'

@@ -30,13 +30,13 @@ const props = withDefaults(defineProps<Props>(), {
 watch(
     () => props.projectID,
     () => {
-        getPatchesStats();
+    void getPatchesStats();
     }
 );
 watch(
     () => props.analysisID,
     () => {
-        getPatchesStats();
+    void getPatchesStats();
     }
 );
 
@@ -62,9 +62,9 @@ const boxLoaderDimensions = {
     height: '40px'
 };
 
-getPatchesStats();
+void getPatchesStats();
 
-async function getPatchesStats(refresh = false) {
+async function getPatchesStats(refresh = false): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -72,7 +72,7 @@ async function getPatchesStats(refresh = false) {
     errorCode.value = undefined;
     if (!refresh) loading.value = true;
 
-    if (!props.projectID || !props.analysisID) return;
+    if (!authStore.getAuthenticated || !props.analysisID) return;
     if (props.projectID === '' || props.analysisID === '') return;
 
     let res: DataResponse<PatchingStats>;
@@ -97,12 +97,12 @@ async function getPatchesStats(refresh = false) {
         // }
     } finally {
         // loading.value = false;
-        createSeverityDistChart();
-        createRadarChart();
+        void createSeverityDistChart();
+        void createRadarChart();
     }
 }
 
-function createRadarChart() {
+function createRadarChart(): void {
     // Convert to d3 RadarChart format with multiple datasets
     const d3_data: RadarChartData = [
         {
@@ -152,7 +152,7 @@ function createRadarChart() {
     cia_data.value = d3_data;
 }
 
-function createSeverityDistChart() {
+function createSeverityDistChart(): void {
     const categories: string[] = [];
     const beforeData: number[] = [];
     const afterData: number[] = [];

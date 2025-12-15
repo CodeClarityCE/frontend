@@ -2,8 +2,6 @@
 import { PageHeader } from '@/base_components';
 import { useStateStore } from '@/stores/state';
 import { useDashboardData } from './composables/useDashboardData';
-
-// Simple component imports
 import DashboardEmptyState from './layout/DashboardEmptyState.vue';
 import DashboardCharts from './sections/DashboardCharts.vue';
 import DashboardQuickStats from './sections/DashboardQuickStats.vue';

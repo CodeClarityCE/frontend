@@ -4,18 +4,21 @@ import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import { cn } from '@/shadcn/lib/utils';
 import { buttonVariants } from '@/shadcn/ui/button';
 import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
+import type UserAuthFormComponent from './UserAuthForm.vue';
 
-const UserAuthForm = defineAsyncComponent({
-    loader: () => import('./UserAuthForm.vue'),
-    loadingComponent: LoadingComponent,
+const loader: AsyncComponentLoader<typeof UserAuthFormComponent> = async () => await import('./UserAuthForm.vue');
+
+const UserAuthForm: Component = defineAsyncComponent({
+    loader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const state = useStateStore();
 state.$reset();

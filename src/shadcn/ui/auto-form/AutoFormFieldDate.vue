@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { FieldProps } from './interface';
 import { cn } from '@/shadcn/lib/utils';
 import { Button } from '@/shadcn/ui/button';
 import { Calendar } from '@/shadcn/ui/calendar';
 import { FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/shadcn/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
-
 import { DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import { CalendarIcon } from 'lucide-vue-next';
 import AutoFormLabel from './AutoFormLabel.vue';
+import type { FieldProps } from './interface';
 import { beautifyObjectName, maybeBooleanishToBoolean } from './utils';
 
 defineProps<FieldProps>();

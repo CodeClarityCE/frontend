@@ -37,12 +37,12 @@ const onSubmit = form.handleSubmit(async (values) => {
             data: { name: values.name, description: values.description, color_scheme: '1' },
             handleBusinessErrors: true
         });
-        toast({ title: 'Organization created!' });
+        void toast({ title: 'Organization created!' });
     } catch (error) {
         if (error instanceof ZodError) {
-            toast({ title: 'Error during creation', description: error.message });
+            void toast({ title: 'Error during creation', description: error.message });
         } else if (error instanceof BusinessLogicError) {
-            toast({ title: 'Error during creation', description: error.error_message });
+            void toast({ title: 'Error during creation', description: error.error_message });
         }
     }
 });

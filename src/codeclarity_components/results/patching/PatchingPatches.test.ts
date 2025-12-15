@@ -1,6 +1,8 @@
-import { mount, flushPromises } from '@vue/test-utils';
+import { PatchedManifestData, PatchType } from '@/codeclarity_components/results/patching/Patching';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PatchingPatches from './PatchingPatches.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -14,8 +16,6 @@ vi.mock('@/stores/auth', () => ({
         getToken: 'mock-token'
     }))
 }));
-import { PatchedManifestData, PatchType } from '@/codeclarity_components/results/patching/Patching';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 
 // Mock child components
 vi.mock('@/base_components/ui/loaders/BoxLoader.vue', () => ({

@@ -14,7 +14,7 @@ import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate } from '@/utils/dateUtils';
 import { errorToast, successToast } from '@/utils/toasts';
 import { Icon } from '@iconify/vue';
-import { ref, type Ref } from 'vue';
+import { ref } from 'vue';
 import AnalysisList from './AnalysisList.vue';
 
 // Props
@@ -33,11 +33,11 @@ const viewState = useProjectsMainStore();
 const projectRepository: ProjectRepository = new ProjectRepository();
 
 // State
-const projectOptionsModalRef: Ref<typeof PositionedModal> = ref(PositionedModal);
-const projectDeleteModalRef: Ref<typeof PositionedModal> = ref(PositionedModal);
+const projectOptionsModalRef = ref<{ toggle: () => void } | null>(null);
+const projectDeleteModalRef = ref<{ toggle: () => void } | null>(null);
 
 // Methods
-async function deleteProject() {
+async function deleteProject(): Promise<void> {
     if (!viewState.orgId) return;
     if (!auth.getAuthenticated || !auth.getToken) return;
 
@@ -49,10 +49,10 @@ async function deleteProject() {
             handleBusinessErrors: true
         });
         successToast('Project successfully deleted');
-        emit('onRefresh');
+        void emit('onRefresh');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
-            if (err.error_code === APIErrors.EntityNotFound) {
+            if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
                 successToast(`Successfully deleted project\n${props.project.url}`);
             } else {
                 errorToast(`Failed to delete the project\n${props.project.url}`);
@@ -61,7 +61,9 @@ async function deleteProject() {
             errorToast(`Failed to delete the project\n${props.project.url}`);
         }
     } finally {
-        if (projectDeleteModalRef.value) projectDeleteModalRef.value.toggle();
+        if (projectDeleteModalRef.value) {
+            projectDeleteModalRef.value.toggle();
+        }
     }
 }
 </script>

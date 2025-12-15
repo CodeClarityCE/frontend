@@ -19,7 +19,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Repositories
@@ -35,11 +35,11 @@ const { defaultOrg } = storeToRefs(userStore);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const chartOptions: Ref<any> = ref();
+const chartOptions: Ref<unknown> = ref();
 const chartData: Ref<WaffleChartEntry[]> = ref([]);
 const noData: Ref<boolean> = ref(false);
 
-async function fetch(refresh = false) {
+async function fetch(refresh = false): Promise<void> {
     if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
@@ -59,7 +59,7 @@ async function fetch(refresh = false) {
             integrationIds: props.integrationIds
         });
         if (resp.data.length === 0) noData.value = true;
-        generateChartData(resp.data);
+        void generateChartData(resp.data);
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -70,7 +70,7 @@ async function fetch(refresh = false) {
     }
 }
 
-function generateChartData(licenseDistData: LicenseDist) {
+function generateChartData(licenseDistData: LicenseDist): void {
     const waffleChartData: WaffleChartEntry[] = [];
 
     for (const key of Object.keys(licenseDistData)) {
@@ -79,7 +79,7 @@ function generateChartData(licenseDistData: LicenseDist) {
     chartData.value = waffleChartData;
 }
 
-fetch();
+void fetch();
 </script>
 <template>
     <div class="h-full w-full">

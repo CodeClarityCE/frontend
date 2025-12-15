@@ -1,6 +1,4 @@
 <script setup lang="ts" generic="T extends ZodRawShape">
-import type { ZodAny, ZodObject, ZodRawShape } from 'zod';
-import type { Config, ConfigItem, Shape } from './interface';
 import {
     Accordion,
     AccordionContent,
@@ -10,8 +8,10 @@ import {
 import { FormItem } from '@/shadcn/ui/form';
 import { FieldContextKey, useField } from 'vee-validate';
 import { computed, provide } from 'vue';
+import type { ZodAny, ZodObject, ZodRawShape } from 'zod';
 import AutoFormField from './AutoFormField.vue';
 import AutoFormLabel from './AutoFormLabel.vue';
+import type { Config, ConfigItem, Shape } from './interface';
 import { beautifyObjectName, getBaseSchema, getBaseType, getDefaultValueInZodStack } from './utils';
 
 const props = defineProps<{
@@ -31,7 +31,7 @@ const shapes = computed(() => {
     if (!shape) return;
     Object.keys(shape).forEach((name) => {
         const item = shape[name] as ZodAny;
-        const baseItem = getBaseSchema(item) as ZodAny;
+        const baseItem = getBaseSchema(item)!;
         let options =
             baseItem && 'values' in baseItem._def ? (baseItem._def.values as string[]) : undefined;
         if (!Array.isArray(options) && typeof options === 'object')

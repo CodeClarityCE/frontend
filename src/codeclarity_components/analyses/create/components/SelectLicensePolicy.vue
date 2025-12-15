@@ -20,20 +20,22 @@ const selected_license_policy_object = ref<LicensePolicy>();
 
 const projectRepository: LicensePolicyRepository = new LicensePolicyRepository();
 
+type LoadingContainerInstance = InstanceType<typeof LoadingContainer>;
+
 const license_policies_list: Ref<LicensePolicy[]> = ref([]);
-const license_policies_list_loading_ref = ref<InstanceType<typeof LoadingContainer>>();
+const license_policies_list_loading_ref = ref<LoadingContainerInstance>();
 const license_policies_list_loading_error: Ref<unknown> = ref(null);
 
 const currentPage: Ref<number> = ref(0);
 const defaultEntriesPerPage: Ref<number> = ref(3);
 const totalPages: Ref<number> = ref(Math.ceil(license_policies_list.value.length / 10));
 
-function retrieveDefaultPolicy() {
+function retrieveDefaultPolicy(): LicensePolicy | undefined {
     return license_policies_list.value.find((policy) => policy.default === true);
 }
 
 // Fetch projects
-async function fetchLicensePolicies() {
+async function fetchLicensePolicies(): Promise<void> {
     if (auth.getAuthenticated && auth.getToken) {
         if (user.defaultOrg?.id === undefined) {
             return;
@@ -54,14 +56,16 @@ async function fetchLicensePolicies() {
                 selected_license_policy.value = selected_license_policy_object.value?.content;
         } catch (err) {
             license_policies_list_loading_error.value = err;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             license_policies_list_loading_ref.value?.showError();
         } finally {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             license_policies_list_loading_ref.value?.showContent();
         }
     }
 }
 
-fetchLicensePolicies();
+void fetchLicensePolicies();
 </script>
 <template>
     <div>

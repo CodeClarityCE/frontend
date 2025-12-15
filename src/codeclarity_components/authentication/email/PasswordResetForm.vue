@@ -18,7 +18,7 @@ const authRepository: AuthRepository = new AuthRepository();
 
 // State
 const nonRecoverableError: Ref<boolean> = ref(false);
-const loadingButtonRef: any = ref(null);
+const loadingButtonRef: Ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null> = ref(null);
 const token: Ref<string> = ref('');
 const userIdHash: Ref<string> = ref('');
 const success: Ref<boolean> = ref(false);
@@ -44,9 +44,9 @@ const formValidationSchema = toTypedSchema(
 );
 
 // Methods
-async function submit() {
-    loadingButtonRef.value.setLoading(true);
-    loadingButtonRef.value.setDisabled(true);
+async function submit(): Promise<void> {
+    loadingButtonRef.value?.setLoading(true);
+    loadingButtonRef.value?.setDisabled(true);
 
     success.value = false;
     errorCode.value = undefined;
@@ -74,15 +74,15 @@ async function submit() {
         } else if (_err instanceof BusinessLogicError) {
             errorCode.value = _err.error_code;
             if (
-                _err.error_code === APIErrors.PasswordResetTokenInvalidOrExpired ||
-                _err.error_code === APIErrors.InternalError
+                (_err.error_code) === (APIErrors.PasswordResetTokenInvalidOrExpired as string) ||
+                (_err.error_code) === (APIErrors.InternalError as string)
             ) {
                 nonRecoverableError.value = true;
             }
         }
     } finally {
-        loadingButtonRef.value.setLoading(false);
-        loadingButtonRef.value.setDisabled(false);
+        loadingButtonRef.value?.setLoading(false);
+        loadingButtonRef.value?.setDisabled(false);
     }
 }
 
@@ -98,7 +98,7 @@ onMounted(() => {
     const _userIdHash = searchParams.get('userid');
 
     if (!_token || !_userIdHash) {
-        router.push('/login');
+        void router.push('/login');
         return;
     }
 

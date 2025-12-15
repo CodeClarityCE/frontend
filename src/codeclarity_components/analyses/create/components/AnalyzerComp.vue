@@ -1,8 +1,13 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue';
 
+interface AnalyzerData {
+    name: string;
+    description?: string;
+}
+
 export interface Props {
-    analyzerData?: any;
+    analyzerData?: AnalyzerData | null;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -18,11 +23,11 @@ withDefaults(defineProps<Props>(), {
 
         <div class="rounded pl-6 flex flex-col gap-1">
             <div class="text-2xl font-extrabold text-gray-700">
-                <span v-if="analyzerData.name === 'JS'">SCA Analyzer for Javascript</span>
-                <span v-else>{{ analyzerData.name }}</span>
+                <span v-if="analyzerData?.name === 'JS'">SCA Analyzer for Javascript</span>
+                <span v-else>{{ analyzerData?.name }}</span>
             </div>
             <div>
-                <span>{{ analyzerData.description }}</span>
+                <span>{{ analyzerData?.description }}</span>
             </div>
         </div>
     </div>

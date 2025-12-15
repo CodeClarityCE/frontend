@@ -101,16 +101,14 @@ const isFormValid = computed(() => {
     );
 });
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
-const onSubmit = handleSubmit(async (values) => {
-    console.log(values);
-
+const onSubmit = handleSubmit(async (values): Promise<void> => {
     try {
         await licensePolicyRepository.createPolicy({
             orgId: defaultOrg!.value!.id,
@@ -133,7 +131,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
 });
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 

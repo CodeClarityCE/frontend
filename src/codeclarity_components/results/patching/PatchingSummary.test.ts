@@ -1,6 +1,7 @@
-import { mount, flushPromises } from '@vue/test-utils';
+import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PatchingSummary from './PatchingSummary.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -15,7 +16,6 @@ vi.mock('@/stores/auth', () => ({
         getToken: 'mock-token'
     }))
 }));
-import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
 
 // Mock child components
 vi.mock('@/base_components/ui/loaders/TextLoader.vue', () => ({

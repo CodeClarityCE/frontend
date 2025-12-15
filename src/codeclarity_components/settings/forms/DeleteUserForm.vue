@@ -1,24 +1,22 @@
 <script lang="ts" setup>
+import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import { Button } from '@/shadcn/ui/button';
+import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
+import { Input } from '@/shadcn/ui/input';
+import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-
-
-const state = useStateStore();
-const authStore = useAuthStore();
-state.menu = 'settingsAccount';
-
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 import { toTypedSchema } from '@vee-validate/zod';
 import { useForm } from 'vee-validate';
 import * as z from 'zod';
-import { Button } from '@/shadcn/ui/button';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
-import { Input } from '@/shadcn/ui/input';
-import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
-import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
-import { toast } from '@/shadcn/ui/toast';
+
+const state = useStateStore();
+const authStore = useAuthStore();
+state.menu = 'settingsAccount';
 
 const userRepository: UserRepository = new UserRepository();
 
@@ -36,15 +34,15 @@ const form = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = form.handleSubmit((values) => {
-    deleteAccount(values.password_deletion);
+const onSubmit = form.handleSubmit((values): void => {
+    void deleteAccount(values.password_deletion);
 });
 
 /*****************************************************************************/
 /*                                  API Calls                                */
 /*****************************************************************************/
 
-async function deleteAccount(password: string) {
+async function deleteAccount(password: string): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await userRepository.deleteUser({

@@ -72,7 +72,7 @@ describe('SignupForm.vue', () => {
         stubs: {
           RouterLink: {
             name: 'RouterLink',
-            template: '<a :href="to.name || to"><slot /></a>',
+            template: '<a :href="to.name ?? to"><slot /></a>',
             props: ['to']
           },
           // Stub all form components to avoid complex validation logic

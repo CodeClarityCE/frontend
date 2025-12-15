@@ -19,12 +19,12 @@ const emit = defineEmits<{
 
 const isModalOpen = ref(false);
 
-function openModal() {
+function openModal(): void {
     isModalOpen.value = true;
 }
 
-function handleCreated(ticketId: string) {
-    emit('created', ticketId);
+function handleCreated(ticketId: string): void {
+    void emit('created', ticketId);
 }
 </script>
 

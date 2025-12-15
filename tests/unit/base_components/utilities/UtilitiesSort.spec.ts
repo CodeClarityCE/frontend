@@ -74,12 +74,12 @@ describe('UtilitiesSort', () => {
             props: {
                 ...defaultProps,
                 ...props,
-                'pageLimitSelected': modelValues.pageLimitSelected || 10,
-                'onUpdate:pageLimitSelected': modelValues['onUpdate:pageLimitSelected'] || vi.fn(),
-                'sortKey': modelValues.sortKey || '',
-                'onUpdate:sortKey': modelValues['onUpdate:sortKey'] || vi.fn(),
-                'sortDirection': modelValues.sortDirection || SortDirection.DESC,
-                'onUpdate:sortDirection': modelValues['onUpdate:sortDirection'] || vi.fn()
+                'pageLimitSelected': modelValues.pageLimitSelected ?? 10,
+                'onUpdate:pageLimitSelected': modelValues['onUpdate:pageLimitSelected'] ?? vi.fn(),
+                'sortKey': modelValues.sortKey ?? '',
+                'onUpdate:sortKey': modelValues['onUpdate:sortKey'] ?? vi.fn(),
+                'sortDirection': modelValues.sortDirection ?? SortDirection.DESC,
+                'onUpdate:sortDirection': modelValues['onUpdate:sortDirection'] ?? vi.fn()
             }
         });
     };

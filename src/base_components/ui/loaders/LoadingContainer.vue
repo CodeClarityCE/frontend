@@ -8,17 +8,17 @@ const loading = ref(true);
 const content = ref(false);
 const error = ref(false);
 
-function showContent() {
+function showContent(): void {
     content.value = true;
     loading.value = false;
 }
 
-function showError() {
+function showError(): void {
     error.value = true;
     loading.value = false;
 }
 
-function showLoading() {
+function showLoading(): void {
     error.value = false;
     content.value = false;
     loading.value = true;

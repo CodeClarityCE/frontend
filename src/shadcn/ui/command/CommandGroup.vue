@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ListboxGroupProps } from 'reka-ui';
 import { cn } from '@/shadcn/lib/utils';
+import type { ListboxGroupProps } from 'reka-ui';
 import { ListboxGroup, ListboxGroupLabel, useId } from 'reka-ui';
 import { computed, type HTMLAttributes, onMounted, onUnmounted } from 'vue';
 import { provideCommandGroupContext, useCommand } from '.';

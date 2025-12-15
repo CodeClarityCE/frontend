@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { Analysis, AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
 import { Project } from '@/codeclarity_components/projects/project.entity';
 import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
@@ -11,81 +11,81 @@ import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { Icon } from '@iconify/vue';
-import { onBeforeMount, ref, defineAsyncComponent, watch, type Ref } from 'vue';
+import { onBeforeMount, ref, defineAsyncComponent, watch, type Ref, type Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const ResultsSBOM = defineAsyncComponent({
-    loader: () => import('./sbom/ResultsSBOM.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./sbom/ResultsSBOM.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const ResultsSBOMDetails = defineAsyncComponent({
-    loader: () => import('./sbom/ResultsSBOMDetails.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./sbom/ResultsSBOMDetails.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const ResultsLicenses = defineAsyncComponent({
-    loader: () => import('./licenses/ResultsLicenses.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./licenses/ResultsLicenses.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const ResultsVulnerabilities = defineAsyncComponent({
-    loader: () => import('./vulnerabilities/ResultsVulnerabilities.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./vulnerabilities/ResultsVulnerabilities.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const ResultsVulnerabilitiesDetails = defineAsyncComponent({
-    loader: () => import('./vulnerabilities/ResultsVulnerabilitiesDetails.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./vulnerabilities/ResultsVulnerabilitiesDetails.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const ResultsPatching = defineAsyncComponent({
-    loader: () => import('./patching/ResultsPatching.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./patching/ResultsPatching.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const ResultsCodeQL = defineAsyncComponent({
-    loader: () => import('./codeql/ResultsCodeQL.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./codeql/ResultsCodeQL.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
@@ -127,7 +127,7 @@ const default_tab: Ref<string> = ref('sbom');
 const current_tab: Ref<string> = ref('sbom');
 const loading: Ref<boolean> = ref(true);
 
-async function init() {
+async function init(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
 
@@ -146,12 +146,12 @@ async function init() {
         runIndex.value = parseInt(run_index, 10);
     }
 
-    getProject(project_id);
+    void getProject(project_id);
     await getAnalysis(project_id, analysis_id);
 
     for (const step of analysis.value.steps) {
         for (const result of step) {
-            if (result.Status !== 'success') {
+            if (result.Status !== AnalysisStatus.SUCCESS) {
                 continue;
             }
             if (result.Name === 'js-sbom' || result.Name === 'php-sbom') {
@@ -169,7 +169,7 @@ async function init() {
     }
 }
 
-async function getProject(projectID: string) {
+async function getProject(projectID: string): Promise<void> {
     let res: DataResponse<Project>;
     try {
         if (userStore.getDefaultOrg === null) {
@@ -205,7 +205,7 @@ async function getProject(projectID: string) {
     }
 }
 
-async function getAnalysis(projectID: string, analysisID: string) {
+async function getAnalysis(projectID: string, analysisID: string): Promise<void> {
     let res: DataResponse<Analysis>;
     try {
         if (userStore.getDefaultOrg === null) {
@@ -247,12 +247,12 @@ async function getAnalysis(projectID: string, analysisID: string) {
 }
 
 // Function to handle tab value changes while preserving run_index
-function handleTabChange(newTab: string) {
+function handleTabChange(newTab: string): void {
     current_tab.value = newTab;
 
     // Update URL to maintain run_index parameter when switching tabs
     const currentQuery = { ...route.query };
-    router.replace({
+    void router.replace({
         name: route.name,
         query: currentQuery // This preserves all query parameters including run_index
     });

@@ -312,7 +312,7 @@ describe('SearchBar User Interaction Tests', () => {
       expect(wrapper.vm.searchKey).toBe('abcde');
       
       // Should have emitted all updates
-      const emittedEvents = (wrapper.emitted('update:searchKey')) || [];
+      const emittedEvents = (wrapper.emitted('update:searchKey')) ?? [];
       expect(emittedEvents.length).toBe(updates.length);
     });
   });

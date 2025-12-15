@@ -33,7 +33,7 @@ const mockColorScale = vi.fn((key: string) => {
     'Low': '#16a34a',
     'None': '#6b7280'
   }
-  return colors[key] || '#6b7280'
+  return colors[key] ?? '#6b7280'
 })
 
 const mockPieGenerator = vi.fn((data) =>

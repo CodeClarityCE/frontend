@@ -18,7 +18,7 @@ const props = defineProps<{
 const sortKey = defineModel<string>('sortKey', { default: '' });
 const sortDirection = defineModel<SortDirection>('sortDirection', { default: SortDirection.DESC });
 
-async function updateSort(key: string | null) {
+async function updateSort(key: string | null): Promise<void> {
     if (!key) return;
     sortKey.value = key;
     if (key === sortKey.value) {

@@ -4,9 +4,7 @@ import { type DependencyDetails } from '@/codeclarity_components/results/sbom/Sb
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { Icon } from '@iconify/vue';
-import { ref, type PropType, type Ref, onMounted } from 'vue';
-
-// Import stores
+import { onMounted, type PropType, ref, type Ref } from 'vue';
 import type { GraphDependency } from '../../graph.entity';
 import { ResultsRepository } from '../../results.repository';
 
@@ -33,7 +31,7 @@ const authStore = useAuthStore();
 
 const hierarchy: Ref<GraphDependency[]> = ref([]);
 
-async function init() {
+async function init(): Promise<void> {
     try {
         if (userStore.getDefaultOrg === null) {
             throw new Error('No default org');
@@ -57,7 +55,7 @@ async function init() {
 }
 
 onMounted(() => {
-    init();
+    void init();
 });
 </script>
 

@@ -16,9 +16,9 @@ defineProps<{
 const filterState = defineModel<FilterState>('filter-state', { default: {} });
 
 // State
-const options_count: any = ref({});
+const options_count = ref<Record<string, number>>({});
 
-function optionClick(filter: FilterCategory, category_name: string, option_name: string) {
+function optionClick(filter: FilterCategory, category_name: string, option_name: string): void {
     // Modify the filter state (view)
     if (filter?.type === FilterType.CHECKBOX) {
         if (filterState.value?.filterConfig?.[category_name]?.data?.[option_name]) {
@@ -46,7 +46,7 @@ function optionClick(filter: FilterCategory, category_name: string, option_name:
     filterState.value.activeFilters = getActiveState(filterState.value.filterConfig);
 }
 
-function isActive() {
+function isActive(): boolean {
     for (const category in filterState.value.filterConfig) {
         const categoryObj = filterState.value.filterConfig[category];
         if (!categoryObj) continue;
@@ -60,7 +60,7 @@ function isActive() {
     return false;
 }
 
-function setFilterCount(new_filter_count: Record<string, number>) {
+function setFilterCount(new_filter_count: Record<string, number>): void {
     options_count.value = new_filter_count;
 }
 
@@ -68,7 +68,7 @@ defineExpose({
     setFilterCount
 });
 
-function init() {
+function init(): void {
     filterState.value.activeFilters = getActiveState(filterState.value.filterConfig);
 }
 

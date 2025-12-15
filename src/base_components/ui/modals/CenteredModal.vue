@@ -1,17 +1,17 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
-const show_modal: any = ref(false);
+const show_modal = ref<boolean>(false);
 
-function toggle() {
+function toggle(): void {
     show_modal.value = !show_modal.value;
 }
 
-function show() {
+function show(): void {
     show_modal.value = true;
 }
 
-function hide() {
+function hide(): void {
     show_modal.value = false;
 }
 

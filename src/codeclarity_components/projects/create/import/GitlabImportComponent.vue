@@ -10,25 +10,8 @@ import BaseImportComponent, { type GetReposOptions } from './BaseImportComponent
 const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
 
 function getRepos(options: GetReposOptions): Promise<PaginatedResponse<Repository>> {
-    return integrationRepo.getGitlabRepositories({
-        orgId: options.orgId,
-        integrationId: options.integrationId,
-        forceRefresh: options.forceRefresh,
-        activeFilters: options.activeFilters,
-        pagination: {
-            page: options.pagination.page,
-            entries_per_page: options.pagination.entries_per_page
-        },
-        search: {
-            searchKey: options.search.searchKey
-        },
-        sort: {
-            sortKey: options.sort.sortKey,
-            sortDirection: options.sort.sortDirection
-        },
-        bearerToken: options.bearerToken,
-        handleBusinessErrors: true
-    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return integrationRepo.getGitlabRepositories(options);
 }
 </script>
 <template>

@@ -45,7 +45,7 @@ async function init(): Promise<void> {
             projectId: props.projectID,
             analysisId: props.analysisID,
             workspace: '.',
-            dependency: `${props.dependency.name  }@${  props.dependency.version}`,
+            dependency: `${props.dependency.name}@${props.dependency.version}`,
             bearerToken: authStore.getToken
         });
         hierarchy.value = res.data;

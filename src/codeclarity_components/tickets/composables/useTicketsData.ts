@@ -66,7 +66,10 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
     setViewMode: (mode: 'list' | 'kanban') => void;
     clearSelectedTicket: () => void;
     refresh: () => void;
-    defaultOrg: import('vue').Ref<import('@/codeclarity_components/organizations/organization.entity').Organization | undefined>;
+    defaultOrg: import('vue').Ref<
+        | import('@/codeclarity_components/organizations/organization.entity').Organization
+        | undefined
+    >;
 } {
     // Store setup
     const state = useStateStore();

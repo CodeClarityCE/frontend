@@ -40,13 +40,13 @@ const selectedEcosystemFilter: Ref<string | null> = ref(null);
 watch(
     () => props.projectID,
     () => {
-    void getVulnerabilitiesStats();
+        void getVulnerabilitiesStats();
     }
 );
 watch(
     () => props.analysisID,
     () => {
-    void getVulnerabilitiesStats();
+        void getVulnerabilitiesStats();
     }
 );
 

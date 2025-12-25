@@ -35,7 +35,10 @@ const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
 
 // State
 const validationError: Ref<ValidationError | undefined> = ref();
-const loadingButtonRef: Ref<{ setLoading: (val: boolean) => void; setDisabled: (val: boolean) => void } | null> = ref(null);
+const loadingButtonRef: Ref<{
+    setLoading: (val: boolean) => void;
+    setDisabled: (val: boolean) => void;
+} | null> = ref(null);
 const orgId: Ref<string> = ref('');
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();

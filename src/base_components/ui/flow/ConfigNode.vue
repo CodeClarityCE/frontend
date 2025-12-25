@@ -76,7 +76,9 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-    'update:data': [value: { label: string; configKey: string; configType: string; value: ConfigValue }];
+    'update:data': [
+        value: { label: string; configKey: string; configType: string; value: ConfigValue }
+    ];
 }>();
 
 const localValue = computed({

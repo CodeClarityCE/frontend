@@ -57,7 +57,10 @@ const props = defineProps<{
 }>();
 
 // State
-const repoTableRef: Ref<{ clearSelection: () => void; fetchRepos: (refresh: boolean, forceRefresh?: boolean) => Promise<void> } | null> = ref(null);
+const repoTableRef: Ref<{
+    clearSelection: () => void;
+    fetchRepos: (refresh: boolean, forceRefresh?: boolean) => Promise<void>;
+} | null> = ref(null);
 const reposFailedToImportPage: Ref<number> = ref(0);
 const reposFailedToImport: Ref<Record<string, FailedProjectImport>> = ref({});
 const selectedRepos: Ref<Repository[]> = ref([]);
@@ -115,7 +118,10 @@ function getImportErrorMessage(err: unknown): string {
         return 'Already imported';
     }
 
-    if ((err.error_code as APIErrors) === APIErrors.InternalError || (err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+    if (
+        (err.error_code as APIErrors) === APIErrors.InternalError ||
+        (err.error_code as APIErrors) === APIErrors.EntityNotFound
+    ) {
         return 'An error occured during the project import.';
     }
 
@@ -264,7 +270,12 @@ function onSelectedReposChange(repos: Repository[]): void {
             </div>
 
             <!-- Bulk Import Action -->
-            <div v-if="(selectedRepos.length as number) > 0 && (Object.keys(reposFailedToImport).length as number) === 0">
+            <div
+                v-if="
+                    (selectedRepos.length as number) > 0 &&
+                    (Object.keys(reposFailedToImport).length as number) === 0
+                "
+            >
                 <InfoCard
                     title="Ready to Import"
                     description="You have selected repositories for import"

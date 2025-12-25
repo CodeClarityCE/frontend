@@ -7,7 +7,8 @@ import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 
 import { RouterView, useRoute } from 'vue-router';
 
 const HeaderComponent = defineAsyncComponent({
-    loader: (() => import('@/codeclarity_components/header/HeaderComponent.vue')) as AsyncComponentLoader,
+    loader: (() =>
+        import('@/codeclarity_components/header/HeaderComponent.vue')) as AsyncComponentLoader,
     loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,

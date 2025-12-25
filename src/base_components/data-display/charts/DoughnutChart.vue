@@ -32,12 +32,12 @@ onMounted(() => {
 
     // append the svg object to the div called 'my_dataviz'
     const svg = d3
-        .select(`#${  props.id}`)
+        .select(`#${props.id}`)
         .append('svg')
         .attr('width', config.w)
         .attr('height', config.h)
         .append('g')
-        .attr('transform', `translate(${  config.w / 2  },${  config.h / 2  })`);
+        .attr('transform', `translate(${config.w / 2},${config.h / 2})`);
 
     // set the color scale
     const color = d3.scaleOrdinal().domain(Object.keys(data)).range(colors);

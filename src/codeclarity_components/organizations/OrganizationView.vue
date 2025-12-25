@@ -6,7 +6,10 @@ import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 
 const OrgsList = defineAsyncComponent({
-    loader: (() => import('@/codeclarity_components/organizations/list/OrganizationsList.vue')) as AsyncComponentLoader,
+    loader: (() =>
+        import(
+            '@/codeclarity_components/organizations/list/OrganizationsList.vue'
+        )) as AsyncComponentLoader,
     loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
@@ -17,7 +20,10 @@ const OrgsList = defineAsyncComponent({
 }) as Component;
 
 const CreateOrg = defineAsyncComponent({
-    loader: (() => import('@/codeclarity_components/organizations/create/OrganizationCreate.vue')) as AsyncComponentLoader,
+    loader: (() =>
+        import(
+            '@/codeclarity_components/organizations/create/OrganizationCreate.vue'
+        )) as AsyncComponentLoader,
     loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,

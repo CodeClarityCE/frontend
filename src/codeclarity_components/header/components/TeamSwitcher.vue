@@ -138,7 +138,7 @@ async function switchOrg(org: TeamItem): Promise<void> {
 watch(
     () => userStore.getUser,
     () => {
-    void fetch();
+        void fetch();
     }
 );
 void fetch();

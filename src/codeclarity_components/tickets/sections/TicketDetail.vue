@@ -210,9 +210,9 @@ const epssFormatted = computed(() => {
     const percentile = props.vulnerabilityDetails?.other?.epss_percentile;
     if (score === undefined || score === null) return null;
     return {
-        score: `${(score * 100).toFixed(2)  }%`,
+        score: `${(score * 100).toFixed(2)}%`,
         scoreRaw: score * 100,
-        percentile: percentile !== undefined ? `${(percentile * 100).toFixed(1)  }%` : null,
+        percentile: percentile !== undefined ? `${(percentile * 100).toFixed(1)}%` : null,
         percentileRaw: percentile !== undefined ? percentile * 100 : null
     };
 });
@@ -256,7 +256,13 @@ const overallRiskLevel = computed(() => {
 });
 
 // Risk banner styling
-interface RiskConfig { bg: string; text: string; icon: string; label: string; recommendation: string }
+interface RiskConfig {
+    bg: string;
+    text: string;
+    icon: string;
+    label: string;
+    recommendation: string;
+}
 const riskBannerConfig = computed((): RiskConfig => {
     const configs: Record<'critical' | 'high' | 'medium' | 'low' | 'none', RiskConfig> = {
         critical: {
@@ -300,7 +306,9 @@ const riskBannerConfig = computed((): RiskConfig => {
 
 // Check if we have any scores to show in risk overview
 const hasRiskScores = computed(() => {
-    return Boolean(cvssData.value ?? epssFormatted.value ?? props.vulnerabilityDetails?.other?.vlai_score);
+    return Boolean(
+        cvssData.value ?? epssFormatted.value ?? props.vulnerabilityDetails?.other?.vlai_score
+    );
 });
 
 // Get OWASP info if available

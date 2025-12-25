@@ -108,8 +108,8 @@ async function init(): Promise<void> {
 
     if (!project_id || !analysis_id) {
         const urlParams = new URLSearchParams(window.location.search);
-        project_id = project_id || urlParams.get('project_id') ?? '';
-        analysis_id = analysis_id || urlParams.get('analysis_id') ?? '';
+        project_id = (project_id || urlParams.get('project_id')) ?? '';
+        analysis_id = (analysis_id || urlParams.get('analysis_id')) ?? '';
     }
 
     if (!project_id || !analysis_id) {

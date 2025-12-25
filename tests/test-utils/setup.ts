@@ -7,8 +7,8 @@ type MockPinia = Plugin & {
   install: ReturnType<typeof vi.fn>;
   state: ReturnType<typeof vi.fn>;
   _p: unknown[];
-  _a: null | unknown;
-  _e: null | unknown;
+  _a: unknown;
+  _e: unknown;
   _s: Map<string, unknown>;
   use: ReturnType<typeof vi.fn>;
 }

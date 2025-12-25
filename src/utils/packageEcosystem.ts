@@ -274,7 +274,10 @@ export class EcosystemMetadataExtractor {
     /**
      * Extracts ecosystem-specific metadata
      */
-    static extractMetadata(dependency: Dependency, ecosystem: EcosystemInfo): Record<string, unknown> {
+    static extractMetadata(
+        dependency: Dependency,
+        ecosystem: EcosystemInfo
+    ): Record<string, unknown> {
         // Use ecosystem name instead of type since shared EcosystemInfo doesn't have type
         switch (ecosystem.ecosystem) {
             case 'npm':
@@ -282,7 +285,7 @@ export class EcosystemMetadataExtractor {
             case 'packagist':
                 return this.extractComposerMetadata(dependency);
             default:
-                return (dependency.extra ?? {});
+                return dependency.extra ?? {};
         }
     }
 }

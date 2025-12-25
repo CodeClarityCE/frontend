@@ -133,7 +133,7 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
         const isDirect = dep.is_direct_count > 0 || dep.is_direct;
         const hasUpdate: boolean =
             dep.outdated ?? !!(dep.newest_release && dep.version !== dep.newest_release);
-        const needsPackageJsonUpdate: boolean = !!(isDirect && hasUpdate);
+        const needsPackageJsonUpdate = !!(isDirect && hasUpdate);
 
         // Update counters
         if (isDirect) directCount++;

@@ -18,7 +18,10 @@ const authRepository: AuthRepository = new AuthRepository();
 
 // State
 const nonRecoverableError: Ref<boolean> = ref(false);
-const loadingButtonRef: Ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null> = ref(null);
+const loadingButtonRef: Ref<{
+    setLoading: (loading: boolean) => void;
+    setDisabled: (disabled: boolean) => void;
+} | null> = ref(null);
 const token: Ref<string> = ref('');
 const userIdHash: Ref<string> = ref('');
 const success: Ref<boolean> = ref(false);
@@ -74,8 +77,8 @@ async function submit(): Promise<void> {
         } else if (_err instanceof BusinessLogicError) {
             errorCode.value = _err.error_code;
             if (
-                (_err.error_code) === (APIErrors.PasswordResetTokenInvalidOrExpired as string) ||
-                (_err.error_code) === (APIErrors.InternalError as string)
+                _err.error_code === (APIErrors.PasswordResetTokenInvalidOrExpired as string) ||
+                _err.error_code === (APIErrors.InternalError as string)
             ) {
                 nonRecoverableError.value = true;
             }

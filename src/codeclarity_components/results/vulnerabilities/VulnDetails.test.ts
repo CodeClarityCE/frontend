@@ -577,13 +577,17 @@ describe.skip('VulnDetails.vue', () => {
             base_score: 2.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect((wrapper.vm as any)['getSecurityScoreDescription'](mockVuln)).toBe('Excellent security');
+        expect((wrapper.vm as any)['getSecurityScoreDescription'](mockVuln)).toBe(
+            'Excellent security'
+        );
 
         mockVuln.severities.cvss_31 = {
             base_score: 9.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         };
-        expect((wrapper.vm as any)['getSecurityScoreDescription'](mockVuln)).toBe('Critical security issues');
+        expect((wrapper.vm as any)['getSecurityScoreDescription'](mockVuln)).toBe(
+            'Critical security issues'
+        );
     });
 
     it('counts critical and high vulnerabilities correctly', () => {
@@ -786,7 +790,9 @@ describe.skip('VulnDetails.vue', () => {
         const wrapper2 = createWrapper();
 
         await vi.waitFor(() => {
-            expect((wrapper2.vm as unknown as Record<string, unknown>)['chart_version']).toBe('cvss3');
+            expect((wrapper2.vm as unknown as Record<string, unknown>)['chart_version']).toBe(
+                'cvss3'
+            );
         });
 
         // Test CVSS 2.0
@@ -803,7 +809,9 @@ describe.skip('VulnDetails.vue', () => {
         const wrapper3 = createWrapper();
 
         await vi.waitFor(() => {
-            expect((wrapper3.vm as unknown as Record<string, unknown>)['chart_version']).toBe('cvss2');
+            expect((wrapper3.vm as unknown as Record<string, unknown>)['chart_version']).toBe(
+                'cvss2'
+            );
         });
     });
 });

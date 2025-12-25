@@ -7,8 +7,10 @@ import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 
 import type SignupFormComponent from './SignupForm.vue';
 import type SocialSetupComponent from './SocialSetup.vue';
 
-const socialSetupLoader: AsyncComponentLoader<typeof SocialSetupComponent> = async () => await import('./SocialSetup.vue');
-const signupFormLoader: AsyncComponentLoader<typeof SignupFormComponent> = async () => await import('./SignupForm.vue');
+const socialSetupLoader: AsyncComponentLoader<typeof SocialSetupComponent> = async () =>
+    await import('./SocialSetup.vue');
+const signupFormLoader: AsyncComponentLoader<typeof SignupFormComponent> = async () =>
+    await import('./SignupForm.vue');
 
 const SocialSetup: Component = defineAsyncComponent({
     loader: socialSetupLoader,

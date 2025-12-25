@@ -35,7 +35,10 @@ const authRepository: AuthRepository = new AuthRepository();
 
 // State
 const token = authStore.getToken;
-const loadingButtonRef: Ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null> = ref(null);
+const loadingButtonRef: Ref<{
+    setLoading: (loading: boolean) => void;
+    setDisabled: (disabled: boolean) => void;
+} | null> = ref(null);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const tokenRefreshedAlready: Ref<boolean> = ref(false);
@@ -116,12 +119,12 @@ async function submit(): Promise<void> {
 
         errorCode.value = _err.error_code;
 
-        if ((_err.error_code) === (APIErrors.EntityNotFound as string)) {
+        if (_err.error_code === (APIErrors.EntityNotFound as string)) {
             errorNonRecoverable.value = true;
             return;
         }
 
-        if ((_err.error_code) !== (APIErrors.NotAuthenticated as string)) {
+        if (_err.error_code !== (APIErrors.NotAuthenticated as string)) {
             return;
         }
 

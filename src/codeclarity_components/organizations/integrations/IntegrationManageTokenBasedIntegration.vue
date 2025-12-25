@@ -3,7 +3,10 @@ import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
 import FaqBox from '@/base_components/layout/FaqBox.vue';
-import { type AccessTokenBasedIntegration , type IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import {
+    type AccessTokenBasedIntegration,
+    type IntegrationProvider
+} from '@/codeclarity_components/organizations/integrations/Integrations';
 import router from '@/router';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';

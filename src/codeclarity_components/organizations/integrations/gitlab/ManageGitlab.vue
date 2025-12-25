@@ -133,7 +133,9 @@ void init();
             <div v-if="integration.token_type === GitlabTokenType.PERSONAL_ACCESS_TOKEN">
                 Personal Access Token
             </div>
-            <div v-else-if="integration.token_type === GitlabTokenType.OAUTH_TOKEN">OAuth Token</div>
+            <div v-else-if="integration.token_type === GitlabTokenType.OAUTH_TOKEN">
+                OAuth Token
+            </div>
         </template>
     </OrgIntegrationManageTokenBasedIntegration>
 </template>

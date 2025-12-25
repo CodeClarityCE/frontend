@@ -17,7 +17,7 @@ const legendGroupId = 'tree-chart-legend-group';
 
 function renderLegend(): void {
     // Remove previous legend if exists
-    d3.select(`${props.svgSelector  } #${  legendGroupId}`).remove();
+    d3.select(`${props.svgSelector} #${legendGroupId}`).remove();
 
     const legendHeight = props.hasPrunedNodes ? 165 : 145;
     const svg = d3.select(props.svgSelector);

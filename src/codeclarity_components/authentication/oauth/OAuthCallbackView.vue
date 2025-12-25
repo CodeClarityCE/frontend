@@ -6,7 +6,8 @@ import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 import type OAuth2CallbackComponent from './OAuth2Callback.vue';
 
-const loader: AsyncComponentLoader<typeof OAuth2CallbackComponent> = async () => await import('./OAuth2Callback.vue');
+const loader: AsyncComponentLoader<typeof OAuth2CallbackComponent> = async () =>
+    await import('./OAuth2Callback.vue');
 
 const OAuth2Callback: Component = defineAsyncComponent({
     loader,

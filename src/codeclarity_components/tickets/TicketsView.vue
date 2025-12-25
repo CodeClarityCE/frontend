@@ -19,7 +19,6 @@ const router = useRouter();
 // Async loaded sections
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const TicketsList = defineAsyncComponent({
-     
     loader: () => import('./sections/TicketsList.vue'),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     loadingComponent: LoadingComponent,
@@ -31,7 +30,6 @@ const TicketsList = defineAsyncComponent({
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const TicketsKanban = defineAsyncComponent({
-     
     loader: () => import('./sections/TicketsKanban.vue'),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     loadingComponent: LoadingComponent,
@@ -43,7 +41,6 @@ const TicketsKanban = defineAsyncComponent({
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const TicketDetail = defineAsyncComponent({
-     
     loader: () => import('./sections/TicketDetail.vue'),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     loadingComponent: LoadingComponent,

@@ -436,7 +436,10 @@ export class BaseRepository {
                 );
             }
 
-            if (options.handleBusinessErrors !== undefined && options.handleBusinessErrors === true) {
+            if (
+                options.handleBusinessErrors !== undefined &&
+                options.handleBusinessErrors === true
+            ) {
                 throw business_logic_error;
             } else {
                 void this.defaultBusinessErrorHandler(

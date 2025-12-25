@@ -214,7 +214,9 @@ const shouldFilterNotification = (notification: Notification): boolean => {
 };
 
 // Helper function to get properly ordered versions with upgrade analysis
-const getVersionInfo = (notification: Notification): {
+const getVersionInfo = (
+    notification: Notification
+): {
     fromVersion: string;
     toVersion: string;
     isUpgrade: boolean;

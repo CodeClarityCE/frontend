@@ -1,5 +1,4 @@
 <script setup lang="ts" generic="TData, TValue">
-
 import { valueUpdater } from '@/shadcn/lib/utils';
 import { Button } from '@/shadcn/ui/button';
 import {

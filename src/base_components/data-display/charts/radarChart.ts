@@ -66,7 +66,7 @@ export const RadarChart = function RadarChart(
                     .append('tspan')
                     .attr('x', x)
                     .attr('y', y)
-                    .attr('dy', `${dy  }em`);
+                    .attr('dy', `${dy}em`);
 
             while ((word = words.pop())) {
                 line.push(word);
@@ -80,7 +80,7 @@ export const RadarChart = function RadarChart(
                         .append('tspan')
                         .attr('x', x)
                         .attr('y', y)
-                        .attr('dy', `${++lineNumber * lineHeight + dy  }em`)
+                        .attr('dy', `${++lineNumber * lineHeight + dy}em`)
                         .text(word);
                 }
             }
@@ -139,7 +139,7 @@ export const RadarChart = function RadarChart(
         .append('g')
         .attr(
             'transform',
-            `translate(${  cfg.w / 2 + cfg.margin.left  },${  cfg.h / 2 + cfg.margin.top  })`
+            `translate(${cfg.w / 2 + cfg.margin.left},${cfg.h / 2 + cfg.margin.top})`
         );
 
     /////////////////////////////////////////////////////////
@@ -259,7 +259,7 @@ export const RadarChart = function RadarChart(
         .attr('d', function (d): string | null {
             return radarLine(d.axes);
         })
-        .style('stroke-width', `${cfg.strokeWidth  }px`)
+        .style('stroke-width', `${cfg.strokeWidth}px`)
         .style('stroke', (_d, i) => cfg.color(i.toString()))
         .style('fill', 'none');
 
@@ -294,8 +294,8 @@ export const RadarChart = function RadarChart(
     const mousemove = function (this: SVGCircleElement, event: MouseEvent, d: Axis): void {
         tooltip
             .html(Format(d.value) + cfg.unit)
-            .style('left', `${event.x  }px`)
-            .style('top', `${event.y - 18 * 2  }px`);
+            .style('left', `${event.x}px`)
+            .style('top', `${event.y - 18 * 2}px`);
     };
     const mouseleave = function (this: SVGCircleElement): void {
         tooltip.style('opacity', 0);

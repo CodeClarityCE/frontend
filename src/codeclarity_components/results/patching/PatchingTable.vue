@@ -10,7 +10,10 @@ import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
-import { PatchedManifestData, type Workspace } from '@/codeclarity_components/results/patching/Patching';
+import {
+    PatchedManifestData,
+    type Workspace
+} from '@/codeclarity_components/results/patching/Patching';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';

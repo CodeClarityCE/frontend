@@ -7,7 +7,8 @@ import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 import type UserAuthFormComponent from './UserAuthForm.vue';
 
-const loader: AsyncComponentLoader<typeof UserAuthFormComponent> = async () => await import('./UserAuthForm.vue');
+const loader: AsyncComponentLoader<typeof UserAuthFormComponent> = async () =>
+    await import('./UserAuthForm.vue');
 
 const UserAuthForm: Component = defineAsyncComponent({
     loader,

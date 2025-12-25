@@ -45,7 +45,7 @@ export function renderWithProviders(
     global: {
       plugins: [
         ...defaultGlobal.plugins,
-        ...(optionsPlugins as unknown[])
+        ...(optionsPlugins)
       ],
       mocks: {
         ...defaultGlobal.mocks,

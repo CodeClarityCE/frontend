@@ -109,8 +109,8 @@ onMounted(() => {
     const mousemove = function (event: MouseEvent, d: ChartDataPoint): void {
         tooltip
             .html(d.close.toString())
-            .style('left', `${event.x  }px`)
-            .style('top', `${event.y - 18 * 2  }px`);
+            .style('left', `${event.x}px`)
+            .style('top', `${event.y - 18 * 2}px`);
     };
     const mouseleave = function (): void {
         tooltip.style('opacity', 0);

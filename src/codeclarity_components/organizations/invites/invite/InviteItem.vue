@@ -34,7 +34,10 @@ const userStore = useUserStore();
 const orgRepository: OrgRepository = new OrgRepository();
 
 // State
-const resendInvitationLoadingButtonRef = ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null>(null);
+const resendInvitationLoadingButtonRef = ref<{
+    setLoading: (loading: boolean) => void;
+    setDisabled: (disabled: boolean) => void;
+} | null>(null);
 const centeredModalRef = ref<{ toggle: () => void } | null>(null);
 const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
 
@@ -139,10 +142,16 @@ const emit = defineEmits<(e: 'refetch') => void>();
             <div>{{ invitation.user_email }}</div>
         </td>
         <td>
-            <div v-if="invitation.role === MemberRole.OWNER" class="org-membership membership-owner">
+            <div
+                v-if="invitation.role === MemberRole.OWNER"
+                class="org-membership membership-owner"
+            >
                 Owner
             </div>
-            <div v-if="invitation.role === MemberRole.ADMIN" class="org-membership membership-admin">
+            <div
+                v-if="invitation.role === MemberRole.ADMIN"
+                class="org-membership membership-admin"
+            >
                 Admin
             </div>
             <div

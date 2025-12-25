@@ -3,7 +3,10 @@ import {
     ActionSeverity,
     type AuditLog
 } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
-import { MemberRole, type Organization } from '@/codeclarity_components/organizations/organization.entity';
+import {
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
 import { formatRelativeTime } from '@/utils/dateUtils';
 
 defineProps<{

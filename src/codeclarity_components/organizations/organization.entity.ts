@@ -196,7 +196,10 @@ export function isMemberRoleGreaterThan(memberRole1: MemberRole, memberRole2: Me
     return (memberRole1 as number) < (memberRole2 as number);
 }
 
-export function isMemberRoleGreaterOrEqualTo(memberRole1: MemberRole, memberRole2: MemberRole): boolean {
+export function isMemberRoleGreaterOrEqualTo(
+    memberRole1: MemberRole,
+    memberRole2: MemberRole
+): boolean {
     return (memberRole1 as number) <= (memberRole2 as number);
 }
 
@@ -208,6 +211,9 @@ export function isMemberRoleLessThan(memberRole1: MemberRole, memberRole2: Membe
     return (memberRole1 as number) > (memberRole2 as number);
 }
 
-export function isMemberRoleLessOrEqualTo(memberRole1: MemberRole, memberRole2: MemberRole): boolean {
+export function isMemberRoleLessOrEqualTo(
+    memberRole1: MemberRole,
+    memberRole2: MemberRole
+): boolean {
     return (memberRole1 as number) >= (memberRole2 as number);
 }

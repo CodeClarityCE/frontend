@@ -82,7 +82,7 @@ function getWeekFormat(weekNumber: number, year: number): string {
     if (start.getFullYear() !== end.getFullYear()) {
         return formatDateRange(start, end, 'MMM DD, YY');
     } else {
-        return `${formatDateRange(start, end, 'MMM DD')  }, ${end.getFullYear()}`;
+        return `${formatDateRange(start, end, 'MMM DD')}, ${end.getFullYear()}`;
     }
 }
 

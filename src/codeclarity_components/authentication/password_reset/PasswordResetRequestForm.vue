@@ -14,7 +14,10 @@ import * as z from 'zod';
 const authRepository: AuthRepository = new AuthRepository();
 
 // State
-const loadingButtonRef: Ref<{ setLoading: (loading: boolean) => void; setDisabled: (disabled: boolean) => void } | null> = ref(null);
+const loadingButtonRef: Ref<{
+    setLoading: (loading: boolean) => void;
+    setDisabled: (disabled: boolean) => void;
+} | null> = ref(null);
 const success: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();

@@ -42,7 +42,7 @@ config = { ...config, ...props.options };
 
 onMounted(() => {
     // let svg_radar = RadarChart(".radarChart", props.data, config);
-    RadarChart(`#${  props.id}`, props.data, config);
+    RadarChart(`#${props.id}`, props.data, config);
 });
 </script>
 <template>

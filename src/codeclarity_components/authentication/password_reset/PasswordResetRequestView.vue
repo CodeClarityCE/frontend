@@ -5,7 +5,8 @@ import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 import type PasswordResetRequestFormComponent from './PasswordResetRequestForm.vue';
 
-const loader: AsyncComponentLoader<typeof PasswordResetRequestFormComponent> = async () => await import('./PasswordResetRequestForm.vue');
+const loader: AsyncComponentLoader<typeof PasswordResetRequestFormComponent> = async () =>
+    await import('./PasswordResetRequestForm.vue');
 
 const PasswordResetRequestForm: Component = defineAsyncComponent({
     loader,

@@ -91,7 +91,7 @@ const textColorClass = computed(() => {
 // Format display value
 const displayValue = computed(() => {
     if (props.type === 'epss') {
-        return `${props.score.toFixed(1)  }%`;
+        return `${props.score.toFixed(1)}%`;
     }
     if (props.type === 'vlai') {
         return props.sublabel ?? props.score.toFixed(1);

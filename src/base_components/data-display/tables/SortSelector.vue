@@ -18,7 +18,8 @@ const props = defineProps<{
 }>();
 
 // Emits
-const emit = defineEmits<(e: 'onSortChange', sortKey: string, sortDirection: SortDirection) => void>();
+const emit =
+    defineEmits<(e: 'onSortChange', sortKey: string, sortDirection: SortDirection) => void>();
 
 async function updateSort(key: string | null, sortDirection?: SortDirection): Promise<void> {
     if (!key) return;

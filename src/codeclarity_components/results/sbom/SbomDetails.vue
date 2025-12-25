@@ -19,7 +19,6 @@ import SbomDetailsLoader from './SbomDetails/SbomDetailsLoader.vue';
 import SbomImportPaths from './SbomDetails/SbomImportPaths.vue';
 import SbomInformation from './SbomDetails/SbomInformation.vue';
 
-
 // Import stores
 
 // Import common components
@@ -115,7 +114,8 @@ function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'pr
 }
 
 function getVersionStatusDescription(dependency: DependencyDetails): string {
-    if (!authStore.getAuthenticated || !dependency.version) return 'Version information unavailable';
+    if (!authStore.getAuthenticated || !dependency.version)
+        return 'Version information unavailable';
     if (dependency.version === dependency.latest_version) return 'Using latest version';
     // Check if version already starts with 'v' to avoid duplication
     const latestVersion = dependency.latest_version.startsWith('v')

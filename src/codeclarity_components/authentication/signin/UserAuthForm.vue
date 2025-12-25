@@ -1,6 +1,4 @@
 <script setup lang="ts">
-
-
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
 import type { Token } from '@/codeclarity_components/authentication/token.entity';
@@ -145,7 +143,11 @@ async function submit(values: { email: string; password: string }): Promise<void
                 <FormItem v-auto-animate>
                     <FormLabel>Email*:</FormLabel>
                     <FormControl>
-                        <Input type="text" placeholder="Enter your email" v-bind="filterUndefined(componentField)" />
+                        <Input
+                            type="text"
+                            placeholder="Enter your email"
+                            v-bind="filterUndefined(componentField)"
+                        />
                     </FormControl>
                     <FormMessage />
                 </FormItem>

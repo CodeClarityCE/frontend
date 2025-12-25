@@ -11,7 +11,6 @@ import {
     PaginationPrev
 } from '@/shadcn/ui/pagination';
 
-
 // Models
 const pageModel = defineModel<number>('page', { default: 0 });
 const nmbEntriesShowing = defineModel<number>('nmbEntriesShowing', { default: 15 });

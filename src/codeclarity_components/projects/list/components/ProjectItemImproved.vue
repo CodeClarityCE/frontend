@@ -69,16 +69,16 @@ const analysisStats = computed(() => {
 
     props.project.analyses.forEach((analysis) => {
         if (
-            (analysis.status) === AnalysisStatus.COMPLETED ||
-            (analysis.status) === AnalysisStatus.FINISHED
+            analysis.status === AnalysisStatus.COMPLETED ||
+            analysis.status === AnalysisStatus.FINISHED
         ) {
             stats.completed++;
         } else if (
-            (analysis.status) === AnalysisStatus.FAILED ||
-            (analysis.status) === AnalysisStatus.FAILURE
+            analysis.status === AnalysisStatus.FAILED ||
+            analysis.status === AnalysisStatus.FAILURE
         ) {
             stats.failed++;
-        } else if ((analysis.status) === AnalysisStatus.STARTED) {
+        } else if (analysis.status === AnalysisStatus.STARTED) {
             stats.running++;
         }
 

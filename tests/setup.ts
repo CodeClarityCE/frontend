@@ -111,7 +111,7 @@ if (typeof Element !== 'undefined') {
 
 // Mock router
 vi.mock('vue-router', async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>
+  const actual = (await importOriginal())
   return {
     ...actual,
     useRouter: () => ({

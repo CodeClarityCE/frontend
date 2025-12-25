@@ -175,7 +175,10 @@ void fetch();
                                 >
                                     MEDIUM
                                 </div>
-                                <div v-else-if="vuln.class === 'LOW'" class="severity-indicator low">
+                                <div
+                                    v-else-if="vuln.class === 'LOW'"
+                                    class="severity-indicator low"
+                                >
                                     LOW
                                 </div>
                                 <div

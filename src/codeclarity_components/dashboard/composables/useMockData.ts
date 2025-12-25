@@ -6,8 +6,21 @@
  */
 export function useMockData(): {
     stats: { critical: number; high: number; projects: number; score: number };
-    activities: { id: number; title: string; description: string; time: string; variant: string; icon: string }[];
-    recommendations: { id: number; title: string; description: string; variant: string; icon: string }[];
+    activities: {
+        id: number;
+        title: string;
+        description: string;
+        time: string;
+        variant: string;
+        icon: string;
+    }[];
+    recommendations: {
+        id: number;
+        title: string;
+        description: string;
+        variant: string;
+        icon: string;
+    }[];
 } {
     // Key dashboard metrics
     const stats = {

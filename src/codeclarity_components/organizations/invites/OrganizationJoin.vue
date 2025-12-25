@@ -3,7 +3,7 @@ import FaqBox from '@/base_components/layout/FaqBox.vue';
 import router from '@/router';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import { type APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate } from '@/utils/dateUtils';
 import { successToast } from '@/utils/toasts';
@@ -51,7 +51,8 @@ onMounted(() => {
 });
 
 async function fetchOrgInfo(): Promise<void> {
-    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value) return;
+    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value)
+        return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     try {
@@ -72,7 +73,8 @@ async function fetchOrgInfo(): Promise<void> {
 }
 
 async function joinOrg(): Promise<void> {
-    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value) return;
+    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value)
+        return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     try {
@@ -114,7 +116,10 @@ async function joinOrg(): Promise<void> {
                                 <div>Failed to join the organization</div>
                                 <div v-if="joinErrorCode" style="font-size: 0.7em">
                                     <div
-                                        v-if="(joinErrorCode as APIErrors) === APIErrors.InvitationInvalidOrExpired"
+                                        v-if="
+                                            (joinErrorCode as APIErrors) ===
+                                            APIErrors.InvitationInvalidOrExpired
+                                        "
                                     >
                                         This invite link does not exist or has expired.
                                     </div>

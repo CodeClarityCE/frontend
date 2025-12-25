@@ -168,10 +168,7 @@ function hide(): void {
     }, 10);
 }
 
-function getOffset(
-    el: HTMLElement,
-    position?: PositionType
-): { left: number; top: number } {
+function getOffset(el: HTMLElement, position?: PositionType): { left: number; top: number } {
     const top = el.offsetTop;
     const left = el.offsetLeft;
     if (position === 'top') {

@@ -36,7 +36,11 @@ try {
     console.warn('Could not get VueFlow instance:', error);
 }
 
-const { fitView } = vueFlowInstance ?? { fitView: () => { /* no-op fallback */ } };
+const { fitView } = vueFlowInstance ?? {
+    fitView: () => {
+        /* no-op fallback */
+    }
+};
 
 // Using markRaw to prevent Vue from making components reactive
 // and type assertion to satisfy VueFlow's expected node types
@@ -189,7 +193,8 @@ function handleKeyDown(event: KeyboardEvent): void {
                     getSelectedNodes?: { value: (AnalyzerNode | ConfigNode)[] };
                     selectedNodes?: { value: (AnalyzerNode | ConfigNode)[] };
                 };
-                const vueFlowSelected = instance.getSelectedNodes?.value ?? instance.selectedNodes?.value ?? [];
+                const vueFlowSelected =
+                    instance.getSelectedNodes?.value ?? instance.selectedNodes?.value ?? [];
                 if (vueFlowSelected.length > 0) {
                     nodesToDelete = vueFlowSelected;
                 }
@@ -199,7 +204,9 @@ function handleKeyDown(event: KeyboardEvent): void {
         }
 
         if (nodesToDelete.length === 0) {
-            const selectedFromArray = props.nodes.filter((n) => 'selected' in n && n.selected === true);
+            const selectedFromArray = props.nodes.filter(
+                (n) => 'selected' in n && n.selected === true
+            );
             if (selectedFromArray.length > 0) {
                 nodesToDelete = selectedFromArray;
             }
@@ -286,9 +293,13 @@ function onNodeContextMenu(event: any): void {
         const mouseEvent = event.event ?? (event as unknown as MouseEvent);
         const node = event.node ?? (event.target ? event : null);
 
-        if (mouseEvent && 'preventDefault' in mouseEvent && typeof mouseEvent.preventDefault === 'function') {
+        if (
+            mouseEvent &&
+            'preventDefault' in mouseEvent &&
+            typeof mouseEvent.preventDefault === 'function'
+        ) {
             mouseEvent.preventDefault();
-            (mouseEvent).stopPropagation();
+            mouseEvent.stopPropagation();
         }
 
         if (node) {

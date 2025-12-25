@@ -225,8 +225,9 @@ function updateSelectAllState(): void {
  * @param newActiveFilters List of active filters
  */
 async function setActiveFilters(newActiveFilters: ActiveFilter[]): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    activeFilters.value = newActiveFilters.map((activeFilter: ActiveFilter) => activeFilter.option as string);
+    activeFilters.value = newActiveFilters.map(
+        (activeFilter: ActiveFilter) => activeFilter.option as string
+    );
     await fetchRepos(true);
 }
 

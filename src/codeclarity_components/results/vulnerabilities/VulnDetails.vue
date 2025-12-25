@@ -137,11 +137,20 @@ void getFinding(props.projectID, props.analysisID);
 
 // --- Stat Card Logic ---
 function getBaseScore(finding: VulnerabilityDetails): number | null | undefined {
-    if (finding.severities.cvss_31?.base_score !== null && finding.severities.cvss_31?.base_score !== undefined) {
+    if (
+        finding.severities.cvss_31?.base_score !== null &&
+        finding.severities.cvss_31?.base_score !== undefined
+    ) {
         return finding.severities.cvss_31.base_score;
-    } else if (finding.severities.cvss_3?.base_score !== null && finding.severities.cvss_3?.base_score !== undefined) {
+    } else if (
+        finding.severities.cvss_3?.base_score !== null &&
+        finding.severities.cvss_3?.base_score !== undefined
+    ) {
         return finding.severities.cvss_3.base_score;
-    } else if (finding.severities.cvss_2?.base_score !== null && finding.severities.cvss_2?.base_score !== undefined) {
+    } else if (
+        finding.severities.cvss_2?.base_score !== null &&
+        finding.severities.cvss_2?.base_score !== undefined
+    ) {
         return finding.severities.cvss_2.base_score;
     }
     return null;
@@ -596,7 +605,10 @@ function getPackageManagerSubtitleIcon(): string {
                         {{ cvss_info[cvss_field]?.text?.description }}
                     </div>
                     <div class="cvss-field-value" style="font-weight: 900">
-                        <div v-for="field_value in cvss_info[cvss_field]?.values ?? []" :key="field_value">
+                        <div
+                            v-for="field_value in cvss_info[cvss_field]?.values ?? []"
+                            :key="field_value"
+                        >
                             <div
                                 v-if="field_value[0] === cvss_field_value"
                                 :class="cvss_info[cvss_field]?.class?.[cvss_field_value]"

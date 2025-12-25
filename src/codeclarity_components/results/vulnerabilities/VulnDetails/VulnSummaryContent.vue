@@ -313,10 +313,7 @@ defineProps<{
                             </div>
                             <div v-if="finding.dependency_info?.github_link">
                                 <a
-                                    :href="
-                                        'https://' +
-                                        finding.dependency_info?.github_link
-                                    "
+                                    :href="'https://' + finding.dependency_info?.github_link"
                                     title="opens the github repo of the dependency (in a new tab)"
                                     target="_blank"
                                 >

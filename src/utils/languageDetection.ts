@@ -79,7 +79,7 @@ export class LanguageDetectionService {
     /**
      * Gets languages from a completed analysis
      */
-     
+
     getLanguagesFromAnalysis(_analysis: Analysis): DetectedLanguage[] {
         // This method can be extended to check analysis metadata if language detection
         // information is stored in the analysis object itself in the future

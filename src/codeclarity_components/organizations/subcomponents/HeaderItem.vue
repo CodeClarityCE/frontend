@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { MemberRole, type Organization } from '@/codeclarity_components/organizations/organization.entity';
+import {
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import router from '@/router';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import { type APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';

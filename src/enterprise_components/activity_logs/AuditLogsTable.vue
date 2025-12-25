@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import SortableTable, { type TableHeader } from '@/base_components/data-display/tables/SortableTable.vue';
+import SortableTable, {
+    type TableHeader
+} from '@/base_components/data-display/tables/SortableTable.vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
 import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import type { AuditLog } from '@/codeclarity_components/organizations/audit_logs/AuditLog';

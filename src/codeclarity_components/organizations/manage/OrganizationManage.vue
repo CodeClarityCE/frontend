@@ -58,7 +58,9 @@ async function deleteOrg(orgId: string): Promise<void> {
             if (err instanceof BusinessLogicError) {
                 if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
                     void router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
+                } else if (
+                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
+                ) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -82,7 +84,9 @@ async function leaveOrg(orgId: string): Promise<void> {
             if (err instanceof BusinessLogicError) {
                 if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
                     void router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
+                } else if (
+                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
+                ) {
                     void errorToast(`You cannot leave a personal organization.`);
                 } else if ((err.error_code as APIErrors) === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
@@ -122,7 +126,9 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
             data: { auto_resolve_tickets: enabled },
             handleBusinessErrors: true
         });
-        void successToast(enabled ? 'Auto-resolve tickets enabled' : 'Auto-resolve tickets disabled');
+        void successToast(
+            enabled ? 'Auto-resolve tickets enabled' : 'Auto-resolve tickets disabled'
+        );
     } catch (err) {
         // Revert on error
         autoResolveTickets.value = !enabled;
@@ -156,7 +162,8 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                         <!-- Integration Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER ||
+                                orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -291,7 +298,8 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                         <!-- Analyzer Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER ||
+                                orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',

@@ -171,7 +171,11 @@ function getActiveState(filterConfig: FilterConfig): ActiveFilter[] {
     <Popover>
         <PopoverTrigger as-child>
             <Button variant="outline">
-                <Icon v-if="isActive() === true" class="text-primary" icon="pajamas:status-active" />
+                <Icon
+                    v-if="isActive() === true"
+                    class="text-primary"
+                    icon="pajamas:status-active"
+                />
                 Filters
                 <Icon icon="ion:chevron-down-outline" />
             </Button>

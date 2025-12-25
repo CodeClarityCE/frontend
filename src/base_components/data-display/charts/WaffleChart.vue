@@ -54,7 +54,11 @@ const gridCols = ref(10);
 /**
  * Check if square size and rows are valid for creating grid
  */
-function isValidGridConfiguration(_squareSizeForWidth: number, rows: number, totalSquares: number): boolean {
+function isValidGridConfiguration(
+    _squareSizeForWidth: number,
+    rows: number,
+    totalSquares: number
+): boolean {
     if (rows < 5) return false;
     if (totalSquares < 50 || totalSquares > 300) return false;
     return true;
@@ -118,13 +122,9 @@ function createData(): void {
     truncatedOthers.value = [];
     squares.value = [];
 
-    const colorScale = props.colorScale ?? d3.interpolateDiscrete([
-        '#003532',
-        '#1A4876',
-        '#008491',
-        '#40E0D0',
-        '#D3D3D3'
-    ]);
+    const colorScale =
+        props.colorScale ??
+        d3.interpolateDiscrete(['#003532', '#1A4876', '#008491', '#40E0D0', '#D3D3D3']);
     if (props.data.length === 0) return;
 
     const colorsDefinedInData = props.data.every((entry) => entry.color !== undefined);

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import router from '@/router';
 import { Button } from '@/shadcn/ui/button';
 import {
@@ -38,7 +37,6 @@ if (enter) {
         }
     });
 }
-
 
 function handleCommandSelect(): void {
     if (open.value) {

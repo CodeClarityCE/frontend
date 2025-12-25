@@ -106,7 +106,7 @@ async function fetchTicketingIntegrations(refresh = false): Promise<void> {
 
         // Find ClickUp integration
         const clickUp = resp.data.find(
-            (i) => (i.provider) === ExternalTicketProvider.CLICKUP && i.has_config
+            (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config
         );
         clickUpConfig.value = clickUp ?? null;
     } catch (err) {

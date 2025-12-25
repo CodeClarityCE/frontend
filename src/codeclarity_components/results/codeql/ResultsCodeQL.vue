@@ -42,10 +42,12 @@ async function init(): Promise<void> {
             runIndex: props.runIndex
         });
         result.value = res.data;
-        const resultData = res.data.result as { workspaces: Record<string, {results?: CodeQLResult[]}> };
+        const resultData = res.data.result as {
+            workspaces: Record<string, { results?: CodeQLResult[] }>;
+        };
         const workspaces = resultData.workspaces;
         const workspace = workspaces['.'];
-        codeql_results.value = (workspace?.results ?? []);
+        codeql_results.value = workspace?.results ?? [];
     } catch (e) {
         console.error(e);
     }

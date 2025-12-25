@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { PatchedManifestData, type PatchInfo, type UpgradeInfo } from '@/codeclarity_components/results/patching/Patching';
+import {
+    PatchedManifestData,
+    type PatchInfo,
+    type UpgradeInfo
+} from '@/codeclarity_components/results/patching/Patching';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { useAuthStore } from '@/stores/auth';

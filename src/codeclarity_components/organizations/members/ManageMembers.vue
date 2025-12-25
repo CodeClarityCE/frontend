@@ -95,7 +95,7 @@ async function updateSort(key: string | null | undefined): Promise<void> {
     if (key === sortKey.value) {
         // If we select the same column then we reverse the direction
         sortDirection.value =
-            (sortDirection.value) === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+            sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
     } else {
         // Default direction
         sortDirection.value = SortDirection.DESC;
@@ -242,7 +242,9 @@ async function onRefetch(): Promise<void> {
                                             >
                                                 This organization does not exist.
                                             </div>
-                                            <div v-if="errorCodeMembers === APIErrors.NotAuthorized">
+                                            <div
+                                                v-if="errorCodeMembers === APIErrors.NotAuthorized"
+                                            >
                                                 You do not have permission to access the
                                                 organization's members..
                                             </div>

@@ -55,7 +55,9 @@ async function kickUser(): Promise<void> {
                     );
                 } else if ((err.error_code as APIErrors) === APIErrors.CannotRevokeOwnMembership) {
                     void errorToast('Failed to kick the user, because you cannot kick yourself.');
-                } else if ((err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified) {
+                } else if (
+                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
+                ) {
                     errorToast(
                         'Failed to kick the user, because this is a personal organization, and personal organizations cannot be modified.'
                     );

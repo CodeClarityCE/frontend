@@ -10,7 +10,7 @@ import { useUserStore } from '@/stores/user';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { Icon } from '@iconify/vue';
-import { onMounted , ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -46,7 +46,7 @@ async function finalizeAutentication(): Promise<void> {
         return;
     }
 
-    if ((props.provider) !== SocialProvider.GITLAB && (props.provider) !== SocialProvider.GITHUB) {
+    if (props.provider !== SocialProvider.GITLAB && props.provider !== SocialProvider.GITHUB) {
         void router.push('/login');
         return;
     }
@@ -118,7 +118,8 @@ async function finalizeAutentication(): Promise<void> {
                 (_error.error_code as APIErrors) === APIErrors.FailedToAuthenticateSocialAccount ||
                 (_error.error_code as APIErrors) === APIErrors.IntegrationTokenRetrievalFailed ||
                 (_error.error_code as APIErrors) === APIErrors.IntegrationInvalidToken ||
-                (_error.error_code as APIErrors) === APIErrors.IntegrationIntegrationTokenMissingPermissions ||
+                (_error.error_code as APIErrors) ===
+                    APIErrors.IntegrationIntegrationTokenMissingPermissions ||
                 (_error.error_code as APIErrors) === APIErrors.IntegrationTokenExpired ||
                 (_error.error_code as APIErrors) === APIErrors.InternalError
             ) {

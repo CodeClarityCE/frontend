@@ -212,7 +212,7 @@ const owaspMapping: Record<
     }
 };
 
-function getUniqueOWASP(weaknessInfo: {OWASPTop10Id: string}[]): string[] {
+function getUniqueOWASP(weaknessInfo: { OWASPTop10Id: string }[]): string[] {
     const owaspIds = weaknessInfo
         .map((weakness) => weakness.OWASPTop10Id)
         .filter((id) => id && id !== '');
@@ -265,10 +265,10 @@ function truncateDescription(description: string, maxLength = 150): string {
     const lastSpaceIndex = truncated.lastIndexOf(' ');
 
     if (lastSpaceIndex > maxLength * 0.7) {
-        return `${truncated.substring(0, lastSpaceIndex)  }...`;
+        return `${truncated.substring(0, lastSpaceIndex)}...`;
     }
 
-    return `${truncated  }...`;
+    return `${truncated}...`;
 }
 
 function getSeverityBorderColor(severityValue: number): string {
@@ -348,9 +348,9 @@ watch(() => filterState.value.activeFilters, init);
 // Sync blacklisted filter with parent component
 const showBlacklistedFromFilter = computed<boolean>(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const blacklistState = filterState.value.filterConfig['BlacklistState'];
+    const blacklistState = filterState.value.filterConfig?.BlacklistState;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    return blacklistState?.data?.['show_blacklisted']?.value ?? false;
+    return blacklistState?.data?.show_blacklisted?.value ?? false;
 });
 
 // Define emit for updating parent's showBlacklisted value

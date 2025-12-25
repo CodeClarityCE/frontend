@@ -1,4 +1,8 @@
-import { SeverityType, Impact, type PatchInfo } from '@/codeclarity_components/results/patching/Patching';
+import {
+    SeverityType,
+    Impact,
+    type PatchInfo
+} from '@/codeclarity_components/results/patching/Patching';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PatchComponent from './PatchComponent.vue';

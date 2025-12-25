@@ -918,7 +918,9 @@ async function createAnalysisStart(): Promise<void> {
                                                         "
                                                     >
                                                         <div
-                                                            v-for="config in getPluginConfigs(plugin.config)"
+                                                            v-for="config in getPluginConfigs(
+                                                                plugin.config
+                                                            )"
                                                             :key="config.name"
                                                             class="space-y-2"
                                                         >
@@ -943,7 +945,11 @@ async function createAnalysisStart(): Promise<void> {
                                                                                 config.name ===
                                                                                 'language'
                                                                             "
-                                                                            v-bind="filterUndefined(componentField)"
+                                                                            v-bind="
+                                                                                filterUndefined(
+                                                                                    componentField
+                                                                                )
+                                                                            "
                                                                         >
                                                                             <SelectTrigger
                                                                                 class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
@@ -982,7 +988,11 @@ async function createAnalysisStart(): Promise<void> {
                                                                             :placeholder="
                                                                                 config.name
                                                                             "
-                                                                            v-bind="filterUndefined(componentField)"
+                                                                            v-bind="
+                                                                                filterUndefined(
+                                                                                    componentField
+                                                                                )
+                                                                            "
                                                                             class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                                                                         />
                                                                     </FormControl>

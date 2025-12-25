@@ -352,7 +352,10 @@ const getAgeDescription = (): string => {
                                         ecosystemMetadata['type']
                                     }}</Badge>
                                 </div>
-                                <div v-if="ecosystemMetadata['autoload']" class="flex flex-col gap-2">
+                                <div
+                                    v-if="ecosystemMetadata['autoload']"
+                                    class="flex flex-col gap-2"
+                                >
                                     <span class="text-sm font-semibold text-gray-700"
                                         >Autoload:</span
                                     >
@@ -415,7 +418,10 @@ const getAgeDescription = (): string => {
                                         </Badge>
                                     </div>
                                 </div>
-                                <div v-if="ecosystemMetadata['engines']" class="flex flex-col gap-2">
+                                <div
+                                    v-if="ecosystemMetadata['engines']"
+                                    class="flex flex-col gap-2"
+                                >
                                     <span class="text-sm font-semibold text-gray-700"
                                         >Engines:</span
                                     >
@@ -429,7 +435,8 @@ const getAgeDescription = (): string => {
                                 <div
                                     v-if="
                                         ecosystemMetadata['peerDependencies'] &&
-                                        Object.keys(ecosystemMetadata['peerDependencies']).length > 0
+                                        Object.keys(ecosystemMetadata['peerDependencies']).length >
+                                            0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -438,9 +445,9 @@ const getAgeDescription = (): string => {
                                     >
                                     <div class="flex flex-col gap-2 max-h-24 overflow-y-auto">
                                         <div
-                                            v-for="(
-                                                version, pkg
-                                            ) in ecosystemMetadata['peerDependencies']"
+                                            v-for="(version, pkg) in ecosystemMetadata[
+                                                'peerDependencies'
+                                            ]"
                                             :key="pkg"
                                             class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
                                         >

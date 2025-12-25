@@ -48,7 +48,8 @@ const ResultsLicenses = defineAsyncComponent({
 });
 
 const ResultsVulnerabilities = defineAsyncComponent({
-    loader: (() => import('./vulnerabilities/ResultsVulnerabilities.vue')) as () => Promise<Component>,
+    loader: (() =>
+        import('./vulnerabilities/ResultsVulnerabilities.vue')) as () => Promise<Component>,
     loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
@@ -59,7 +60,8 @@ const ResultsVulnerabilities = defineAsyncComponent({
 });
 
 const ResultsVulnerabilitiesDetails = defineAsyncComponent({
-    loader: (() => import('./vulnerabilities/ResultsVulnerabilitiesDetails.vue')) as () => Promise<Component>,
+    loader: (() =>
+        import('./vulnerabilities/ResultsVulnerabilitiesDetails.vue')) as () => Promise<Component>,
     loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,

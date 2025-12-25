@@ -4,7 +4,13 @@ import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import { defineAsyncComponent, ref, computed, type AsyncComponentLoader, type Component } from 'vue';
+import {
+    defineAsyncComponent,
+    ref,
+    computed,
+    type AsyncComponentLoader,
+    type Component
+} from 'vue';
 
 const OrgPoliciesList = defineAsyncComponent({
     loader: (() => import('./list/PoliciesList.vue')) as AsyncComponentLoader,

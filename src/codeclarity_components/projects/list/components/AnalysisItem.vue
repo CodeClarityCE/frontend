@@ -130,10 +130,10 @@ function getTimeDiff(stage: AnalysisStage): string {
     const milliseconds =
         calculateDateDifference(stage.Ended_on, stage.Started_on, 'milliseconds') % 1000;
 
-    if (hours > 0) time += `${hours  }h `;
-    if (minutes > 0) time += `${minutes  }m `;
-    if (seconds > 0) time += `${seconds  }s `;
-    if (time === '' && milliseconds > 0) time += `${milliseconds  }ms `;
+    if (hours > 0) time += `${hours}h `;
+    if (minutes > 0) time += `${minutes}m `;
+    if (seconds > 0) time += `${seconds}s `;
+    if (time === '' && milliseconds > 0) time += `${milliseconds}ms `;
     return time ?? '';
 }
 

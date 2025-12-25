@@ -16,7 +16,10 @@ import PaginationComponent from '@/base_components/utilities/PaginationComponent
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { PatchType, type VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import {
+    PatchType,
+    type VulnerabilityMerged
+} from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';
@@ -286,7 +289,7 @@ function getOwaspInfo(owaspId: string): OwaspInfoResult {
     );
 }
 
-function getUniqueOWASP(weaknessInfo: {OWASPTop10Id: string}[]): string[] {
+function getUniqueOWASP(weaknessInfo: { OWASPTop10Id: string }[]): string[] {
     const owaspIds = weaknessInfo
         .map((weakness) => weakness.OWASPTop10Id)
         .filter((id) => id && id !== '');
@@ -421,7 +424,7 @@ const options = ref<Options>({
 });
 
 for (const category in options.value) {
-    const categoryData = options.value[category] as {data: Record<string, {value: boolean}>};
+    const categoryData = options.value[category] as { data: Record<string, { value: boolean }> };
     for (const option in categoryData.data) {
         const optionData = categoryData.data[option];
         if (optionData) {
@@ -505,8 +508,11 @@ watch(() => filterState.value.activeFilters, init);
 
 // Sync blacklisted filter with parent component
 const showBlacklistedFromFilter = computed<boolean>(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    return filterState.value.filterConfig['BlacklistState']?.data?.['show_blacklisted']?.value ?? false;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return (
+        filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value ??
+        false
+    );
 });
 
 // Define emit for updating parent's showBlacklisted value
@@ -970,7 +976,8 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
                                                         :class="{
                                                             'severity-critical-bg':
                                                                 vla.Score === 'critical',
-                                                            'severity-high-bg': vla.Score === 'high',
+                                                            'severity-high-bg':
+                                                                vla.Score === 'high',
                                                             'severity-medium-bg':
                                                                 vla.Score === 'medium',
                                                             'severity-low-bg': vla.Score === 'low',
@@ -1079,7 +1086,8 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
                                                                     class="font-bold capitalize px-2 py-1 rounded text-xs severity-badge-bg"
                                                                     :class="{
                                                                         'severity-critical-bg text-severity-critical':
-                                                                            vla.Score === 'critical',
+                                                                            vla.Score ===
+                                                                            'critical',
                                                                         'severity-high-bg text-severity-high':
                                                                             vla.Score === 'high',
                                                                         'severity-medium-bg text-severity-medium':

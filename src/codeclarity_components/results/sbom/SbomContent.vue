@@ -151,7 +151,9 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
     if (!userStore.getDefaultOrg || !props.analysisID) return;
 
     try {
-        const exportMenu = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
+        const exportMenu = exportMenuRef.value as {
+            setExportProgress?: (msg: string) => void;
+        } | null;
         if (exportMenu?.setExportProgress) {
             exportMenu.setExportProgress('Fetching dependencies...');
         }
@@ -176,7 +178,9 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
         // If there are more pages, fetch them all
         if (firstPage.total_pages > 1) {
-            const exportMenu = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
+            const exportMenu = exportMenuRef.value as {
+                setExportProgress?: (msg: string) => void;
+            } | null;
             if (exportMenu?.setExportProgress) {
                 exportMenu.setExportProgress(`Fetching ${firstPage.total_pages} pages...`);
             }
@@ -206,7 +210,9 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
             });
         }
 
-        const exportMenu2 = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
+        const exportMenu2 = exportMenuRef.value as {
+            setExportProgress?: (msg: string) => void;
+        } | null;
         if (exportMenu2?.setExportProgress) {
             exportMenu2.setExportProgress(`Generating ${format.toUpperCase()} file...`);
         }

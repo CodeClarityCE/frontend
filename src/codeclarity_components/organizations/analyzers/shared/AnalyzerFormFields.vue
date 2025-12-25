@@ -17,7 +17,8 @@ const emit = defineEmits<{
 }>();
 
 const updateName = (value: string | undefined): void => emit('update:name', value ?? '');
-const updateDescription = (value: string | undefined): void => emit('update:description', value ?? '');
+const updateDescription = (value: string | undefined): void =>
+    emit('update:description', value ?? '');
 
 // These options can be used for future language and logo selection features
 // const languageOptions = [

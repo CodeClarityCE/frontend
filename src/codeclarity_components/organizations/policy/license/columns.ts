@@ -53,12 +53,12 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'description',
         header: 'Description',
         cell: ({ row }) => {
-            const description = row.getValue('description') as string | undefined;
+            const description = row.getValue('description');
             return h(
                 'div',
                 {
                     class: 'max-w-xs text-gray-600 truncate',
-                    title: description
+                    title: description ?? 'No description'
                 },
                 description ?? 'No description'
             );
@@ -92,7 +92,6 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'content',
         header: 'Licenses',
         cell: ({ row }) => {
-             
             const licenses: string[] | undefined = row.getValue('content');
             const count = licenses?.length ?? 0;
             return h('div', { class: 'flex items-center gap-2' }, [
@@ -111,7 +110,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_by',
         header: 'Created By',
         cell: ({ row }) => {
-            const createdBy = row.getValue('created_by') as string | undefined;
+            const createdBy = row.getValue('created_by');
             return h('div', { class: 'text-sm text-gray-600' }, createdBy ?? 'Unknown');
         }
     },
@@ -119,7 +118,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_on',
         header: 'Created On',
         cell: ({ row }) => {
-            const date = row.getValue('created_on') as string | number | Date | undefined;
+            const date = row.getValue('created_on');
             if (!date) return h('span', { class: 'text-gray-400' }, 'Unknown');
 
             return h(
@@ -147,7 +146,9 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                         size: 'sm',
                         onClick: () => {
                             // Emit edit event through table meta
-                            const meta = table.options.meta as { onEdit?: (policy: LicensePolicy) => void } | undefined;
+                            const meta = table.options.meta as
+                                | { onEdit?: (policy: LicensePolicy) => void }
+                                | undefined;
                             meta?.onEdit?.(policy);
                         }
                     },
@@ -160,7 +161,9 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                         size: 'sm',
                         onClick: () => {
                             // Emit delete event through table meta
-                            const meta = table.options.meta as { onDelete?: (policy: LicensePolicy) => void } | undefined;
+                            const meta = table.options.meta as
+                                | { onDelete?: (policy: LicensePolicy) => void }
+                                | undefined;
                             meta?.onDelete?.(policy);
                         }
                     },

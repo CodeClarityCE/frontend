@@ -32,13 +32,13 @@ const props = withDefaults(defineProps<Props>(), {
 watch(
     () => props.projectID,
     () => {
-    void getPatchesStats();
+        void getPatchesStats();
     }
 );
 watch(
     () => props.analysisID,
     () => {
-    void getPatchesStats();
+        void getPatchesStats();
     }
 );
 
@@ -185,7 +185,10 @@ function createSeverityDistChart(): void {
         afterData.push(stats.value.after_patch_number_of_medium);
     }
 
-    if (stats.value.after_patch_number_of_low !== 0 || stats.value.before_patch_number_of_low !== 0) {
+    if (
+        stats.value.after_patch_number_of_low !== 0 ||
+        stats.value.before_patch_number_of_low !== 0
+    ) {
         categories.push('Low');
         beforeData.push(stats.value.before_patch_number_of_low);
         afterData.push(stats.value.after_patch_number_of_low);

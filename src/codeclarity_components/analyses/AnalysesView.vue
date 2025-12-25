@@ -5,7 +5,8 @@ import { useStateStore } from '@/stores/state';
 import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 
 const MainPage = defineAsyncComponent({
-    loader: (() => import('@/codeclarity_components/projects/ProjectsView.vue')) as AsyncComponentLoader,
+    loader: (() =>
+        import('@/codeclarity_components/projects/ProjectsView.vue')) as AsyncComponentLoader,
     loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,

@@ -56,7 +56,9 @@ function getData(finding: Finding): number[] | null {
     return null;
 }
 
-function getRadarChartData(finding: Finding): { name: string; axes: { axis: string; value: number }[] }[] | null {
+function getRadarChartData(
+    finding: Finding
+): { name: string; axes: { axis: string; value: number }[] }[] | null {
     const data = getData(finding);
     if (!data) return null;
 

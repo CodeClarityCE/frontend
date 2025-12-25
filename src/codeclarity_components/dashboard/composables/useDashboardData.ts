@@ -92,7 +92,8 @@ export function useDashboardData(): {
             }
 
             if (integrationsResponse.status === 'fulfilled') {
-                integrations.value = (integrationsResponse.value.data ?? []) as unknown as Integration[];
+                integrations.value = (integrationsResponse.value.data ??
+                    []) as unknown as Integration[];
             }
 
             // Show error only if both failed

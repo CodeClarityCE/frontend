@@ -54,7 +54,7 @@ const gridCols = ref(10);
 /**
  * Check if square size and rows are valid for creating grid
  */
-function isValidGridConfiguration(squareSizeForWidth: number, rows: number, totalSquares: number): boolean {
+function isValidGridConfiguration(_squareSizeForWidth: number, rows: number, totalSquares: number): boolean {
     if (rows < 5) return false;
     if (totalSquares < 50 || totalSquares > 300) return false;
     return true;

@@ -14,7 +14,7 @@ const status = ref<'loading' | 'success' | 'error'>('loading');
 const errorMessage = ref('');
 
 onMounted(async () => {
-    const code = route.query.code as string;
+    const code = route.query['code'] as string;
     const orgId = sessionStorage.getItem('clickup_oauth_org_id');
 
     if (!code) {

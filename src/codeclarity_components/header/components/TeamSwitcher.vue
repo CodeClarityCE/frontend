@@ -157,7 +157,7 @@ void fetch();
                     :class="
                         cn(
                             'w-[220px] justify-between bg-gray-50 border-gray-300 hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900',
-                            $attrs.class ?? ''
+                            $attrs['class'] ?? ''
                         )
                     "
                 >

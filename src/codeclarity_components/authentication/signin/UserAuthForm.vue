@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 import { Icon } from '@iconify/vue';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -133,7 +134,7 @@ async function submit(values: { email: string; password: string }): Promise<void
         </AlertDescription>
     </Alert>
 
-    <div :class="cn('grid gap-6', $attrs.class ?? '')">
+    <div :class="cn('grid gap-6', ($attrs['class'] as string) ?? '')">
         <form
             v-if="!loading"
             class="flex flex-col gap-4"
@@ -144,7 +145,7 @@ async function submit(values: { email: string; password: string }): Promise<void
                 <FormItem v-auto-animate>
                     <FormLabel>Email*:</FormLabel>
                     <FormControl>
-                        <Input type="text" placeholder="Enter your email" v-bind="componentField" />
+                        <Input type="text" placeholder="Enter your email" v-bind="filterUndefined(componentField)" />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -156,7 +157,7 @@ async function submit(values: { email: string; password: string }): Promise<void
                         <Input
                             type="password"
                             placeholder="Enter your password"
-                            v-bind="componentField"
+                            v-bind="filterUndefined(componentField)"
                         />
                     </FormControl>
                     <FormMessage />

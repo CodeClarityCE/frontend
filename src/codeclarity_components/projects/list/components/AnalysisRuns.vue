@@ -31,16 +31,10 @@ const analysisRepository = new AnalysisRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-interface AnalysisRun {
-    run_date: string;
-    plugin_count: number;
-    result_count: number;
-    plugins?: string[];
-}
-
 // State
 const loading = ref(true);
-const runs = ref<AnalysisRun[]>([]);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const runs = ref<any[]>([]);
 const selectedRun = ref<number>(0);
 
 // Methods

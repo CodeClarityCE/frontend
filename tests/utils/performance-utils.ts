@@ -266,13 +266,11 @@ export async function runLighthouseAudit(): Promise<LighthouseMetrics> {
  */
 export class FPSMonitor {
   private frames: number[] = [];
-  private startTime = 0;
   private rafId = 0;
   private isRunning = false;
 
   start(): void {
     this.frames = [];
-    this.startTime = performance.now();
     this.isRunning = true;
     this.requestFrame();
   }
@@ -310,7 +308,7 @@ export class FPSMonitor {
  */
 export class RerenderCounter {
   private count = 0;
-  private originalUpdate: unknown;
+  private originalUpdate: (() => void)[] | (() => void) | undefined;
 
   constructor(private wrapper: VueWrapper) {}
 
@@ -318,9 +316,9 @@ export class RerenderCounter {
     this.count = 0;
     // Hook into Vue's update lifecycle
     const vm = this.wrapper.vm;
-    this.originalUpdate = vm.$options.updated;
+    this.originalUpdate = vm.$options.updated as (() => void)[] | (() => void) | undefined;
 
-    let existingUpdates: unknown[];
+    let existingUpdates: (() => void)[];
     if (Array.isArray(this.originalUpdate)) {
       existingUpdates = this.originalUpdate;
     } else if (this.originalUpdate) {
@@ -329,7 +327,8 @@ export class RerenderCounter {
       existingUpdates = [];
     }
 
-    vm.$options.updated = [
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (vm.$options as any).updated = [
       ...existingUpdates,
       () => this.count++
     ];
@@ -338,7 +337,8 @@ export class RerenderCounter {
   stop(): number {
     // Restore original update hook
     if (this.originalUpdate) {
-      this.wrapper.vm.$options.updated = this.originalUpdate;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (this.wrapper.vm.$options as any).updated = this.originalUpdate;
     }
     
     return this.count;

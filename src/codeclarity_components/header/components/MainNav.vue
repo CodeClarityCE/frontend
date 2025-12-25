@@ -5,7 +5,7 @@ const state = useStateStore();
 </script>
 
 <template>
-    <nav :class="cn('flex items-center gap-8', $attrs.class ?? '')">
+    <nav :class="cn('flex items-center gap-8', $attrs['class'] ?? '')">
         <RouterLink
             :to="{ name: 'home', params: {}, query: {} }"
             class="text-sm font-medium transition-all duration-200 hover:text-gray-900 relative py-2"

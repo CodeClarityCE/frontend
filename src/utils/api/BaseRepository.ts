@@ -16,7 +16,7 @@ export class BaseRepository {
 
     constructor() {
         // Initialize base URL and toast notification service
-        this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
+        this.BASE_URL = `https://${window.location.hostname}/${import.meta.env['VITE_API_URL']}`;
         this.toast = useToast();
     }
 
@@ -584,9 +584,9 @@ interface RequestOptions {
     headers?: Headers;
     bearerToken?: string;
     queryParams?: QueryParams;
-    handleBusinessErrors?: boolean;
-    handleHTTPErrors?: boolean;
-    handleOtherErrors?: boolean;
+    handleBusinessErrors?: boolean | undefined;
+    handleHTTPErrors?: boolean | undefined;
+    handleOtherErrors?: boolean | undefined;
     defaultBusinessLogicErrorHandlerTextPrefix?: string;
 }
 
@@ -618,9 +618,9 @@ interface ErrorHandlerOptions {
 export interface RepoMethodOptions {
     headers?: Headers;
     queryParams?: QueryParams;
-    handleBusinessErrors?: boolean;
-    handleHTTPErrors?: boolean;
-    handleOtherErrors?: boolean;
+    handleBusinessErrors?: boolean | undefined;
+    handleHTTPErrors?: boolean | undefined;
+    handleOtherErrors?: boolean | undefined;
     defaultBusinessLogicErrorHandlerTextPrefix?: string;
 }
 

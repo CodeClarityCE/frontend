@@ -164,10 +164,10 @@ describe('DonutLoader', () => {
       expect(loader.exists()).toBe(true)
     })
 
-    it('handles null dimensions', () => {
+    it('handles undefined dimensions', () => {
       const wrapper = mount(DonutLoader, {
         props: {
-          dimensions: null
+          dimensions: undefined
         }
       })
       

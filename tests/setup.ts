@@ -31,7 +31,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }))
 
 // Mock process.env for reka-ui
-process.env.NODE_ENV = 'test'
+process.env['NODE_ENV'] = 'test'
 
 // Mock import.meta.env for Vite compatibility
 Object.defineProperty(global, 'import', {
@@ -111,7 +111,7 @@ if (typeof Element !== 'undefined') {
 
 // Mock router
 vi.mock('vue-router', async (importOriginal) => {
-  const actual = (await importOriginal())
+  const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
     useRouter: () => ({

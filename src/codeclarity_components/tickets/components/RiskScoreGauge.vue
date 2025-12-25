@@ -74,7 +74,7 @@ const strokeColor = computed(() => {
         low: '#5a9d09',
         none: '#09889d'
     };
-    return colors[severityLevel.value] ?? colors.none;
+    return colors[severityLevel.value] ?? colors['none'];
 });
 
 const textColorClass = computed(() => {
@@ -85,7 +85,7 @@ const textColorClass = computed(() => {
         low: 'text-green-600',
         none: 'text-teal-600'
     };
-    return classes[severityLevel.value] ?? classes.none;
+    return classes[severityLevel.value] ?? classes['none'];
 });
 
 // Format display value

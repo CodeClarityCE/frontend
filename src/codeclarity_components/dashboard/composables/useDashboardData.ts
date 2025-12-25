@@ -1,6 +1,7 @@
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
 import type {
     Integration,
+    Organization,
     OrganizationMetaData
 } from '@/codeclarity_components/organizations/organization.entity';
 import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
@@ -32,7 +33,7 @@ export function useDashboardData(): {
     hasIntegrations: ComputedRef<boolean>;
     hasProjects: ComputedRef<boolean>;
     refreshData: () => Promise<void>;
-    defaultOrg: Ref<{ id: string; name: string } | null>;
+    defaultOrg: Ref<Organization | undefined>;
 } {
     // Store setup
     const state = useStateStore();
@@ -49,7 +50,7 @@ export function useDashboardData(): {
     const integrations = ref<Integration[]>([]);
 
     // Computed helpers
-    const isReady = computed(() => defaultOrg?.value && auth.getAuthenticated && auth.getToken);
+    const isReady = computed(() => !!(defaultOrg?.value && auth.getAuthenticated && auth.getToken));
     const hasData = computed(() => !!(orgData.value && integrations.value.length > 0));
     const shouldShowEmptyState = computed(
         () => isLoading.value ?? hasError.value ?? !hasData.value
@@ -91,7 +92,7 @@ export function useDashboardData(): {
             }
 
             if (integrationsResponse.status === 'fulfilled') {
-                integrations.value = integrationsResponse.value.data ?? [];
+                integrations.value = (integrationsResponse.value.data ?? []) as unknown as Integration[];
             }
 
             // Show error only if both failed
@@ -117,17 +118,22 @@ export function useDashboardData(): {
         // State
         isLoading,
         hasError,
+        orgData,
+        integrations,
         shouldShowEmptyState,
         activeIntegrationIds,
+        isReady,
+        hasData,
 
         // Computed
         hasIntegrations: computed(() => integrations.value.length > 0),
         hasProjects: computed(() => !!orgData.value),
 
         // Actions
+        loadDashboardData,
         refreshData: loadDashboardData,
 
         // Store refs
-        defaultOrg
+        defaultOrg: defaultOrg!
     };
 }

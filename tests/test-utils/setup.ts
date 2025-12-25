@@ -2,40 +2,53 @@ import { config, type VueWrapper } from '@vue/test-utils'
 import { vi } from 'vitest'
 import type { ComponentPublicInstance, Plugin } from 'vue'
 
-// Create a singleton pinia mock instance
-let piniaInstance: Plugin | null = null
+// Mock Pinia plugin type - use intersection with Plugin to satisfy both requirements
+type MockPinia = Plugin & {
+  install: ReturnType<typeof vi.fn>;
+  state: ReturnType<typeof vi.fn>;
+  _p: unknown[];
+  _a: null | unknown;
+  _e: null | unknown;
+  _s: Map<string, unknown>;
+  use: ReturnType<typeof vi.fn>;
+}
 
-export function getPiniaMock(): Plugin {
-  piniaInstance ??= {
-    install: vi.fn(),
-    state: vi.fn(),
-    _p: [],
-    _a: null,
-    _e: null,
-    _s: new Map(),
-    use: vi.fn(),
+// Create a singleton pinia mock instance
+let piniaInstance: MockPinia | null = null
+
+export function getPiniaMock(): MockPinia {
+  if (!piniaInstance) {
+    piniaInstance = {
+      install: vi.fn(),
+      state: vi.fn(),
+      _p: [],
+      _a: null,
+      _e: null,
+      _s: new Map(),
+      use: vi.fn(),
+    } as MockPinia
   }
   return piniaInstance
 }
 
 // Reset pinia instance between tests
 export function resetPiniaMock(): void {
-  if (piniaInstance && '_s' in piniaInstance && piniaInstance._s instanceof Map) {
-    piniaInstance._s.clear()
-    piniaInstance._p = []
-    piniaInstance._a = null
-    piniaInstance._e = null
+  if (piniaInstance) {
+    piniaInstance._s.clear();
+    piniaInstance._p = [];
+    piniaInstance._a = null;
+    piniaInstance._e = null;
   }
 }
 
 // Setup global test configuration
-export function setupGlobalTestConfig(): { pinia: Plugin } {
+export function setupGlobalTestConfig(): { pinia: MockPinia } {
   // Clear any existing plugins to prevent duplicates
   config.global.plugins = []
 
   // Add pinia mock
   const pinia = getPiniaMock()
-  config.global.plugins.push(pinia)
+  config.global.plugins.push(pinia as Plugin)
 
   // Return the pinia instance for use in tests
   return { pinia }
@@ -47,7 +60,7 @@ export function mountWithSetup<T extends ComponentPublicInstance>(
   options: Record<string, unknown> = {}
 ): {
   wrapper: VueWrapper<T> | null;
-  pinia: Plugin;
+  pinia: MockPinia;
   mount(mountOptions?: Record<string, unknown>): Promise<VueWrapper<T>>;
 } {
   const { pinia } = setupGlobalTestConfig()
@@ -57,15 +70,15 @@ export function mountWithSetup<T extends ComponentPublicInstance>(
     pinia,
     async mount(mountOptions: Record<string, unknown> = {}): Promise<VueWrapper<T>> {
       // Merge options
-      const globalOptions = options.global as Record<string, unknown> | undefined
-      const mountGlobalOptions = mountOptions.global as Record<string, unknown> | undefined
+      const globalOptions = options['global'] as Record<string, unknown> | undefined
+      const mountGlobalOptions = mountOptions['global'] as Record<string, unknown> | undefined
       const finalOptions = {
         ...options,
         ...mountOptions,
         global: {
           ...globalOptions,
           ...mountGlobalOptions,
-          plugins: [pinia, ...((mountGlobalOptions?.plugins as Plugin[]) ?? [])]
+          plugins: [pinia as Plugin, ...((mountGlobalOptions?.['plugins'] as Plugin[]) ?? [])]
         }
       }
 

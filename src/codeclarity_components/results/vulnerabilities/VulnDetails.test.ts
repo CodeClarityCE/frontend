@@ -356,7 +356,7 @@ describe.skip('VulnDetails.vue', () => {
         } as DataResponse<VulnerabilityDetails>);
 
         const wrapper = createWrapper();
-        expect(wrapper.vm.getBaseScore(mockVuln)).toBe(8.5);
+        expect((wrapper.vm as any)['getBaseScore'](mockVuln)).toBe(8.5);
     });
 
     it('calculates base score correctly for CVSS 3.0', () => {
@@ -379,7 +379,7 @@ describe.skip('VulnDetails.vue', () => {
         } as DataResponse<VulnerabilityDetails>);
 
         const wrapper = createWrapper();
-        expect(wrapper.vm.getBaseScore(mockVuln)).toBe(6.5);
+        expect((wrapper.vm as any)['getBaseScore'](mockVuln)).toBe(6.5);
     });
 
     it('calculates base score correctly for CVSS 2.0', () => {
@@ -401,7 +401,7 @@ describe.skip('VulnDetails.vue', () => {
         } as DataResponse<VulnerabilityDetails>);
 
         const wrapper = createWrapper();
-        expect(wrapper.vm.getBaseScore(mockVuln)).toBe(4.5);
+        expect((wrapper.vm as any)['getBaseScore'](mockVuln)).toBe(4.5);
     });
 
     it('returns null for missing base score', () => {
@@ -412,7 +412,7 @@ describe.skip('VulnDetails.vue', () => {
         } as DataResponse<VulnerabilityDetails>);
 
         const wrapper = createWrapper();
-        expect(wrapper.vm.getBaseScore(mockVuln)).toBeNull();
+        expect((wrapper.vm as any)['getBaseScore'](mockVuln)).toBeNull();
     });
 
     it('determines severity level correctly', () => {
@@ -432,7 +432,7 @@ describe.skip('VulnDetails.vue', () => {
             integrity_impact: 'H',
             availability_impact: 'H'
         };
-        expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('critical');
+        expect((wrapper.vm as any)['getSeverityLevel'](mockVuln)).toBe('critical');
 
         // Test high
         mockVuln.severities.cvss_31 = {
@@ -447,7 +447,7 @@ describe.skip('VulnDetails.vue', () => {
             integrity_impact: 'H',
             availability_impact: 'N'
         };
-        expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('high');
+        expect((wrapper.vm as any)['getSeverityLevel'](mockVuln)).toBe('high');
 
         // Test medium
         mockVuln.severities.cvss_31 = {
@@ -462,7 +462,7 @@ describe.skip('VulnDetails.vue', () => {
             integrity_impact: 'N',
             availability_impact: 'N'
         };
-        expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('medium');
+        expect((wrapper.vm as any)['getSeverityLevel'](mockVuln)).toBe('medium');
 
         // Test low
         mockVuln.severities.cvss_31 = {
@@ -477,7 +477,7 @@ describe.skip('VulnDetails.vue', () => {
             integrity_impact: 'N',
             availability_impact: 'N'
         };
-        expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('low');
+        expect((wrapper.vm as any)['getSeverityLevel'](mockVuln)).toBe('low');
 
         // Test none
         mockVuln.severities.cvss_31 = {
@@ -492,7 +492,7 @@ describe.skip('VulnDetails.vue', () => {
             integrity_impact: 'N',
             availability_impact: 'N'
         };
-        expect(wrapper.vm.getSeverityLevel(mockVuln)).toBe('none');
+        expect((wrapper.vm as any)['getSeverityLevel'](mockVuln)).toBe('none');
     });
 
     it('calculates security score correctly', () => {
@@ -512,28 +512,28 @@ describe.skip('VulnDetails.vue', () => {
             integrity_impact: 'H',
             availability_impact: 'H'
         };
-        expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('F');
+        expect((wrapper.vm as any)['calculateSecurityScore'](mockVuln)).toBe('F');
 
         // Test high -> D
         mockVuln.severities.cvss_31 = {
             base_score: 8.0,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
         };
-        expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('D');
+        expect((wrapper.vm as any)['calculateSecurityScore'](mockVuln)).toBe('D');
 
         // Test medium -> B
         mockVuln.severities.cvss_31 = {
             base_score: 5.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('B');
+        expect((wrapper.vm as any)['calculateSecurityScore'](mockVuln)).toBe('B');
 
         // Test low -> A
         mockVuln.severities.cvss_31 = {
             base_score: 2.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.calculateSecurityScore(mockVuln)).toBe('A');
+        expect((wrapper.vm as any)['calculateSecurityScore'](mockVuln)).toBe('A');
     });
 
     it('gets security score variant correctly', () => {
@@ -545,28 +545,28 @@ describe.skip('VulnDetails.vue', () => {
             base_score: 2.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('success');
+        expect((wrapper.vm as any)['getSecurityScoreVariant'](mockVuln)).toBe('success');
 
         // Test F -> danger
         mockVuln.severities.cvss_31 = {
             base_score: 9.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         };
-        expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('danger');
+        expect((wrapper.vm as any)['getSecurityScoreVariant'](mockVuln)).toBe('danger');
 
         // Test D -> danger
         mockVuln.severities.cvss_31 = {
             base_score: 8.0,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
         };
-        expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('danger');
+        expect((wrapper.vm as any)['getSecurityScoreVariant'](mockVuln)).toBe('danger');
 
         // Test B -> default
         mockVuln.severities.cvss_31 = {
             base_score: 5.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.getSecurityScoreVariant(mockVuln)).toBe('default');
+        expect((wrapper.vm as any)['getSecurityScoreVariant'](mockVuln)).toBe('default');
     });
 
     it('gets security score description correctly', () => {
@@ -577,13 +577,13 @@ describe.skip('VulnDetails.vue', () => {
             base_score: 2.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.getSecurityScoreDescription(mockVuln)).toBe('Excellent security');
+        expect((wrapper.vm as any)['getSecurityScoreDescription'](mockVuln)).toBe('Excellent security');
 
         mockVuln.severities.cvss_31 = {
             base_score: 9.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         };
-        expect(wrapper.vm.getSecurityScoreDescription(mockVuln)).toBe('Critical security issues');
+        expect((wrapper.vm as any)['getSecurityScoreDescription'](mockVuln)).toBe('Critical security issues');
     });
 
     it('counts critical and high vulnerabilities correctly', () => {
@@ -595,21 +595,21 @@ describe.skip('VulnDetails.vue', () => {
             base_score: 9.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         };
-        expect(wrapper.vm.getCriticalHighCount(mockVuln)).toBe(1);
+        expect((wrapper.vm as any)['getCriticalHighCount'](mockVuln)).toBe(1);
 
         // High
         mockVuln.severities.cvss_31 = {
             base_score: 8.0,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
         };
-        expect(wrapper.vm.getCriticalHighCount(mockVuln)).toBe(1);
+        expect((wrapper.vm as any)['getCriticalHighCount'](mockVuln)).toBe(1);
 
         // Medium
         mockVuln.severities.cvss_31 = {
             base_score: 5.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.getCriticalHighCount(mockVuln)).toBe(0);
+        expect((wrapper.vm as any)['getCriticalHighCount'](mockVuln)).toBe(0);
     });
 
     it('gets medium/low count description correctly', () => {
@@ -621,21 +621,21 @@ describe.skip('VulnDetails.vue', () => {
             base_score: 5.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.getMediumLowCount(mockVuln)).toBe('1 medium, 0 low');
+        expect((wrapper.vm as any)['getMediumLowCount'](mockVuln)).toBe('1 medium, 0 low');
 
         // Low
         mockVuln.severities.cvss_31 = {
             base_score: 2.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
         };
-        expect(wrapper.vm.getMediumLowCount(mockVuln)).toBe('0 medium, 1 low');
+        expect((wrapper.vm as any)['getMediumLowCount'](mockVuln)).toBe('0 medium, 1 low');
 
         // Critical
         mockVuln.severities.cvss_31 = {
             base_score: 9.5,
             vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         };
-        expect(wrapper.vm.getMediumLowCount(mockVuln)).toBe('0 medium, 0 low');
+        expect((wrapper.vm as any)['getMediumLowCount'](mockVuln)).toBe('0 medium, 0 low');
     });
 
     it('gets version status correctly', () => {
@@ -650,10 +650,10 @@ describe.skip('VulnDetails.vue', () => {
             keywords: ['test'],
             package_manager_links: []
         } as any;
-        expect(wrapper.vm.getVersionStatus(mockVuln)).toBe('v1.2.3');
+        expect((wrapper.vm as any)['getVersionStatus'](mockVuln)).toBe('v1.2.3');
 
         mockVuln.dependency_info = undefined;
-        expect(wrapper.vm.getVersionStatus(mockVuln)).toBe('Unknown');
+        expect((wrapper.vm as any)['getVersionStatus'](mockVuln)).toBe('Unknown');
     });
 
     it('gets package manager correctly', () => {
@@ -661,10 +661,10 @@ describe.skip('VulnDetails.vue', () => {
         const mockVuln = createMockVulnerabilityDetails();
 
         mockVuln.other = { package_manager: 'npm' } as any;
-        expect(wrapper.vm.getPackageManager(mockVuln)).toBe('npm');
+        expect((wrapper.vm as any)['getPackageManager'](mockVuln)).toBe('npm');
 
         mockVuln.other = { package_manager: 'unknown' } as any;
-        expect(wrapper.vm.getPackageManager(mockVuln)).toBe('unknown');
+        expect((wrapper.vm as any)['getPackageManager'](mockVuln)).toBe('unknown');
     });
 
     it('toggles references limit correctly', async () => {
@@ -681,19 +681,19 @@ describe.skip('VulnDetails.vue', () => {
         const wrapper = createWrapper();
 
         await vi.waitFor(() => {
-            expect(wrapper.vm.render).toBe(true);
+            expect((wrapper.vm as any)['render']).toBe(true);
         });
 
         // Initially shows 8 references
-        expect(wrapper.vm.references_limit).toBe(8);
+        expect((wrapper.vm as any)['references_limit']).toBe(8);
 
         // Toggle to show all
-        wrapper.vm.toggleReferences();
-        expect(wrapper.vm.references_limit).toBe(15);
+        (wrapper.vm as any)['toggleReferences']();
+        expect((wrapper.vm as any)['references_limit']).toBe(15);
 
         // Toggle back to show 8
-        wrapper.vm.toggleReferences();
-        expect(wrapper.vm.references_limit).toBe(8);
+        (wrapper.vm as any)['toggleReferences']();
+        expect((wrapper.vm as any)['references_limit']).toBe(8);
     });
 
     it('opens CVSS modal correctly', () => {
@@ -708,12 +708,12 @@ describe.skip('VulnDetails.vue', () => {
         // Mock the template ref
         (wrapper.vm as any).cvss_field_info_modal_ref = { show: vi.fn() };
 
-        wrapper.vm.openModal(mockData);
+        (wrapper.vm as any)['openModal'](mockData);
 
-        expect(wrapper.vm.cvss_field).toBe('AV');
-        expect(wrapper.vm.cvss_field_value).toBe('N');
-        expect(wrapper.vm.cvss_field_version).toBe('3.1');
-        expect(wrapper.vm.cvss_info).toEqual({ AV: { full_name: 'Attack Vector' } });
+        expect((wrapper.vm as any)['cvss_field']).toBe('AV');
+        expect((wrapper.vm as any)['cvss_field_value']).toBe('N');
+        expect((wrapper.vm as any)['cvss_field_version']).toBe('3.1');
+        expect((wrapper.vm as any)['cvss_info']).toEqual({ AV: { full_name: 'Attack Vector' } });
     });
 
     it('uses analysisID when no finding_id in URL params', async () => {
@@ -770,7 +770,7 @@ describe.skip('VulnDetails.vue', () => {
         const wrapper = createWrapper();
 
         await vi.waitFor(() => {
-            expect(wrapper.vm.chart_version).toBe('cvss31');
+            expect((wrapper.vm as any)['chart_version']).toBe('cvss31');
         });
 
         // Test CVSS 3.0
@@ -786,7 +786,7 @@ describe.skip('VulnDetails.vue', () => {
         const wrapper2 = createWrapper();
 
         await vi.waitFor(() => {
-            expect(wrapper2.vm.chart_version).toBe('cvss3');
+            expect((wrapper2.vm as unknown as Record<string, unknown>)['chart_version']).toBe('cvss3');
         });
 
         // Test CVSS 2.0
@@ -803,7 +803,7 @@ describe.skip('VulnDetails.vue', () => {
         const wrapper3 = createWrapper();
 
         await vi.waitFor(() => {
-            expect(wrapper3.vm.chart_version).toBe('cvss2');
+            expect((wrapper3.vm as unknown as Record<string, unknown>)['chart_version']).toBe('cvss2');
         });
     });
 });

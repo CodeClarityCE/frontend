@@ -145,11 +145,11 @@ function getStepName(index: number): string {
 async function getChart(projectID: string, analysisID: string): Promise<void> {
     let res: DataResponse<object[]>;
     try {
-        if (userStore.getDefaultOrg === null) {
+        if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken === null) {
+        if (authStore.getToken == null) {
             throw new Error('No token');
         }
 
@@ -160,7 +160,9 @@ async function getChart(projectID: string, analysisID: string): Promise<void> {
             bearerToken: authStore.getToken,
             handleBusinessErrors: true
         });
-        chartData.value.datasets[0].data = res.data;
+        if (chartData.value?.datasets?.[0]) {
+            chartData.value.datasets[0].data = res.data;
+        }
     } catch (_err) {
         console.error(_err);
 

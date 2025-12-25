@@ -65,10 +65,12 @@ export async function runAccessibilityTests(
     document.body.appendChild(element);
   }
 
-  const finalConfig = customRules ? { ...config, rules: { ...config.rules, ...customRules } } : config;
+  const finalConfig: RunOptions = customRules
+    ? { ...config, rules: { ...config.rules, ...customRules } as RunOptions['rules'] }
+    : config;
 
   try {
-    const results = axeRun(element as Element, finalConfig);
+    const results = await axeRun(element as Element, finalConfig);
     return results;
   } finally {
     // Clean up if we added the element

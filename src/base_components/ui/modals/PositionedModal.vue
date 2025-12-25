@@ -238,13 +238,13 @@ defineExpose({
         >
             <!-- <div class="positioned-modal-tip" v-bind:style="{ 'top': tip_top+'px' }" style="position: absolute; left: -15px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 15px solid #ddd;"></div> -->
             <div
-                v-if="$slots.title && showTitle"
+                v-if="$slots['title'] && showTitle"
                 class="centered-modal-title rounded p-5 pb-0 font-semibold text-gray-700 text-lg"
             >
                 <slot name="title"></slot>
             </div>
             <div
-                v-if="$slots.subtitle && showSubTitle"
+                v-if="$slots['subtitle'] && showSubTitle"
                 class="centered-modal-subtitle py-2 px-5 font-normal text-gray-500"
             >
                 <slot name="subtitle"></slot>

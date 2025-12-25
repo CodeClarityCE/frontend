@@ -2,6 +2,8 @@
  * Utility functions for exporting SBOM data in various formats
  */
 
+import type { License } from '@/codeclarity_components/results/graph.entity';
+
 export interface ExportDependency {
     name: string;
     version: string;
@@ -13,7 +15,7 @@ export interface ExportDependency {
     outdated?: boolean;
     deprecated?: boolean;
     purl?: string;
-    licenses?: string[];
+    licenses?: License[];
 }
 
 export interface ExportOptions {
@@ -74,7 +76,7 @@ export function convertToCSV(dependencies: ExportDependency[]): string {
     const rows = sortedDeps.map((dep) => {
         const isDirect = dep.is_direct_count > 0 || dep.is_direct;
         const hasUpdate =
-            dep.outdated ?? (dep.newest_release && dep.version !== dep.newest_release);
+            dep.outdated ?? !!(dep.newest_release && dep.version !== dep.newest_release);
         let dependencyType: string;
         if (isDirect) {
             if (dep.prod) {
@@ -129,9 +131,9 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
     // Pre-process dependencies to avoid repeated calculations
     const processedDeps = sortedDeps.map((dep) => {
         const isDirect = dep.is_direct_count > 0 || dep.is_direct;
-        const hasUpdate =
-            dep.outdated ?? (dep.newest_release && dep.version !== dep.newest_release);
-        const needsPackageJsonUpdate = isDirect && hasUpdate;
+        const hasUpdate: boolean =
+            dep.outdated ?? !!(dep.newest_release && dep.version !== dep.newest_release);
+        const needsPackageJsonUpdate: boolean = !!(isDirect && hasUpdate);
 
         // Update counters
         if (isDirect) directCount++;
@@ -420,9 +422,9 @@ export function convertToCycloneDX(
             purl: dep.purl,
             licenses:
                 dep.licenses && dep.licenses.length > 0
-                    ? dep.licenses.map((license: string) => ({
+                    ? dep.licenses.map((license: License) => ({
                           license: {
-                              id: license
+                              id: license.id ?? license.name ?? 'UNKNOWN'
                           }
                       }))
                     : [],

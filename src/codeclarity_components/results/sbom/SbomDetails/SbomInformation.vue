@@ -346,27 +346,27 @@ const getAgeDescription = (): string => {
                         <div class="flex flex-col gap-4">
                             <!-- PHP Composer specific metadata -->
                             <template v-if="ecosystem.type === 'packagist'">
-                                <div v-if="ecosystemMetadata.type" class="flex flex-col gap-2">
+                                <div v-if="ecosystemMetadata['type']" class="flex flex-col gap-2">
                                     <span class="text-sm font-semibold text-gray-700">Type:</span>
                                     <Badge variant="outline" class="w-fit text-xs">{{
-                                        ecosystemMetadata.type
+                                        ecosystemMetadata['type']
                                     }}</Badge>
                                 </div>
-                                <div v-if="ecosystemMetadata.autoload" class="flex flex-col gap-2">
+                                <div v-if="ecosystemMetadata['autoload']" class="flex flex-col gap-2">
                                     <span class="text-sm font-semibold text-gray-700"
                                         >Autoload:</span
                                     >
                                     <code
                                         class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto"
                                         >{{
-                                            JSON.stringify(ecosystemMetadata.autoload, null, 2)
+                                            JSON.stringify(ecosystemMetadata['autoload'], null, 2)
                                         }}</code
                                     >
                                 </div>
                                 <div
                                     v-if="
-                                        ecosystemMetadata.suggest &&
-                                        Object.keys(ecosystemMetadata.suggest).length > 0
+                                        ecosystemMetadata['suggest'] &&
+                                        Object.keys(ecosystemMetadata['suggest']).length > 0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -375,7 +375,7 @@ const getAgeDescription = (): string => {
                                     >
                                     <div class="flex flex-col gap-2 max-h-24 overflow-y-auto">
                                         <div
-                                            v-for="(reason, pkg) in ecosystemMetadata.suggest"
+                                            v-for="(reason, pkg) in ecosystemMetadata['suggest']"
                                             :key="pkg"
                                             class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
                                         >
@@ -396,8 +396,8 @@ const getAgeDescription = (): string => {
                             <template v-if="ecosystem.type === 'npm'">
                                 <div
                                     v-if="
-                                        ecosystemMetadata.keywords &&
-                                        ecosystemMetadata.keywords.length > 0
+                                        Array.isArray(ecosystemMetadata['keywords']) &&
+                                        ecosystemMetadata['keywords'].length > 0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -406,7 +406,7 @@ const getAgeDescription = (): string => {
                                     >
                                     <div class="flex flex-wrap gap-1">
                                         <Badge
-                                            v-for="keyword in ecosystemMetadata.keywords"
+                                            v-for="keyword in ecosystemMetadata['keywords']"
                                             :key="keyword"
                                             variant="outline"
                                             class="text-xs"
@@ -415,21 +415,21 @@ const getAgeDescription = (): string => {
                                         </Badge>
                                     </div>
                                 </div>
-                                <div v-if="ecosystemMetadata.engines" class="flex flex-col gap-2">
+                                <div v-if="ecosystemMetadata['engines']" class="flex flex-col gap-2">
                                     <span class="text-sm font-semibold text-gray-700"
                                         >Engines:</span
                                     >
                                     <code
                                         class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto"
                                         >{{
-                                            JSON.stringify(ecosystemMetadata.engines, null, 2)
+                                            JSON.stringify(ecosystemMetadata['engines'], null, 2)
                                         }}</code
                                     >
                                 </div>
                                 <div
                                     v-if="
-                                        ecosystemMetadata.peerDependencies &&
-                                        Object.keys(ecosystemMetadata.peerDependencies).length > 0
+                                        ecosystemMetadata['peerDependencies'] &&
+                                        Object.keys(ecosystemMetadata['peerDependencies']).length > 0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -440,7 +440,7 @@ const getAgeDescription = (): string => {
                                         <div
                                             v-for="(
                                                 version, pkg
-                                            ) in ecosystemMetadata.peerDependencies"
+                                            ) in ecosystemMetadata['peerDependencies']"
                                             :key="pkg"
                                             class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
                                         >

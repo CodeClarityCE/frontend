@@ -66,7 +66,7 @@ vi.mock('@/base_components/ui/loaders/LoadingSubmitButton.vue', () => ({
   default: defineComponent({
     name: 'LoadingSubmitButton',
     expose: ['setLoading', 'setDisabled'],
-    setup(props, { expose }) {
+    setup(_props, { expose }) {
       const setLoading = vi.fn();
       const setDisabled = vi.fn();
       expose({ setLoading, setDisabled });

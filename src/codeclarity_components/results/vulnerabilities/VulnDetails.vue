@@ -43,10 +43,16 @@ const versions_modal_ref: Ref<typeof PositionedModal> = ref(PositionedModal);
 const cvss_field: Ref<string> = ref('');
 const cvss_field_value: Ref<string> = ref('');
 const cvss_field_version: Ref<string> = ref('');
-type CvssInfo = Record<string, string | number | boolean | undefined>;
+interface CvssInfoField {
+    full_name: string;
+    text: { description: string; value_descriptions: Record<string, string> };
+    values: string[];
+    class: Record<string, string>;
+}
+type CvssInfo = Record<string, CvssInfoField>;
 
 const cvss_info: Ref<CvssInfo> = ref({});
-const cvss_field_info_modal_ref = ref(null);
+const cvss_field_info_modal_ref = ref<{ show: () => void; toggle: () => void } | null>(null);
 const active_view: Ref<string> = ref('patches');
 const readme: Ref<string> = ref('');
 const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
@@ -70,14 +76,14 @@ interface CvssModalData {
     cvss_field: string;
     cvss_field_value: string;
     cvss_field_version: string;
-    cvss_info: CvssInfo;
+    cvss_info: CvssInfo | object;
 }
 
 function openModal(data: CvssModalData): void {
     cvss_field.value = data.cvss_field;
     cvss_field_value.value = data.cvss_field_value;
     cvss_field_version.value = data.cvss_field_version;
-    cvss_info.value = data.cvss_info;
+    cvss_info.value = data.cvss_info as CvssInfo;
     const modal = cvss_field_info_modal_ref.value as { show?: () => void } | null;
     if (modal?.show) {
         modal.show();
@@ -98,10 +104,10 @@ async function getFinding(projectID: string, analysisID: string): Promise<void> 
     }
     let res: DataResponse<VulnerabilityDetails>;
     try {
-        if (userStore.getDefaultOrg === null) {
+        if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
-        if (authStore.getToken === null) {
+        if (authStore.getToken == null) {
             throw new Error('No token');
         }
         res = await resultsRepository.getFinding({
@@ -145,7 +151,7 @@ function getSeverityLevel(
     finding: VulnerabilityDetails
 ): 'critical' | 'high' | 'medium' | 'low' | 'none' {
     const score = getBaseScore(finding);
-    if (score === null) return 'none';
+    if (score == null) return 'none';
     if (score >= 9.0) return 'critical';
     if (score >= 7.0) return 'high';
     if (score >= 4.0) return 'medium';
@@ -439,7 +445,7 @@ function getPackageManagerSubtitleIcon(): string {
                 </div>
             </template>
             <template #buttons>
-                <Button @click="read_me_modal_ref.toggle()"> Close </Button>
+                <Button @click="read_me_modal_ref['toggle']()"> Close </Button>
             </template>
         </CenteredModal>
         <!-- All versions modal -->
@@ -458,7 +464,7 @@ function getPackageManagerSubtitleIcon(): string {
                         :icon="'ic:round-close'"
                         style="cursor: pointer"
                         title="Close modal"
-                        @click="versions_modal_ref.toggle()"
+                        @click="versions_modal_ref['toggle']()"
                         >Close</Icon
                     >
                 </div>
@@ -574,26 +580,26 @@ function getPackageManagerSubtitleIcon(): string {
                 </div>
             </template>
             <template #buttons>
-                <Button variant="outline" @click="versions_modal_ref.toggle()"> Close </Button>
+                <Button variant="outline" @click="versions_modal_ref['toggle']()"> Close </Button>
             </template>
         </PositionedModal>
         <!-- CVSS Details Modal -->
         <CenteredModal ref="cvss_field_info_modal_ref">
             <template #title>
                 <span>CVSS{{ cvss_field_version }} - </span>
-                {{ cvss_info[cvss_field].full_name }}
+                {{ cvss_info[cvss_field]?.full_name }}
             </template>
             <template #subtitle> What does this mean for you? </template>
             <template #content>
                 <div style="max-width: 40vw">
                     <div style="margin-bottom: 20px">
-                        {{ cvss_info[cvss_field].text.description }}
+                        {{ cvss_info[cvss_field]?.text?.description }}
                     </div>
                     <div class="cvss-field-value" style="font-weight: 900">
-                        <div v-for="field_value in cvss_info[cvss_field].values" :key="field_value">
+                        <div v-for="field_value in cvss_info[cvss_field]?.values ?? []" :key="field_value">
                             <div
                                 v-if="field_value[0] === cvss_field_value"
-                                :class="cvss_info[cvss_field].class[cvss_field_value]"
+                                :class="cvss_info[cvss_field]?.class?.[cvss_field_value]"
                             >
                                 {{ field_value }}
                             </div>
@@ -603,12 +609,12 @@ function getPackageManagerSubtitleIcon(): string {
                         </div>
                     </div>
                     <div style="margin-top: 20px">
-                        {{ cvss_info[cvss_field].text.value_descriptions[cvss_field_value] }}
+                        {{ cvss_info[cvss_field]?.text?.value_descriptions?.[cvss_field_value] }}
                     </div>
                 </div>
             </template>
             <template #buttons>
-                <Button variant="outline" @click="cvss_field_info_modal_ref.toggle()">
+                <Button variant="outline" @click="cvss_field_info_modal_ref?.toggle?.()">
                     Close
                 </Button>
             </template>

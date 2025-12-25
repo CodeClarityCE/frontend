@@ -404,11 +404,11 @@ describe('SbomInformation.vue', () => {
             const dependency = createMockDependency();
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.props('dependency')).toEqual(dependency);
+            expect(wrapper['props']('dependency')).toEqual(dependency);
         });
 
         it('should require dependency prop', () => {
-            expect(SbomInformation.props?.dependency?.required).toBe(true);
+            expect(SbomInformation['props']?.dependency?.required).toBe(true);
         });
     });
 

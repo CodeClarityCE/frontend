@@ -130,8 +130,8 @@ async function fetchOrgAuditLogs(refresh = false): Promise<void> {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _orgId = route.params.orgId;
-    const _search = route.query.search;
+    const _orgId = route.params['orgId'];
+    const _search = route.query['search'];
 
     if (!_orgId) {
         router.back();

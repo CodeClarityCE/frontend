@@ -108,16 +108,15 @@ watch([activeFilters, repos], () => {
 
 // Methods
 async function updateSort(key: string | null): Promise<void> {
-    if (key === undefined) return;
-    if (key !== undefined)
-        if (key === sortKey.value) {
-            // If we select the same column then we reverse the direction
-            sortDirection.value =
-                sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
-        } else {
-            // Default direction
-            sortDirection.value = SortDirection.DESC;
-        }
+    if (key == null) return;
+    if (key === sortKey.value) {
+        // If we select the same column then we reverse the direction
+        sortDirection.value =
+            sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+    } else {
+        // Default direction
+        sortDirection.value = SortDirection.DESC;
+    }
     sortKey.value = key;
     await fetchRepos(true);
 }

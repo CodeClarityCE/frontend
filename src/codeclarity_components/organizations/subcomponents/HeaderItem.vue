@@ -7,7 +7,7 @@ import router from '@/router';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { type APIErrors } from '@/utils/api/ApiErrors';
+import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
@@ -44,7 +44,7 @@ async function fetchOrgInfo(): Promise<void> {
                 errorCode.value = err.error_code;
             }
             console.error(err);
-            void emit('onOrgInfoError', err);
+            void emit('onOrgInfoError', err as Error | BusinessLogicError);
         } finally {
             loading.value = false;
         }

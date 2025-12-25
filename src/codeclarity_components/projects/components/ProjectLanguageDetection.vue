@@ -27,7 +27,7 @@ const error: Ref<boolean> = ref(false);
 const languageDetectionService = new LanguageDetectionService();
 
 async function detectLanguages(): Promise<void> {
-    if (!authStore.getAuthenticated || !authStore.getToken) return;
+    if (!authStore.getAuthenticated || !authStore.getToken || !viewState.orgId) return;
     if (!props.project.analyses || props.project.analyses.length === 0) return;
 
     // Get the most recent completed analysis

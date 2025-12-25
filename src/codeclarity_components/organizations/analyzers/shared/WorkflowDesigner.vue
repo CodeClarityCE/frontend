@@ -12,7 +12,7 @@ import { Icon } from '@iconify/vue';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { Position, type Edge, useVueFlow, VueFlow } from '@vue-flow/core';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, markRaw, onMounted, onUnmounted, ref } from 'vue';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
@@ -38,11 +38,13 @@ try {
 
 const { fitView } = vueFlowInstance ?? { fitView: () => { /* no-op fallback */ } };
 
-// Using type assertion to satisfy VueFlow's expected node types
-const nodeTypes = {
-    analyzer: AnalyzerNodeComponent,
-    config: ConfigNodeComponent
-} as Record<string, unknown>;
+// Using markRaw to prevent Vue from making components reactive
+// and type assertion to satisfy VueFlow's expected node types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const nodeTypes: any = {
+    analyzer: markRaw(AnalyzerNodeComponent),
+    config: markRaw(ConfigNodeComponent)
+};
 
 // Context menu for adding nodes
 const showContextMenu = ref(false);
@@ -221,7 +223,8 @@ function onSelectionChange(selection: { nodes?: (AnalyzerNode | ConfigNode)[] })
     }
 }
 
-function onNodeClick(eventData: { node?: AnalyzerNode | ConfigNode; data?: unknown; id?: string; target?: unknown }): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function onNodeClick(eventData: any): void {
     if (props.readonly) return;
     try {
         let node = null;
@@ -276,7 +279,8 @@ function deleteNode(node: { id?: string }): void {
     }
 }
 
-function onNodeContextMenu(event: { event?: MouseEvent; node?: { id?: string }; target?: unknown }): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function onNodeContextMenu(event: any): void {
     if (props.readonly) return;
     try {
         const mouseEvent = event.event ?? (event as unknown as MouseEvent);

@@ -216,7 +216,7 @@ const emit = defineEmits<(e: 'refetch') => void>();
                 variant="outline"
                 @click="
                     centeredModalActionId = undefined;
-                    centeredModalRef.toggle();
+                    centeredModalRef?.toggle();
                 "
             >
                 Cancel

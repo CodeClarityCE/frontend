@@ -58,7 +58,7 @@ async function fetch(refresh = false): Promise<void> {
             handleBusinessErrors: true,
             integrationIds: props.integrationIds
         });
-        if (resp.data.length === 0) noData.value = true;
+        if (Object.keys(resp.data).length === 0) noData.value = true;
         void generateChartData(resp.data);
     } catch (_err) {
         error.value = true;

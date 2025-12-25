@@ -56,7 +56,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const name = row.getValue('name');
+            const name = row.getValue('name') as string;
 
             return h(
                 'span',
@@ -461,7 +461,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDirectCount = row.getValue('is_direct_count');
+            const isDirectCount = row.getValue('is_direct_count') as number;
             const isDirect = isDirectCount > 0;
 
             return h(
@@ -497,7 +497,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isTransitiveCount = row.getValue('is_transitive_count');
+            const isTransitiveCount = row.getValue('is_transitive_count') as number;
             const isTransitive = isTransitiveCount > 0;
 
             return h(

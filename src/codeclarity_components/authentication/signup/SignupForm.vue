@@ -19,6 +19,7 @@ import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 import { Icon } from '@iconify/vue';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -175,7 +176,7 @@ async function submit(values: {
                     </AlertDescription>
                 </Alert>
 
-                <div :class="cn('grid gap-6', $attrs.class ?? '')">
+                <div :class="cn('grid gap-6', $attrs['class'] ?? '')">
                     <!-- Content -->
                     <Form
                         v-if="!loading"
@@ -190,7 +191,7 @@ async function submit(values: {
                                     <Input
                                         type="text"
                                         placeholder="Enter your email"
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                     />
                                 </FormControl>
                                 <!-- <FormDescription>
@@ -207,7 +208,7 @@ async function submit(values: {
                                         <Input
                                             type="text"
                                             placeholder="Enter your first name"
-                                            v-bind="componentField"
+                                            v-bind="filterUndefined(componentField)"
                                         />
                                     </FormControl>
                                     <!-- <FormDescription>
@@ -223,7 +224,7 @@ async function submit(values: {
                                         <Input
                                             type="text"
                                             placeholder="Enter your last name"
-                                            v-bind="componentField"
+                                            v-bind="filterUndefined(componentField)"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -237,7 +238,7 @@ async function submit(values: {
                                     <Input
                                         type="text"
                                         placeholder="Enter your handle (username)"
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -250,7 +251,7 @@ async function submit(values: {
                                     <Input
                                         type="password"
                                         placeholder="Enter your password"
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -263,7 +264,7 @@ async function submit(values: {
                                     <Input
                                         type="password"
                                         placeholder="Confirm your password"
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                     />
                                 </FormControl>
                                 <FormMessage />

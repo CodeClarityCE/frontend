@@ -73,7 +73,8 @@ async function submit(): Promise<void> {
             data: {
                 name: name.value,
                 description: description.value,
-                steps: arr
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                steps: arr as any
             },
             bearerToken: authStore.getToken ?? ''
         });
@@ -90,7 +91,7 @@ async function submit(): Promise<void> {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _orgId = route.params.orgId;
+    const _orgId = route.params['orgId'];
 
     if (!_orgId) {
         router.back();
@@ -118,7 +119,7 @@ async function init(): Promise<void> {
     }
 
     try {
-        analyzer_id.value = route.query.analyzerId as string;
+        analyzer_id.value = route.query['analyzerId'] as string;
         const res = await analyzerRepo.getAnalyzer({
             orgId: defaultOrg!.value!.id,
             bearerToken: authStore.getToken ?? '',

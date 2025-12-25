@@ -7,6 +7,7 @@ import { Textarea } from '@/shadcn/ui/textarea';
 import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import { Icon } from '@iconify/vue';
 import { toTypedSchema } from '@vee-validate/zod';
 import { useForm } from 'vee-validate';
@@ -67,7 +68,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                             <FormControl>
                                 <div class="relative">
                                     <Input
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                         type="text"
                                         placeholder="Enter organization name..."
                                         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200 bg-gray-50 focus:bg-white"
@@ -93,7 +94,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                             <FormControl>
                                 <div class="relative">
                                     <Textarea
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                         rows="4"
                                         placeholder="Describe your organization's purpose and goals..."
                                         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200 bg-gray-50 focus:bg-white resize-none"

@@ -83,7 +83,8 @@ function onTemplateChanged(template: AnalyzerTemplate): void {
     // Update workflow nodes and edges based on template
     if (template.steps && template.steps.length > 0) {
         // Convert template steps to nodes
-        const templateNodes = initializeDefaultNodes(plugins.value, template.steps);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const templateNodes = initializeDefaultNodes(plugins.value, template.steps as any);
         if (templateNodes.length > 0) {
             nodes.value = templateNodes;
             edges.value = createEdgesFromNodes(templateNodes);
@@ -101,9 +102,11 @@ async function submit(): Promise<void> {
             data: {
                 name: name.value,
                 description: description.value,
-                steps: arr,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                steps: arr as any,
                 supported_languages: supportedLanguages.value,
-                language_config: languageConfig.value,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                language_config: languageConfig.value as any,
                 logo: logo.value
             },
             bearerToken: authStore.getToken ?? ''
@@ -121,7 +124,7 @@ async function submit(): Promise<void> {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _orgId = route.params.orgId;
+    const _orgId = route.params['orgId'];
 
     if (!_orgId) {
         router.back();

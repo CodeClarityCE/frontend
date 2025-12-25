@@ -157,7 +157,7 @@ async function validateGitlabInstanceUrl(): Promise<void> {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _orgId = route.params.orgId;
+    const _orgId = route.params['orgId'];
 
     if (!_orgId) {
         router.back();
@@ -724,7 +724,7 @@ void init();
         <template #buttons>
             <Button
                 class="bg-theme-black hover:bg-theme-gray text-white"
-                @click="selfHostedModalRef.toggle()"
+                @click="selfHostedModalRef?.toggle()"
             >
                 Done
             </Button>

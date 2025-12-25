@@ -63,8 +63,7 @@ const composerPackages = computed(() => {
     // Filter for PHP/Composer dependencies only
     const phpDeps = props.dependencies.filter(
         (dep) =>
-            dep.package_url?.includes('pkg:composer/') ??
-            false ||
+            (dep.package_url?.includes('pkg:composer/') ?? false) ||
             dep.ecosystem === 'composer' ||
             (dep.name?.includes('/') ?? false) // Composer packages typically have vendor/package format
     );

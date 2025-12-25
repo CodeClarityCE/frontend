@@ -133,7 +133,7 @@ async function deleteProject(): Promise<void> {
                         variant="ghost"
                         size="sm"
                         class="h-8 w-8 p-0 text-theme-gray/50 hover:text-theme-primary hover:bg-theme-primary/10 transition-all duration-300"
-                        @click="projectOptionsModalRef.toggle()"
+                        @click="projectOptionsModalRef?.toggle()"
                     >
                         <Icon
                             :id="'dot-menu-' + project.id"
@@ -167,7 +167,7 @@ async function deleteProject(): Promise<void> {
                                 <div
                                     class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-red-50 rounded-md transition-colors duration-200 text-red-600"
                                     title="Delete the project"
-                                    @click="projectDeleteModalRef.toggle()"
+                                    @click="projectDeleteModalRef?.toggle()"
                                 >
                                     <Icon class="h-4 w-4" icon="solar:trash-bin-trash-linear" />
                                     <span>Delete Project</span>
@@ -248,7 +248,7 @@ async function deleteProject(): Promise<void> {
             </div>
         </template>
         <template #buttons>
-            <Button variant="outline" @click="projectDeleteModalRef.toggle()"> Cancel </Button>
+            <Button variant="outline" @click="projectDeleteModalRef?.toggle()"> Cancel </Button>
             <Button
                 variant="destructive"
                 class="flex flex-row gap-2 items-center"

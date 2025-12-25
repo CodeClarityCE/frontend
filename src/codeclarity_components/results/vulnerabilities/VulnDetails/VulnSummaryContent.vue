@@ -135,7 +135,7 @@ defineProps<{
             <div>
                 <div
                     v-if="
-                        (!finding.weaknesses ?? finding.weaknesses.length === 0) &&
+                        (!finding.weaknesses || finding.weaknesses.length === 0) &&
                         !finding.owasp_top_10
                     "
                 >
@@ -315,7 +315,7 @@ defineProps<{
                                 <a
                                     :href="
                                         'https://' +
-                                        finding.dependency_info?.github_link.repo_full_path
+                                        finding.dependency_info?.github_link
                                     "
                                     title="opens the github repo of the dependency (in a new tab)"
                                     target="_blank"
@@ -393,7 +393,7 @@ defineProps<{
                                     <Icon
                                         :icon="'bi:box-arrow-up-right'"
                                         class="cursor-pointer"
-                                        @click="readMeModalRef.toggle()"
+                                        @click="readMeModalRef['toggle']()"
                                     ></Icon>
                                 </CardDescription>
                             </CardHeader>

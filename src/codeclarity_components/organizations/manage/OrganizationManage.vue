@@ -156,7 +156,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                         <!-- Integration Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role === MemberRole.OWNER ?? orgInfo.role === MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -291,7 +291,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                         <!-- Analyzer Management -->
                         <RouterLink
                             v-if="
-                                orgInfo.role === MemberRole.OWNER ?? orgInfo.role === MemberRole.ADMIN
+                                orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN
                             "
                             :to="{
                                 name: 'orgs',
@@ -320,7 +320,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
 
             <!-- Ticket Settings Card -->
             <InfoCard
-                v-if="orgInfo.role === MemberRole.OWNER ?? orgInfo.role === MemberRole.ADMIN"
+                v-if="orgInfo.role === MemberRole.OWNER || orgInfo.role === MemberRole.ADMIN"
                 title="Ticket Settings"
                 description="Configure automatic ticket management behavior"
                 icon="solar:ticket-bold-duotone"
@@ -372,7 +372,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                             @click="
                                 orgActionId = orgId;
                                 orgAction = OrgAction.LEAVE;
-                                orgActionModalRef.toggle();
+                                orgActionModalRef?.toggle();
                             "
                         >
                             <div class="p-2 bg-red-100 rounded-lg">
@@ -393,7 +393,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                             @click="
                                 orgActionId = orgId;
                                 orgAction = OrgAction.DELETE;
-                                orgActionModalRef.toggle();
+                                orgActionModalRef?.toggle();
                             "
                         >
                             <div class="p-2 bg-red-200 rounded-lg">
@@ -625,7 +625,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors"
                 @click="
                     void performOrgAction();
-                    orgActionModalRef.toggle();
+                    orgActionModalRef?.toggle();
                 "
             >
                 {{ orgAction === OrgAction.DELETE ? 'Delete' : 'Leave' }}
@@ -634,7 +634,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition-colors"
                 @click="
                     orgActionId = '';
-                    orgActionModalRef.toggle();
+                    orgActionModalRef?.toggle();
                 "
             >
                 Cancel

@@ -159,7 +159,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
      * Load tickets list
      */
     async function loadTickets(): Promise<void> {
-        if (!auth.getAuthenticated || !defaultOrg?.value ?? !auth.getToken) {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -215,7 +215,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
      * Load all tickets for Kanban view (no pagination limit)
      */
     async function loadAllTickets(): Promise<void> {
-        if (!auth.getAuthenticated || !defaultOrg?.value ?? !auth.getToken) {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -260,7 +260,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
      * Load ticket details
      */
     async function loadTicketDetail(ticketId: string): Promise<void> {
-        if (!auth.getAuthenticated || !defaultOrg?.value ?? !auth.getToken) {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -296,7 +296,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
      * Load vulnerability details for a ticket
      */
     async function loadVulnerabilityDetails(ticketId: string): Promise<void> {
-        if (!auth.getAuthenticated || !defaultOrg?.value ?? !auth.getToken) {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -325,7 +325,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
      * Update ticket status (for Kanban drag and drop)
      */
     async function updateTicketStatus(ticketId: string, newStatus: TicketStatus): Promise<boolean> {
-        if (!auth.getAuthenticated || !defaultOrg?.value ?? !auth.getToken) {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return false;
         }
 
@@ -480,6 +480,6 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
         refresh,
 
         // Store refs
-        defaultOrg
+        defaultOrg: defaultOrg!
     };
 }

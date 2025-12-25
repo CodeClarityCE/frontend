@@ -70,10 +70,16 @@ const table = useVueTable({
 });
 table.setPageSize(pageLimitSelected.value);
 
-function setPageSize(pageSize: string | number): void {
-    const size = typeof pageSize === 'string' ? parseInt(pageSize) : (pageSize ?? 15);
-    table.setPageSize(size);
-    pageLimitSelected.value = size;
+function setPageSize(pageSize: unknown): void {
+    if (pageSize == null) return;
+    if (typeof pageSize === 'string') {
+        const size = parseInt(pageSize);
+        table.setPageSize(size);
+        pageLimitSelected.value = size;
+    } else if (typeof pageSize === 'number') {
+        table.setPageSize(pageSize);
+        pageLimitSelected.value = pageSize;
+    }
 }
 
 function search(_searchKey: string | number | null | undefined): void {

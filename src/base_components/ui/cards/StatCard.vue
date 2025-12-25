@@ -17,7 +17,7 @@
 
                         <!-- Optional subtitle with icon -->
                         <div
-                            v-if="subtitle || $slots.subtitle"
+                            v-if="subtitle || $slots['subtitle']"
                             class="flex items-center gap-1 text-xs"
                         >
                             <Icon
@@ -70,9 +70,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    variant: 'default',
-    subtitle: undefined,
-    subtitleIcon: undefined
+    variant: 'default'
 });
 
 // Map variant to border color - easy to customize for different stat types

@@ -34,7 +34,7 @@ function setOrgInfo(_orgInfo: Organization): void {
 }
 
 const route = useRoute();
-provider.value = route.query.provider as IntegrationProvider;
+provider.value = route.query['provider'] as IntegrationProvider;
 </script>
 <template>
     <div class="flex flex-col gap-8 org-manage-integration-create">

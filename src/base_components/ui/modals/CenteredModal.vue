@@ -31,7 +31,7 @@ defineExpose({
                 <div class="rounded p-5 pb-0 font-semibold text-gray-600 text-lg">
                     <slot name="title"></slot>
                 </div>
-                <div v-if="$slots.subtitle" class="px-5 py-2 font-normal text-gray-600">
+                <div v-if="$slots['subtitle']" class="px-5 py-2 font-normal text-gray-600">
                     <slot name="subtitle"></slot>
                 </div>
                 <div class="mx-5 h-px bg-gray-200 mt-2"></div>

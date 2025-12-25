@@ -31,7 +31,7 @@ const filterState = reactive({
         /** Map from visible item id to its search score. */
         items: new Map() as Map<string, number>,
         /** Set of groups with at least one visible item. */
-        groups: new Set()
+        groups: new Set<string>()
     }
 });
 
@@ -43,7 +43,7 @@ function filterItems() {
     }
 
     // Reset the groups
-    filterState.filtered.groups = new Set();
+    filterState.filtered.groups = new Set<string>();
     let itemCount = 0;
 
     // Check which items should be included
@@ -64,10 +64,6 @@ function filterItems() {
     }
 
     filterState.filtered.count = itemCount;
-}
-
-function handleSelect() {
-    filterState.search = '';
 }
 
 watch(

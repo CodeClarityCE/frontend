@@ -91,16 +91,15 @@ async function fetchOrganizationMembers(refresh = false): Promise<void> {
 }
 
 async function updateSort(key: string | null | undefined): Promise<void> {
-    if (key === undefined) return;
-    if (key !== undefined)
-        if (key === sortKey.value) {
-            // If we select the same column then we reverse the direction
-            sortDirection.value =
-                (sortDirection.value) === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
-        } else {
-            // Default direction
-            sortDirection.value = SortDirection.DESC;
-        }
+    if (key == null) return;
+    if (key === sortKey.value) {
+        // If we select the same column then we reverse the direction
+        sortDirection.value =
+            (sortDirection.value) === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+    } else {
+        // Default direction
+        sortDirection.value = SortDirection.DESC;
+    }
     sortKey.value = key;
     await fetchOrganizationMembers(true);
 }
@@ -117,7 +116,7 @@ watch([search], async () => {
 
 function init(): void {
     const route = useRoute();
-    const _orgId = route.params.orgId;
+    const _orgId = route.params['orgId'];
 
     if (!_orgId) {
         router.back();

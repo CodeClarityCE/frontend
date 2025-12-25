@@ -128,21 +128,21 @@ void fetchLicensePolicies();
                         <div class="license-policy-header">
                             <div>
                                 <div>
-                                    {{ selected_license_policy_object.name }}
+                                    {{ selected_license_policy_object?.name }}
                                     <Badge class="ml-2">Selected</Badge>
                                     <Badge
-                                        v-if="selected_license_policy_object.default === true"
+                                        v-if="selected_license_policy_object?.default === true"
                                         class="ml-2"
                                         >Default
                                     </Badge>
                                 </div>
                                 <div class="text-muted-foreground text-base">
-                                    {{ selected_license_policy_object.description }}
+                                    {{ selected_license_policy_object?.description }}
                                 </div>
                                 <div class="text-muted-foreground text-base">
                                     Disallowed licenses:
                                     <span>{{
-                                        selected_license_policy_object.content.join(', ')
+                                        selected_license_policy_object?.content?.join(', ')
                                     }}</span>
                                 </div>
                             </div>

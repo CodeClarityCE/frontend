@@ -282,7 +282,7 @@ const emit = defineEmits<(e: 'refetch') => void>();
                 <Icon icon="mdi:email-remove"></Icon>
                 Revoke invitation
             </Button>
-            <Button variant="outline" @click="centeredModalRef.toggle()">
+            <Button variant="outline" @click="centeredModalRef?.toggle()">
                 <template #text> Cancel </template>
             </Button>
         </template>

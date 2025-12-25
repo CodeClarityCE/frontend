@@ -3,7 +3,7 @@ import FaqBox from '@/base_components/layout/FaqBox.vue';
 import router from '@/router';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { type APIErrors } from '@/utils/api/ApiErrors';
+import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate } from '@/utils/dateUtils';
 import { successToast } from '@/utils/toasts';
@@ -51,7 +51,7 @@ onMounted(() => {
 });
 
 async function fetchOrgInfo(): Promise<void> {
-    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value) return;
+    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     try {
@@ -72,7 +72,7 @@ async function fetchOrgInfo(): Promise<void> {
 }
 
 async function joinOrg(): Promise<void> {
-    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value) return;
+    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     try {

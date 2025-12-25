@@ -89,9 +89,9 @@ onMounted(() => {
                 .append('rect')
                 .attr('class', `shadow-${groupIndex}`)
                 .attr('x', x1(group.name)! + 2)
-                .attr('y', (d, i) => y(group.data[i] ?? 0) + 2)
+                .attr('y', (_d, i) => y(group.data[i] ?? 0) + 2)
                 .attr('width', x1.bandwidth())
-                .attr('height', (d, i) => height - (y(group.data[i] ?? 0) ?? 0))
+                .attr('height', (_d, i) => height - (y(group.data[i] ?? 0) ?? 0))
                 .attr('fill', '#00000010')
                 .attr('rx', config.rounded ? 6 : 0);
         }
@@ -104,9 +104,9 @@ onMounted(() => {
             .append('rect')
             .attr('class', `bar-${groupIndex}`)
             .attr('x', x1(group.name)!)
-            .attr('y', (d, i) => y(group.data[i] ?? 0))
+            .attr('y', (_d, i) => y(group.data[i] ?? 0))
             .attr('width', x1.bandwidth())
-            .attr('height', (d, i) => height - y(group.data[i] ?? 0))
+            .attr('height', (_d, i) => height - y(group.data[i] ?? 0))
             .attr('fill', group.color)
             .attr('rx', config.rounded ? 6 : 0);
 
@@ -118,9 +118,9 @@ onMounted(() => {
                 .enter()
                 .append('text')
                 .attr('class', `label-${groupIndex}`)
-                .text((d, i) => group.data[i] ?? 0)
+                .text((_d, i) => group.data[i] ?? 0)
                 .attr('x', x1(group.name)! + x1.bandwidth() / 2)
-                .attr('y', (d, i) => y(group.data[i] ?? 0) - (config.labelOffset ?? 5))
+                .attr('y', (_d, i) => y(group.data[i] ?? 0) - (config.labelOffset ?? 5))
                 .attr('text-anchor', 'middle')
                 .style('fill', group.color)
                 .style('font-weight', 'bold')

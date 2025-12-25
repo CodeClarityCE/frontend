@@ -190,8 +190,8 @@ export const RadarChart = function RadarChart(
     axis.append('line')
         .attr('x1', 0)
         .attr('y1', 0)
-        .attr('x2', (d, i) => rScale(maxValue * 1.1) * cos(angleSlice * i - HALF_PI))
-        .attr('y2', (d, i) => rScale(maxValue * 1.1) * sin(angleSlice * i - HALF_PI))
+        .attr('x2', (_d, i) => rScale(maxValue * 1.1) * cos(angleSlice * i - HALF_PI))
+        .attr('y2', (_d, i) => rScale(maxValue * 1.1) * sin(angleSlice * i - HALF_PI))
         .attr('class', 'line')
         .style('stroke', 'white')
         .style('stroke-width', '2px');
@@ -202,8 +202,8 @@ export const RadarChart = function RadarChart(
         .style('font-size', '1em')
         .attr('text-anchor', 'middle')
         .attr('dy', '0.3em')
-        .attr('x', (d, i) => rScale(maxValue * cfg.labelFactor) * cos(angleSlice * i - HALF_PI))
-        .attr('y', (d, i) => rScale(maxValue * cfg.labelFactor) * sin(angleSlice * i - HALF_PI))
+        .attr('x', (_d, i) => rScale(maxValue * cfg.labelFactor) * cos(angleSlice * i - HALF_PI))
+        .attr('y', (_d, i) => rScale(maxValue * cfg.labelFactor) * sin(angleSlice * i - HALF_PI))
         .text((d) => d)
         .call(wrap, cfg.wrapWidth);
 
@@ -260,7 +260,7 @@ export const RadarChart = function RadarChart(
             return radarLine(d.axes);
         })
         .style('stroke-width', `${cfg.strokeWidth  }px`)
-        .style('stroke', (d, i) => cfg.color(i.toString()))
+        .style('stroke', (_d, i) => cfg.color(i.toString()))
         .style('fill', 'none');
 
     //Append the circles
@@ -361,7 +361,7 @@ export const RadarChart = function RadarChart(
             .enter()
             .append('text')
             .attr('x', cfg.w - 145)
-            .attr('y', (d, i) => i * 25 + 24)
+            .attr('y', (_d, i) => i * 25 + 24)
             .attr('font-size', '1.2em')
             .text((d) => d);
     }

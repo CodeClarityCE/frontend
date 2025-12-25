@@ -31,6 +31,7 @@ import SelectValue from '@/shadcn/ui/select/SelectValue.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import { Icon } from '@iconify/vue';
 import { toTypedSchema } from '@vee-validate/zod';
 import { storeToRefs } from 'pinia';
@@ -140,7 +141,7 @@ async function init(): Promise<void> {
     policy_id.value = searchParams.get('policyId') ?? '';
 
     const route = useRoute();
-    const _orgId = route.params.orgId;
+    const _orgId = route.params['orgId'];
 
     if (!_orgId) {
         router.back();
@@ -223,7 +224,7 @@ onBeforeMount(async () => {
                                     <FormControl>
                                         <Input
                                             placeholder="Enter policy name..."
-                                            v-bind="componentField"
+                                            v-bind="filterUndefined(componentField)"
                                             class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
                                         />
                                     </FormControl>
@@ -243,7 +244,7 @@ onBeforeMount(async () => {
                                     <FormControl>
                                         <Input
                                             placeholder="Enter description..."
-                                            v-bind="componentField"
+                                            v-bind="filterUndefined(componentField)"
                                             class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
                                         />
                                     </FormControl>
@@ -261,7 +262,7 @@ onBeforeMount(async () => {
                                         Policy Type
                                         <span class="text-red-500">*</span>
                                     </FormLabel>
-                                    <Select v-bind="componentField">
+                                    <Select v-bind="filterUndefined(componentField)">
                                         <FormControl>
                                             <SelectTrigger
                                                 class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
@@ -322,7 +323,7 @@ onBeforeMount(async () => {
                                             {{ values.licenses.length }} selected
                                         </Badge>
                                     </FormLabel>
-                                    <Select v-bind="componentField" multiple>
+                                    <Select v-bind="filterUndefined(componentField)" multiple>
                                         <FormControl>
                                             <SelectTrigger
                                                 class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"

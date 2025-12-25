@@ -348,9 +348,9 @@ watch(() => filterState.value.activeFilters, init);
 // Sync blacklisted filter with parent component
 const showBlacklistedFromFilter = computed<boolean>(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const blacklistState = filterState.value.filterConfig.BlacklistState;
+    const blacklistState = filterState.value.filterConfig['BlacklistState'];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    return blacklistState?.data?.show_blacklisted?.value ?? false;
+    return blacklistState?.data?.['show_blacklisted']?.value ?? false;
 });
 
 // Define emit for updating parent's showBlacklisted value

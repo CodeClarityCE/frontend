@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import { vAutoAnimate } from '@formkit/auto-animate/vue';
 import { toTypedSchema } from '@vee-validate/zod';
 import { useForm } from 'vee-validate';
@@ -82,7 +83,7 @@ async function updatePersonalInformation(first_name: string, last_name: string):
                     <Input
                         type="text"
                         placeholder="Enter your first name"
-                        v-bind="componentField"
+                        v-bind="filterUndefined(componentField)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
@@ -102,7 +103,7 @@ async function updatePersonalInformation(first_name: string, last_name: string):
                     <Input
                         type="text"
                         placeholder="Enter your last name"
-                        v-bind="componentField"
+                        v-bind="filterUndefined(componentField)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>

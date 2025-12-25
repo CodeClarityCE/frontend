@@ -33,11 +33,11 @@ const hierarchy: Ref<GraphDependency[]> = ref([]);
 
 async function init(): Promise<void> {
     try {
-        if (userStore.getDefaultOrg === null) {
+        if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken === null) {
+        if (authStore.getToken == null) {
             throw new Error('No token');
         }
         const res = await resultsRepository.getDependencyGraph({

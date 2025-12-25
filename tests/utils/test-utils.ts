@@ -1,4 +1,4 @@
-import { render, type RenderOptions } from '@testing-library/vue'
+import { render } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { vi } from 'vitest'
 import type { Component } from 'vue'
@@ -13,11 +13,11 @@ const router = createRouter({
   ]
 })
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'global'> {
+interface CustomRenderOptions {
   global?: {
     plugins?: unknown[]
     mocks?: Record<string, unknown>
-    stubs?: Record<string, unknown>
+    stubs?: Record<string, boolean | Component>
   }
 }
 
@@ -43,18 +43,20 @@ export function renderWithProviders(
   return render(component, {
     ...options,
     global: {
-      ...defaultGlobal,
-      ...options.global,
       plugins: [
         ...defaultGlobal.plugins,
-        ...(optionsPlugins as [])
+        ...(optionsPlugins as unknown[])
       ],
       mocks: {
         ...defaultGlobal.mocks,
         ...options.global?.mocks,
       },
+      stubs: {
+        ...defaultGlobal.stubs,
+        ...options.global?.stubs,
+      },
     },
-  })
+  } as Parameters<typeof render>[1])
 }
 
 /**

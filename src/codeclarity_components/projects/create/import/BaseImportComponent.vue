@@ -37,6 +37,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
 import { errorToast, successToast } from '@/utils/toasts';
 import Faq from './components/FaqComponent.vue';
@@ -319,7 +320,7 @@ function onSelectedReposChange(repos: Repository[]): void {
                                 <Input
                                     type="text"
                                     placeholder="https://github.com/username/repository"
-                                    v-bind="componentField"
+                                    v-bind="filterUndefined(componentField)"
                                     class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
                                 />
                             </FormControl>

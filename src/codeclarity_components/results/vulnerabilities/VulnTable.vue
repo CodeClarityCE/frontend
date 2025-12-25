@@ -423,7 +423,10 @@ const options = ref<Options>({
 for (const category in options.value) {
     const categoryData = options.value[category] as {data: Record<string, {value: boolean}>};
     for (const option in categoryData.data) {
-        categoryData.data[option].value = false;
+        const optionData = categoryData.data[option];
+        if (optionData) {
+            optionData.value = false;
+        }
     }
 }
 
@@ -503,7 +506,7 @@ watch(() => filterState.value.activeFilters, init);
 // Sync blacklisted filter with parent component
 const showBlacklistedFromFilter = computed<boolean>(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    return filterState.value.filterConfig.BlacklistState?.data?.show_blacklisted?.value ?? false;
+    return filterState.value.filterConfig['BlacklistState']?.data?.['show_blacklisted']?.value ?? false;
 });
 
 // Define emit for updating parent's showBlacklisted value

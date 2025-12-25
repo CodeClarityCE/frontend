@@ -426,16 +426,16 @@ onMounted(() => {
              * Generate curved paths connecting parent to child nodes
              * linkHorizontal creates smooth horizontal curves
              */
-            .attr(
-                'd',
-                d3
+            .attr('d', (d) => {
+                const link = d3
                     .linkHorizontal<
                         d3.HierarchyPointLink<GraphDependency & { uniqueId: string }>,
                         d3.HierarchyPointNode<GraphDependency & { uniqueId: string }>
                     >()
-                    .x((d) => d.y)
-                    .y((d) => d.x)
-            );
+                    .x((node) => node.y)
+                    .y((node) => node.x);
+                return link(d as d3.HierarchyPointLink<GraphDependency & { uniqueId: string }>);
+            });
 
         // ===========================================
         // 6. DRAW NODES (CIRCLES AND LABELS)
@@ -719,7 +719,7 @@ onMounted(() => {
             legendSpace,
             hasPrunedNodes,
             prunedNodes,
-            targetDependency: props.targetDependency
+            ...(props.targetDependency !== undefined && { targetDependency: props.targetDependency })
         };
 
         // ===========================================

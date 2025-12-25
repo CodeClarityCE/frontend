@@ -26,7 +26,7 @@
         </CardHeader>
 
         <!-- Optional card content -->
-        <CardContent v-if="$slots.default" class="flex-1 flex flex-col">
+        <CardContent v-if="$slots['default']" class="flex-1 flex flex-col">
             <slot></slot>
         </CardContent>
     </Card>
@@ -55,8 +55,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    variant: 'default',
-    description: undefined
+    variant: 'default'
 });
 
 // Map variant to border color class - easy to modify for new variants

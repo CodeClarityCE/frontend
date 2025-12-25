@@ -46,7 +46,7 @@ describe('UtilitiesFilters', () => {
 
   it('shows active indicator when filters are active', async () => {
     const config = createMockFilterConfig();
-    config.severity!.data.high!.value = true; // Make one filter active
+    config['severity']!['data']['high']!.value = true; // Make one filter active
     const wrapper = createWrapper(config);
 
     // Look for any SVG that might indicate active state
@@ -112,8 +112,8 @@ describe('UtilitiesFilters', () => {
 
     it('toString method works correctly', () => {
       const config = createMockFilterConfig();
-      config.severity!.data.high!.value = true;
-      config.type!.data.bug!.value = true;
+      config['severity']!['data']['high']!.value = true;
+      config['type']!['data']['bug']!.value = true;
 
       const filterState = createNewFilterState(config);
       const result = filterState.toString();

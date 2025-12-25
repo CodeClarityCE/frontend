@@ -172,11 +172,11 @@ async function init(): Promise<void> {
 async function getProject(projectID: string): Promise<void> {
     let res: DataResponse<Project>;
     try {
-        if (userStore.getDefaultOrg === null) {
+        if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken === null) {
+        if (authStore.getToken == null) {
             throw new Error('No token');
         }
 
@@ -208,11 +208,11 @@ async function getProject(projectID: string): Promise<void> {
 async function getAnalysis(projectID: string, analysisID: string): Promise<void> {
     let res: DataResponse<Analysis>;
     try {
-        if (userStore.getDefaultOrg === null) {
+        if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken === null) {
+        if (authStore.getToken == null) {
             throw new Error('No token');
         }
 

@@ -150,11 +150,11 @@ async function getDependency(projectID: string, analysisID: string): Promise<voi
 
     let res: DataResponse<DependencyDetails>;
     try {
-        if (userStore.getDefaultOrg === null) {
+        if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
         }
 
-        if (authStore.getToken === null) {
+        if (authStore.getToken == null) {
             throw new Error('No token');
         }
 

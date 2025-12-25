@@ -62,7 +62,7 @@ async function fetchIntegration(): Promise<void> {
 async function init(): Promise<void> {
     const route = useRoute();
 
-    const _integrationId = route.query.integrationId as string;
+    const _integrationId = route.query['integrationId'] as string;
 
     if (!_integrationId) {
         router.back();

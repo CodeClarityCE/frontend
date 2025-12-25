@@ -53,7 +53,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'description',
         header: 'Description',
         cell: ({ row }) => {
-            const description = row.getValue('description');
+            const description = row.getValue('description') as string | undefined;
             return h(
                 'div',
                 {
@@ -111,7 +111,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_by',
         header: 'Created By',
         cell: ({ row }) => {
-            const createdBy = row.getValue('created_by');
+            const createdBy = row.getValue('created_by') as string | undefined;
             return h('div', { class: 'text-sm text-gray-600' }, createdBy ?? 'Unknown');
         }
     },
@@ -119,7 +119,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_on',
         header: 'Created On',
         cell: ({ row }) => {
-            const date = row.getValue('created_on');
+            const date = row.getValue('created_on') as string | number | Date | undefined;
             if (!date) return h('span', { class: 'text-gray-400' }, 'Unknown');
 
             return h(

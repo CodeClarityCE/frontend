@@ -3,6 +3,7 @@ import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UtilitiesFilters, {
     createNewFilterState,
+    FilterType,
     type FilterState
 } from '@/base_components/filters/UtilitiesFilters.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
@@ -59,7 +60,7 @@ const filterState: Ref<FilterState> = ref<FilterState>(
     createNewFilterState({
         ImportState: {
             name: 'Language',
-            type: 'radio' as const,
+            type: FilterType.RADIO,
             data: {
                 js: {
                     title: 'JavaScript',

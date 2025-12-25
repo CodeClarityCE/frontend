@@ -83,11 +83,11 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
+            queryParams['ecosystem_filter'] = options.ecosystem_filter;
         }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<SbomStats>>({
@@ -110,7 +110,7 @@ export class ResultsRepository extends BaseRepository {
         const queryParams: Record<string, string | number> = {};
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<WorkspacesOutput>>({
@@ -142,11 +142,11 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
+            queryParams['ecosystem_filter'] = options.ecosystem_filter;
         }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<PaginatedResponse<Dependency>>({
@@ -175,7 +175,7 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<DependencyDetails>>({
@@ -204,7 +204,7 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<GraphDependency[]>>({
@@ -236,11 +236,11 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
+            queryParams['ecosystem_filter'] = options.ecosystem_filter;
         }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<PaginatedResponse<License>>({
@@ -265,11 +265,11 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
+            queryParams['ecosystem_filter'] = options.ecosystem_filter;
         }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<AnalysisStats>>({
@@ -300,15 +300,15 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
+            queryParams['ecosystem_filter'] = options.ecosystem_filter;
         }
 
         if (options.show_blacklisted !== undefined) {
-            queryParams.show_blacklisted = options.show_blacklisted.toString();
+            queryParams['show_blacklisted'] = options.show_blacklisted.toString();
         }
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<PaginatedResponse<VulnerabilityMerged>>({
@@ -336,7 +336,7 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
@@ -364,7 +364,7 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<PatchingStats>>({
@@ -393,7 +393,7 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<Workspace>>({
@@ -463,7 +463,7 @@ export class ResultsRepository extends BaseRepository {
         };
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
+            queryParams['run_index'] = options.runIndex;
         }
 
         const response = await this.getRequest<DataResponse<Result>>({

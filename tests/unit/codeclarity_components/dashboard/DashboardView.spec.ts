@@ -12,27 +12,37 @@ vi.mock('@/stores/state', () => ({
 }));
 
 interface MockDashboardData {
-  activeIntegrationIds: ReturnType<typeof computed<string[]>>;
+  isLoading: ReturnType<typeof ref<boolean>>;
+  hasError: ReturnType<typeof ref<boolean>>;
+  orgData: ReturnType<typeof ref<unknown>>;
+  integrations: ReturnType<typeof ref<unknown[]>>;
+  isReady: ReturnType<typeof computed<boolean>>;
+  hasData: ReturnType<typeof computed<boolean>>;
   shouldShowEmptyState: ReturnType<typeof computed<boolean>>;
+  activeIntegrationIds: ReturnType<typeof computed<string[]>>;
+  loadDashboardData: ReturnType<typeof vi.fn>;
   hasIntegrations: ReturnType<typeof computed<boolean>>;
   hasProjects: ReturnType<typeof computed<boolean>>;
-  hasError: ReturnType<typeof ref<boolean>>;
-  isLoading: ReturnType<typeof ref<boolean>>;
-  defaultOrg: ReturnType<typeof ref<{ id: string } | null>>;
   refreshData: ReturnType<typeof vi.fn>;
+  defaultOrg: ReturnType<typeof ref<{ id: string } | null>>;
 }
 
 // Mock composable
 vi.mock('@/codeclarity_components/dashboard/composables/useDashboardData', () => ({
   useDashboardData: vi.fn((): MockDashboardData => ({
-    activeIntegrationIds: ref(['test-id']) as any,
+    isLoading: ref(false),
+    hasError: ref(false),
+    orgData: ref({}) as any,
+    integrations: ref([]) as any,
+    isReady: ref(true) as any,
+    hasData: ref(true) as any,
     shouldShowEmptyState: ref(false) as any,
+    activeIntegrationIds: ref(['test-id']) as any,
+    loadDashboardData: vi.fn(),
     hasIntegrations: ref(true) as any,
     hasProjects: ref(true) as any,
-    hasError: ref(false),
-    isLoading: ref(false),
-    defaultOrg: ref({ id: 'org-123' }),
-    refreshData: vi.fn()
+    refreshData: vi.fn(),
+    defaultOrg: ref({ id: 'org-123' })
   }))
 }));
 
@@ -99,14 +109,19 @@ describe('DashboardView', () => {
   it('should show empty state when shouldShowEmptyState is true', async () => {
     const { useDashboardData } = await import('@/codeclarity_components/dashboard/composables/useDashboardData');
     vi.mocked(useDashboardData).mockReturnValueOnce({
-      activeIntegrationIds: ref([]) as any,
+      isLoading: ref(false),
+      hasError: ref(false),
+      orgData: ref({}) as any,
+      integrations: ref([]) as any,
+      isReady: ref(true) as any,
+      hasData: ref(false) as any,
       shouldShowEmptyState: ref(true) as any,
+      activeIntegrationIds: ref([]) as any,
+      loadDashboardData: vi.fn(),
       hasIntegrations: ref(false) as any,
       hasProjects: ref(false) as any,
-      hasError: ref(false),
-      isLoading: ref(false),
-      defaultOrg: ref({ id: 'org-123' } as any),
-      refreshData: vi.fn()
+      refreshData: vi.fn(),
+      defaultOrg: ref({ id: 'org-123' } as any)
     });
 
     const wrapper = mount(DashboardView);
@@ -151,14 +166,19 @@ describe('DashboardView', () => {
   it('should pass correct props to empty state component', async () => {
     const { useDashboardData } = await import('@/codeclarity_components/dashboard/composables/useDashboardData');
     vi.mocked(useDashboardData).mockReturnValueOnce({
-      activeIntegrationIds: ref([]) as any,
+      isLoading: ref(false),
+      hasError: ref(true),
+      orgData: ref({}) as any,
+      integrations: ref([]) as any,
+      isReady: ref(true) as any,
+      hasData: ref(false) as any,
       shouldShowEmptyState: ref(true) as any,
+      activeIntegrationIds: ref([]) as any,
+      loadDashboardData: vi.fn(),
       hasIntegrations: ref(false) as any,
       hasProjects: ref(true) as any,
-      hasError: ref(true),
-      isLoading: ref(false),
-      defaultOrg: ref({ id: 'org-123' } as any),
-      refreshData: vi.fn()
+      refreshData: vi.fn(),
+      defaultOrg: ref({ id: 'org-123' } as any)
     });
 
     const wrapper = mount(DashboardView);

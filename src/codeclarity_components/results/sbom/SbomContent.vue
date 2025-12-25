@@ -148,7 +148,7 @@ function handleEcosystemFilterChanged(ecosystemType: string | null): void {
 
 async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html'): Promise<void> {
     if (!authStore.getAuthenticated || !authStore.getToken) return;
-    if (!authStore.getAuthenticated || !props.analysisID) return;
+    if (!userStore.getDefaultOrg || !props.analysisID) return;
 
     try {
         const exportMenu = exportMenuRef.value as { setExportProgress?: (msg: string) => void } | null;
@@ -274,7 +274,7 @@ async function handleExportReport(format: 'csv' | 'json' | 'cyclonedx' | 'html')
 
 async function fetchDependencies(): Promise<void> {
     if (!authStore.getAuthenticated || !authStore.getToken) return;
-    if (!authStore.getAuthenticated || !props.analysisID) return;
+    if (!userStore.getDefaultOrg || !props.analysisID) return;
 
     try {
         // Fetch first page to get total count
@@ -438,11 +438,11 @@ function createDepTypeChart(): void {
     const colors = ['#1dce79', '#000000', '#666666'];
 
     // Convert to d3 DoughnutChart format
-    const d3_data: DoughnutChartData = labels.map((label, index) => ({
+    const d3_data = labels.map((label, index) => ({
         label: String(label),
         count: data[index] ?? 0,
         color: colors[index] ?? '#000000'
-    }));
+    })) as DoughnutChartData;
 
     donut_data.value = d3_data;
 }

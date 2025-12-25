@@ -460,11 +460,11 @@ describe.skip('SbomDependencyHealth.vue', () => {
             const dependency = createMockDependency();
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.props('dependency')).toEqual(dependency);
+            expect(wrapper['props']('dependency')).toEqual(dependency);
         });
 
         it('should require dependency prop', () => {
-            expect(SbomDependencyHealth.props?.dependency?.required).toBe(true);
+            expect(SbomDependencyHealth['props']?.dependency?.required).toBe(true);
         });
     });
 

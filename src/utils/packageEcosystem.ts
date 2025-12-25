@@ -185,7 +185,7 @@ export class EcosystemDetector {
 
         // Fallback to PURL detection if available
         if (dependency.purl ?? dependency.package_url) {
-            const purl = dependency.purl ?? dependency.package_url;
+            const purl = (dependency.purl ?? dependency.package_url)!;
             const detected = this.detectFromPURL(purl);
             if (detected.type !== PackageEcosystem.UNKNOWN) {
                 return detected;
@@ -236,14 +236,14 @@ export class EcosystemMetadataExtractor {
      * Extracts NPM-specific metadata from dependency extra field
      */
     static extractNpmMetadata(dependency: Dependency): Record<string, unknown> {
-        if (!dependency.extra?.npm) return {};
+        if (!dependency.extra?.['npm']) return {};
 
-        const npm = dependency.extra.npm as Record<string, unknown>;
+        const npm = dependency.extra['npm'] as Record<string, unknown>;
         return {
-            scripts: npm.scripts,
-            engines: npm.engines,
-            peerDependencies: npm.peerDependencies,
-            keywords: npm.keywords,
+            scripts: npm['scripts'],
+            engines: npm['engines'],
+            peerDependencies: npm['peerDependencies'],
+            keywords: npm['keywords'],
             ...npm
         };
     }
@@ -252,21 +252,21 @@ export class EcosystemMetadataExtractor {
      * Extracts Composer/Packagist-specific metadata from dependency extra field
      */
     static extractComposerMetadata(dependency: Dependency): Record<string, unknown> {
-        if (!dependency.extra?.composer) return {};
+        if (!dependency.extra?.['composer']) return {};
 
-        const composer = dependency.extra.composer as Record<string, unknown>;
+        const composer = dependency.extra['composer'] as Record<string, unknown>;
         return {
-            type: composer.type,
-            autoload: composer.autoload,
+            type: composer['type'],
+            autoload: composer['autoload'],
             autoloadDev: composer['autoload-dev'],
-            require: composer.require,
+            require: composer['require'],
             requireDev: composer['require-dev'],
-            suggest: composer.suggest,
-            provide: composer.provide,
-            conflict: composer.conflict,
-            replace: composer.replace,
-            scripts: composer.scripts,
-            config: composer.config,
+            suggest: composer['suggest'],
+            provide: composer['provide'],
+            conflict: composer['conflict'],
+            replace: composer['replace'],
+            scripts: composer['scripts'],
+            config: composer['config'],
             ...composer
         };
     }

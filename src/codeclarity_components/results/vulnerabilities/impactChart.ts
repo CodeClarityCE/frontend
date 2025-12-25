@@ -2,12 +2,13 @@ interface CvssImpact {
     confidentiality_impact?: string;
     availability_impact?: string;
     integrity_impact?: string;
+    [key: string]: string | number | null | undefined;
 }
 
 interface FindingSeverities {
-    cvss_31: CvssImpact | null;
-    cvss_3: CvssImpact | null;
-    cvss_2: CvssImpact | null;
+    cvss_31?: CvssImpact | null;
+    cvss_3?: CvssImpact | null;
+    cvss_2?: CvssImpact | null;
 }
 
 interface Finding {
@@ -15,7 +16,7 @@ interface Finding {
 }
 
 function getData(finding: Finding): number[] | null {
-    if (finding.severities.cvss_31 !== null) {
+    if (finding.severities.cvss_31 != null) {
         const confidentiality = getContinousFromDiscreteCVSS3(
             finding.severities.cvss_31.confidentiality_impact
         );
@@ -35,7 +36,7 @@ function getData(finding: Finding): number[] | null {
             integrity / max_integrity === 0 ? 0.1 : integrity / max_integrity,
             availability / max_availability === 0 ? 0.1 : availability / max_availability
         ];
-    } else if (finding.severities.cvss_3 !== null) {
+    } else if (finding.severities.cvss_3 != null) {
         const confidentiality = getContinousFromDiscreteCVSS3(
             finding.severities.cvss_3.confidentiality_impact
         );
@@ -53,7 +54,7 @@ function getData(finding: Finding): number[] | null {
             integrity / max_integrity === 0 ? 0.1 : integrity / max_integrity,
             availability / max_availability === 0 ? 0.1 : availability / max_availability
         ];
-    } else if (finding.severities.cvss_2 !== null) {
+    } else if (finding.severities.cvss_2 != null) {
         const confidentiality = getContinousFromDiscreteCVSS2(
             finding.severities.cvss_2.confidentiality_impact
         );

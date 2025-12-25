@@ -13,6 +13,7 @@ import { columns } from './table/columns';
 import DataTable from './table/DataTable.vue';
 
 interface StatsData {
+    number_of_dependencies?: number;
     number_of_outdated_dependencies?: number;
     number_of_direct_dependencies?: number;
     number_of_non_dev_dependencies?: number;

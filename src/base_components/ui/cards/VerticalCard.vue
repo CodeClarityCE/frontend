@@ -5,7 +5,7 @@
         :class="[borderColor, containerClass]"
     >
         <!-- Header Section -->
-        <CardHeader v-if="title || icon || $slots.header" class="pb-3">
+        <CardHeader v-if="title || icon || $slots['header']" class="pb-3">
             <div class="flex items-start justify-between">
                 <!-- Title and icon -->
                 <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -24,7 +24,7 @@
                 </div>
 
                 <!-- Header actions slot -->
-                <div v-if="$slots.actions" class="flex-shrink-0 ml-2">
+                <div v-if="$slots['actions']" class="flex-shrink-0 ml-2">
                     <slot name="actions"></slot>
                 </div>
             </div>
@@ -39,7 +39,7 @@
         </CardContent>
 
         <!-- Footer Section -->
-        <CardContent v-if="$slots.footer" class="pt-0 mt-auto">
+        <CardContent v-if="$slots['footer']" class="pt-0 mt-auto">
             <slot name="footer"></slot>
         </CardContent>
     </Card>
@@ -82,9 +82,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     variant: 'default',
-    title: undefined,
-    subtitle: undefined,
-    icon: undefined,
     containerClass: '',
     contentClass: ''
 });

@@ -338,12 +338,12 @@ describe('SbomDetailsHeader.vue', () => {
             const dependency = createMockDependency();
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.props('dependency')).toEqual(dependency);
+            expect(wrapper['props']('dependency')).toEqual(dependency);
         });
 
         it('should require dependency prop', () => {
             // This would normally throw in real Vue but in tests we check component definition
-            expect(SbomDetailsHeader.props?.dependency?.required).toBe(true);
+            expect(SbomDetailsHeader['props']?.dependency?.required).toBe(true);
         });
     });
 

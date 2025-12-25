@@ -109,7 +109,7 @@ describe('ActiveFilterBar', () => {
     await removeButton.trigger('click');
 
     // Check that the filter value was set to false
-    expect(filterState.filterConfig.severity!.data.high!.value).toBe(false);
+    expect(filterState.filterConfig['severity']!['data']['high']!.value).toBe(false);
   });
 
   it('has correct styling for filter chips', () => {
@@ -264,7 +264,7 @@ describe('ActiveFilterBar', () => {
     const filterState = createMockFilterState([mockCheckboxFilter]);
 
     // Spy on the filter state to ensure it gets modified
-    const originalValue = filterState.filterConfig.severity!.data.high!.value;
+    const originalValue = filterState.filterConfig['severity']!['data']['high']!.value;
     expect(originalValue).toBe(true);
 
     const wrapper = mount(ActiveFilterBar, {
@@ -276,7 +276,7 @@ describe('ActiveFilterBar', () => {
     const removeButton = wrapper.find('.cursor-pointer');
     await removeButton.trigger('click');
 
-    expect(filterState.filterConfig.severity!.data.high!.value).toBe(false);
+    expect(filterState.filterConfig['severity']!['data']['high']!.value).toBe(false);
   });
 
   it('handles empty filter list gracefully', () => {

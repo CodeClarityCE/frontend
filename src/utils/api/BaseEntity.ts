@@ -38,7 +38,7 @@ export abstract class Entity {
     }
 
     static validate(instance: unknown): void {
-        const errors = validateSync(instance, { stopAtFirstError: true });
+        const errors = validateSync(instance as object, { stopAtFirstError: true });
         if (errors.length > 0) {
             console.error(errors);
             throw new MalformedResponse();

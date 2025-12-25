@@ -187,7 +187,7 @@ export async function waitForVisualStability(
  * Create a visual test suite for a component across multiple breakpoints
  */
 export function createResponsiveVisualTest(
-  componentName: string,
+  _componentName: string,
   renderComponent: () => VueWrapper,
   scenarios: {
     name: string;

@@ -32,12 +32,18 @@ const authStore = useAuthStore();
 
 const { defaultOrg } = storeToRefs(userStore);
 
+// Chart types
+interface ChartData {
+    labels: string[];
+    datasets: { data: number[] }[];
+}
+
 // State
 const data: Ref<SeverityInfoByWeek[] | undefined> = ref();
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const chartData: Ref<unknown> = ref();
+const chartData: Ref<ChartData | undefined> = ref();
 const noData: Ref<boolean> = ref(false);
 
 async function fetch(refresh = false): Promise<void> {
@@ -116,7 +122,7 @@ function generateChart(stats: SeverityInfoByWeek[]): void {
             <div v-else>
                 <div v-if="error"></div>
                 <div v-else>
-                    <div class="dashboard-exposure-graph">
+                    <div v-if="chartData" class="dashboard-exposure-graph">
                         <LineChart :chart-data="chartData"></LineChart>
                     </div>
                 </div>
@@ -151,8 +157,8 @@ function generateChart(stats: SeverityInfoByWeek[]): void {
                     <div class="flex flex-row justify-between">
                         <div class="flex flex-col gap-2">
                             <template
-                                v-for="(exposure, index) in data!.slice().reverse()"
-                                :key="index"
+                                v-for="(exposure, _index) in data!.slice().reverse()"
+                                :key="_index"
                             >
                                 <div class="flex flex-col gap-y-3 justify-between items-center">
                                     <div class="week">

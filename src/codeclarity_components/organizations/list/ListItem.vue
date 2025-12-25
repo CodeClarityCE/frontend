@@ -165,7 +165,7 @@ function performOrgAction(): void {
                                 @click="
                                     orgActionId = membership.organization.id;
                                     orgAction = OrgAction.LEAVE;
-                                    orgActionModalRef.toggle();
+                                    orgActionModalRef?.toggle();
                                 "
                             >
                                 <Icon icon="solar:exit-bold" class="text-orange-600" />
@@ -177,7 +177,7 @@ function performOrgAction(): void {
                                 @click="
                                     orgActionId = membership.organization.id;
                                     orgAction = OrgAction.DELETE;
-                                    orgActionModalRef.toggle();
+                                    orgActionModalRef?.toggle();
                                 "
                             >
                                 <Icon icon="solar:trash-bin-trash-bold" class="text-red-600" />
@@ -349,7 +349,7 @@ function performOrgAction(): void {
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors"
                 @click="
                     void performOrgAction();
-                    orgActionModalRef.toggle();
+                    orgActionModalRef?.toggle();
                 "
             >
                 {{ orgAction === OrgAction.DELETE ? 'Delete' : 'Leave' }}
@@ -358,7 +358,7 @@ function performOrgAction(): void {
                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded transition-colors"
                 @click="
                     orgActionId = '';
-                    orgActionModalRef.toggle();
+                    orgActionModalRef?.toggle();
                 "
             >
                 Cancel

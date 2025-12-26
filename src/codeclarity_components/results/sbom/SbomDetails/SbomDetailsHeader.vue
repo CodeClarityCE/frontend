@@ -91,7 +91,7 @@ defineProps({
 .package-name {
     font-size: 2rem;
     font-weight: 700;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
     word-break: break-word;
     line-height: 1.1;
@@ -104,7 +104,7 @@ defineProps({
 .package-version {
     font-size: 1.25rem;
     font-weight: 600;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 
     @media (max-width: 768px) {
         font-size: 1.125rem;
@@ -122,7 +122,7 @@ defineProps({
     transition: all 0.15s ease-in-out;
 
     &:hover {
-        background: theme('colors.theme-primary');
+        background: var(--color-theme-primary);
         color: white;
         transform: translateY(-1px);
     }

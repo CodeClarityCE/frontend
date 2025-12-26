@@ -657,8 +657,8 @@ function getPackageManagerSubtitleIcon(): string {
         box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.05);
         font-weight: 500;
         &:hover {
-            background: theme('colors.theme-primary');
-            border-color: theme('colors.theme-primary');
+            background: var(--color-theme-primary);
+            border-color: var(--color-theme-primary);
             color: white;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px 0 rgb(29 206 121 / 0.2);
@@ -705,7 +705,7 @@ function getPackageManagerSubtitleIcon(): string {
 .breakdown-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin-bottom: 1rem;
 }
 .severity-breakdown {
@@ -731,27 +731,27 @@ function getPackageManagerSubtitleIcon(): string {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         &.critical {
-            border-left: 4px solid theme('colors.severity-critical');
+            border-left: 4px solid var(--color-severity-critical);
             .severity-icon {
-                color: theme('colors.severity-critical');
+                color: var(--color-severity-critical);
             }
         }
         &.high {
-            border-left: 4px solid theme('colors.severity-high');
+            border-left: 4px solid var(--color-severity-high);
             .severity-icon {
-                color: theme('colors.severity-high');
+                color: var(--color-severity-high);
             }
         }
         &.medium {
-            border-left: 4px solid theme('colors.severity-medium');
+            border-left: 4px solid var(--color-severity-medium);
             .severity-icon {
-                color: theme('colors.severity-medium');
+                color: var(--color-severity-medium);
             }
         }
         &.low {
-            border-left: 4px solid theme('colors.severity-low');
+            border-left: 4px solid var(--color-severity-low);
             .severity-icon {
-                color: theme('colors.severity-low');
+                color: var(--color-severity-low);
             }
         }
     }
@@ -762,13 +762,13 @@ function getPackageManagerSubtitleIcon(): string {
     .severity-count {
         font-size: 1.5rem;
         font-weight: 700;
-        color: theme('colors.theme-black');
+        color: var(--color-theme-black);
         margin-bottom: 0.25rem;
     }
     .severity-label {
         font-size: 0.875rem;
         font-weight: 500;
-        color: theme('colors.theme-gray');
+        color: var(--color-theme-gray);
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
@@ -791,7 +791,7 @@ function getPackageManagerSubtitleIcon(): string {
     }
     .more-vulnerabilities {
         font-weight: 500;
-        color: theme('colors.theme-gray');
+        color: var(--color-theme-gray);
         background: #f3f4f6;
         border: 1px solid #d1d5db;
     }

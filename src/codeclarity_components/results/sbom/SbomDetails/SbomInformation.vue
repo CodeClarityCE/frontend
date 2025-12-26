@@ -512,13 +512,13 @@ const getAgeDescription = (): string => {
 
 .section-icon {
     font-size: 1.25rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 }
 
 .section-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
 }
 
@@ -572,7 +572,7 @@ const getAgeDescription = (): string => {
     }
 
     &.primary {
-        border-left: 4px solid theme('colors.theme-primary');
+        border-left: 4px solid var(--color-theme-primary);
         background: rgba(29, 206, 121, 0.02);
     }
 }
@@ -588,14 +588,14 @@ const getAgeDescription = (): string => {
 .info-icon,
 .detail-icon {
     font-size: 1rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 }
 
 .info-title,
 .detail-title {
     font-weight: 600;
     font-size: 0.9rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .info-card-content,
@@ -617,7 +617,7 @@ const getAgeDescription = (): string => {
     align-items: center;
     gap: 0.5rem;
     text-decoration: none;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     font-weight: 500;
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
@@ -663,7 +663,7 @@ const getAgeDescription = (): string => {
     }
 
     &.self {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.unknown {
@@ -693,7 +693,7 @@ const getAgeDescription = (): string => {
     font-size: 1.1rem;
 
     &.direct {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.transitive {
@@ -703,12 +703,12 @@ const getAgeDescription = (): string => {
 
 .type-text {
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .type-description {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.4;
 }
@@ -734,7 +734,7 @@ const getAgeDescription = (): string => {
     }
 
     &.latest {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
@@ -753,13 +753,13 @@ const getAgeDescription = (): string => {
     &.latest {
         background: rgba(29, 206, 121, 0.1);
         border-color: rgba(29, 206, 121, 0.3);
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
 .version-date {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     font-style: italic;
 }
 
@@ -787,7 +787,7 @@ const getAgeDescription = (): string => {
     font-size: 1.25rem;
 
     &.current {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.outdated {
@@ -804,12 +804,12 @@ const getAgeDescription = (): string => {
 .status-title {
     font-weight: 600;
     font-size: 0.9rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .status-description {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
 }
 
@@ -828,13 +828,13 @@ const getAgeDescription = (): string => {
     &.valid {
         background: rgba(29, 206, 121, 0.1);
         border-color: rgba(29, 206, 121, 0.3);
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
 .license-status {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
 }
 
 /* Engine Support */
@@ -879,14 +879,14 @@ const getAgeDescription = (): string => {
 .engine-name {
     font-weight: 600;
     font-size: 0.8rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     text-transform: capitalize;
 }
 
 .engine-version {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.75rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     background: #f3f4f6;
     padding: 0.125rem 0.375rem;
     border-radius: 4px;
@@ -909,7 +909,7 @@ const getAgeDescription = (): string => {
     font-size: 1rem;
 
     &.fresh {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.moderate {
@@ -934,7 +934,7 @@ const getAgeDescription = (): string => {
     font-size: 0.9rem;
 
     &.fresh {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.moderate {
@@ -956,7 +956,7 @@ const getAgeDescription = (): string => {
 
 .age-description {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.4;
 }

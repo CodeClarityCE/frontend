@@ -121,7 +121,7 @@ onMounted(() => {
 .section-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
 }
 
@@ -141,7 +141,7 @@ onMounted(() => {
 
 .description-text {
     font-size: 0.875rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.5;
 }

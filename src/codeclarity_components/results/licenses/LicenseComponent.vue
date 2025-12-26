@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
-import { License } from '@/codeclarity_components/results/licenses/License';
-import Popover from '@/shadcn/ui/popover/Popover.vue';
-import PopoverTrigger from '@/shadcn/ui/popover/PopoverTrigger.vue';
-import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
+import { type License } from '@/codeclarity_components/results/licenses/License';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Card, CardContent } from '@/shadcn/ui/card';
 import { Button } from '@/shadcn/ui/button';
+import { Card, CardContent } from '@/shadcn/ui/card';
+import Popover from '@/shadcn/ui/popover/Popover.vue';
+import PopoverContent from '@/shadcn/ui/popover/PopoverContent.vue';
+import PopoverTrigger from '@/shadcn/ui/popover/PopoverTrigger.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
 
 const isExpanded = ref(false);
 
@@ -81,7 +81,7 @@ const hasIssues = computed(() => {
 const getPropertyDescription = (
     property: string,
     type: 'permission' | 'condition' | 'limitation'
-) => {
+): string => {
     const descriptions = {
         // Permissions
         'commercial-use': 'The software may be used for commercial purposes.',
@@ -128,7 +128,7 @@ const getPropertyDescription = (
     return descriptions[property as keyof typeof descriptions] || 'No information available.';
 };
 
-const getPropertyIcon = (property: string) => {
+const getPropertyIcon = (property: string): string => {
     const icons = {
         // Permissions
         'commercial-use': 'tabler:building-store',
@@ -156,19 +156,19 @@ const getPropertyIcon = (property: string) => {
     return icons[property as keyof typeof icons] || 'tabler:info-circle';
 };
 
-const formatPropertyName = (property: string) => {
+const formatPropertyName = (property: string): string => {
     return property
         .split('-')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 };
 
-type Props = {
+interface Props {
     license: License;
     last?: boolean;
     analysisID?: string;
     projectID?: string;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     last: false,
@@ -176,7 +176,7 @@ const props = withDefaults(defineProps<Props>(), {
     projectID: ''
 });
 
-function referenceDomain(url: string) {
+function referenceDomain(url: string): string {
     try {
         const host = new URL(url).hostname;
         return host;
@@ -250,7 +250,7 @@ function getLimitationDescription(limitation: string): string {
 
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">
-                                    {{ props.license.name || props.license.id }}
+                                    {{ props.license.name ?? props.license.id }}
                                     <span
                                         v-if="
                                             props.license.name &&

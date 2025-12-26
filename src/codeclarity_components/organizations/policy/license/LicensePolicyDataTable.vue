@@ -1,6 +1,5 @@
 <script setup lang="ts" generic="TData, TValue">
 import { valueUpdater } from '@/shadcn/lib/utils';
-import type { LicensePolicy } from '../license_policy.entity';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Input from '@/shadcn/ui/input/Input.vue';
 import Table from '@/shadcn/ui/table/Table.vue';
@@ -9,16 +8,17 @@ import TableCell from '@/shadcn/ui/table/TableCell.vue';
 import TableHead from '@/shadcn/ui/table/TableHead.vue';
 import TableHeader from '@/shadcn/ui/table/TableHeader.vue';
 import TableRow from '@/shadcn/ui/table/TableRow.vue';
-import type { ColumnFiltersState } from '@tanstack/vue-table';
+import { Icon } from '@iconify/vue';
 import {
     FlexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
-    useVueTable
+    useVueTable,
+    type ColumnFiltersState
 } from '@tanstack/vue-table';
 import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
+import type { LicensePolicy } from '../license_policy.entity';
 import { columns } from './columns';
 
 const props = defineProps<{
@@ -46,7 +46,7 @@ const table = useVueTable({
     onColumnFiltersChange: (updaterOrValue) => valueUpdater(updaterOrValue, columnFilters),
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: (updaterOrValue) => {
-        valueUpdater(updaterOrValue, rowSelection);
+        void valueUpdater(updaterOrValue, rowSelection);
     },
     state: {
         get columnFilters() {

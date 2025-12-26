@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import {
     ActionSeverity,
-    AuditLog
+    type AuditLog
 } from '@/codeclarity_components/organizations/audit_logs/AuditLog';
-import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
-import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
+import {
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
 import { formatRelativeTime } from '@/utils/dateUtils';
 
 defineProps<{
@@ -18,19 +20,19 @@ defineProps<{
             <div>
                 <div class="log-severity-wrapper">
                     <div
-                        v-if="log.action_severity == ActionSeverity.Critical"
+                        v-if="log.action_severity === ActionSeverity.Critical"
                         class="log-severity-critical"
                     ></div>
                     <div
-                        v-if="log.action_severity == ActionSeverity.High"
+                        v-if="log.action_severity === ActionSeverity.High"
                         class="log-severity-high"
                     ></div>
                     <div
-                        v-if="log.action_severity == ActionSeverity.Medium"
+                        v-if="log.action_severity === ActionSeverity.Medium"
                         class="log-severity-medium"
                     ></div>
                     <div
-                        v-if="log.action_severity == ActionSeverity.Low"
+                        v-if="log.action_severity === ActionSeverity.Low"
                         class="log-severity-low"
                     ></div>
                 </div>
@@ -55,25 +57,25 @@ defineProps<{
             <div v-if="log.blame_on" class="flex flex-row gap-2 items-center flex-aic">
                 <div>
                     <div
-                        v-if="log.blame_on.role == MemberRole.OWNER"
+                        v-if="log.blame_on.role === MemberRole.OWNER"
                         class="org-membership membership-owner"
                     >
                         Owner
                     </div>
                     <div
-                        v-if="log.blame_on.role == MemberRole.ADMIN"
+                        v-if="log.blame_on.role === MemberRole.ADMIN"
                         class="org-membership membership-admin"
                     >
                         Admin
                     </div>
                     <div
-                        v-if="log.blame_on.role == MemberRole.MODERATOR"
+                        v-if="log.blame_on.role === MemberRole.MODERATOR"
                         class="org-membership membership-moderator"
                     >
                         Moderator
                     </div>
                     <div
-                        v-if="log.blame_on.role == MemberRole.USER"
+                        v-if="log.blame_on.role === MemberRole.USER"
                         class="org-membership membership-user"
                     >
                         User

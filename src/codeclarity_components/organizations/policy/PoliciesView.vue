@@ -1,51 +1,57 @@
 <script lang="ts" setup>
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
-import { defineAsyncComponent, ref, computed } from 'vue';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
+import {
+    defineAsyncComponent,
+    ref,
+    computed,
+    type AsyncComponentLoader,
+    type Component
+} from 'vue';
 
 const OrgPoliciesList = defineAsyncComponent({
-    loader: () => import('./list/PoliciesList.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./list/PoliciesList.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgPoliciesCreate = defineAsyncComponent({
-    loader: () => import('./create/PolicyCreate.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./create/PolicyCreate.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgPoliciesEdit = defineAsyncComponent({
-    loader: () => import('./edit/PolicyEdit.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./edit/PolicyEdit.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const VulnerabilityPoliciesView = defineAsyncComponent({
-    loader: () => import('./VulnerabilityPoliciesView.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./VulnerabilityPoliciesView.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     timeout: 3000
-});
+}) as Component;
 
 const props = defineProps<{
     page: string;
@@ -62,13 +68,13 @@ const policyType = computed(() => {
     // If specific policy page is requested, extract from page parameter
     if (
         props.page &&
-        (props.page.includes('vulnerability') || props.page === 'vulnerability-policy')
+        (props.page.includes('vulnerability') ?? props.page === 'vulnerability-policy')
     )
         return 'vulnerability';
     return 'license';
 });
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
 }
 </script>
@@ -104,18 +110,18 @@ function setOrgInfo(_orgInfo: Organization) {
 
     <!-- Direct policy type views for add/edit actions -->
     <OrgPoliciesCreate
-        v-else-if="action == 'add' && policyType == 'license'"
+        v-else-if="action === 'add' && policyType === 'license'"
         :page="page"
         :org-id="orgId"
     />
     <OrgPoliciesEdit
-        v-else-if="action == 'edit' && policyType == 'license'"
+        v-else-if="action === 'edit' && policyType === 'license'"
         :page="page"
         :org-id="orgId"
     />
 
     <VulnerabilityPoliciesView
-        v-else-if="(action == 'add' || action == 'edit') && policyType == 'vulnerability'"
+        v-else-if="(action === 'add' || action === 'edit') && policyType === 'vulnerability'"
         :page="page"
         :org-id="orgId"
         :action="action"

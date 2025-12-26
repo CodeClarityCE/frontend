@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { ref, type Ref, watch } from 'vue';
-import { Icon } from '@iconify/vue';
-
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { PatchedManifestData } from '@/codeclarity_components/results/patching/Patching';
-import type { PatchInfo, UpgradeInfo } from '@/codeclarity_components/results/patching/Patching';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import {
+    PatchedManifestData,
+    type PatchInfo,
+    type UpgradeInfo
+} from '@/codeclarity_components/results/patching/Patching';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, watch } from 'vue';
 
 export interface Props {
     analysisID?: string;
@@ -23,7 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
     projectID: ''
 });
 
-const patches: Ref<Array<PatchInfo>> = ref([]);
+const patches: Ref<PatchInfo[]> = ref([]);
 const error: Ref<boolean> = ref(false);
 const render: Ref<boolean> = ref(false);
 const sortOptionSelected: Ref<string> = ref('patch_type');
@@ -35,32 +36,32 @@ const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 const patchedManifestData: Ref<PatchedManifestData> = ref(new PatchedManifestData());
 
 watch([pageNumber, pageLimitSelected, sortOptionSelected, sortDirection, pageNumber], () => {
-    init();
+    void init();
 });
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-function copyPatchedManfiest() {
-    navigator.clipboard.writeText(
+function copyPatchedManfiest(): void {
+    void navigator.clipboard.writeText(
         JSON.stringify(patchedManifestData.value.patched_manifest_raw, null, '\t')
     );
 }
 
-function copyPatchedText(text: string) {
-    navigator.clipboard.writeText(text);
+function copyPatchedText(text: string): void {
+    void navigator.clipboard.writeText(text);
 }
 
 // Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    if (props.projectID == '' || props.analysisID == '') {
+    if (props.projectID === '' || props.analysisID === '') {
         return;
     }
     try {
@@ -82,7 +83,7 @@ async function init() {
             search_key: searchKey.value
         });
         // Extract patches array from workspace data
-        patches.value = Object.values(res.data.patches || {});
+        patches.value = Object.values(res.data.patches ?? {});
 
         render.value = true;
     } catch (_err) {
@@ -108,7 +109,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 
 <template>
@@ -171,8 +172,8 @@ init();
                                     <span style="margin-left: 45px">
                                         <div
                                             v-if="
-                                                (direct_dep as UpgradeInfo).vulnerable == true &&
-                                                (direct_dep as UpgradeInfo).patch_type == 'FULL'
+                                                (direct_dep as UpgradeInfo).vulnerable === true &&
+                                                (direct_dep as UpgradeInfo).patch_type === 'FULL'
                                             "
                                             style="
                                                 display: flex;
@@ -192,8 +193,8 @@ init();
                                         </div>
                                         <div
                                             v-if="
-                                                (direct_dep as UpgradeInfo).vulnerable == true &&
-                                                (direct_dep as UpgradeInfo).patch_type == 'PARTIAL'
+                                                (direct_dep as UpgradeInfo).vulnerable === true &&
+                                                (direct_dep as UpgradeInfo).patch_type === 'PARTIAL'
                                             "
                                             class="flex gap-y-1 items-center"
                                         >
@@ -208,8 +209,8 @@ init();
                                         </div>
                                         <div
                                             v-if="
-                                                (direct_dep as UpgradeInfo).vulnerable == true &&
-                                                (direct_dep as UpgradeInfo).patch_type == 'NONE'
+                                                (direct_dep as UpgradeInfo).vulnerable === true &&
+                                                (direct_dep as UpgradeInfo).patch_type === 'NONE'
                                             "
                                             class="flex gap-y-1 items-center"
                                         >
@@ -224,7 +225,7 @@ init();
                                             <div class="text-not-patched">Not Patchable</div>
                                         </div>
                                         <div
-                                            v-if="(direct_dep as UpgradeInfo).vulnerable == false"
+                                            v-if="(direct_dep as UpgradeInfo).vulnerable === false"
                                             class="flex gap-y-1 items-center"
                                         >
                                             <div>
@@ -307,7 +308,7 @@ init();
                         <div>Run the following command</div>
                     </div>
                     <div
-                        v-if="patchedManifestData.other_info.package_manager == 'NPM'"
+                        v-if="patchedManifestData.other_info.package_manager === 'NPM'"
                         style="
                             font-family: 'Courier New', Courier, monospace;
                             display: flex;
@@ -343,7 +344,7 @@ init();
                         </tippy>
                     </div>
                     <div
-                        v-if="patchedManifestData.other_info.package_manager == 'YARN'"
+                        v-if="patchedManifestData.other_info.package_manager === 'YARN'"
                         style="
                             font-family: 'Courier New', Courier, monospace;
                             display: flex;

@@ -105,7 +105,7 @@ const defaultOwaspInfo: OwaspCategory = {
  * Get OWASP category information by CWE category ID
  */
 export function getOwaspInfo(cweId: string): OwaspCategory {
-    return owaspTop10_2021[cweId] || defaultOwaspInfo;
+    return owaspTop10_2021[cweId] ?? defaultOwaspInfo;
 }
 
 /**
@@ -113,13 +113,13 @@ export function getOwaspInfo(cweId: string): OwaspCategory {
  */
 export function getOwaspInfoById(owaspId: string): OwaspCategory {
     const entry = Object.values(owaspTop10_2021).find((cat) => cat.id === owaspId);
-    return entry || defaultOwaspInfo;
+    return entry ?? defaultOwaspInfo;
 }
 
 /**
  * Get unique OWASP IDs from a list of weaknesses
  */
-export function getUniqueOwaspIds(weaknesses: Array<{ OWASPTop10Id?: string }>): string[] {
+export function getUniqueOwaspIds(weaknesses: { OWASPTop10Id?: string }[]): string[] {
     const owaspIds = weaknesses
         .map((w) => w.OWASPTop10Id)
         .filter((id): id is string => !!id && id !== '');

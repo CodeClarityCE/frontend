@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
-import { formatDate } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
-import type CenteredModalVue from '@/base_components/ui/modals/CenteredModal.vue';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
 import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
+import type CenteredModalVue from '@/base_components/ui/modals/CenteredModal.vue';
+import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { formatDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
 
 defineProps<{
     finding: VulnerabilityDetails;
@@ -83,7 +83,7 @@ defineProps<{
                                                 v-for="source in finding.vulnerability_info.sources"
                                                 :key="source.name"
                                             >
-                                                <div v-if="source.name == 'NVD'">
+                                                <div v-if="source.name === 'NVD'">
                                                     <BubbleComponent :slim="true">
                                                         <template #content>
                                                             <a
@@ -94,7 +94,7 @@ defineProps<{
                                                         </template>
                                                     </BubbleComponent>
                                                 </div>
-                                                <div v-if="source.name == 'OSV'">
+                                                <div v-if="source.name === 'OSV'">
                                                     <BubbleComponent :slim="true">
                                                         <template #content>
                                                             <a
@@ -135,7 +135,7 @@ defineProps<{
             <div>
                 <div
                     v-if="
-                        (!finding.weaknesses || finding.weaknesses.length == 0) &&
+                        (!finding.weaknesses || finding.weaknesses.length === 0) &&
                         !finding.owasp_top_10
                     "
                 >
@@ -288,8 +288,8 @@ defineProps<{
                         </div>
                         <div
                             v-if="
-                                finding.other.package_manager == 'NPM' ||
-                                finding.other.package_manager == 'YARN'
+                                finding.other.package_manager === 'NPM' ||
+                                finding.other.package_manager === 'YARN'
                             "
                             class="flex gap-6"
                         >
@@ -313,10 +313,7 @@ defineProps<{
                             </div>
                             <div v-if="finding.dependency_info?.github_link">
                                 <a
-                                    :href="
-                                        'https://' +
-                                        finding.dependency_info?.github_link.repo_full_path
-                                    "
+                                    :href="'https://' + finding.dependency_info?.github_link"
                                     title="opens the github repo of the dependency (in a new tab)"
                                     target="_blank"
                                 >
@@ -358,8 +355,8 @@ defineProps<{
                                     >
                                         <div
                                             v-if="
-                                                finding.other.package_manager == 'NPM' ||
-                                                finding.other.package_manager == 'YARN'
+                                                finding.other.package_manager === 'NPM' ||
+                                                finding.other.package_manager === 'YARN'
                                             "
                                         >
                                             <BubbleComponent :slim="true">
@@ -383,7 +380,7 @@ defineProps<{
                                 </div>
                             </div>
                         </div>
-                        <Card v-if="readme != ''">
+                        <Card v-if="readme !== ''">
                             <CardHeader>
                                 <CardTitle class="flex gap-2 items-center">
                                     <Icon :icon="'tabler:markdown'"></Icon>
@@ -393,7 +390,7 @@ defineProps<{
                                     <Icon
                                         :icon="'bi:box-arrow-up-right'"
                                         class="cursor-pointer"
-                                        @click="readMeModalRef.toggle()"
+                                        @click="readMeModalRef['toggle']()"
                                     ></Icon>
                                 </CardDescription>
                             </CardHeader>

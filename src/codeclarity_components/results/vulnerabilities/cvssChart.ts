@@ -1,4 +1,21 @@
-function getData(finding: any) {
+interface CvssScore {
+    base_score?: number | null;
+    exploitability_score?: number | null;
+    impact_score?: number | null;
+    [key: string]: string | number | null | undefined;
+}
+
+interface FindingSeverities {
+    cvss_31?: CvssScore | null;
+    cvss_3?: CvssScore | null;
+    cvss_2?: CvssScore | null;
+}
+
+interface Finding {
+    severities: FindingSeverities;
+}
+
+function getData(finding: Finding): number[] | null {
     if (finding.severities.cvss_31 != null) {
         const base_score = finding.severities.cvss_31.base_score ?? 0.0;
         const exploitability = finding.severities.cvss_31.exploitability_score ?? 0.0;
@@ -7,9 +24,9 @@ function getData(finding: any) {
         const max_impact = 6.0;
         const max_base_score = 10.0;
         return [
-            base_score / max_base_score == 0 ? 0.1 : base_score / max_base_score,
-            impact / max_impact == 0 ? 0.1 : impact / max_impact,
-            exploitability / max_exploitability == 0 ? 0.1 : exploitability / max_exploitability
+            base_score / max_base_score === 0 ? 0.1 : base_score / max_base_score,
+            impact / max_impact === 0 ? 0.1 : impact / max_impact,
+            exploitability / max_exploitability === 0 ? 0.1 : exploitability / max_exploitability
         ];
     } else if (finding.severities.cvss_3 != null) {
         const base_score = finding.severities.cvss_3.base_score ?? 0.0;
@@ -19,9 +36,9 @@ function getData(finding: any) {
         const max_impact = 6.0;
         const max_base_score = 10.0;
         return [
-            base_score / max_base_score == 0 ? 0.1 : base_score / max_base_score,
-            impact / max_impact == 0 ? 0.1 : impact / max_impact,
-            exploitability / max_exploitability == 0 ? 0.1 : exploitability / max_exploitability
+            base_score / max_base_score === 0 ? 0.1 : base_score / max_base_score,
+            impact / max_impact === 0 ? 0.1 : impact / max_impact,
+            exploitability / max_exploitability === 0 ? 0.1 : exploitability / max_exploitability
         ];
     } else if (finding.severities.cvss_2 != null) {
         const base_score = finding.severities.cvss_2.base_score ?? 0.0;
@@ -31,15 +48,17 @@ function getData(finding: any) {
         const max_impact = 10.0;
         const max_base_score = 10.0;
         return [
-            base_score / max_base_score == 0 ? 0.1 : base_score / max_base_score,
-            impact / max_impact == 0 ? 0.1 : impact / max_impact,
-            exploitability / max_exploitability == 0 ? 0.1 : exploitability / max_exploitability
+            base_score / max_base_score === 0 ? 0.1 : base_score / max_base_score,
+            impact / max_impact === 0 ? 0.1 : impact / max_impact,
+            exploitability / max_exploitability === 0 ? 0.1 : exploitability / max_exploitability
         ];
     }
     return null;
 }
 
-function getRadarChartData(finding: any) {
+function getRadarChartData(
+    finding: Finding
+): { name: string; axes: { axis: string; value: number }[] }[] | null {
     const data = getData(finding);
     if (!data) return null;
 
@@ -66,7 +85,21 @@ function getRadarChartData(finding: any) {
     return d3_data;
 }
 
-function getRadarChartConfig() {
+function getRadarChartConfig(): {
+    w: number;
+    h: number;
+    margin: { top: number; right: number; bottom: number; left: number };
+    levels: number;
+    maxValue: number;
+    labelFactor: number;
+    wrapWidth: number;
+    opacityArea: number;
+    dotRadius: number;
+    opacityCircles: number;
+    strokeWidth: number;
+    roundStrokes: boolean;
+    legend: boolean;
+} {
     // Return d3 RadarChart configuration
     const d3_config = {
         w: 300,

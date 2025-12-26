@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
-import { mount, VueWrapper } from '@vue/test-utils';
-import SbomDetails from './SbomDetails.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
 import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import SbomDetails from './SbomDetails.vue';
 
 // Mock vue router
 vi.mock('vue-router', () => ({

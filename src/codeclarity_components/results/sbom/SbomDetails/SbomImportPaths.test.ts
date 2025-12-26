@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import SbomImportPaths from './SbomImportPaths.vue';
-import { DependencyDetails } from './SbomDetails';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { GraphDependency } from '../../graph.entity';
+import { type DependencyDetails } from './SbomDetails';
+import SbomImportPaths from './SbomImportPaths.vue';
 
 // Mock Icon component
 vi.mock('@iconify/vue', () => ({
@@ -319,7 +319,7 @@ describe('SbomImportPaths.vue', () => {
             const dependency = createMockDependency();
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.props('dependency')).toEqual(dependency);
+            expect(wrapper['props']('dependency')).toEqual(dependency);
         });
 
         it('should accept analysisID prop', () => {
@@ -327,19 +327,19 @@ describe('SbomImportPaths.vue', () => {
                 analysisID: 'custom-analysis'
             });
 
-            expect(wrapper.props('analysisID')).toBe('custom-analysis');
+            expect(wrapper['props']('analysisID')).toBe('custom-analysis');
         });
 
         it('should accept projectID prop', () => {
             const wrapper = createWrapper(createMockDependency(), { projectID: 'custom-project' });
 
-            expect(wrapper.props('projectID')).toBe('custom-project');
+            expect(wrapper['props']('projectID')).toBe('custom-project');
         });
 
         it('should require all props', () => {
-            expect(SbomImportPaths.props?.dependency?.required).toBe(true);
-            expect(SbomImportPaths.props?.analysisID?.required).toBe(true);
-            expect(SbomImportPaths.props?.projectID?.required).toBe(true);
+            expect(SbomImportPaths['props']?.dependency?.required).toBe(true);
+            expect(SbomImportPaths['props']?.analysisID?.required).toBe(true);
+            expect(SbomImportPaths['props']?.projectID?.required).toBe(true);
         });
     });
 

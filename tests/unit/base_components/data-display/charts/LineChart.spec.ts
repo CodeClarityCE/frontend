@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
 import LineChart from '@/base_components/data-display/charts/LineChart.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // LineChart types (defined inline since not exported)
 interface ChartData {
   labels: string[];
-  datasets: Array<{
+  datasets: {
     data: number[];
-  }>;
+  }[];
 }
 
 // Create comprehensive D3 mock chain
@@ -394,7 +394,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.labels[0]!).toBe('Very Long Label Name That Might Cause Layout Issues')
+      expect(wrapper.props().chartData.labels[0]).toBe('Very Long Label Name That Might Cause Layout Issues')
     })
 
     it('handles special characters in labels', () => {
@@ -411,7 +411,7 @@ describe('LineChart', () => {
         }
       })
 
-      expect(wrapper.props().chartData.labels[0]!).toBe('Label@#$%')
+      expect(wrapper.props().chartData.labels[0]).toBe('Label@#$%')
     })
 
     it('handles empty dataset array gracefully', () => {

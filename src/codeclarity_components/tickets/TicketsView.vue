@@ -1,44 +1,51 @@
 <script setup lang="ts">
-import { useStateStore } from '@/stores/state';
-import { defineAsyncComponent, ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { Icon } from '@iconify/vue';
-
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-
-import { useTicketsData } from './composables/useTicketsData';
 import { Button } from '@/shadcn/ui/button';
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { defineAsyncComponent, ref, onMounted, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useTicketsData } from './composables/useTicketsData';
 import IntegrationsConfigPanel from './integrations/IntegrationsConfigPanel.vue';
 import { TicketsRepository } from './tickets.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const router = useRouter();
 
 // Async loaded sections
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const TicketsList = defineAsyncComponent({
     loader: () => import('./sections/TicketsList.vue'),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     loadingComponent: LoadingComponent,
     delay: 200,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     errorComponent: ErrorComponent,
     timeout: 5000
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const TicketsKanban = defineAsyncComponent({
     loader: () => import('./sections/TicketsKanban.vue'),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     loadingComponent: LoadingComponent,
     delay: 200,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     errorComponent: ErrorComponent,
     timeout: 5000
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const TicketDetail = defineAsyncComponent({
     loader: () => import('./sections/TicketDetail.vue'),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     loadingComponent: LoadingComponent,
     delay: 200,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     errorComponent: ErrorComponent,
     timeout: 5000
 });
@@ -121,13 +128,13 @@ async function bulkSyncFromExternal(): Promise<boolean> {
 }
 
 // Handle refresh: sync from external providers first, then refresh the list
-async function handleRefresh() {
+async function handleRefresh(): Promise<void> {
     // First sync from external providers if there are linked tickets
     if (ticketsWithExternalLinks.value.length > 0) {
         await bulkSyncFromExternal();
     }
     // Always refresh the list after (external_status might have been updated)
-    refresh();
+    void refresh();
 }
 
 // Track if initial sync has been done
@@ -143,18 +150,18 @@ watch(
             setTimeout(async () => {
                 await bulkSyncFromExternal();
                 // Refresh to show updated external_status
-                refresh();
+                void refresh();
             }, 500);
         }
     }
 );
 
 // Handle ticket updated event (reload both list and selected ticket detail)
-async function handleTicketUpdated() {
-    refresh();
+async function handleTicketUpdated(): Promise<void> {
+    void refresh();
     // Also reload the selected ticket to show updated status
     if (selectedTicket.value) {
-        loadTicketDetail(selectedTicket.value.id);
+        void loadTicketDetail(selectedTicket.value.id);
     }
 }
 
@@ -164,7 +171,7 @@ onMounted(() => {
         // Open integrations modal to continue setup
         showIntegrationsModal.value = true;
         // Clear the query param from URL
-        router.replace({ path: route.path, query: {} });
+        void router.replace({ path: route.path, query: {} });
     }
 });
 </script>

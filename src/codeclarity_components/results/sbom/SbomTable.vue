@@ -1,22 +1,30 @@
 <script setup lang="ts">
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import type { Dependency } from '@/codeclarity_components/results/graph.entity';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
 import { ref, onMounted, type Ref, watch, shallowRef, computed } from 'vue';
 import { columns } from './table/columns';
 import DataTable from './table/DataTable.vue';
-import type { Dependency } from '@/codeclarity_components/results/graph.entity';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
-import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
-import { Icon } from '@iconify/vue';
+
+interface StatsData {
+    number_of_dependencies?: number;
+    number_of_outdated_dependencies?: number;
+    number_of_direct_dependencies?: number;
+    number_of_non_dev_dependencies?: number;
+    number_of_deprecated_dependencies?: number;
+}
 
 export interface Props {
     projectID?: string;
     analysisID?: string;
     ecosystemFilter?: string | null;
-    stats?: any; // Stats from the parent component
+    stats?: StatsData | null; // Stats from the parent component
 }
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
@@ -31,7 +39,7 @@ const authStore = useAuthStore();
 
 const sbomRepository: ResultsRepository = new ResultsRepository();
 
-const data: Ref<Array<Dependency>> = shallowRef([]);
+const data: Ref<Dependency[]> = shallowRef([]);
 const selected_workspace = defineModel<string>('selected_workspace', { default: '' });
 
 const pageNumber = ref(0);
@@ -86,7 +94,7 @@ const deprecatedCount = computed(() => {
     return data.value.filter((dep) => dep.deprecated).length;
 });
 
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
@@ -100,8 +108,8 @@ async function init() {
 
     if (!project_id || !analysis_id) {
         const urlParams = new URLSearchParams(window.location.search);
-        project_id = project_id || urlParams.get('project_id') || '';
-        analysis_id = analysis_id || urlParams.get('analysis_id') || '';
+        project_id = (project_id || urlParams.get('project_id')) ?? '';
+        analysis_id = (analysis_id || urlParams.get('analysis_id')) ?? '';
     }
 
     if (!project_id || !analysis_id) {
@@ -125,7 +133,7 @@ async function init() {
             bearerToken: authStore.getToken,
             active_filters: '',
             search_key: searchKey.value,
-            ecosystem_filter: props.ecosystemFilter || undefined
+            ecosystem_filter: props.ecosystemFilter ?? undefined
         });
         data.value = res.data;
 
@@ -142,7 +150,7 @@ async function init() {
 }
 
 onMounted(async () => {
-    init();
+    void init();
 });
 
 watch([pageNumber, pageLimitSelected, sortDirection, sortKey], async () => {
@@ -166,7 +174,7 @@ watch(
     () => props.ecosystemFilter,
     () => {
         pageNumber.value = 0; // Reset to first page when filter changes
-        init();
+        void init();
     }
 );
 </script>

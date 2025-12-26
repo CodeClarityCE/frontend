@@ -1,29 +1,29 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import { useRoute } from 'vue-router';
-import router from '@/router';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import ClickUpConfigModal from '@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 // State
 const orgId = ref('');
 const showConfigModal = ref(false);
 
-function onConfigured() {
+function onConfigured(): void {
     showConfigModal.value = false;
-    router.push({
+    void router.push({
         name: 'orgs',
         params: { orgId: orgId.value, page: 'integrations', action: 'manage' }
     });
 }
 
-function onClose() {
+function onClose(): void {
     showConfigModal.value = false;
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
@@ -32,14 +32,14 @@ async function init() {
         return;
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
     } else {
         router.back();
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

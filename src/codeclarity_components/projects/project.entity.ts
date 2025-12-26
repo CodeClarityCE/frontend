@@ -1,7 +1,7 @@
-import { IsBoolean, IsDate, IsDefined, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { IntegrationProvider } from '../organizations/integrations/Integrations';
-import { Analysis } from '../analyses/analysis.entity';
 import { Type } from 'class-transformer';
+import { IsBoolean, IsDate, IsDefined, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { type Analysis } from '../analyses/analysis.entity';
+import { IntegrationProvider } from '../organizations/integrations/Integrations';
 import { TeamMember } from '../organizations/organization.entity';
 
 export class Project {
@@ -26,7 +26,7 @@ export class Project {
 
     @IsOptional()
     @Type(() => Array<Analysis>)
-    analyses?: Array<Analysis>;
+    analyses?: Analysis[];
 
     @IsNotEmpty()
     upload_id!: string;

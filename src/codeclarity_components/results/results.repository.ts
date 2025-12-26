@@ -1,3 +1,4 @@
+import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import { Entity } from '../../utils/api/BaseEntity';
 import {
     BaseRepository,
@@ -6,16 +7,15 @@ import {
     type SortableRepoMethodRequestOptions
 } from '../../utils/api/BaseRepository';
 import { DataResponse } from '../../utils/api/responses/DataResponse';
-import type { AnalysisStats, PatchingStats, SbomStats } from './stats.entity';
 import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import type { License } from './licenses/License';
-import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patching/Patching';
-import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
-import { DependencyDetails } from './sbom/SbomDetails/SbomDetails';
-import type { Result } from './result.entity';
-import type { WorkspacesOutput } from './workspace.entity';
 import type { Dependency, GraphDependency } from './graph.entity';
+import type { License } from './licenses/License';
+import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patching/Patching';
+import type { Result } from './result.entity';
+import { type DependencyDetails } from './sbom/SbomDetails/SbomDetails';
+import type { AnalysisStats, PatchingStats, SbomStats } from './stats.entity';
+import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
+import type { WorkspacesOutput } from './workspace.entity';
 
 export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
@@ -78,7 +78,7 @@ export class ResultsRepository extends BaseRepository {
     async getSbomStat(options: GetSbomStatsRequestOptions): Promise<DataResponse<SbomStats>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/stats`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             workspace: options.workspace
         };
 
@@ -107,7 +107,7 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<WorkspacesOutput>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/workspaces`;
 
-        const queryParams: any = {};
+        const queryParams: Record<string, string | number> = {};
 
         if (options.runIndex !== null && options.runIndex !== undefined) {
             queryParams.run_index = options.runIndex;
@@ -131,7 +131,7 @@ export class ResultsRepository extends BaseRepository {
     async getSbom(options: GetSbomRequestOptions): Promise<PaginatedResponse<Dependency>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number | undefined> = {
             workspace: options.workspace,
             page: options.pagination.page,
             entries_per_page: options.pagination.entries_per_page,
@@ -169,7 +169,7 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<DependencyDetails>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             workspace: options.workspace,
             dependency: options.dependency
         };
@@ -195,10 +195,10 @@ export class ResultsRepository extends BaseRepository {
 
     async getDependencyGraph(
         options: GetDependencyRequestOptions
-    ): Promise<DataResponse<Array<GraphDependency>>> {
+    ): Promise<DataResponse<GraphDependency[]>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency/graph`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             workspace: options.workspace,
             dependency: options.dependency
         };
@@ -207,7 +207,7 @@ export class ResultsRepository extends BaseRepository {
             queryParams.run_index = options.runIndex;
         }
 
-        const response = await this.getRequest<DataResponse<Array<GraphDependency>>>({
+        const response = await this.getRequest<DataResponse<GraphDependency[]>>({
             queryParams,
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
@@ -216,16 +216,16 @@ export class ResultsRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        return Entity.unMarshal<DataResponse<Array<GraphDependency>>>(
+        return Entity.unMarshal<DataResponse<GraphDependency[]>>(
             response,
-            DataResponse<Array<GraphDependency>>
+            DataResponse<GraphDependency[]>
         );
     }
 
     async getLicenses(options: GetSbomRequestOptions): Promise<PaginatedResponse<License>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/licenses`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number | undefined> = {
             workspace: options.workspace,
             page: options.pagination.page,
             entries_per_page: options.pagination.entries_per_page,
@@ -260,7 +260,7 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<AnalysisStats>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             workspace: options.workspace
         };
 
@@ -289,7 +289,7 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<PaginatedResponse<VulnerabilityMerged>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number | undefined> = {
             workspace: options.workspace,
             page: options.pagination.page,
             entries_per_page: options.pagination.entries_per_page,
@@ -331,7 +331,7 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<VulnerabilityDetails>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/vulnerability/${options.vulnerability_id}`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             workspace: options.workspace
         };
 
@@ -359,7 +359,7 @@ export class ResultsRepository extends BaseRepository {
     ): Promise<DataResponse<PatchingStats>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/stats`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             workspace: options.workspace
         };
 
@@ -382,7 +382,7 @@ export class ResultsRepository extends BaseRepository {
     async getPatches(options: GetSbomRequestOptions): Promise<DataResponse<Workspace>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number | undefined> = {
             workspace: options.workspace,
             page: options.pagination.page,
             entries_per_page: options.pagination.entries_per_page,
@@ -455,7 +455,7 @@ export class ResultsRepository extends BaseRepository {
     async getResultByType(options: GetResultByTypeRequestOptions): Promise<DataResponse<Result>> {
         const RELATIVE_URL = `/result`;
 
-        const queryParams: any = {
+        const queryParams: Record<string, string | number> = {
             org_id: options.orgId,
             project_id: options.projectId,
             analysis_id: options.analysisId,

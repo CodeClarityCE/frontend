@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { FieldProps } from './interface';
 import { Button } from '@/shadcn/ui/button';
 import { FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
 import { Trash } from 'lucide-vue-next';
 import { ref } from 'vue';
 import AutoFormLabel from './AutoFormLabel.vue';
+import type { FieldProps } from './interface';
 import { beautifyObjectName } from './utils';
 
 defineProps<FieldProps>();

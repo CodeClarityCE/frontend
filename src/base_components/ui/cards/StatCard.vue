@@ -17,7 +17,7 @@
 
                         <!-- Optional subtitle with icon -->
                         <div
-                            v-if="subtitle || $slots.subtitle"
+                            v-if="subtitle || $slots['subtitle']"
                             class="flex items-center gap-1 text-xs"
                         >
                             <Icon

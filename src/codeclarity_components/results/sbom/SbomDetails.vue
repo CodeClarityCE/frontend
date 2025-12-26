@@ -1,39 +1,34 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-
-import SbomDetailsLoader from './SbomDetails/SbomDetailsLoader.vue';
-import SbomDetailsHeader from './SbomDetails/SbomDetailsHeader.vue';
-import SbomInformation from './SbomDetails/SbomInformation.vue';
-import SbomDependencyHealth from './SbomDetails/SbomDependencyHealth.vue';
-
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-
-import { Icon } from '@iconify/vue';
-
-import router from '@/router';
 import {
     DependencyDetails,
     type SeverityDist
 } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import router from '@/router';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import SbomDependencyHealth from './SbomDetails/SbomDependencyHealth.vue';
+import SbomDetailsHeader from './SbomDetails/SbomDetailsHeader.vue';
+import SbomDetailsLoader from './SbomDetails/SbomDetailsLoader.vue';
 import SbomImportPaths from './SbomDetails/SbomImportPaths.vue';
+import SbomInformation from './SbomDetails/SbomInformation.vue';
+
+// Import stores
 
 // Import common components
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
 
-type Props = {
-    [key: string]: any;
+interface Props {
     showBack?: boolean;
     analysisID: string;
     projectID: string;
     runIndex?: number | null;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     showBack: false,
@@ -43,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 const render: Ref<boolean> = ref(false);
 const dependency: Ref<DependencyDetails> = ref(new DependencyDetails());
 
-function goBack() {
+function goBack(): void {
     router.back();
 }
 
@@ -100,18 +95,18 @@ function getVulnerabilityDescription(count: number): string {
 
 function getCriticalHighCount(severityDist?: SeverityDist): number {
     if (!severityDist) return 0;
-    return (severityDist.critical || 0) + (severityDist.high || 0);
+    return (severityDist.critical ?? 0) + (severityDist.high ?? 0);
 }
 
 function getVersionStatus(dependency: DependencyDetails): string {
-    if (!dependency.latest_version || !dependency.version) return 'Unknown';
+    if (!authStore.getAuthenticated || !dependency.version) return 'Unknown';
     if (dependency.version === dependency.latest_version) return 'Latest';
     // Check if version already starts with 'v' to avoid duplication
     return dependency.version.startsWith('v') ? dependency.version : `v${dependency.version}`;
 }
 
 function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'primary' | 'default' {
-    if (!dependency.latest_version || !dependency.version) return 'default';
+    if (!authStore.getAuthenticated || !dependency.version) return 'default';
     if (dependency.version === dependency.latest_version) return 'success';
     if (isPackageOutdated(dependency.release_date, dependency.lastest_release_date))
         return 'primary';
@@ -119,7 +114,8 @@ function getVersionStatusVariant(dependency: DependencyDetails): 'success' | 'pr
 }
 
 function getVersionStatusDescription(dependency: DependencyDetails): string {
-    if (!dependency.latest_version || !dependency.version) return 'Version information unavailable';
+    if (!authStore.getAuthenticated || !dependency.version)
+        return 'Version information unavailable';
     if (dependency.version === dependency.latest_version) return 'Using latest version';
     // Check if version already starts with 'v' to avoid duplication
     const latestVersion = dependency.latest_version.startsWith('v')
@@ -136,7 +132,7 @@ function getLicenseDescription(license?: string): string {
 }
 
 function shouldRecommendUpdate(dependency: DependencyDetails): boolean {
-    if (!dependency.latest_version || !dependency.version) return false;
+    if (!authStore.getAuthenticated || !dependency.version) return false;
     return dependency.version !== dependency.latest_version;
 }
 
@@ -146,11 +142,11 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-async function getDependency(projectID: string, analysisID: string) {
+async function getDependency(projectID: string, analysisID: string): Promise<void> {
     const urlParams = new URLSearchParams(window.location.search);
     const package_id_param = urlParams.get('package_id');
 
-    if (package_id_param == null) return;
+    if (package_id_param === null) return;
 
     let res: DataResponse<DependencyDetails>;
     try {
@@ -189,7 +185,7 @@ async function getDependency(projectID: string, analysisID: string) {
     }
 }
 
-getDependency(props.projectID, props.analysisID);
+void getDependency(props.projectID, props.analysisID);
 </script>
 
 <template>
@@ -218,8 +214,8 @@ getDependency(props.projectID, props.analysisID);
         <div v-if="render" class="content-wrapper">
             <!-- Header Section with Package Info -->
             <InfoCard
-                :title="dependency.name || 'Dependency Details'"
-                :description="`Version ${dependency.version || 'unknown'} - Package information and external links`"
+                :title="dependency.name ?? 'Dependency Details'"
+                :description="`Version ${dependency.version ?? 'unknown'} - Package information and external links`"
                 icon="solar:box-bold"
                 variant="primary"
                 class="header-section"
@@ -269,7 +265,7 @@ getDependency(props.projectID, props.analysisID);
 
                 <StatCard
                     label="License"
-                    :value="dependency.license || 'Unlicensed'"
+                    :value="dependency.license ?? 'Unlicensed'"
                     icon="solar:document-text-bold"
                     :variant="dependency.license ? 'success' : 'danger'"
                     :subtitle="getLicenseDescription(dependency.license)"
@@ -278,7 +274,7 @@ getDependency(props.projectID, props.analysisID);
 
                 <StatCard
                     label="Package Manager"
-                    :value="dependency.package_manager || 'Unknown'"
+                    :value="dependency.package_manager ?? 'Unknown'"
                     icon="solar:box-bold"
                     variant="default"
                     :subtitle="
@@ -517,8 +513,8 @@ getDependency(props.projectID, props.analysisID);
         font-weight: 500;
 
         &:hover {
-            background: theme('colors.theme-primary');
-            border-color: theme('colors.theme-primary');
+            background: var(--color-theme-primary);
+            border-color: var(--color-theme-primary);
             color: white;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px 0 rgb(29 206 121 / 0.2);
@@ -574,7 +570,7 @@ getDependency(props.projectID, props.analysisID);
 .breakdown-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin-bottom: 1rem;
 }
 
@@ -605,30 +601,30 @@ getDependency(props.projectID, props.analysisID);
         }
 
         &.critical {
-            border-left: 4px solid theme('colors.severity-critical');
+            border-left: 4px solid var(--color-severity-critical);
             .severity-icon {
-                color: theme('colors.severity-critical');
+                color: var(--color-severity-critical);
             }
         }
 
         &.high {
-            border-left: 4px solid theme('colors.severity-high');
+            border-left: 4px solid var(--color-severity-high);
             .severity-icon {
-                color: theme('colors.severity-high');
+                color: var(--color-severity-high);
             }
         }
 
         &.medium {
-            border-left: 4px solid theme('colors.severity-medium');
+            border-left: 4px solid var(--color-severity-medium);
             .severity-icon {
-                color: theme('colors.severity-medium');
+                color: var(--color-severity-medium);
             }
         }
 
         &.low {
-            border-left: 4px solid theme('colors.severity-low');
+            border-left: 4px solid var(--color-severity-low);
             .severity-icon {
-                color: theme('colors.severity-low');
+                color: var(--color-severity-low);
             }
         }
     }
@@ -641,14 +637,14 @@ getDependency(props.projectID, props.analysisID);
     .severity-count {
         font-size: 1.5rem;
         font-weight: 700;
-        color: theme('colors.theme-black');
+        color: var(--color-theme-black);
         margin-bottom: 0.25rem;
     }
 
     .severity-label {
         font-size: 0.875rem;
         font-weight: 500;
-        color: theme('colors.theme-gray');
+        color: var(--color-theme-gray);
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
@@ -675,7 +671,7 @@ getDependency(props.projectID, props.analysisID);
 
     .more-vulnerabilities {
         font-weight: 500;
-        color: theme('colors.theme-gray');
+        color: var(--color-theme-gray);
         background: #f3f4f6;
         border: 1px solid #d1d5db;
     }
@@ -759,7 +755,7 @@ getDependency(props.projectID, props.analysisID);
 
 .health-header-icon {
     font-size: 1.5rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
     background: rgba(29, 206, 121, 0.1);
     padding: 0.5rem;
     border-radius: 8px;
@@ -768,7 +764,7 @@ getDependency(props.projectID, props.analysisID);
 .health-section-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
     flex: 1;
 }
@@ -809,16 +805,16 @@ getDependency(props.projectID, props.analysisID);
 
 /* Ensure all icons use consistent colors */
 :deep(.icon) {
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 }
 
 /* Style any buttons to match theme */
 :deep(.btn-outline) {
-    border-color: theme('colors.theme-primary');
-    color: theme('colors.theme-primary');
+    border-color: var(--color-theme-primary);
+    color: var(--color-theme-primary);
 
     &:hover {
-        background-color: theme('colors.theme-primary');
+        background-color: var(--color-theme-primary);
         color: white;
     }
 }
@@ -828,17 +824,17 @@ getDependency(props.projectID, props.analysisID);
     background-color: rgba(29, 206, 121, 0.2);
 
     .progress-fill {
-        background-color: theme('colors.theme-primary');
+        background-color: var(--color-theme-primary);
     }
 }
 
 /* Ensure consistent text hierarchy */
 :deep(.text-primary) {
-    color: theme('colors.theme-primary') !important;
+    color: var(--color-theme-primary) !important;
 }
 
 :deep(.text-secondary) {
-    color: theme('colors.theme-gray') !important;
+    color: var(--color-theme-gray) !important;
 }
 
 /* Loading states */
@@ -892,7 +888,7 @@ getDependency(props.projectID, props.analysisID);
 .breakdown-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin-bottom: 1rem;
     border-bottom: 2px solid #e5e7eb;
     padding-bottom: 0.5rem;
@@ -963,15 +959,15 @@ getDependency(props.projectID, props.analysisID);
     }
 
     &.low {
-        border-color: theme('colors.theme-primary');
+        border-color: var(--color-theme-primary);
         background: rgba(29, 206, 121, 0.05);
 
         .severity-icon {
-            color: theme('colors.theme-primary');
+            color: var(--color-theme-primary);
         }
 
         .severity-count {
-            color: theme('colors.theme-primary');
+            color: var(--color-theme-primary);
         }
     }
 }
@@ -990,7 +986,7 @@ getDependency(props.projectID, props.analysisID);
 .severity-label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -1020,7 +1016,7 @@ getDependency(props.projectID, props.analysisID);
         border-color: rgba(29, 206, 121, 0.2);
 
         .recommendation-icon {
-            color: theme('colors.theme-primary');
+            color: var(--color-theme-primary);
         }
     }
 
@@ -1058,12 +1054,12 @@ getDependency(props.projectID, props.analysisID);
 .recommendation-title {
     font-weight: 600;
     font-size: 0.95rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .recommendation-desc {
     font-size: 0.875rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     line-height: 1.4;
 }
 
@@ -1097,7 +1093,7 @@ getDependency(props.projectID, props.analysisID);
 
 .more-vulnerabilities {
     font-weight: 500;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     background: #f3f4f6;
     border: 1px solid #d1d5db;
     cursor: pointer;
@@ -1142,50 +1138,50 @@ getDependency(props.projectID, props.analysisID);
 
 /* Theme-specific styling to ensure consistency with dashboard */
 :deep(.border-l-theme-primary) {
-    border-left-color: theme('colors.theme-primary');
+    border-left-color: var(--color-theme-primary);
 }
 
 :deep(.text-theme-primary) {
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 }
 
 :deep(.text-theme-black) {
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 :deep(.text-theme-gray) {
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
 }
 
 /* Ensure links use theme colors */
 :deep(a) {
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
     transition: color 0.2s ease-in-out;
 
     &:hover {
-        color: theme('colors.theme-primary-dark');
+        color: var(--color-theme-primary-dark);
     }
 }
 
 /* Button accent colors */
 :deep(.btn-primary) {
-    background-color: theme('colors.theme-primary');
-    border-color: theme('colors.theme-primary');
+    background-color: var(--color-theme-primary);
+    border-color: var(--color-theme-primary);
 
     &:hover {
-        background-color: theme('colors.theme-primary-dark');
-        border-color: theme('colors.theme-primary-dark');
+        background-color: var(--color-theme-primary-dark);
+        border-color: var(--color-theme-primary-dark);
     }
 }
 
 /* Badge accent colors */
 :deep(.badge-primary) {
-    background-color: theme('colors.theme-primary');
+    background-color: var(--color-theme-primary);
     color: white;
 }
 
 :deep(.badge-secondary) {
-    background-color: theme('colors.theme-black');
+    background-color: var(--color-theme-black);
     color: white;
 }
 </style>

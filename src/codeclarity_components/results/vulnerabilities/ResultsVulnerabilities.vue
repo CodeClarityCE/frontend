@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { onMounted, onUpdated, ref, watch, type Ref } from 'vue';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
+import { type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { type Project } from '@/codeclarity_components/projects/project.entity';
+import { Alert, AlertDescription, AlertTitle } from '@/shadcn/ui/alert';
 import { Card, CardContent, CardHeader } from '@/shadcn/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/ui/tabs';
+import { onMounted, onUpdated, ref, watch, type Ref } from 'vue';
+import VulnContent from './VulnContent.vue';
 import List from './VulnList.vue';
 import Table from './VulnTable.vue';
-import VulnContent from './VulnContent.vue';
 // Import stores
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Alert, AlertDescription, AlertTitle } from '@/shadcn/ui/alert';
 
 defineProps<{
     analysis: Analysis;
@@ -19,8 +19,8 @@ defineProps<{
 const no_deps = false;
 
 const active_tab = ref('List');
-const list_ref: any = ref(null);
-const table_ref: any = ref(null);
+const list_ref = ref(null);
+const table_ref = ref(null);
 
 const selected_workspace: Ref<string> = ref('.');
 const selectedEcosystemFilter: Ref<string | null> = ref(null);
@@ -44,7 +44,7 @@ onUpdated(() => {
         mainContainer.scrollTop = 0;
     }
     setTimeout(() => {
-        if (y_position != 0 && details.value == false)
+        if (y_position !== 0 && details.value === false)
             if (mainContainer) {
                 mainContainer.scrollTop = y_position;
             }
@@ -52,7 +52,7 @@ onUpdated(() => {
 });
 
 watch(active_tab, async (newTab, oldTab) => {
-    if (newTab != oldTab) {
+    if (newTab !== oldTab) {
         y_position = 0;
         reference_click_element.value = '';
     }

@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
 import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { ref, type Ref } from 'vue';
-import { formatDate } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
-import type { Project } from '@/codeclarity_components/projects/project.entity';
-import { useAuthStore } from '@/stores/auth';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { errorToast, successToast } from '@/utils/toasts';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { useProjectsMainStore } from '@/stores/StateStore';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
 import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
-import { Button } from '@/shadcn/ui/button';
-import AnalysisList from './AnalysisList.vue';
+import type { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import { Button } from '@/shadcn/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { useAuthStore } from '@/stores/auth';
+import { useProjectsMainStore } from '@/stores/StateStore';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { formatDate } from '@/utils/dateUtils';
+import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
+import AnalysisList from './AnalysisList.vue';
 
 // Props
 const props = defineProps<{
@@ -23,9 +23,7 @@ const props = defineProps<{
 }>();
 
 // Emits
-const emit = defineEmits<{
-    (e: 'onRefresh'): void;
-}>();
+const emit = defineEmits<(e: 'onRefresh') => void>();
 
 // Store
 const auth = useAuthStore();
@@ -35,11 +33,11 @@ const viewState = useProjectsMainStore();
 const projectRepository: ProjectRepository = new ProjectRepository();
 
 // State
-const projectOptionsModalRef: Ref<typeof PositionedModal> = ref(PositionedModal);
-const projectDeleteModalRef: Ref<typeof PositionedModal> = ref(PositionedModal);
+const projectOptionsModalRef = ref<{ toggle: () => void } | null>(null);
+const projectDeleteModalRef = ref<{ toggle: () => void } | null>(null);
 
 // Methods
-async function deleteProject() {
+async function deleteProject(): Promise<void> {
     if (!viewState.orgId) return;
     if (!auth.getAuthenticated || !auth.getToken) return;
 
@@ -51,10 +49,10 @@ async function deleteProject() {
             handleBusinessErrors: true
         });
         successToast('Project successfully deleted');
-        emit('onRefresh');
+        void emit('onRefresh');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
-            if (err.error_code == APIErrors.EntityNotFound) {
+            if (err.error_code === APIErrors.EntityNotFound) {
                 successToast(`Successfully deleted project\n${props.project.url}`);
             } else {
                 errorToast(`Failed to delete the project\n${props.project.url}`);
@@ -63,7 +61,9 @@ async function deleteProject() {
             errorToast(`Failed to delete the project\n${props.project.url}`);
         }
     } finally {
-        if (projectDeleteModalRef.value) projectDeleteModalRef.value.toggle();
+        if (projectDeleteModalRef.value) {
+            projectDeleteModalRef.value.toggle();
+        }
     }
 }
 </script>
@@ -90,12 +90,12 @@ async function deleteProject() {
                             class="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-150 transition-all duration-300"
                         >
                             <Icon
-                                v-if="project.type == IntegrationProvider.GITLAB"
+                                v-if="project.type === IntegrationProvider.GITLAB"
                                 icon="devicon:gitlab"
                                 class="w-5 h-5"
                             />
                             <Icon
-                                v-else-if="project.type == IntegrationProvider.GITHUB"
+                                v-else-if="project.type === IntegrationProvider.GITHUB"
                                 icon="devicon:github"
                                 class="w-5 h-5"
                             />
@@ -133,7 +133,7 @@ async function deleteProject() {
                         variant="ghost"
                         size="sm"
                         class="h-8 w-8 p-0 text-theme-gray/50 hover:text-theme-primary hover:bg-theme-primary/10 transition-all duration-300"
-                        @click="projectOptionsModalRef.toggle()"
+                        @click="projectOptionsModalRef?.toggle()"
                     >
                         <Icon
                             :id="'dot-menu-' + project.id"
@@ -167,7 +167,7 @@ async function deleteProject() {
                                 <div
                                     class="flex flex-row gap-3 items-center w-full cursor-pointer p-3 hover:bg-red-50 rounded-md transition-colors duration-200 text-red-600"
                                     title="Delete the project"
-                                    @click="projectDeleteModalRef.toggle()"
+                                    @click="projectDeleteModalRef?.toggle()"
                                 >
                                     <Icon class="h-4 w-4" icon="solar:trash-bin-trash-linear" />
                                     <span>Delete Project</span>
@@ -248,7 +248,7 @@ async function deleteProject() {
             </div>
         </template>
         <template #buttons>
-            <Button variant="outline" @click="projectDeleteModalRef.toggle()"> Cancel </Button>
+            <Button variant="outline" @click="projectDeleteModalRef?.toggle()"> Cancel </Button>
             <Button
                 variant="destructive"
                 class="flex flex-row gap-2 items-center"

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
 import PasswordResetRequestView from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockStateStore = {
   $reset: vi.fn(),

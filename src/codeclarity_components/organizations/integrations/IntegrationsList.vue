@@ -1,30 +1,30 @@
 <script lang="ts" setup>
-import {
-    isMemberRoleGreaterOrEqualTo,
-    MemberRole,
-    Organization
-} from '@/codeclarity_components/organizations/organization.entity';
-import router from '@/router';
-import { Icon } from '@iconify/vue';
-import { ref, type Ref } from 'vue';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import {
     IntegrationProvider,
     type VCS
 } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { getDaysUntilExpiry } from '@/utils/dateUtils';
-import Button from '@/shadcn/ui/button/Button.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
+import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import {
+    isMemberRoleGreaterOrEqualTo,
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import {
     ExternalTicketProvider,
     type IntegrationConfigSummary
 } from '@/codeclarity_components/tickets/tickets.entity';
+import { TicketsRepository } from '@/codeclarity_components/tickets/tickets.repository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { getDaysUntilExpiry } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 // Constants
 const EXPIRES_IN_DAYS_RISK = 14;
@@ -47,21 +47,21 @@ const props = defineProps<{
     orgId: string;
 }>();
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({
+        void router.push({
             name: 'orgs',
             params: { action: 'manage', page: 'integrations', orgId: _orgInfo.id }
         });
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     await Promise.all([fetchVcsIntegrations(), fetchTicketingIntegrations()]);
 }
 
-async function fetchVcsIntegrations(refresh: boolean = false) {
+async function fetchVcsIntegrations(refresh = false): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -89,7 +89,7 @@ async function fetchVcsIntegrations(refresh: boolean = false) {
     }
 }
 
-async function fetchTicketingIntegrations(refresh: boolean = false) {
+async function fetchTicketingIntegrations(refresh = false): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     ticketingError.value = false;
@@ -108,7 +108,7 @@ async function fetchTicketingIntegrations(refresh: boolean = false) {
         const clickUp = resp.data.find(
             (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config
         );
-        clickUpConfig.value = clickUp || null;
+        clickUpConfig.value = clickUp ?? null;
     } catch (err) {
         ticketingError.value = true;
         if (err instanceof BusinessLogicError) {
@@ -119,7 +119,7 @@ async function fetchTicketingIntegrations(refresh: boolean = false) {
     }
 }
 
-async function deleteTicketingIntegration(provider: ExternalTicketProvider) {
+async function deleteTicketingIntegration(provider: ExternalTicketProvider): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     if (!confirm('Are you sure you want to delete the ClickUp integration?')) {
@@ -144,7 +144,7 @@ async function deleteTicketingIntegration(provider: ExternalTicketProvider) {
     router.go(0);
 }
 
-async function deleteIntegration(integrationId: string) {
+async function deleteIntegration(integrationId: string): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -168,12 +168,12 @@ async function deleteIntegration(integrationId: string) {
     router.go(0);
 }
 
-function isAtRisk(vcs: VCS) {
+function isAtRisk(vcs: VCS): boolean {
     if (vcs.expiry_date) return getDaysUntilExpiry(vcs.expiry_date) <= EXPIRES_IN_DAYS_RISK;
     else return false;
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="min-h-screen bg-gray-50">
@@ -368,7 +368,7 @@ init();
                                 <div>
                                     <h3 class="text-lg font-semibold text-theme-black">GitHub</h3>
                                     <p class="text-sm text-theme-gray">
-                                        {{ vcs.service_domain || 'GitHub.com' }}
+                                        {{ vcs.service_domain ?? 'GitHub.com' }}
                                     </p>
                                 </div>
                             </div>

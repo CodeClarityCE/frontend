@@ -1,17 +1,17 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
-const show_modal: any = ref(false);
+const show_modal = ref<boolean>(false);
 
-function toggle() {
+function toggle(): void {
     show_modal.value = !show_modal.value;
 }
 
-function show() {
+function show(): void {
     show_modal.value = true;
 }
 
-function hide() {
+function hide(): void {
     show_modal.value = false;
 }
 
@@ -31,7 +31,7 @@ defineExpose({
                 <div class="rounded p-5 pb-0 font-semibold text-gray-600 text-lg">
                     <slot name="title"></slot>
                 </div>
-                <div v-if="$slots.subtitle" class="px-5 py-2 font-normal text-gray-600">
+                <div v-if="$slots['subtitle']" class="px-5 py-2 font-normal text-gray-600">
                     <slot name="subtitle"></slot>
                 </div>
                 <div class="mx-5 h-px bg-gray-200 mt-2"></div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoreHorizontal } from 'lucide-vue-next';
+import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,7 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import { Button } from '@/shadcn/ui/button';
+import { MoreHorizontal } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{
@@ -23,17 +23,17 @@ const urlParams = new URLSearchParams(window.location.search);
 const analysis_id = ref(urlParams.get('analysis_id'));
 const project_id = ref(urlParams.get('project_id'));
 
-function copy(vulnerabilities?: string[]) {
+function copy(vulnerabilities?: string[]): void {
     if (vulnerabilities === undefined) {
-        navigator.clipboard.writeText('No vulnerabilities found');
+        void navigator.clipboard.writeText('No vulnerabilities found');
         return;
     }
     if (vulnerabilities.length === 0) {
-        navigator.clipboard.writeText('No vulnerabilities found');
+        void navigator.clipboard.writeText('No vulnerabilities found');
         return;
     }
     const joined = vulnerabilities.join(', ');
-    navigator.clipboard.writeText(joined);
+    void navigator.clipboard.writeText(joined);
 }
 </script>
 

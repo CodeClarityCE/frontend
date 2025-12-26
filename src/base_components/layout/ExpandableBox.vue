@@ -4,8 +4,8 @@ import { ref } from 'vue';
 
 export interface Props {
     expand?: boolean;
-    expandCallBack?: Function;
-    closeCallBack?: Function;
+    expandCallBack?: () => void;
+    closeCallBack?: () => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -16,8 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const expand = ref(props.expand);
 
-function expandBox() {
-    if (expand.value == true) {
+function expandBox(): void {
+    if (expand.value === true) {
         if (props.closeCallBack) props.closeCallBack();
     } else {
         if (props.expandCallBack) props.expandCallBack();
@@ -33,10 +33,10 @@ function expandBox() {
             </div>
         </div>
         <slot name="body"></slot>
-        <div :style="{ display: expand == true ? 'none' : 'block' }">
+        <div :style="{ display: expand === true ? 'none' : 'block' }">
             <slot name="collapsibe_content_inverse"></slot>
         </div>
-        <div class="collapsible-content" :style="{ display: expand == true ? 'block' : 'none' }">
+        <div class="collapsible-content" :style="{ display: expand === true ? 'block' : 'none' }">
             <div class="content-wrapper">
                 <slot name="collapsible_content"></slot>
             </div>

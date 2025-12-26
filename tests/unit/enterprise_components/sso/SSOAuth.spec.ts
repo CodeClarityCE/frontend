@@ -1,33 +1,40 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent } from 'vue';
 import SSOAuth from '@/enterprise_components/sso/SSOAuth.vue';
 import { createOAuthState } from '@/enterprise_components/sso/utils';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-const mockAuthStore = {
-  setSocialAuthState: vi.fn()
-};
+const { mockAuthStore } = vi.hoisted(() => ({
+  mockAuthStore: {
+    setSocialAuthState: vi.fn()
+  }
+}));
 
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => mockAuthStore
 }));
 
-vi.mock('@iconify/vue', () => ({
-  Icon: defineComponent({
-    name: 'Icon',
-    props: ['icon', 'class'],
-    template: '<span :data-icon="icon" :class="class"></span>'
-  })
-}));
+vi.mock('@iconify/vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Icon: defineComponent({
+      name: 'Icon',
+      props: ['icon', 'class'],
+      template: '<span :data-icon="icon" :class="class"></span>'
+    })
+  };
+});
 
-vi.mock('@/shadcn/ui/button', () => ({
-  Button: defineComponent({
-    name: 'Button',
-    props: ['variant', 'type'],
-    emits: ['click'],
-    template: '<button :type="type" :data-variant="variant" @click="$emit(\'click\')" data-testid="sso-button"><slot></slot></button>'
-  })
-}));
+vi.mock('@/shadcn/ui/button', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Button: defineComponent({
+      name: 'Button',
+      props: ['variant', 'type'],
+      emits: ['click'],
+      template: '<button :type="type" :data-variant="variant" @click="$emit(\'click\')" data-testid="sso-button"><slot></slot></button>'
+    })
+  };
+});
 
 // Mock the createOAuthState function
 vi.mock('@/enterprise_components/sso/utils', () => ({

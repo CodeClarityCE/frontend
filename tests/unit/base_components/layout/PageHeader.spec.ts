@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import PageHeader from '@/base_components/layout/PageHeader.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock external dependencies
 vi.mock('@iconify/vue', () => ({
@@ -14,7 +14,7 @@ vi.mock('@iconify/vue', () => ({
 vi.mock('@/shadcn/ui/button/Button.vue', () => ({
   default: {
     name: 'Button',
-    template: '<button data-testid="button" :class="$attrs.class" :disabled="disabled || undefined" @click="$emit(\'click\')"><slot /></button>',
+    template: '<button data-testid="button" :class="$attrs.class" :disabled="disabled ?? undefined" @click="$emit(\'click\')"><slot /></button>',
     props: ['variant', 'size', 'disabled'],
     emits: ['click']
   }

@@ -1,26 +1,26 @@
 <script lang="ts" setup>
-import { RouterLink } from 'vue-router';
-import { formatDate, calculateDateDifference } from '@/utils/dateUtils';
-import { ref, type Ref } from 'vue';
 import {
     Analysis,
-    AnalysisStage,
+    type AnalysisStage,
     AnalysisStatus
 } from '@/codeclarity_components/analyses/analysis.entity';
-import { Icon } from '@iconify/vue';
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
-import { errorToast, successToast } from '@/utils/toasts';
 import router from '@/router';
-import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { useUserStore } from '@/stores/user';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { Progress } from '@/shadcn/ui/progress';
-import { Button } from '@/shadcn/ui/button';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import { Button } from '@/shadcn/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shadcn/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
+import { Progress } from '@/shadcn/ui/progress';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { formatDate, calculateDateDifference } from '@/utils/dateUtils';
+import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import AnalysisRuns from './AnalysisRuns.vue';
 
 // State for modals
@@ -32,8 +32,21 @@ const analysisRepository: AnalysisRepository = new AnalysisRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-const chartData: Ref<any | undefined> = ref();
-const chartOptions: Ref<any | undefined> = ref();
+interface ChartDataset {
+    data: object[];
+}
+
+interface ChartData {
+    datasets: ChartDataset[];
+}
+
+const chartData: Ref<ChartData> = ref({
+    datasets: [
+        {
+            data: []
+        }
+    ]
+});
 
 const props = defineProps({
     analysis: {
@@ -46,20 +59,7 @@ const props = defineProps({
     }
 });
 
-chartData.value = {
-    datasets: [
-        {
-            data: []
-        }
-    ]
-};
-chartOptions.value = {
-    h: 50,
-    w: 300,
-    margin: { top: 0, right: 0, bottom: 120, left: 50 }
-};
-
-async function deleteAnalysis() {
+async function deleteAnalysis(): Promise<void> {
     if (!userStore.defaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -75,11 +75,11 @@ async function deleteAnalysis() {
         successToast('Succesfully deleted the integration');
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            if (_err.error_code == APIErrors.NotAuthorized) {
-                errorToast('You are not authorized to perform this action.');
-            } else if (_err.error_code == APIErrors.EntityNotFound) {
+            if (_err.error_code === APIErrors.NotAuthorized) {
+                void errorToast('You are not authorized to perform this action.');
+            } else if (_err.error_code === APIErrors.EntityNotFound) {
                 errorToast('Succesfully deleted the integration');
-            } else if (_err.error_code == APIErrors.InternalError) {
+            } else if (_err.error_code === APIErrors.InternalError) {
                 errorToast('Failed to delete the integration.');
             } else {
                 errorToast('Failed to delete the integration.');
@@ -92,7 +92,8 @@ async function deleteAnalysis() {
     }
 }
 
-function getAllStages(steps: AnalysisStage[][]): AnalysisStage[] {
+function getAllStages(steps: AnalysisStage[][] | undefined): AnalysisStage[] {
+    if (!steps) return [];
     let stages: AnalysisStage[] = [];
     for (const step of steps) {
         stages = stages.concat(step);
@@ -100,7 +101,8 @@ function getAllStages(steps: AnalysisStage[][]): AnalysisStage[] {
     return stages;
 }
 
-function getTotalSteps(steps: AnalysisStage[][]) {
+function getTotalSteps(steps: AnalysisStage[][] | undefined): number {
+    if (!steps) return 0;
     let count = 0;
     for (const step of steps) {
         count += step.length;
@@ -108,16 +110,17 @@ function getTotalSteps(steps: AnalysisStage[][]) {
     return count;
 }
 
-function getStepsDone(steps: AnalysisStage[][]) {
+function getStepsDone(steps: AnalysisStage[][] | undefined): number {
+    if (!steps) return 0;
     let count = 0;
     for (const step of steps) {
-        count += step.filter((stage) => stage.Status == AnalysisStatus.SUCCESS).length;
+        count += step.filter((stage) => stage.Status === AnalysisStatus.SUCCESS).length;
     }
     return count;
 }
 
-function getTimeDiff(stage: AnalysisStage) {
-    if (!stage.Ended_on || !stage.Started_on) return '';
+function getTimeDiff(stage: AnalysisStage): string {
+    if (!authStore.getAuthenticated || !stage.Started_on) return '';
 
     let time = '';
 
@@ -127,20 +130,20 @@ function getTimeDiff(stage: AnalysisStage) {
     const milliseconds =
         calculateDateDifference(stage.Ended_on, stage.Started_on, 'milliseconds') % 1000;
 
-    if (hours > 0) time += hours + 'h ';
-    if (minutes > 0) time += minutes + 'm ';
-    if (seconds > 0) time += seconds + 's ';
-    if (time == '' && milliseconds > 0) time += milliseconds + 'ms ';
-    return time;
+    if (hours > 0) time += `${hours}h `;
+    if (minutes > 0) time += `${minutes}m `;
+    if (seconds > 0) time += `${seconds}s `;
+    if (time === '' && milliseconds > 0) time += `${milliseconds}ms `;
+    return time ?? '';
 }
 
-function getStepName(index: number) {
+function getStepName(index: number): string {
     const stepNames = ['SBOM Generation', 'Vulnerability Scan', 'License Check', 'Code Analysis'];
-    return stepNames[index] || `Step ${index + 1}`;
+    return stepNames[index] ?? `Step ${index + 1}`;
 }
 
-async function getChart(projectID: string, analysisID: string) {
-    let res: DataResponse<Array<object>>;
+async function getChart(projectID: string, analysisID: string): Promise<void> {
+    let res: DataResponse<object[]>;
     try {
         if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
@@ -157,7 +160,9 @@ async function getChart(projectID: string, analysisID: string) {
             bearerToken: authStore.getToken,
             handleBusinessErrors: true
         });
-        chartData.value.datasets[0].data = res.data;
+        if (chartData.value?.datasets?.[0]) {
+            chartData.value.datasets[0].data = res.data;
+        }
     } catch (_err) {
         console.error(_err);
 
@@ -171,10 +176,10 @@ async function getChart(projectID: string, analysisID: string) {
         // createDepStatusDistChart();
     }
 }
-getChart(props.projectID, props.analysis.id);
+void getChart(props.projectID, props.analysis.id);
 </script>
 <template>
-    <div v-if="props.analysis != null" class="w-full">
+    <div v-if="props.analysis !== null" class="w-full">
         <div
             class="flex gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 transition-all duration-200"
         >
@@ -188,8 +193,8 @@ getChart(props.projectID, props.analysis.id);
                 <!-- Status indicator with enhanced design -->
                 <div
                     v-if="
-                        props.analysis.status == AnalysisStatus.COMPLETED ||
-                        props.analysis.status == AnalysisStatus.FINISHED
+                        props.analysis.status === AnalysisStatus.COMPLETED ||
+                        props.analysis.status === AnalysisStatus.FINISHED
                     "
                     class="space-y-2"
                 >
@@ -257,12 +262,12 @@ getChart(props.projectID, props.analysis.id);
                                                 <div
                                                     class="text-xs font-medium text-slate-900 uppercase"
                                                 >
-                                                    {{ stage.Name || getStepName(index) }}
+                                                    {{ stage.Name ?? getStepName(index) }}
                                                 </div>
                                             </div>
 
                                             <div
-                                                v-if="stage.Status == AnalysisStatus.STARTED"
+                                                v-if="stage.Status === AnalysisStatus.STARTED"
                                                 class="flex items-center gap-1 text-blue-600"
                                             >
                                                 <span class="text-xs">Running</span>
@@ -273,7 +278,7 @@ getChart(props.projectID, props.analysis.id);
                                             </div>
 
                                             <div
-                                                v-else-if="stage.Status == AnalysisStatus.SUCCESS"
+                                                v-else-if="stage.Status === AnalysisStatus.SUCCESS"
                                                 class="flex items-center gap-1 text-emerald-600"
                                             >
                                                 <span class="text-xs">{{
@@ -287,8 +292,8 @@ getChart(props.projectID, props.analysis.id);
 
                                             <div
                                                 v-else-if="
-                                                    stage.Status == AnalysisStatus.FAILED ||
-                                                    stage.Status == AnalysisStatus.FAILURE
+                                                    stage.Status === AnalysisStatus.FAILED ||
+                                                    stage.Status === AnalysisStatus.FAILURE
                                                 "
                                                 class="flex items-center gap-1 text-red-600"
                                             >
@@ -332,10 +337,10 @@ getChart(props.projectID, props.analysis.id);
 
                 <div
                     v-else-if="
-                        props.analysis.status == AnalysisStatus.STARTED ||
-                        props.analysis.status == AnalysisStatus.REQUESTED ||
-                        props.analysis.status == AnalysisStatus.ONGOING ||
-                        props.analysis.status == AnalysisStatus.UPDATING_DB
+                        props.analysis.status === AnalysisStatus.STARTED ||
+                        props.analysis.status === AnalysisStatus.REQUESTED ||
+                        props.analysis.status === AnalysisStatus.ONGOING ||
+                        props.analysis.status === AnalysisStatus.UPDATING_DB
                     "
                     class="space-y-2"
                 >
@@ -408,12 +413,12 @@ getChart(props.projectID, props.analysis.id);
                                                     <div
                                                         class="text-xs font-medium text-slate-900 uppercase"
                                                     >
-                                                        {{ stage.Name || getStepName(index) }}
+                                                        {{ stage.Name ?? getStepName(index) }}
                                                     </div>
                                                 </div>
 
                                                 <div
-                                                    v-if="stage.Status == AnalysisStatus.STARTED"
+                                                    v-if="stage.Status === AnalysisStatus.STARTED"
                                                     class="flex items-center gap-1 text-blue-600"
                                                 >
                                                     <span class="text-xs">Running</span>
@@ -425,7 +430,7 @@ getChart(props.projectID, props.analysis.id);
 
                                                 <div
                                                     v-else-if="
-                                                        stage.Status == AnalysisStatus.SUCCESS
+                                                        stage.Status === AnalysisStatus.SUCCESS
                                                     "
                                                     class="flex items-center gap-1 text-emerald-600"
                                                 >
@@ -440,8 +445,8 @@ getChart(props.projectID, props.analysis.id);
 
                                                 <div
                                                     v-else-if="
-                                                        stage.Status == AnalysisStatus.FAILED ||
-                                                        stage.Status == AnalysisStatus.FAILURE
+                                                        stage.Status === AnalysisStatus.FAILED ||
+                                                        stage.Status === AnalysisStatus.FAILURE
                                                     "
                                                     class="flex items-center gap-1 text-red-600"
                                                 >
@@ -565,12 +570,12 @@ getChart(props.projectID, props.analysis.id);
                                                     <div
                                                         class="text-xs font-medium text-slate-900 uppercase"
                                                     >
-                                                        {{ stage.Name || getStepName(index) }}
+                                                        {{ stage.Name ?? getStepName(index) }}
                                                     </div>
                                                 </div>
 
                                                 <div
-                                                    v-if="stage.Status == AnalysisStatus.STARTED"
+                                                    v-if="stage.Status === AnalysisStatus.STARTED"
                                                     class="flex items-center gap-1 text-blue-600"
                                                 >
                                                     <span class="text-xs">Running</span>
@@ -582,7 +587,7 @@ getChart(props.projectID, props.analysis.id);
 
                                                 <div
                                                     v-else-if="
-                                                        stage.Status == AnalysisStatus.SUCCESS
+                                                        stage.Status === AnalysisStatus.SUCCESS
                                                     "
                                                     class="flex items-center gap-1 text-emerald-600"
                                                 >
@@ -597,8 +602,8 @@ getChart(props.projectID, props.analysis.id);
 
                                                 <div
                                                     v-else-if="
-                                                        stage.Status == AnalysisStatus.FAILED ||
-                                                        stage.Status == AnalysisStatus.FAILURE
+                                                        stage.Status === AnalysisStatus.FAILED ||
+                                                        stage.Status === AnalysisStatus.FAILURE
                                                     "
                                                     class="flex items-center gap-1 text-red-600"
                                                 >
@@ -650,8 +655,8 @@ getChart(props.projectID, props.analysis.id);
                 <div class="flex items-center gap-1">
                     <Button
                         v-if="
-                            (props.analysis.status == AnalysisStatus.COMPLETED ||
-                                props.analysis.status == AnalysisStatus.FINISHED) &&
+                            (props.analysis.status === AnalysisStatus.COMPLETED ||
+                                props.analysis.status === AnalysisStatus.FINISHED) &&
                             props.analysis.schedule_type &&
                             props.analysis.schedule_type !== 'once'
                         "
@@ -666,8 +671,8 @@ getChart(props.projectID, props.analysis.id);
 
                     <Button
                         v-if="
-                            props.analysis.status == AnalysisStatus.COMPLETED ||
-                            props.analysis.status == AnalysisStatus.FINISHED
+                            props.analysis.status === AnalysisStatus.COMPLETED ||
+                            props.analysis.status === AnalysisStatus.FINISHED
                         "
                         variant="outline"
                         size="sm"

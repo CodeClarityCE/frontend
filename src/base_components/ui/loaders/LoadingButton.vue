@@ -9,15 +9,15 @@ const props = defineProps<{
 const loading = ref(false);
 const disabled = ref(false);
 
-function setLoading(_loading: boolean) {
+function setLoading(_loading: boolean): void {
     loading.value = _loading;
 }
 
-function setDisabled(_disabled: boolean) {
+function setDisabled(_disabled: boolean): void {
     disabled.value = _disabled;
 }
 
-function toggle() {
+function toggle(): void {
     disabled.value = !loading.value;
     loading.value = !loading.value;
 }

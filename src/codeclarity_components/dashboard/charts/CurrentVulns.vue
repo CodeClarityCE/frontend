@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
-import { storeToRefs } from 'pinia';
-import { ref, watch, type Ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import { Skeleton } from '@/shadcn/ui/skeleton';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { ScrollArea } from '@/shadcn/ui/scroll-area';
+import { Skeleton } from '@/shadcn/ui/skeleton';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { ref, watch, type Ref } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -16,7 +16,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Repositories
@@ -38,16 +38,16 @@ interface Vuln {
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const severityCountsShort: Ref<{ [key: string]: number }> = ref({
+const severityCountsShort: Ref<Record<string, number>> = ref({
     CRITICAL: 0,
     HIGH: 0,
     MEDIUM: 0
 });
 const noData: Ref<boolean> = ref(false);
-const vulns: Ref<Array<Vuln>> = ref([]);
+const vulns: Ref<Vuln[]> = ref([]);
 
-async function fetch(refresh: boolean = false) {
-    if (!defaultOrg || !defaultOrg.value) return;
+async function fetch(refresh = false): Promise<void> {
+    if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     if (!refresh) loading.value = true;
@@ -64,13 +64,13 @@ async function fetch(refresh: boolean = false) {
             handleBusinessErrors: true,
             integrationIds: props.integrationIds
         });
-        if (Object.keys(resp.data.vulns).length == 0) noData.value = true;
+        if (Object.keys(resp.data.vulns).length === 0) noData.value = true;
         else {
             for (const x of resp.data.severity_count) {
                 if (
-                    x.severity_class == 'CRITICAL' ||
-                    x.severity_class == 'HIGH' ||
-                    x.severity_class == 'MEDIUM'
+                    x.severity_class === 'CRITICAL' ||
+                    x.severity_class === 'HIGH' ||
+                    x.severity_class === 'MEDIUM'
                 ) {
                     severityCountsShort.value[x.severity_class] = x.count;
                 }
@@ -98,7 +98,7 @@ async function fetch(refresh: boolean = false) {
         if (!refresh) loading.value = false;
     }
 }
-fetch();
+void fetch();
 </script>
 <template>
     <div class="w-full">
@@ -130,7 +130,7 @@ fetch();
                                 <div>Failed to load the dashboard component</div>
                             </div>
                             <div class="flex flex-row gap-2 items-center flex-wrap">
-                                <Button @click="fetch()"> Try again </Button>
+                                <Button @click="() => void fetch()"> Try again </Button>
                             </div>
                         </div>
                     </div>
@@ -158,28 +158,31 @@ fetch();
                             <div>{{ vuln.severity }}</div>
                             <div>
                                 <div
-                                    v-if="vuln.class == 'CRITICAL'"
+                                    v-if="vuln.class === 'CRITICAL'"
                                     class="severity-indicator critical"
                                 >
                                     CRITICAL
                                 </div>
                                 <div
-                                    v-else-if="vuln.class == 'HIGH'"
+                                    v-else-if="vuln.class === 'HIGH'"
                                     class="severity-indicator high"
                                 >
                                     HIGH
                                 </div>
                                 <div
-                                    v-else-if="vuln.class == 'MEDIUM'"
+                                    v-else-if="vuln.class === 'MEDIUM'"
                                     class="severity-indicator medium"
                                 >
                                     MEDIUM
                                 </div>
-                                <div v-else-if="vuln.class == 'LOW'" class="severity-indicator low">
+                                <div
+                                    v-else-if="vuln.class === 'LOW'"
+                                    class="severity-indicator low"
+                                >
                                     LOW
                                 </div>
                                 <div
-                                    v-else-if="vuln.class == 'NONE'"
+                                    v-else-if="vuln.class === 'NONE'"
                                     class="severity-indicator none"
                                 >
                                     NONE

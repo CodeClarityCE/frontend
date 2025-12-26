@@ -1,16 +1,18 @@
 // Mock reflect-metadata for TypeScript decorators
-global.Reflect = global.Reflect || {};
-global.Reflect.getMetadata = global.Reflect.getMetadata || vi.fn();
+global.Reflect = global.Reflect ?? {};
+global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent, nextTick } from 'vue';
 import PasswordResetRequestForm from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { nextTick } from 'vue';
 
-const mockAuthRepository = {
-  requestPasswordReset: vi.fn()
-};
+const { mockAuthRepository } = vi.hoisted(() => ({
+  mockAuthRepository: {
+    requestPasswordReset: vi.fn()
+  }
+}));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
   AuthRepository: vi.fn(() => mockAuthRepository)
@@ -33,73 +35,89 @@ vi.mock('@/utils/api/BaseRepository', () => ({
   }
 }));
 
-vi.mock('@iconify/vue', () => ({
-  Icon: defineComponent({
-    name: 'Icon',
-    props: ['icon'],
-    template: '<span :data-icon="icon"></span>'
-  })
-}));
+vi.mock('@iconify/vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Icon: defineComponent({
+      name: 'Icon',
+      props: ['icon'],
+      template: '<span :data-icon="icon"></span>'
+    })
+  };
+});
 
-vi.mock('@/base_components/forms/FormTextField.vue', () => ({
-  default: defineComponent({
-    name: 'FormTextField',
-    props: ['placeholder', 'type', 'name', 'modelValue'],
-    emits: ['update:modelValue'],
-    template: `
-      <div data-testid="form-text-field">
-        <input 
-          :type="type" 
-          :placeholder="placeholder" 
-          :name="name"
-          :value="modelValue"
-          @input="$emit('update:modelValue', $event.target.value)"
-          data-testid="email-input"
-        />
-        <slot name="name"></slot>
-      </div>
-    `
-  })
-}));
+vi.mock('@/base_components/forms/FormTextField.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'FormTextField',
+      props: ['placeholder', 'type', 'name', 'modelValue'],
+      emits: ['update:modelValue'],
+      template: `
+        <div data-testid="form-text-field">
+          <input
+            :type="type"
+            :placeholder="placeholder"
+            :name="name"
+            :value="modelValue"
+            @input="$emit('update:modelValue', $event.target.value)"
+            data-testid="email-input"
+          />
+          <slot name="name"></slot>
+        </div>
+      `
+    })
+  };
+});
 
-vi.mock('@/base_components/ui/loaders/LoadingSubmitButton.vue', () => ({
-  default: defineComponent({
-    name: 'LoadingSubmitButton',
-    expose: ['setLoading', 'setDisabled'],
-    setup(props, { expose }) {
-      const setLoading = vi.fn();
-      const setDisabled = vi.fn();
-      expose({ setLoading, setDisabled });
-      return { setLoading, setDisabled };
-    },
-    template: '<button type="submit" data-testid="submit-button"><slot></slot></button>'
-  })
-}));
+vi.mock('@/base_components/ui/loaders/LoadingSubmitButton.vue', async () => {
+  const { defineComponent } = await import('vue');
+  const { vi: viImport } = await import('vitest');
+  return {
+    default: defineComponent({
+      name: 'LoadingSubmitButton',
+      expose: ['setLoading', 'setDisabled'],
+      setup(_props: any, { expose }: any) {
+        const setLoading = viImport.fn();
+        const setDisabled = viImport.fn();
+        expose({ setLoading, setDisabled });
+        return { setLoading, setDisabled };
+      },
+      template: '<button type="submit" data-testid="submit-button"><slot></slot></button>'
+    })
+  };
+});
 
-vi.mock('vee-validate', () => ({
-  Form: defineComponent({
-    name: 'Form',
-    props: ['validationSchema', 'name'],
-    emits: ['submit'],
-    template: `
-      <form @submit.prevent="$emit('submit')" data-testid="password-reset-form">
-        <slot></slot>
-      </form>
-    `
-  })
-}));
+vi.mock('vee-validate', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Form: defineComponent({
+      name: 'Form',
+      props: ['validationSchema', 'name'],
+      emits: ['submit'],
+      template: `
+        <form @submit.prevent="$emit('submit')" data-testid="password-reset-form">
+          <slot></slot>
+        </form>
+      `
+    })
+  };
+});
 
 vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: vi.fn((schema) => schema)
+  toTypedSchema: vi.fn((schema: any) => schema)
 }));
 
-vi.mock('vue-router', () => ({
-  RouterLink: defineComponent({
-    name: 'RouterLink',
-    props: ['to'],
-    template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
-  })
-}));
+vi.mock('vue-router', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    RouterLink: defineComponent({
+      name: 'RouterLink',
+      props: ['to'],
+      template: '<a :href="to.name" data-testid="router-link"><slot></slot></a>'
+    })
+  };
+});
 
 describe('PasswordResetRequestForm', () => {
   beforeEach(() => {

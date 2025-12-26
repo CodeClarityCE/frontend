@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import LicensesComponent from './LicensesComponent.vue';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { License } from './License';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import LicensesComponent from './LicensesComponent.vue';
 
 // Mock modules with proper default values
 vi.mock('@/stores/user', () => ({

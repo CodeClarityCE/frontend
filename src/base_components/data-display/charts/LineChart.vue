@@ -9,9 +9,9 @@ interface ChartDataPoint {
 
 interface ChartData {
     labels: string[];
-    datasets: Array<{
+    datasets: {
         data: number[];
-    }>;
+    }[];
 }
 
 const props = defineProps<{
@@ -48,7 +48,7 @@ onMounted(() => {
 
     const line = d3
         .area<ChartDataPoint>()
-        .x((d) => x(d.date) || 0)
+        .x((d) => x(d.date) ?? 0)
         .y((d) => y(d.close));
     // .curve(d3.curveNatural);
 
@@ -103,16 +103,16 @@ onMounted(() => {
         .style('font-size', '18px');
 
     // Three function that change the tooltip when user hover / move / leave a cell
-    const mouseover = function () {
+    const mouseover = function (): void {
         tooltip.style('opacity', 1);
     };
-    const mousemove = function (event: MouseEvent, d: ChartDataPoint) {
+    const mousemove = function (event: MouseEvent, d: ChartDataPoint): void {
         tooltip
             .html(d.close.toString())
-            .style('left', event.x + 'px')
-            .style('top', event.y - 18 * 2 + 'px');
+            .style('left', `${event.x}px`)
+            .style('top', `${event.y - 18 * 2}px`);
     };
-    const mouseleave = function () {
+    const mouseleave = function (): void {
         tooltip.style('opacity', 0);
     };
 
@@ -120,7 +120,7 @@ onMounted(() => {
         .data(aapl)
         .enter()
         .append('circle')
-        .attr('cx', (d) => x(d.date) || 0)
+        .attr('cx', (d) => x(d.date) ?? 0)
         .attr('cy', (d) => y(d.close))
         .attr('r', 5)
         .style('fill', 'white')

@@ -1,5 +1,5 @@
-import { IsDate, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsDate, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { TeamMember } from '../organization.entity';
 
 export enum ActionSeverity {

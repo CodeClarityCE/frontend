@@ -7,6 +7,12 @@
 import type { VueWrapper } from '@vue/test-utils';
 import type { MemoryInfo } from './types';
 
+// Type for Vue component options with lifecycle hooks
+interface VueComponentOptions {
+  updated?: (() => void)[] | (() => void);
+  [key: string]: unknown;
+}
+
 /**
  * Performance metrics interface
  */
@@ -25,16 +31,16 @@ export interface PerformanceMetrics {
 export interface BundleMetrics {
   totalSize: number;
   gzipSize: number;
-  assets: Array<{
+  assets: {
     name: string;
     size: number;
     gzipSize?: number;
-  }>;
-  chunks: Array<{
+  }[];
+  chunks: {
     name: string;
     size: number;
     modules: number;
-  }>;
+  }[];
 }
 
 /**
@@ -84,7 +90,7 @@ export const PERFORMANCE_BENCHMARKS = {
  * Measure component render performance
  */
 export async function measureComponentPerformance(
-  renderComponent: () => VueWrapper<any>,
+  renderComponent: () => VueWrapper,
   iterations = 10
 ): Promise<PerformanceMetrics> {
   const renderTimes: number[] = [];
@@ -121,7 +127,7 @@ export async function measureComponentPerformance(
  * Measure component update performance
  */
 export async function measureUpdatePerformance(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   updateFn: () => void | Promise<void>,
   iterations = 10
 ): Promise<number> {
@@ -150,18 +156,18 @@ export async function measureUpdatePerformance(
  * Stress test component with large datasets
  */
 export async function stressTestComponent(
-  renderComponent: (dataSize: number) => VueWrapper<any>,
+  renderComponent: (dataSize: number) => VueWrapper,
   dataSizes: number[] = [10, 50, 100, 500, 1000]
-): Promise<Array<{
+): Promise<{
   dataSize: number;
   metrics: PerformanceMetrics;
   rating: 'excellent' | 'good' | 'fair' | 'poor';
-}>> {
+}[]> {
   const results = [];
   
   for (const size of dataSizes) {
-    console.log(`Testing with ${size} items...`);
-    
+    // Testing with different data sizes
+
     const metrics = await measureComponentPerformance(
       () => renderComponent(size),
       5 // Fewer iterations for stress testing
@@ -183,7 +189,7 @@ export async function stressTestComponent(
  * Memory leak detection
  */
 export async function detectMemoryLeaks(
-  renderComponent: () => VueWrapper<any>,
+  renderComponent: () => VueWrapper,
   iterations = 20
 ): Promise<{
   hasLeak: boolean;
@@ -266,13 +272,11 @@ export async function runLighthouseAudit(): Promise<LighthouseMetrics> {
  */
 export class FPSMonitor {
   private frames: number[] = [];
-  private startTime: number = 0;
-  private rafId: number = 0;
-  private isRunning: boolean = false;
+  private rafId = 0;
+  private isRunning = false;
 
   start(): void {
     this.frames = [];
-    this.startTime = performance.now();
     this.isRunning = true;
     this.requestFrame();
   }
@@ -309,20 +313,28 @@ export class FPSMonitor {
  * Component rerender counting
  */
 export class RerenderCounter {
-  private count: number = 0;
-  private originalUpdate: any;
+  private count = 0;
+  private originalUpdate: (() => void)[] | (() => void) | undefined;
 
-  constructor(private wrapper: VueWrapper<any>) {}
+  constructor(private wrapper: VueWrapper) {}
 
   start(): void {
     this.count = 0;
     // Hook into Vue's update lifecycle
     const vm = this.wrapper.vm;
-    this.originalUpdate = vm.$options.updated;
-    
-    vm.$options.updated = [
-      ...(Array.isArray(this.originalUpdate) ? this.originalUpdate : 
-          this.originalUpdate ? [this.originalUpdate] : []),
+    this.originalUpdate = vm.$options.updated as (() => void)[] | (() => void) | undefined;
+
+    let existingUpdates: (() => void)[];
+    if (Array.isArray(this.originalUpdate)) {
+      existingUpdates = this.originalUpdate;
+    } else if (this.originalUpdate) {
+      existingUpdates = [this.originalUpdate];
+    } else {
+      existingUpdates = [];
+    }
+
+    (vm.$options as VueComponentOptions).updated = [
+      ...existingUpdates,
       () => this.count++
     ];
   }
@@ -330,7 +342,7 @@ export class RerenderCounter {
   stop(): number {
     // Restore original update hook
     if (this.originalUpdate) {
-      this.wrapper.vm.$options.updated = this.originalUpdate;
+      (this.wrapper.vm.$options as VueComponentOptions).updated = this.originalUpdate;
     }
     
     return this.count;
@@ -345,18 +357,18 @@ export class RerenderCounter {
  * Performance test suite runner
  */
 export class PerformanceTestSuite {
-  private results: Array<{
+  private results: {
     component: string;
     test: string;
     metrics: PerformanceMetrics;
     passed: boolean;
     issues: string[];
-  }> = [];
+  }[] = [];
 
   async runTest(
     componentName: string,
     testName: string,
-    renderComponent: () => VueWrapper<any>
+    renderComponent: () => VueWrapper
   ): Promise<void> {
     const metrics = await measureComponentPerformance(renderComponent);
     const issues: string[] = [];
@@ -387,7 +399,7 @@ export class PerformanceTestSuite {
 
   async runMemoryLeakTest(
     componentName: string,
-    renderComponent: () => VueWrapper<any>
+    renderComponent: () => VueWrapper
   ): Promise<void> {
     const leakTest = await detectMemoryLeaks(renderComponent);
     
@@ -460,31 +472,31 @@ export class PerformanceTestSuite {
 
   printReport(): void {
     const report = this.generateReport();
-    
-    console.log('\n⚡ Performance Test Report');
-    console.log('='.repeat(50));
-    console.log(`Total Tests: ${report.summary.total}`);
-    console.log(`Passed: ${report.summary.passed}`);
-    console.log(`Failed: ${report.summary.failed}`);
-    console.log(`Average Render Time: ${report.summary.averageRenderTime.toFixed(2)}ms`);
-    console.log(`Average Mount Time: ${report.summary.averageMountTime.toFixed(2)}ms`);
-    
+
+    console.warn('\n⚡ Performance Test Report');
+    console.warn('='.repeat(50));
+    console.warn(`Total Tests: ${report.summary.total}`);
+    console.warn(`Passed: ${report.summary.passed}`);
+    console.warn(`Failed: ${report.summary.failed}`);
+    console.warn(`Average Render Time: ${report.summary.averageRenderTime.toFixed(2)}ms`);
+    console.warn(`Average Mount Time: ${report.summary.averageMountTime.toFixed(2)}ms`);
+
     if (report.summary.failed > 0) {
-      console.log('\n❌ Failed Tests:');
+      console.warn('\n❌ Failed Tests:');
       report.results
         .filter((r: PerformanceTestSuite['results'][0]) => !r.passed)
         .forEach((result: PerformanceTestSuite['results'][0]) => {
-          console.log(`  ${result.component} - ${result.test}:`);
+          console.warn(`  ${result.component} - ${result.test}:`);
           result.issues.forEach((issue: string) => {
-            console.log(`    • ${issue}`);
+            console.warn(`    • ${issue}`);
           });
         });
     }
-    
+
     if (report.recommendations.length > 0) {
-      console.log('\n💡 Recommendations:');
+      console.warn('\n💡 Recommendations:');
       report.recommendations.forEach(rec => {
-        console.log(`  • ${rec}`);
+        console.warn(`  • ${rec}`);
       });
     }
   }
@@ -494,11 +506,12 @@ export class PerformanceTestSuite {
  * Helper functions
  */
 function calculateAverage(numbers: number[]): number {
-  return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
+  return numbers.reduce((sum, num): number => sum + num, 0) / numbers.length;
 }
 
 function getMemoryUsage(): MemoryInfo {
-  return (performance as any).memory || {
+  const perfWithMemory = performance as unknown as { memory?: MemoryInfo };
+  return perfWithMemory.memory ?? {
     usedJSHeapSize: 0,
     totalJSHeapSize: 0,
     jsHeapSizeLimit: 0
@@ -507,7 +520,7 @@ function getMemoryUsage(): MemoryInfo {
 
 function getRenderPerformanceRating(renderTime: number): 'excellent' | 'good' | 'fair' | 'poor' {
   const benchmarks = PERFORMANCE_BENCHMARKS.renderTime;
-  
+
   if (renderTime <= benchmarks.excellent) return 'excellent';
   if (renderTime <= benchmarks.good) return 'good';
   if (renderTime <= benchmarks.fair) return 'fair';
@@ -518,14 +531,14 @@ function getRenderPerformanceRating(renderTime: number): 'excellent' | 'good' | 
  * Real User Monitoring (RUM) utilities
  */
 export class RUMCollector {
-  private metrics: Array<{
+  private metrics: {
     timestamp: number;
     type: string;
     value: number;
-    metadata?: any;
-  }> = [];
+    metadata?: unknown;
+  }[] = [];
 
-  recordMetric(type: string, value: number, metadata?: any): void {
+  recordMetric(type: string, value: number, metadata?: unknown): void {
     this.metrics.push({
       timestamp: Date.now(),
       type,
@@ -547,13 +560,13 @@ export class RUMCollector {
 
   private getFirstPaint(): number {
     const paintEntries = performance.getEntriesByType('paint');
-    const firstPaint = paintEntries.find(entry => entry.name === 'first-paint');
+    const firstPaint = paintEntries.find((entry): boolean => entry.name === 'first-paint');
     return firstPaint ? firstPaint.startTime : 0;
   }
 
   private getFirstContentfulPaint(): number {
     const paintEntries = performance.getEntriesByType('paint');
-    const fcp = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+    const fcp = paintEntries.find((entry): boolean => entry.name === 'first-contentful-paint');
     return fcp ? fcp.startTime : 0;
   }
 
@@ -569,7 +582,17 @@ export class RUMCollector {
 /**
  * Bundle size monitoring
  */
-export function createBundleSizeConfig() {
+export function createBundleSizeConfig(): {
+  files: {
+    path: string;
+    maxSize: string;
+    compression: string;
+  }[];
+  ci: {
+    trackBranches: string[];
+    repoBranchBase: string;
+  };
+} {
   return {
     files: [
       {

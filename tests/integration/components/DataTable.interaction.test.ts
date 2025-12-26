@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { nextTick, h } from 'vue';
-import type { ColumnDef } from '@tanstack/vue-table';
 import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
+import type { ColumnDef } from '@tanstack/vue-table';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick, h } from 'vue';
 
 // Mock data structure for testing
 interface TestData {
@@ -337,7 +337,7 @@ describe.skip('DataTable User Interaction Tests', () => {
       
       // Look for next/previous buttons
       const nextButton = paginationButtons.find((btn: any) =>
-        btn.text().includes('Next') || btn.text().includes('>')
+        btn.text().includes('Next') ?? btn.text().includes('>')
       );
       
       if (nextButton) {

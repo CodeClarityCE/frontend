@@ -1,8 +1,4 @@
 import { Entity } from '../../utils/api/BaseEntity';
-import { DataResponse } from '../../utils/api/responses/DataResponse';
-import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import { CreatedResponse } from '../../utils/api/responses/CreatedResponse';
-import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
 import {
     BaseRepository,
     type AuthRepoMethodGetRequestOptions,
@@ -12,12 +8,16 @@ import {
     type PaginatedRepoMethodRequestOptions,
     type SortableRepoMethodRequestOptions
 } from '../../utils/api/BaseRepository';
+import { CreatedResponse } from '../../utils/api/responses/CreatedResponse';
+import { DataResponse } from '../../utils/api/responses/DataResponse';
+import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
+import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
 import {
     TicketSummary,
     TicketDetails,
     TicketEvent,
     TicketDashboardStats,
-    ExternalTicketProvider,
+    type ExternalTicketProvider,
     type ExternalLink,
     type CreateTicketRequest,
     type UpdateTicketRequest,

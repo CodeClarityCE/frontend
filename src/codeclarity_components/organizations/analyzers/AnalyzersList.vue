@@ -1,29 +1,29 @@
 <script lang="ts" setup>
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import type { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
+import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
-    Organization
+    type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
-import router from '@/router';
-import { Icon } from '@iconify/vue';
-import { ref, type Ref } from 'vue';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
-import { useAuthStore } from '@/stores/auth';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import type { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import router from '@/router';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
-import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
+import DialogClose from '@/shadcn/ui/dialog/DialogClose.vue';
 import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
-import DialogHeader from '@/shadcn/ui/dialog/DialogHeader.vue';
-import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
 import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
 import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
-import DialogClose from '@/shadcn/ui/dialog/DialogClose.vue';
+import DialogHeader from '@/shadcn/ui/dialog/DialogHeader.vue';
+import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
+import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 // Constantsr
 const authStore = useAuthStore();
@@ -42,14 +42,14 @@ const props = defineProps<{
     orgId: string;
 }>();
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
-async function deleteAnalyzer(analyzerId: string) {
+async function deleteAnalyzer(analyzerId: string): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -74,11 +74,11 @@ async function deleteAnalyzer(analyzerId: string) {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     await fetchAnalyzers();
 }
 
-async function fetchAnalyzers(refresh: boolean = false) {
+async function fetchAnalyzers(refresh = false): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -105,7 +105,7 @@ async function fetchAnalyzers(refresh: boolean = false) {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="min-h-screen bg-gray-50">

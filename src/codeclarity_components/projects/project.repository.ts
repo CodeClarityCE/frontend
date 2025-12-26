@@ -1,9 +1,6 @@
-import { Entity } from '../../utils/api/BaseEntity';
-import { Project } from './project.entity';
+import type { CreateProject } from '@/codeclarity_components/projects/create/create_project.http';
 import { CreatedResponse } from '@/utils/api/responses/CreatedResponse';
-import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
-import { DataResponse } from '../../utils/api/responses/DataResponse';
+import { Entity } from '../../utils/api/BaseEntity';
 import {
     BaseRepository,
     type AuthRepoMethodPostRequestOptions,
@@ -14,7 +11,10 @@ import {
     type SearchableRepoMethodRequestOptions,
     type SortableRepoMethodRequestOptions
 } from '../../utils/api/BaseRepository';
-import type { CreateProject } from '@/codeclarity_components/projects/create/create_project.http';
+import { DataResponse } from '../../utils/api/responses/DataResponse';
+import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
+import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
+import { type Project } from './project.entity';
 
 export interface GetProjectsRequestOptions
     extends AuthRepoMethodGetRequestOptions,

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
 import TicketCreateModal, { type VulnerabilityData } from './TicketCreateModal.vue';
 
 defineProps<{
@@ -19,12 +19,12 @@ const emit = defineEmits<{
 
 const isModalOpen = ref(false);
 
-function openModal() {
+function openModal(): void {
     isModalOpen.value = true;
 }
 
-function handleCreated(ticketId: string) {
-    emit('created', ticketId);
+function handleCreated(ticketId: string): void {
+    void emit('created', ticketId);
 }
 </script>
 

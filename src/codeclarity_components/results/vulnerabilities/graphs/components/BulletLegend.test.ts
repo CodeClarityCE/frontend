@@ -1,12 +1,11 @@
-import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
-import BulletLegend from './BulletLegend.vue';
-import type { LegendItem } from './BulletLegend.vue';
+import { describe, it, expect } from 'vitest';
+import BulletLegend, { type LegendItem } from './BulletLegend.vue';
 
 // Helper function to convert hex to rgb format for comparison
 const hexToRgb = (hex: string): string => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result || !result[1] || !result[2] || !result[3]) return hex;
+    if (!result?.[1] || !result[2] || !result[3]) return hex;
     const r = parseInt(result[1], 16);
     const g = parseInt(result[2], 16);
     const b = parseInt(result[3], 16);

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Button } from '@/shadcn/ui/button';
 import {
     Pagination,
     PaginationEllipsis,
@@ -10,8 +11,6 @@ import {
     PaginationPrev
 } from '@/shadcn/ui/pagination';
 
-import { Button } from '@/shadcn/ui/button';
-
 // Models
 const pageModel = defineModel<number>('page', { default: 0 });
 const nmbEntriesShowing = defineModel<number>('nmbEntriesShowing', { default: 15 });
@@ -19,7 +18,7 @@ const nmbEntriesTotal = defineModel<number>('nmbEntriesTotal', { default: 12 });
 const totalPages = defineModel<number>('totalPages', { default: 12 });
 
 // Methods
-function changePage(_page: number) {
+function changePage(_page: number): void {
     pageModel.value = Math.min(Math.max(_page, 0), totalPages.value - 1);
 }
 </script>
@@ -29,7 +28,7 @@ function changePage(_page: number) {
             <slot name="content"></slot>
         </div>
 
-        <div v-if="totalPages != 1" class="flex flex-row gap-2">
+        <div v-if="totalPages !== 1" class="flex flex-row gap-2">
             <Pagination
                 v-slot="{ page }"
                 :total="nmbEntriesTotal"

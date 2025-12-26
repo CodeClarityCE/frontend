@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { SeparatorProps } from 'reka-ui';
 import { cn } from '@/shadcn/lib/utils';
+import type { SeparatorProps } from 'reka-ui';
 import { Separator } from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
 

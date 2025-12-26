@@ -1,27 +1,27 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import {
     MemberRole,
-    TeamMember,
+    type TeamMember,
     type Organization,
     isMemberRoleGreaterThan
 } from '@/codeclarity_components/organizations/organization.entity';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { debounce } from '@/utils/searchUtils';
+import { Icon } from '@iconify/vue';
 import { onMounted, ref, watch, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import { Icon } from '@iconify/vue';
-import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import { debounce } from '@/utils/searchUtils';
 import OrgMemberItem from './members/MemberItem.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 
 const orgRepo = new OrgRepository();
 const authStore = useAuthStore();
@@ -53,7 +53,7 @@ watch([currentPage, entriesPerPage], async () => {
     await fetchOrganizationMembers(true);
 });
 
-async function fetchOrganizationMembers(refresh: boolean = false) {
+async function fetchOrganizationMembers(refresh = false): Promise<void> {
     if (!orgId.value) return;
     if (authStore.getAuthenticated && authStore.getToken) {
         errorMembers.value = false;
@@ -90,23 +90,22 @@ async function fetchOrganizationMembers(refresh: boolean = false) {
     }
 }
 
-async function updateSort(key: any) {
-    if (key == undefined) return;
-    if (key != undefined)
-        if (key == sortKey.value) {
-            // If we select the same column then we reverse the direction
-            sortDirection.value =
-                sortDirection.value == SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
-        } else {
-            // Default direction
-            sortDirection.value = SortDirection.DESC;
-        }
+async function updateSort(key: string | null | undefined): Promise<void> {
+    if (key == null) return;
+    if (key === sortKey.value) {
+        // If we select the same column then we reverse the direction
+        sortDirection.value =
+            sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+    } else {
+        // Default direction
+        sortDirection.value = SortDirection.DESC;
+    }
     sortKey.value = key;
     await fetchOrganizationMembers(true);
 }
 
 onMounted(() => {
-    init();
+    void init();
 });
 
 watch([search], async () => {
@@ -115,30 +114,31 @@ watch([search], async () => {
     }, 250);
 });
 
-function init() {
+function init(): void {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
     if (!_orgId) {
         router.back();
+        return;
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
-        fetchOrganizationMembers();
+        void fetchOrganizationMembers();
     } else {
         router.back();
     }
 }
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
-async function onRefetch() {
+async function onRefetch(): Promise<void> {
     await fetchOrganizationMembers(true);
 }
 </script>
@@ -148,9 +148,9 @@ async function onRefetch() {
         <div v-if="orgInfo" class="flex flex-col gap-8 p-12">
             <div
                 v-if="
-                    (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                    orgInfo.role == MemberRole.ADMIN ||
-                    orgInfo.role == MemberRole.MODERATOR
+                    (!orgInfo.personal && orgInfo.role === MemberRole.OWNER) ||
+                    orgInfo.role === MemberRole.ADMIN ||
+                    orgInfo.role === MemberRole.MODERATOR
                 "
             >
                 <h2 class="text-2xl font-semibold mb-4">Related Actions</h2>
@@ -192,14 +192,14 @@ async function onRefetch() {
                         >
                             <template #content>
                                 <div
-                                    v-if="totalEntries == 0 && search != ''"
+                                    v-if="totalEntries === 0 && search !== ''"
                                     class="flex flex-row gap-4 justify-center"
                                     style="margin-top: 10px"
                                 >
                                     No members match your search
                                 </div>
                                 <div
-                                    v-if="totalEntries == 0 && search == ''"
+                                    v-if="totalEntries === 0 && search === ''"
                                     class="flex flex-row gap-4 justify-center"
                                     style="margin-top: 10px"
                                 >
@@ -238,11 +238,13 @@ async function onRefetch() {
                                         <div>We failed to retrieve the organization's members</div>
                                         <div style="font-size: 0.7em">
                                             <div
-                                                v-if="errorCodeMembers == APIErrors.EntityNotFound"
+                                                v-if="errorCodeMembers === APIErrors.EntityNotFound"
                                             >
                                                 This organization does not exist.
                                             </div>
-                                            <div v-if="errorCodeMembers == APIErrors.NotAuthorized">
+                                            <div
+                                                v-if="errorCodeMembers === APIErrors.NotAuthorized"
+                                            >
                                                 You do not have permission to access the
                                                 organization's members..
                                             </div>
@@ -254,7 +256,7 @@ async function onRefetch() {
                                     </div>
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
                                         <Button
-                                            v-if="errorCodeMembers != APIErrors.NotAuthorized"
+                                            v-if="errorCodeMembers !== APIErrors.NotAuthorized"
                                             @click="fetchOrganizationMembers"
                                         >
                                             Try again

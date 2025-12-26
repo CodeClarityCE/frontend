@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.app.json",
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "tests/**/*"],
-  "exclude": [],
+  "exclude": ["src/shadcn/ui/command/Command.vue"],
   "compilerOptions": {
     "composite": true,
     "lib": [],

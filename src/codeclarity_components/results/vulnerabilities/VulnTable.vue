@@ -1,36 +1,38 @@
 <script lang="ts" setup>
-import { ref, watch, computed } from 'vue';
-import type { Ref } from 'vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import { Icon } from '@iconify/vue';
-import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 import BubbleComponent from '@/base_components/data-display/bubbles/BubbleComponent.vue';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
 import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
-import UtilitiesFilters, {
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+import {
     createNewFilterState,
     FilterType,
+    type FilterConfig,
     type FilterState
-} from '@/base_components/filters/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+} from '@/base_components/filters/filterTypes';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import UtilitiesFilters from '@/base_components/filters/UtilitiesFilters.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import {
+    PatchType,
+    type VulnerabilityMerged
+} from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import { ref, watch, computed, type Ref } from 'vue';
 import AddToPolicyButton from './components/AddToPolicyButton.vue';
-import CreateTicketButton from '@/codeclarity_components/tickets/components/CreateTicketButton.vue';
 
 export interface Props {
-    [key: string]: any;
     highlightElem: string;
     forceOpenNewTab?: boolean;
     analysisID?: string;
@@ -85,75 +87,79 @@ const filterApplied = ref(false);
 const searchKey = ref('');
 const placeholder = 'Search by dependency, dependency version, or cve';
 
-const findings: Ref<Array<VulnerabilityMerged>> = ref([]);
+const findings: Ref<VulnerabilityMerged[]> = ref([]);
 const sortKey = ref(ProjectsSortInterface.SEVERITY);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 
 // Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            icon: 'meteor-icons:language',
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
-            }
-        },
-        Divider: {
-            name: 'Language',
-            type: FilterType.DIVIDER,
-            data: {}
-        },
-        AttributeState: {
-            name: 'Matching',
-            type: FilterType.CHECKBOX,
-            data: {
-                hide_correct_matching: {
-                    title: 'Hide correct',
-                    value: false
-                },
-                hide_possibly_incorrect_matching: {
-                    title: 'Hide possibly incorrect',
-                    value: false
-                },
-                hide_incorrect_matching: {
-                    title: 'Hide incorrect',
-                    value: false
-                }
-            }
-        },
-        BlacklistState: {
-            name: 'Policy Status',
-            type: FilterType.CHECKBOX,
-            data: {
-                show_blacklisted: {
-                    title: 'Show blacklisted vulnerabilities',
-                    value: props.showBlacklisted
-                }
+const filterConfigDef: FilterConfig = {
+    ImportState: {
+        name: 'Language',
+
+        type: FilterType.RADIO,
+        icon: 'meteor-icons:language',
+        data: {
+            js: {
+                title: 'JavaScript',
+                value: true
             }
         }
-    })
-);
+    },
+    Divider: {
+        name: 'Language',
+
+        type: FilterType.DIVIDER,
+        data: {}
+    },
+    AttributeState: {
+        name: 'Matching',
+
+        type: FilterType.CHECKBOX,
+        data: {
+            hide_correct_matching: {
+                title: 'Hide correct',
+                value: false
+            },
+            hide_possibly_incorrect_matching: {
+                title: 'Hide possibly incorrect',
+                value: false
+            },
+            hide_incorrect_matching: {
+                title: 'Hide incorrect',
+                value: false
+            }
+        }
+    },
+    BlacklistState: {
+        name: 'Policy Status',
+
+        type: FilterType.CHECKBOX,
+        data: {
+            show_blacklisted: {
+                title: 'Show blacklisted vulnerabilities',
+                value: props.showBlacklisted
+            }
+        }
+    }
+};
+
+const filterState = ref<FilterState>(createNewFilterState(filterConfigDef));
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
 
-function isNoneSeverity(n: number) {
-    return n == 0.0 || n == undefined;
+function isNoneSeverity(n: number): boolean {
+    return n === 0.0 || n === undefined;
 }
-function isLowSeverity(n: number) {
+function isLowSeverity(n: number): boolean {
     return n < 4.0 && n > 0.0;
 }
-function isMediumSeverity(n: number) {
+function isMediumSeverity(n: number): boolean {
     return n >= 4.0 && n < 7.0;
 }
-function isHighSeverity(n: number) {
+function isHighSeverity(n: number): boolean {
     return n >= 7.0 && n < 9.0;
 }
-function isCriticalSeverity(n: number) {
+function isCriticalSeverity(n: number): boolean {
     return n >= 9.0;
 }
 
@@ -264,9 +270,17 @@ const owaspMapping: Record<
     }
 };
 
-function getOwaspInfo(owaspId: string) {
+interface OwaspInfoResult {
+    id: string;
+    name: string;
+    description: string;
+    impact: string;
+    color: string;
+}
+
+function getOwaspInfo(owaspId: string): OwaspInfoResult {
     return (
-        owaspMapping[owaspId] || {
+        owaspMapping[owaspId] ?? {
             id: 'Unknown',
             name: 'Uncategorized',
             description: 'This vulnerability does not map to a specific OWASP Top 10 category.',
@@ -276,7 +290,7 @@ function getOwaspInfo(owaspId: string) {
     );
 }
 
-function getUniqueOWASP(weaknessInfo: any[]) {
+function getUniqueOWASP(weaknessInfo: { OWASPTop10Id: string }[]): string[] {
     const owaspIds = weaknessInfo
         .map((weakness) => weakness.OWASPTop10Id)
         .filter((id) => id && id !== '');
@@ -285,9 +299,7 @@ function getUniqueOWASP(weaknessInfo: any[]) {
 }
 
 // DEFINE THE OPTIONS IN FILTER
-interface Options {
-    [key: string]: any;
-}
+type Options = Record<string, unknown>;
 const options = ref<Options>({
     OwaspTop10: {
         iconScale: '2',
@@ -413,27 +425,31 @@ const options = ref<Options>({
 });
 
 for (const category in options.value) {
-    for (const option in options.value[category]['data']) {
-        options.value[category]['data'][option]['value'] = false;
+    const categoryData = options.value[category] as { data: Record<string, { value: boolean }> };
+    for (const option in categoryData.data) {
+        const optionData = categoryData.data[option];
+        if (optionData) {
+            optionData.value = false;
+        }
     }
 }
 
-function updateSort(_sortKey: ProjectsSortInterface, _sortDirection: SortDirection) {
+function updateSort(_sortKey: ProjectsSortInterface, _sortDirection: SortDirection): void {
     sortKey.value = _sortKey;
     sortDirection.value = _sortDirection;
-    init();
+    void init();
 }
 
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    if (props.projectID == '' || props.analysisID == '') {
+    if (props.projectID === '' || props.analysisID === '') {
         return;
     }
     try {
@@ -451,9 +467,10 @@ async function init() {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
+
             active_filters: filterState.value.toString(),
             search_key: searchKey.value,
-            ecosystem_filter: props.ecosystemFilter || undefined,
+            ecosystem_filter: props.ecosystemFilter ?? undefined,
             show_blacklisted: props.showBlacklisted
         });
         findings.value = res.data;
@@ -470,7 +487,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 
 watch(
     [
@@ -484,14 +501,14 @@ watch(
         () => props.showBlacklisted
     ],
     () => {
-        init();
+        void init();
     }
 );
 watch(() => filterState.value.activeFilters, init);
 
 // Sync blacklisted filter with parent component
-const showBlacklistedFromFilter = computed(() => {
-    return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value || false;
+const showBlacklistedFromFilter = computed<boolean>(() => {
+    return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value ?? false;
 });
 
 // Define emit for updating parent's showBlacklisted value
@@ -500,8 +517,8 @@ const emit = defineEmits<{
 }>();
 
 // Watch for changes in the filter and emit to parent
-watch(showBlacklistedFromFilter, (newValue) => {
-    emit('update:showBlacklisted', newValue);
+watch(showBlacklistedFromFilter, (newValue: boolean) => {
+    void emit('update:showBlacklisted', newValue);
 });
 </script>
 
@@ -803,7 +820,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                     v-if="
                                         report.Conflict.ConflictFlag ==
                                             'MATCH_POSSIBLE_INCORRECT' ||
-                                        report.Conflict.ConflictFlag == 'MATCH_INCORRECT'
+                                        report.Conflict.ConflictFlag === 'MATCH_INCORRECT'
                                     "
                                 >
                                     <Tooltip>
@@ -954,13 +971,14 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                         class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border severity-badge-bg cursor-help"
                                                         :class="{
                                                             'severity-critical-bg':
-                                                                vla.Score == 'critical',
-                                                            'severity-high-bg': vla.Score == 'high',
+                                                                vla.Score === 'critical',
+                                                            'severity-high-bg':
+                                                                vla.Score === 'high',
                                                             'severity-medium-bg':
-                                                                vla.Score == 'medium',
-                                                            'severity-low-bg': vla.Score == 'low',
+                                                                vla.Score === 'medium',
+                                                            'severity-low-bg': vla.Score === 'low',
                                                             'severity-none-bg':
-                                                                vla.Score == 'none' || !vla.Score
+                                                                vla.Score === 'none' || !vla.Score
                                                         }"
                                                     >
                                                         <!-- Source icon/name -->
@@ -968,15 +986,15 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                             class="font-semibold"
                                                             :class="{
                                                                 'text-severity-critical':
-                                                                    vla.Score == 'critical',
+                                                                    vla.Score === 'critical',
                                                                 'text-severity-high':
-                                                                    vla.Score == 'high',
+                                                                    vla.Score === 'high',
                                                                 'text-severity-medium':
-                                                                    vla.Score == 'medium',
+                                                                    vla.Score === 'medium',
                                                                 'text-severity-low':
-                                                                    vla.Score == 'low',
+                                                                    vla.Score === 'low',
                                                                 'text-severity-none':
-                                                                    vla.Score == 'none' ||
+                                                                    vla.Score === 'none' ||
                                                                     !vla.Score
                                                             }"
                                                         >
@@ -989,15 +1007,15 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                             class="ml-1 font-bold text-xs uppercase"
                                                             :class="{
                                                                 'text-severity-critical':
-                                                                    vla.Score == 'critical',
+                                                                    vla.Score === 'critical',
                                                                 'text-severity-high':
-                                                                    vla.Score == 'high',
+                                                                    vla.Score === 'high',
                                                                 'text-severity-medium':
-                                                                    vla.Score == 'medium',
+                                                                    vla.Score === 'medium',
                                                                 'text-severity-low':
-                                                                    vla.Score == 'low',
+                                                                    vla.Score === 'low',
                                                                 'text-severity-none':
-                                                                    vla.Score == 'none'
+                                                                    vla.Score === 'none'
                                                             }"
                                                         >
                                                             {{ vla.Score.charAt(0) }}
@@ -1064,19 +1082,20 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                                     class="font-bold capitalize px-2 py-1 rounded text-xs severity-badge-bg"
                                                                     :class="{
                                                                         'severity-critical-bg text-severity-critical':
-                                                                            vla.Score == 'critical',
+                                                                            vla.Score ===
+                                                                            'critical',
                                                                         'severity-high-bg text-severity-high':
-                                                                            vla.Score == 'high',
+                                                                            vla.Score === 'high',
                                                                         'severity-medium-bg text-severity-medium':
-                                                                            vla.Score == 'medium',
+                                                                            vla.Score === 'medium',
                                                                         'severity-low-bg text-severity-low':
-                                                                            vla.Score == 'low',
+                                                                            vla.Score === 'low',
                                                                         'severity-none-bg text-severity-none':
-                                                                            vla.Score == 'none' ||
+                                                                            vla.Score === 'none' ||
                                                                             !vla.Score
                                                                     }"
                                                                     >{{
-                                                                        vla.Score || 'Not Available'
+                                                                        vla.Score ?? 'Not Available'
                                                                     }}</span
                                                                 >
                                                             </div>
@@ -1147,7 +1166,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                             <TooltipTrigger as-child>
                                                 <div class="cursor-help">
                                                     <BubbleComponent
-                                                        v-if="affected.PatchType == 'NONE'"
+                                                        v-if="affected.PatchType === 'NONE'"
                                                         :not-patchable="true"
                                                         :slim="true"
                                                         class="text-xs"
@@ -1163,7 +1182,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                                         </template>
                                                     </BubbleComponent>
                                                     <BubbleComponent
-                                                        v-else-if="affected.PatchType == 'PARTIAL'"
+                                                        v-else-if="affected.PatchType === 'PARTIAL'"
                                                         :partially-patchable="true"
                                                         :slim="true"
                                                         class="text-xs"
@@ -1310,7 +1329,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                     v-if="
                                         report.Weaknesses &&
                                         report.Weaknesses.some(
-                                            (weakness: any) => weakness.OWASPTop10Id != ''
+                                            (weakness: any) => weakness.OWASPTop10Id !== ''
                                         )
                                     "
                                     class="flex flex-wrap gap-1"
@@ -1440,8 +1459,8 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                 <TooltipProvider
                                     v-if="
                                         report.Severity &&
-                                        report.Severity.ConfidentialityImpact != 'NONE' &&
-                                        report.Severity.ConfidentialityImpact != ''
+                                        report.Severity.ConfidentialityImpact !== 'NONE' &&
+                                        report.Severity.ConfidentialityImpact !== ''
                                     "
                                 >
                                     <Tooltip>
@@ -1548,8 +1567,8 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                 <TooltipProvider
                                     v-if="
                                         report.Severity &&
-                                        report.Severity.AvailabilityImpact != 'NONE' &&
-                                        report.Severity.AvailabilityImpact != ''
+                                        report.Severity.AvailabilityImpact !== 'NONE' &&
+                                        report.Severity.AvailabilityImpact !== ''
                                     "
                                 >
                                     <Tooltip>
@@ -1651,8 +1670,8 @@ watch(showBlacklistedFromFilter, (newValue) => {
                                 <TooltipProvider
                                     v-if="
                                         report.Severity &&
-                                        report.Severity.IntegrityImpact != 'NONE' &&
-                                        report.Severity.IntegrityImpact != ''
+                                        report.Severity.IntegrityImpact !== 'NONE' &&
+                                        report.Severity.IntegrityImpact !== ''
                                     "
                                 >
                                     <Tooltip>
@@ -1803,7 +1822,7 @@ watch(showBlacklistedFromFilter, (newValue) => {
             </SortableTable>
 
             <!-- Empty State -->
-            <div v-if="matchingItemsCount == 0" class="p-8 text-center">
+            <div v-if="matchingItemsCount === 0" class="p-8 text-center">
                 <Icon
                     :icon="filterApplied ? 'tabler:filter-off' : 'tabler:shield-check'"
                     class="w-12 h-12 text-gray-400 mx-auto mb-4"

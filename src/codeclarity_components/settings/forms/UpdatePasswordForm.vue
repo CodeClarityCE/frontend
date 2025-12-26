@@ -1,30 +1,28 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-
-import { useStateStore } from '@/stores/state';
+import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import { Button } from '@/shadcn/ui/button';
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
+} from '@/shadcn/ui/form';
+import { Input } from '@/shadcn/ui/input';
 import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
+import { vAutoAnimate } from '@formkit/auto-animate/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import * as z from 'zod';
 
 const state = useStateStore();
 const authStore = useAuthStore();
 state.menu = 'settingsAccount';
-
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
-import { vAutoAnimate } from '@formkit/auto-animate/vue';
-
-import { Button } from '@/shadcn/ui/button';
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    FormDescription
-} from '@/shadcn/ui/form';
-import { Input } from '@/shadcn/ui/input';
-import { useUserStore } from '@/stores/user';
-import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
 
 const userRepository: UserRepository = new UserRepository();
 
@@ -44,8 +42,8 @@ const form = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = form.handleSubmit((values) => {
-    updatePassword(values.old_password, values.password, values.password_confirmation);
+const onSubmit = form.handleSubmit((values): void => {
+    void updatePassword(values.old_password, values.password, values.password_confirmation);
 });
 
 /*****************************************************************************/
@@ -56,7 +54,7 @@ async function updatePassword(
     password: string,
     new_password: string,
     new_password_confirmation: string
-) {
+): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await userRepository.patchPassword({
@@ -89,7 +87,7 @@ async function updatePassword(
                     <Input
                         type="password"
                         placeholder="Enter your current password"
-                        v-bind="componentField"
+                        v-bind="filterUndefined(componentField)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
@@ -104,7 +102,7 @@ async function updatePassword(
                     <Input
                         type="password"
                         placeholder="Enter your new password"
-                        v-bind="componentField"
+                        v-bind="filterUndefined(componentField)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>
@@ -125,7 +123,7 @@ async function updatePassword(
                     <Input
                         type="password"
                         placeholder="Confirm your new password"
-                        v-bind="componentField"
+                        v-bind="filterUndefined(componentField)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
                     />
                 </FormControl>

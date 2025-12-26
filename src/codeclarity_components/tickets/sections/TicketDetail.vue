@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
-import { Icon } from '@iconify/vue';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger
+} from '@/shadcn/ui/accordion';
 import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
@@ -9,16 +12,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger
-} from '@/shadcn/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shadcn/ui/tooltip';
-import { useUserStore } from '@/stores/user';
 import { useAuthStore } from '@/stores/auth';
-import { TicketsRepository } from '../tickets.repository';
+import { useUserStore } from '@/stores/user';
+import { getOwaspInfoById } from '@/utils/owasp';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { ref, computed, onMounted } from 'vue';
+import RiskScoreGauge from '../components/RiskScoreGauge.vue';
+import ScoreProgressBar from '../components/ScoreProgressBar.vue';
 import {
     type TicketDetails,
     type VulnerabilityDetailsReport,
@@ -29,14 +31,12 @@ import {
     TicketTypeLabels,
     TicketTypeColors,
     TicketStatus,
-    ExternalTicketProvider,
+    type ExternalTicketProvider,
     ExternalProviderLabels,
     ExternalProviderIcons,
     type IntegrationConfigSummary
 } from '../tickets.entity';
-import RiskScoreGauge from '../components/RiskScoreGauge.vue';
-import ScoreProgressBar from '../components/ScoreProgressBar.vue';
-import { getOwaspInfoById } from '@/utils/owasp';
+import { TicketsRepository } from '../tickets.repository';
 
 const props = defineProps<{
     ticket: TicketDetails;
@@ -62,7 +62,7 @@ const isUpdatingStatus = ref(false);
 const availableIntegrations = ref<IntegrationConfigSummary[]>([]);
 const openAccordionItems = ref<string[]>([]);
 
-async function loadIntegrations() {
+async function loadIntegrations(): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     try {
@@ -79,7 +79,7 @@ async function loadIntegrations() {
     }
 }
 
-async function syncToProvider(provider: ExternalTicketProvider) {
+async function syncToProvider(provider: ExternalTicketProvider): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isSyncing.value = true;
@@ -93,7 +93,7 @@ async function syncToProvider(provider: ExternalTicketProvider) {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('updated');
+        void emit('updated');
     } catch (error) {
         console.error('Failed to sync ticket:', error);
     } finally {
@@ -101,7 +101,7 @@ async function syncToProvider(provider: ExternalTicketProvider) {
     }
 }
 
-async function unlinkFromProvider(linkId: string) {
+async function unlinkFromProvider(linkId: string): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isUnlinking.value = linkId;
@@ -115,7 +115,7 @@ async function unlinkFromProvider(linkId: string) {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('updated');
+        void emit('updated');
     } catch (error) {
         console.error('Failed to unlink ticket:', error);
     } finally {
@@ -123,7 +123,7 @@ async function unlinkFromProvider(linkId: string) {
     }
 }
 
-async function syncFromExternalLink(linkId: string) {
+async function syncFromExternalLink(linkId: string): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isSyncingFromExternal.value = linkId;
@@ -138,7 +138,7 @@ async function syncFromExternalLink(linkId: string) {
             handleOtherErrors: true
         });
         if (result.data.updated) {
-            emit('updated');
+            void emit('updated');
         }
     } catch (error) {
         console.error('Failed to sync from external:', error);
@@ -147,7 +147,7 @@ async function syncFromExternalLink(linkId: string) {
     }
 }
 
-async function updateStatus(newStatus: TicketStatus) {
+async function updateStatus(newStatus: TicketStatus): Promise<void> {
     if (!defaultOrg?.value?.id || !auth.getToken) return;
 
     isUpdatingStatus.value = true;
@@ -161,7 +161,7 @@ async function updateStatus(newStatus: TicketStatus) {
             handleHTTPErrors: true,
             handleOtherErrors: true
         });
-        emit('updated');
+        void emit('updated');
     } catch (error) {
         console.error('Failed to update ticket status:', error);
     } finally {
@@ -169,7 +169,7 @@ async function updateStatus(newStatus: TicketStatus) {
     }
 }
 
-function close() {
+function close(): void {
     isOpen.value = false;
     setTimeout(() => emit('close'), 300);
 }
@@ -189,11 +189,12 @@ function formatDate(date: Date | undefined): string {
 const availableSyncProviders = computed(() => {
     const linkedProviders = new Set(props.ticket.external_links.map((link) => link.provider));
     return availableIntegrations.value.filter(
-        (integration) => !linkedProviders.has(integration.provider as ExternalTicketProvider)
+        (integration) => !linkedProviders.has(integration.provider)
     );
 });
 
 // Get the best available CVSS score (prefer v3.1 > v3 > v2)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const cvssData = computed((): { version: string; data: any } | null => {
     if (!props.vulnerabilityDetails?.severities) return null;
     const { cvss_31, cvss_3, cvss_2 } = props.vulnerabilityDetails.severities;
@@ -209,9 +210,9 @@ const epssFormatted = computed(() => {
     const percentile = props.vulnerabilityDetails?.other?.epss_percentile;
     if (score === undefined || score === null) return null;
     return {
-        score: (score * 100).toFixed(2) + '%',
+        score: `${(score * 100).toFixed(2)}%`,
         scoreRaw: score * 100,
-        percentile: percentile !== undefined ? (percentile * 100).toFixed(1) + '%' : null,
+        percentile: percentile !== undefined ? `${(percentile * 100).toFixed(1)}%` : null,
         percentileRaw: percentile !== undefined ? percentile * 100 : null
     };
 });
@@ -226,6 +227,12 @@ function getCvssValueColor(value: string | undefined): string {
     return 'text-yellow-600';
 }
 
+// Get CVSS base score safely
+function getCvssBaseScore(): number {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (cvssData.value?.data?.base_score as number) ?? 0;
+}
+
 // Convert VLAI score string to numeric value for gauge
 function getVlaiNumericScore(vlaiScore: string | undefined): number {
     if (!vlaiScore) return 0;
@@ -235,12 +242,12 @@ function getVlaiNumericScore(vlaiScore: string | undefined): number {
         MEDIUM: 5,
         LOW: 2.5
     };
-    return mapping[vlaiScore.toUpperCase()] || 0;
+    return mapping[vlaiScore.toUpperCase()] ?? 0;
 }
 
 // Get overall risk level
 const overallRiskLevel = computed(() => {
-    const cvss = cvssData.value?.data.base_score || 0;
+    const cvss = getCvssBaseScore();
     if (cvss >= 9.0) return 'critical';
     if (cvss >= 7.0) return 'high';
     if (cvss >= 4.0) return 'medium';
@@ -249,9 +256,15 @@ const overallRiskLevel = computed(() => {
 });
 
 // Risk banner styling
-type RiskConfig = { bg: string; text: string; icon: string; label: string; recommendation: string };
+interface RiskConfig {
+    bg: string;
+    text: string;
+    icon: string;
+    label: string;
+    recommendation: string;
+}
 const riskBannerConfig = computed((): RiskConfig => {
-    const configs: { [K in 'critical' | 'high' | 'medium' | 'low' | 'none']: RiskConfig } = {
+    const configs: Record<'critical' | 'high' | 'medium' | 'low' | 'none', RiskConfig> = {
         critical: {
             bg: 'bg-black',
             text: 'text-white',
@@ -288,12 +301,14 @@ const riskBannerConfig = computed((): RiskConfig => {
             recommendation: 'No immediate action required'
         }
     };
-    return configs[overallRiskLevel.value as keyof typeof configs] ?? configs.none;
+    return configs[overallRiskLevel.value] ?? configs.none;
 });
 
 // Check if we have any scores to show in risk overview
 const hasRiskScores = computed(() => {
-    return cvssData.value || epssFormatted.value || props.vulnerabilityDetails?.other?.vlai_score;
+    return Boolean(
+        cvssData.value ?? epssFormatted.value ?? props.vulnerabilityDetails?.other?.vlai_score
+    );
 });
 
 // Get OWASP info if available
@@ -304,7 +319,7 @@ const owaspInfo = computed(() => {
 });
 
 onMounted(() => {
-    loadIntegrations();
+    void loadIntegrations();
 });
 </script>
 
@@ -427,7 +442,7 @@ onMounted(() => {
                                 <TooltipTrigger as-child>
                                     <div class="cursor-help">
                                         <RiskScoreGauge
-                                            :score="cvssData.data.base_score || 0"
+                                            :score="getCvssBaseScore()"
                                             :max-score="10"
                                             :label="'CVSS v' + cvssData.version"
                                             type="cvss"
@@ -634,7 +649,7 @@ onMounted(() => {
                         <div>
                             <p class="text-xs text-gray-500">Version</p>
                             <p class="text-sm text-gray-900">
-                                {{ ticket.affected_version || 'N/A' }}
+                                {{ ticket.affected_version ?? 'N/A' }}
                                 <span v-if="ticket.recommended_version" class="text-green-600">
                                     → {{ ticket.recommended_version }}
                                 </span>
@@ -955,7 +970,7 @@ onMounted(() => {
                     <div>
                         <p class="text-xs text-gray-500">Assigned To</p>
                         <p class="text-sm text-gray-900">
-                            {{ ticket.assigned_to_name || 'Unassigned' }}
+                            {{ ticket.assigned_to_name ?? 'Unassigned' }}
                         </p>
                     </div>
                     <div>

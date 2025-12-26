@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { VCS } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import {
+    IntegrationProvider,
+    type VCS
+} from '@/codeclarity_components/organizations/integrations/Integrations';
 import { Icon } from '@iconify/vue';
 
 defineProps<{
     vcsIntegrations: VCS[];
 }>();
 
-const emit = defineEmits<{
-    (e: 'onSelectedVCS', selected: VCS): void;
-}>();
+const emit = defineEmits<(e: 'onSelectedVCS', selected: VCS) => void>();
 </script>
 <template>
     <div class="space-y-6">
@@ -24,7 +24,7 @@ const emit = defineEmits<{
             <template v-for="vcs in vcsIntegrations" :key="vcs.id">
                 <!-- GitLab Integration -->
                 <div
-                    v-if="vcs.integration_provider == IntegrationProvider.GITLAB && !vcs.invalid"
+                    v-if="vcs.integration_provider === IntegrationProvider.GITLAB && !vcs.invalid"
                     class="group cursor-pointer"
                     @click="emit('onSelectedVCS', vcs)"
                 >
@@ -50,7 +50,7 @@ const emit = defineEmits<{
 
                 <!-- GitHub Integration -->
                 <div
-                    v-if="vcs.integration_provider == IntegrationProvider.GITHUB && !vcs.invalid"
+                    v-if="vcs.integration_provider === IntegrationProvider.GITHUB && !vcs.invalid"
                     class="group cursor-pointer"
                     @click="emit('onSelectedVCS', vcs)"
                 >

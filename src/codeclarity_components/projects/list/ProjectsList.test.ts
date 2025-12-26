@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createRouter, createWebHistory } from 'vue-router';
 import ProjectsList from './ProjectsList.vue';
 
@@ -372,7 +372,7 @@ describe.skip('ProjectsList', () => {
         const buttons = wrapper.findAll('button');
         const refreshButton = buttons.find((button: any) => button.text().includes('Refresh'));
 
-        if (refreshButton && refreshButton.exists()) {
+        if (refreshButton?.exists()) {
             await refreshButton.trigger('click');
             expect(fetchSpy).toHaveBeenCalled();
         } else {

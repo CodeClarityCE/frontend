@@ -1,27 +1,26 @@
 <script lang="ts" setup>
-import { ref, type Ref, watch } from 'vue';
-import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-
 // Chart.js imports removed - using d3 components
-import { Icon } from '@iconify/vue';
 // Chart.js registration removed
-import RadarChart from '@/base_components/data-display/charts/RadarChart.vue';
-import type { RadarChartData } from '@/base_components/data-display/charts/radarChart';
-import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue';
 import type { GroupedBarChartData } from '@/base_components/data-display/charts/groupedBarChart';
+import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue';
+import type { RadarChartData } from '@/base_components/data-display/charts/radarChart';
+import RadarChart from '@/base_components/data-display/charts/RadarChart.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, watch } from 'vue';
 // Chart.js registration removed
 
-type Props = {
+interface Props {
     analysisID?: string;
     projectID?: string;
-};
+}
 const props = withDefaults(defineProps<Props>(), {
     projectID: '',
     analysisID: ''
@@ -30,13 +29,13 @@ const props = withDefaults(defineProps<Props>(), {
 watch(
     () => props.projectID,
     () => {
-        getPatchesStats();
+        void getPatchesStats();
     }
 );
 watch(
     () => props.analysisID,
     () => {
-        getPatchesStats();
+        void getPatchesStats();
     }
 );
 
@@ -62,9 +61,9 @@ const boxLoaderDimensions = {
     height: '40px'
 };
 
-getPatchesStats();
+void getPatchesStats();
 
-async function getPatchesStats(refresh: boolean = false) {
+async function getPatchesStats(refresh = false): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -72,8 +71,8 @@ async function getPatchesStats(refresh: boolean = false) {
     errorCode.value = undefined;
     if (!refresh) loading.value = true;
 
-    if (!props.projectID || !props.analysisID) return;
-    if (props.projectID == '' || props.analysisID == '') return;
+    if (!authStore.getAuthenticated || !props.analysisID) return;
+    if (props.projectID === '' || props.analysisID === '') return;
 
     let res: DataResponse<PatchingStats>;
     try {
@@ -97,12 +96,12 @@ async function getPatchesStats(refresh: boolean = false) {
         // }
     } finally {
         // loading.value = false;
-        createSeverityDistChart();
-        createRadarChart();
+        void createSeverityDistChart();
+        void createRadarChart();
     }
 }
 
-function createRadarChart() {
+function createRadarChart(): void {
     // Convert to d3 RadarChart format with multiple datasets
     const d3_data: RadarChartData = [
         {
@@ -152,15 +151,15 @@ function createRadarChart() {
     cia_data.value = d3_data;
 }
 
-function createSeverityDistChart() {
+function createSeverityDistChart(): void {
     const categories: string[] = [];
     const beforeData: number[] = [];
     const afterData: number[] = [];
 
     // Build data arrays for categories that have non-zero values
     if (
-        stats.value.after_patch_number_of_critical != 0 ||
-        stats.value.before_patch_number_of_critical != 0
+        stats.value.after_patch_number_of_critical !== 0 ||
+        stats.value.before_patch_number_of_critical !== 0
     ) {
         categories.push('Critical');
         beforeData.push(stats.value.before_patch_number_of_critical);
@@ -168,8 +167,8 @@ function createSeverityDistChart() {
     }
 
     if (
-        stats.value.after_patch_number_of_high != 0 ||
-        stats.value.before_patch_number_of_high != 0
+        stats.value.after_patch_number_of_high !== 0 ||
+        stats.value.before_patch_number_of_high !== 0
     ) {
         categories.push('High');
         beforeData.push(stats.value.before_patch_number_of_high);
@@ -177,23 +176,26 @@ function createSeverityDistChart() {
     }
 
     if (
-        stats.value.after_patch_number_of_medium != 0 ||
-        stats.value.before_patch_number_of_medium != 0
+        stats.value.after_patch_number_of_medium !== 0 ||
+        stats.value.before_patch_number_of_medium !== 0
     ) {
         categories.push('Medium');
         beforeData.push(stats.value.before_patch_number_of_medium);
         afterData.push(stats.value.after_patch_number_of_medium);
     }
 
-    if (stats.value.after_patch_number_of_low != 0 || stats.value.before_patch_number_of_low != 0) {
+    if (
+        stats.value.after_patch_number_of_low !== 0 ||
+        stats.value.before_patch_number_of_low !== 0
+    ) {
         categories.push('Low');
         beforeData.push(stats.value.before_patch_number_of_low);
         afterData.push(stats.value.after_patch_number_of_low);
     }
 
     if (
-        stats.value.after_patch_number_of_none != 0 ||
-        stats.value.before_patch_number_of_none != 0
+        stats.value.after_patch_number_of_none !== 0 ||
+        stats.value.before_patch_number_of_none !== 0
     ) {
         categories.push('None');
         beforeData.push(stats.value.before_patch_number_of_none);
@@ -247,8 +249,8 @@ function createSeverityDistChart() {
                     <div
                         v-if="
                             render &&
-                            (stats.after_patch_number_of_critical != 0 ||
-                                stats.before_patch_number_of_critical != 0)
+                            (stats.after_patch_number_of_critical !== 0 ||
+                                stats.before_patch_number_of_critical !== 0)
                         "
                         class="side-stats"
                     >
@@ -272,8 +274,8 @@ function createSeverityDistChart() {
                     <div
                         v-if="
                             render &&
-                            (stats.after_patch_number_of_high != 0 ||
-                                stats.before_patch_number_of_high != 0)
+                            (stats.after_patch_number_of_high !== 0 ||
+                                stats.before_patch_number_of_high !== 0)
                         "
                         class="side-stats"
                     >
@@ -299,8 +301,8 @@ function createSeverityDistChart() {
                     <div
                         v-if="
                             render &&
-                            (stats.after_patch_number_of_medium != 0 ||
-                                stats.before_patch_number_of_medium != 0)
+                            (stats.after_patch_number_of_medium !== 0 ||
+                                stats.before_patch_number_of_medium !== 0)
                         "
                         class="side-stats"
                     >
@@ -326,8 +328,8 @@ function createSeverityDistChart() {
                     <div
                         v-if="
                             render &&
-                            (stats.after_patch_number_of_low != 0 ||
-                                stats.before_patch_number_of_low != 0)
+                            (stats.after_patch_number_of_low !== 0 ||
+                                stats.before_patch_number_of_low !== 0)
                         "
                         class="side-stats"
                     >
@@ -353,8 +355,8 @@ function createSeverityDistChart() {
                     <div
                         v-if="
                             render &&
-                            (stats.after_patch_number_of_none != 0 ||
-                                stats.before_patch_number_of_none != 0)
+                            (stats.after_patch_number_of_none !== 0 ||
+                                stats.before_patch_number_of_none !== 0)
                         "
                         class="side-stats"
                     >
@@ -596,7 +598,7 @@ function createSeverityDistChart() {
         </div>
         <div class="summary-container summary-container-quick-stats">
             <div class="summary-stacked-container-wrapper">
-                <div v-if="stats != null" class="summary-container">
+                <div v-if="stats !== null" class="summary-container">
                     <div class="title">Number of issues</div>
                     <div
                         class="single-value-summary single-value-summary-column-gap-20"
@@ -610,7 +612,7 @@ function createSeverityDistChart() {
                         <BoxLoader v-if="!render" :dimensions="boxLoaderDimensions" />
                     </div>
                 </div>
-                <div v-if="stats != null" class="summary-container">
+                <div v-if="stats !== null" class="summary-container">
                     <div class="title">Number of vulnerabilities</div>
                     <div
                         class="single-value-summary single-value-summary-column-gap-20"
@@ -626,7 +628,7 @@ function createSeverityDistChart() {
                 </div>
             </div>
             <div class="summary-stacked-container-wrapper">
-                <div v-if="stats != null" class="summary-container">
+                <div v-if="stats !== null" class="summary-container">
                     <div class="title">Number of vulnerable dependencies</div>
                     <div
                         class="single-value-summary single-value-summary-column-gap-20"

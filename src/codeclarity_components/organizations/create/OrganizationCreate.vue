@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '../organization.repository';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { Button } from '@/shadcn/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
 import { Input } from '@/shadcn/ui/input';
 import { Textarea } from '@/shadcn/ui/textarea';
 import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
-import { ZodError } from 'zod';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import { Icon } from '@iconify/vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import { ZodError } from 'zod';
 import * as z from 'zod';
+import { OrgRepository } from '../organization.repository';
 
 const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
@@ -37,12 +38,12 @@ const onSubmit = form.handleSubmit(async (values) => {
             data: { name: values.name, description: values.description, color_scheme: '1' },
             handleBusinessErrors: true
         });
-        toast({ title: 'Organization created!' });
+        void toast({ title: 'Organization created!' });
     } catch (error) {
         if (error instanceof ZodError) {
-            toast({ title: 'Error during creation', description: error.message });
+            void toast({ title: 'Error during creation', description: error.message });
         } else if (error instanceof BusinessLogicError) {
-            toast({ title: 'Error during creation', description: error.error_message });
+            void toast({ title: 'Error during creation', description: error.error_message });
         }
     }
 });
@@ -67,7 +68,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                             <FormControl>
                                 <div class="relative">
                                     <Input
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                         type="text"
                                         placeholder="Enter organization name..."
                                         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200 bg-gray-50 focus:bg-white"
@@ -93,7 +94,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                             <FormControl>
                                 <div class="relative">
                                     <Textarea
-                                        v-bind="componentField"
+                                        v-bind="filterUndefined(componentField)"
                                         rows="4"
                                         placeholder="Describe your organization's purpose and goals..."
                                         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200 bg-gray-50 focus:bg-white resize-none"

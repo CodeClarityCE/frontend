@@ -1,4 +1,21 @@
-function getData(finding: any) {
+interface CvssImpact {
+    confidentiality_impact?: string;
+    availability_impact?: string;
+    integrity_impact?: string;
+    [key: string]: string | number | null | undefined;
+}
+
+interface FindingSeverities {
+    cvss_31?: CvssImpact | null;
+    cvss_3?: CvssImpact | null;
+    cvss_2?: CvssImpact | null;
+}
+
+interface Finding {
+    severities: FindingSeverities;
+}
+
+function getData(finding: Finding): number[] | null {
     if (finding.severities.cvss_31 != null) {
         const confidentiality = getContinousFromDiscreteCVSS3(
             finding.severities.cvss_31.confidentiality_impact
@@ -13,11 +30,11 @@ function getData(finding: any) {
         const max_availability = 0.56;
         const max_integrity = 0.56;
         return [
-            confidentiality / max_confidentiality == 0
+            confidentiality / max_confidentiality === 0
                 ? 0.1
                 : confidentiality / max_confidentiality,
-            integrity / max_integrity == 0 ? 0.1 : integrity / max_integrity,
-            availability / max_availability == 0 ? 0.1 : availability / max_availability
+            integrity / max_integrity === 0 ? 0.1 : integrity / max_integrity,
+            availability / max_availability === 0 ? 0.1 : availability / max_availability
         ];
     } else if (finding.severities.cvss_3 != null) {
         const confidentiality = getContinousFromDiscreteCVSS3(
@@ -31,11 +48,11 @@ function getData(finding: any) {
         const max_availability = 0.56;
         const max_integrity = 0.56;
         return [
-            confidentiality / max_confidentiality == 0
+            confidentiality / max_confidentiality === 0
                 ? 0.1
                 : confidentiality / max_confidentiality,
-            integrity / max_integrity == 0 ? 0.1 : integrity / max_integrity,
-            availability / max_availability == 0 ? 0.1 : availability / max_availability
+            integrity / max_integrity === 0 ? 0.1 : integrity / max_integrity,
+            availability / max_availability === 0 ? 0.1 : availability / max_availability
         ];
     } else if (finding.severities.cvss_2 != null) {
         const confidentiality = getContinousFromDiscreteCVSS2(
@@ -49,37 +66,39 @@ function getData(finding: any) {
         const max_availability = 0.66;
         const max_integrity = 0.66;
         return [
-            confidentiality / max_confidentiality == 0
+            confidentiality / max_confidentiality === 0
                 ? 0.1
                 : confidentiality / max_confidentiality,
-            integrity / max_integrity == 0 ? 0.1 : integrity / max_integrity,
-            availability / max_availability == 0 ? 0.1 : availability / max_availability
+            integrity / max_integrity === 0 ? 0.1 : integrity / max_integrity,
+            availability / max_availability === 0 ? 0.1 : availability / max_availability
         ];
     }
     return null;
 }
 
-function getContinousFromDiscreteCVSS2(value: string) {
-    if (value == 'COMPLETE') {
+function getContinousFromDiscreteCVSS2(value: string | undefined): number {
+    if (value === 'COMPLETE') {
         return 0.66;
-    } else if (value == 'PARTIAL') {
+    } else if (value === 'PARTIAL') {
         return 0.275;
     } else {
         return 0.0;
     }
 }
 
-function getContinousFromDiscreteCVSS3(value: string) {
-    if (value == 'HIGH') {
+function getContinousFromDiscreteCVSS3(value: string | undefined): number {
+    if (value === 'HIGH') {
         return 0.56;
-    } else if (value == 'LOW') {
+    } else if (value === 'LOW') {
         return 0.22;
     } else {
         return 0.0;
     }
 }
 
-function getRadarChartData(finding: any) {
+function getRadarChartData(
+    finding: Finding
+): { name: string; axes: { axis: string; value: number }[] }[] | null {
     const data = getData(finding);
     if (!data) return null;
 
@@ -106,7 +125,21 @@ function getRadarChartData(finding: any) {
     return d3_data;
 }
 
-function getRadarChartConfig() {
+function getRadarChartConfig(): {
+    w: number;
+    h: number;
+    margin: { top: number; right: number; bottom: number; left: number };
+    levels: number;
+    maxValue: number;
+    labelFactor: number;
+    wrapWidth: number;
+    opacityArea: number;
+    dotRadius: number;
+    opacityCircles: number;
+    strokeWidth: number;
+    roundStrokes: boolean;
+    legend: boolean;
+} {
     // Return d3 RadarChart configuration
     const d3_config = {
         w: 300,

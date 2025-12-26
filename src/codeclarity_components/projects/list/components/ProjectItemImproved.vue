@@ -1,16 +1,11 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { formatDate } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
-import type { Project } from '@/codeclarity_components/projects/project.entity';
-import { useAuthStore } from '@/stores/auth';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { errorToast, successToast } from '@/utils/toasts';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { useProjectsMainStore } from '@/stores/StateStore';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import VerticalCard from '@/base_components/ui/cards/VerticalCard.vue';
+import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import ProjectLanguageDetection from '@/codeclarity_components/projects/components/ProjectLanguageDetection.vue';
+import type { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import router from '@/router';
 import { Button } from '@/shadcn/ui/button';
 import {
     Dialog,
@@ -26,10 +21,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
+import { useAuthStore } from '@/stores/auth';
+import { useProjectsMainStore } from '@/stores/StateStore';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { formatDate } from '@/utils/dateUtils';
+import { errorToast, successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
 import AnalysisListImproved from './AnalysisListImproved.vue';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
-import router from '@/router';
-import ProjectLanguageDetection from '@/codeclarity_components/projects/components/ProjectLanguageDetection.vue';
 
 // Props
 const props = defineProps<{
@@ -37,9 +37,7 @@ const props = defineProps<{
 }>();
 
 // Emits
-const emit = defineEmits<{
-    (e: 'onRefresh'): void;
-}>();
+const emit = defineEmits<(e: 'onRefresh') => void>();
 
 // Store
 const auth = useAuthStore();
@@ -107,7 +105,7 @@ const cardVariant = computed(() => {
 });
 
 // Methods
-async function deleteProject() {
+async function deleteProject(): Promise<void> {
     if (!viewState.orgId) return;
     if (!auth.getAuthenticated || !auth.getToken) return;
 
@@ -120,10 +118,10 @@ async function deleteProject() {
             handleBusinessErrors: true
         });
         successToast('Project successfully deleted');
-        emit('onRefresh');
+        void emit('onRefresh');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
-            if (err.error_code == APIErrors.EntityNotFound) {
+            if (err.error_code === APIErrors.EntityNotFound) {
                 successToast(`Successfully deleted project\n${props.project.url}`);
             } else {
                 errorToast(`Failed to delete the project\n${props.project.url}`);
@@ -137,11 +135,11 @@ async function deleteProject() {
     }
 }
 
-function navigateToNewAnalysis() {
-    router.push(`/analyses/add?id=${props.project.id}`);
+function navigateToNewAnalysis(): void {
+    void router.push(`/analyses/add?id=${props.project.id}`);
 }
 
-function getProjectIcon() {
+function getProjectIcon(): string {
     if (props.project.type === IntegrationProvider.GITLAB) return 'devicon:gitlab';
     if (props.project.type === IntegrationProvider.GITHUB) return 'devicon:github';
     return 'solar:folder-bold';

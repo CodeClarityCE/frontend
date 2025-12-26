@@ -1,39 +1,23 @@
 <script lang="ts" setup>
-import { type Ref, ref, h } from 'vue';
-
-import { useStateStore } from '@/stores/state';
 import { PageHeader } from '@/base_components';
-
-// API imports
 import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import type { Analyzer, Stage } from '@/codeclarity_components/organizations/analyzers/Analyzer';
 import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { Analyzer } from '@/codeclarity_components/organizations/analyzers/Analyzer';
-import { watchDeep } from '@vueuse/core';
-import { Form } from 'vee-validate';
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import type { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import router from '@/router';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { FormField } from '@/shadcn/ui/form';
+import FormControl from '@/shadcn/ui/form/FormControl.vue';
+import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import FormItem from '@/shadcn/ui/form/FormItem.vue';
 import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
-import FormControl from '@/shadcn/ui/form/FormControl.vue';
-import Input from '@/shadcn/ui/input/Input.vue';
-import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
 import FormMessage from '@/shadcn/ui/form/FormMessage.vue';
-import { FormField } from '@/shadcn/ui/form';
-import SelectLicensePolicy from './components/SelectLicensePolicy.vue';
-import SelectVulnerabilityPolicy from './components/SelectVulnerabilityPolicy.vue';
-import ScheduleSelector from './components/ScheduleSelector.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
-import { toast } from '@/shadcn/ui/toast';
-import router from '@/router';
-import { RouterLink } from 'vue-router';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { Icon } from '@iconify/vue';
-import Alert from '@/shadcn/ui/alert/Alert.vue';
-import { AlertCircle } from 'lucide-vue-next';
-import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
-import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import Input from '@/shadcn/ui/input/Input.vue';
 import {
     Select,
     SelectContent,
@@ -42,11 +26,61 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
+import { toast } from '@/shadcn/ui/toast';
+import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { filterUndefined } from '@/utils/form/filterUndefined';
+import { Icon } from '@iconify/vue';
+import { watchDeep } from '@vueuse/core';
+import { AlertCircle } from 'lucide-vue-next';
+import { Form } from 'vee-validate';
+import { h, ref, type Ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import ScheduleSelector from './components/ScheduleSelector.vue';
+import SelectLicensePolicy from './components/SelectLicensePolicy.vue';
+import SelectVulnerabilityPolicy from './components/SelectVulnerabilityPolicy.vue';
 
-// Project info imports
-import type { Project } from '@/codeclarity_components/projects/project.entity';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+/*****************************************************************************/
+/*                                  Interfaces                               */
+/*****************************************************************************/
+interface AvailableAnalyzer {
+    id: number;
+    name: string;
+    displayName: string;
+    description: string;
+}
+
+// AnalyzerStep type removed - use Stage[] from Analyzer module instead
+
+interface PluginConfig {
+    name: string;
+    required?: boolean;
+    description?: string;
+}
+
+// Helper to cast Stage config to expected array type for template iteration
+function getPluginConfigs(config: Record<string, unknown>): PluginConfig[] {
+    return config as unknown as PluginConfig[];
+}
+
+interface FormValues {
+    branch?: string;
+    commit_id?: string;
+    [key: string]: string | undefined;
+}
+
+interface AnalysisDataPayload {
+    analyzer_id: string;
+    branch: string;
+    commit_hash: string;
+    config: Record<string, Record<string, unknown>>;
+    schedule_type?: 'once' | 'daily' | 'weekly';
+    is_active?: boolean;
+    next_scheduled_run?: string;
+}
 
 const user = useUserStore();
 const auth = useAuthStore();
@@ -65,13 +99,13 @@ const projectRepo: ProjectRepository = new ProjectRepository();
 
 const selected_branch: Ref<string> = ref('');
 const selected_commit_hash: Ref<string> = ref('');
-const selected_analyzers: Ref<Array<number>> = ref([]);
-const selected_license_policy: Ref<Array<string>> = ref([]);
+const selected_analyzers: Ref<number[]> = ref([]);
+const selected_license_policy: Ref<string[]> = ref([]);
 const selected_vulnerability_policy: Ref<string | null> = ref(null);
-const selected_analyzers_list: Ref<Array<Analyzer>> = ref([]);
-const availableAnalyzers: Ref<Array<any>> = ref([]);
+const selected_analyzers_list: Ref<Analyzer[]> = ref([]);
+const availableAnalyzers: Ref<AvailableAnalyzer[]> = ref([]);
 
-const configuration: Ref<Record<string, any>> = ref({});
+const configuration: Ref<Record<string, Record<string, unknown>>> = ref({});
 
 // Available languages for analyzer configuration only
 const availableLanguages = ['javascript', 'php'];
@@ -93,13 +127,13 @@ const project: Ref<Project | undefined> = ref();
 
 const urlParams = new URLSearchParams(window.location.search);
 const projectId = urlParams.get('id');
-if (projectId == null) {
+if (projectId === null) {
     throw new Error('Project id not found');
 }
 project_id.value = projectId;
 
 // Fetch project info
-async function getProject() {
+async function getProject(): Promise<void> {
     if (auth.getAuthenticated && auth.getToken) {
         if (user.defaultOrg?.id === undefined) {
             return;
@@ -123,11 +157,11 @@ async function getProject() {
 }
 
 // Initialize
-getProject();
-fetchAvailableAnalyzers();
+void getProject();
+void fetchAvailableAnalyzers();
 
 // Fetch available analyzers
-async function fetchAvailableAnalyzers() {
+async function fetchAvailableAnalyzers(): Promise<void> {
     if (auth.getAuthenticated && auth.getToken && user.defaultOrg?.id) {
         try {
             const res = await analyzerRepository.getAnalyzers({
@@ -140,32 +174,38 @@ async function fetchAvailableAnalyzers() {
             });
 
             // Transform the data to include display names
-            availableAnalyzers.value = res.data.map((analyzer: any) => ({
-                id: analyzer.id,
-                name: analyzer.name,
-                displayName: analyzer.name === 'JS' ? 'JavaScript Analyzer' : analyzer.name,
-                description: analyzer.description || 'SBOM, vulnerabilities and licenses'
-            }));
+            availableAnalyzers.value = res.data.map((analyzer: Analyzer): AvailableAnalyzer => {
+                const id = Number(analyzer.id);
+                const name = String(analyzer.name);
+                const displayName = name === 'JS' ? 'JavaScript Analyzer' : name;
+                const description = analyzer.description ?? 'SBOM, vulnerabilities and licenses';
+                return {
+                    id,
+                    name,
+                    displayName,
+                    description
+                };
+            });
         } catch (err) {
             console.error('Failed to fetch analyzers:', err);
         }
     }
 }
 
-function onSubmit(values: any, plugin_name: string) {
+function onSubmit(values: FormValues, plugin_name: string): void {
     // Just apply config silently - comprehensive toast is shown by validateAllConfigurations
-    applyConfigSilently(values, plugin_name);
+    void applyConfigSilently(values, plugin_name);
 }
 
 watchDeep(selected_analyzers, () => {
     selected_analyzers_list.value = [];
     const firstAnalyzer = selected_analyzers.value[0];
-    if (selected_analyzers.value.length > 0 && firstAnalyzer) {
-        getAnalyzer(firstAnalyzer.toString());
+    if (selected_analyzers.value.length > 0 && firstAnalyzer !== undefined) {
+        void getAnalyzer(firstAnalyzer.toString());
     }
 });
 
-async function getAnalyzer(analyzer_id: string) {
+async function getAnalyzer(analyzer_id: string): Promise<void> {
     loading.value = true;
     let response: DataResponse<Analyzer>;
     try {
@@ -191,21 +231,22 @@ function isSBOMPlugin(pluginName: string): boolean {
     return pluginName.endsWith('-sbom');
 }
 
-function hasSBOMPlugins(analyzer: any): boolean {
-    return analyzer.steps.some((step: any) =>
+function hasSBOMPlugins(analyzer: Analyzer): boolean {
+    return analyzer.steps.some((step: Stage[]) =>
         step.some(
-            (plugin: any) => isSBOMPlugin(plugin.name) && Object.keys(plugin.config).length > 0
+            (plugin: Stage) =>
+                isSBOMPlugin(String(plugin.name)) && Object.keys(plugin.config).length > 0
         )
     );
 }
 
-function onSubmitSBOM(values: any) {
+function onSubmitSBOM(values: FormValues): void {
     // Apply the same configuration to all SBOM plugins
-    selected_analyzers_list.value.forEach((analyzer) => {
-        analyzer.steps.forEach((step: any) => {
-            step.forEach((plugin: any) => {
-                if (isSBOMPlugin(plugin.name)) {
-                    onSubmit(values, plugin.name);
+    selected_analyzers_list.value.forEach((analyzer: Analyzer) => {
+        analyzer.steps.forEach((step: Stage[]) => {
+            step.forEach((plugin: Stage) => {
+                if (isSBOMPlugin(String(plugin.name))) {
+                    void onSubmit(values, String(plugin.name));
                 }
             });
         });
@@ -213,44 +254,49 @@ function onSubmitSBOM(values: any) {
 }
 
 // Additional helper functions for the new adaptive UI
-function hasPolicyPlugins(analyzer: any): boolean {
+function hasPolicyPlugins(analyzer: Analyzer): boolean {
     return hasVulnFinderPlugin(analyzer) || hasLicenseFinderPlugin(analyzer);
 }
 
-function hasVulnFinderPlugin(analyzer: any): boolean {
-    return analyzer.steps.some((step: any) =>
+function hasVulnFinderPlugin(analyzer: Analyzer): boolean {
+    return analyzer.steps.some((step: Stage[]) =>
         step.some(
-            (plugin: any) =>
-                (plugin.name === 'vuln-finder' || plugin.name === 'js-vuln-finder') &&
+            (plugin: Stage) =>
+                (String(plugin.name) === 'vuln-finder' ||
+                    String(plugin.name) === 'js-vuln-finder') &&
                 Object.keys(plugin.config).length > 0
         )
     );
 }
 
-function hasLicenseFinderPlugin(analyzer: any): boolean {
-    return analyzer.steps.some((step: any) =>
+function hasLicenseFinderPlugin(analyzer: Analyzer): boolean {
+    return analyzer.steps.some((step: Stage[]) =>
         step.some(
-            (plugin: any) =>
-                (plugin.name === 'license-finder' || plugin.name === 'js-license') &&
+            (plugin: Stage) =>
+                (String(plugin.name) === 'license-finder' ||
+                    String(plugin.name) === 'js-license') &&
                 Object.keys(plugin.config).length > 0
         )
     );
 }
 
-function hasAdvancedPlugins(analyzer: any): boolean {
-    return analyzer.steps.some((step: any) => step.some((plugin: any) => isAdvancedPlugin(plugin)));
+function hasAdvancedPlugins(analyzer: Analyzer): boolean {
+    return analyzer.steps.some((step: Stage[]) =>
+        step.some((plugin: Stage) => isAdvancedPlugin(plugin))
+    );
 }
 
-function isAdvancedPlugin(plugin: any): boolean {
+function isAdvancedPlugin(plugin: Stage): boolean {
     // Advanced plugins are those that aren't SBOM, vuln-finder, or license-finder
     // and have configuration options
+    const pluginName = String(plugin.name);
     const isPolicyPlugin =
-        plugin.name === 'vuln-finder' ||
-        plugin.name === 'js-vuln-finder' ||
-        plugin.name === 'license-finder' ||
-        plugin.name === 'js-license';
+        pluginName === 'vuln-finder' ||
+        pluginName === 'js-vuln-finder' ||
+        pluginName === 'license-finder' ||
+        pluginName === 'js-license';
 
-    return !isSBOMPlugin(plugin.name) && !isPolicyPlugin && Object.keys(plugin.config).length > 0;
+    return !isSBOMPlugin(pluginName) && !isPolicyPlugin && Object.keys(plugin.config).length > 0;
 }
 
 // Helper functions for modern analyzer UI
@@ -283,7 +329,7 @@ function getAnalyzerTechnologies(analyzerName: string): string[] {
 }
 
 // Validate all configurations (without showing individual toasts)
-async function validateAllConfigurations() {
+async function validateAllConfigurations(): Promise<void> {
     // Get the current selected analyzer
     if (selected_analyzers_list.value.length === 0) {
         throw new Error('No analyzer selected');
@@ -297,76 +343,84 @@ async function validateAllConfigurations() {
     // 1. Apply SBOM configuration if needed
     if (hasSBOMPlugins(analyzer)) {
         // Get actual form values from the SBOM form inputs
-        const branchInput = document.querySelector('input[placeholder="main"]') as HTMLInputElement;
-        const commitHashInput = document.querySelector(
+        const branchInput: HTMLInputElement | null = document.querySelector(
+            'input[placeholder="main"]'
+        );
+        const commitHashInput: HTMLInputElement | null = document.querySelector(
             'input[placeholder="latest"]'
-        ) as HTMLInputElement;
+        );
 
-        const actualBranch = branchInput?.value || 'main';
-        const actualCommitHash = commitHashInput?.value || '';
+        const branchValue: string = branchInput !== null ? branchInput.value : 'main';
+        const commitHashValue: string = commitHashInput !== null ? commitHashInput.value : '';
 
         // Update global values with actual form input
-        selected_branch.value = actualBranch;
-        selected_commit_hash.value = actualCommitHash || ' ';
+        selected_branch.value = branchValue;
+        selected_commit_hash.value = commitHashValue !== '' ? commitHashValue : ' ';
 
-        const sbomConfig = {
-            branch: actualBranch
+        const sbomConfig: FormValues = {
+            branch: branchValue
         };
-        onSubmitSBOM(sbomConfig);
+        void onSubmitSBOM(sbomConfig);
     }
 
     // 2. Apply policy configurations silently
-    analyzer.steps.forEach((step: any) => {
-        step.forEach((plugin: any) => {
+    analyzer.steps.forEach((step: Stage[]) => {
+        step.forEach((plugin: Stage) => {
+            const pluginName = String(plugin.name);
             // Vulnerability policy
             if (
-                (plugin.name === 'vuln-finder' || plugin.name === 'js-vuln-finder') &&
+                (pluginName === 'vuln-finder' || pluginName === 'js-vuln-finder') &&
                 Object.keys(plugin.config).length > 0
             ) {
-                applyConfigSilently({}, 'vuln-finder');
+                void applyConfigSilently({}, 'vuln-finder');
             }
 
             // License policy
             if (
-                (plugin.name === 'license-finder' || plugin.name === 'js-license') &&
+                (pluginName === 'license-finder' || pluginName === 'js-license') &&
                 Object.keys(plugin.config).length > 0
             ) {
-                applyConfigSilently({}, 'license-finder');
+                void applyConfigSilently({}, 'license-finder');
             }
 
             // Advanced plugins - apply empty config for now
             if (isAdvancedPlugin(plugin)) {
-                applyConfigSilently({}, plugin.name);
+                void applyConfigSilently({}, pluginName);
             }
         });
     });
 
     // 3. Show single comprehensive configuration toast
-    showFinalConfigurationToast();
+    void showFinalConfigurationToast();
 }
 
 // Apply configuration silently (without toast notification)
-function applyConfigSilently(values: any, plugin_name: string) {
-    if (values === undefined) configuration.value[plugin_name] = {};
-    else configuration.value[plugin_name] = values;
+function applyConfigSilently(values: FormValues, plugin_name: string): void {
+    if (values === undefined || Object.keys(values).length === 0) {
+        configuration.value[plugin_name] = {};
+    } else {
+        configuration.value[plugin_name] = values as Record<string, unknown>;
+    }
 
     if (plugin_name === 'license-finder') {
-        configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
+        configuration.value[plugin_name].licensePolicy = selected_license_policy.value;
     }
     if (plugin_name === 'vuln-finder') {
         // Send policy ID if one is selected, otherwise send empty array for no policy
-        configuration.value[plugin_name]['vulnerabilityPolicy'] =
-            selected_vulnerability_policy.value ? [selected_vulnerability_policy.value] : [];
+        configuration.value[plugin_name].vulnerabilityPolicy = selected_vulnerability_policy.value
+            ? [selected_vulnerability_policy.value]
+            : [];
     }
     if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
-        configuration.value[plugin_name]['project'] =
-            `${user.defaultOrg?.id}/projects/${project_id.value}/${values.branch}`;
-        selected_branch.value = values.branch;
+        const branchValue = values.branch ?? 'main';
+        configuration.value[plugin_name].project =
+            `${user.defaultOrg?.id ?? ''}/projects/${project_id.value}/${branchValue}`;
+        selected_branch.value = branchValue;
     }
 }
 
 // Show final comprehensive configuration toast
-function showFinalConfigurationToast() {
+function showFinalConfigurationToast(): void {
     toast({
         title: '🔧 Configuration Applied',
         description: h('div', { class: 'space-y-2' }, [
@@ -383,7 +437,7 @@ function showFinalConfigurationToast() {
 }
 
 // Fetch projects
-async function createAnalysisStart() {
+async function createAnalysisStart(): Promise<void> {
     loading.value = true;
     // Note: branch and commit hash values are now collected in validateAllConfigurations
 
@@ -398,10 +452,10 @@ async function createAnalysisStart() {
 
             // Prepare analysis data with scheduling information
             const firstAnalyzerId = selected_analyzers.value[0];
-            if (!firstAnalyzerId) {
+            if (firstAnalyzerId === undefined) {
                 throw new Error('No analyzer selected');
             }
-            const analysisData: any = {
+            const analysisData: AnalysisDataPayload = {
                 analyzer_id: firstAnalyzerId.toString(),
                 branch: selected_branch.value,
                 commit_hash: selected_commit_hash.value,
@@ -420,7 +474,7 @@ async function createAnalysisStart() {
             }
 
             await projectRepository.createAnalysis({
-                orgId: user.defaultOrg?.id,
+                orgId: user.defaultOrg.id,
                 projectId: project_id.value,
                 bearerToken: auth.getToken,
                 handleBusinessErrors: true,
@@ -432,7 +486,7 @@ async function createAnalysisStart() {
                     'Your analysis has been started and will run in the background. You will be notified when results are available.',
                 variant: 'default'
             });
-            router.push({ name: 'projects' });
+            void router.push({ name: 'projects' });
         }
     } catch (_err) {
         error.value = true;
@@ -459,12 +513,12 @@ async function createAnalysisStart() {
         <div v-if="project" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div class="flex items-center gap-3">
                 <Icon
-                    v-if="project?.type == IntegrationProvider.GITHUB"
+                    v-if="project?.type === IntegrationProvider.GITHUB"
                     icon="simple-icons:github"
                     class="h-6 w-6 text-gray-700"
                 />
                 <Icon
-                    v-else-if="project?.type == IntegrationProvider.GITLAB"
+                    v-else-if="project?.type === IntegrationProvider.GITLAB"
                     icon="simple-icons:gitlab"
                     class="h-6 w-6 text-gray-700"
                 />
@@ -565,7 +619,7 @@ async function createAnalysisStart() {
                                         <h4
                                             class="text-xl font-semibold text-gray-900 group-hover:text-theme-primary transition-colors"
                                         >
-                                            {{ analyzer.displayName || analyzer.name }}
+                                            {{ analyzer.displayName ?? analyzer.name }}
                                         </h4>
                                         <div class="hidden peer-checked:block">
                                             <div
@@ -715,7 +769,7 @@ async function createAnalysisStart() {
                                                 <FormControl>
                                                     <Input
                                                         placeholder="main"
-                                                        v-bind="componentField"
+                                                        v-bind="filterUndefined(componentField)"
                                                         class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                                                     />
                                                 </FormControl>
@@ -736,7 +790,7 @@ async function createAnalysisStart() {
                                                 <FormControl>
                                                     <Input
                                                         placeholder="latest"
-                                                        v-bind="componentField"
+                                                        v-bind="filterUndefined(componentField)"
                                                         class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                                                     />
                                                 </FormControl>
@@ -865,7 +919,9 @@ async function createAnalysisStart() {
                                                         "
                                                     >
                                                         <div
-                                                            v-for="config in plugin.config"
+                                                            v-for="config in getPluginConfigs(
+                                                                plugin.config
+                                                            )"
                                                             :key="config.name"
                                                             class="space-y-2"
                                                         >
@@ -890,7 +946,11 @@ async function createAnalysisStart() {
                                                                                 config.name ===
                                                                                 'language'
                                                                             "
-                                                                            v-bind="componentField"
+                                                                            v-bind="
+                                                                                filterUndefined(
+                                                                                    componentField
+                                                                                )
+                                                                            "
                                                                         >
                                                                             <SelectTrigger
                                                                                 class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
@@ -929,7 +989,11 @@ async function createAnalysisStart() {
                                                                             :placeholder="
                                                                                 config.name
                                                                             "
-                                                                            v-bind="componentField"
+                                                                            v-bind="
+                                                                                filterUndefined(
+                                                                                    componentField
+                                                                                )
+                                                                            "
                                                                             class="border-gray-300 focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                                                                         />
                                                                     </FormControl>

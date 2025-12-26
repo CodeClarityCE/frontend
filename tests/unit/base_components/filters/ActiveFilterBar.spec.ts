@@ -1,8 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { mount } from '@vue/test-utils';
 import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import type { FilterState, ActiveFilter } from '@/base_components/filters/UtilitiesFilters.vue';
-import { FilterType } from '@/base_components/filters/UtilitiesFilters.vue';
+import { FilterType, type FilterState, type ActiveFilter } from '@/base_components/filters/UtilitiesFilters.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect } from 'vitest';
 
 describe('ActiveFilterBar', () => {
   const createMockFilterState = (activeFilters: ActiveFilter[] = []): FilterState => ({
@@ -110,7 +109,7 @@ describe('ActiveFilterBar', () => {
     await removeButton.trigger('click');
 
     // Check that the filter value was set to false
-    expect(filterState.filterConfig.severity!.data.high!.value).toBe(false);
+    expect(filterState.filterConfig['severity']!['data']['high']!.value).toBe(false);
   });
 
   it('has correct styling for filter chips', () => {
@@ -265,7 +264,7 @@ describe('ActiveFilterBar', () => {
     const filterState = createMockFilterState([mockCheckboxFilter]);
 
     // Spy on the filter state to ensure it gets modified
-    const originalValue = filterState.filterConfig.severity!.data.high!.value;
+    const originalValue = filterState.filterConfig['severity']!['data']['high']!.value;
     expect(originalValue).toBe(true);
 
     const wrapper = mount(ActiveFilterBar, {
@@ -277,7 +276,7 @@ describe('ActiveFilterBar', () => {
     const removeButton = wrapper.find('.cursor-pointer');
     await removeButton.trigger('click');
 
-    expect(filterState.filterConfig.severity!.data.high!.value).toBe(false);
+    expect(filterState.filterConfig['severity']!['data']['high']!.value).toBe(false);
   });
 
   it('handles empty filter list gracefully', () => {

@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, type Ref } from 'vue';
-import { WorkspacesOutput } from './workspace.entity';
-import { ResultsRepository } from './results.repository';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
+import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
 import {
     Select,
     SelectContent,
@@ -13,8 +9,12 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { ECOSYSTEMS } from '@/utils/packageEcosystem';
-import EcosystemBadge from '@/base_components/ui/EcosystemBadge.vue';
+import { onMounted, ref, computed, type Ref } from 'vue';
+import { ResultsRepository } from './results.repository';
+import { WorkspacesOutput } from './workspace.entity';
 
 export interface Props {
     analysisID?: string;
@@ -102,14 +102,14 @@ const ecosystemFilterOptions = computed(() => {
 // Function to handle ecosystem filter changes
 function handleEcosystemFilterChange(
     ecosystemType: string | number | boolean | bigint | Record<string, unknown> | null
-) {
+): void {
     const value = typeof ecosystemType === 'string' ? ecosystemType : null;
     selectedEcosystemFilter.value = value;
-    emit('ecosystem-filter-changed', value);
+    void emit('ecosystem-filter-changed', value);
 }
 
 // Function to detect available ecosystems from SBOM data
-async function detectAvailableEcosystems() {
+async function detectAvailableEcosystems(): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -152,7 +152,7 @@ async function detectAvailableEcosystems() {
     }
 }
 
-async function getSbomWorkspaces() {
+async function getSbomWorkspaces(): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
     try {
@@ -167,7 +167,7 @@ async function getSbomWorkspaces() {
 
         // Emit package manager information
         if (res.data.package_manager) {
-            emit('package-manager-loaded', res.data.package_manager);
+            void emit('package-manager-loaded', res.data.package_manager);
         }
     } catch (_err) {
         console.error(_err);
@@ -180,7 +180,7 @@ async function getSbomWorkspaces() {
 
 onMounted(async () => {
     await detectAvailableEcosystems();
-    getSbomWorkspaces();
+    void getSbomWorkspaces();
 });
 </script>
 
@@ -201,7 +201,7 @@ onMounted(async () => {
                         <SelectLabel>Language Filter</SelectLabel>
                         <SelectItem
                             v-for="option in ecosystemFilterOptions"
-                            :key="option.value || 'all'"
+                            :key="option.value ?? 'all'"
                             :value="option.value"
                         >
                             <div class="flex items-center gap-2">
@@ -233,7 +233,7 @@ onMounted(async () => {
             <Select
                 @update:model-value="
                     (e: string | number | bigint | Record<string, any> | null) => {
-                        selected_workspace = e?.toString() || '';
+                        selected_workspace = e?.toString() ?? '';
                     }
                 "
             >

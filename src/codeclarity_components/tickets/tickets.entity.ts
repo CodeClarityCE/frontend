@@ -220,11 +220,11 @@ export class TicketDashboardStats {
     };
 
     @IsDefined()
-    by_project!: Array<{
+    by_project!: {
         project_id: string;
         project_name: string;
         open_count: number;
-    }>;
+    }[];
 
     @IsDefined()
     @Type(() => TicketSummary)

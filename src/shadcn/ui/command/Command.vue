@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ListboxRootEmits, ListboxRootProps } from 'reka-ui';
 import { cn } from '@/shadcn/lib/utils';
+import type { ListboxRootEmits, ListboxRootProps } from 'reka-ui';
 import { ListboxRoot, useFilter, useForwardPropsEmits } from 'reka-ui';
 import { computed, type HTMLAttributes, reactive, ref, watch } from 'vue';
 import { provideCommandContext } from '.';
@@ -31,7 +31,7 @@ const filterState = reactive({
         /** Map from visible item id to its search score. */
         items: new Map() as Map<string, number>,
         /** Set of groups with at least one visible item. */
-        groups: new Set() as Set<string>
+        groups: new Set<string>()
     }
 });
 
@@ -43,7 +43,7 @@ function filterItems() {
     }
 
     // Reset the groups
-    filterState.filtered.groups = new Set();
+    filterState.filtered.groups = new Set<string>();
     let itemCount = 0;
 
     // Check which items should be included
@@ -64,10 +64,6 @@ function filterItems() {
     }
 
     filterState.filtered.count = itemCount;
-}
-
-function handleSelect() {
-    filterState.search = '';
 }
 
 watch(

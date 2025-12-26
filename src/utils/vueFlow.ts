@@ -1,6 +1,5 @@
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
-import type { Node, Edge } from '@vue-flow/core';
-import { Position } from '@vue-flow/core';
+import { Position, type Node, type Edge } from '@vue-flow/core';
 import * as d3 from 'd3';
 
 export interface AnalyzerNode extends Node {
@@ -11,7 +10,7 @@ export interface AnalyzerNode extends Node {
         version: string;
         description: string;
         stage?: number;
-        config?: any;
+        config?: Record<string, unknown>;
     };
     selectable?: boolean;
     deletable?: boolean;
@@ -24,7 +23,7 @@ export interface ConfigNode extends Node {
         label: string;
         configKey: string;
         configType: string;
-        value: any;
+        value: unknown;
     };
 }
 
@@ -40,7 +39,7 @@ export function getColor(name: string): string {
     return color(code);
 }
 
-export function getWidth() {
+export function getWidth(): number {
     return document.querySelector('#form')?.clientWidth ?? 0;
 }
 
@@ -155,10 +154,16 @@ export function createEdgesFromNodes(analyzerNodes: AnalyzerNode[]): Edge[] {
     return edges;
 }
 
+export interface WorkflowStep {
+    name: string;
+    version: string;
+    config: Record<string, unknown>;
+}
+
 export function retrieveWorkflowSteps(
     nodes: (AnalyzerNode | ConfigNode)[],
     edges: Edge[]
-): any[][] {
+): WorkflowStep[][] {
     const analyzerNodes = nodes.filter((node): node is AnalyzerNode => node.type === 'analyzer');
     const dependencyMap = new Map<string, string[]>();
 
@@ -183,7 +188,7 @@ export function retrieveWorkflowSteps(
         if (visited.has(pluginName)) return 0; // Circular dependency protection
         visited.add(pluginName);
 
-        const dependencies = dependencyMap.get(pluginName) || [];
+        const dependencies = dependencyMap.get(pluginName) ?? [];
         let maxDepth = 0;
 
         for (const dep of dependencies) {
@@ -194,7 +199,7 @@ export function retrieveWorkflowSteps(
     };
 
     // Group nodes by depth
-    const depthMap = new Map<number, any[]>();
+    const depthMap = new Map<number, WorkflowStep[]>();
 
     analyzerNodes.forEach((node) => {
         const depth = getDepth(node.data.plugin.name);
@@ -212,10 +217,10 @@ export function retrieveWorkflowSteps(
 
     // Convert to array format
     const maxDepth = Math.max(...depthMap.keys());
-    const result: any[][] = [];
+    const result: WorkflowStep[][] = [];
 
     for (let i = 0; i <= maxDepth; i++) {
-        result.push(depthMap.get(i) || []);
+        result.push(depthMap.get(i) ?? []);
     }
 
     return result.filter((step) => step.length > 0);
@@ -261,7 +266,7 @@ export function layoutNodes(nodes: (AnalyzerNode | ConfigNode)[]): (AnalyzerNode
             return nodeToLevel.get(nodeName)!;
         }
 
-        const deps = dependencyMap.get(nodeName) || [];
+        const deps = dependencyMap.get(nodeName) ?? [];
 
         // If no dependencies, this is a root node (level 0)
         if (deps.length === 0) {

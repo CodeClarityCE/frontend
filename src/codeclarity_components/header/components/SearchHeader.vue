@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useMagicKeys } from '@vueuse/core';
-
-import { ref, watch } from 'vue';
+import router from '@/router';
+import { Button } from '@/shadcn/ui/button';
 import {
     CommandDialog,
     CommandEmpty,
@@ -11,10 +10,10 @@ import {
     CommandList,
     CommandSeparator
 } from '@/shadcn/ui/command';
-import router from '@/router';
 import { useUserStore } from '@/stores/user';
-import { Button } from '@/shadcn/ui/button';
 import { Icon } from '@iconify/vue';
+import { useMagicKeys } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
 const userStore = useUserStore();
 
@@ -34,45 +33,40 @@ watch([Meta_K, Ctrl_K], (v) => {
 if (enter) {
     watch(enter, (v) => {
         if (v) {
-            handleCommandSelect();
+            void handleCommandSelect();
         }
     });
 }
 
-watch(open, (v) => {
-    console.log('open', v, open);
-});
-
-function handleCommandSelect() {
+function handleCommandSelect(): void {
     if (open.value) {
         const highlighted = document.querySelectorAll('[data-highlighted=""]')[0] as HTMLElement;
-        console.log(highlighted.innerText);
         open.value = false;
         if (highlighted.innerText === 'Dashboard') {
-            router.push({ name: 'home' });
+            void router.push({ name: 'home' });
         } else if (highlighted.innerText === 'Projects') {
-            router.push({ name: 'projects' });
+            void router.push({ name: 'projects' });
         } else if (highlighted.innerText === 'Settings') {
-            router.push({ name: 'settings', params: { page: 'account' } });
+            void router.push({ name: 'settings', params: { page: 'account' } });
         } else if (highlighted.innerText === 'Organizations') {
-            router.push({ name: 'orgs', params: { action: 'list' } });
+            void router.push({ name: 'orgs', params: { action: 'list' } });
         } else if (highlighted.innerText === 'Create Analyzer') {
-            router.push({
+            void router.push({
                 name: 'orgs',
                 params: { action: 'add', page: 'analyzers', orgId: userStore.defaultOrg?.id }
             });
         } else if (highlighted.innerText === 'Import Project') {
-            router.push({
+            void router.push({
                 name: 'projects',
                 params: { page: 'add', orgId: userStore.defaultOrg?.id }
             });
         } else if (highlighted.innerText === 'Start Analysis') {
-            router.push({ name: 'analyses', params: { page: 'add' } });
+            void router.push({ name: 'analyses', params: { page: 'add' } });
         }
     }
 }
 
-function handleOpenChange() {
+function handleOpenChange(): void {
     open.value = !open.value;
 }
 </script>

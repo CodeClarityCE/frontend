@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable import/order */
 import * as d3 from 'd3';
 import { interpolateColors } from '@/base_components/data-display/charts/colors-waffle';
 import Button from '@/shadcn/ui/button/Button.vue';
@@ -10,7 +11,7 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/shadcn/ui/dialog';
-
+/* eslint-enable import/order */
 export interface WaffleChartEntry {
     label: string;
     value: number;
@@ -30,8 +31,7 @@ interface Square {
 }
 </script>
 <script setup lang="ts">
-import { ref, type Ref, onMounted, onUnmounted } from 'vue';
-
+import { onMounted, onUnmounted, ref, type Ref } from 'vue';
 // Props
 const props = defineProps<{
     data: WaffleChartEntry[];
@@ -52,9 +52,22 @@ const squareSize = ref(25);
 const gridCols = ref(10);
 
 /**
+ * Check if square size and rows are valid for creating grid
+ */
+function isValidGridConfiguration(
+    _squareSizeForWidth: number,
+    rows: number,
+    totalSquares: number
+): boolean {
+    if (rows < 5) return false;
+    if (totalSquares < 50 || totalSquares > 300) return false;
+    return true;
+}
+
+/**
  * Calculate responsive dimensions based on container size
  */
-function calculateResponsiveDimensions() {
+function calculateResponsiveDimensions(): void {
     if (!chartContainer.value) return;
 
     const containerRect = chartContainer.value.getBoundingClientRect();
@@ -87,15 +100,12 @@ function calculateResponsiveDimensions() {
 
         if (squareSizeForWidth >= 15 && squareSizeForWidth <= 40) {
             const rows = Math.floor(chartAreaHeight / squareSizeForWidth);
+            const totalSquares = cols * rows;
 
-            if (rows >= 5) {
-                const totalSquares = cols * rows;
-
-                if (totalSquares >= 50 && totalSquares <= 300) {
-                    bestCols = cols;
-                    bestRows = rows;
-                    bestSquareSize = Math.floor(squareSizeForWidth);
-                }
+            if (isValidGridConfiguration(squareSizeForWidth, rows, totalSquares)) {
+                bestCols = cols;
+                bestRows = rows;
+                bestSquareSize = Math.floor(squareSizeForWidth);
             }
         }
     }
@@ -108,22 +118,16 @@ function calculateResponsiveDimensions() {
 /**
  * Creates the internal data structure for the waffle chart from the data passed in by the user
  */
-function createData() {
+function createData(): void {
     truncatedOthers.value = [];
     squares.value = [];
 
-    let colorScale = props.colorScale;
-    if (!colorScale)
-        colorScale = d3.interpolateDiscrete([
-            '#003532',
-            '#1A4876',
-            '#008491',
-            '#40E0D0',
-            '#D3D3D3'
-        ]);
-    if (props.data.length == 0) return;
+    const colorScale =
+        props.colorScale ??
+        d3.interpolateDiscrete(['#003532', '#1A4876', '#008491', '#40E0D0', '#D3D3D3']);
+    if (props.data.length === 0) return;
 
-    const colorsDefinedInData = props.data.every((entry) => entry.color != undefined);
+    const colorsDefinedInData = props.data.every((entry) => entry.color !== undefined);
 
     // "Normalize" the data
     // Each group has a value from 0.0 to 1.0
@@ -235,7 +239,7 @@ function createSquares(
         i++;
     }
 
-    if (othersEntries.length == normalizedData.length) {
+    if (othersEntries.length === normalizedData.length) {
         indicesToRemove = [];
         othersEntries = [];
         for (const entry of normalizedData) {
@@ -265,18 +269,18 @@ function createSquares(
     return [cleanedData, othersEntries];
 }
 
-function animateGroup(group: string) {
+function animateGroup(group: string): void {
     groupToAnimate.value = group;
 }
 
-function stopAnimateGroup() {
+function stopAnimateGroup(): void {
     groupToAnimate.value = undefined;
 }
 
-function styleSelected(group: string) {
-    if (groupToAnimate.value == undefined) return 'none';
+function styleSelected(group: string): string {
+    if (groupToAnimate.value === undefined) return 'none';
     else {
-        if (groupToAnimate.value == group) return 'none';
+        if (groupToAnimate.value === group) return 'none';
         else return 'opacity(25%)';
     }
 }

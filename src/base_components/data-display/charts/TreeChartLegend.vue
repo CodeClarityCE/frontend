@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { onMounted, watch } from 'vue';
 import * as d3 from 'd3';
+import { onMounted, watch } from 'vue';
 
 const props = defineProps<{
     svgSelector: string; // e.g. '#tree-svg'
@@ -15,9 +15,9 @@ const props = defineProps<{
 
 const legendGroupId = 'tree-chart-legend-group';
 
-function renderLegend() {
+function renderLegend(): void {
     // Remove previous legend if exists
-    d3.select(props.svgSelector + ' #' + legendGroupId).remove();
+    d3.select(`${props.svgSelector} #${legendGroupId}`).remove();
 
     const legendHeight = props.hasPrunedNodes ? 165 : 145;
     const svg = d3.select(props.svgSelector);

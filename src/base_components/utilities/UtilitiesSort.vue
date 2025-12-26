@@ -1,7 +1,5 @@
 <script setup lang="ts">
 // Imports
-import { Icon } from '@iconify/vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import {
     Select,
     SelectContent,
@@ -11,11 +9,19 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+
+// Types
+interface SortOption {
+    key: string;
+    label: string;
+}
 
 // Props
 defineProps<{
-    selectionPageLimit: Array<number>;
-    sortOptions: Array<any>;
+    selectionPageLimit: number[];
+    sortOptions: SortOption[];
     showing: number;
     total: number;
 }>();
@@ -28,7 +34,7 @@ const sortKey = defineModel<string>('sortKey', {
 const sortDirection = defineModel<SortDirection>('sortDirection', { default: SortDirection.DESC });
 
 // Methods
-function changeSort(_sortKey: string, _sortDirection: SortDirection) {
+function changeSort(_sortKey: string, _sortDirection: SortDirection): void {
     sortKey.value = _sortKey;
     sortDirection.value = _sortDirection;
 }
@@ -76,8 +82,8 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                         <SelectGroup>
                             <SelectLabel>Sort by</SelectLabel>
                             <SelectItem
-                                v-for="(sort_option, index) in sortOptions"
-                                :key="index"
+                                v-for="sort_option in sortOptions"
+                                :key="sort_option['key']"
                                 :value="sort_option['key']"
                                 @click="changeSort(sort_option['key'], sortDirection)"
                             >
@@ -88,7 +94,7 @@ function changeSort(_sortKey: string, _sortDirection: SortDirection) {
                 </Select>
                 <div class="cursor-pointer flex gap-1 items-center">
                     <Icon
-                        v-if="sortDirection == SortDirection.DESC"
+                        v-if="sortDirection === SortDirection.DESC"
                         icon="oi:sort-descending"
                         class="h-5 w-5"
                         role="button"

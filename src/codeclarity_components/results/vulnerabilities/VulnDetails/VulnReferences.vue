@@ -12,11 +12,11 @@ defineProps<{
     onToggle: () => void;
 }>();
 
-function getFavicon(url: string) {
+function getFavicon(url: string): string {
     const host = getHost(url);
     return `https://s2.googleusercontent.com/s2/favicons?sz=64&domain=${host}`;
 }
-function getHost(url: string) {
+function getHost(url: string): string {
     try {
         return new URL(url).hostname;
     } catch {

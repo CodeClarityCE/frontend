@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
-import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue'
 import type { DoughnutChartData, DoughnutChartOptions, VulnerabilityLabel } from '@/base_components/data-display/charts/doughnutChart'
+import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Create comprehensive D3 mock chain
 const createMockNode = (): any => {
@@ -33,7 +33,7 @@ const mockColorScale = vi.fn((key: string) => {
     'Low': '#16a34a',
     'None': '#6b7280'
   }
-  return colors[key] || '#6b7280'
+  return colors[key] ?? '#6b7280'
 })
 
 const mockPieGenerator = vi.fn((data) =>

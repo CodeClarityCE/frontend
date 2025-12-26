@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import LicenseComponent from './LicenseComponent.vue';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { License } from './License';
+import LicenseComponent from './LicenseComponent.vue';
 
 // Mock child components
 vi.mock('@/shadcn/ui/popover/Popover.vue', () => ({

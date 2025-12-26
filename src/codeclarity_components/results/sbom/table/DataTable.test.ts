@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
-import DataTable from './DataTable.vue';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import DataTable from './DataTable.vue';
 
 // Mock shadcn components
 vi.mock('@/shadcn/ui/dropdown-menu', () => ({
@@ -379,17 +379,6 @@ describe('DataTable.vue', () => {
             expect(wrapper.text()).toContain('Show only outdated');
             expect(wrapper.text()).toContain('Show only direct');
             expect(wrapper.text()).toContain('Show only dev deps');
-        });
-
-        it('should call toggleFilter when filter is clicked', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-            wrapper = createWrapper();
-
-            const filterItem = wrapper.find('[data-testid="dropdown-menu-checkbox-item"]');
-            await filterItem.trigger('click');
-
-            expect(consoleLogSpy).toHaveBeenCalledWith('Toggle filter:', 'outdated');
-            consoleLogSpy.mockRestore();
         });
     });
 

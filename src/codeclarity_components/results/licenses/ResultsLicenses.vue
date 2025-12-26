@@ -1,14 +1,14 @@
 <script lang="ts" setup>
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { type Project } from '@/codeclarity_components/projects/project.entity';
+import { AlertDescription } from '@/shadcn/ui/alert';
+import Alert from '@/shadcn/ui/alert/Alert.vue';
+import { Icon } from '@iconify/vue';
 import { ref } from 'vue';
 import Licenses from './LicensesComponent.vue';
 // Import stores
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import Alert from '@/shadcn/ui/alert/Alert.vue';
-import { AlertDescription } from '@/shadcn/ui/alert';
 // Import theme components
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
-import { Icon } from '@iconify/vue';
 
 defineProps<{
     analysis: Analysis;

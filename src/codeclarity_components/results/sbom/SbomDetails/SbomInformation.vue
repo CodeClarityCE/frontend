@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import { Badge } from '@/shadcn/ui/badge';
-import { Icon } from '@iconify/vue';
+import { useAuthStore } from '@/stores/auth';
 import { calculateDateDifference, formatRelativeTime, isValidDate } from '@/utils/dateUtils';
-import type { PropType } from 'vue';
-import { computed } from 'vue';
 import { EcosystemDetector, EcosystemMetadataExtractor } from '@/utils/packageEcosystem';
+import { Icon } from '@iconify/vue';
+import { computed, type PropType } from 'vue';
+
+const authStore = useAuthStore();
 
 const props = defineProps({
     dependency: {
@@ -25,7 +27,7 @@ const ecosystemMetadata = computed(() => {
 
 // Computed properties for version management
 const isVersionOutdated = computed(() => {
-    if (!props.dependency.release_date || !props.dependency.lastest_release_date) return false;
+    if (!authStore.getAuthenticated || !props.dependency.lastest_release_date) return false;
     const diffDays = calculateDateDifference(
         props.dependency.lastest_release_date,
         props.dependency.release_date,
@@ -34,8 +36,8 @@ const isVersionOutdated = computed(() => {
     return diffDays > 182; // 6 months
 });
 
-const getVersionLag = () => {
-    if (!props.dependency.release_date || !props.dependency.lastest_release_date) return '';
+const getVersionLag = (): string => {
+    if (!authStore.getAuthenticated || !props.dependency.lastest_release_date) return '';
     const diffDays = calculateDateDifference(
         props.dependency.lastest_release_date,
         props.dependency.release_date,
@@ -49,7 +51,7 @@ const getVersionLag = () => {
 
 // Engine icon mapping
 const getEngineIcon = (engineName: string): string => {
-    const iconMap: { [key: string]: string } = {
+    const iconMap: Record<string, string> = {
         node: 'akar-icons:node-fill',
         npm: 'akar-icons:npm-fill',
         yarn: 'akar-icons:yarn-fill',
@@ -59,7 +61,7 @@ const getEngineIcon = (engineName: string): string => {
         rust: 'skill-icons:rust',
         php: 'skill-icons:php-dark'
     };
-    return iconMap[engineName.toLowerCase()] || 'solar:cpu-bolt-bold';
+    return iconMap[engineName.toLowerCase()] ?? 'solar:cpu-bolt-bold';
 };
 
 // Package age calculations
@@ -86,7 +88,7 @@ const getAgeClass = (): string => {
 
 const getAgeIcon = (): string => {
     const ageClass = getAgeClass();
-    const iconMap: { [key: string]: string } = {
+    const iconMap: Record<string, string> = {
         fresh: 'solar:star-bold',
         moderate: 'solar:clock-circle-bold',
         old: 'solar:history-bold',
@@ -98,7 +100,7 @@ const getAgeIcon = (): string => {
 
 const getAgeDescription = (): string => {
     const ageClass = getAgeClass();
-    const descriptions: { [key: string]: string } = {
+    const descriptions: Record<string, string> = {
         fresh: 'Recently released package',
         moderate: 'Moderately aged package',
         old: 'Older package, consider checking for updates',
@@ -344,27 +346,30 @@ const getAgeDescription = (): string => {
                         <div class="flex flex-col gap-4">
                             <!-- PHP Composer specific metadata -->
                             <template v-if="ecosystem.type === 'packagist'">
-                                <div v-if="ecosystemMetadata.type" class="flex flex-col gap-2">
+                                <div v-if="ecosystemMetadata['type']" class="flex flex-col gap-2">
                                     <span class="text-sm font-semibold text-gray-700">Type:</span>
                                     <Badge variant="outline" class="w-fit text-xs">{{
-                                        ecosystemMetadata.type
+                                        ecosystemMetadata['type']
                                     }}</Badge>
                                 </div>
-                                <div v-if="ecosystemMetadata.autoload" class="flex flex-col gap-2">
+                                <div
+                                    v-if="ecosystemMetadata['autoload']"
+                                    class="flex flex-col gap-2"
+                                >
                                     <span class="text-sm font-semibold text-gray-700"
                                         >Autoload:</span
                                     >
                                     <code
                                         class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto"
                                         >{{
-                                            JSON.stringify(ecosystemMetadata.autoload, null, 2)
+                                            JSON.stringify(ecosystemMetadata['autoload'], null, 2)
                                         }}</code
                                     >
                                 </div>
                                 <div
                                     v-if="
-                                        ecosystemMetadata.suggest &&
-                                        Object.keys(ecosystemMetadata.suggest).length > 0
+                                        ecosystemMetadata['suggest'] &&
+                                        Object.keys(ecosystemMetadata['suggest']).length > 0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -373,7 +378,7 @@ const getAgeDescription = (): string => {
                                     >
                                     <div class="flex flex-col gap-2 max-h-24 overflow-y-auto">
                                         <div
-                                            v-for="(reason, pkg) in ecosystemMetadata.suggest"
+                                            v-for="(reason, pkg) in ecosystemMetadata['suggest']"
                                             :key="pkg"
                                             class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
                                         >
@@ -394,8 +399,8 @@ const getAgeDescription = (): string => {
                             <template v-if="ecosystem.type === 'npm'">
                                 <div
                                     v-if="
-                                        ecosystemMetadata.keywords &&
-                                        ecosystemMetadata.keywords.length > 0
+                                        Array.isArray(ecosystemMetadata['keywords']) &&
+                                        ecosystemMetadata['keywords'].length > 0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -404,7 +409,7 @@ const getAgeDescription = (): string => {
                                     >
                                     <div class="flex flex-wrap gap-1">
                                         <Badge
-                                            v-for="keyword in ecosystemMetadata.keywords"
+                                            v-for="keyword in ecosystemMetadata['keywords']"
                                             :key="keyword"
                                             variant="outline"
                                             class="text-xs"
@@ -413,21 +418,25 @@ const getAgeDescription = (): string => {
                                         </Badge>
                                     </div>
                                 </div>
-                                <div v-if="ecosystemMetadata.engines" class="flex flex-col gap-2">
+                                <div
+                                    v-if="ecosystemMetadata['engines']"
+                                    class="flex flex-col gap-2"
+                                >
                                     <span class="text-sm font-semibold text-gray-700"
                                         >Engines:</span
                                     >
                                     <code
                                         class="font-mono text-xs bg-gray-100 p-2 rounded border border-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto"
                                         >{{
-                                            JSON.stringify(ecosystemMetadata.engines, null, 2)
+                                            JSON.stringify(ecosystemMetadata['engines'], null, 2)
                                         }}</code
                                     >
                                 </div>
                                 <div
                                     v-if="
-                                        ecosystemMetadata.peerDependencies &&
-                                        Object.keys(ecosystemMetadata.peerDependencies).length > 0
+                                        ecosystemMetadata['peerDependencies'] &&
+                                        Object.keys(ecosystemMetadata['peerDependencies']).length >
+                                            0
                                     "
                                     class="flex flex-col gap-2"
                                 >
@@ -436,9 +445,9 @@ const getAgeDescription = (): string => {
                                     >
                                     <div class="flex flex-col gap-2 max-h-24 overflow-y-auto">
                                         <div
-                                            v-for="(
-                                                version, pkg
-                                            ) in ecosystemMetadata.peerDependencies"
+                                            v-for="(version, pkg) in ecosystemMetadata[
+                                                'peerDependencies'
+                                            ]"
                                             :key="pkg"
                                             class="flex justify-between items-center p-1.5 bg-gray-50 rounded border border-gray-200"
                                         >
@@ -503,13 +512,13 @@ const getAgeDescription = (): string => {
 
 .section-icon {
     font-size: 1.25rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 }
 
 .section-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
 }
 
@@ -563,7 +572,7 @@ const getAgeDescription = (): string => {
     }
 
     &.primary {
-        border-left: 4px solid theme('colors.theme-primary');
+        border-left: 4px solid var(--color-theme-primary);
         background: rgba(29, 206, 121, 0.02);
     }
 }
@@ -579,14 +588,14 @@ const getAgeDescription = (): string => {
 .info-icon,
 .detail-icon {
     font-size: 1rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
 }
 
 .info-title,
 .detail-title {
     font-weight: 600;
     font-size: 0.9rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .info-card-content,
@@ -608,7 +617,7 @@ const getAgeDescription = (): string => {
     align-items: center;
     gap: 0.5rem;
     text-decoration: none;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     font-weight: 500;
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
@@ -654,7 +663,7 @@ const getAgeDescription = (): string => {
     }
 
     &.self {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.unknown {
@@ -684,7 +693,7 @@ const getAgeDescription = (): string => {
     font-size: 1.1rem;
 
     &.direct {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.transitive {
@@ -694,12 +703,12 @@ const getAgeDescription = (): string => {
 
 .type-text {
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .type-description {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.4;
 }
@@ -725,7 +734,7 @@ const getAgeDescription = (): string => {
     }
 
     &.latest {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
@@ -744,13 +753,13 @@ const getAgeDescription = (): string => {
     &.latest {
         background: rgba(29, 206, 121, 0.1);
         border-color: rgba(29, 206, 121, 0.3);
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
 .version-date {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     font-style: italic;
 }
 
@@ -778,7 +787,7 @@ const getAgeDescription = (): string => {
     font-size: 1.25rem;
 
     &.current {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.outdated {
@@ -795,12 +804,12 @@ const getAgeDescription = (): string => {
 .status-title {
     font-weight: 600;
     font-size: 0.9rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .status-description {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
 }
 
@@ -819,13 +828,13 @@ const getAgeDescription = (): string => {
     &.valid {
         background: rgba(29, 206, 121, 0.1);
         border-color: rgba(29, 206, 121, 0.3);
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
 .license-status {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
 }
 
 /* Engine Support */
@@ -870,14 +879,14 @@ const getAgeDescription = (): string => {
 .engine-name {
     font-weight: 600;
     font-size: 0.8rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     text-transform: capitalize;
 }
 
 .engine-version {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.75rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     background: #f3f4f6;
     padding: 0.125rem 0.375rem;
     border-radius: 4px;
@@ -900,7 +909,7 @@ const getAgeDescription = (): string => {
     font-size: 1rem;
 
     &.fresh {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.moderate {
@@ -925,7 +934,7 @@ const getAgeDescription = (): string => {
     font-size: 0.9rem;
 
     &.fresh {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 
     &.moderate {
@@ -947,7 +956,7 @@ const getAgeDescription = (): string => {
 
 .age-description {
     font-size: 0.8rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.4;
 }

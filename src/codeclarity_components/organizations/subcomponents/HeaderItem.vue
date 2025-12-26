@@ -1,18 +1,20 @@
 <script lang="ts" setup>
-import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
-import { Icon } from '@iconify/vue';
-import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
-import { type Organization } from '@/codeclarity_components/organizations/organization.entity';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { useAuthStore } from '@/stores/auth';
-import { ref, type Ref } from 'vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import {
+    MemberRole,
+    type Organization
+} from '@/codeclarity_components/organizations/organization.entity';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import router from '@/router';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 const loading: Ref<boolean> = ref(false);
 const orgInfo: Ref<Organization | undefined> = ref();
@@ -25,7 +27,7 @@ const props = defineProps<{
     orgId: string;
 }>();
 
-async function fetchOrgInfo() {
+async function fetchOrgInfo(): Promise<void> {
     if (!props.orgId) return;
     if (authStore.getAuthenticated && authStore.getToken) {
         loading.value = true;
@@ -38,30 +40,30 @@ async function fetchOrgInfo() {
                 handleBusinessErrors: true
             });
             orgInfo.value = org;
-            emit('onOrgInfo', org);
+            void emit('onOrgInfo', org);
         } catch (err) {
             error.value = true;
             if (err instanceof BusinessLogicError) {
                 errorCode.value = err.error_code;
             }
             console.error(err);
-            emit('onOrgInfoError', err);
+            void emit('onOrgInfoError', err as Error | BusinessLogicError);
         } finally {
             loading.value = false;
         }
     }
 }
 
-function init() {
-    fetchOrgInfo();
+function init(): void {
+    void fetchOrgInfo();
 }
 
 const emit = defineEmits<{
     (e: 'onOrgInfo', orgInfo: Organization): void;
-    (e: 'onOrgInfoError', error: any): void;
+    (e: 'onOrgInfoError', error: Error | BusinessLogicError): void;
 }>();
 
-init();
+void init();
 </script>
 <template>
     <div v-if="loading" class="org-header-item-wrapper">
@@ -88,10 +90,10 @@ init();
                         <div class="flex flex-col gap-2">
                             <div>We failed to retrieve information on the organization</div>
                             <div v-if="errorCode" style="font-size: 0.7em">
-                                <div v-if="errorCode == APIErrors.EntityNotFound">
+                                <div v-if="errorCode === APIErrors.EntityNotFound">
                                     This organization does not exist.
                                 </div>
-                                <div v-if="errorCode == APIErrors.NotAuthorized">
+                                <div v-if="errorCode === APIErrors.NotAuthorized">
                                     You do not have the correct permissions to view this
                                     organization.
                                 </div>
@@ -109,7 +111,7 @@ init();
                         </div>
                         <div class="flex flex-row gap2 items-center flex-wrap">
                             <Button
-                                v-if="errorCode != APIErrors.NotAuthorized"
+                                v-if="errorCode !== APIErrors.NotAuthorized"
                                 @click="fetchOrgInfo()"
                             >
                                 Try again
@@ -138,21 +140,21 @@ init();
                         <!-- Most Important: Role & Status -->
                         <div class="flex flex-row gap-2 flex-wrap mb-4">
                             <Badge
-                                v-if="orgInfo.role == MemberRole.OWNER"
+                                v-if="orgInfo.role === MemberRole.OWNER"
                                 class="bg-theme-primary text-white border-theme-primary flex items-center gap-1 font-medium"
                             >
                                 <Icon icon="solar:crown-bold" class="text-xs" />
                                 Owner
                             </Badge>
                             <Badge
-                                v-else-if="orgInfo.role == MemberRole.ADMIN"
+                                v-else-if="orgInfo.role === MemberRole.ADMIN"
                                 class="bg-theme-black text-white border-theme-black flex items-center gap-1 font-medium"
                             >
                                 <Icon icon="solar:shield-check-bold" class="text-xs" />
                                 Admin
                             </Badge>
                             <Badge
-                                v-else-if="orgInfo.role == MemberRole.MODERATOR"
+                                v-else-if="orgInfo.role === MemberRole.MODERATOR"
                                 class="bg-theme-primary/80 text-white border-theme-primary flex items-center gap-1 font-medium"
                             >
                                 <Icon icon="solar:star-bold" class="text-xs" />

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { nextTick } from 'vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 
 describe('SearchBar User Interaction Tests', () => {
   let wrapper: any;
@@ -295,7 +295,7 @@ describe('SearchBar User Interaction Tests', () => {
       
       // Should emit update:searchKey event
       expect(wrapper.emitted('update:searchKey')).toBeTruthy();
-      expect((wrapper.emitted('update:searchKey') as any)[0]).toEqual(['new search']);
+      expect((wrapper.emitted('update:searchKey'))[0]).toEqual(['new search']);
     });
 
     it('should handle rapid model updates', async () => {
@@ -312,7 +312,7 @@ describe('SearchBar User Interaction Tests', () => {
       expect(wrapper.vm.searchKey).toBe('abcde');
       
       // Should have emitted all updates
-      const emittedEvents = (wrapper.emitted('update:searchKey') as any) || [];
+      const emittedEvents = (wrapper.emitted('update:searchKey')) ?? [];
       expect(emittedEvents.length).toBe(updates.length);
     });
   });

@@ -2,18 +2,18 @@
 /////////////// The Doughnut Chart Function /////////////
 /////////////////////////////////////////////////////////
 
-export type DoughnutChartSlice = {
+export interface DoughnutChartSlice {
     label: VulnerabilityLabel;
     color: string;
     count: number;
-};
+}
 
 export type VulnerabilityLabel = 'Critical' | 'High' | 'Medium' | 'Low' | 'None';
 
 export type DoughnutChartData = DoughnutChartSlice[];
 
-export type DoughnutChartOptions = {
+export interface DoughnutChartOptions {
     w: number;
     h: number;
     p: number;
-};
+}

@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { InfoCard } from '@/base_components';
 import {
     MemberRole,
     type Organization,
     isMemberRoleGreaterOrEqualTo
 } from '@/codeclarity_components/organizations/organization.entity';
-import { InfoCard } from '@/base_components';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { Icon } from '@iconify/vue';
 import { RouterLink } from 'vue-router';
@@ -13,9 +13,7 @@ defineProps<{
     defaultOrg: Organization;
 }>();
 
-const emit = defineEmits<{
-    (e: 'onRefresh'): void;
-}>();
+const emit = defineEmits<(e: 'onRefresh') => void>();
 </script>
 <template>
     <InfoCard

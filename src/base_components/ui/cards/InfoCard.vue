@@ -26,7 +26,7 @@
         </CardHeader>
 
         <!-- Optional card content -->
-        <CardContent v-if="$slots.default" class="flex-1 flex flex-col">
+        <CardContent v-if="$slots['default']" class="flex-1 flex flex-col">
             <slot></slot>
         </CardContent>
     </Card>

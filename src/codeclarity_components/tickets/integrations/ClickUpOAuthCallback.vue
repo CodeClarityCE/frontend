@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth';
+import { Icon } from '@iconify/vue';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Icon } from '@iconify/vue';
-import { useAuthStore } from '@/stores/auth';
 import { TicketsRepository } from '../tickets.repository';
 
 const route = useRoute();
@@ -57,7 +57,7 @@ onMounted(async () => {
 
         // Redirect to tickets page with query param to open integration modal
         setTimeout(() => {
-            router.push({ path: '/tickets', query: { clickup_oauth: 'success' } });
+            void router.push({ path: '/tickets', query: { clickup_oauth: 'success' } });
         }, 1500);
     } catch (error) {
         console.error('OAuth exchange failed:', error);
@@ -67,8 +67,8 @@ onMounted(async () => {
     }
 });
 
-function goToTickets() {
-    router.push('/tickets');
+function goToTickets(): void {
+    void router.push('/tickets');
 }
 </script>
 

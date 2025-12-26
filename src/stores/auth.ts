@@ -1,5 +1,5 @@
-import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { Entity } from '@/utils/api/BaseEntity';
+import { OptionalDateTransform } from '@/utils/OptionalDate';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 import { defineStore } from 'pinia';
@@ -49,67 +49,67 @@ export const useAuthStore = defineStore('auth', {
     },
 
     getters: {
-        getToken(state: AuthStoreState) {
+        getToken(state: AuthStoreState): string | undefined {
             return state.refreshToken;
         },
-        getRefreshToken(state: AuthStoreState) {
+        getRefreshToken(state: AuthStoreState): string | undefined {
             return state.refreshToken;
         },
-        getTokenExpiry(state: AuthStoreState) {
+        getTokenExpiry(state: AuthStoreState): Date | undefined {
             return state.tokenExpiry;
         },
-        getRefreshTokenExpiry(state: AuthStoreState) {
+        getRefreshTokenExpiry(state: AuthStoreState): Date | undefined {
             return state.refreshTokenExpiry;
         },
-        getAuthenticated(state: AuthStoreState) {
+        getAuthenticated(state: AuthStoreState): boolean {
             return state.authenticated;
         },
-        getInitialized(state: AuthStoreState) {
+        getInitialized(state: AuthStoreState): boolean {
             return state.initialized;
         },
-        getSocialAuthState(state: AuthStoreState) {
+        getSocialAuthState(state: AuthStoreState): string | undefined {
             return state.socialAuthState;
         }
     },
 
     actions: {
-        setToken: function (token: string) {
+        setToken: function (token: string): void {
             this.token = token;
         },
-        setRefreshToken: function (refreshToken: string) {
+        setRefreshToken: function (refreshToken: string): void {
             this.refreshToken = refreshToken;
         },
-        setTokenExpiry: function (tokenExpiry: Date) {
+        setTokenExpiry: function (tokenExpiry: Date): void {
             this.tokenExpiry = tokenExpiry;
         },
-        setRefreshTokenExpiry: function (refreshTokenExpiry: Date) {
+        setRefreshTokenExpiry: function (refreshTokenExpiry: Date): void {
             this.refreshTokenExpiry = refreshTokenExpiry;
         },
-        setAuthenticated: function (authenticated: boolean) {
+        setAuthenticated: function (authenticated: boolean): void {
             this.authenticated = authenticated;
         },
-        setInitialized: function (initialized: boolean) {
+        setInitialized: function (initialized: boolean): void {
             this.initialized = initialized;
         },
-        setSocialAuthState: function (socialAuthState: string) {
+        setSocialAuthState: function (socialAuthState: string): void {
             this.socialAuthState = socialAuthState;
         }
     }
 });
 
-export function loadAuthStoreFromLocalStorage() {
+export function loadAuthStoreFromLocalStorage(): void {
     const store = useAuthStore();
 
     const peristedState = getFromLocalStorageOrDefault();
     store.$patch(peristedState);
     store.setInitialized(true);
 
-    store.$subscribe((mutation, state) => {
+    store.$subscribe((_mutation, state) => {
         localStorage.setItem(storePeristantName, JSON.stringify(state));
     });
 
     // Overwrite the reset function to be able to also reset the localstorage
-    store.$reset = function () {
+    store.$reset = function (): void {
         // (1) Clear store
         store.$patch(defaultValues());
 
@@ -123,9 +123,11 @@ export function loadAuthStoreFromLocalStorage() {
 function getFromLocalStorageOrDefault(): AuthStoreState {
     try {
         const authState = localStorage.getItem(storePeristantName);
-        return authState == null
-            ? defaultValues()
-            : Entity.unMarshal<AuthStoreState>(JSON.parse(authState), AuthStoreState);
+        if (authState === null) {
+            return defaultValues();
+        }
+        const parsed = JSON.parse(authState) as AuthStoreState;
+        return Entity.unMarshal<AuthStoreState>(parsed, AuthStoreState);
     } catch (err) {
         console.error(err);
 

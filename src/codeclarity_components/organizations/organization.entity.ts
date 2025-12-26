@@ -58,6 +58,12 @@ export class Organization {
     joined_on!: Date;
 }
 
+export interface Integration {
+    id?: string;
+    provider?: string;
+    [key: string]: unknown;
+}
+
 export class OrganizationMetaData {
     @IsNotEmpty()
     id!: string;
@@ -69,7 +75,7 @@ export class OrganizationMetaData {
     projects!: Project[];
 
     @IsArray()
-    integrations!: any[];
+    integrations!: Integration[];
 }
 
 export enum MemberRole {
@@ -117,10 +123,10 @@ export class OrganizationInfoForInvitee {
 }
 
 export enum MemberRoleOrdering {
-    'owner' = 0,
-    'admin' = 1,
-    'moderator' = 2,
-    'user' = 3
+    OWNER = 0,
+    ADMIN = 1,
+    MODERATOR = 2,
+    USER = 3
 }
 
 export class TeamMemberShip {
@@ -186,22 +192,28 @@ export class TeamMember {
     organization_id!: string;
 }
 
-export function isMemberRoleGreaterThan(memberRole1: MemberRole, memberRole2: MemberRole) {
-    return memberRole1 < memberRole2;
+export function isMemberRoleGreaterThan(memberRole1: MemberRole, memberRole2: MemberRole): boolean {
+    return (memberRole1 as number) < (memberRole2 as number);
 }
 
-export function isMemberRoleGreaterOrEqualTo(memberRole1: MemberRole, memberRole2: MemberRole) {
-    return memberRole1 <= memberRole2;
+export function isMemberRoleGreaterOrEqualTo(
+    memberRole1: MemberRole,
+    memberRole2: MemberRole
+): boolean {
+    return (memberRole1 as number) <= (memberRole2 as number);
 }
 
-export function isMemberRoleEqualThan(memberRole1: MemberRole, memberRole2: MemberRole) {
-    return memberRole1 == memberRole2;
+export function isMemberRoleEqualThan(memberRole1: MemberRole, memberRole2: MemberRole): boolean {
+    return memberRole1 === memberRole2;
 }
 
-export function isMemberRoleLessThan(memberRole1: MemberRole, memberRole2: MemberRole) {
-    return memberRole1 > memberRole2;
+export function isMemberRoleLessThan(memberRole1: MemberRole, memberRole2: MemberRole): boolean {
+    return (memberRole1 as number) > (memberRole2 as number);
 }
 
-export function isMemberRoleLessOrEqualTo(memberRole1: MemberRole, memberRole2: MemberRole) {
-    return memberRole1 >= memberRole2;
+export function isMemberRoleLessOrEqualTo(
+    memberRole1: MemberRole,
+    memberRole2: MemberRole
+): boolean {
+    return (memberRole1 as number) >= (memberRole2 as number);
 }

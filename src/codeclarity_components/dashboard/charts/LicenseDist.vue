@@ -2,16 +2,16 @@
 import WaffleChart, {
     type WaffleChartEntry
 } from '@/base_components/data-display/charts/WaffleChart.vue';
-import { ref, watch, type Ref } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import type { LicenseDist } from '@/codeclarity_components/dashboard/dashboard.entity';
-import { Icon } from '@iconify/vue';
-import { Skeleton } from '@/shadcn/ui/skeleton';
+import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Skeleton } from '@/shadcn/ui/skeleton';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { ref, watch, type Ref } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -19,7 +19,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Repositories
@@ -35,12 +35,12 @@ const { defaultOrg } = storeToRefs(userStore);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const chartOptions: Ref<any | undefined> = ref();
+const chartOptions: Ref<unknown> = ref();
 const chartData: Ref<WaffleChartEntry[]> = ref([]);
 const noData: Ref<boolean> = ref(false);
 
-async function fetch(refresh: boolean = false) {
-    if (!defaultOrg || !defaultOrg.value) return;
+async function fetch(refresh = false): Promise<void> {
+    if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     if (!refresh) loading.value = true;
@@ -58,8 +58,8 @@ async function fetch(refresh: boolean = false) {
             handleBusinessErrors: true,
             integrationIds: props.integrationIds
         });
-        if (resp.data.length == 0) noData.value = true;
-        generateChartData(resp.data);
+        if (Object.keys(resp.data).length === 0) noData.value = true;
+        void generateChartData(resp.data);
     } catch (_err) {
         error.value = true;
         if (_err instanceof BusinessLogicError) {
@@ -70,7 +70,7 @@ async function fetch(refresh: boolean = false) {
     }
 }
 
-function generateChartData(licenseDistData: LicenseDist) {
+function generateChartData(licenseDistData: LicenseDist): void {
     const waffleChartData: WaffleChartEntry[] = [];
 
     for (const key of Object.keys(licenseDistData)) {
@@ -79,7 +79,7 @@ function generateChartData(licenseDistData: LicenseDist) {
     chartData.value = waffleChartData;
 }
 
-fetch();
+void fetch();
 </script>
 <template>
     <div class="h-full w-full">

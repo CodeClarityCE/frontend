@@ -1,25 +1,17 @@
 <script lang="ts" setup>
-import AnalyzerFormFields from './shared/AnalyzerFormFields.vue';
-import WorkflowDesigner from './shared/WorkflowDesigner.vue';
-import { analyzerValidationSchema } from './shared/analyzerValidation';
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
+import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
+import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
+import { PluginRepository } from '@/codeclarity_components/organizations/analyzers/PluginRepository';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
-    Organization
+    type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
-import router from '@/router';
-import { ref, type Ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { AnalyzerRepository } from '@/codeclarity_components/organizations/analyzers/AnalyzerRepository';
-import { PluginRepository } from '@/codeclarity_components/organizations/analyzers/PluginRepository';
 import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { Form } from 'vee-validate';
-import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue';
-import { storeToRefs } from 'pinia';
-import type { Edge } from '@vue-flow/core';
-import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
+import router from '@/router';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import {
     createAnalyzerNodes,
@@ -28,6 +20,14 @@ import {
     type AnalyzerNode,
     type ConfigNode
 } from '@/utils/vueFlow';
+import type { Edge } from '@vue-flow/core';
+import { storeToRefs } from 'pinia';
+import { Form } from 'vee-validate';
+import { ref, type Ref } from 'vue';
+import { useRoute } from 'vue-router';
+import AnalyzerFormFields from './shared/AnalyzerFormFields.vue';
+import { analyzerValidationSchema } from './shared/analyzerValidation';
+import WorkflowDesigner from './shared/WorkflowDesigner.vue';
 
 const analyzer_id: Ref<string> = ref('');
 const orgId: Ref<string> = ref('');
@@ -50,21 +50,21 @@ const errorCode: Ref<string> = ref('');
 // Form Data
 const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
-const plugins: Ref<Array<Plugin>> = ref([]);
+const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
 // Form Validation
 const formValidationSchema = analyzerValidationSchema;
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
 // Methods
-async function submit() {
+async function submit(): Promise<void> {
     const arr = retrieveWorkflowSteps(nodes.value, edges.value);
     try {
         await analyzerRepo.updateAnalyzer({
@@ -82,13 +82,13 @@ async function submit() {
         if (_err instanceof BusinessLogicError) {
             errorCode.value = _err.error_code;
         }
-        console.log(_err);
+        console.error(_err);
     } finally {
         router.back();
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const route = useRoute();
     const _orgId = route.params.orgId;
 
@@ -96,7 +96,7 @@ async function init() {
         router.back();
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
     } else {
         router.back();
@@ -134,7 +134,7 @@ async function init() {
     }
 }
 
-init();
+void init();
 </script>
 <template>
     <div class="flex flex-col gap-8 w-full mb-2">

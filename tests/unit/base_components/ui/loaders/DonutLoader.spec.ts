@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
 import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
 
 describe('DonutLoader', () => {
   describe('Component Rendering', () => {
@@ -164,10 +164,10 @@ describe('DonutLoader', () => {
       expect(loader.exists()).toBe(true)
     })
 
-    it('handles null dimensions', () => {
+    it('handles undefined dimensions', () => {
       const wrapper = mount(DonutLoader, {
         props: {
-          dimensions: null
+          dimensions: undefined
         }
       })
       

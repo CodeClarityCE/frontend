@@ -57,28 +57,30 @@ export const COMMON_VIEWPORTS = [
 /**
  * Prepare component for visual testing by stabilizing dynamic content
  */
-export function prepareComponentForVisualTest(wrapper: VueWrapper<any>): void {
+export function prepareComponentForVisualTest(wrapper: VueWrapper): void {
+  const element = wrapper.element as HTMLElement;
+
   // Hide or replace dynamic content
-  const dynamicElements = wrapper.element.querySelectorAll('[data-dynamic]');
-  dynamicElements.forEach((el: Element) => {
+  const dynamicElements = Array.from(element.querySelectorAll('[data-dynamic]'));
+  dynamicElements.forEach((el: Element): void => {
     (el as HTMLElement).style.visibility = 'hidden';
   });
 
   // Replace timestamps with fixed values
-  const timeElements = wrapper.element.querySelectorAll('[data-timestamp]');
-  timeElements.forEach((el: Element) => {
+  const timeElements = Array.from(element.querySelectorAll('[data-timestamp]'));
+  timeElements.forEach((el: Element): void => {
     el.textContent = '2025-01-01 12:00:00';
   });
 
   // Hide loading indicators
-  const loadingElements = wrapper.element.querySelectorAll('.loading, .spinner, [data-loading]');
-  loadingElements.forEach((el: Element) => {
+  const loadingElements = Array.from(element.querySelectorAll('.loading, .spinner, [data-loading]'));
+  loadingElements.forEach((el: Element): void => {
     (el as HTMLElement).style.display = 'none';
   });
 
   // Stabilize animations
-  const animatedElements = wrapper.element.querySelectorAll('[data-animate]');
-  animatedElements.forEach((el: Element) => {
+  const animatedElements = Array.from(element.querySelectorAll('[data-animate]'));
+  animatedElements.forEach((el: Element): void => {
     (el as HTMLElement).style.animation = 'none';
     (el as HTMLElement).style.transition = 'none';
   });
@@ -152,30 +154,31 @@ export const VISUAL_TEST_DATA = {
  * Wait for component to be visually stable
  */
 export async function waitForVisualStability(
-  wrapper: VueWrapper<any>, 
+  wrapper: VueWrapper,
   timeout = 2000
 ): Promise<void> {
   const startTime = Date.now();
   
-  return new Promise((resolve, reject) => {
-    const checkStability = () => {
-      const loadingElements = wrapper.element.querySelectorAll(
-        '.loading, .spinner, [data-loading="true"]'
+  return new Promise<void>((resolve, reject) => {
+    const checkStability = (): void => {
+      const element = wrapper.element as HTMLElement;
+      const loadingElements = Array.from(
+        element.querySelectorAll('.loading, .spinner, [data-loading="true"]')
       );
-      
+
       if (loadingElements.length === 0) {
         resolve();
         return;
       }
-      
+
       if (Date.now() - startTime > timeout) {
         reject(new Error('Component did not become visually stable within timeout'));
         return;
       }
-      
+
       setTimeout(checkStability, 50);
     };
-    
+
     checkStability();
   });
 }
@@ -184,21 +187,28 @@ export async function waitForVisualStability(
  * Create a visual test suite for a component across multiple breakpoints
  */
 export function createResponsiveVisualTest(
-  componentName: string,
-  renderComponent: () => VueWrapper<any>,
-  scenarios: Array<{
+  _componentName: string,
+  renderComponent: () => VueWrapper,
+  scenarios: {
     name: string;
-    setup?: (wrapper: VueWrapper<any>) => void | Promise<void>;
-  }>
-) {
+    setup?: (wrapper: VueWrapper) => void | Promise<void>;
+  }[]
+): {
+  run: () => Promise<{
+    breakpoint: string;
+    scenario: string;
+    success: boolean;
+    error?: string;
+  }[]>;
+} {
   return {
     run: async () => {
-      const results: Array<{
+      const results: {
         breakpoint: string;
         scenario: string;
         success: boolean;
         error?: string;
-      }> = [];
+      }[] = [];
 
       for (const breakpoint of Object.keys(VISUAL_BREAKPOINTS)) {
         for (const scenario of scenarios) {
@@ -207,8 +217,9 @@ export function createResponsiveVisualTest(
             
             // Apply breakpoint styles
             const { width, height } = VISUAL_BREAKPOINTS[breakpoint as keyof typeof VISUAL_BREAKPOINTS];
-            wrapper.element.style.width = `${width}px`;
-            wrapper.element.style.height = `${height}px`;
+            const element = wrapper.element as HTMLElement;
+            element.style.width = `${width}px`;
+            element.style.height = `${height}px`;
             
             // Run scenario setup
             if (scenario.setup) {
@@ -217,8 +228,8 @@ export function createResponsiveVisualTest(
             
             // Prepare for visual testing
             prepareComponentForVisualTest(wrapper);
-            applyVisualTestStyles(wrapper.element);
-            
+            applyVisualTestStyles(wrapper.element as HTMLElement);
+
             // Wait for stability
             await waitForVisualStability(wrapper);
             
@@ -252,7 +263,7 @@ export function createResponsiveVisualTest(
  * Performance-aware visual testing
  */
 export async function measureVisualRenderTime(
-  renderComponent: () => VueWrapper<any>
+  renderComponent: () => VueWrapper
 ): Promise<{
   renderTime: number;
   stabilityTime: number;
@@ -297,7 +308,7 @@ interface VisualTestResult {
 export class VisualTestReporter {
   private results: VisualTestResult[] = [];
 
-  addResult(result: VisualTestResult) {
+  addResult(result: VisualTestResult): void {
     this.results.push(result);
   }
 
@@ -321,9 +332,7 @@ export class VisualTestReporter {
     const failed = total - passed;
     
     const byComponent = this.results.reduce((acc, result) => {
-      if (!acc[result.component]) {
-        acc[result.component] = { total: 0, passed: 0, failed: 0 };
-      }
+      acc[result.component] ??= { total: 0, passed: 0, failed: 0 };
       const componentStats = acc[result.component]!;
       componentStats.total++;
       if (result.passed) {
@@ -337,7 +346,7 @@ export class VisualTestReporter {
     const failures = this.results.filter(r => !r.passed);
     const slowests = this.results
       .filter(r => r.renderTime !== undefined)
-      .sort((a, b) => (b.renderTime || 0) - (a.renderTime || 0))
+      .sort((a, b) => (b.renderTime ?? 0) - (a.renderTime ?? 0))
       .slice(0, 10);
     
     return {
@@ -353,34 +362,34 @@ export class VisualTestReporter {
     };
   }
 
-  printReport() {
+  printReport(): void {
     const report = this.generateReport();
-    
-    console.log('\n📸 Visual Test Report');
-    console.log('='.repeat(50));
-    console.log(`Total Tests: ${report.summary.total}`);
-    console.log(`Passed: ${report.summary.passed}`);
-    console.log(`Failed: ${report.summary.failed}`);
-    console.log(`Success Rate: ${report.summary.successRate.toFixed(1)}%`);
-    
+
+    console.warn('\n📸 Visual Test Report');
+    console.warn('='.repeat(50));
+    console.warn(`Total Tests: ${report.summary.total}`);
+    console.warn(`Passed: ${report.summary.passed}`);
+    console.warn(`Failed: ${report.summary.failed}`);
+    console.warn(`Success Rate: ${report.summary.successRate.toFixed(1)}%`);
+
     if (report.failures.length > 0) {
-      console.log('\n❌ Failures:');
-      report.failures.forEach((failure: VisualTestResult) => {
-        console.log(`  ${failure.component} - ${failure.scenario} (${failure.breakpoint}): ${failure.error}`);
+      console.warn('\n❌ Failures:');
+      report.failures.forEach((failure: VisualTestResult): void => {
+        console.warn(`  ${failure.component} - ${failure.scenario} (${failure.breakpoint}): ${failure.error}`);
       });
     }
 
     if (report.slowests.length > 0) {
-      console.log('\n🐌 Slowest Renders:');
-      report.slowests.forEach((slow: VisualTestResult) => {
-        console.log(`  ${slow.component} - ${slow.scenario}: ${slow.renderTime}ms`);
+      console.warn('\n🐌 Slowest Renders:');
+      report.slowests.forEach((slow: VisualTestResult): void => {
+        console.warn(`  ${slow.component} - ${slow.scenario}: ${slow.renderTime}ms`);
       });
     }
-    
-    console.log('\n📊 By Component:');
-    Object.entries(report.byComponent).forEach(([component, stats]) => {
+
+    console.warn('\n📊 By Component:');
+    Object.entries(report.byComponent).forEach(([component, stats]): void => {
       const rate = (stats.passed / stats.total * 100).toFixed(1);
-      console.log(`  ${component}: ${stats.passed}/${stats.total} (${rate}%)`);
+      console.warn(`  ${component}: ${stats.passed}/${stats.total} (${rate}%)`);
     });
   }
 }
@@ -428,14 +437,14 @@ export const THEME_VARIATIONS = {
  * Apply theme for visual testing
  */
 export function applyTheme(
-  element: HTMLElement, 
+  element: HTMLElement,
   theme: keyof typeof THEME_VARIATIONS
 ): void {
   const themeConfig = THEME_VARIATIONS[theme];
-  
+
   // Add theme class
   element.classList.add(themeConfig.class);
-  
+
   // Add theme CSS
   const style = document.createElement('style');
   style.textContent = themeConfig.css;

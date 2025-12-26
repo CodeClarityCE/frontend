@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue';
 import type { PatchInfo } from '@/codeclarity_components/results/patching/Patching';
-import PatchInformation from './PatchInformation.vue';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Card from '@/shadcn/ui/card/Card.vue';
 import CardContent from '@/shadcn/ui/card/CardContent.vue';
 import Tabs from '@/shadcn/ui/tabs/Tabs.vue';
+import TabsContent from '@/shadcn/ui/tabs/TabsContent.vue';
 import TabsList from '@/shadcn/ui/tabs/TabsList.vue';
 import TabsTrigger from '@/shadcn/ui/tabs/TabsTrigger.vue';
-import TabsContent from '@/shadcn/ui/tabs/TabsContent.vue';
+import { Icon } from '@iconify/vue';
+import PatchInformation from './PatchInformation.vue';
 
 export interface Props {
     patch: PatchInfo;
@@ -72,14 +72,14 @@ withDefaults(defineProps<Props>(), {});
                     </div>
                     <div>
                         <span
-                            v-if="patch.IsPatchable == 'FULL'"
+                            v-if="patch.IsPatchable === 'FULL'"
                             class="flex gap-1 items-center text-severity-low"
                         >
                             <Icon icon="bi:shield-fill-check" />
                             Full patch available
                         </span>
                         <span
-                            v-else-if="patch.IsPatchable == 'PARTIAL'"
+                            v-else-if="patch.IsPatchable === 'PARTIAL'"
                             class="flex gap-1 items-center text-severity-medium"
                         >
                             <Icon icon="bi:shield-fill-minus" />

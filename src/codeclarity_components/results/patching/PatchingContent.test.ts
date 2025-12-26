@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
-import PatchingContent from './PatchingContent.vue';
-import { PatchingStats } from '@/codeclarity_components/results/stats.entity';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ResultsRepository } from '../results.repository';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import PatchingContent from './PatchingContent.vue';
 
 // Mock modules
 vi.mock('../results.repository');

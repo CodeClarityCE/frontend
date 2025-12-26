@@ -1,5 +1,11 @@
+export interface ErrorInfo {
+    message?: string;
+    code?: string;
+    [key: string]: unknown;
+}
+
 export interface Output {
-    workspaces: { [key: string]: WorkSpaceData };
+    workspaces: Record<string, WorkSpaceData>;
     analysis_info: AnalysisInfo;
 }
 
@@ -10,8 +16,8 @@ export enum Status {
 
 export interface AnalysisInfo {
     status: Status;
-    private_errors: any[];
-    public_errors: any[];
+    private_errors: ErrorInfo[];
+    public_errors: ErrorInfo[];
     analysis_start_time: string;
     analysis_end_time: string;
     analysis_delta_time: number;
@@ -42,7 +48,7 @@ export interface SeverityDist {
 
 export interface WorkSpaceData {
     Vulnerabilities: Vulnerability[];
-    DependencyInfo: { [key: string]: DependencyInfo };
+    DependencyInfo: Record<string, DependencyInfo>;
 }
 
 export interface DependencyInfo {
@@ -94,15 +100,21 @@ interface Conflict {
     ConflictFlag: string;
 }
 
+export interface DependencyObject {
+    name?: string;
+    version?: string;
+    [key: string]: unknown;
+}
+
 export interface Vulnerability {
     Id: string;
     Sources: Source[];
-    Affected: { [key: string]: AffectedInfo };
+    Affected: Record<string, AffectedInfo>;
     AffectedDependencyName: string;
     AffectedDependencyVersion: string;
     AffectedDependency: string;
     AffectedDependencyFilePath: string;
-    AffectedDependencyObject?: any;
+    AffectedDependencyObject?: DependencyObject;
     Vulnerability: string;
     Severity: Severity;
     Weaknesses?: WeaknessInfo[];
@@ -139,13 +151,13 @@ export interface EPSS {
 }
 
 export interface AffectedDeps {
-    Affected: { [key: string]: AffectedInfo };
+    Affected: Record<string, AffectedInfo>;
     AffectedDependencyName: string;
     AffectedVersion: string;
     AffectedDependency: string;
     AffectedDependencyFilePath: string;
     AffectedDependencyImportPaths: string[];
-    AffectedDependencyObject?: any;
+    AffectedDependencyObject?: DependencyObject;
     PatchType: PatchType;
 }
 

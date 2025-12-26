@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import ProjectsListHeader from './ProjectsListHeader.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import ProjectsListHeader from './ProjectsListHeader.vue';
 
 // Mock all dependencies
 vi.mock('@/codeclarity_components/projects/project.repository', () => ({

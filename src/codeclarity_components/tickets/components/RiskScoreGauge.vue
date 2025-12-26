@@ -74,7 +74,7 @@ const strokeColor = computed(() => {
         low: '#5a9d09',
         none: '#09889d'
     };
-    return colors[severityLevel.value] || colors.none;
+    return colors[severityLevel.value] ?? colors.none;
 });
 
 const textColorClass = computed(() => {
@@ -85,16 +85,16 @@ const textColorClass = computed(() => {
         low: 'text-green-600',
         none: 'text-teal-600'
     };
-    return classes[severityLevel.value] || classes.none;
+    return classes[severityLevel.value] ?? classes.none;
 });
 
 // Format display value
 const displayValue = computed(() => {
     if (props.type === 'epss') {
-        return props.score.toFixed(1) + '%';
+        return `${props.score.toFixed(1)}%`;
     }
     if (props.type === 'vlai') {
-        return props.sublabel || props.score.toFixed(1);
+        return props.sublabel ?? props.score.toFixed(1);
     }
     return props.score.toFixed(1);
 });

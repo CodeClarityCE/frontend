@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import ProjectsView from './ProjectsView.vue';
 
 // Mock the state store

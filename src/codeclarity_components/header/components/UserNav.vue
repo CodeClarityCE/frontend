@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
+import {
+    type Notification,
+    NotificationContentType
+} from '@/codeclarity_components/header/notification.entity';
+import { NotificationRepository } from '@/codeclarity_components/header/notification.repository';
 import router from '@/router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shadcn/ui/avatar';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
 import { Button } from '@/shadcn/ui/button';
+import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
+import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
+import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
+import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
+import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
+import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,33 +24,23 @@ import {
     DropdownMenuShortcut,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue';
-import Dialog from '@/shadcn/ui/dialog/Dialog.vue';
-import DialogTrigger from '@/shadcn/ui/dialog/DialogTrigger.vue';
-import DialogContent from '@/shadcn/ui/dialog/DialogContent.vue';
-import DialogDescription from '@/shadcn/ui/dialog/DialogDescription.vue';
-import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
 import { Input } from '@/shadcn/ui/input';
-import { NotificationRepository } from '@/codeclarity_components/header/notification.repository';
-import { ref, type Ref, computed, watch } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import {
-    type Notification,
-    NotificationContentType
-} from '@/codeclarity_components/header/notification.entity';
-import DialogTitle from '@/shadcn/ui/dialog/DialogTitle.vue';
 import {
     isGreaterThan,
     isPrerelease as semverIsPrerelease,
     shouldRecommendUpgrade,
     getUpgradeType
 } from '@/utils/semver';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, computed, watch } from 'vue';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const allNotifications: Ref<Array<Notification>> = ref([]);
+const allNotifications: Ref<Notification[]> = ref([]);
 const total_notifications: Ref<number> = ref(0);
 const currentPage: Ref<number> = ref(0);
 const searchQuery: Ref<string> = ref('');
@@ -51,10 +51,10 @@ const isLoading: Ref<boolean> = ref(false);
 // Repositories
 const notificationRepository: NotificationRepository = new NotificationRepository();
 
-async function logout() {
+async function logout(): Promise<void> {
     userStore.$reset();
     authStore.$reset();
-    router.push('/login');
+    void router.push('/login');
 }
 
 // Priority mapping for sorting
@@ -95,8 +95,8 @@ const filteredNotifications = computed(() => {
             (notification) =>
                 notification.title.toLowerCase().includes(query) ||
                 notification.description.toLowerCase().includes(query) ||
-                notification.content?.package_name?.toLowerCase().includes(query) ||
-                notification.content?.project_name?.toLowerCase().includes(query)
+                (notification.content.package_name?.toLowerCase().includes(query) ?? false) ||
+                (notification.content.project_name?.toLowerCase().includes(query) ?? false)
         );
     }
 
@@ -202,8 +202,8 @@ const totalPages = computed(() => Math.ceil(totalFilteredCount.value / entriesPe
 const shouldFilterNotification = (notification: Notification): boolean => {
     // Filter out package update notifications that shouldn't be recommended
     if (notification.content_type === NotificationContentType.PackageUpdate) {
-        const currentVersion = notification.content?.current_version;
-        const newVersion = notification.content?.new_version;
+        const currentVersion = notification.content.current_version;
+        const newVersion = notification.content.new_version;
 
         if (currentVersion && newVersion) {
             // Use the semver utility to determine if this upgrade should be recommended
@@ -214,12 +214,20 @@ const shouldFilterNotification = (notification: Notification): boolean => {
 };
 
 // Helper function to get properly ordered versions with upgrade analysis
-const getVersionInfo = (notification: Notification) => {
+const getVersionInfo = (
+    notification: Notification
+): {
+    fromVersion: string;
+    toVersion: string;
+    isUpgrade: boolean;
+    isPrerelease: boolean;
+    upgradeType: 'major' | 'minor' | 'patch' | 'prerelease' | 'downgrade' | 'same';
+} => {
     const content = notification.content;
-    if (!content?.current_version || !content?.new_version) {
+    if (!content.current_version || !content.new_version) {
         return {
-            fromVersion: content?.current_version || '',
-            toVersion: content?.new_version || '',
+            fromVersion: content.current_version ?? '',
+            toVersion: content.new_version ?? '',
             isUpgrade: true,
             isPrerelease: false,
             upgradeType: 'minor' as const
@@ -260,12 +268,12 @@ watch([searchQuery, selectedFilter], () => {
     currentPage.value = 0;
 });
 
-async function fetchAllNotifications() {
+async function fetchAllNotifications(): Promise<void> {
     isLoading.value = true;
     try {
         // Fetch a larger number to get all notifications for better sorting/filtering
         const resp = await notificationRepository.getNotifications({
-            bearerToken: authStore.getToken as string,
+            bearerToken: authStore.getToken!,
             handleBusinessErrors: true,
             page: 0,
             entries_per_page: 100 // Fetch more notifications for better overview
@@ -274,23 +282,23 @@ async function fetchAllNotifications() {
         total_notifications.value = resp.matching_count;
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            console.log(_err);
+            console.error(_err);
         }
     } finally {
         isLoading.value = false;
     }
 }
 
-async function deleteNotification(notification_id: string) {
+async function deleteNotification(notification_id: string): Promise<void> {
     try {
         await notificationRepository.deleteNotification({
-            bearerToken: authStore.getToken as string,
+            bearerToken: authStore.getToken!,
             handleBusinessErrors: true,
             notification_id: notification_id
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            console.log(_err);
+            console.error(_err);
         }
     }
     allNotifications.value = allNotifications.value.filter(
@@ -299,15 +307,15 @@ async function deleteNotification(notification_id: string) {
     total_notifications.value -= 1;
 }
 
-async function deleteAllNotifications() {
+async function deleteAllNotifications(): Promise<void> {
     try {
         await notificationRepository.deleteAllNotifications({
-            bearerToken: authStore.getToken as string,
+            bearerToken: authStore.getToken!,
             handleBusinessErrors: true
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            console.log(_err);
+            console.error(_err);
         }
     }
     allNotifications.value = [];
@@ -315,25 +323,25 @@ async function deleteAllNotifications() {
 }
 
 // Pagination functions
-function nextPage() {
+function nextPage(): void {
     if (currentPage.value < totalPages.value - 1) {
         currentPage.value++;
     }
 }
 
-function prevPage() {
+function prevPage(): void {
     if (currentPage.value > 0) {
         currentPage.value--;
     }
 }
 
-function goToPage(page: number) {
+function goToPage(page: number): void {
     if (page >= 0 && page < totalPages.value) {
         currentPage.value = page;
     }
 }
 
-fetchAllNotifications();
+void fetchAllNotifications();
 </script>
 
 <template>
@@ -490,7 +498,7 @@ fetchAllNotifications();
                         :key="notification.id"
                         class="border-b pb-4 last:border-b-0"
                     >
-                        <div v-if="notification.content_type == 'new_version'">
+                        <div v-if="notification.content_type === 'new_version'">
                             <span class="font-semibold"
                                 >{{ notification.content['package'] }} can be upgraded</span
                             >
@@ -503,7 +511,7 @@ fetchAllNotifications();
                                 }}</span
                             >
                         </div>
-                        <div v-else-if="notification.content_type == 'fix_available'">
+                        <div v-else-if="notification.content_type === 'fix_available'">
                             <span class="font-semibold"
                                 >Fix available for {{ notification.content['package'] }}</span
                             >
@@ -564,7 +572,7 @@ fetchAllNotifications();
                                                 class="font-semibold text-base text-gray-900 flex-1"
                                             >
                                                 {{
-                                                    notification.title || 'Package Update Available'
+                                                    notification.title ?? 'Package Update Available'
                                                 }}
                                             </h3>
                                             <!-- Production/Dev badge -->
@@ -872,7 +880,7 @@ fetchAllNotifications();
                                     </div>
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-base text-gray-900">
-                                            {{ notification.title || 'Vulnerability Summary' }}
+                                            {{ notification.title ?? 'Vulnerability Summary' }}
                                         </h3>
                                         <p
                                             v-if="

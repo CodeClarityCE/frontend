@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
+import { type DependencyDetails } from './SbomDetails';
 import SbomInformation from './SbomInformation.vue';
-import { DependencyDetails } from './SbomDetails';
 
 // Mock Icon component
 vi.mock('@iconify/vue', () => ({
@@ -404,11 +404,11 @@ describe('SbomInformation.vue', () => {
             const dependency = createMockDependency();
             const wrapper = createWrapper(dependency);
 
-            expect(wrapper.props('dependency')).toEqual(dependency);
+            expect(wrapper['props']('dependency')).toEqual(dependency);
         });
 
         it('should require dependency prop', () => {
-            expect(SbomInformation.props?.dependency?.required).toBe(true);
+            expect(SbomInformation['props']?.dependency?.required).toBe(true);
         });
     });
 

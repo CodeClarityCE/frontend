@@ -1,17 +1,16 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
 import type { Token } from '@/codeclarity_components/authentication/token.entity';
+import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { onMounted } from 'vue';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { Icon } from '@iconify/vue';
-import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import Button from '@/shadcn/ui/button/Button.vue';
+import { onMounted, ref } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -32,7 +31,7 @@ const error = ref(false);
 const errorCode = ref();
 
 // Methods
-async function finalizeAutentication() {
+async function finalizeAutentication(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
 
@@ -43,12 +42,12 @@ async function finalizeAutentication() {
     const code = searchParams.get('code');
 
     if (!state || !code) {
-        router.push('/login');
+        void router.push('/login');
         return;
     }
 
-    if (props.provider != SocialProvider.GITLAB && props.provider != SocialProvider.GITHUB) {
-        router.push('/login');
+    if (props.provider !== SocialProvider.GITLAB && props.provider !== SocialProvider.GITHUB) {
+        void router.push('/login');
         return;
     }
 
@@ -56,8 +55,8 @@ async function finalizeAutentication() {
     // CSRF protection: the state must be the same as the one that was stored when the user
     // clicked on the gitlab/github connect button
     // If the state is different then the user clicked on a link send by an adversary
-    if (authStore.getSocialAuthState == undefined || authStore.getSocialAuthState != state) {
-        router.push('/login');
+    if (authStore.getSocialAuthState === undefined || authStore.getSocialAuthState !== state) {
+        void router.push('/login');
         return;
     } else {
         authStore.socialAuthState = undefined;
@@ -67,18 +66,18 @@ async function finalizeAutentication() {
     try {
         let token: Token;
 
-        if (props.provider == SocialProvider.GITLAB) {
+        if (props.provider === SocialProvider.GITLAB) {
             token = await authRepository.gitlabAuthFinalize({
                 data: { code: code },
                 handleBusinessErrors: true
             });
-        } else if (props.provider == SocialProvider.GITHUB) {
+        } else if (props.provider === SocialProvider.GITHUB) {
             token = await authRepository.githubAuthFinalize({
                 data: { code: code },
                 handleBusinessErrors: true
             });
         } else {
-            router.push('/login');
+            void router.push('/login');
             return;
         }
 
@@ -93,35 +92,35 @@ async function finalizeAutentication() {
         authStore.setRefreshToken(token.refresh_token);
         authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
 
-        if (user.setup_done == false) {
-            if (props.provider == SocialProvider.GITLAB) {
-                router.push({ name: 'signup', query: { provider: SocialProvider.GITLAB } });
-            } else if (props.provider == SocialProvider.GITHUB) {
-                router.push({ name: 'signup', query: { provider: SocialProvider.GITHUB } });
+        if (user.setup_done === false) {
+            if (props.provider === SocialProvider.GITLAB) {
+                void router.push({ name: 'signup', query: { provider: SocialProvider.GITLAB } });
+            } else if (props.provider === SocialProvider.GITHUB) {
+                void router.push({ name: 'signup', query: { provider: SocialProvider.GITHUB } });
             } else {
-                router.push('/login');
+                void router.push('/login');
             }
             return;
         } else {
             authStore.setAuthenticated(true);
             userStore.setUser(user);
-            router.push('/');
+            void router.push('/');
             return;
         }
     } catch (_error) {
         error.value = true;
         if (_error instanceof BusinessLogicError) {
-            if (_error.error_code == 'AccountNotActivated') {
-                router.push('/trial');
+            if (_error.error_code === 'AccountNotActivated') {
+                void router.push('/trial');
             }
             errorCode.value = _error.error_code;
             if (
-                _error.error_code == APIErrors.FailedToAuthenticateSocialAccount ||
-                _error.error_code == APIErrors.IntegrationTokenRetrievalFailed ||
-                _error.error_code == APIErrors.IntegrationInvalidToken ||
-                _error.error_code == APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                _error.error_code == APIErrors.IntegrationTokenExpired ||
-                _error.error_code == APIErrors.InternalError
+                _error.error_code === APIErrors.FailedToAuthenticateSocialAccount ||
+                _error.error_code === APIErrors.IntegrationTokenRetrievalFailed ||
+                _error.error_code === APIErrors.IntegrationInvalidToken ||
+                _error.error_code === APIErrors.IntegrationIntegrationTokenMissingPermissions ||
+                _error.error_code === APIErrors.IntegrationTokenExpired ||
+                _error.error_code === APIErrors.InternalError
             ) {
                 errorNonRecoverable.value = true;
             }
@@ -131,10 +130,10 @@ async function finalizeAutentication() {
     }
 }
 
-function nonRecoverableErrorRedirect() {
+function nonRecoverableErrorRedirect(): void {
     authStore.$reset();
     userStore.$reset();
-    router.push('/login');
+    void router.push('/login');
 }
 
 // Lifecycle
@@ -146,10 +145,10 @@ onMounted(async () => {
     <div class="oauth-status-wrapper flex flex-col items-center justify-center h-screen">
         <div class="oauth-status-inner-wrapper -translate-y-3/4 flex flex-col items-center">
             <div class="header">
-                <div v-if="props.provider == SocialProvider.GITLAB">
+                <div v-if="props.provider === SocialProvider.GITLAB">
                     <Icon class="icon" icon="devicon:gitlab" />
                 </div>
-                <div v-if="props.provider == SocialProvider.GITHUB">
+                <div v-if="props.provider === SocialProvider.GITHUB">
                     <span style="color: black">
                         <Icon class="icon" icon="simple-icons:github" />
                     </span>
@@ -197,7 +196,7 @@ onMounted(async () => {
                         </div>
 
                         <div v-if="errorCode" style="font-size: 1.2em">
-                            <div v-if="errorCode == APIErrors.AlreadyExists">
+                            <div v-if="errorCode === APIErrors.AlreadyExists">
                                 A user with that email already exists.
                             </div>
                             <div v-else>An error occured during the processing of the request.</div>

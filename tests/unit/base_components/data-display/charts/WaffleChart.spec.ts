@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
 import WaffleChart from '@/base_components/data-display/charts/WaffleChart.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
@@ -103,7 +103,7 @@ const mockSvgNode = createMockNode()
 vi.mock('d3', () => ({
   select: vi.fn(() => mockSvgNode),
   interpolateRdYlBu: vi.fn((t: number) => `hsl(${Math.round(240 * t)}, 70%, 50%)`),
-  interpolateDiscrete: vi.fn((colors: string[]) => (t: number) => colors[Math.floor(t * colors.length)] || colors[0]),
+  interpolateDiscrete: vi.fn((colors: string[]) => (t: number) => colors[Math.floor(t * colors.length)] ?? colors[0]),
   interpolateWarm: vi.fn((t: number) => `hsl(${Math.round(60 * (1-t))}, 70%, 50%)`),
   interpolateCool: vi.fn((t: number) => `hsl(${Math.round(240 * t)}, 70%, 50%)`)
 }))

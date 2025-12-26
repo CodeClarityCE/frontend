@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { createRouter, createWebHistory } from 'vue-router';
-import ManageMembers from './ManageMembers.vue';
 import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
 import { APIErrors } from '@/utils/api/ApiErrors';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { createRouter, createWebHistory } from 'vue-router';
+import ManageMembers from './ManageMembers.vue';
 
 // Mock router
 vi.mock('@/router', () => ({

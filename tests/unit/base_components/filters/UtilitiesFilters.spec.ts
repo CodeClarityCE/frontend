@@ -1,8 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import UtilitiesFilters, { FilterType, FilterState, createNewFilterState, type FilterConfig, type FilterCategory } from '@/base_components/filters/UtilitiesFilters.vue';
 import { mount } from '@vue/test-utils';
-import UtilitiesFilters from '@/base_components/filters/UtilitiesFilters.vue';
-import { FilterType, FilterState, createNewFilterState } from '@/base_components/filters/UtilitiesFilters.vue';
-import type { FilterConfig, FilterCategory } from '@/base_components/filters/UtilitiesFilters.vue';
+import { describe, it, expect } from 'vitest';
 
 describe('UtilitiesFilters', () => {
   const createMockFilterConfig = (): FilterConfig => ({
@@ -27,7 +25,7 @@ describe('UtilitiesFilters', () => {
   });
 
   const createWrapper = (filterConfig?: FilterConfig, lockedCategories?: string[]) => {
-    const config = filterConfig || createMockFilterConfig();
+    const config = filterConfig ?? createMockFilterConfig();
     const filterState = createNewFilterState(config);
     
     return mount(UtilitiesFilters, {
@@ -48,7 +46,7 @@ describe('UtilitiesFilters', () => {
 
   it('shows active indicator when filters are active', async () => {
     const config = createMockFilterConfig();
-    config.severity!.data.high!.value = true; // Make one filter active
+    config['severity']!['data']['high']!.value = true; // Make one filter active
     const wrapper = createWrapper(config);
 
     // Look for any SVG that might indicate active state
@@ -114,8 +112,8 @@ describe('UtilitiesFilters', () => {
 
     it('toString method works correctly', () => {
       const config = createMockFilterConfig();
-      config.severity!.data.high!.value = true;
-      config.type!.data.bug!.value = true;
+      config['severity']!['data']['high']!.value = true;
+      config['type']!['data']['bug']!.value = true;
 
       const filterState = createNewFilterState(config);
       const result = filterState.toString();

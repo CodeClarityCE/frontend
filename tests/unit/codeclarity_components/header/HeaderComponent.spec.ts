@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import HeaderComponent from '@/codeclarity_components/header/HeaderComponent.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock all dependencies that use reflection
 vi.mock('@/codeclarity_components/header/components/MainNav.vue', () => ({

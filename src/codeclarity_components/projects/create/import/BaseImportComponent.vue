@@ -1,9 +1,11 @@
 <script lang="ts">
-import { type GetRepositoriesRequestOptions } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import Button from '@/shadcn/ui/button/Button.vue';
-import router from '@/router';
-import Input from '@/shadcn/ui/input/Input.vue';
+/* eslint-disable import/order */
 import { InfoCard } from '@/base_components';
+import { type GetRepositoriesRequestOptions } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import { type Repository } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import router from '@/router';
+import Button from '@/shadcn/ui/button/Button.vue';
 import {
     FormControl,
     FormDescription,
@@ -12,8 +14,8 @@ import {
     FormLabel,
     FormMessage
 } from '@/shadcn/ui/form';
-
-// Types
+import Input from '@/shadcn/ui/input/Input.vue';
+/* eslint-enable import/order */
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
     forceRefresh: boolean;
     activeFilters: string[];
@@ -25,24 +27,23 @@ export interface FailedProjectImport {
 }
 </script>
 <script lang="ts" setup>
-import { ref } from 'vue';
-import type { Ref } from 'vue';
+/* eslint-disable import/order */
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import { ref, type Ref } from 'vue';
+import * as z from 'zod';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { Repository } from '@/codeclarity_components/projects/project.entity';
-import { Icon } from '@iconify/vue';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
 import { APIErrors } from '@/utils/api/ApiErrors';
-import { errorToast, successToast } from '@/utils/toasts';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
 import type { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
+import { errorToast, successToast } from '@/utils/toasts';
 import Faq from './components/FaqComponent.vue';
-import RepoTable from './components/RepoTable.vue';
 import ImportErrorTable from './components/ImportErrorTable.vue';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
-
+import RepoTable from './components/RepoTable.vue';
+/* eslint-enable import/order */
 // Repositories
 const projectsRepo: ProjectRepository = new ProjectRepository();
 
@@ -56,9 +57,12 @@ const props = defineProps<{
 }>();
 
 // State
-const repoTableRef: any = ref(null);
+const repoTableRef: Ref<{
+    clearSelection: () => void;
+    fetchRepos: (refresh: boolean, forceRefresh?: boolean) => Promise<void>;
+} | null> = ref(null);
 const reposFailedToImportPage: Ref<number> = ref(0);
-const reposFailedToImport: Ref<{ [key: string]: FailedProjectImport }> = ref({});
+const reposFailedToImport: Ref<Record<string, FailedProjectImport>> = ref({});
 const selectedRepos: Ref<Repository[]> = ref([]);
 
 const formSchema = toTypedSchema(
@@ -88,7 +92,7 @@ const onSubmit = form.handleSubmit(async (values) => {
  * @param token the user's authentication token
  * @param repo the repo to import
  */
-async function importProject(orgId: string, token: string, repo: string) {
+async function importProject(orgId: string, token: string, repo: string): Promise<void> {
     await projectsRepo.createProject({
         orgId: orgId,
         data: {
@@ -99,43 +103,47 @@ async function importProject(orgId: string, token: string, repo: string) {
         handleBusinessErrors: true
     });
 
-    router.push({ name: 'projects' });
+    void router.push({ name: 'projects' });
+}
+
+/**
+ * Get error message from import error
+ */
+function getImportErrorMessage(err: unknown): string {
+    if (!(err instanceof BusinessLogicError)) {
+        return 'An error occured during the project import.';
+    }
+
+    if (err.error_code === APIErrors.AlreadyExists) {
+        return 'Already imported';
+    }
+
+    if (err.error_code === APIErrors.InternalError || err.error_code === APIErrors.EntityNotFound) {
+        return 'An error occured during the project import.';
+    }
+
+    if (err.error_code === APIErrors.NotAuthorized) {
+        return 'You do not have permission to import this repository';
+    }
+
+    return 'An error occured during the project import.';
 }
 
 /**
  * Import the selected repos in bulk
  */
-async function importProjectsBulk() {
+async function importProjectsBulk(): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
-    const _reposFailedToImport: { [key: string]: FailedProjectImport } = {};
+    const _reposFailedToImport: Record<string, FailedProjectImport> = {};
     reposFailedToImport.value = {};
 
     for (const repo of selectedRepos.value) {
         try {
             await importProject(userStore.getDefaultOrg.id, authStore.getToken, repo.url);
         } catch (err) {
-            let errorMessage = '';
-
-            if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.AlreadyExists) {
-                    errorMessage = 'Already imported';
-                    // continue;
-                } else if (
-                    err.error_code == APIErrors.InternalError ||
-                    err.error_code == APIErrors.EntityNotFound
-                ) {
-                    errorMessage = 'An error occured during the project import.';
-                } else if (err.error_code == APIErrors.NotAuthorized) {
-                    errorMessage = 'You do not have permission to import this repository';
-                } else {
-                    errorMessage = 'An error occured during the project import.';
-                }
-            } else {
-                errorMessage = 'An error occured during the project import.';
-            }
-
+            const errorMessage = getImportErrorMessage(err);
             _reposFailedToImport[repo.id] = {
                 repo: repo,
                 reason: errorMessage
@@ -146,37 +154,43 @@ async function importProjectsBulk() {
     reposFailedToImport.value = { ..._reposFailedToImport };
 
     const nmbFailedImports = Object.keys(reposFailedToImport.value).length;
-    if (nmbFailedImports != selectedRepos.value.length) {
+    if (nmbFailedImports !== selectedRepos.value.length) {
         successToast(
             `Succesfully imported ${selectedRepos.value.length - nmbFailedImports} repositories`
         );
     }
     if (nmbFailedImports > 0) {
-        errorToast(`Failed to import ${nmbFailedImports} repositories`);
+        void errorToast(`Failed to import ${nmbFailedImports} repositories`);
     }
 
-    if (repoTableRef.value) repoTableRef.value.clearSelection();
+    if (repoTableRef.value) {
+        repoTableRef.value.clearSelection();
+    }
     selectedRepos.value = [];
 
-    refreshRepos();
+    void refreshRepos();
 }
 
-async function clearImportErrors() {
+async function clearImportErrors(): Promise<void> {
     reposFailedToImportPage.value = 0;
     reposFailedToImport.value = {};
     await forceRefreshRepos();
 }
 
-async function forceRefreshRepos() {
-    if (repoTableRef.value) await repoTableRef.value.fetchRepos(false, true);
+async function forceRefreshRepos(): Promise<void> {
+    if (repoTableRef.value) {
+        await repoTableRef.value.fetchRepos(false, true);
+    }
 }
 
-async function refreshRepos() {
-    if (repoTableRef.value) await repoTableRef.value.fetchRepos(true);
+async function refreshRepos(): Promise<void> {
+    if (repoTableRef.value) {
+        await repoTableRef.value.fetchRepos(true);
+    }
 }
 
 // Emit Listeners
-async function onSelectedReposChange(repos: Repository[]) {
+function onSelectedReposChange(repos: Repository[]): void {
     selectedRepos.value = repos;
 }
 </script>
@@ -184,7 +198,7 @@ async function onSelectedReposChange(repos: Repository[]) {
     <main class="min-h-screen bg-white p-6">
         <div class="space-y-8">
             <!-- Repository Selection -->
-            <div v-if="Object.keys(reposFailedToImport).length == 0">
+            <div v-if="Object.keys(reposFailedToImport).length === 0">
                 <InfoCard
                     title="Select Repositories"
                     description="Browse available repositories and select the ones you want to import"
@@ -253,7 +267,12 @@ async function onSelectedReposChange(repos: Repository[]) {
             </div>
 
             <!-- Bulk Import Action -->
-            <div v-if="selectedRepos.length > 0 && Object.keys(reposFailedToImport).length == 0">
+            <div
+                v-if="
+                    (selectedRepos.length as number) > 0 &&
+                    (Object.keys(reposFailedToImport).length as number) === 0
+                "
+            >
                 <InfoCard
                     title="Ready to Import"
                     description="You have selected repositories for import"
@@ -309,7 +328,7 @@ async function onSelectedReposChange(repos: Repository[]) {
                                 <Input
                                     type="text"
                                     placeholder="https://github.com/username/repository"
-                                    v-bind="componentField"
+                                    v-bind="filterUndefined(componentField)"
                                     class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
                                 />
                             </FormControl>

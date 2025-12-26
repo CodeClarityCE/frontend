@@ -37,7 +37,7 @@ export function isDependencyDirect(dependency: Dependency): boolean {
  */
 export function hasUpdate(dependency: Dependency): boolean {
     return (
-        dependency.outdated ||
+        dependency.outdated ??
         (!!dependency.newest_release && dependency.version !== dependency.newest_release)
     );
 }
@@ -46,10 +46,10 @@ export function hasUpdate(dependency: Dependency): boolean {
  * Calculate health score from SBOM stats
  */
 export function calculateHealthScore(stats: SbomStats): number {
-    const total = stats.number_of_dependencies || 1;
-    const outdated = stats.number_of_outdated_dependencies || 0;
-    const deprecated = stats.number_of_deprecated_dependencies || 0;
-    const unlicensed = stats.number_of_unlicensed_dependencies || 0;
+    const total = stats.number_of_dependencies ?? 1;
+    const outdated = stats.number_of_outdated_dependencies ?? 0;
+    const deprecated = stats.number_of_deprecated_dependencies ?? 0;
+    const unlicensed = stats.number_of_unlicensed_dependencies ?? 0;
 
     const issues = outdated + deprecated + unlicensed;
     return Math.max(0, Math.round(((total - issues) / total) * 100));
@@ -60,8 +60,8 @@ export function calculateHealthScore(stats: SbomStats): number {
  */
 export function calculateSecurityIssues(stats: SbomStats): number {
     return (
-        (stats.number_of_deprecated_dependencies || 0) +
-        (stats.number_of_unlicensed_dependencies || 0)
+        (stats.number_of_deprecated_dependencies ?? 0) +
+        (stats.number_of_unlicensed_dependencies ?? 0)
     );
 }
 
@@ -83,8 +83,8 @@ export function convertToPackageUpdates(dependencies: Dependency[]): PackageUpda
     return dependencies.map((dep) => ({
         name: dep.name,
         currentVersion: dep.version,
-        latestVersion: dep.newest_release || dep.version,
-        isDev: dep.dev || false,
-        isProd: dep.prod || false
+        latestVersion: dep.newest_release ?? dep.version,
+        isDev: dep.dev ?? false,
+        isProd: dep.prod ?? false
     }));
 }

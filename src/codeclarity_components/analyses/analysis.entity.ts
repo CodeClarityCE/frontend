@@ -84,8 +84,8 @@ export class StageBase {
 }
 
 export class Stage extends StageBase {
-    config!: { [key: string]: any };
-    persistant_config!: { [key: string]: any };
+    config!: Record<string, unknown>;
+    persistant_config!: Record<string, unknown>;
 }
 
 export class AnalysisStage extends StageBase {

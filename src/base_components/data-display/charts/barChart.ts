@@ -1,12 +1,12 @@
-export type BarChartSlice = {
+export interface BarChartSlice {
     label: string;
     color: string;
     count: number;
-};
+}
 
 export type BarChartData = BarChartSlice[];
 
-export type BarChartOptions = {
+export interface BarChartOptions {
     w?: number; // Width of chart
     h?: number; // Allow custom height
     padding?: number; // Padding between bars
@@ -15,4 +15,4 @@ export type BarChartOptions = {
     shadow?: boolean; // Enable/disable shadow behind bars
     fontSize?: number; // Customize font size of labels
     labelOffset?: number; // Vertical offset for label positioning
-};
+}

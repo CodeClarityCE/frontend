@@ -14,5 +14,5 @@ export class Plugin {
     depends_on!: string[];
 
     @IsObject()
-    config!: any;
+    config!: Record<string, unknown>;
 }

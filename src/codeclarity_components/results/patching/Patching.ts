@@ -18,27 +18,27 @@ export interface WeaknessInfo {
     OWASPTop10Name: string;
 }
 interface Vuln {
-    Vulnerability: any;
-    Dependency: any;
-    AffectedInfo: any;
-    VulnerableEvidenceRange: any;
-    VulnerableEvidenceExact: any;
-    VulnerableEvidenceUniversal: any;
-    VulnerableEvidenceType: any;
-    Vulnerable: any;
-    ConflictFlag: any;
-    Severity: any;
-    SeverityType: any;
+    Vulnerability: unknown;
+    Dependency: unknown;
+    AffectedInfo: unknown;
+    VulnerableEvidenceRange: unknown;
+    VulnerableEvidenceExact: unknown;
+    VulnerableEvidenceUniversal: unknown;
+    VulnerableEvidenceType: unknown;
+    Vulnerable: unknown;
+    ConflictFlag: unknown;
+    Severity: unknown;
+    SeverityType: unknown;
 }
 
 export interface Output {
-    workspaces: { [key: string]: Workspace };
+    workspaces: Record<string, Workspace>;
     analysis_info: AnalysisInfo;
 }
 
 export interface Workspace {
-    patches: { [key: string]: PatchInfo };
-    dev_patches: { [key: string]: PatchInfo };
+    patches: Record<string, PatchInfo>;
+    dev_patches: Record<string, PatchInfo>;
 }
 
 export interface PatchInfo {
@@ -47,7 +47,7 @@ export interface PatchInfo {
     Unpatchable: ToPatch[];
     Patchable: ToPatch[];
     Introduced: ToPatch[];
-    Patches: { [key: string]: SemVer };
+    Patches: Record<string, SemVer>;
     Update: SemVer;
 }
 
@@ -68,8 +68,8 @@ export interface ToPatch {
 
 interface AnalysisInfo {
     status: Status;
-    private_errors: any[];
-    public_errors: any[];
+    private_errors: unknown[];
+    public_errors: unknown[];
     analysis_start_time: string;
     analysis_end_time: string;
     analysis_delta_time: number;
@@ -98,8 +98,8 @@ export interface Stats {}
 export interface WorkspaceData {
     OriginalManifestFile: string;
     Upgrades: PatchedManifest;
-    VulnerabilityPatchInfo: { [key: string]: PatchInfo };
-    IntroducedVulnerabilitiesInfo: { [key: string]: any };
+    VulnerabilityPatchInfo: Record<string, PatchInfo>;
+    IntroducedVulnerabilitiesInfo: Record<string, unknown>;
 }
 
 export interface VulnerabilitySummary {
@@ -114,9 +114,9 @@ export interface WeaknessSummaryInfo {
 }
 
 export interface SeverityInfo {
-    cvss_31?: any;
-    cvss_3?: any;
-    cvss_2?: any;
+    cvss_31?: unknown;
+    cvss_3?: unknown;
+    cvss_2?: unknown;
 }
 
 export interface VulnerabilityOccurencePatchInfo {
@@ -187,7 +187,7 @@ export interface OtherInfo {
 }
 
 export class PatchedManifestData {
-    patched_manifest_raw: any;
+    patched_manifest_raw: unknown;
     patched_manifest!: PatchedManifest;
     other_info!: OtherInfo;
 }

@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import { ref, watch, type Ref } from 'vue';
-import type { FailedProjectImport } from '../BaseImportComponent.vue';
-import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import { formatDate } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
 import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { formatDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, watch, type Ref } from 'vue';
+import type { FailedProjectImport } from '../BaseImportComponent.vue';
 
 // Props
 const props = defineProps<{
-    reposFailedToImport: { [key: string]: FailedProjectImport };
+    reposFailedToImport: Record<string, FailedProjectImport>;
 }>();
 
 const headersImportFails: TableHeader[] = [
@@ -32,9 +32,9 @@ const totalPages = ref(
 );
 
 watch([entriesPerPage, totalEntries, page], () => {
-    changePage(page.value);
+    void changePage(page.value);
 });
-function changePage(_page: number) {
+function changePage(_page: number): void {
     page.value = _page;
 }
 </script>

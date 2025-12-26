@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock the stores
 const mockStateStore = {

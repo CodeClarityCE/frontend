@@ -9,7 +9,7 @@ defineProps<{
 <template>
     <Badge v-if="semver">
         {{ semver.Major }}.{{ semver.Minor }}.{{ semver.Patch
-        }}<span v-if="semver.PreReleaseTag != ''">-</span>{{ semver.PreReleaseTag }}
+        }}<span v-if="semver.PreReleaseTag !== ''">-</span>{{ semver.PreReleaseTag }}
     </Badge>
     <Badge v-else variant="destructive">unpatchable</Badge>
 </template>

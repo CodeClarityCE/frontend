@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import type { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn/ui/card';
 import { Icon } from '@iconify/vue';
-import { defineAsyncComponent, ref, watch } from 'vue';
+import { defineAsyncComponent, ref, watch, type Component } from 'vue';
 
 const SecurityImpact = defineAsyncComponent({
-    loader: () => import('./components/SecurityImpact.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./components/SecurityImpact.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const VulnerabilitiesInfo = defineAsyncComponent({
-    loader: () => import('./components/VulnerabilitiesInfo.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./components/VulnerabilitiesInfo.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
 });
 
 const OwaspTopTen = defineAsyncComponent({
-    loader: () => import('./components/OwaspTopTen.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./components/OwaspTopTen.vue')) as () => Promise<Component>,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
@@ -51,17 +51,17 @@ const props = withDefaults(defineProps<Props>(), {
 
 const owaspTopTotalCount = ref(0);
 
-function init() {
-    calculateOwaspTopTotalCount();
+function init(): void {
+    void calculateOwaspTopTotalCount();
 }
 
-init();
+void init();
 
 watch(props.stats, () => {
-    init();
+    void init();
 });
 
-function calculateOwaspTopTotalCount() {
+function calculateOwaspTopTotalCount(): void {
     const count =
         props.stats.number_of_owasp_top_10_2021_a1 +
         props.stats.number_of_owasp_top_10_2021_a2 +

@@ -1,25 +1,23 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-
-import { useStateStore } from '@/stores/state';
+import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
+import { Button } from '@/shadcn/ui/button';
+import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
+import { Input } from '@/shadcn/ui/input';
+import { toast } from '@/shadcn/ui/toast';
 import { useAuthStore } from '@/stores/auth';
+import { useStateStore } from '@/stores/state';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
+import { vAutoAnimate } from '@formkit/auto-animate/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { useForm } from 'vee-validate';
+import * as z from 'zod';
 
 const state = useStateStore();
 const authStore = useAuthStore();
 state.menu = 'settingsAccount';
-
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
-import { vAutoAnimate } from '@formkit/auto-animate/vue';
-
-import { Button } from '@/shadcn/ui/button';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shadcn/ui/form';
-import { Input } from '@/shadcn/ui/input';
-import { useUserStore } from '@/stores/user';
-import { UserRepository } from '@/codeclarity_components/authentication/user.repository';
-import DialogFooter from '@/shadcn/ui/dialog/DialogFooter.vue';
-import { toast } from '@/shadcn/ui/toast';
 
 const userRepository: UserRepository = new UserRepository();
 
@@ -37,15 +35,15 @@ const form = useForm({
     validationSchema: formSchema
 });
 
-const onSubmit = form.handleSubmit((values) => {
-    deleteAccount(values.password_deletion);
+const onSubmit = form.handleSubmit((values): void => {
+    void deleteAccount(values.password_deletion);
 });
 
 /*****************************************************************************/
 /*                                  API Calls                                */
 /*****************************************************************************/
 
-async function deleteAccount(password: string) {
+async function deleteAccount(password: string): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             await userRepository.deleteUser({
@@ -86,7 +84,7 @@ async function deleteAccount(password: string) {
                     <Input
                         type="password"
                         placeholder="Enter your password to confirm deletion"
-                        v-bind="componentField"
+                        v-bind="filterUndefined(componentField)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
                     />
                 </FormControl>

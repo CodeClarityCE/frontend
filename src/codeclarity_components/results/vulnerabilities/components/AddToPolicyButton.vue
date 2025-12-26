@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
+import { useVulnerabilityPolicyActions } from '@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions';
 import Button from '@/shadcn/ui/button/Button.vue';
 import {
     DropdownMenu,
@@ -9,7 +8,8 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator
 } from '@/shadcn/ui/dropdown-menu';
-import { useVulnerabilityPolicyActions } from '@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
 
 interface Props {
     vulnerabilityId: string;
@@ -27,19 +27,19 @@ const { isLoading, availablePolicies, loadPolicies, addToPolicy, addToDefaultPol
 
 const dropdownOpen = ref(false);
 
-const handleDropdownOpen = async (open: boolean) => {
+const handleDropdownOpen = async (open: boolean): Promise<void> => {
     dropdownOpen.value = open;
     if (open) {
         await loadPolicies();
     }
 };
 
-const handleAddToDefaultPolicy = async () => {
+const handleAddToDefaultPolicy = async (): Promise<void> => {
     await addToDefaultPolicy(props.vulnerabilityId);
     dropdownOpen.value = false;
 };
 
-const handleAddToSpecificPolicy = async (policyId: string) => {
+const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
     await addToPolicy(policyId, props.vulnerabilityId);
     dropdownOpen.value = false;
 };

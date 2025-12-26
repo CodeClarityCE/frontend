@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import type {
-    Organization,
-    TeamMember
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import {
+    MemberRole,
+    isMemberRoleGreaterThan,
+    type Organization,
+    type TeamMember
 } from '@/codeclarity_components/organizations/organization.entity';
-import { MemberRole } from '@/codeclarity_components/organizations/organization.entity';
-import { isMemberRoleGreaterThan } from '@/codeclarity_components/organizations/organization.entity';
-import { APIErrors } from '@/utils/api/ApiErrors';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatRelativeTime } from '@/utils/dateUtils';
-import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { ref, type Ref } from 'vue';
-import { Icon } from '@iconify/vue';
 import { errorToast, successToast } from '@/utils/toasts';
-import Button from '@/shadcn/ui/button/Button.vue';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 const props = defineProps<{
     member: TeamMember;
@@ -32,11 +32,11 @@ const orgRepo = new OrgRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-const centeredModalRef: any = ref(null);
+const centeredModalRef = ref<{ toggle: () => void } | null>(null);
 const centeredModalAction: Ref<ModalAction> = ref(ModalAction.NONE);
 const centeredModalActionId: Ref<string | undefined> = ref();
 
-async function kickUser() {
+async function kickUser(): Promise<void> {
     if (authStore.getAuthenticated && authStore.getToken) {
         try {
             const resp = await orgRepo.revokeMembership({
@@ -49,50 +49,48 @@ async function kickUser() {
             if (resp) successToast('Succesfully kicked the user');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if (err.error_code == APIErrors.NotAuthorized) {
+                if (err.error_code === APIErrors.NotAuthorized) {
                     errorToast(
                         'Failed to kick the user, because you do not have the correct role to be able to kick them.'
                     );
-                } else if (err.error_code == APIErrors.CannotRevokeOwnMembership) {
-                    errorToast('Failed to kick the user, because you cannot kick yourself.');
-                } else if (err.error_code == APIErrors.PersonalOrgCannotBeModified) {
+                } else if (err.error_code === APIErrors.CannotRevokeOwnMembership) {
+                    void errorToast('Failed to kick the user, because you cannot kick yourself.');
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(
                         'Failed to kick the user, because this is a personal organization, and personal organizations cannot be modified.'
                     );
-                } else if (err.error_code == APIErrors.NotAMember) {
-                    successToast('Succesfully kicked the user');
+                } else if (err.error_code === APIErrors.NotAMember) {
+                    void successToast('Succesfully kicked the user');
                 } else {
-                    errorToast('Failed to kick the user.');
+                    void errorToast('Failed to kick the user.');
                 }
             } else {
-                errorToast('Failed to kick the user.');
+                void errorToast('Failed to kick the user.');
             }
         } finally {
-            emit('refetch');
+            void emit('refetch');
         }
     }
 }
 
-async function performModalAction() {
+async function performModalAction(): Promise<void> {
     try {
-        if (centeredModalAction.value == ModalAction.Kick) {
+        if (centeredModalAction.value === ModalAction.Kick) {
             await kickUser();
         }
-        emit('refetch');
+        void emit('refetch');
     } finally {
         centeredModalAction.value = ModalAction.NONE;
         if (centeredModalRef.value) centeredModalRef.value.toggle();
     }
 }
 
-function openModalAction(action: ModalAction) {
+function openModalAction(action: ModalAction): void {
     centeredModalAction.value = action;
     if (centeredModalRef.value) centeredModalRef.value.toggle();
 }
 
-const emit = defineEmits<{
-    (e: 'refetch'): void;
-}>();
+const emit = defineEmits<(e: 'refetch') => void>();
 </script>
 <template>
     <tr>
@@ -115,19 +113,19 @@ const emit = defineEmits<{
             <div>{{ member.email }}</div>
         </td>
         <td>
-            <div v-if="member.role == MemberRole.OWNER" class="org-membership membership-owner">
+            <div v-if="member.role === MemberRole.OWNER" class="org-membership membership-owner">
                 Owner
             </div>
-            <div v-if="member.role == MemberRole.ADMIN" class="org-membership membership-admin">
+            <div v-if="member.role === MemberRole.ADMIN" class="org-membership membership-admin">
                 Admin
             </div>
             <div
-                v-if="member.role == MemberRole.MODERATOR"
+                v-if="member.role === MemberRole.MODERATOR"
                 class="org-membership membership-moderator"
             >
                 Moderator
             </div>
-            <div v-if="member.role == MemberRole.USER" class="org-membership membership-user">
+            <div v-if="member.role === MemberRole.USER" class="org-membership membership-user">
                 User
             </div>
         </td>
@@ -140,9 +138,9 @@ const emit = defineEmits<{
             <div class="flex flex-row gap-2 org-member-list-actions">
                 <RouterLink
                     v-if="
-                        member.id == userStore.getUser!.id ||
+                        member.id === userStore.getUser!.id ||
                         isMemberRoleGreaterThan(orgInfo.role, member.role) ||
-                        member.added_by == userStore.getUser!.id
+                        member.added_by === userStore.getUser!.id
                     "
                     :to="{
                         name: 'orgManage',
@@ -163,9 +161,9 @@ const emit = defineEmits<{
                 </RouterLink>
                 <Button
                     v-if="
-                        member.id != userStore.getUser!.id &&
+                        member.id !== userStore.getUser!.id &&
                         (isMemberRoleGreaterThan(orgInfo.role, member.role) ||
-                            member.added_by == userStore.getUser!.id)
+                            member.added_by === userStore.getUser!.id)
                     "
                     variant="destructive"
                     @click="openModalAction(ModalAction.Kick)"
@@ -187,7 +185,7 @@ const emit = defineEmits<{
                     justify-content: space-between;
                 "
             >
-                <div v-if="centeredModalAction == ModalAction.Kick">Kick the user?</div>
+                <div v-if="centeredModalAction === ModalAction.Kick">Kick the user?</div>
             </div>
         </template>
         <template #content>
@@ -200,7 +198,7 @@ const emit = defineEmits<{
                     width: 100vw;
                 "
             >
-                <div v-if="centeredModalAction == ModalAction.Kick">
+                <div v-if="centeredModalAction === ModalAction.Kick">
                     <div>Are you sure you want to kick the user from the organization?</div>
                     <div>You can always invite them back to the organization.</div>
                 </div>
@@ -208,7 +206,7 @@ const emit = defineEmits<{
         </template>
         <template #buttons>
             <Button
-                v-if="centeredModalAction == ModalAction.Kick"
+                v-if="centeredModalAction === ModalAction.Kick"
                 variant="destructive"
                 @click="performModalAction()"
             >
@@ -218,7 +216,7 @@ const emit = defineEmits<{
                 variant="outline"
                 @click="
                     centeredModalActionId = undefined;
-                    centeredModalRef.toggle();
+                    centeredModalRef?.toggle();
                 "
             >
                 Cancel

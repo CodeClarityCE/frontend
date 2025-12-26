@@ -1,20 +1,23 @@
 <script lang="ts" setup>
 export interface Props {
-    dimensions?: any;
+    dimensions?: {
+        width?: string;
+        height?: string;
+    };
     static?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-    dimensions: {
+    dimensions: () => ({
         width: '4rem',
         height: '4rem'
-    }
+    })
 });
 </script>
 <template>
     <div
         class="skeleton skeleton-box"
-        :class="{ 'skeleton-static': static == true }"
+        :class="{ 'skeleton-static': static === true }"
         :style="dimensions"
     ></div>
 </template>

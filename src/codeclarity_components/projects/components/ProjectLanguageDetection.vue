@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { ref, onMounted, type Ref } from 'vue';
+import LanguageBadge from '@/base_components/ui/LanguageBadge.vue';
 import type { Project } from '@/codeclarity_components/projects/project.entity';
-import { LanguageDetectionService, type DetectedLanguage } from '@/utils/languageDetection';
+import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useProjectsMainStore } from '@/stores/StateStore';
-import LanguageBadge from '@/base_components/ui/LanguageBadge.vue';
+import { LanguageDetectionService, type DetectedLanguage } from '@/utils/languageDetection';
 import { Icon } from '@iconify/vue';
-import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
+import { ref, onMounted, type Ref } from 'vue';
 
 const props = defineProps<{
     project: Project;
@@ -26,8 +26,8 @@ const error: Ref<boolean> = ref(false);
 // Service
 const languageDetectionService = new LanguageDetectionService();
 
-async function detectLanguages() {
-    if (!viewState.orgId || !authStore.getToken) return;
+async function detectLanguages(): Promise<void> {
+    if (!authStore.getAuthenticated || !authStore.getToken || !viewState.orgId) return;
     if (!props.project.analyses || props.project.analyses.length === 0) return;
 
     // Get the most recent completed analysis
@@ -56,7 +56,7 @@ async function detectLanguages() {
 }
 
 onMounted(() => {
-    detectLanguages();
+    void detectLanguages();
 });
 </script>
 

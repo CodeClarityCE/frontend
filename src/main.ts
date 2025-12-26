@@ -1,13 +1,12 @@
 import './assets/main.css';
 import 'reflect-metadata';
-import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import { createApp, type Component } from 'vue';
 import VueCookies from 'vue-cookies';
-
 import App from './App.vue';
 import router from './router.ts';
 
-const app = createApp(App);
+const app = createApp(App as Component);
 const pinia = createPinia();
 app.use(pinia);
 app.use(router);

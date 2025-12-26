@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
 import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
 
 describe('PositionedModal', () => {
   describe('Component Props', () => {
@@ -103,13 +103,13 @@ describe('PositionedModal', () => {
     })
 
     it('handles different position prop values', () => {
-      const positions = ['top', 'middle', 'bottom', 'top-left', 'middle-left', 'bottom-left']
-      
+      const positions = ['top', 'middle', 'bottom', 'top-left', 'middle-left', 'bottom-left'] as const;
+
       positions.forEach(position => {
         const wrapper = mount(PositionedModal, {
           props: { position }
         })
-        
+
         expect(wrapper.props('position')).toBe(position)
       })
     })

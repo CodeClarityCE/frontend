@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, ref, type Ref } from 'vue';
-import { Icon } from '@iconify/vue';
-import ProjectsList from './components/ProjectsList.vue';
-import { useProjectsMainStore } from '@/stores/StateStore';
-import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/user';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
-import { useAuthStore } from '@/stores/auth';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
 import type { OrganizationMetaData } from '@/codeclarity_components/organizations/organization.entity';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import { Button } from '@/shadcn/ui/button';
 import Skeleton from '@/shadcn/ui/skeleton/Skeleton.vue';
-import { AnalysisStatus } from '@/codeclarity_components/analyses/analysis.entity';
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useProjectsMainStore } from '@/stores/StateStore';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
+import { onBeforeUnmount, ref, type Ref } from 'vue';
+import ProjectsList from './components/ProjectsList.vue';
 
 // Repositories
 const orgRepo: OrgRepository = new OrgRepository();
@@ -43,8 +43,8 @@ onBeforeUnmount(() => {
  * Fetches meta data about an org
  * including amongst other things: whether an integration was added, a projects was addded, and anlyses have been started
  */
-async function fetchOrgMetaData() {
-    if (!defaultOrg || !defaultOrg.value) return;
+async function fetchOrgMetaData(): Promise<void> {
+    if (!defaultOrg?.value) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     orgMetaDataError.value = false;
@@ -68,7 +68,7 @@ async function fetchOrgMetaData() {
     }
 }
 
-fetchOrgMetaData();
+void fetchOrgMetaData();
 
 // Helper functions for statistics
 function getCompletedAnalysesCount(): number {
@@ -248,7 +248,7 @@ function getLastActivityTime(): string {
             v-if="
                 orgMetaDataLoading ||
                 orgMetaDataError ||
-                (orgMetaData && orgMetaData.projects.length == 0)
+                (orgMetaData && orgMetaData.projects.length === 0)
             "
             class="h-full relative"
         >
@@ -270,7 +270,7 @@ function getLastActivityTime(): string {
                     variant="danger"
                 />
                 <InfoCard
-                    v-else-if="orgMetaData && orgMetaData.integrations.length == 0"
+                    v-else-if="orgMetaData && orgMetaData.integrations.length === 0"
                     title="No VCS Integration Yet"
                     description="You have no integration with a VCS system yet"
                     icon="solar:sleeping-square-linear"
@@ -294,7 +294,7 @@ function getLastActivityTime(): string {
                     </template>
                 </InfoCard>
                 <InfoCard
-                    v-else-if="orgMetaData && orgMetaData.projects.length == 0"
+                    v-else-if="orgMetaData && orgMetaData.projects.length === 0"
                     title="No Projects Yet"
                     description="Get started by adding your first project to begin security analysis."
                     icon="solar:sleeping-square-linear"

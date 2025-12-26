@@ -1,26 +1,26 @@
 <script lang="ts" setup>
-import { ref, type Ref, watch, computed } from 'vue';
+import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import SearchBar from '@/base_components/filters/SearchBar.vue';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import { Icon } from '@iconify/vue';
-
-import LicenseComponent from './LicenseComponent.vue';
-import SelectWorkspace from '../SelectWorkspace.vue';
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { License } from '@/codeclarity_components/results/licenses/License';
-import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import UtilitiesFilters, {
     createNewFilterState,
     FilterType,
-    type FilterState
+    type FilterState,
+    type FilterConfig
 } from '@/base_components/filters/UtilitiesFilters.vue';
-import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
+import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
+import type { License } from '@/codeclarity_components/results/licenses/License';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref, watch, computed } from 'vue';
+import SelectWorkspace from '../SelectWorkspace.vue';
+import LicenseComponent from './LicenseComponent.vue';
+// Import stores
 
 export interface Props {
     analysisID?: string;
@@ -47,7 +47,7 @@ const filterApplied = ref(false);
 const searchKey = ref('');
 const placeholder = 'Search by licenses';
 // const licenses_used = ref([]);
-const licensesUsed: Ref<Array<License>> = ref([]);
+const licensesUsed: Ref<License[]> = ref([]);
 const selected_workspace = ref('.');
 const selectedEcosystemFilter: Ref<string | null> = ref(null);
 
@@ -73,41 +73,42 @@ watch(
         selectedEcosystemFilter
     ],
     () => {
-        init();
+        void init();
     }
 );
 
 // Event handlers
-function handleEcosystemFilterChanged(ecosystemType: string | null) {
+function handleEcosystemFilterChanged(ecosystemType: string | null): void {
     /** Handles ecosystem filter changes from SelectWorkspace component */
     selectedEcosystemFilter.value = ecosystemType;
     // init() will be called automatically by the watch
 }
 
 // Filters
-const filterState: Ref<FilterState> = ref(
-    createNewFilterState({
-        ImportState: {
-            name: 'Language',
-            type: FilterType.RADIO,
-            data: {
-                js: {
-                    title: 'JavaScript',
-                    value: true
-                }
+const filterConfigDef: FilterConfig = {
+    ImportState: {
+        name: 'Language',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        type: FilterType.RADIO,
+        data: {
+            js: {
+                title: 'JavaScript',
+                value: true
             }
         }
-    })
-);
+    }
+};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+const filterState: Ref<FilterState> = ref(createNewFilterState(filterConfigDef));
 
-async function init() {
+async function init(): Promise<void> {
     if (!userStore.getDefaultOrg) {
         throw new Error('No default org selected');
     }
     if (!authStore.getToken) {
         throw new Error('No default org selected');
     }
-    if (props.projectID == '' || props.analysisID == '') {
+    if (props.projectID === '' || props.analysisID === '') {
         return;
     }
     try {
@@ -127,7 +128,7 @@ async function init() {
             },
             active_filters: '',
             search_key: searchKey.value,
-            ecosystem_filter: selectedEcosystemFilter.value || undefined
+            ecosystem_filter: selectedEcosystemFilter.value ?? undefined
         });
         licensesUsed.value = res.data;
         pageNumber.value = res.page;
@@ -143,18 +144,18 @@ async function init() {
 }
 
 // Computed statistics for dashboard
-const uniqueLicenseCount = computed(() => {
+const uniqueLicenseCount = computed((): number => {
     return licensesUsed.value.length;
 });
 
-const totalDependencies = computed(() => {
+const totalDependencies = computed((): number => {
     return licensesUsed.value.reduce(
-        (total, license) => total + (license.deps_using_license?.length || 0),
+        (total, license) => total + (license.deps_using_license?.length ?? 0),
         0
     );
 });
 
-const copyleftLicenseCount = computed(() => {
+const copyleftLicenseCount = computed((): number => {
     const copyleftLicenses = ['GPL', 'LGPL', 'AGPL', 'MPL', 'EPL', 'CDDL', 'EUPL'];
     return licensesUsed.value.filter((license) =>
         copyleftLicenses.some(
@@ -165,7 +166,7 @@ const copyleftLicenseCount = computed(() => {
     ).length;
 });
 
-const permissiveLicenseCount = computed(() => {
+const permissiveLicenseCount = computed((): number => {
     const permissiveLicenses = ['MIT', 'BSD', 'Apache', 'ISC', 'Zlib'];
     return licensesUsed.value.filter((license) =>
         permissiveLicenses.some(
@@ -176,7 +177,7 @@ const permissiveLicenseCount = computed(() => {
     ).length;
 });
 
-init();
+void init();
 </script>
 
 <template>
@@ -353,10 +354,10 @@ init();
             </div>
 
             <!-- No Results Messages -->
-            <div v-if="matchingItemsCount == 0 && filterApplied && render" class="mt-5">
+            <div v-if="matchingItemsCount === 0 && filterApplied && render" class="mt-5">
                 <div style="text-align: center">No licenses match the filter</div>
             </div>
-            <div v-if="matchingItemsCount == 0 && !filterApplied && render" class="mt-5">
+            <div v-if="matchingItemsCount === 0 && !filterApplied && render" class="mt-5">
                 <div style="text-align: center">No licenses</div>
             </div>
 

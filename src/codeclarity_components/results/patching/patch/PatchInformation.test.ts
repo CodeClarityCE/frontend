@@ -1,8 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+    SeverityType,
+    Impact,
+    type PatchInfo,
+    type ToPatch
+} from '@/codeclarity_components/results/patching/Patching';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PatchInformation from './PatchInformation.vue';
-import type { PatchInfo, ToPatch } from '@/codeclarity_components/results/patching/Patching';
-import { SeverityType, Impact } from '@/codeclarity_components/results/patching/Patching';
 
 // Mock child components
 vi.mock('@/base_components/utilities/SemverToString.vue', () => ({

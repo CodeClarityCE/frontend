@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
 import PaginationComponent from '../../../../src/base_components/utilities/PaginationComponent.vue'
 
 // Mock the shadcn pagination components
@@ -156,13 +156,13 @@ describe('PaginationComponent', () => {
       })
 
       // Test that the method exists and can be called
-      expect(typeof wrapper.vm.changePage).toBe('function')
+      expect(typeof wrapper.vm['changePage']).toBe('function')
       
       // Test that method calls don't throw errors
       expect(() => {
-        wrapper.vm.changePage(3)
-        wrapper.vm.changePage(-1)
-        wrapper.vm.changePage(10)
+        wrapper.vm['changePage'](3)
+        wrapper.vm['changePage'](-1)
+        wrapper.vm['changePage'](10)
       }).not.toThrow()
     })
 
@@ -172,9 +172,9 @@ describe('PaginationComponent', () => {
         page: 0
       })
 
-      expect(typeof wrapper.vm.changePage).toBe('function')
+      expect(typeof wrapper.vm['changePage']).toBe('function')
       expect(() => {
-        wrapper.vm.changePage(0)
+        wrapper.vm['changePage'](0)
       }).not.toThrow()
     })
   })
@@ -187,7 +187,7 @@ describe('PaginationComponent', () => {
       })
 
       await wrapper.setProps({ page: 2 })
-      expect(wrapper.vm.pageModel).toBe(2)
+      expect(wrapper.vm['pageModel']).toBe(2)
     })
 
     it('handles model prop changes', async () => {
@@ -197,7 +197,7 @@ describe('PaginationComponent', () => {
       })
 
       await wrapper.setProps({ page: 3 })
-      expect(wrapper.vm.pageModel).toBe(3)
+      expect(wrapper.vm['pageModel']).toBe(3)
 
       await wrapper.setProps({ totalPages: 10 })
       expect(wrapper.vm.totalPages).toBe(10)
@@ -248,7 +248,7 @@ describe('PaginationComponent', () => {
     it('uses correct default values for models', () => {
       const wrapper = createWrapper()
 
-      expect(wrapper.vm.pageModel).toBe(0)
+      expect(wrapper.vm['pageModel']).toBe(0)
       expect(wrapper.vm.nmbEntriesShowing).toBe(15)
       expect(wrapper.vm.nmbEntriesTotal).toBe(100)
       expect(wrapper.vm.totalPages).toBe(10)

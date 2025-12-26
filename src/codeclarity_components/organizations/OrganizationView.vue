@@ -1,109 +1,114 @@
 <script lang="ts" setup>
-import { useStateStore } from '@/stores/state';
-
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
 import PageHeader from '@/base_components/layout/PageHeader.vue';
-import { defineAsyncComponent } from 'vue';
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
+import { useStateStore } from '@/stores/state';
+import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
 
 const OrgsList = defineAsyncComponent({
-    loader: () => import('@/codeclarity_components/organizations/list/OrganizationsList.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() =>
+        import(
+            '@/codeclarity_components/organizations/list/OrganizationsList.vue'
+        )) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const CreateOrg = defineAsyncComponent({
-    loader: () => import('@/codeclarity_components/organizations/create/OrganizationCreate.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() =>
+        import(
+            '@/codeclarity_components/organizations/create/OrganizationCreate.vue'
+        )) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgManageAuditLogs = defineAsyncComponent({
-    loader: () => import('./audit_logs/ManageAuditLogs.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./audit_logs/ManageAuditLogs.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgPolicies = defineAsyncComponent({
-    loader: () => import('./policy/PoliciesView.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./policy/PoliciesView.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgManageOverview = defineAsyncComponent({
-    loader: () => import('./manage/OrganizationManage.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./manage/OrganizationManage.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgManageMembers = defineAsyncComponent({
-    loader: () => import('./members/ManageMembers.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./members/ManageMembers.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgManageInvites = defineAsyncComponent({
-    loader: () => import('./invites/ManageInvites.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./invites/ManageInvites.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgManageIntegrations = defineAsyncComponent({
-    loader: () => import('./integrations/IntegrationsView.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./integrations/IntegrationsView.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const OrgAnalyzers = defineAsyncComponent({
-    loader: () => import('./analyzers/AnalyzersView.vue'),
-    loadingComponent: LoadingComponent,
+    loader: (() => import('./analyzers/AnalyzersView.vue')) as AsyncComponentLoader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const state = useStateStore();
 state.$reset();
@@ -190,13 +195,13 @@ function getPageDescription(): string {
 
             <!-- Main Content Area -->
             <div class="space-y-6">
-                <CreateOrg v-if="props.action == 'add' && !props.orgId" />
-                <OrgsList v-else-if="props.action == 'list' && !props.orgId" />
+                <CreateOrg v-if="props.action === 'add' && !props.orgId" />
+                <OrgsList v-else-if="props.action === 'list' && !props.orgId" />
                 <OrgPolicies
                     v-if="
-                        (props.page == 'policies' ||
-                            props.page == 'policy' ||
-                            props.page == 'vulnerability-policy') &&
+                        (props.page === 'policies' ||
+                            props.page === 'policy' ||
+                            props.page === 'vulnerability-policy') &&
                         props.orgId
                     "
                     :page="props.page"
@@ -204,28 +209,28 @@ function getPageDescription(): string {
                     :action="props.action"
                 />
                 <OrgManageAuditLogs
-                    v-else-if="props.page == 'logs' && props.orgId"
+                    v-else-if="props.page === 'logs' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                 />
                 <OrgManageMembers
-                    v-else-if="props.page == 'members' && props.orgId"
+                    v-else-if="props.page === 'members' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                 />
                 <OrgManageInvites
-                    v-else-if="props.page == 'invites' && props.orgId"
+                    v-else-if="props.page === 'invites' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                 />
                 <OrgManageIntegrations
-                    v-else-if="props.page == 'integrations' && props.orgId"
+                    v-else-if="props.page === 'integrations' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                     :action="props.action"
                 />
                 <OrgAnalyzers
-                    v-else-if="props.page == 'analyzers' && props.orgId"
+                    v-else-if="props.page === 'analyzers' && props.orgId"
                     :page="props.page"
                     :org-id="props.orgId"
                     :action="props.action"

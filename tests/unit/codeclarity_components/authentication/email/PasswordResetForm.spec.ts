@@ -1,14 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent, nextTick } from 'vue';
 import PasswordResetForm from '@/codeclarity_components/authentication/email/PasswordResetForm.vue';
 import router from '@/router';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 
-const mockAuthRepository = {
-  resetPassword: vi.fn()
-};
+const { mockAuthRepository } = vi.hoisted(() => ({
+  mockAuthRepository: {
+    resetPassword: vi.fn()
+  }
+}));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
   AuthRepository: vi.fn(() => mockAuthRepository)
@@ -37,95 +39,115 @@ vi.mock('@/router', () => ({
   }
 }));
 
-vi.mock('@iconify/vue', () => ({
-  Icon: defineComponent({
-    name: 'Icon',
-    props: ['icon'],
-    template: '<span :data-icon="icon"></span>'
-  })
-}));
+vi.mock('@iconify/vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Icon: defineComponent({
+      name: 'Icon',
+      props: ['icon'],
+      template: '<span :data-icon="icon"></span>'
+    })
+  };
+});
 
-vi.mock('@/base_components/forms/FormTextField.vue', () => ({
-  default: defineComponent({
-    name: 'FormTextField',
-    props: ['placeholder', 'type', 'name', 'modelValue'],
-    emits: ['update:modelValue'],
-    template: `
-      <div data-testid="form-text-field">
-        <input 
-          :type="type" 
-          :placeholder="placeholder" 
-          :name="name"
-          :value="modelValue"
-          @input="$emit('update:modelValue', $event.target.value)"
-          :data-testid="name + '-input'"
-        />
-        <slot name="name"></slot>
-      </div>
-    `
-  })
-}));
+vi.mock('@/base_components/forms/FormTextField.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'FormTextField',
+      props: ['placeholder', 'type', 'name', 'modelValue'],
+      emits: ['update:modelValue'],
+      template: `
+        <div data-testid="form-text-field">
+          <input
+            :type="type"
+            :placeholder="placeholder"
+            :name="name"
+            :value="modelValue"
+            @input="$emit('update:modelValue', $event.target.value)"
+            :data-testid="name + '-input'"
+          />
+          <slot name="name"></slot>
+        </div>
+      `
+    })
+  };
+});
 
-vi.mock('@/base_components/ui/loaders/LoadingSubmitButton.vue', () => ({
-  default: defineComponent({
-    name: 'LoadingSubmitButton',
-    expose: ['setLoading', 'setDisabled'],
-    setup(props, { expose }) {
-      const setLoading = vi.fn();
-      const setDisabled = vi.fn();
-      expose({ setLoading, setDisabled });
-      return { setLoading, setDisabled };
-    },
-    template: '<button type="submit" data-testid="submit-button"><slot></slot></button>'
-  })
-}));
+vi.mock('@/base_components/ui/loaders/LoadingSubmitButton.vue', async () => {
+  const { vi: viImport } = await import('vitest');
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'LoadingSubmitButton',
+      expose: ['setLoading', 'setDisabled'],
+      setup(_props: any, { expose }: any) {
+        const setLoading = viImport.fn();
+        const setDisabled = viImport.fn();
+        expose({ setLoading, setDisabled });
+        return { setLoading, setDisabled };
+      },
+      template: '<button type="submit" data-testid="submit-button"><slot></slot></button>'
+    })
+  };
+});
 
-vi.mock('vee-validate', () => ({
-  Form: defineComponent({
-    name: 'Form',
-    props: ['validationSchema', 'name'],
-    emits: ['submit'],
-    template: `
-      <form @submit.prevent="$emit('submit')" data-testid="password-reset-form">
-        <slot></slot>
-      </form>
-    `
-  })
-}));
+vi.mock('vee-validate', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Form: defineComponent({
+      name: 'Form',
+      props: ['validationSchema', 'name'],
+      emits: ['submit'],
+      template: `
+        <form @submit.prevent="$emit('submit')" data-testid="password-reset-form">
+          <slot></slot>
+        </form>
+      `
+    })
+  };
+});
 
 vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: vi.fn((schema) => schema)
+  toTypedSchema: vi.fn((schema: any) => schema)
 }));
 
-vi.mock('@/shadcn/ui/alert/Alert.vue', () => ({
-  default: defineComponent({
-    name: 'Alert',
-    props: ['variant'],
-    template: '<div data-testid="alert" :class="variant"><slot></slot></div>'
-  })
-}));
+vi.mock('@/shadcn/ui/alert/Alert.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'Alert',
+      props: ['variant'],
+      template: '<div data-testid="alert" :class="variant"><slot></slot></div>'
+    })
+  };
+});
 
-vi.mock('@/shadcn/ui/alert/AlertDescription.vue', () => ({
-  default: defineComponent({
-    name: 'AlertDescription',
-    props: ['class'],
-    template: '<div data-testid="alert-description"><slot></slot></div>'
-  })
-}));
-
-const RouterLinkMock = defineComponent({
-  name: 'RouterLink',
-  props: ['to', 'class', 'style'],
-  template: '<a :href="to.name" :class="$props.class" :style="$props.style" data-testid="router-link"><slot></slot></a>'
+vi.mock('@/shadcn/ui/alert/AlertDescription.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'AlertDescription',
+      props: ['class'],
+      template: '<div data-testid="alert-description"><slot></slot></div>'
+    })
+  };
 });
 
 // Mock vue-router RouterLink
-vi.mock('vue-router', () => ({
-  RouterLink: RouterLinkMock,
-  default: {
-    push: vi.fn()
-  }
-}));
+vi.mock('vue-router', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    RouterLink: defineComponent({
+      name: 'RouterLink',
+      props: ['to', 'class', 'style'],
+      template: '<a :href="to.name" :class="$props.class" :style="$props.style" data-testid="router-link"><slot></slot></a>'
+    }),
+    default: {
+      push: vi.fn()
+    }
+  };
+});
 
 describe('PasswordResetForm', () => {
   let originalLocation: Location;
@@ -408,19 +430,13 @@ describe('PasswordResetForm', () => {
 
   describe('Navigation Links', () => {
     it('should show back to login link in success state', async () => {
-      const wrapper = mount(PasswordResetForm, {
-        global: {
-          components: {
-            RouterLink: RouterLinkMock
-          }
-        }
-      });
+      const wrapper = mount(PasswordResetForm);
       await nextTick();
-      
+
       const form = wrapper.find('[data-testid="password-reset-form"]');
       await form.trigger('submit');
       await nextTick();
-      
+
       const loginLink = wrapper.find('a[href="login"]');
       expect(loginLink.exists()).toBe(true);
       expect(loginLink.text()).toBe('Back to login');
@@ -430,13 +446,7 @@ describe('PasswordResetForm', () => {
       const businessError = new BusinessLogicError(APIErrors.PasswordResetTokenInvalidOrExpired, 'Token is invalid or expired');
       mockAuthRepository.resetPassword.mockRejectedValue(businessError);
 
-      const wrapper = mount(PasswordResetForm, {
-        global: {
-          components: {
-            RouterLink: RouterLinkMock
-          }
-        }
-      });
+      const wrapper = mount(PasswordResetForm);
       await nextTick();
 
       const form = wrapper.find('[data-testid="password-reset-form"]');

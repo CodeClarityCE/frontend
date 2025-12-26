@@ -1,8 +1,8 @@
 // @ts-nocheck
-import { createInjectionState } from '@vueuse/core';
-import emblaCarouselVue from 'embla-carousel-vue';
-import { onMounted, ref } from 'vue';
 import type { EmblaCarouselType as CarouselApi } from 'embla-carousel';
+import emblaCarouselVue from 'embla-carousel-vue';
+import { createInjectionState } from '@vueuse/core';
+import { onMounted, ref } from 'vue';
 import type { CarouselEmits, CarouselProps } from './interface';
 
 const [useProvideCarousel, useInjectCarousel] = createInjectionState(

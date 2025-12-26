@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { mount } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import VulnList from './VulnList.vue';
 
 // Mock BaseRepository before any imports that depend on it
 vi.mock('@/base_repository/base.repository', () => ({
@@ -13,10 +16,6 @@ vi.mock('@/router', () => ({
     default: {},
     router: {}
 }));
-
-import VulnList from './VulnList.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import { PatchType } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
 
 // Mock ProjectsSortInterface
 vi.mock('@/codeclarity_components/projects/project.repository', () => ({

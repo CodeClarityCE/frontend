@@ -1,9 +1,8 @@
-import { ref, computed, watch } from 'vue';
-import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/auth';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { TicketsRepository } from '../tickets.repository';
+import { storeToRefs } from 'pinia';
+import { ref, computed, watch } from 'vue';
 import {
     type TicketSummary,
     type TicketDetails,
@@ -13,6 +12,7 @@ import {
     TicketStatus,
     TicketPriority
 } from '../tickets.entity';
+import { TicketsRepository } from '../tickets.repository';
 
 export interface UseTicketsDataOptions {
     projectId?: string;
@@ -28,7 +28,49 @@ export interface UseTicketsDataOptions {
  * - CRUD operations
  * - Selected ticket detail view
  */
-export function useTicketsData(options: UseTicketsDataOptions = {}) {
+export function useTicketsData(options: UseTicketsDataOptions = {}): {
+    tickets: import('vue').Ref<TicketSummary[]>;
+    isLoading: import('vue').Ref<boolean>;
+    hasError: import('vue').Ref<boolean>;
+    errorMessage: import('vue').Ref<string | null>;
+    hasTickets: import('vue').ComputedRef<boolean>;
+    isEmpty: import('vue').ComputedRef<boolean>;
+    currentPage: import('vue').Ref<number>;
+    entriesPerPage: import('vue').Ref<number>;
+    totalEntries: import('vue').Ref<number>;
+    totalPages: import('vue').Ref<number>;
+    sortKey: import('vue').Ref<TicketSortField>;
+    sortDirection: import('vue').Ref<'ASC' | 'DESC'>;
+    filters: import('vue').Ref<TicketFilters>;
+    selectedTicket: import('vue').Ref<TicketDetails | null>;
+    isLoadingDetail: import('vue').Ref<boolean>;
+    vulnerabilityDetails: import('vue').Ref<VulnerabilityDetailsReport | null>;
+    isLoadingVulnDetails: import('vue').Ref<boolean>;
+    viewMode: import('vue').Ref<'list' | 'kanban'>;
+    ticketsByStatus: import('vue').ComputedRef<Record<TicketStatus, TicketSummary[]>>;
+    quickStats: import('vue').ComputedRef<{
+        total: number;
+        open: number;
+        inProgress: number;
+        critical: number;
+        high: number;
+    }>;
+    loadTickets: () => Promise<void>;
+    loadAllTickets: () => Promise<void>;
+    loadTicketDetail: (ticketId: string) => Promise<void>;
+    loadVulnerabilityDetails: (ticketId: string) => Promise<void>;
+    updateTicketStatus: (ticketId: string, newStatus: TicketStatus) => Promise<boolean>;
+    setFilters: (newFilters: TicketFilters) => void;
+    setSort: (key: TicketSortField, direction?: 'ASC' | 'DESC') => void;
+    goToPage: (page: number) => void;
+    setViewMode: (mode: 'list' | 'kanban') => void;
+    clearSelectedTicket: () => void;
+    refresh: () => void;
+    defaultOrg: import('vue').Ref<
+        | import('@/codeclarity_components/organizations/organization.entity').Organization
+        | undefined
+    >;
+} {
     // Store setup
     const state = useStateStore();
     const { defaultOrg } = storeToRefs(useUserStore());
@@ -119,8 +161,8 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Load tickets list
      */
-    async function loadTickets() {
-        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+    async function loadTickets(): Promise<void> {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -175,8 +217,8 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Load all tickets for Kanban view (no pagination limit)
      */
-    async function loadAllTickets() {
-        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+    async function loadAllTickets(): Promise<void> {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -198,7 +240,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
                 filters: {
                     ...filters.value,
                     // Exclude closed and won't fix from Kanban by default
-                    status: filters.value.status || [
+                    status: filters.value.status ?? [
                         TicketStatus.OPEN,
                         TicketStatus.IN_PROGRESS,
                         TicketStatus.RESOLVED
@@ -220,8 +262,8 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Load ticket details
      */
-    async function loadTicketDetail(ticketId: string) {
-        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+    async function loadTicketDetail(ticketId: string): Promise<void> {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -240,7 +282,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
             // Auto-load vulnerability details if this is a vulnerability ticket
             // The backend will use source_analysis if available, otherwise fall back to knowledge DB
             if (response.data.vulnerability_id) {
-                loadVulnerabilityDetails(ticketId);
+                void loadVulnerabilityDetails(ticketId);
             } else {
                 vulnerabilityDetails.value = null;
             }
@@ -256,8 +298,8 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Load vulnerability details for a ticket
      */
-    async function loadVulnerabilityDetails(ticketId: string) {
-        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+    async function loadVulnerabilityDetails(ticketId: string): Promise<void> {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -285,8 +327,8 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Update ticket status (for Kanban drag and drop)
      */
-    async function updateTicketStatus(ticketId: string, newStatus: TicketStatus) {
-        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+    async function updateTicketStatus(ticketId: string, newStatus: TicketStatus): Promise<boolean> {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return false;
         }
 
@@ -315,45 +357,45 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Set filters and reload
      */
-    function setFilters(newFilters: TicketFilters) {
+    function setFilters(newFilters: TicketFilters): void {
         filters.value = newFilters;
         currentPage.value = 0;
-        loadTickets();
+        void loadTickets();
     }
 
     /**
      * Set sort and reload
      */
-    function setSort(key: TicketSortField, direction: 'ASC' | 'DESC' = 'DESC') {
+    function setSort(key: TicketSortField, direction: 'ASC' | 'DESC' = 'DESC'): void {
         sortKey.value = key;
         sortDirection.value = direction;
-        loadTickets();
+        void loadTickets();
     }
 
     /**
      * Go to page
      */
-    function goToPage(page: number) {
+    function goToPage(page: number): void {
         currentPage.value = page;
-        loadTickets();
+        void loadTickets();
     }
 
     /**
      * Switch view mode
      */
-    function setViewMode(mode: 'list' | 'kanban') {
+    function setViewMode(mode: 'list' | 'kanban'): void {
         viewMode.value = mode;
         if (mode === 'kanban') {
-            loadAllTickets();
+            void loadAllTickets();
         } else {
-            loadTickets();
+            void loadTickets();
         }
     }
 
     /**
      * Clear selected ticket
      */
-    function clearSelectedTicket() {
+    function clearSelectedTicket(): void {
         selectedTicket.value = null;
         vulnerabilityDetails.value = null;
     }
@@ -361,11 +403,11 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
     /**
      * Refresh data
      */
-    function refresh() {
+    function refresh(): void {
         if (viewMode.value === 'kanban') {
-            loadAllTickets();
+            void loadAllTickets();
         } else {
-            loadTickets();
+            void loadTickets();
         }
     }
 
@@ -378,7 +420,7 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
         isReady,
         (ready) => {
             if (ready && options.autoLoad !== false) {
-                loadTickets();
+                void loadTickets();
             }
         },
         { immediate: true }
@@ -441,6 +483,6 @@ export function useTicketsData(options: UseTicketsDataOptions = {}) {
         refresh,
 
         // Store refs
-        defaultOrg
+        defaultOrg: defaultOrg!
     };
 }

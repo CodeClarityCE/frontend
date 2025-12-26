@@ -11,18 +11,18 @@ const sin = Math.sin;
 const cos = Math.cos;
 const HALF_PI = Math.PI / 2;
 
-export type RadarChartData = Array<{
+export type RadarChartData = {
     name: string;
-    axes: Array<Axis>;
-}>;
+    axes: Axis[];
+}[];
 
-type Axis = {
+interface Axis {
     axis: string;
     value: number;
     id?: string;
-};
+}
 
-export type RadarChartOptions = {
+export interface RadarChartOptions {
     w: number;
     h: number;
     margin: { top: number; right: number; bottom: number; left: number };
@@ -39,18 +39,18 @@ export type RadarChartOptions = {
     format: string;
     unit: string;
     legend: boolean | { title?: string; translateX: number; translateY: number };
-};
+}
 
 export const RadarChart = function RadarChart(
     parent_selector: string,
     data: RadarChartData,
     cfg: RadarChartOptions
-) {
+): d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown> {
     const wrap = (
         text: d3.Selection<SVGTextElement, string, SVGGElement, unknown>,
         width: number
-    ) => {
-        text.each(function () {
+    ): void => {
+        text.each(function (this: SVGTextElement): void {
             const text = d3.select(this),
                 words = text.text().split(/\s+/).reverse(),
                 lineHeight = 1.4, // ems
@@ -60,13 +60,13 @@ export const RadarChart = function RadarChart(
 
             let word,
                 lineNumber = 0,
-                line: Array<string> = [],
+                line: string[] = [],
                 tspan = text
                     .text(null)
                     .append('tspan')
                     .attr('x', x)
                     .attr('y', y)
-                    .attr('dy', dy + 'em');
+                    .attr('dy', `${dy}em`);
 
             while ((word = words.pop())) {
                 line.push(word);
@@ -80,7 +80,7 @@ export const RadarChart = function RadarChart(
                         .append('tspan')
                         .attr('x', x)
                         .attr('y', y)
-                        .attr('dy', ++lineNumber * lineHeight + dy + 'em')
+                        .attr('dy', `${++lineNumber * lineHeight + dy}em`)
                         .text(word);
                 }
             }
@@ -90,11 +90,9 @@ export const RadarChart = function RadarChart(
     //If the supplied maxValue is smaller than the actual one, replace by the max in the data
     // var maxValue = max(cfg.maxValue, d3.max(data, function(i){return d3.max(i.map(function(o){return o.value;}))}));
     let maxValue = 0;
-    for (let j = 0; j < data.length; j++) {
-        const dataItem = data[j];
+    for (const dataItem of data) {
         if (!dataItem?.axes) continue;
-        for (let i = 0; i < dataItem.axes.length; i++) {
-            const axis = dataItem.axes[i];
+        for (const axis of dataItem.axes) {
             if (axis) {
                 axis.id = dataItem.name ?? '';
                 if ((axis.value ?? 0) > maxValue) {
@@ -141,7 +139,7 @@ export const RadarChart = function RadarChart(
         .append('g')
         .attr(
             'transform',
-            'translate(' + (cfg.w / 2 + cfg.margin.left) + ',' + (cfg.h / 2 + cfg.margin.top) + ')'
+            `translate(${cfg.w / 2 + cfg.margin.left},${cfg.h / 2 + cfg.margin.top})`
         );
 
     /////////////////////////////////////////////////////////
@@ -192,8 +190,8 @@ export const RadarChart = function RadarChart(
     axis.append('line')
         .attr('x1', 0)
         .attr('y1', 0)
-        .attr('x2', (d, i) => rScale(maxValue * 1.1) * cos(angleSlice * i - HALF_PI))
-        .attr('y2', (d, i) => rScale(maxValue * 1.1) * sin(angleSlice * i - HALF_PI))
+        .attr('x2', (_d, i) => rScale(maxValue * 1.1) * cos(angleSlice * i - HALF_PI))
+        .attr('y2', (_d, i) => rScale(maxValue * 1.1) * sin(angleSlice * i - HALF_PI))
         .attr('class', 'line')
         .style('stroke', 'white')
         .style('stroke-width', '2px');
@@ -204,8 +202,8 @@ export const RadarChart = function RadarChart(
         .style('font-size', '1em')
         .attr('text-anchor', 'middle')
         .attr('dy', '0.3em')
-        .attr('x', (d, i) => rScale(maxValue * cfg.labelFactor) * cos(angleSlice * i - HALF_PI))
-        .attr('y', (d, i) => rScale(maxValue * cfg.labelFactor) * sin(angleSlice * i - HALF_PI))
+        .attr('x', (_d, i) => rScale(maxValue * cfg.labelFactor) * cos(angleSlice * i - HALF_PI))
+        .attr('y', (_d, i) => rScale(maxValue * cfg.labelFactor) * sin(angleSlice * i - HALF_PI))
         .text((d) => d)
         .call(wrap, cfg.wrapWidth);
 
@@ -239,7 +237,7 @@ export const RadarChart = function RadarChart(
         .attr('d', (d) => radarLine(d.axes))
         .style('fill', (_d, i) => cfg.color(i.toString()))
         .style('fill-opacity', cfg.opacityArea)
-        .on('mouseover', function () {
+        .on('mouseover', function (this: SVGPathElement): void {
             //Dim all blobs
             parent.selectAll('.radarArea').transition().duration(200).style('fill-opacity', 0.1);
             //Bring back the hovered over blob
@@ -258,11 +256,11 @@ export const RadarChart = function RadarChart(
     blobWrapper
         .append('path')
         .attr('class', 'radarStroke')
-        .attr('d', function (d) {
+        .attr('d', function (d): string | null {
             return radarLine(d.axes);
         })
-        .style('stroke-width', cfg.strokeWidth + 'px')
-        .style('stroke', (d, i) => cfg.color(i.toString()))
+        .style('stroke-width', `${cfg.strokeWidth}px`)
+        .style('stroke', (_d, i) => cfg.color(i.toString()))
         .style('fill', 'none');
 
     //Append the circles
@@ -290,16 +288,16 @@ export const RadarChart = function RadarChart(
         .attr('class', 'radarCircleWrapper');
 
     // Three function that change the tooltip when user hover / move / leave a cell
-    const mouseover = function () {
+    const mouseover = function (this: SVGCircleElement): void {
         tooltip.style('opacity', 1);
     };
-    const mousemove = function (event: MouseEvent, d: Axis) {
+    const mousemove = function (this: SVGCircleElement, event: MouseEvent, d: Axis): void {
         tooltip
             .html(Format(d.value) + cfg.unit)
-            .style('left', event.x + 'px')
-            .style('top', event.y - 18 * 2 + 'px');
+            .style('left', `${event.x}px`)
+            .style('top', `${event.y - 18 * 2}px`);
     };
-    const mouseleave = function () {
+    const mouseleave = function (this: SVGCircleElement): void {
         tooltip.style('opacity', 0);
     };
     //Append a set of invisible circles on top for the mouseover pop-up
@@ -363,7 +361,7 @@ export const RadarChart = function RadarChart(
             .enter()
             .append('text')
             .attr('x', cfg.w - 145)
-            .attr('y', (d, i) => i * 25 + 24)
+            .attr('y', (_d, i) => i * 25 + 24)
             .attr('font-size', '1.2em')
             .text((d) => d);
     }

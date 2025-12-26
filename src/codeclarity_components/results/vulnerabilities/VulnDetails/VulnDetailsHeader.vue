@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PositionedModalVue from '@/base_components/ui/modals/PositionedModal.vue';
+import type PositionedModalVue from '@/base_components/ui/modals/PositionedModal.vue';
 import type { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails';
 import { Icon } from '@iconify/vue';
 defineProps<{
@@ -142,7 +142,7 @@ defineProps<{
                 </div>
             </div>
             <div
-                v-if="finding.vulnerability_info.version_info.affected_versions_string == '*'"
+                v-if="finding.vulnerability_info.version_info.affected_versions_string === '*'"
                 class="flex gap-1 items-center text-red-500"
             >
                 <Icon icon="tabler:alert-triangle-filled"></Icon>

@@ -20,12 +20,15 @@
   <ScheduleSelector v-model="scheduleConfig" />
 -->
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
+import { cn } from '@/shadcn/lib/utils';
+import Button from '@/shadcn/ui/button/Button.vue';
 import { FormField } from '@/shadcn/ui/form';
-import FormItem from '@/shadcn/ui/form/FormItem.vue';
-import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
 import FormControl from '@/shadcn/ui/form/FormControl.vue';
 import FormDescription from '@/shadcn/ui/form/FormDescription.vue';
+import FormItem from '@/shadcn/ui/form/FormItem.vue';
+import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
+import { Input } from '@/shadcn/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
 import {
     Select,
     SelectContent,
@@ -34,12 +37,9 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/shadcn/ui/select';
-import { Icon } from '@iconify/vue';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shadcn/ui/popover';
-import Button from '@/shadcn/ui/button/Button.vue';
 import { formatDate } from '@/utils/dateUtils';
-import { cn } from '@/shadcn/lib/utils';
-import { Input } from '@/shadcn/ui/input';
+import { Icon } from '@iconify/vue';
+import { ref, computed, watch } from 'vue';
 
 /**
  * Type definition for schedule configuration data
@@ -111,11 +111,11 @@ const formatScheduleTime = computed(() => {
  * Initialize default date/time when switching to recurring schedule
  * Sets the next run time to one hour from now as a sensible default
  */
-const initializeSchedule = () => {
+const initializeSchedule = (): void => {
     if (!scheduleData.value.next_scheduled_run && isRecurring.value) {
         const nextHour = new Date();
         nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0); // Round to next hour
-        updateScheduleData({ next_scheduled_run: nextHour });
+        void updateScheduleData({ next_scheduled_run: nextHour });
 
         // Update form fields to match the default
         selectedDate.value = getLocalDateString(nextHour);
@@ -148,46 +148,46 @@ watch(
     { immediate: true }
 );
 
-const updateScheduleData = (updates: Partial<ScheduleData>) => {
+const updateScheduleData = (updates: Partial<ScheduleData>): void => {
     scheduleData.value = { ...scheduleData.value, ...updates };
 };
 
 const updateScheduleType = (
     type: string | number | boolean | bigint | Record<string, unknown> | null
-) => {
+): void => {
     if (typeof type !== 'string') return;
     updateScheduleData({
         schedule_type: type as ScheduleData['schedule_type'],
         is_active: type !== 'once' // Automatically enable for recurring schedules
     });
     if (type !== 'once') {
-        initializeSchedule();
+        void initializeSchedule();
     }
 };
 
-const setDate = (dateStr: string | number) => {
+const setDate = (dateStr: string | number): void => {
     selectedDate.value = String(dateStr);
     updateDateTimeIfComplete();
 };
 
-const setTime = (timeStr: string | number) => {
+const setTime = (timeStr: string | number): void => {
     selectedTime.value = String(timeStr);
     updateDateTimeIfComplete();
 };
 
-const updateDateTimeIfComplete = () => {
+const updateDateTimeIfComplete = (): void => {
     if (selectedDate.value && selectedTime.value) {
         // Create date in user's local timezone
         const dateTime = new Date(`${selectedDate.value}T${selectedTime.value}`);
-        updateScheduleData({ next_scheduled_run: dateTime });
+        void updateScheduleData({ next_scheduled_run: dateTime });
     }
 };
 
-const confirmDateTime = () => {
+const confirmDateTime = (): void => {
     if (selectedDate.value && selectedTime.value) {
         // Create date in user's local timezone
         const dateTime = new Date(`${selectedDate.value}T${selectedTime.value}`);
-        updateScheduleData({ next_scheduled_run: dateTime });
+        void updateScheduleData({ next_scheduled_run: dateTime });
         calendarOpen.value = false;
     }
 };

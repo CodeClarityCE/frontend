@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { DialogRootEmits, DialogRootProps } from 'reka-ui';
 import { Dialog, DialogContent } from '@/shadcn/ui/dialog';
+import type { DialogRootEmits, DialogRootProps } from 'reka-ui';
 import { useForwardPropsEmits } from 'reka-ui';
 import Command from './Command.vue';
 

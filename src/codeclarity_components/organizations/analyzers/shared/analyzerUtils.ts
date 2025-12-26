@@ -1,6 +1,6 @@
 import type { Plugin } from '@/codeclarity_components/organizations/analyzers/Plugin';
-import { Position } from '@vue-flow/core';
 import type { AnalyzerNode } from '@/utils/vueFlow';
+import { Position } from '@vue-flow/core';
 
 export interface AnalyzerFormData {
     name: string;
@@ -8,10 +8,18 @@ export interface AnalyzerFormData {
 }
 
 export interface AnalyzerSubmissionData extends AnalyzerFormData {
-    steps: any[];
+    steps: Record<string, unknown>[];
 }
 
-export function initializeDefaultNodes(plugins: Plugin[], templateSteps?: any[]): AnalyzerNode[] {
+export interface TemplateStep {
+    name: string;
+    config?: Record<string, unknown>;
+}
+
+export function initializeDefaultNodes(
+    plugins: Plugin[],
+    templateSteps?: TemplateStep[][]
+): AnalyzerNode[] {
     const defaultNodes: AnalyzerNode[] = [];
 
     // If template steps are provided, use them to create nodes
@@ -24,7 +32,7 @@ export function initializeDefaultNodes(plugins: Plugin[], templateSteps?: any[])
                         const node = createAnalyzerNode(plugin);
                         // Add stage information to the node
                         node.data.stage = stageIndex;
-                        node.data.config = step.config || {};
+                        node.data.config = step.config ?? {};
                         defaultNodes.push(node);
                     }
                 });
@@ -34,7 +42,7 @@ export function initializeDefaultNodes(plugins: Plugin[], templateSteps?: any[])
     }
 
     // Default behavior: Add SBOM plugin
-    const sbomPlugin = plugins.find((p) => p.name.includes('sbom') || p.name.includes('js-sbom'));
+    const sbomPlugin = plugins.find((p) => p.name.includes('sbom') ?? p.name.includes('js-sbom'));
     if (sbomPlugin) {
         defaultNodes.push(createAnalyzerNode(sbomPlugin));
     }

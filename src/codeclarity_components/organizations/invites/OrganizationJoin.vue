@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { OrgRepository } from '../organization.repository';
-import { OrganizationInfoForInvitee, MemberRole } from '../organization.entity';
-import router from '@/router';
-import { useAuthStore } from '@/stores/auth';
-import { onMounted, ref, type Ref } from 'vue';
-import { formatDate } from '@/utils/dateUtils';
-import { Icon } from '@iconify/vue';
 import FaqBox from '@/base_components/layout/FaqBox.vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { successToast } from '@/utils/toasts';
+import router from '@/router';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { formatDate } from '@/utils/dateUtils';
+import { successToast } from '@/utils/toasts';
+import { Icon } from '@iconify/vue';
+import { onMounted, ref, type Ref } from 'vue';
+import { type OrganizationInfoForInvitee, MemberRole } from '../organization.entity';
+import { OrgRepository } from '../organization.repository';
 
 const inviteToken: Ref<string | undefined> = ref();
 const userEmailHash: Ref<string | undefined> = ref();
@@ -39,7 +39,7 @@ onMounted(() => {
     const _orgId = searchParams.get('orgId');
 
     if (!_token || !_userEmailHash || !_orgId) {
-        router.push('/');
+        void router.push('/');
         return;
     }
 
@@ -47,16 +47,17 @@ onMounted(() => {
     userEmailHash.value = _userEmailHash;
     orgId.value = _orgId;
 
-    fetchOrgInfo();
+    void fetchOrgInfo();
 });
 
-async function fetchOrgInfo() {
-    if (!inviteToken.value || !userEmailHash.value || !orgId.value) return;
+async function fetchOrgInfo(): Promise<void> {
+    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value)
+        return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     try {
         const _orgInfo = await orgRepository.getOrgInfoAsInvitedMember({
-            bearerToken: authStore.getToken!,
+            bearerToken: authStore.getToken,
             orgId: orgId.value,
             inviteToken: inviteToken.value,
             userEmailHash: userEmailHash.value,
@@ -71,13 +72,14 @@ async function fetchOrgInfo() {
     }
 }
 
-async function joinOrg() {
-    if (!inviteToken.value || !userEmailHash.value || !orgId.value) return;
+async function joinOrg(): Promise<void> {
+    if (!authStore.getAuthenticated || !userEmailHash.value || !orgId.value || !inviteToken.value)
+        return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     try {
         await orgRepository.joinOrgViaInvitation({
-            bearerToken: authStore.getToken!,
+            bearerToken: authStore.getToken,
             orgId: orgId.value,
             data: {
                 token: inviteToken.value,
@@ -86,8 +88,8 @@ async function joinOrg() {
             handleBusinessErrors: true
         });
 
-        router.push({ name: 'orgs', params: { page: 'manage', orgId: orgId.value } });
-        successToast('Successfully joined the org');
+        void router.push({ name: 'orgs', params: { page: 'manage', orgId: orgId.value } });
+        void successToast('Successfully joined the org');
     } catch (err) {
         joinError.value = true;
         if (err instanceof BusinessLogicError) {
@@ -114,7 +116,9 @@ async function joinOrg() {
                                 <div>Failed to join the organization</div>
                                 <div v-if="joinErrorCode" style="font-size: 0.7em">
                                     <div
-                                        v-if="joinErrorCode == APIErrors.InvitationInvalidOrExpired"
+                                        v-if="
+                                            joinErrorCode === APIErrors.InvitationInvalidOrExpired
+                                        "
                                     >
                                         This invite link does not exist or has expired.
                                     </div>
@@ -131,8 +135,8 @@ async function joinOrg() {
                             <div class="flex flex-row gap-2 items-center flex-wrap">
                                 <Button
                                     v-if="
-                                        joinErrorCode != APIErrors.NotAuthorized &&
-                                        joinErrorCode != APIErrors.EntityNotFound
+                                        joinErrorCode !== APIErrors.NotAuthorized &&
+                                        joinErrorCode !== APIErrors.EntityNotFound
                                     "
                                     @click="joinOrg"
                                 >
@@ -158,8 +162,8 @@ async function joinOrg() {
                                         <div v-if="fetchErrorCode" style="font-size: 0.7em">
                                             <div
                                                 v-if="
-                                                    fetchErrorCode == APIErrors.EntityNotFound ||
-                                                    fetchErrorCode == APIErrors.NotAuthorized
+                                                    fetchErrorCode === APIErrors.EntityNotFound ||
+                                                    fetchErrorCode === APIErrors.NotAuthorized
                                                 "
                                             >
                                                 This invite link does not exist or has expired.
@@ -179,8 +183,8 @@ async function joinOrg() {
                                     <div class="flex flex-row gap-2 items-center flex-wrap">
                                         <Button
                                             v-if="
-                                                joinErrorCode != APIErrors.NotAuthorized &&
-                                                joinErrorCode != APIErrors.EntityNotFound
+                                                joinErrorCode !== APIErrors.NotAuthorized &&
+                                                joinErrorCode !== APIErrors.EntityNotFound
                                             "
                                             @click="fetchOrgInfo"
                                         >
@@ -227,22 +231,22 @@ async function joinOrg() {
                                 >{{ orgInfo.name }}</span
                             >' as a
                             <span
-                                v-if="orgInfo.role == MemberRole.OWNER"
+                                v-if="orgInfo.role === MemberRole.OWNER"
                                 class="font-bold text-severity-medium"
                                 >Owner</span
                             >
                             <span
-                                v-if="orgInfo.role == MemberRole.ADMIN"
+                                v-if="orgInfo.role === MemberRole.ADMIN"
                                 class="font-bold text-severity-high"
                                 >Admin</span
                             >
                             <span
-                                v-if="orgInfo.role == MemberRole.MODERATOR"
+                                v-if="orgInfo.role === MemberRole.MODERATOR"
                                 class="font-bold text-severity-low"
                                 >Moderator</span
                             >
                             <span
-                                v-if="orgInfo.role == MemberRole.USER"
+                                v-if="orgInfo.role === MemberRole.USER"
                                 class="font-bold text-severity-none"
                                 >User</span
                             >.

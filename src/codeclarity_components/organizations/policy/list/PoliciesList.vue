@@ -1,17 +1,7 @@
 <script lang="ts" setup>
-import { ref, onBeforeMount, computed } from 'vue';
-import type { Ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { LicensePolicyRepository } from '../license_policy.repository';
-import type { LicensePolicy } from '../license_policy.entity';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-// Organization imports removed since we're in a tab view context
-import LicensePolicyDataTable from '../license/LicensePolicyDataTable.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
-import { Icon } from '@iconify/vue';
+import Button from '@/shadcn/ui/button/Button.vue';
 import {
     Dialog,
     DialogContent,
@@ -20,6 +10,15 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/shadcn/ui/dialog';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { Icon } from '@iconify/vue';
+import { ref, onBeforeMount, computed, type Ref } from 'vue';
+import { useRouter } from 'vue-router';
+import LicensePolicyDataTable from '../license/LicensePolicyDataTable.vue';
+import type { LicensePolicy } from '../license_policy.entity';
+import { LicensePolicyRepository } from '../license_policy.repository';
+// Organization imports removed since we're in a tab view context
 const props = defineProps<{
     page: string;
     orgId: string;
@@ -47,7 +46,7 @@ const canManagePolicies = computed(() => true);
 
 // Methods
 
-async function loadPolicies() {
+async function loadPolicies(): Promise<void> {
     if (!authStore.getToken) return;
 
     loading.value = true;
@@ -63,11 +62,11 @@ async function loadPolicies() {
             search_key: ''
         });
 
-        policies.value = response.data || [];
+        policies.value = response.data ?? [];
     } catch (err) {
         console.error('Error loading license policies:', err);
         if (err instanceof BusinessLogicError) {
-            error.value = err.error_message || 'Business logic error occurred';
+            error.value = err.error_message ?? 'Business logic error occurred';
         } else {
             error.value = 'Failed to load license policies. Please try again.';
         }
@@ -76,8 +75,8 @@ async function loadPolicies() {
     }
 }
 
-function navigateToCreate() {
-    router.push({
+function navigateToCreate(): void {
+    void router.push({
         name: 'orgs',
         params: {
             action: 'add',
@@ -87,8 +86,8 @@ function navigateToCreate() {
     });
 }
 
-function handleEdit(policy: LicensePolicy) {
-    router.push({
+function handleEdit(policy: LicensePolicy): void {
+    void router.push({
         name: 'orgs',
         params: {
             action: 'edit',
@@ -99,13 +98,13 @@ function handleEdit(policy: LicensePolicy) {
     });
 }
 
-function handleDelete(policy: LicensePolicy) {
+function handleDelete(policy: LicensePolicy): void {
     policyToDelete.value = policy;
     deleteDialog.value = true;
 }
 
-async function confirmDelete() {
-    if (!policyToDelete.value || !authStore.getToken) return;
+async function confirmDelete(): Promise<void> {
+    if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     deleting.value = true;
     try {
@@ -115,12 +114,11 @@ async function confirmDelete() {
         //     policyId: policyToDelete.value.id,
         //     bearerToken: authStore.getToken
         // });
-        console.log('Delete policy:', policyToDelete.value);
         await loadPolicies();
     } catch (err) {
         console.error('Error deleting policy:', err);
         if (err instanceof BusinessLogicError) {
-            error.value = err.error_message || 'Failed to delete policy';
+            error.value = err.error_message ?? 'Failed to delete policy';
         } else {
             error.value = 'Failed to delete policy. Please try again.';
         }
@@ -133,7 +131,7 @@ async function confirmDelete() {
 
 // Initialize component
 onBeforeMount(() => {
-    loadPolicies();
+    void loadPolicies();
 });
 </script>
 <template>
@@ -179,7 +177,7 @@ onBeforeMount(() => {
 
             <StatCard
                 label="License Types"
-                :value="new Set(policies.flatMap((p: any) => p.content || [])).size"
+                :value="new Set(policies.flatMap((p: any) => p.content ?? [])).size"
                 icon="solar:document-text-bold"
                 variant="primary"
                 subtitle="Unique licenses"

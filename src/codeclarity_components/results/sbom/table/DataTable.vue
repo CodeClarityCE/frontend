@@ -1,35 +1,29 @@
 <script setup lang="ts" generic="TData, TValue">
-import type {
-    ColumnDef,
-    SortingState,
-    ColumnFiltersState,
-    VisibilityState
-} from '@tanstack/vue-table';
-
 import { valueUpdater } from '@/shadcn/lib/utils';
-
-import {
-    FlexRender,
-    getCoreRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    getFilteredRowModel,
-    useVueTable
-} from '@tanstack/vue-table';
-
+import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shadcn/ui/table';
-import { Button } from '@/shadcn/ui/button';
 import { Input } from '@/shadcn/ui/input';
-import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shadcn/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shadcn/ui/table';
+import { Icon } from '@iconify/vue';
+import {
+    FlexRender,
+    getCoreRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    getFilteredRowModel,
+    useVueTable,
+    type ColumnDef,
+    type SortingState,
+    type ColumnFiltersState,
+    type VisibilityState
+} from '@tanstack/vue-table';
+import { ref } from 'vue';
 
 const props = defineProps<{
     columns: ColumnDef<TData, TValue>[];
@@ -75,19 +69,25 @@ const table = useVueTable({
 });
 table.setPageSize(pageLimitSelected.value);
 
-function setPageSize(pageSize: any) {
-    const size = typeof pageSize === 'string' ? parseInt(pageSize) : (pageSize ?? 15);
-    table.setPageSize(size);
-    pageLimitSelected.value = size;
+function setPageSize(pageSize: unknown): void {
+    if (pageSize == null) return;
+    if (typeof pageSize === 'string') {
+        const size = parseInt(pageSize);
+        table.setPageSize(size);
+        pageLimitSelected.value = size;
+    } else if (typeof pageSize === 'number') {
+        table.setPageSize(pageSize);
+        pageLimitSelected.value = pageSize;
+    }
 }
 
-function search(_searchKey: any) {
-    searchKey.value = String(_searchKey || '');
+function search(_searchKey: string | number | null | undefined): void {
+    searchKey.value = String(_searchKey ?? '');
 }
 
-function toggleFilter(filterType: string) {
+function toggleFilter(_filterType: string): void {
     // This would integrate with your actual filtering logic
-    console.log('Toggle filter:', filterType);
+    // Filter toggle functionality placeholder
 }
 </script>
 

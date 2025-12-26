@@ -59,28 +59,42 @@
 </template>
 
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core';
 import { Icon } from '@iconify/vue';
+import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
+
+type ConfigValue = string | number | boolean | string[] | null | undefined;
 
 interface Props {
     data: {
         label: string;
         configKey: string;
         configType: string;
-        value: any;
+        value: ConfigValue;
     };
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-    'update:data': [value: any];
+    'update:data': [
+        value: { label: string; configKey: string; configType: string; value: ConfigValue }
+    ];
 }>();
 
 const localValue = computed({
-    get: () => props.data.value,
-    set: (value) => {
-        emit('update:data', { ...props.data, value });
+    get: () => {
+        const val = props.data.value;
+        // Convert boolean to string for select element compatibility
+        if (typeof val === 'boolean') return String(val);
+        return val as string | number | readonly string[] | null | undefined;
+    },
+    set: (value: string | number | readonly string[] | null | undefined) => {
+        let finalValue: ConfigValue = value as ConfigValue;
+        // Convert string 'true'/'false' back to boolean for boolean configType
+        if (props.data.configType === 'boolean' && typeof value === 'string') {
+            finalValue = value === 'true';
+        }
+        emit('update:data', { ...props.data, value: finalValue });
     }
 });
 </script>

@@ -1,15 +1,15 @@
-export type GroupedBarChartGroup = {
+export interface GroupedBarChartGroup {
     name: string;
     color: string;
     data: number[];
-};
+}
 
-export type GroupedBarChartData = {
+export interface GroupedBarChartData {
     categories: string[];
     groups: GroupedBarChartGroup[];
-};
+}
 
-export type GroupedBarChartOptions = {
+export interface GroupedBarChartOptions {
     w?: number; // Width of chart
     h?: number; // Height of chart
     padding?: number; // Padding between bars within a group
@@ -19,4 +19,4 @@ export type GroupedBarChartOptions = {
     shadow?: boolean; // Enable/disable shadow behind bars
     fontSize?: number; // Customize font size of labels
     labelOffset?: number; // Vertical offset for label positioning
-};
+}

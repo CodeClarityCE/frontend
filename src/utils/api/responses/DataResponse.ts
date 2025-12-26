@@ -1,9 +1,11 @@
 import { Exclude, Type } from 'class-transformer';
 import { IsDefined } from 'class-validator';
 
+type Constructor<T = unknown> = new (...args: unknown[]) => T;
+
 export class DataResponse<T> {
     @Exclude()
-    private type: Function;
+    private type: Constructor<T>;
 
     @IsDefined()
     @Type((options) => {
@@ -11,7 +13,7 @@ export class DataResponse<T> {
     })
     data!: T;
 
-    constructor(type: Function) {
+    constructor(type: Constructor<T>) {
         this.type = type;
     }
 }

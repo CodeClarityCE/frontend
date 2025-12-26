@@ -1,16 +1,16 @@
 <script lang="ts" setup>
+import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
-    Organization
+    type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import router from '@/router';
 import { ref, type Ref } from 'vue';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
+import OrgIntegrationAddClickUp from './clickup/AddClickUp.vue';
 import OrgIntegrationAddGithub from './github/AddGithub.vue';
 import OrgIntegrationAddGitlab from './gitlab/AddGitlab.vue';
-import OrgIntegrationAddClickUp from './clickup/AddClickUp.vue';
 
 const provider: Ref<IntegrationProvider> = ref(IntegrationProvider.GITHUB);
 
@@ -22,10 +22,10 @@ defineProps<{
 
 const orgInfo: Ref<Organization | undefined> = ref();
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -39,13 +39,13 @@ if (providerQuery) {
         <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo($event)"></HeaderItem>
         <div class="org-integrations-create-wrapper">
             <OrgIntegrationAddGithub
-                v-if="provider == IntegrationProvider.GITHUB"
+                v-if="provider === IntegrationProvider.GITHUB"
             ></OrgIntegrationAddGithub>
             <OrgIntegrationAddGitlab
-                v-if="provider == IntegrationProvider.GITLAB"
+                v-if="provider === IntegrationProvider.GITLAB"
             ></OrgIntegrationAddGitlab>
             <OrgIntegrationAddClickUp
-                v-if="provider == IntegrationProvider.CLICKUP"
+                v-if="provider === IntegrationProvider.CLICKUP"
             ></OrgIntegrationAddClickUp>
         </div>
     </div>

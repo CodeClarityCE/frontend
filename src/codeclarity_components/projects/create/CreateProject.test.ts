@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createRouter, createWebHistory } from 'vue-router';
 import CreateProject from './CreateProject.vue';
 

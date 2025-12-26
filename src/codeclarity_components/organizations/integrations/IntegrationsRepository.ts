@@ -1,4 +1,11 @@
+import {
+    GithubIntegration,
+    GitlabIntegration,
+    type VCS
+} from '@/codeclarity_components/organizations/integrations/Integrations';
+import { type Repository } from '@/codeclarity_components/projects/project.entity';
 import { Entity } from '@/utils/api/BaseEntity';
+import { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
 import {
     BaseRepository,
     type AuthRepoMethodGetRequestOptions,
@@ -10,13 +17,7 @@ import {
     type SearchableRepoMethodRequestOptions,
     type SortableRepoMethodRequestOptions
 } from '../../../utils/api/BaseRepository';
-import {
-    GithubIntegration,
-    GitlabIntegration,
-    VCS
-} from '@/codeclarity_components/organizations/integrations/Integrations';
-import { Repository } from '@/codeclarity_components/projects/project.entity';
-import { PaginatedResponse } from '@/utils/api/responses/PaginatedResponse';
+import type { DataResponse } from '../../../utils/api/responses/DataResponse';
 import { NoDataResponse } from '../../../utils/api/responses/NoDataResponse';
 import type {
     GilabIntegrationAdd,
@@ -24,7 +25,6 @@ import type {
     GithubIntegrationUpdate,
     GitlabIntegrationUpdate
 } from './integration_add.http';
-import type { DataResponse } from '../../../utils/api/responses/DataResponse';
 
 export interface GetVCSIntegrationsRequestOptions
     extends AuthRepoMethodGetRequestOptions,

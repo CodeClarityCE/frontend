@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
+import LineChart from '@/base_components/data-display/charts/LineChart.vue';
+import { type SeverityInfoByWeek } from '@/codeclarity_components/dashboard/dashboard.entity';
 import { DashboardRepository } from '@/codeclarity_components/dashboard/dashboard.repository';
-import { SeverityInfoByWeek } from '@/codeclarity_components/dashboard/dashboard.entity';
+import { Badge } from '@/shadcn/ui/badge';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { Skeleton } from '@/shadcn/ui/skeleton';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
-import { storeToRefs } from 'pinia';
-import { ref, watch, type Ref } from 'vue';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { getWeekRange, formatDateRange } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
-import LineChart from '@/base_components/data-display/charts/LineChart.vue';
-import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue';
-import { Badge } from '@/shadcn/ui/badge';
-import { Skeleton } from '@/shadcn/ui/skeleton';
-import Button from '@/shadcn/ui/button/Button.vue';
+import { storeToRefs } from 'pinia';
+import { ref, watch, type Ref } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -20,7 +20,7 @@ const props = defineProps<{
 }>();
 
 watch(props.integrationIds, async () => {
-    fetch();
+    void fetch();
 });
 
 // Repositories
@@ -32,16 +32,22 @@ const authStore = useAuthStore();
 
 const { defaultOrg } = storeToRefs(userStore);
 
+// Chart types
+interface ChartData {
+    labels: string[];
+    datasets: { data: number[] }[];
+}
+
 // State
 const data: Ref<SeverityInfoByWeek[] | undefined> = ref();
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
-const chartData: Ref<any | undefined> = ref();
+const chartData: Ref<ChartData | undefined> = ref();
 const noData: Ref<boolean> = ref(false);
 
-async function fetch(refresh: boolean = false) {
-    if (!defaultOrg || !defaultOrg.value) return;
+async function fetch(refresh = false): Promise<void> {
+    if (!defaultOrg?.value) return;
     if (!authStore.getAuthenticated || !authStore.getToken) return;
 
     if (!refresh) loading.value = true;
@@ -57,7 +63,7 @@ async function fetch(refresh: boolean = false) {
             handleBusinessErrors: true,
             integrationIds: props.integrationIds
         });
-        if (resp.data.length == 0) noData.value = true;
+        if (resp.data.length === 0) noData.value = true;
         else generateChart(resp.data);
         data.value = resp.data;
     } catch (_err) {
@@ -69,18 +75,18 @@ async function fetch(refresh: boolean = false) {
         if (!refresh) loading.value = false;
     }
 }
-fetch();
+void fetch();
 
-function getWeekFormat(weekNumber: number, year: number) {
+function getWeekFormat(weekNumber: number, year: number): string {
     const { start, end } = getWeekRange(weekNumber, year);
     if (start.getFullYear() !== end.getFullYear()) {
         return formatDateRange(start, end, 'MMM DD, YY');
     } else {
-        return formatDateRange(start, end, 'MMM DD') + `, ${end.getFullYear()}`;
+        return `${formatDateRange(start, end, 'MMM DD')}, ${end.getFullYear()}`;
     }
 }
 
-function generateChart(stats: SeverityInfoByWeek[]) {
+function generateChart(stats: SeverityInfoByWeek[]): void {
     let max = 0;
     const data: number[] = [];
     const labels: string[] = [];
@@ -116,7 +122,7 @@ function generateChart(stats: SeverityInfoByWeek[]) {
             <div v-else>
                 <div v-if="error"></div>
                 <div v-else>
-                    <div class="dashboard-exposure-graph">
+                    <div v-if="chartData" class="dashboard-exposure-graph">
                         <LineChart :chart-data="chartData"></LineChart>
                     </div>
                 </div>
@@ -140,7 +146,7 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                                     <div>Failed to load the dashboard component</div>
                                 </div>
                                 <div class="flex flex-row gap-2 items-center flex-wrap">
-                                    <Button @click="fetch()"> Try again </Button>
+                                    <Button @click="() => void fetch()"> Try again </Button>
                                 </div>
                             </div>
                         </div>
@@ -151,8 +157,8 @@ function generateChart(stats: SeverityInfoByWeek[]) {
                     <div class="flex flex-row justify-between">
                         <div class="flex flex-col gap-2">
                             <template
-                                v-for="(exposure, index) in data!.slice().reverse()"
-                                :key="index"
+                                v-for="(exposure, _index) in data!.slice().reverse()"
+                                :key="_index"
                             >
                                 <div class="flex flex-col gap-y-3 justify-between items-center">
                                     <div class="week">

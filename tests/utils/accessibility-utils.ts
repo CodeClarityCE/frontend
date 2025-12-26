@@ -1,6 +1,5 @@
-import { run as axeRun } from 'axe-core';
 import type { VueWrapper } from '@vue/test-utils';
-import type { AxeResults, Result, RunOptions } from 'axe-core';
+import { run as axeRun, type AxeResults, type Result, type RunOptions } from 'axe-core';
 
 /**
  * Default axe configuration for CodeClarity accessibility testing
@@ -34,8 +33,8 @@ export function formatAxeViolations(violations: Result[]): string {
     return 'No accessibility violations found';
   }
 
-  return violations.map(violation => {
-    const nodeInfo = violation.nodes.map(node => {
+  return violations.map((violation): string => {
+    const nodeInfo = violation.nodes.map((node): string => {
       const target = Array.isArray(node.target) ? node.target.join(' -> ') : node.target;
       return `    Target: ${target}\n    HTML: ${node.html}\n    Impact: ${node.impact}`;
     }).join('\n\n');
@@ -48,28 +47,30 @@ Help URL: ${violation.helpUrl}
 Affected nodes:
 ${nodeInfo}
 `;
-  }).join('\n' + '='.repeat(80) + '\n');
+  }).join(`\n${  '='.repeat(80)  }\n`);
 }
 
 /**
  * Run accessibility tests on a Vue component wrapper
  */
 export async function runAccessibilityTests(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   config: RunOptions = defaultAxeConfig,
-  customRules?: Record<string, any>
+  customRules?: Record<string, unknown>
 ): Promise<AxeResults> {
-  const element = wrapper.element;
-  
+  const element = wrapper.element as HTMLElement;
+
   // Ensure element is in the DOM for axe to analyze
   if (!document.body.contains(element)) {
     document.body.appendChild(element);
   }
 
-  const finalConfig = customRules ? { ...config, rules: { ...config.rules, ...customRules } } : config;
+  const finalConfig: RunOptions = customRules
+    ? { ...config, rules: { ...config.rules, ...customRules } as RunOptions['rules'] }
+    : config;
 
   try {
-    const results = await axeRun(element, finalConfig);
+    const results = await axeRun(element as Element, finalConfig);
     return results;
   } finally {
     // Clean up if we added the element
@@ -83,9 +84,9 @@ export async function runAccessibilityTests(
  * Assert that a component has no accessibility violations
  */
 export async function expectNoAccessibilityViolations(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   config: RunOptions = defaultAxeConfig,
-  customRules?: Record<string, any>
+  customRules?: Record<string, unknown>
 ): Promise<void> {
   const results = await runAccessibilityTests(wrapper, config, customRules);
   
@@ -99,7 +100,7 @@ export async function expectNoAccessibilityViolations(
  * Assert that a component passes specific accessibility rules
  */
 export async function expectAccessibilityRule(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   ruleId: string,
   config: RunOptions = defaultAxeConfig
 ): Promise<void> {
@@ -116,7 +117,7 @@ export async function expectAccessibilityRule(
  * Get accessibility insights for a component (including passes and violations)
  */
 export async function getAccessibilityInsights(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   config: RunOptions = defaultAxeConfig
 ): Promise<{
   violations: Result[];
@@ -158,14 +159,14 @@ export async function getAccessibilityInsights(
 /**
  * Test keyboard navigation for a component
  */
-export async function testKeyboardNavigation(wrapper: VueWrapper<any>): Promise<{
+export async function testKeyboardNavigation(wrapper: VueWrapper): Promise<{
   focusableElements: Element[];
   tabOrder: Element[];
   canEscape: boolean;
   canActivate: boolean;
 }> {
-  const element = wrapper.element;
-  
+  const element = wrapper.element as HTMLElement;
+
   // Find all focusable elements
   const focusableSelectors = [
     'a[href]',
@@ -180,12 +181,14 @@ export async function testKeyboardNavigation(wrapper: VueWrapper<any>): Promise<
     '[contenteditable]',
     '[tabindex]:not([tabindex^="-"])'
   ];
-  
-  const focusableElements: Element[] = Array.from(
+
+  const allElements = Array.from(
     element.querySelectorAll(focusableSelectors.join(', '))
-  ).filter((el): el is Element => {
+  );
+
+  const focusableElements: Element[] = allElements.filter((el): el is Element => {
     // Additional check for visibility
-    const style = window.getComputedStyle(el as Element);
+    const style = window.getComputedStyle(el);
     return style.display !== 'none' && style.visibility !== 'hidden';
   });
 
@@ -221,9 +224,9 @@ export const accessibilityTestScenarios = {
   /**
    * Test form accessibility
    */
-  form: async (wrapper: VueWrapper<any>) => {
+  form: async (wrapper: VueWrapper): Promise<void> => {
     await expectNoAccessibilityViolations(wrapper, formAxeConfig);
-    
+
     // Additional form-specific tests
     const inputs = wrapper.findAll('input, textarea, select');
     for (const input of inputs) {
@@ -232,9 +235,9 @@ export const accessibilityTestScenarios = {
       const hasLabel = element.labels && element.labels.length > 0;
       const hasAriaLabel = element.hasAttribute('aria-label');
       const hasAriaLabelledBy = element.hasAttribute('aria-labelledby');
-      
+
       if (!hasLabel && !hasAriaLabel && !hasAriaLabelledBy) {
-        throw new Error(`Form field '${element.name || element.id}' has no accessible label`);
+        throw new Error(`Form field '${element.name ?? element.id}' has no accessible label`);
       }
     }
   },
@@ -242,15 +245,15 @@ export const accessibilityTestScenarios = {
   /**
    * Test modal/dialog accessibility
    */
-  modal: async (wrapper: VueWrapper<any>) => {
+  modal: async (wrapper: VueWrapper): Promise<void> => {
     await expectNoAccessibilityViolations(wrapper, modalAxeConfig);
-    
+
     // Additional modal-specific tests
-    const modal = wrapper.element;
+    const modal = wrapper.element as Element;
     if (!modal.hasAttribute('role') || modal.getAttribute('role') !== 'dialog') {
       throw new Error('Modal must have role="dialog"');
     }
-    
+
     if (!modal.hasAttribute('aria-modal') || modal.getAttribute('aria-modal') !== 'true') {
       throw new Error('Modal must have aria-modal="true"');
     }
@@ -259,27 +262,27 @@ export const accessibilityTestScenarios = {
   /**
    * Test button accessibility
    */
-  button: async (wrapper: VueWrapper<any>) => {
+  button: async (wrapper: VueWrapper): Promise<void> => {
     const buttons = wrapper.findAll('button, [role="button"]');
-    
+
     for (const button of buttons) {
       const element = button.element;
       const hasText = element.textContent && element.textContent.trim().length > 0;
       const hasAriaLabel = element.hasAttribute('aria-label');
       const hasAriaLabelledBy = element.hasAttribute('aria-labelledby');
-      
+
       if (!hasText && !hasAriaLabel && !hasAriaLabelledBy) {
         throw new Error('Button must have accessible text or aria-label');
       }
     }
-    
+
     await expectNoAccessibilityViolations(wrapper);
   },
   
   /**
    * Test navigation accessibility
    */
-  navigation: async (wrapper: VueWrapper<any>) => {
+  navigation: async (wrapper: VueWrapper): Promise<void> => {
     const nav = wrapper.find('nav');
     if (nav.exists()) {
       const element = nav.element;
@@ -287,7 +290,7 @@ export const accessibilityTestScenarios = {
         throw new Error('Navigation must have aria-label or aria-labelledby');
       }
     }
-    
+
     await expectNoAccessibilityViolations(wrapper);
   }
 };
@@ -296,7 +299,7 @@ export const accessibilityTestScenarios = {
  * Helper to run all accessibility tests for a component
  */
 export async function runFullAccessibilityAudit(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   scenarios: string[] = ['form', 'modal', 'button', 'navigation']
 ): Promise<void> {
   // Run general accessibility tests

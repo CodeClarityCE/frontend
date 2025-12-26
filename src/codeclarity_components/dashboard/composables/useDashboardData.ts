@@ -1,10 +1,15 @@
-import { ref, computed, onMounted } from 'vue';
+import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
+import type {
+    Integration,
+    Organization,
+    OrganizationMetaData
+} from '@/codeclarity_components/organizations/organization.entity';
+import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
+import { useAuthStore } from '@/stores/auth';
 import { useStateStore } from '@/stores/state';
 import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
-import { OrgRepository } from '@/codeclarity_components/organizations/organization.repository';
 import { storeToRefs } from 'pinia';
+import { ref, computed, onMounted, type ComputedRef, type Ref } from 'vue';
 
 /**
  * useDashboardData - Simple dashboard data management
@@ -15,7 +20,21 @@ import { storeToRefs } from 'pinia';
  * - Loading states
  * - Empty state logic
  */
-export function useDashboardData() {
+export function useDashboardData(): {
+    isLoading: Ref<boolean>;
+    hasError: Ref<boolean>;
+    orgData: Ref<OrganizationMetaData | null>;
+    integrations: Ref<Integration[]>;
+    isReady: ComputedRef<boolean>;
+    hasData: ComputedRef<boolean>;
+    shouldShowEmptyState: ComputedRef<boolean>;
+    activeIntegrationIds: ComputedRef<string[]>;
+    loadDashboardData: () => Promise<void>;
+    hasIntegrations: ComputedRef<boolean>;
+    hasProjects: ComputedRef<boolean>;
+    refreshData: () => Promise<void>;
+    defaultOrg: Ref<Organization | undefined>;
+} {
     // Store setup
     const state = useStateStore();
     const { defaultOrg } = storeToRefs(useUserStore());
@@ -27,24 +46,24 @@ export function useDashboardData() {
     // Simple reactive state
     const isLoading = ref(false);
     const hasError = ref(false);
-    const orgData = ref<any>(null);
-    const integrations = ref<any[]>([]);
+    const orgData = ref<OrganizationMetaData | null>(null);
+    const integrations = ref<Integration[]>([]);
 
     // Computed helpers
-    const isReady = computed(() => defaultOrg?.value && auth.getAuthenticated && auth.getToken);
+    const isReady = computed(() => !!(defaultOrg?.value && auth.getAuthenticated && auth.getToken));
     const hasData = computed(() => !!(orgData.value && integrations.value.length > 0));
     const shouldShowEmptyState = computed(
-        () => isLoading.value || hasError.value || !hasData.value
+        () => isLoading.value ?? hasError.value ?? !hasData.value
     );
-    const activeIntegrationIds = computed(() =>
-        integrations.value.map((integration) => integration.id || '')
+    const activeIntegrationIds = computed((): string[] =>
+        integrations.value.map((integration: Integration): string => integration.id ?? '')
     );
 
     /**
      * Load all dashboard data
      */
-    async function loadDashboardData() {
-        if (!isReady.value || !defaultOrg?.value || !auth.getToken) {
+    async function loadDashboardData(): Promise<void> {
+        if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
             return;
         }
 
@@ -73,7 +92,8 @@ export function useDashboardData() {
             }
 
             if (integrationsResponse.status === 'fulfilled') {
-                integrations.value = integrationsResponse.value.data || [];
+                integrations.value = (integrationsResponse.value.data ??
+                    []) as unknown as Integration[];
             }
 
             // Show error only if both failed
@@ -91,7 +111,7 @@ export function useDashboardData() {
     // Auto-load on mount
     onMounted(() => {
         if (isReady.value) {
-            loadDashboardData();
+            void loadDashboardData();
         }
     });
 
@@ -99,17 +119,22 @@ export function useDashboardData() {
         // State
         isLoading,
         hasError,
+        orgData,
+        integrations,
         shouldShowEmptyState,
         activeIntegrationIds,
+        isReady,
+        hasData,
 
         // Computed
         hasIntegrations: computed(() => integrations.value.length > 0),
         hasProjects: computed(() => !!orgData.value),
 
         // Actions
+        loadDashboardData,
         refreshData: loadDashboardData,
 
         // Store refs
-        defaultOrg
+        defaultOrg: defaultOrg!
     };
 }

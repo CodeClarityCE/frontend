@@ -1,19 +1,13 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue';
-
-import { ref, watch, computed } from 'vue';
-import type { Ref } from 'vue';
-import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
-import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
-
-// Import base components
 import { InfoCard, StatCard } from '@/base_components';
-
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue';
 import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { AnalysisStats } from '@/codeclarity_components/results/stats.entity';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
 import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { Icon } from '@iconify/vue';
+import { computed, ref, type Ref, watch } from 'vue';
 import SelectWorkspace from '../SelectWorkspace.vue';
 
 export interface Props {
@@ -46,13 +40,13 @@ const selectedEcosystemFilter: Ref<string | null> = ref(null);
 watch(
     () => props.projectID,
     () => {
-        getVulnerabilitiesStats();
+        void getVulnerabilitiesStats();
     }
 );
 watch(
     () => props.analysisID,
     () => {
-        getVulnerabilitiesStats();
+        void getVulnerabilitiesStats();
     }
 );
 
@@ -65,20 +59,20 @@ const stats: Ref<AnalysisStats> = ref(new AnalysisStats());
 //     height: '40px'
 // };
 
-getVulnerabilitiesStats();
+void getVulnerabilitiesStats();
 
 // Event handlers
-function handleEcosystemFilterChanged(ecosystemType: string | null) {
+function handleEcosystemFilterChanged(ecosystemType: string | null): void {
     /** Handles ecosystem filter changes from SelectWorkspace component */
     selectedEcosystemFilter.value = ecosystemType;
     // Emit the change to parent component
-    emit('ecosystem-filter-changed', ecosystemType);
+    void emit('ecosystem-filter-changed', ecosystemType);
     // Refresh stats with the new filter
-    getVulnerabilitiesStats(true);
+    void getVulnerabilitiesStats(true);
 }
 
 // Methods
-async function getVulnerabilitiesStats(refresh: boolean = false) {
+async function getVulnerabilitiesStats(refresh = false): Promise<void> {
     if (!userStore.getDefaultOrg) return;
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
@@ -86,10 +80,10 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
     errorCode.value = undefined;
     if (!refresh) loading.value = true;
 
-    if (!props.projectID || !props.analysisID) return;
-    if (props.projectID == '' || props.analysisID == '') return;
+    if (!authStore.getAuthenticated || !props.analysisID) return;
+    if (props.projectID === '' || props.analysisID === '') return;
 
-    let res: DataResponse<any>;
+    let res: DataResponse<AnalysisStats>;
     try {
         res = await resultsRepository.getVulnerabilitiesStat({
             orgId: userStore.getDefaultOrg.id,
@@ -97,7 +91,7 @@ async function getVulnerabilitiesStats(refresh: boolean = false) {
             analysisId: props.analysisID,
             workspace: selected_workspace.value,
             bearerToken: authStore.getToken,
-            ecosystem_filter: selectedEcosystemFilter.value || undefined,
+            ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
             handleBusinessErrors: true
         });
         stats.value = res.data;
@@ -116,9 +110,9 @@ watch(selected_workspace, async () => getVulnerabilitiesStats());
 
 // Computed properties for enhanced vulnerability metrics
 const securityRiskScore = computed(() => {
-    const totalVulns = stats.value.number_of_vulnerabilities || 0;
-    const criticalVulns = stats.value.number_of_critical || 0;
-    const highVulns = stats.value.number_of_high || 0;
+    const totalVulns = stats.value.number_of_vulnerabilities ?? 0;
+    const criticalVulns = stats.value.number_of_critical ?? 0;
+    const highVulns = stats.value.number_of_high ?? 0;
 
     if (totalVulns === 0) return 100;
 
@@ -132,16 +126,16 @@ const securityRiskScore = computed(() => {
 });
 
 const criticalAndHighCount = computed(() => {
-    return (stats.value.number_of_critical || 0) + (stats.value.number_of_high || 0);
+    return (stats.value.number_of_critical ?? 0) + (stats.value.number_of_high ?? 0);
 });
 
 const severityDistribution = computed(() => {
-    const total = stats.value.number_of_vulnerabilities || 1;
+    const total = stats.value.number_of_vulnerabilities ?? 1;
     return {
-        critical: Math.round(((stats.value.number_of_critical || 0) / total) * 100),
-        high: Math.round(((stats.value.number_of_high || 0) / total) * 100),
-        medium: Math.round(((stats.value.number_of_medium || 0) / total) * 100),
-        low: Math.round(((stats.value.number_of_low || 0) / total) * 100)
+        critical: Math.round(((stats.value.number_of_critical ?? 0) / total) * 100),
+        high: Math.round(((stats.value.number_of_high ?? 0) / total) * 100),
+        medium: Math.round(((stats.value.number_of_medium ?? 0) / total) * 100),
+        low: Math.round(((stats.value.number_of_low ?? 0) / total) * 100)
     };
 });
 
@@ -149,17 +143,17 @@ const topOwaspCategories = computed(() => {
     const categories = [
         {
             name: 'A01: Broken Access Control',
-            count: stats.value.number_of_owasp_top_10_2021_a1 || 0
+            count: stats.value.number_of_owasp_top_10_2021_a1 ?? 0
         },
         {
             name: 'A02: Cryptographic Failures',
-            count: stats.value.number_of_owasp_top_10_2021_a2 || 0
+            count: stats.value.number_of_owasp_top_10_2021_a2 ?? 0
         },
-        { name: 'A03: Injection', count: stats.value.number_of_owasp_top_10_2021_a3 || 0 },
-        { name: 'A04: Insecure Design', count: stats.value.number_of_owasp_top_10_2021_a4 || 0 },
+        { name: 'A03: Injection', count: stats.value.number_of_owasp_top_10_2021_a3 ?? 0 },
+        { name: 'A04: Insecure Design', count: stats.value.number_of_owasp_top_10_2021_a4 ?? 0 },
         {
             name: 'A05: Security Misconfiguration',
-            count: stats.value.number_of_owasp_top_10_2021_a5 || 0
+            count: stats.value.number_of_owasp_top_10_2021_a5 ?? 0
         }
     ];
     return categories
@@ -435,9 +429,9 @@ const topOwaspCategories = computed(() => {
                         <div class="text-2xl font-bold text-theme-primary">
                             {{
                                 (
-                                    ((stats.mean_confidentiality_impact || 0) +
-                                        (stats.mean_integrity_impact || 0) +
-                                        (stats.mean_availability_impact || 0)) /
+                                    ((stats.mean_confidentiality_impact ?? 0) +
+                                        (stats.mean_integrity_impact ?? 0) +
+                                        (stats.mean_availability_impact ?? 0)) /
                                     3
                                 ).toFixed(1)
                             }}
@@ -469,7 +463,7 @@ const topOwaspCategories = computed(() => {
                                     Total OWASP Issues
                                 </p>
                                 <p class="text-xs text-gray-500">
-                                    Across {{ topOwaspCategories.length || 0 }} categories
+                                    Across {{ topOwaspCategories.length ?? 0 }} categories
                                 </p>
                             </div>
                             <div class="text-2xl font-bold text-theme-primary">
@@ -498,7 +492,7 @@ const topOwaspCategories = computed(() => {
                                         category.name.split(':')[0]
                                     }}</span>
                                     <p class="text-xs text-gray-600 truncate flex-1">
-                                        {{ category.name.split(':')[1]?.trim() || '' }}
+                                        {{ category.name.split(':')[1]?.trim() ?? '' }}
                                     </p>
                                 </div>
                                 <span

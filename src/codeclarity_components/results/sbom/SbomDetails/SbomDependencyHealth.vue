@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
-import { Icon } from '@iconify/vue';
 import { calculateDateDifference, formatRelativeTime } from '@/utils/dateUtils';
-import type { PropType } from 'vue';
-import { computed } from 'vue';
+import { Icon } from '@iconify/vue';
+import { computed, type PropType } from 'vue';
 
 const props = defineProps({
     dependency: {
@@ -121,7 +120,7 @@ const getHealthStatusDescription = (): string => {
                 </div>
 
                 <!-- Unlicensed Warning -->
-                <div v-if="dependency.license == ''" class="health-issue-card unlicensed">
+                <div v-if="dependency.license === ''" class="health-issue-card unlicensed">
                     <div class="issue-header">
                         <Icon icon="solar:document-text-broken-bold" class="issue-icon" />
                         <span class="issue-title">Unlicensed</span>
@@ -243,7 +242,7 @@ const getHealthStatusDescription = (): string => {
                         <div class="indicator-content">
                             <span class="indicator-title">Licensed</span>
                             <span class="indicator-desc">{{
-                                dependency.license || 'Standard license'
+                                dependency.license ?? 'Standard license'
                             }}</span>
                         </div>
                     </div>
@@ -342,7 +341,7 @@ const getHealthStatusDescription = (): string => {
     }
 
     &.healthy {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
@@ -353,13 +352,13 @@ const getHealthStatusDescription = (): string => {
 .summary-title {
     font-size: 1rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0 0 0.25rem 0;
 }
 
 .summary-description {
     font-size: 0.9rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.4;
 }
@@ -429,7 +428,7 @@ const getHealthStatusDescription = (): string => {
 .issue-title {
     font-weight: 600;
     font-size: 0.95rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     flex: 1;
 }
 
@@ -446,7 +445,7 @@ const getHealthStatusDescription = (): string => {
 
 .issue-description {
     font-size: 0.9rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
     line-height: 1.4;
 }
@@ -463,14 +462,14 @@ const getHealthStatusDescription = (): string => {
 
 .recommendation-icon {
     font-size: 1rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
     margin-top: 0.125rem;
     flex-shrink: 0;
 }
 
 .issue-recommendation span {
     font-size: 0.85rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     line-height: 1.4;
 }
 
@@ -528,20 +527,20 @@ const getHealthStatusDescription = (): string => {
     }
 
     .low & {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
 .mini-severity-count {
     font-weight: 600;
     font-size: 0.875rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .mini-severity-label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     text-transform: uppercase;
     letter-spacing: 0.025em;
 }
@@ -565,20 +564,20 @@ const getHealthStatusDescription = (): string => {
 
 .celebration-icon {
     font-size: 3rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
     margin-bottom: 1rem;
 }
 
 .celebration-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0 0 0.5rem 0;
 }
 
 .celebration-description {
     font-size: 0.95rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.4;
 }
@@ -611,7 +610,7 @@ const getHealthStatusDescription = (): string => {
     }
 
     &.security {
-        border-left: 4px solid theme('colors.theme-primary');
+        border-left: 4px solid var(--color-theme-primary);
     }
 
     &.license {
@@ -636,12 +635,12 @@ const getHealthStatusDescription = (): string => {
 .indicator-title {
     font-weight: 600;
     font-size: 0.95rem;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .indicator-desc {
     font-size: 0.85rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
 }
 
 .health-metrics {
@@ -662,7 +661,7 @@ const getHealthStatusDescription = (): string => {
 
 .metric-icon {
     font-size: 1.25rem;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
     background: rgba(29, 206, 121, 0.1);
     padding: 0.5rem;
     border-radius: 6px;
@@ -677,7 +676,7 @@ const getHealthStatusDescription = (): string => {
 .metric-label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -685,7 +684,7 @@ const getHealthStatusDescription = (): string => {
 .metric-value {
     font-size: 0.9rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
 }
 
 .indicator-icon {
@@ -693,7 +692,7 @@ const getHealthStatusDescription = (): string => {
     flex-shrink: 0;
 
     &.success {
-        color: theme('colors.theme-primary');
+        color: var(--color-theme-primary);
     }
 }
 
@@ -704,7 +703,7 @@ code {
     border-radius: 4px;
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.85em;
-    color: theme('colors.theme-primary');
+    color: var(--color-theme-primary);
     border: 1px solid #e5e7eb;
 }
 

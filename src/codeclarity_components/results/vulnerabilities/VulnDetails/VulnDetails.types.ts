@@ -43,7 +43,7 @@ export interface DependencyInfo {
     keywords: string[];
     version: string;
     package_manager_links: PackageManagerLink[];
-    github_link?: any;
+    github_link?: string | null;
     issues_link?: string;
     homepage?: string;
 }
@@ -53,10 +53,17 @@ export interface PackageManagerLink {
     url: string;
 }
 
+export interface CVSSInfo {
+    base_score: number | null;
+    exploitability_score?: number;
+    impact_score?: number;
+    [key: string]: string | number | null | undefined;
+}
+
 export interface SeverityInfo {
-    cvss_31?: any;
-    cvss_3?: any;
-    cvss_2?: any;
+    cvss_31?: CVSSInfo | null;
+    cvss_3?: CVSSInfo | null;
+    cvss_2?: CVSSInfo | null;
 }
 
 export interface OwaspInfo {
@@ -92,7 +99,7 @@ export class VulnerabilityDetails {
     owasp_top_10!: OwaspInfo | null;
     weaknesses!: WeaknessInfo[];
     patch!: PatchInfo;
-    common_consequences!: { [key: string]: CommonConsequencesInfo[] };
+    common_consequences!: Record<string, CommonConsequencesInfo[]>;
     references!: ReferenceInfo[];
     location!: string[];
     other!: OtherInfo;

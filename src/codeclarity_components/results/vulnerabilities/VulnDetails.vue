@@ -1,36 +1,35 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
-import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
-import { formatDate } from '@/utils/dateUtils';
-import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
-import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
-import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
-import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
-import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
-import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { Icon } from '@iconify/vue';
-import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
-import router from '@/router.ts';
-import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
-import Badge from '@/shadcn/ui/badge/Badge.vue';
-import Button from '@/shadcn/ui/button/Button.vue';
 import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import StatCard from '@/base_components/ui/cards/StatCard.vue';
+import InfoMarkdown from '@/base_components/ui/InfoMarkdown.vue';
+import CenteredModal from '@/base_components/ui/modals/CenteredModal.vue';
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue';
+import { ResultsRepository } from '@/codeclarity_components/results/results.repository';
+import { VulnerabilityDetails } from '@/codeclarity_components/results/vulnerabilities/VulnDetails';
+import router from '@/router.ts';
+import Badge from '@/shadcn/ui/badge/Badge.vue';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
+import { cvssV2_fields_map, cvssV3_fields_map } from '@/utils/cvss';
+import { formatDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import AddToPolicyButton from './components/AddToPolicyButton.vue';
+import VulnDetailsHeader from './VulnDetails/VulnDetailsHeader.vue';
+import VulnDetailsLoader from './VulnDetails/VulnDetailsLoader.vue';
+import VulnerabilitySeverities from './VulnDetails/VulnerabilitySeverities.vue';
 import VulnReferences from './VulnDetails/VulnReferences.vue';
 import VulnSecurityAnalysis from './VulnDetails/VulnSecurityAnalysis.vue';
-import AddToPolicyButton from './components/AddToPolicyButton.vue';
+import VulnSummaryContent from './VulnDetails/VulnSummaryContent.vue';
 
-type Props = {
-    [key: string]: any;
+interface Props {
     showBack?: boolean;
     analysisID: string;
     projectID: string;
     runIndex?: number | null;
-};
+}
 
 const props = withDefaults(defineProps<Props>(), {
     showBack: false,
@@ -44,20 +43,28 @@ const versions_modal_ref: Ref<typeof PositionedModal> = ref(PositionedModal);
 const cvss_field: Ref<string> = ref('');
 const cvss_field_value: Ref<string> = ref('');
 const cvss_field_version: Ref<string> = ref('');
-const cvss_info: Ref<any> = ref({});
-const cvss_field_info_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
+interface CvssInfoField {
+    full_name: string;
+    text: { description: string; value_descriptions: Record<string, string> };
+    values: string[];
+    class: Record<string, string>;
+}
+type CvssInfo = Record<string, CvssInfoField>;
+
+const cvss_info: Ref<CvssInfo> = ref({});
+const cvss_field_info_modal_ref = ref<{ show: () => void; toggle: () => void } | null>(null);
 const active_view: Ref<string> = ref('patches');
 const readme: Ref<string> = ref('');
 const read_me_modal_ref: Ref<typeof CenteredModal> = ref(CenteredModal);
 const chart_version: Ref<string> = ref('');
 
-function toggleReferences() {
-    if (references_limit.value != finding.value.references.length)
+function toggleReferences(): void {
+    if (references_limit.value !== finding.value.references.length)
         references_limit.value = finding.value.references.length;
     else references_limit.value = 8;
 }
 
-function goBack() {
+function goBack(): void {
     router.back();
 }
 
@@ -65,15 +72,25 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-function openModal(data: any) {
+interface CvssModalData {
+    cvss_field: string;
+    cvss_field_value: string;
+    cvss_field_version: string;
+    cvss_info: CvssInfo | object;
+}
+
+function openModal(data: CvssModalData): void {
     cvss_field.value = data.cvss_field;
     cvss_field_value.value = data.cvss_field_value;
     cvss_field_version.value = data.cvss_field_version;
-    cvss_info.value = data.cvss_info;
-    cvss_field_info_modal_ref.value.show();
+    cvss_info.value = data.cvss_info as CvssInfo;
+    const modal = cvss_field_info_modal_ref.value as { show?: () => void } | null;
+    if (modal?.show) {
+        modal.show();
+    }
 }
 
-async function getFinding(projectID: string, analysisID: string) {
+async function getFinding(projectID: string, analysisID: string): Promise<void> {
     const urlParams = new URLSearchParams(window.location.search);
     const finding_id_param = urlParams.get('finding_id');
     let finding_id = '';
@@ -82,7 +99,7 @@ async function getFinding(projectID: string, analysisID: string) {
     } else {
         finding_id = props.analysisID;
     }
-    if (finding_id == '') {
+    if (finding_id === '') {
         return;
     }
     let res: DataResponse<VulnerabilityDetails>;
@@ -104,11 +121,11 @@ async function getFinding(projectID: string, analysisID: string) {
             workspace: '.'
         });
         finding.value = res.data;
-        if (finding.value?.severities?.cvss_31 != null) {
+        if (finding.value?.severities?.cvss_31 !== null) {
             chart_version.value = 'cvss31';
-        } else if (finding.value?.severities?.cvss_3 != null) {
+        } else if (finding.value?.severities?.cvss_3 !== null) {
             chart_version.value = 'cvss3';
-        } else if (finding.value?.severities?.cvss_2 != null) {
+        } else if (finding.value?.severities?.cvss_2 !== null) {
             chart_version.value = 'cvss2';
         }
         render.value = true;
@@ -116,15 +133,24 @@ async function getFinding(projectID: string, analysisID: string) {
         console.error(_err);
     }
 }
-getFinding(props.projectID, props.analysisID);
+void getFinding(props.projectID, props.analysisID);
 
 // --- Stat Card Logic ---
-function getBaseScore(finding: VulnerabilityDetails): number | null {
-    if (finding.severities.cvss_31 && finding.severities.cvss_31.base_score != null) {
+function getBaseScore(finding: VulnerabilityDetails): number | null | undefined {
+    if (
+        finding.severities.cvss_31?.base_score !== null &&
+        finding.severities.cvss_31?.base_score !== undefined
+    ) {
         return finding.severities.cvss_31.base_score;
-    } else if (finding.severities.cvss_3 && finding.severities.cvss_3.base_score != null) {
+    } else if (
+        finding.severities.cvss_3?.base_score !== null &&
+        finding.severities.cvss_3?.base_score !== undefined
+    ) {
         return finding.severities.cvss_3.base_score;
-    } else if (finding.severities.cvss_2 && finding.severities.cvss_2.base_score != null) {
+    } else if (
+        finding.severities.cvss_2?.base_score !== null &&
+        finding.severities.cvss_2?.base_score !== undefined
+    ) {
         return finding.severities.cvss_2.base_score;
     }
     return null;
@@ -428,7 +454,7 @@ function getPackageManagerSubtitleIcon(): string {
                 </div>
             </template>
             <template #buttons>
-                <Button @click="read_me_modal_ref.toggle()"> Close </Button>
+                <Button @click="read_me_modal_ref['toggle']()"> Close </Button>
             </template>
         </CenteredModal>
         <!-- All versions modal -->
@@ -447,7 +473,7 @@ function getPackageManagerSubtitleIcon(): string {
                         :icon="'ic:round-close'"
                         style="cursor: pointer"
                         title="Close modal"
-                        @click="versions_modal_ref.toggle()"
+                        @click="versions_modal_ref['toggle']()"
                         >Close</Icon
                     >
                 </div>
@@ -488,11 +514,11 @@ function getPackageManagerSubtitleIcon(): string {
                                     .versions"
                                 :key="version_obj.version"
                                 :class="{
-                                    affected: version_obj.status == 'affected',
-                                    not_affected: version_obj.status == 'not_affected'
+                                    affected: version_obj.status === 'affected',
+                                    not_affected: version_obj.status === 'not_affected'
                                 }"
                             >
-                                <div v-if="version_obj.status == 'not_affected'">
+                                <div v-if="version_obj.status === 'not_affected'">
                                     <div
                                         style="
                                             display: flex;
@@ -528,11 +554,11 @@ function getPackageManagerSubtitleIcon(): string {
                                     .versions"
                                 :key="version_obj.version"
                                 :class="{
-                                    affected: version_obj.status == 'affected',
-                                    not_affected: version_obj.status == 'not_affected'
+                                    affected: version_obj.status === 'affected',
+                                    not_affected: version_obj.status === 'not_affected'
                                 }"
                             >
-                                <div v-if="version_obj.status == 'affected'">
+                                <div v-if="version_obj.status === 'affected'">
                                     <div
                                         style="
                                             display: flex;
@@ -563,41 +589,44 @@ function getPackageManagerSubtitleIcon(): string {
                 </div>
             </template>
             <template #buttons>
-                <Button variant="outline" @click="versions_modal_ref.toggle()"> Close </Button>
+                <Button variant="outline" @click="versions_modal_ref['toggle']()"> Close </Button>
             </template>
         </PositionedModal>
         <!-- CVSS Details Modal -->
         <CenteredModal ref="cvss_field_info_modal_ref">
             <template #title>
                 <span>CVSS{{ cvss_field_version }} - </span>
-                {{ cvss_info[cvss_field].full_name }}
+                {{ cvss_info[cvss_field]?.full_name }}
             </template>
             <template #subtitle> What does this mean for you? </template>
             <template #content>
                 <div style="max-width: 40vw">
                     <div style="margin-bottom: 20px">
-                        {{ cvss_info[cvss_field].text.description }}
+                        {{ cvss_info[cvss_field]?.text?.description }}
                     </div>
                     <div class="cvss-field-value" style="font-weight: 900">
-                        <div v-for="field_value in cvss_info[cvss_field].values" :key="field_value">
+                        <div
+                            v-for="field_value in cvss_info[cvss_field]?.values ?? []"
+                            :key="field_value"
+                        >
                             <div
-                                v-if="field_value[0] == cvss_field_value"
-                                :class="cvss_info[cvss_field].class[cvss_field_value]"
+                                v-if="field_value[0] === cvss_field_value"
+                                :class="cvss_info[cvss_field]?.class?.[cvss_field_value]"
                             >
                                 {{ field_value }}
                             </div>
-                            <div v-if="field_value[0] != cvss_field_value">
+                            <div v-if="field_value[0] !== cvss_field_value">
                                 {{ field_value }}
                             </div>
                         </div>
                     </div>
                     <div style="margin-top: 20px">
-                        {{ cvss_info[cvss_field].text.value_descriptions[cvss_field_value] }}
+                        {{ cvss_info[cvss_field]?.text?.value_descriptions?.[cvss_field_value] }}
                     </div>
                 </div>
             </template>
             <template #buttons>
-                <Button variant="outline" @click="cvss_field_info_modal_ref.toggle()">
+                <Button variant="outline" @click="cvss_field_info_modal_ref?.toggle?.()">
                     Close
                 </Button>
             </template>
@@ -628,8 +657,8 @@ function getPackageManagerSubtitleIcon(): string {
         box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.05);
         font-weight: 500;
         &:hover {
-            background: theme('colors.theme-primary');
-            border-color: theme('colors.theme-primary');
+            background: var(--color-theme-primary);
+            border-color: var(--color-theme-primary);
             color: white;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px 0 rgb(29 206 121 / 0.2);
@@ -676,7 +705,7 @@ function getPackageManagerSubtitleIcon(): string {
 .breakdown-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin-bottom: 1rem;
 }
 .severity-breakdown {
@@ -702,27 +731,27 @@ function getPackageManagerSubtitleIcon(): string {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         &.critical {
-            border-left: 4px solid theme('colors.severity-critical');
+            border-left: 4px solid var(--color-severity-critical);
             .severity-icon {
-                color: theme('colors.severity-critical');
+                color: var(--color-severity-critical);
             }
         }
         &.high {
-            border-left: 4px solid theme('colors.severity-high');
+            border-left: 4px solid var(--color-severity-high);
             .severity-icon {
-                color: theme('colors.severity-high');
+                color: var(--color-severity-high);
             }
         }
         &.medium {
-            border-left: 4px solid theme('colors.severity-medium');
+            border-left: 4px solid var(--color-severity-medium);
             .severity-icon {
-                color: theme('colors.severity-medium');
+                color: var(--color-severity-medium);
             }
         }
         &.low {
-            border-left: 4px solid theme('colors.severity-low');
+            border-left: 4px solid var(--color-severity-low);
             .severity-icon {
-                color: theme('colors.severity-low');
+                color: var(--color-severity-low);
             }
         }
     }
@@ -733,13 +762,13 @@ function getPackageManagerSubtitleIcon(): string {
     .severity-count {
         font-size: 1.5rem;
         font-weight: 700;
-        color: theme('colors.theme-black');
+        color: var(--color-theme-black);
         margin-bottom: 0.25rem;
     }
     .severity-label {
         font-size: 0.875rem;
         font-weight: 500;
-        color: theme('colors.theme-gray');
+        color: var(--color-theme-gray);
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
@@ -762,7 +791,7 @@ function getPackageManagerSubtitleIcon(): string {
     }
     .more-vulnerabilities {
         font-weight: 500;
-        color: theme('colors.theme-gray');
+        color: var(--color-theme-gray);
         background: #f3f4f6;
         border: 1px solid #d1d5db;
     }

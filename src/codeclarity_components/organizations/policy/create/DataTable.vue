@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="TData, TValue">
-import { valueUpdater } from '@/shadcn/lib/utils';
 import type { License } from '@/codeclarity_components/results/licenses/License';
+import { valueUpdater } from '@/shadcn/lib/utils';
 import Button from '@/shadcn/ui/button/Button.vue';
 import Input from '@/shadcn/ui/input/Input.vue';
 import Table from '@/shadcn/ui/table/Table.vue';
@@ -9,13 +9,14 @@ import TableCell from '@/shadcn/ui/table/TableCell.vue';
 import TableHead from '@/shadcn/ui/table/TableHead.vue';
 import TableHeader from '@/shadcn/ui/table/TableHeader.vue';
 import TableRow from '@/shadcn/ui/table/TableRow.vue';
-import type { ColumnDef, ColumnFiltersState } from '@tanstack/vue-table';
 import {
     FlexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
-    useVueTable
+    useVueTable,
+    type ColumnDef,
+    type ColumnFiltersState
 } from '@tanstack/vue-table';
 import { ref } from 'vue';
 
@@ -24,10 +25,10 @@ const props = defineProps<{
     data: TData[];
 }>();
 
-type CheckboxRootEmits = {
+interface CheckboxRootEmits {
     /** Event handler called when the checked state of the checkbox changes. */
-    'update:rowSelection': [value: Array<string>];
-};
+    'update:rowSelection': [value: string[]];
+}
 const emit = defineEmits<CheckboxRootEmits>();
 
 const rowSelection = ref({});
@@ -45,14 +46,14 @@ const table = useVueTable({
     onColumnFiltersChange: (updaterOrValue) => valueUpdater(updaterOrValue, columnFilters),
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: (updaterOrValue) => {
-        valueUpdater(updaterOrValue, rowSelection);
+        void valueUpdater(updaterOrValue, rowSelection);
 
-        const selectedRows: Array<string> = [];
+        const selectedRows: string[] = [];
         table.getFilteredSelectedRowModel().rows.forEach((row) => {
             selectedRows.push((row.original as License).licenseId);
         });
 
-        emit('update:rowSelection', selectedRows);
+        void emit('update:rowSelection', selectedRows);
     },
     state: {
         get columnFilters() {

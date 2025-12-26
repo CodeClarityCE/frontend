@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue';
 import {
     type TicketSummary,
-    TicketStatus,
+    type TicketStatus,
     TicketPriorityColors,
     TicketPriorityLabels,
     KanbanColumns
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 // Drag and drop state
 let draggedTicketId: string | null = null;
 
-function onDragStart(event: DragEvent, ticketId: string) {
+function onDragStart(event: DragEvent, ticketId: string): void {
     draggedTicketId = ticketId;
     if (event.dataTransfer) {
         event.dataTransfer.effectAllowed = 'move';
@@ -29,23 +29,23 @@ function onDragStart(event: DragEvent, ticketId: string) {
     }
 }
 
-function onDragOver(event: DragEvent) {
+function onDragOver(event: DragEvent): void {
     event.preventDefault();
     if (event.dataTransfer) {
         event.dataTransfer.dropEffect = 'move';
     }
 }
 
-function onDrop(event: DragEvent, newStatus: TicketStatus) {
+function onDrop(event: DragEvent, newStatus: TicketStatus): void {
     event.preventDefault();
     if (draggedTicketId) {
-        emit('updateStatus', draggedTicketId, newStatus);
+        void emit('updateStatus', draggedTicketId, newStatus);
         draggedTicketId = null;
     }
 }
 
 function getColumnCount(status: TicketStatus): number {
-    return props.ticketsByStatus[status]?.length || 0;
+    return props.ticketsByStatus[status]?.length ?? 0;
 }
 </script>
 

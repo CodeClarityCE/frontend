@@ -1,21 +1,24 @@
 <script lang="ts" setup>
+import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
+import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 import type { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { useStateStore } from '@/stores/state';
+import { defineAsyncComponent, type AsyncComponentLoader, type Component } from 'vue';
+import type OAuth2CallbackComponent from './OAuth2Callback.vue';
 
-import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
-import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue';
-import { defineAsyncComponent } from 'vue';
+const loader: AsyncComponentLoader<typeof OAuth2CallbackComponent> = async () =>
+    await import('./OAuth2Callback.vue');
 
-const OAuth2Callback = defineAsyncComponent({
-    loader: () => import('./OAuth2Callback.vue'),
-    loadingComponent: LoadingComponent,
+const OAuth2Callback: Component = defineAsyncComponent({
+    loader,
+    loadingComponent: LoadingComponent as Component,
     // Delay before showing the loading component. Default: 200ms.
     delay: 200,
-    errorComponent: ErrorComponent,
+    errorComponent: ErrorComponent as Component,
     // The error component will be displayed if a timeout is
     // provided and exceeded. Default: Infinity.
     timeout: 3000
-});
+}) as Component;
 
 const state = useStateStore();
 state.$reset();

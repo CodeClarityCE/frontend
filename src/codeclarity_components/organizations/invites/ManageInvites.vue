@@ -1,21 +1,20 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch, type Ref } from 'vue';
+import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
+import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import OrgHeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import router from '@/router';
-import type { Organization } from '../organization.entity';
-import { isMemberRoleGreaterThan, MemberRole } from '../organization.entity';
-import type { Invitation } from './invitation.entity';
-import { OrgRepository } from '../organization.repository';
-import { useAuthStore } from '@/stores/auth';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import Pagination from '@/base_components/utilities/PaginationComponent.vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import { debounce } from '@/utils/searchUtils';
-import OrgInviteItem from './invite/InviteItem.vue';
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
-import SortableTable from '@/base_components/data-display/tables/SortableTable.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { useAuthStore } from '@/stores/auth';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { debounce } from '@/utils/searchUtils';
+import { onMounted, ref, watch, type Ref } from 'vue';
+import { isMemberRoleGreaterThan, MemberRole, type Organization } from '../organization.entity';
+import { OrgRepository } from '../organization.repository';
+import type { Invitation } from './invitation.entity';
+import OrgInviteItem from './invite/InviteItem.vue';
 
 const placeholder = 'Search by invitee email, inviter email, or inviter handle';
 const orgRepository = new OrgRepository();
@@ -53,7 +52,7 @@ watch([currentPage, entriesPerPage], async () => {
     await fetchInvitations(true);
 });
 
-async function fetchInvitations(refresh: boolean = false) {
+async function fetchInvitations(refresh = false): Promise<void> {
     if (!(authStore.getAuthenticated && authStore.getToken)) return;
 
     error.value = false;
@@ -89,10 +88,10 @@ async function fetchInvitations(refresh: boolean = false) {
     }
 }
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterThan(_orgInfo.role, MemberRole.USER)) {
-        router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgs', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -102,27 +101,26 @@ watch([search], async () => {
     }, 250);
 });
 
-async function updateSort(key: any) {
-    if (key == undefined) return;
-    if (key != undefined)
-        if (key == sortKey.value) {
-            // If we select the same column then we reverse the direction
-            sortDirection.value =
-                sortDirection.value == SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
-        } else {
-            // Default direction
-            sortDirection.value = SortDirection.DESC;
-        }
+async function updateSort(key: string | null | undefined): Promise<void> {
+    if (key == null) return;
+    if (key === sortKey.value) {
+        // If we select the same column then we reverse the direction
+        sortDirection.value =
+            sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+    } else {
+        // Default direction
+        sortDirection.value = SortDirection.DESC;
+    }
     sortKey.value = key;
     await fetchInvitations(true);
 }
 
-async function onRefetch() {
+async function onRefetch(): Promise<void> {
     await fetchInvitations(true);
 }
 
 onMounted(() => {
-    fetchInvitations();
+    void fetchInvitations();
 });
 </script>
 <template>
@@ -138,9 +136,9 @@ onMounted(() => {
                 <div class="flex flex-row gap-4 flex-wrap items-stretch org-manage-items">
                     <template
                         v-if="
-                            (!orgInfo.personal && orgInfo.role == MemberRole.OWNER) ||
-                            orgInfo.role == MemberRole.ADMIN ||
-                            orgInfo.role == MemberRole.MODERATOR
+                            (!orgInfo.personal && orgInfo.role === MemberRole.OWNER) ||
+                            orgInfo.role === MemberRole.ADMIN ||
+                            orgInfo.role === MemberRole.MODERATOR
                         "
                     >
                         <RouterLink
@@ -182,14 +180,14 @@ onMounted(() => {
                         >
                             <template #content>
                                 <div
-                                    v-if="totalEntries == 0 && search != ''"
+                                    v-if="totalEntries === 0 && search !== ''"
                                     class="flex flex-row gap-4 justify-center"
                                     style="margin-top: 10px"
                                 >
                                     No invites match your search
                                 </div>
                                 <div
-                                    v-if="totalEntries == 0 && search == ''"
+                                    v-if="totalEntries === 0 && search === ''"
                                     class="flex flex-row gap-4 justify-center"
                                     style="margin-top: 10px"
                                 >

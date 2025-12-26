@@ -7,12 +7,12 @@ import {
     type EmptyPostData,
     type AuthRepoMethodEmptyDeleteRequestOptions
 } from '../../utils/api/BaseRepository';
-import type { CreateAnalysis, UpdateSchedule } from './analysis.http';
 import { CreatedResponse } from '../../utils/api/responses/CreatedResponse';
-import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import type { Analysis } from './analysis.entity';
 import { DataResponse } from '../../utils/api/responses/DataResponse';
 import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
+import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
+import type { Analysis } from './analysis.entity';
+import type { CreateAnalysis, UpdateSchedule } from './analysis.http';
 
 export interface GetAnalysesRequestOptions extends AuthRepoMethodGetRequestOptions {
     orgId: string;
@@ -107,10 +107,10 @@ export class AnalysisRepository extends BaseRepository {
 
     async getAnalysisChartById(
         options: GetAnalysisByIdRequestOptions
-    ): Promise<DataResponse<Array<object>>> {
+    ): Promise<DataResponse<object[]>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/chart`;
 
-        const response = await this.getRequest<DataResponse<Array<object>>>({
+        const response = await this.getRequest<DataResponse<object[]>>({
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -118,7 +118,7 @@ export class AnalysisRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        return Entity.unMarshal<DataResponse<Array<object>>>(response, DataResponse<Array<object>>);
+        return Entity.unMarshal<DataResponse<object[]>>(response, DataResponse<object[]>);
     }
 
     async deleteAnalysis(options: DeleteAnalysisOptions): Promise<NoDataResponse> {
@@ -182,10 +182,12 @@ export class AnalysisRepository extends BaseRepository {
         return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
     }
 
-    async getAnalysisRuns(options: GetAnalysisByIdRequestOptions): Promise<DataResponse<any[]>> {
+    async getAnalysisRuns(
+        options: GetAnalysisByIdRequestOptions
+    ): Promise<DataResponse<Analysis[]>> {
         const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/runs`;
 
-        const response = await this.getRequest<DataResponse<any[]>>({
+        const response = await this.getRequest<DataResponse<Analysis[]>>({
             bearerToken: options.bearerToken,
             url: this.buildUrl(RELATIVE_URL),
             handleBusinessErrors: options.handleBusinessErrors,
@@ -193,6 +195,6 @@ export class AnalysisRepository extends BaseRepository {
             handleOtherErrors: options.handleOtherErrors
         });
 
-        return Entity.unMarshal<DataResponse<any[]>>(response, DataResponse<any[]>);
+        return Entity.unMarshal<DataResponse<Analysis[]>>(response, DataResponse<Analysis[]>);
     }
 }

@@ -31,13 +31,13 @@ export class DependencyDetails {
     name!: string;
     version!: string;
     latest_version!: string;
-    dependencies!: { [key: string]: string };
-    dev_dependencies!: { [key: string]: string };
+    dependencies!: Record<string, string>;
+    dev_dependencies!: Record<string, string>;
     transitive!: boolean;
     source?: Source;
     package_manager!: string;
     license!: string;
-    engines?: { [key: string]: string };
+    engines?: Record<string, string>;
     release_date!: Date;
     lastest_release_date!: Date;
     vulnerabilities!: string[];

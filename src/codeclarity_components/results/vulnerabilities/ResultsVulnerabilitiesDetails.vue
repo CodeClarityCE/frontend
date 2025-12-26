@@ -1,14 +1,14 @@
 <script lang="ts" setup>
+import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import { Project } from '@/codeclarity_components/projects/project.entity';
+import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import type { DataResponse } from '@/utils/api/responses/DataResponse';
 import { onMounted, onUpdated, ref, type Ref, watch } from 'vue';
 import Details from './VulnDetails.vue';
 // Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import type { DataResponse } from '@/utils/api/responses/DataResponse';
-import { ProjectRepository } from '@/codeclarity_components/projects/project.repository';
-import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
 
 const project: Ref<Project> = ref(new Project());
 const analysis: Ref<Analysis> = ref(new Analysis());
@@ -28,14 +28,14 @@ const props = defineProps<{
 
 const only_details = ref(false);
 const active_tab = ref('List');
-const finding: any = ref({});
+const finding = ref<Record<string, unknown>>({});
 
 // VIEW DATA
 const details = ref(false);
 let y_position = 0;
 const reference_click_element = ref('');
 
-function resetView() {
+function resetView(): void {
     finding.value = {};
     details.value = false;
 }
@@ -52,34 +52,34 @@ onUpdated(() => {
     if (mainContainer) mainContainer.scrollTop = 0;
     setTimeout(() => {
         const container = document.getElementsByClassName('main-container')[0];
-        if (y_position != 0 && details.value == false && container)
+        if (y_position !== 0 && details.value === false && container)
             container.scrollTop = y_position;
     }, 50);
 });
 
 watch(active_tab, async (newTab, oldTab) => {
-    if (newTab != oldTab) {
+    if (newTab !== oldTab) {
         y_position = 0;
         reference_click_element.value = '';
     }
 });
 
-async function init() {
+async function init(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
 
     const analysis_id = searchParams.get('analysis_id');
     const project_id = searchParams.get('project_id');
-    if (analysis_id == null || project_id == null) {
+    if (analysis_id === null || project_id === null) {
         throw new Error('Missing analysis_id or project_id');
     }
     analysisID.value = analysis_id;
     projectID.value = project_id;
 
-    getProject(project_id);
-    getAnalysis(project_id, analysis_id);
+    void getProject(project_id);
+    void getAnalysis(project_id, analysis_id);
 }
-async function getProject(projectID: string) {
+async function getProject(projectID: string): Promise<void> {
     let res: DataResponse<Project>;
     try {
         if (userStore.getDefaultOrg == null) {
@@ -111,7 +111,7 @@ async function getProject(projectID: string) {
     }
 }
 
-async function getAnalysis(projectID: string, analysisID: string) {
+async function getAnalysis(projectID: string, analysisID: string): Promise<void> {
     let res: DataResponse<Analysis>;
     try {
         if (userStore.getDefaultOrg == null) {
@@ -144,7 +144,7 @@ async function getAnalysis(projectID: string, analysisID: string) {
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

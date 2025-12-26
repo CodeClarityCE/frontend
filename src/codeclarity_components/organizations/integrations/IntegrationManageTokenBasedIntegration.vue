@@ -1,20 +1,22 @@
 <script lang="ts" setup>
-import { type AccessTokenBasedIntegration } from '@/codeclarity_components/organizations/integrations/Integrations';
-import router from '@/router';
-import { Icon } from '@iconify/vue';
-import { ref, type Ref } from 'vue';
-import { formatDate, formatRelativeTime, getDaysUntilExpiry } from '@/utils/dateUtils';
-import FaqBox from '@/base_components/layout/FaqBox.vue';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { IntegrationProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import type { RouteLocationRaw } from 'vue-router';
 import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import Button from '@/shadcn/ui/button/Button.vue';
+import FaqBox from '@/base_components/layout/FaqBox.vue';
+import {
+    type AccessTokenBasedIntegration,
+    type IntegrationProvider
+} from '@/codeclarity_components/organizations/integrations/Integrations';
+import router from '@/router';
 import { Alert, AlertDescription } from '@/shadcn/ui/alert';
 import { Badge } from '@/shadcn/ui/badge';
+import Button from '@/shadcn/ui/button/Button.vue';
+import { APIErrors } from '@/utils/api/ApiErrors';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { formatDate, formatRelativeTime, getDaysUntilExpiry } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
+import type { RouteLocationRaw } from 'vue-router';
 
 // Props
 const props = defineProps<{
@@ -44,8 +46,8 @@ const EXPIRES_IN_DAYS_RISK = 14;
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref('');
 
-function isAtRisk() {
-    if (props.integration && props.integration.expiry_date)
+function isAtRisk(): boolean {
+    if (props.integration?.expiry_date)
         return getDaysUntilExpiry(props.integration.expiry_date) <= EXPIRES_IN_DAYS_RISK;
     else return false;
 }
@@ -68,10 +70,10 @@ const emit = defineEmits<{
                         <div class="flex flex-col gap-2">
                             <div>We failed to retrieve information on the integration</div>
                             <div v-if="errorCode" style="font-size: 0.7em">
-                                <div v-if="errorCode == APIErrors.EntityNotFound">
+                                <div v-if="errorCode === APIErrors.EntityNotFound">
                                     This integration does not exist.
                                 </div>
-                                <div v-if="errorCode == APIErrors.NotAuthorized">
+                                <div v-if="errorCode === APIErrors.NotAuthorized">
                                     You do not have the correct permissions to view this page.
                                 </div>
                                 <div v-else>
@@ -88,7 +90,7 @@ const emit = defineEmits<{
                         </div>
                         <div class="flex flex-row gap-2 items-center flex-wrap">
                             <Button
-                                v-if="errorCode != APIErrors.NotAuthorized"
+                                v-if="errorCode !== APIErrors.NotAuthorized"
                                 @click="emit('refresh')"
                             >
                                 Try again
@@ -152,21 +154,21 @@ const emit = defineEmits<{
                         <div class="flex flex-row gap-1 items-center">
                             <div>Status:</div>
                             <div
-                                v-if="integration.invalid == false && isAtRisk()"
+                                v-if="integration.invalid === false && isAtRisk()"
                                 class="general-bubble general-bubble-slim general-bubble-orange"
                                 title="Integration token is about to expire. Please use the action 'Update/Replace integration token'."
                             >
                                 At Risk
                             </div>
                             <div
-                                v-else-if="integration.invalid == true"
+                                v-else-if="integration.invalid === true"
                                 class="general-bubble general-bubble-slim general-bubble-red"
                                 title="Integration token expired or permissions have been modified."
                             >
                                 Unhealthy
                             </div>
                             <div
-                                v-else-if="integration.invalid == false"
+                                v-else-if="integration.invalid === false"
                                 class="general-bubble general-bubble-slim general-bubble-green"
                                 title="Integration token is healthy."
                             >

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Imports
 import SearchBar from '@/base_components/filters/SearchBar.vue';
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
+import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
 import { useProjectsMainStore } from '@/stores/StateStore';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
 import { storeToRefs } from 'pinia';
 
 // State

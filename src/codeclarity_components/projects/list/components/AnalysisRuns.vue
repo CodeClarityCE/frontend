@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Icon } from '@iconify/vue';
-import { formatDate } from '@/utils/dateUtils';
-import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
 import type { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { AnalysisRepository } from '@/codeclarity_components/analyses/analysis.repository';
+import router from '@/router';
 import { Button } from '@/shadcn/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shadcn/ui/dialog';
 import { Skeleton } from '@/shadcn/ui/skeleton';
-import router from '@/router';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { formatDate } from '@/utils/dateUtils';
+import { Icon } from '@iconify/vue';
+import { ref, onMounted } from 'vue';
 
 const props = defineProps({
     analysis: {
@@ -22,9 +22,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits<{
-    (e: 'close'): void;
-}>();
+const emit = defineEmits<(e: 'close') => void>();
 
 // Repositories
 const analysisRepository = new AnalysisRepository();
@@ -35,22 +33,23 @@ const userStore = useUserStore();
 
 // State
 const loading = ref(true);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const runs = ref<any[]>([]);
 const selectedRun = ref<number>(0);
 
 // Methods
-async function fetchAnalysisRuns() {
+async function fetchAnalysisRuns(): Promise<void> {
     if (!userStore.getUser?.default_org?.id) return;
 
     loading.value = true;
     try {
         const response = await analysisRepository.getAnalysisRuns({
-            orgId: userStore.getUser!.default_org.id,
+            orgId: userStore.getUser.default_org.id,
             projectId: props.projectID,
             analysisId: props.analysis.id,
             bearerToken: authStore.getToken!
         });
-        runs.value = response.data || [];
+        runs.value = response.data ?? [];
     } catch (error) {
         console.error('Failed to fetch analysis runs:', error);
     } finally {
@@ -58,11 +57,11 @@ async function fetchAnalysisRuns() {
     }
 }
 
-function viewRunResults(runIndex: number) {
+function viewRunResults(runIndex: number): void {
     selectedRun.value = runIndex;
     // For now, navigate to the regular results view
     // In the future, we can add a run_index parameter to filter specific run results
-    router.push({
+    void router.push({
         name: 'results',
         query: {
             analysis_id: props.analysis.id,
@@ -70,11 +69,11 @@ function viewRunResults(runIndex: number) {
             run_index: runIndex
         }
     });
-    emit('close');
+    void emit('close');
 }
 
 onMounted(() => {
-    fetchAnalysisRuns();
+    void fetchAnalysisRuns();
 });
 </script>
 

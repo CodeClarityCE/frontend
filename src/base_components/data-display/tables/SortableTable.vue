@@ -18,13 +18,13 @@ const props = defineProps<{
 const sortKey = defineModel<string>('sortKey', { default: '' });
 const sortDirection = defineModel<SortDirection>('sortDirection', { default: SortDirection.DESC });
 
-async function updateSort(key: string | null) {
+async function updateSort(key: string | null): Promise<void> {
     if (!key) return;
     sortKey.value = key;
-    if (key == sortKey.value) {
+    if (key === sortKey.value) {
         // If we select the same column then we reverse the direction
         sortDirection.value =
-            sortDirection.value == SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
+            sortDirection.value === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC;
     } else {
         // Default direction
         sortDirection.value = SortDirection.DESC;
@@ -38,7 +38,7 @@ async function updateSort(key: string | null) {
             :key="index"
             class="header header-clickable"
             :class="{
-                'header-sortable-active': header.key == sortKey
+                'header-sortable-active': header.key === sortKey
             }"
             @click="updateSort(header.key)"
         >
@@ -46,11 +46,11 @@ async function updateSort(key: string | null) {
                 <div>
                     {{ header.label }}
                 </div>
-                <div v-if="header.key != null">
+                <div v-if="header.key !== null">
                     <span
                         :class="
-                            header.key != sortKey ||
-                            (header.key == sortKey && sortDirection == SortDirection.ASC)
+                            header.key !== sortKey ||
+                            (header.key === sortKey && sortDirection === SortDirection.ASC)
                                 ? 'w-full'
                                 : 'w-10'
                         "
@@ -59,8 +59,8 @@ async function updateSort(key: string | null) {
                     </span>
                     <span
                         :class="
-                            header.key != sortKey ||
-                            (header.key == sortKey && sortDirection == SortDirection.DESC)
+                            header.key !== sortKey ||
+                            (header.key === sortKey && sortDirection === SortDirection.DESC)
                                 ? 'w-full'
                                 : 'w-10'
                         "

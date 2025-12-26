@@ -1,10 +1,10 @@
-import type { ColumnDef } from '@tanstack/vue-table';
-import type { LicensePolicy } from '../license_policy.entity';
-import { Checkbox } from '@/shadcn/ui/checkbox';
 import { Badge } from '@/shadcn/ui/badge';
 import Button from '@/shadcn/ui/button/Button.vue';
+import { Checkbox } from '@/shadcn/ui/checkbox';
 import { Icon } from '@iconify/vue';
+import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
+import { LicensePolicyType, type LicensePolicy } from '../license_policy.entity';
 
 export const columns: ColumnDef<LicensePolicy>[] = [
     {
@@ -53,14 +53,14 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'description',
         header: 'Description',
         cell: ({ row }) => {
-            const description = row.getValue('description') as string;
+            const description = row.original.description;
             return h(
                 'div',
                 {
                     class: 'max-w-xs text-gray-600 truncate',
-                    title: description
+                    title: description ?? 'No description'
                 },
-                description || 'No description'
+                description ?? 'No description'
             );
         }
     },
@@ -68,8 +68,8 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'policy_type',
         header: 'Type',
         cell: ({ row }) => {
-            const type = row.getValue('policy_type') as string;
-            const isWhitelist = type === 'WHITELIST';
+            const type = row.original.policy_type;
+            const isWhitelist = type === LicensePolicyType.WHITELIST;
             return h(
                 Badge,
                 {
@@ -92,15 +92,15 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'content',
         header: 'Licenses',
         cell: ({ row }) => {
-            const licenses = row.getValue('content') as string[];
-            const count = licenses?.length || 0;
+            const licenses = row.original.content;
+            const count = licenses?.length ?? 0;
             return h('div', { class: 'flex items-center gap-2' }, [
                 h(
                     Badge,
                     {
                         variant: 'secondary'
                     },
-                    count.toString()
+                    String(count)
                 ),
                 h('span', { class: 'text-sm text-gray-600' }, count === 1 ? 'license' : 'licenses')
             ]);
@@ -110,15 +110,15 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_by',
         header: 'Created By',
         cell: ({ row }) => {
-            const createdBy = row.getValue('created_by') as string;
-            return h('div', { class: 'text-sm text-gray-600' }, createdBy || 'Unknown');
+            const createdBy = row.original.created_by;
+            return h('div', { class: 'text-sm text-gray-600' }, createdBy ?? 'Unknown');
         }
     },
     {
         accessorKey: 'created_on',
         header: 'Created On',
         cell: ({ row }) => {
-            const date = row.getValue('created_on') as string;
+            const date = row.original.created_on;
             if (!date) return h('span', { class: 'text-gray-400' }, 'Unknown');
 
             return h(
@@ -146,7 +146,10 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                         size: 'sm',
                         onClick: () => {
                             // Emit edit event through table meta
-                            (table.options.meta as any)?.onEdit?.(policy);
+                            const meta = table.options.meta as
+                                | { onEdit?: (policy: LicensePolicy) => void }
+                                | undefined;
+                            meta?.onEdit?.(policy);
                         }
                     },
                     [h(Icon, { icon: 'solar:pen-bold', class: 'h-4 w-4' })]
@@ -158,7 +161,10 @@ export const columns: ColumnDef<LicensePolicy>[] = [
                         size: 'sm',
                         onClick: () => {
                             // Emit delete event through table meta
-                            (table.options.meta as any)?.onDelete?.(policy);
+                            const meta = table.options.meta as
+                                | { onDelete?: (policy: LicensePolicy) => void }
+                                | undefined;
+                            meta?.onDelete?.(policy);
                         }
                     },
                     [

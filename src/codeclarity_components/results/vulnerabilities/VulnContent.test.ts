@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import VulnContent from './VulnContent.vue';
 
 // Mock stores
@@ -484,9 +484,9 @@ describe('VulnContent', () => {
 
         // Check the computed calculation matches our expectation
         const actualOverall = (
-            ((wrapper.vm.stats.mean_confidentiality_impact || 0) +
-                (wrapper.vm.stats.mean_integrity_impact || 0) +
-                (wrapper.vm.stats.mean_availability_impact || 0)) /
+            ((wrapper.vm.stats.mean_confidentiality_impact ?? 0) +
+                (wrapper.vm.stats.mean_integrity_impact ?? 0) +
+                (wrapper.vm.stats.mean_availability_impact ?? 0)) /
             3
         ).toFixed(1);
 

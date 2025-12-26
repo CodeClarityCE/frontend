@@ -1,43 +1,44 @@
 <script lang="ts" setup>
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import {
     isMemberRoleGreaterOrEqualTo,
     MemberRole,
-    Organization
+    type Organization
 } from '@/codeclarity_components/organizations/organization.entity';
-import router from '@/router';
-import { onBeforeMount, ref, type Ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import { z } from 'zod';
-import { storeToRefs } from 'pinia';
-import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
-import { LicenseRepository } from '@/codeclarity_components/results/licenses/LicenseRepository';
 import { LicensePolicyType } from '@/codeclarity_components/organizations/policy/license_policy.entity';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { LicensePolicyRepository } from '@/codeclarity_components/organizations/policy/license_policy.repository';
+import HeaderItem from '@/codeclarity_components/organizations/subcomponents/HeaderItem.vue';
 import type { License } from '@/codeclarity_components/results/licenses/License';
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
+import { LicenseRepository } from '@/codeclarity_components/results/licenses/LicenseRepository';
+import router from '@/router';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
+import { Badge } from '@/shadcn/ui/badge';
 import Button from '@/shadcn/ui/button/Button.vue';
-import { Icon } from '@iconify/vue';
+import Checkbox from '@/shadcn/ui/checkbox/Checkbox.vue';
+import { FormField } from '@/shadcn/ui/form';
+import FormControl from '@/shadcn/ui/form/FormControl.vue';
 import FormItem from '@/shadcn/ui/form/FormItem.vue';
 import FormLabel from '@/shadcn/ui/form/FormLabel.vue';
-import FormControl from '@/shadcn/ui/form/FormControl.vue';
 import FormMessage from '@/shadcn/ui/form/FormMessage.vue';
 import Input from '@/shadcn/ui/input/Input.vue';
-import { FormField } from '@/shadcn/ui/form';
 import Select from '@/shadcn/ui/select/Select.vue';
-import SelectTrigger from '@/shadcn/ui/select/SelectTrigger.vue';
-import SelectValue from '@/shadcn/ui/select/SelectValue.vue';
 import SelectContent from '@/shadcn/ui/select/SelectContent.vue';
 import SelectGroup from '@/shadcn/ui/select/SelectGroup.vue';
 import SelectItem from '@/shadcn/ui/select/SelectItem.vue';
-import Checkbox from '@/shadcn/ui/checkbox/Checkbox.vue';
-import { Badge } from '@/shadcn/ui/badge';
+import SelectTrigger from '@/shadcn/ui/select/SelectTrigger.vue';
+import SelectValue from '@/shadcn/ui/select/SelectValue.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { filterUndefined } from '@/utils/form/filterUndefined';
+import { Icon } from '@iconify/vue';
+import { toTypedSchema } from '@vee-validate/zod';
+import { storeToRefs } from 'pinia';
+import { useForm } from 'vee-validate';
+import { onBeforeMount, ref, type Ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { z } from 'zod';
 
 const orgId: Ref<string> = ref('');
 const orgInfo: Ref<Organization | undefined> = ref();
@@ -53,7 +54,7 @@ const authStore = useAuthStore();
 const { defaultOrg } = storeToRefs(userStore);
 
 // Form Data
-const choices: Ref<Array<License>> = ref([]);
+const choices: Ref<License[]> = ref([]);
 const policy_id: Ref<string> = ref('');
 
 const error: Ref<boolean> = ref(false);
@@ -77,10 +78,10 @@ const formSchema = toTypedSchema(
     })
 );
 
-function setOrgInfo(_orgInfo: Organization) {
+function setOrgInfo(_orgInfo: Organization): void {
     orgInfo.value = _orgInfo;
     if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-        router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
+        void router.push({ name: 'orgManage', params: { page: '', orgId: _orgInfo.id } });
     }
 }
 
@@ -96,7 +97,7 @@ const { handleSubmit, values } = useForm({
     }
 });
 
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values): Promise<void> => {
     try {
         await licensePolicyRepository.updatePolicy({
             orgId: defaultOrg!.value!.id,
@@ -120,7 +121,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
 });
 
-async function fetchLicenses() {
+async function fetchLicenses(): Promise<void> {
     try {
         const resp = await licenseRepository.getAllLicenses({
             bearerToken: authStore.getToken ?? ''
@@ -134,7 +135,7 @@ async function fetchLicenses() {
     }
 }
 
-async function init() {
+async function init(): Promise<void> {
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
     policy_id.value = searchParams.get('policyId') ?? '';
@@ -146,7 +147,7 @@ async function init() {
         router.back();
     }
 
-    if (typeof _orgId == 'string') {
+    if (typeof _orgId === 'string') {
         orgId.value = _orgId;
     } else {
         router.back();
@@ -223,7 +224,7 @@ onBeforeMount(async () => {
                                     <FormControl>
                                         <Input
                                             placeholder="Enter policy name..."
-                                            v-bind="componentField"
+                                            v-bind="filterUndefined(componentField)"
                                             class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
                                         />
                                     </FormControl>
@@ -243,7 +244,7 @@ onBeforeMount(async () => {
                                     <FormControl>
                                         <Input
                                             placeholder="Enter description..."
-                                            v-bind="componentField"
+                                            v-bind="filterUndefined(componentField)"
                                             class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
                                         />
                                     </FormControl>
@@ -261,7 +262,7 @@ onBeforeMount(async () => {
                                         Policy Type
                                         <span class="text-red-500">*</span>
                                     </FormLabel>
-                                    <Select v-bind="componentField">
+                                    <Select v-bind="filterUndefined(componentField)">
                                         <FormControl>
                                             <SelectTrigger
                                                 class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
@@ -322,7 +323,7 @@ onBeforeMount(async () => {
                                             {{ values.licenses.length }} selected
                                         </Badge>
                                     </FormLabel>
-                                    <Select v-bind="componentField" multiple>
+                                    <Select v-bind="filterUndefined(componentField)" multiple>
                                         <FormControl>
                                             <SelectTrigger
                                                 class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"

@@ -156,11 +156,11 @@ export class TestAnalyticsCollector {
     const averageDuration = totalDuration / totalTests;
     
     const sortedByDuration = [...suiteMetrics].sort((a, b) => b.duration - a.duration);
-    const slowestTest = sortedByDuration[0]?.testName || '';
-    const fastestTest = sortedByDuration[sortedByDuration.length - 1]?.testName || '';
+    const slowestTest = sortedByDuration[0]?.testName ?? '';
+    const fastestTest = sortedByDuration[sortedByDuration.length - 1]?.testName ?? '';
     
     const memoryUsages = suiteMetrics
-      .map(m => m.memoryUsage?.usedJSHeapSize || 0)
+      .map(m => m.memoryUsage?.usedJSHeapSize ?? 0)
       .filter(u => u > 0);
     
     const flakyTests = this.getFlakyTestsForSuite(suiteName);
@@ -218,8 +218,8 @@ export class TestAnalyticsCollector {
     }));
     
     const sortedSuites = suiteAnalytics.sort((a, b) => b.analytics.averageDuration - a.analytics.averageDuration);
-    const slowestSuite = sortedSuites[0]?.name || '';
-    const fastestSuite = sortedSuites[sortedSuites.length - 1]?.name || '';
+    const slowestSuite = sortedSuites[0]?.name ?? '';
+    const fastestSuite = sortedSuites[sortedSuites.length - 1]?.name ?? '';
     
     // Flaky test ranking
     const mostFlakyTests = Array.from(this.flakyTestHistory.values())
@@ -253,13 +253,13 @@ export class TestAnalyticsCollector {
   /**
    * Identify frequently failing tests
    */
-  getFailurePatterns(): Array<{
+  getFailurePatterns(): {
     testName: string;
     suiteName: string;
     failureCount: number;
     errorPatterns: string[];
     lastFailure: Date;
-  }> {
+  }[] {
     const failures = this.metrics.filter(m => m.status === 'failed');
     const grouped = new Map<string, TestMetrics[]>();
     
@@ -276,7 +276,7 @@ export class TestAnalyticsCollector {
         const parts = key.split(':');
         const suiteName = parts[0] ?? '';
         const testName = parts[1] ?? '';
-        const errorPatterns = [...new Set(metrics.map(m => m.error || '').filter(e => e))];
+        const errorPatterns = [...new Set(metrics.map(m => m.error ?? '').filter(e => e))];
         const lastFailure = new Date(Math.max(...metrics.map(m => m.timestamp)));
 
         return {
@@ -321,9 +321,9 @@ export class TestAnalyticsCollector {
       const successRate = (passed / totalTests) * 100;
       const averageDuration = dayMetrics.reduce((sum, m) => sum + m.duration, 0) / totalTests;
       const memoryUsage = dayMetrics
-        .map(m => m.memoryUsage?.usedJSHeapSize || 0)
+        .map(m => m.memoryUsage?.usedJSHeapSize ?? 0)
         .reduce((sum, u) => sum + u, 0) / totalTests;
-      
+
       trends.push({
         date: new Date(dayStart).toISOString().split('T')[0] ?? '',
         metrics: {
@@ -420,7 +420,7 @@ export class TestAnalyticsCollector {
     error?: string
   ): void {
     const key = `${suiteName}:${testName}`;
-    
+
     if (!this.flakyTestHistory.has(key)) {
       this.flakyTestHistory.set(key, {
         testName,
@@ -433,41 +433,42 @@ export class TestAnalyticsCollector {
         errorPatterns: []
       });
     }
-    
+
     const data = this.flakyTestHistory.get(key)!;
     data.totalRuns++;
-    
+
     if (status === 'failed') {
       data.failures++;
       data.lastFailure = Date.now();
-      
+
       if (error && !data.errorPatterns.includes(error)) {
         data.errorPatterns.push(error);
       }
     }
-    
+
     data.failureRate = (data.failures / data.totalRuns) * 100;
   }
 
   private getFlakyTestsForSuite(suiteName: string): string[] {
     return Array.from(this.flakyTestHistory.values())
-      .filter(data => data.suiteName === suiteName && data.failureRate > 10)
-      .map(data => data.testName);
+      .filter((data): boolean => data.suiteName === suiteName && data.failureRate > 10)
+      .map((data): string => data.testName);
   }
 
-  private generateTrendData(): Array<{
+  private generateTrendData(): {
     date: string;
     successRate: number;
     averageDuration: number;
     testCount: number;
-  }> {
+  }[] {
     // Generate mock trend data - in real implementation, would use historical data
     return [];
   }
 
   private getMemoryUsage(): MemoryInfo | undefined {
-    if (typeof window !== 'undefined' && (window.performance as any).memory) {
-      return (window.performance as any).memory;
+    if (typeof window !== 'undefined') {
+      const perfWithMemory = window.performance as unknown as { memory?: MemoryInfo };
+      return perfWithMemory.memory;
     }
     return undefined;
   }
@@ -477,9 +478,12 @@ export class TestAnalyticsCollector {
       try {
         const stored = localStorage.getItem('test-analytics-data');
         if (stored) {
-          const data = JSON.parse(stored);
-          this.metrics = data.metrics || [];
-          this.flakyTestHistory = new Map(data.flakyTests || []);
+          const data = JSON.parse(stored) as {
+            metrics?: TestMetrics[];
+            flakyTests?: [string, FlakyTestData][];
+          };
+          this.metrics = data.metrics ?? [];
+          this.flakyTestHistory = new Map(data.flakyTests ?? []);
         }
       } catch (error) {
         console.warn('Failed to load persisted analytics data:', error);
@@ -513,25 +517,40 @@ export const testAnalytics = new TestAnalyticsCollector(true);
 export class AnalyticsReporter {
   constructor(private collector: TestAnalyticsCollector) {}
 
-  onSuiteStart(suite: any): void {
+  onSuiteStart(suite: { name: string }): void {
     this.collector.startSuite(suite.name);
   }
 
-  onTestStart(test: any): void {
-    this.collector.startTest(test.name, test.suite?.name || 'unknown');
+  onTestStart(test: { name: string; suite?: { name: string } }): void {
+    this.collector.startTest(test.name, test.suite?.name ?? 'unknown');
   }
 
-  onTestFinished(test: any): void {
-    const status = test.passed ? 'passed' : test.skipped ? 'skipped' : 'failed';
-    const error = test.error?.message || test.error?.stack;
+  onTestFinished(test: {
+    name: string;
+    suite?: { name: string };
+    file?: string;
+    passed?: boolean;
+    skipped?: boolean;
+    error?: { message?: string; stack?: string };
+    retryCount?: number;
+  }): void {
+    let status: 'passed' | 'failed' | 'skipped';
+    if (test.passed) {
+      status = 'passed';
+    } else if (test.skipped) {
+      status = 'skipped';
+    } else {
+      status = 'failed';
+    }
+    const error = test.error?.message ?? test.error?.stack;
     
     this.collector.endTest(
       test.name,
-      test.suite?.name || 'unknown',
-      test.file || '',
+      test.suite?.name ?? 'unknown',
+      test.file ?? '',
       status,
       error,
-      test.retryCount || 0
+      test.retryCount ?? 0
     );
   }
 }
@@ -558,7 +577,7 @@ export class CIAnalyticsIntegration {
         xml += `    <testcase name="${this.escapeXml(test.testName)}" classname="${this.escapeXml(suiteName)}" time="${time}">`;
         
         if (test.status === 'failed') {
-          xml += `\n      <failure message="${this.escapeXml(test.error || 'Test failed')}">${this.escapeXml(test.error || '')}</failure>\n    `;
+          xml += `\n      <failure message="${this.escapeXml(test.error ?? 'Test failed')}">${this.escapeXml(test.error ?? '')}</failure>\n    `;
         } else if (test.status === 'skipped') {
           xml += '\n      <skipped/>\n    ';
         }
@@ -574,7 +593,14 @@ export class CIAnalyticsIntegration {
   }
 
   static generateSlackReport(analytics: ReturnType<TestAnalyticsCollector['getOverallAnalytics']>): object {
-    const color = analytics.successRate > 95 ? 'good' : analytics.successRate > 80 ? 'warning' : 'danger';
+    let color: string;
+    if (analytics.successRate > 95) {
+      color = 'good';
+    } else if (analytics.successRate > 80) {
+      color = 'warning';
+    } else {
+      color = 'danger';
+    }
     
     return {
       attachments: [
@@ -612,14 +638,14 @@ export class CIAnalyticsIntegration {
 
   private static groupBySuite(metrics: TestMetrics[]): Map<string, TestMetrics[]> {
     const suites = new Map<string, TestMetrics[]>();
-    
+
     for (const metric of metrics) {
       if (!suites.has(metric.suiteName)) {
         suites.set(metric.suiteName, []);
       }
       suites.get(metric.suiteName)!.push(metric);
     }
-    
+
     return suites;
   }
 

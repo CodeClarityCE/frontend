@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { ResultsRepository } from '../results.repository';
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ref, type Ref } from 'vue';
-import { Result } from '../result.entity';
+import { type Analysis } from '@/codeclarity_components/analyses/analysis.entity';
+import { type Project } from '@/codeclarity_components/projects/project.entity';
 import Alert from '@/shadcn/ui/alert/Alert.vue';
-import { Rocket } from 'lucide-vue-next';
-import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
 import AlertDescription from '@/shadcn/ui/alert/AlertDescription.vue';
-import type { CodeQLResult } from './codeql.entity';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import AlertTitle from '@/shadcn/ui/alert/AlertTitle.vue';
 import { Badge } from '@/shadcn/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shadcn/ui/card';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { Rocket } from 'lucide-vue-next';
+import { ref, type Ref } from 'vue';
 import ResultTimestamp from '../components/ResultTimestamp.vue';
+import { Result } from '../result.entity';
+import { ResultsRepository } from '../results.repository';
+import type { CodeQLResult } from './codeql.entity';
 
 const props = defineProps<{
     analysis: Analysis;
@@ -29,9 +29,9 @@ const authStore = useAuthStore();
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
 const result: Ref<Result> = ref(new Result());
-const codeql_results: Ref<Array<CodeQLResult>> = ref([]);
+const codeql_results: Ref<CodeQLResult[]> = ref([]);
 
-async function init() {
+async function init(): Promise<void> {
     try {
         const res = await resultsRepository.getResultByType({
             orgId: userStore.getDefaultOrg?.id ?? '',
@@ -42,13 +42,18 @@ async function init() {
             runIndex: props.runIndex
         });
         result.value = res.data;
-        codeql_results.value = res.data.result.workspaces['.'].results as Array<CodeQLResult>;
+        const resultData = res.data.result as {
+            workspaces: Record<string, { results?: CodeQLResult[] }>;
+        };
+        const workspaces = resultData.workspaces;
+        const workspace = workspaces['.'];
+        codeql_results.value = workspace?.results ?? [];
     } catch (e) {
         console.error(e);
     }
 }
 
-init();
+void init();
 </script>
 
 <template>

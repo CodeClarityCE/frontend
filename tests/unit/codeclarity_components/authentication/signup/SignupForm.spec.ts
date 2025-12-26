@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import SignupForm from '@/codeclarity_components/authentication/signup/SignupForm.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock stores
 const mockAuthStore = {
@@ -72,7 +72,7 @@ describe('SignupForm.vue', () => {
         stubs: {
           RouterLink: {
             name: 'RouterLink',
-            template: '<a :href="to.name || to"><slot /></a>',
+            template: '<a :href="to.name ?? to"><slot /></a>',
             props: ['to']
           },
           // Stub all form components to avoid complex validation logic

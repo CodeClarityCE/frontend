@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
 import VulnDetailsLoader from './VulnDetailsLoader.vue';
 
 // Mock child components
@@ -117,8 +117,7 @@ describe('VulnDetailsLoader.vue', () => {
                     const element = loader.element as HTMLElement;
                     // Either the loader itself or its parent should have margin-top
                     const hasMargin =
-                        element.style.marginTop ||
-                        (element.parentElement as HTMLElement | null)?.style.marginTop;
+                        element.style.marginTop || element.parentElement?.style.marginTop;
                     const dimensions = loader.props('dimensions');
                     if (dimensions?.height === '300px' || dimensions?.height === '100px') {
                         expect(hasMargin).toBeTruthy();

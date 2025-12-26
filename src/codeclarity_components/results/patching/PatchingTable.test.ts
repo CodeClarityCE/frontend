@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
+import { PatchType } from '@/codeclarity_components/results/patching/Patching';
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PatchingTable from './PatchingTable.vue';
 // Mock stores before importing
 vi.mock('@/stores/user', () => ({
@@ -14,8 +16,6 @@ vi.mock('@/stores/auth', () => ({
         getToken: 'mock-token'
     }))
 }));
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions';
-import { PatchType } from '@/codeclarity_components/results/patching/Patching';
 
 // Mock child components
 vi.mock('@/base_components/filters/SearchBar.vue', () => ({
@@ -41,7 +41,7 @@ vi.mock('./patch/PatchComponent.vue', () => ({
     default: {
         name: 'PatchComponent',
         template:
-            '<div data-testid="patch-component" :data-patch-type="type">{{ patch.name || name }}</div>',
+            '<div data-testid="patch-component" :data-patch-type="type">{{ patch.name ?? name }}</div>',
         props: ['patch', 'name', 'type']
     }
 }));

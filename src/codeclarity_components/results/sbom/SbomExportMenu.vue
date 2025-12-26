@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue';
 import { Button } from '@/shadcn/ui/button';
 import {
     DropdownMenu,
@@ -9,8 +8,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/shadcn/ui/dropdown-menu';
-import { ref } from 'vue';
-import type { Ref } from 'vue';
+import { Icon } from '@iconify/vue';
+import { ref, type Ref } from 'vue';
 
 const emit = defineEmits<{
     export: [format: 'csv' | 'json' | 'cyclonedx' | 'html'];
@@ -50,17 +49,17 @@ const exportFormats = [
     }
 ] as const;
 
-function handleExport(format: 'csv' | 'json' | 'cyclonedx' | 'html') {
+function handleExport(format: 'csv' | 'json' | 'cyclonedx' | 'html'): void {
     isExporting.value = true;
     exportProgress.value = 'Preparing export...';
-    emit('export', format);
+    void emit('export', format);
 }
 
-function setExportProgress(progress: string) {
+function setExportProgress(progress: string): void {
     exportProgress.value = progress;
 }
 
-function resetExportState() {
+function resetExportState(): void {
     isExporting.value = false;
     exportProgress.value = '';
 }

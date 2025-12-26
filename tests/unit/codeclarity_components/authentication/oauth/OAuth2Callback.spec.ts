@@ -1,15 +1,15 @@
 // Mock reflect-metadata for TypeScript decorators
-global.Reflect = global.Reflect || {};
-global.Reflect.getMetadata = global.Reflect.getMetadata || vi.fn();
+global.Reflect = global.Reflect ?? {};
+global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
-import { defineComponent, nextTick } from 'vue';
 import OAuth2Callback from '@/codeclarity_components/authentication/oauth/OAuth2Callback.vue';
-import router from '@/router';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import router from '@/router';
 import { APIErrors } from '@/utils/api/ApiErrors';
+import { BusinessLogicError } from '@/utils/api/BaseRepository';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 
 interface MockAuthRepository {
   gitlabAuthFinalize: ReturnType<typeof vi.fn>;
@@ -33,27 +33,27 @@ interface MockUserStore {
   $reset: ReturnType<typeof vi.fn>;
 }
 
-const mockAuthRepository: MockAuthRepository = {
-  gitlabAuthFinalize: vi.fn(),
-  githubAuthFinalize: vi.fn(),
-  getAuthenticatedUser: vi.fn()
-};
-
-const mockAuthStore: MockAuthStore = {
-  getSocialAuthState: 'test-state',
-  socialAuthState: undefined,
-  setToken: vi.fn(),
-  setTokenExpiry: vi.fn(),
-  setRefreshToken: vi.fn(),
-  setRefreshTokenExpiry: vi.fn(),
-  setAuthenticated: vi.fn(),
-  $reset: vi.fn()
-};
-
-const mockUserStore: MockUserStore = {
-  setUser: vi.fn(),
-  $reset: vi.fn()
-};
+const { mockAuthRepository, mockAuthStore, mockUserStore } = vi.hoisted(() => ({
+  mockAuthRepository: {
+    gitlabAuthFinalize: vi.fn(),
+    githubAuthFinalize: vi.fn(),
+    getAuthenticatedUser: vi.fn()
+  } as MockAuthRepository,
+  mockAuthStore: {
+    getSocialAuthState: 'test-state',
+    socialAuthState: undefined,
+    setToken: vi.fn(),
+    setTokenExpiry: vi.fn(),
+    setRefreshToken: vi.fn(),
+    setRefreshTokenExpiry: vi.fn(),
+    setAuthenticated: vi.fn(),
+    $reset: vi.fn()
+  } as MockAuthStore,
+  mockUserStore: {
+    setUser: vi.fn(),
+    $reset: vi.fn()
+  } as MockUserStore
+}));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
   AuthRepository: vi.fn(() => mockAuthRepository)
@@ -85,21 +85,27 @@ vi.mock('@/stores/user', () => ({
   useUserStore: () => mockUserStore
 }));
 
-vi.mock('@iconify/vue', () => ({
-  Icon: defineComponent({
-    name: 'Icon',
-    props: ['icon', 'class'],
-    template: '<span :data-icon="icon" :class="class"></span>'
-  })
-}));
+vi.mock('@iconify/vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    Icon: defineComponent({
+      name: 'Icon',
+      props: ['icon', 'class'],
+      template: '<span :data-icon="icon" :class="class"></span>'
+    })
+  };
+});
 
-vi.mock('@/shadcn/ui/button/Button.vue', () => ({
-  default: defineComponent({
-    name: 'Button',
-    emits: ['click'],
-    template: '<button @click="$emit(\'click\')" data-testid="button"><slot></slot></button>'
-  })
-}));
+vi.mock('@/shadcn/ui/button/Button.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'Button',
+      emits: ['click'],
+      template: '<button @click="$emit(\'click\')" data-testid="button"><slot></slot></button>'
+    })
+  };
+});
 
 describe('OAuth2Callback', () => {
   let originalLocation: Location;

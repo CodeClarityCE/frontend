@@ -1,5 +1,5 @@
-import { ref } from 'vue';
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 export interface StateStore {
     page: string;
@@ -12,7 +12,7 @@ export const useStateStore = defineStore('state', () => {
     const menu = ref('');
     const publicPage = ref(false);
 
-    function $reset() {
+    function $reset(): void {
         page.value = '';
         menu.value = '';
         publicPage.value = false;

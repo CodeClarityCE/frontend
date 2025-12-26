@@ -1,14 +1,12 @@
 <script lang="ts" setup>
-import { DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
-import { ref, type PropType, type Ref, onMounted } from 'vue';
-import { Icon } from '@iconify/vue';
-
-// Import stores
-import { useUserStore } from '@/stores/user';
-import { useAuthStore } from '@/stores/auth';
-import { ResultsRepository } from '../../results.repository';
-import type { GraphDependency } from '../../graph.entity';
 import TreeChart from '@/base_components/data-display/charts/TreeChart.vue';
+import { type DependencyDetails } from '@/codeclarity_components/results/sbom/SbomDetails/SbomDetails';
+import { useAuthStore } from '@/stores/auth';
+import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/vue';
+import { onMounted, type PropType, ref, type Ref } from 'vue';
+import type { GraphDependency } from '../../graph.entity';
+import { ResultsRepository } from '../../results.repository';
 
 const props = defineProps({
     dependency: {
@@ -31,9 +29,9 @@ const resultsRepository: ResultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const hierarchy: Ref<Array<GraphDependency>> = ref([]);
+const hierarchy: Ref<GraphDependency[]> = ref([]);
 
-async function init() {
+async function init(): Promise<void> {
     try {
         if (userStore.getDefaultOrg == null) {
             throw new Error('No default org');
@@ -47,7 +45,7 @@ async function init() {
             projectId: props.projectID,
             analysisId: props.analysisID,
             workspace: '.',
-            dependency: props.dependency.name + '@' + props.dependency.version,
+            dependency: `${props.dependency.name}@${props.dependency.version}`,
             bearerToken: authStore.getToken
         });
         hierarchy.value = res.data;
@@ -57,7 +55,7 @@ async function init() {
 }
 
 onMounted(() => {
-    init();
+    void init();
 });
 </script>
 
@@ -123,7 +121,7 @@ onMounted(() => {
 .section-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: theme('colors.theme-black');
+    color: var(--color-theme-black);
     margin: 0;
 }
 
@@ -143,7 +141,7 @@ onMounted(() => {
 
 .description-text {
     font-size: 0.875rem;
-    color: theme('colors.theme-gray');
+    color: var(--color-theme-gray);
     margin: 0;
     line-height: 1.5;
 }

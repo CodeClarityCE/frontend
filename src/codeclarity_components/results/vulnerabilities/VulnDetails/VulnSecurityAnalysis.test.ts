@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import VulnSecurityAnalysis from './VulnSecurityAnalysis.vue';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VulnerabilityDetails } from './VulnDetails';
+import VulnSecurityAnalysis from './VulnSecurityAnalysis.vue';
 
 // Mock Icon component
 vi.mock('@iconify/vue', () => ({

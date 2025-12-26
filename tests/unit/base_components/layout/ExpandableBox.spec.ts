@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
 import ExpandableBox from '@/base_components/layout/ExpandableBox.vue';
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock external dependencies
 vi.mock('@iconify/vue', () => ({
@@ -235,7 +235,7 @@ describe('ExpandableBox', () => {
       
       // Check that the parent container has the correct style for showing content
       const parentDiv = inverseContent.element.closest('div[style]');
-      const hasDisplayBlock = !parentDiv || !parentDiv.getAttribute('style')?.includes('display: none');
+      const hasDisplayBlock = !parentDiv?.getAttribute('style')?.includes('display: none');
       expect(hasDisplayBlock).toBe(true);
     });
 

@@ -2791,13 +2791,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/eslint-patch@npm:1.15.0":
-  version: 1.15.0
-  resolution: "@rushstack/eslint-patch@npm:1.15.0"
-  checksum: 10/f15a7aeffb57929f17a3ed02106a11ff7c073bdb69a3878736f177dcd188e1ef311622d09aa6cb0a000a2ebd32cc64e56ae11f6ff930a963eaeaf0cc7bebff26
-  languageName: node
-  linkType: hard
-
 "@sec-ant/readable-stream@npm:^0.4.1":
   version: 0.4.1
   resolution: "@sec-ant/readable-stream@npm:0.4.1"
@@ -8054,7 +8047,6 @@ __metadata:
     "@percy/config": "npm:1.31.6"
     "@percy/cypress": "npm:3.1.7"
     "@popperjs/core": "npm:2.11.8"
-    "@rushstack/eslint-patch": "npm:1.15.0"
     "@size-limit/preset-app": "npm:12.0.0"
     "@stryker-mutator/core": "npm:9.4.0"
     "@stryker-mutator/typescript-checker": "npm:9.4.0"

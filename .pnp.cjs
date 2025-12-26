@@ -37,7 +37,6 @@ const RAW_RUNTIME_STATE =
           ["@percy/config", "npm:1.31.6"],\
           ["@percy/cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.7"],\
           ["@popperjs/core", "npm:2.11.8"],\
-          ["@rushstack/eslint-patch", "npm:1.15.0"],\
           ["@size-limit/preset-app", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:12.0.0"],\
           ["@stryker-mutator/core", "npm:9.4.0"],\
           ["@stryker-mutator/typescript-checker", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:9.4.0"],\
@@ -4019,15 +4018,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@rtsao-scc-npm-1.1.0-f4ba9ceb2c-17d04adf40.zip/node_modules/@rtsao/scc/",\
         "packageDependencies": [\
           ["@rtsao/scc", "npm:1.1.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@rushstack/eslint-patch", [\
-      ["npm:1.15.0", {\
-        "packageLocation": "./.yarn/cache/@rushstack-eslint-patch-npm-1.15.0-7c5fbab341-f15a7aeffb.zip/node_modules/@rushstack/eslint-patch/",\
-        "packageDependencies": [\
-          ["@rushstack/eslint-patch", "npm:1.15.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -10602,7 +10592,6 @@ const RAW_RUNTIME_STATE =
           ["@percy/config", "npm:1.31.6"],\
           ["@percy/cypress", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:3.1.7"],\
           ["@popperjs/core", "npm:2.11.8"],\
-          ["@rushstack/eslint-patch", "npm:1.15.0"],\
           ["@size-limit/preset-app", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:12.0.0"],\
           ["@stryker-mutator/core", "npm:9.4.0"],\
           ["@stryker-mutator/typescript-checker", "virtual:d9650954c7f1725ea712d2e40695de9ea5d1c0fa9b89379134c62909d440d91b03d6c37e2823804a3404472b90a5bec73c82193190dd3c4db4c9e9edd75db91e#npm:9.4.0"],\

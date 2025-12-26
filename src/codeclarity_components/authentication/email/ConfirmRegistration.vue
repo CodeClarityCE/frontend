@@ -27,12 +27,12 @@ async function init(): Promise<void> {
         // Success case
         text.value = 'Registration confirmed. Redirecting to login page in';
         counter.value = 5;
-        let successInterval: NodeJS.Timeout | null = null;
+        let successInterval: ReturnType<typeof setInterval> | null = null;
         successInterval = setInterval(() => {
             counter.value -= 1;
             if (counter.value === 0) {
                 if (successInterval) {
-                    void clearInterval(successInterval);
+                    clearInterval(successInterval);
                 }
                 void router.push({ name: 'login' });
             }
@@ -42,12 +42,12 @@ async function init(): Promise<void> {
 
         text.value = 'Error confirming registration. Redirecting to login page in';
         counter.value = 5;
-        let errorInterval: NodeJS.Timeout | null = null;
+        let errorInterval: ReturnType<typeof setInterval> | null = null;
         errorInterval = setInterval(() => {
             counter.value -= 1;
             if (counter.value === 0) {
                 if (errorInterval) {
-                    void clearInterval(errorInterval);
+                    clearInterval(errorInterval);
                 }
                 void router.push({ name: 'login' });
             }

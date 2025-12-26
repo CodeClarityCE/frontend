@@ -9,7 +9,9 @@ export interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    expand: false
+    expand: false,
+    expandCallBack: undefined,
+    closeCallBack: undefined
 });
 
 const expand = ref(props.expand);

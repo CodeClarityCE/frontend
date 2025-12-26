@@ -11,8 +11,8 @@ import {
 import { Icon } from '@iconify/vue';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
-import { Position, type Edge, useVueFlow, VueFlow } from '@vue-flow/core';
-import { computed, markRaw, onMounted, onUnmounted, ref } from 'vue';
+import { Position, type Edge, type NodeMouseEvent, useVueFlow, VueFlow } from '@vue-flow/core';
+import { computed, markRaw, onMounted, onUnmounted, ref, type Component } from 'vue';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
@@ -43,12 +43,10 @@ const { fitView } = vueFlowInstance ?? {
 };
 
 // Using markRaw to prevent Vue from making components reactive
-// and type assertion to satisfy VueFlow's expected node types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const nodeTypes: any = {
-    analyzer: markRaw(AnalyzerNodeComponent),
-    config: markRaw(ConfigNodeComponent)
-};
+const nodeTypes = {
+    analyzer: markRaw(AnalyzerNodeComponent as Component),
+    config: markRaw(ConfigNodeComponent as Component)
+} as const;
 
 // Context menu for adding nodes
 const showContextMenu = ref(false);
@@ -230,24 +228,15 @@ function onSelectionChange(selection: { nodes?: (AnalyzerNode | ConfigNode)[] })
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function onNodeClick(eventData: any): void {
+function onNodeClick(eventData: NodeMouseEvent): void {
     if (props.readonly) return;
     try {
-        let node = null;
-
-        if (eventData.node) {
-            node = eventData.node;
-        } else if (eventData.data) {
-            node = eventData;
-        } else if (eventData.id) {
-            node = eventData;
-        }
+        const node = eventData.node;
 
         if (node?.id) {
             const updatedNodes = props.nodes.map((n) => ({
                 ...n,
-                selected: n.id === (node as { id: string }).id
+                selected: n.id === node.id
             })) as (AnalyzerNode | ConfigNode)[];
 
             void emit('update:nodes', updatedNodes);
@@ -286,18 +275,13 @@ function deleteNode(node: { id?: string }): void {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function onNodeContextMenu(event: any): void {
+function onNodeContextMenu(event: NodeMouseEvent): void {
     if (props.readonly) return;
     try {
-        const mouseEvent = event.event ?? (event as unknown as MouseEvent);
-        const node = event.node ?? (event.target ? event : null);
+        const mouseEvent = event.event;
+        const node = event.node;
 
-        if (
-            mouseEvent &&
-            'preventDefault' in mouseEvent &&
-            typeof mouseEvent.preventDefault === 'function'
-        ) {
+        if (mouseEvent) {
             mouseEvent.preventDefault();
             mouseEvent.stopPropagation();
         }

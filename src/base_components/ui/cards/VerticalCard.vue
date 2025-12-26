@@ -83,7 +83,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
     variant: 'default',
     containerClass: '',
-    contentClass: ''
+    contentClass: '',
+    title: undefined,
+    subtitle: undefined,
+    icon: undefined
 });
 
 // Map variant to border color class

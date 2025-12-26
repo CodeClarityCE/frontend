@@ -5,41 +5,51 @@ import OAuthCallbackView from '@/codeclarity_components/authentication/oauth/OAu
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { defineComponent } from 'vue';
 
-const mockStateStore = {
-  $reset: vi.fn(),
-  page: ''
-};
+const { mockStateStore } = vi.hoisted(() => ({
+  mockStateStore: {
+    $reset: vi.fn(),
+    page: ''
+  }
+}));
 
 vi.mock('@/stores/state', () => ({
   useStateStore: () => mockStateStore
 }));
 
-vi.mock('@/base_components/utilities/ErrorComponent.vue', () => ({
-  default: defineComponent({
-    name: 'ErrorComponent',
-    template: '<div data-testid="error-component">Error Component</div>'
-  })
-}));
+vi.mock('@/base_components/utilities/ErrorComponent.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'ErrorComponent',
+      template: '<div data-testid="error-component">Error Component</div>'
+    })
+  };
+});
 
-vi.mock('@/base_components/ui/loaders/LoadingComponent.vue', () => ({
-  default: defineComponent({
-    name: 'LoadingComponent',
-    template: '<div data-testid="loading-component">Loading...</div>'
-  })
-}));
+vi.mock('@/base_components/ui/loaders/LoadingComponent.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'LoadingComponent',
+      template: '<div data-testid="loading-component">Loading...</div>'
+    })
+  };
+});
 
 // Mock the async component import to be synchronous
-vi.mock('@/codeclarity_components/authentication/oauth/OAuth2Callback.vue', () => ({
-  default: defineComponent({
-    name: 'OAuth2Callback',
-    props: ['provider'],
-    template: '<div data-testid="oauth2-callback" :data-provider="provider">OAuth2 Callback Component</div>'
-  }),
-  __isTeleport: false,
-  __isKeepAlive: false
-}));
+vi.mock('@/codeclarity_components/authentication/oauth/OAuth2Callback.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'OAuth2Callback',
+      props: ['provider'],
+      template: '<div data-testid="oauth2-callback" :data-provider="provider">OAuth2 Callback Component</div>'
+    }),
+    __isTeleport: false,
+    __isKeepAlive: false
+  };
+});
 
 // Mock defineAsyncComponent to return the component immediately (synchronously)
 vi.mock('vue', async (importOriginal) => {
@@ -48,7 +58,7 @@ vi.mock('vue', async (importOriginal) => {
     ...actual,
     defineAsyncComponent: (_options: any) => {
       // Return the mocked OAuth2Callback component directly
-      return defineComponent({
+      return actual.defineComponent({
         name: 'OAuth2Callback',
         props: ['provider'],
         template: '<div data-testid="oauth2-callback" :data-provider="provider">OAuth2 Callback Component</div>'

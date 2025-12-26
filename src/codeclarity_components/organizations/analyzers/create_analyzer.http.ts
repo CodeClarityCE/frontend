@@ -1,7 +1,9 @@
+import type { WorkflowStep } from '@/utils/vueFlow';
+
 export interface CreateAnalyzer {
     name: string;
     description: string;
-    steps: Record<string, unknown>[];
+    steps: WorkflowStep[][];
     supported_languages?: string[];
     language_config?: {
         javascript?: { plugins: string[] };

@@ -73,8 +73,7 @@ async function submit(): Promise<void> {
             data: {
                 name: name.value,
                 description: description.value,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                steps: arr as any
+                steps: arr
             },
             bearerToken: authStore.getToken ?? ''
         });

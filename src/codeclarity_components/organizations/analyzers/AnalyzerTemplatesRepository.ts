@@ -3,6 +3,7 @@ import {
     type AuthRepoMethodGetRequestOptions
 } from '../../../utils/api/BaseRepository';
 import { type DataResponse } from '../../../utils/api/responses/DataResponse';
+import type { TemplateStep } from './shared/analyzerUtils';
 
 export interface AnalyzerTemplate {
     name: string;
@@ -10,7 +11,7 @@ export interface AnalyzerTemplate {
     supported_languages: string[];
     language_config: Record<string, { plugins: string[] }>;
     logo: string;
-    steps: Record<string, unknown>[];
+    steps: TemplateStep[][];
 }
 
 export interface GetTemplatesRequestOptions extends AuthRepoMethodGetRequestOptions {}

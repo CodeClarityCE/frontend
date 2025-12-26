@@ -4,7 +4,7 @@ import { Checkbox } from '@/shadcn/ui/checkbox';
 import { Icon } from '@iconify/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
-import type { LicensePolicy } from '../license_policy.entity';
+import { LicensePolicyType, type LicensePolicy } from '../license_policy.entity';
 
 export const columns: ColumnDef<LicensePolicy>[] = [
     {
@@ -69,7 +69,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         header: 'Type',
         cell: ({ row }) => {
             const type = row.original.policy_type;
-            const isWhitelist = type === 'WHITELIST';
+            const isWhitelist = type === LicensePolicyType.WHITELIST;
             return h(
                 Badge,
                 {

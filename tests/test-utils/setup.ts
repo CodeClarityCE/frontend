@@ -17,17 +17,15 @@ type MockPinia = Plugin & {
 let piniaInstance: MockPinia | null = null
 
 export function getPiniaMock(): MockPinia {
-  if (!piniaInstance) {
-    piniaInstance = {
-      install: vi.fn(),
-      state: vi.fn(),
-      _p: [],
-      _a: null,
-      _e: null,
-      _s: new Map(),
-      use: vi.fn(),
-    } as MockPinia
-  }
+  piniaInstance ??= {
+    install: vi.fn(),
+    state: vi.fn(),
+    _p: [],
+    _a: null,
+    _e: null,
+    _s: new Map(),
+    use: vi.fn(),
+  } as MockPinia
   return piniaInstance
 }
 

@@ -74,7 +74,7 @@ const dependencyCount = computed(() => {
 });
 
 const hasIssues = computed(() => {
-    return props.license.license_compliance_violation ?? props.license.unable_to_infer;
+    return props.license.license_compliance_violation || props.license.unable_to_infer;
 });
 
 // Helper functions for property descriptions

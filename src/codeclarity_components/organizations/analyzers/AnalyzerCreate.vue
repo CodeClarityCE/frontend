@@ -55,7 +55,7 @@ const name: Ref<string> = ref('');
 const description: Ref<string> = ref('');
 const selectedTemplate: Ref<AnalyzerTemplate | null> = ref(null);
 const supportedLanguages: Ref<string[]> = ref(['javascript']);
-const languageConfig: Ref<Record<string, unknown>> = ref({});
+const languageConfig: Ref<Record<string, { plugins: string[] }>> = ref({});
 const logo: Ref<string> = ref('js');
 const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
@@ -83,8 +83,7 @@ function onTemplateChanged(template: AnalyzerTemplate): void {
     // Update workflow nodes and edges based on template
     if (template.steps && template.steps.length > 0) {
         // Convert template steps to nodes
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const templateNodes = initializeDefaultNodes(plugins.value, template.steps as any);
+        const templateNodes = initializeDefaultNodes(plugins.value, template.steps);
         if (templateNodes.length > 0) {
             nodes.value = templateNodes;
             edges.value = createEdgesFromNodes(templateNodes);
@@ -102,11 +101,9 @@ async function submit(): Promise<void> {
             data: {
                 name: name.value,
                 description: description.value,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                steps: arr as any,
+                steps: arr,
                 supported_languages: supportedLanguages.value,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                language_config: languageConfig.value as any,
+                language_config: languageConfig.value,
                 logo: logo.value
             },
             bearerToken: authStore.getToken ?? ''

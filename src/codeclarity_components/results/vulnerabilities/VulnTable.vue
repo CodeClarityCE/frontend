@@ -5,13 +5,14 @@ import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
 import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import UtilitiesFilters, {
+import {
     createNewFilterState,
     FilterType,
     type FilterConfig,
     type FilterState
-} from '@/base_components/filters/UtilitiesFilters.vue';
+} from '@/base_components/filters/filterTypes';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import UtilitiesFilters from '@/base_components/filters/UtilitiesFilters.vue';
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
 import { ProjectsSortInterface } from '@/codeclarity_components/projects/project.repository';
@@ -94,7 +95,7 @@ const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 const filterConfigDef: FilterConfig = {
     ImportState: {
         name: 'Language',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         type: FilterType.RADIO,
         icon: 'meteor-icons:language',
         data: {
@@ -106,13 +107,13 @@ const filterConfigDef: FilterConfig = {
     },
     Divider: {
         name: 'Language',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         type: FilterType.DIVIDER,
         data: {}
     },
     AttributeState: {
         name: 'Matching',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         type: FilterType.CHECKBOX,
         data: {
             hide_correct_matching: {
@@ -131,7 +132,7 @@ const filterConfigDef: FilterConfig = {
     },
     BlacklistState: {
         name: 'Policy Status',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         type: FilterType.CHECKBOX,
         data: {
             show_blacklisted: {
@@ -141,7 +142,7 @@ const filterConfigDef: FilterConfig = {
         }
     }
 };
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
 const filterState = ref<FilterState>(createNewFilterState(filterConfigDef));
 
 const selected_workspace = defineModel<string>('selected_workspace', { default: '.' });
@@ -466,7 +467,7 @@ async function init(): Promise<void> {
                 sortKey: sortKey.value,
                 sortDirection: sortDirection.value
             },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
             active_filters: filterState.value.toString(),
             search_key: searchKey.value,
             ecosystem_filter: props.ecosystemFilter ?? undefined,
@@ -503,12 +504,10 @@ watch(
         void init();
     }
 );
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
 watch(() => filterState.value.activeFilters, init);
 
 // Sync blacklisted filter with parent component
 const showBlacklistedFromFilter = computed<boolean>(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return filterState.value.filterConfig?.BlacklistState?.data?.show_blacklisted?.value ?? false;
 });
 

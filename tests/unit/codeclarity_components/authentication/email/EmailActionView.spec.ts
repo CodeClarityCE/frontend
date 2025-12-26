@@ -1,37 +1,47 @@
 import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { defineComponent } from 'vue';
 
-const mockStateStore = {
-  $reset: vi.fn(),
-  page: ''
-};
+const { mockStateStore } = vi.hoisted(() => ({
+  mockStateStore: {
+    $reset: vi.fn(),
+    page: ''
+  }
+}));
 
 vi.mock('@/stores/state', () => ({
   useStateStore: () => mockStateStore
 }));
 
-vi.mock('@/codeclarity_components/organizations/invites/OrganizationJoin.vue', () => ({
-  default: defineComponent({
-    name: 'EmailActionJoinOrg',
-    template: '<div data-testid="email-action-join-org">Join Organization Component</div>'
-  })
-}));
+vi.mock('@/codeclarity_components/organizations/invites/OrganizationJoin.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'EmailActionJoinOrg',
+      template: '<div data-testid="email-action-join-org">Join Organization Component</div>'
+    })
+  };
+});
 
-vi.mock('@/codeclarity_components/authentication/email/PasswordResetForm.vue', () => ({
-  default: defineComponent({
-    name: 'PasswordResetForm',
-    template: '<div data-testid="password-reset-form">Password Reset Form Component</div>'
-  })
-}));
+vi.mock('@/codeclarity_components/authentication/email/PasswordResetForm.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'PasswordResetForm',
+      template: '<div data-testid="password-reset-form">Password Reset Form Component</div>'
+    })
+  };
+});
 
-vi.mock('@/codeclarity_components/authentication/email/ConfirmRegistration.vue', () => ({
-  default: defineComponent({
-    name: 'ConfirmRegistration',
-    template: '<div data-testid="confirm-registration">Confirm Registration Component</div>'
-  })
-}));
+vi.mock('@/codeclarity_components/authentication/email/ConfirmRegistration.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'ConfirmRegistration',
+      template: '<div data-testid="confirm-registration">Confirm Registration Component</div>'
+    })
+  };
+});
 
 describe('EmailActionView', () => {
   beforeEach(() => {

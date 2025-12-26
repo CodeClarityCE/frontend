@@ -70,7 +70,9 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    variant: 'default'
+    variant: 'default',
+    subtitle: undefined,
+    subtitleIcon: undefined
 });
 
 // Map variant to border color - easy to customize for different stat types

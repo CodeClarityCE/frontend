@@ -11,7 +11,7 @@ export interface AnalyzerSubmissionData extends AnalyzerFormData {
     steps: Record<string, unknown>[];
 }
 
-interface TemplateStep {
+export interface TemplateStep {
     name: string;
     config?: Record<string, unknown>;
 }

@@ -55,7 +55,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    variant: 'default'
+    variant: 'default',
+    description: undefined
 });
 
 // Map variant to border color class - easy to modify for new variants

@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import UtilitiesFilters, {
+import {
     createNewFilterState,
     FilterType,
     type FilterState
-} from '@/base_components/filters/UtilitiesFilters.vue';
+} from '@/base_components/filters/filterTypes';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import UtilitiesFilters from '@/base_components/filters/UtilitiesFilters.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import PaginationComponent from '@/base_components/utilities/PaginationComponent.vue';
 import UtilitiesSort from '@/base_components/utilities/UtilitiesSort.vue';
@@ -57,9 +58,7 @@ watch([pageNumber, pageLimitSelected, sortOptionSelected, sortDirection, pageNum
 const resultsRepository: ResultsRepository = new ResultsRepository();
 
 // Filters
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const filterState: Ref<FilterState> = ref<FilterState>(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     createNewFilterState({
         ImportState: {
             name: 'Language',
@@ -71,7 +70,7 @@ const filterState: Ref<FilterState> = ref<FilterState>(
                 }
             }
         }
-    }) as FilterState
+    })
 );
 
 // Store setup

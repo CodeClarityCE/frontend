@@ -3,13 +3,14 @@ import SortableTable, {
     type TableHeader
 } from '@/base_components/data-display/tables/SortableTable.vue';
 import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import SearchBar from '@/base_components/filters/SearchBar.vue';
-import FilterBox, {
+import {
     createNewFilterState,
     FilterType,
     type FilterState,
     type ActiveFilter
-} from '@/base_components/filters/UtilitiesFilters.vue';
+} from '@/base_components/filters/filterTypes';
+import SearchBar from '@/base_components/filters/SearchBar.vue';
+import FilterBox from '@/base_components/filters/UtilitiesFilters.vue';
 import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import Pagination from '@/base_components/utilities/PaginationComponent.vue';
 import {
@@ -64,11 +65,11 @@ const headers: TableHeader[] = [
 ];
 
 // Filters
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
 const filterState: FilterState = createNewFilterState({
     ImportState: {
         name: 'Import State',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         type: FilterType.RADIO,
         data: {
             only_non_imported: {
@@ -225,9 +226,7 @@ function updateSelectAllState(): void {
  * @param newActiveFilters List of active filters
  */
 async function setActiveFilters(newActiveFilters: ActiveFilter[]): Promise<void> {
-    activeFilters.value = newActiveFilters.map(
-        (activeFilter: ActiveFilter) => activeFilter.option as string
-    );
+    activeFilters.value = newActiveFilters.map((activeFilter: ActiveFilter) => activeFilter.option);
     await fetchRepos(true);
 }
 

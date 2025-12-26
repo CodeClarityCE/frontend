@@ -7,6 +7,12 @@
 import type { VueWrapper } from '@vue/test-utils';
 import type { MemoryInfo } from './types';
 
+// Type for Vue component options with lifecycle hooks
+interface VueComponentOptions {
+  updated?: (() => void)[] | (() => void);
+  [key: string]: unknown;
+}
+
 /**
  * Performance metrics interface
  */
@@ -327,8 +333,7 @@ export class RerenderCounter {
       existingUpdates = [];
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (vm.$options as any).updated = [
+    (vm.$options as VueComponentOptions).updated = [
       ...existingUpdates,
       () => this.count++
     ];
@@ -337,8 +342,7 @@ export class RerenderCounter {
   stop(): number {
     // Restore original update hook
     if (this.originalUpdate) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.wrapper.vm.$options as any).updated = this.originalUpdate;
+      (this.wrapper.vm.$options as VueComponentOptions).updated = this.originalUpdate;
     }
     
     return this.count;

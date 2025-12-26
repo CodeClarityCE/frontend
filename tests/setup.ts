@@ -24,11 +24,14 @@ config.global.stubs = {
 }
 
 // Mock global objects
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
+class MockResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor(_callback: ResizeObserverCallback) {}
+}
+global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
 // Mock process.env for reka-ui
 process.env.NODE_ENV = 'test'
@@ -44,11 +47,18 @@ Object.defineProperty(global, 'import', {
 })
 
 
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
+class MockIntersectionObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  root = null;
+  rootMargin = '';
+  thresholds = [];
+  takeRecords = vi.fn().mockReturnValue([]);
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
+}
+global.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -179,64 +189,67 @@ vi.mock('@/utils/api/BaseRepository', () => ({
   }
 }))
 
-// Create comprehensive repository mocks
-const createRepositoryMock = (methods: string[]): Record<string, ReturnType<typeof vi.fn>> => {
-  const mock: Record<string, ReturnType<typeof vi.fn>> = {}
-  methods.forEach(method => {
-    mock[method] = vi.fn().mockResolvedValue({ data: {} })
-  })
-  return mock
+// Create mock repository class factory
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function createMockRepositoryClass(methods: string[]) {
+  return class MockRepository {
+    constructor() {
+      methods.forEach(method => {
+        (this as Record<string, unknown>)[method] = vi.fn().mockResolvedValue({ data: {} });
+      });
+    }
+  };
 }
 
 // Mock all main repositories
 vi.mock('@/codeclarity_components/results/results.repository', () => ({
-  ResultsRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
+  ResultsRepository: createMockRepositoryClass([
     'getSbomStat', 'getSbomWorkspaces', 'getSbom', 'getDependency', 'getVulnerabilities',
     'getVulnerability', 'getFinding', 'getLicenses', 'getPatches', 'getPatchedManifest',
     'getCodeQLResults', 'getResults'
-  ]))
+  ])
 }))
 
 vi.mock('@/codeclarity_components/analyses/analysis.repository', () => ({
-  AnalysisRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
+  AnalysisRepository: createMockRepositoryClass([
     'createAnalysis', 'getAnalyses', 'getAnalysisById', 'getProjectById', 'deleteAnalysis'
-  ]))
+  ])
 }))
 
 vi.mock('@/codeclarity_components/projects/project.repository', () => ({
-  ProjectRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
+  ProjectRepository: createMockRepositoryClass([
     'createProject', 'getProjects', 'getProjectById', 'updateProject', 'deleteProject'
-  ]))
+  ])
 }))
 
 vi.mock('@/codeclarity_components/organizations/organization.repository', () => ({
-  OrgRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
+  OrgRepository: createMockRepositoryClass([
     'createOrganization', 'getOrganizations', 'getOrganizationById', 'updateOrganization', 'deleteOrganization'
-  ]))
+  ])
 }))
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
+  AuthRepository: createMockRepositoryClass([
     'login', 'logout', 'register', 'resetPassword', 'confirmEmail'
-  ]))
+  ])
 }))
 
 vi.mock('@/codeclarity_components/authentication/user.repository', () => ({
-  UserRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
-    'getCurrentUser', 'updateUser', 'deleteUser'
-  ]))
+  UserRepository: createMockRepositoryClass([
+    'getCurrentUser', 'updateUser', 'deleteUser', 'confirmRegistration'
+  ])
 }))
 
 vi.mock('@/codeclarity_components/dashboard/dashboard.repository', () => ({
-  DashboardRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
-    'getDashboardStats', 'getChartData'
-  ]))
+  DashboardRepository: createMockRepositoryClass([
+    'getDashboardStats', 'getChartData', 'getVulnerabilityImpact'
+  ])
 }))
 
 vi.mock('@/codeclarity_components/results/licenses/LicenseRepository', () => ({
-  LicenseRepository: vi.fn().mockImplementation((): Record<string, ReturnType<typeof vi.fn>> => createRepositoryMock([
+  LicenseRepository: createMockRepositoryClass([
     'getLicenses', 'getLicenseById'
-  ]))
+  ])
 }))
 
 // Mock common stores with better defaults

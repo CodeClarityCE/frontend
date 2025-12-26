@@ -1,30 +1,30 @@
-import { Type } from 'class-transformer';
-import { IsDate, IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { TeamMember } from '../organization.entity';
+import { Type } from "class-transformer";
+import { IsDate, IsDefined, IsNotEmpty, IsOptional } from "class-validator";
+import { TeamMember } from "../organization.entity";
 
 export class Analyzer {
-    @IsNotEmpty()
-    id!: string;
+  @IsNotEmpty()
+  id!: string;
 
-    @IsNotEmpty()
-    name!: string;
+  @IsNotEmpty()
+  name!: string;
 
-    @IsNotEmpty()
-    description!: string;
+  @IsNotEmpty()
+  description!: string;
 
-    @IsDate()
-    @Type(() => Date)
-    created_on!: Date;
+  @IsDate()
+  @Type(() => Date)
+  created_on!: Date;
 
-    @IsOptional()
-    @Type(() => TeamMember)
-    created_by?: TeamMember;
+  @IsOptional()
+  @Type(() => TeamMember)
+  created_by?: TeamMember;
 
-    @IsDefined()
-    steps!: Stage[][];
+  @IsDefined()
+  steps!: Stage[][];
 
-    @IsDefined()
-    organization_id!: string;
+  @IsDefined()
+  organization_id!: string;
 }
 
 /********************************************/
@@ -32,11 +32,11 @@ export class Analyzer {
 /********************************************/
 
 export interface StageBase {
-    name: string;
-    version: string;
+  name: string;
+  version: string;
 }
 
 export interface Stage extends StageBase {
-    config: Record<string, unknown>;
-    persistant_config: Record<string, unknown>;
+  config: Record<string, unknown>;
+  persistant_config: Record<string, unknown>;
 }

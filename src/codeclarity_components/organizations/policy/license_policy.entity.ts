@@ -1,49 +1,49 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
-    IsArray,
-    IsBoolean,
-    IsDate,
-    IsDefined,
-    IsEnum,
-    IsNotEmpty,
-    IsOptional
-} from 'class-validator';
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsDefined,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+} from "class-validator";
 
 export enum LicensePolicyType {
-    WHITELIST = 'WHITELIST',
-    BLACKLIST = 'BLACKLIST'
+  WHITELIST = "WHITELIST",
+  BLACKLIST = "BLACKLIST",
 }
 
 export enum PolicyType {
-    LICENSE_POLICY = 'LICENSE_POLICY',
-    DEP_UPGRADE_POLICY = 'DEP_UPGRADE_POLICY'
+  LICENSE_POLICY = "LICENSE_POLICY",
+  DEP_UPGRADE_POLICY = "DEP_UPGRADE_POLICY",
 }
 
 export class LicensePolicy {
-    @IsNotEmpty()
-    id!: string;
+  @IsNotEmpty()
+  id!: string;
 
-    @IsNotEmpty()
-    name!: string;
+  @IsNotEmpty()
+  name!: string;
 
-    @IsNotEmpty()
-    description!: string;
+  @IsNotEmpty()
+  description!: string;
 
-    @IsDefined()
-    @IsEnum(LicensePolicyType)
-    policy_type!: LicensePolicyType;
+  @IsDefined()
+  @IsEnum(LicensePolicyType)
+  policy_type!: LicensePolicyType;
 
-    @IsBoolean()
-    default!: boolean;
+  @IsBoolean()
+  default!: boolean;
 
-    @IsOptional()
-    created_by?: string;
+  @IsOptional()
+  created_by?: string;
 
-    @IsDate()
-    @Type(() => Date)
-    created_on!: Date;
+  @IsDate()
+  @Type(() => Date)
+  created_on!: Date;
 
-    @IsNotEmpty()
-    @IsArray()
-    content!: string[];
+  @IsNotEmpty()
+  @IsArray()
+  content!: string[];
 }

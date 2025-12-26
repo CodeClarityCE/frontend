@@ -8,9 +8,9 @@ vi.mock('@/utils/api/BaseRepository', () => ({
 }));
 
 vi.mock('@/codeclarity_components/dashboard/dashboard.repository', () => ({
-  DashboardRepository: vi.fn(() => ({
-    getLicenseDistribution: vi.fn()
-  }))
+  DashboardRepository: class {
+    getLicenseDistribution = vi.fn()
+  }
 }));
 
 vi.mock('@/stores/auth', () => ({

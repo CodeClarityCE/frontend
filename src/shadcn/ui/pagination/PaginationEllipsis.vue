@@ -1,25 +1,27 @@
 <script setup lang="ts">
-import { cn } from '@/shadcn/lib/utils';
-import { MoreHorizontal } from 'lucide-vue-next';
-import { PaginationEllipsis, type PaginationEllipsisProps } from 'reka-ui';
-import { computed, type HTMLAttributes } from 'vue';
+import { cn } from "@/shadcn/lib/utils";
+import { MoreHorizontal } from "lucide-vue-next";
+import { PaginationEllipsis, type PaginationEllipsisProps } from "reka-ui";
+import { computed, type HTMLAttributes } from "vue";
 
-const props = defineProps<PaginationEllipsisProps & { class?: HTMLAttributes['class'] }>();
+const props = defineProps<
+  PaginationEllipsisProps & { class?: HTMLAttributes["class"] }
+>();
 
 const delegatedProps = computed(() => {
-    const { class: _, ...delegated } = props;
+  const { class: _, ...delegated } = props;
 
-    return delegated;
+  return delegated;
 });
 </script>
 
 <template>
-    <PaginationEllipsis
-        v-bind="delegatedProps"
-        :class="cn('w-9 h-9 flex items-center justify-center', props.class)"
-    >
-        <slot>
-            <MoreHorizontal />
-        </slot>
-    </PaginationEllipsis>
+  <PaginationEllipsis
+    v-bind="delegatedProps"
+    :class="cn('w-9 h-9 flex items-center justify-center', props.class)"
+  >
+    <slot>
+      <MoreHorizontal />
+    </slot>
+  </PaginationEllipsis>
 </template>

@@ -1,74 +1,81 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsDefined, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { type Analysis } from '../analyses/analysis.entity';
-import { IntegrationProvider } from '../organizations/integrations/Integrations';
-import { TeamMember } from '../organizations/organization.entity';
+import { Type } from "class-transformer";
+import {
+  IsBoolean,
+  IsDate,
+  IsDefined,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+} from "class-validator";
+import { type Analysis } from "../analyses/analysis.entity";
+import { IntegrationProvider } from "../organizations/integrations/Integrations";
+import { TeamMember } from "../organizations/organization.entity";
 
 export class Project {
-    @IsNotEmpty()
-    id!: string;
+  @IsNotEmpty()
+  id!: string;
 
-    @IsNotEmpty()
-    name!: string;
+  @IsNotEmpty()
+  name!: string;
 
-    @IsNotEmpty()
-    description!: string;
+  @IsNotEmpty()
+  description!: string;
 
-    @IsNotEmpty()
-    integration_id!: string;
+  @IsNotEmpty()
+  integration_id!: string;
 
-    @IsDefined()
-    @IsEnum(IntegrationProvider)
-    type!: IntegrationProvider;
+  @IsDefined()
+  @IsEnum(IntegrationProvider)
+  type!: IntegrationProvider;
 
-    @IsNotEmpty()
-    url!: string;
+  @IsNotEmpty()
+  url!: string;
 
-    @IsOptional()
-    @Type(() => Array<Analysis>)
-    analyses?: Analysis[];
+  @IsOptional()
+  @Type(() => Array<Analysis>)
+  analyses?: Analysis[];
 
-    @IsNotEmpty()
-    upload_id!: string;
+  @IsNotEmpty()
+  upload_id!: string;
 
-    @IsDate()
-    @Type(() => Date)
-    added_on!: Date;
+  @IsDate()
+  @Type(() => Date)
+  added_on!: Date;
 
-    @IsOptional()
-    @Type(() => TeamMember)
-    added_by?: TeamMember;
+  @IsOptional()
+  @Type(() => TeamMember)
+  added_by?: TeamMember;
 
-    @IsNotEmpty()
-    organization_id!: string;
+  @IsNotEmpty()
+  organization_id!: string;
 }
 
 export class Repository {
-    @IsNotEmpty()
-    id!: string;
+  @IsNotEmpty()
+  id!: string;
 
-    @IsNotEmpty()
-    url!: string;
+  @IsNotEmpty()
+  url!: string;
 
-    @IsNotEmpty()
-    default_branch!: string;
+  @IsNotEmpty()
+  default_branch!: string;
 
-    @IsNotEmpty()
-    visibility!: string;
+  @IsNotEmpty()
+  visibility!: string;
 
-    @IsNotEmpty()
-    fully_qualified_name!: string;
+  @IsNotEmpty()
+  fully_qualified_name!: string;
 
-    @IsNotEmpty()
-    description!: string;
+  @IsNotEmpty()
+  description!: string;
 
-    @IsDate()
-    @Type(() => Date)
-    created_at!: Date;
+  @IsDate()
+  @Type(() => Date)
+  created_at!: Date;
 
-    @IsBoolean()
-    imported_already!: boolean;
+  @IsBoolean()
+  imported_already!: boolean;
 
-    @IsNotEmpty()
-    integration_id!: string;
+  @IsNotEmpty()
+  integration_id!: string;
 }

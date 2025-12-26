@@ -5,5 +5,7 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function filterUndefined<T extends object>(obj: T): any {
-    return Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== undefined));
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined),
+  );
 }

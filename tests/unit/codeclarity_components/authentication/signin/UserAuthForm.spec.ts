@@ -33,7 +33,10 @@ const mockAuthRepository = {
 };
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    authenticate = mockAuthRepository.authenticate
+    getAuthenticatedUser = mockAuthRepository.getAuthenticatedUser
+  }
 }));
 
 // Mock API errors

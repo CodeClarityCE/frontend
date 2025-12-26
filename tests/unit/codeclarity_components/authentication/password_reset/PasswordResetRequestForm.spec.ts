@@ -15,7 +15,9 @@ const { mockAuthRepository } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    requestPasswordReset = mockAuthRepository.requestPasswordReset
+  }
 }));
 
 // Mock BaseRepository with error classes

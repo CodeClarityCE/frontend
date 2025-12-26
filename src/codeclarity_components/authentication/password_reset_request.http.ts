@@ -1,3 +1,3 @@
 export interface PasswordResetRequestBody {
-    email: string;
+  email: string;
 }

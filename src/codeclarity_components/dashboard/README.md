@@ -54,11 +54,11 @@ Edit `useMockData.ts` and add to the `stats` object:
 
 ```typescript
 const stats = {
-    critical: 14,
-    high: 10,
-    projects: 24,
-    score: 7.8,
-    newMetric: 42 // Add here
+  critical: 14,
+  high: 10,
+  projects: 24,
+  score: 7.8,
+  newMetric: 42, // Add here
 };
 ```
 
@@ -108,14 +108,14 @@ Edit `useMockData.ts` activities array:
 
 ```typescript
 const activities = [
-    {
-        id: 4,
-        title: 'New activity',
-        description: 'Description here',
-        time: 'Just now',
-        variant: 'primary',
-        icon: 'solar:star-bold'
-    }
+  {
+    id: 4,
+    title: "New activity",
+    description: "Description here",
+    time: "Just now",
+    variant: "primary",
+    icon: "solar:star-bold",
+  },
 ];
 ```
 
@@ -125,11 +125,11 @@ Replace mock data import with real data:
 
 ```typescript
 // From this:
-import { useMockData } from '../composables/useMockData';
+import { useMockData } from "../composables/useMockData";
 const { stats } = useMockData();
 
 // To this:
-import { useDashboardData } from '../composables/useDashboardData';
+import { useDashboardData } from "../composables/useDashboardData";
 const { realStats } = useDashboardData();
 ```
 

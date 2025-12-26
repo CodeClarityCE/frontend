@@ -1,3 +1,3 @@
 export interface PasswordDeleteBody {
-    password: string;
+  password: string;
 }

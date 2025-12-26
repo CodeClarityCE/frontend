@@ -56,7 +56,11 @@ const { mockAuthRepository, mockAuthStore, mockUserStore } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    gitlabAuthFinalize = mockAuthRepository.gitlabAuthFinalize
+    githubAuthFinalize = mockAuthRepository.githubAuthFinalize
+    getAuthenticatedUser = mockAuthRepository.getAuthenticatedUser
+  }
 }));
 
 // Mock BaseRepository with error classes

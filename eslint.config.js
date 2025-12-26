@@ -1,10 +1,12 @@
 import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import pluginCypress from 'eslint-plugin-cypress/flat';
 import eslintPluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 import security from 'eslint-plugin-security';
 import importPlugin from 'eslint-plugin-import';
+import testingLibrary from 'eslint-plugin-testing-library';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default typescriptEslint.config(
@@ -328,6 +330,30 @@ export default typescriptEslint.config(
       'vue/no-reserved-component-names': 'off',
       'vue/one-component-per-file': 'off',
       'vue/require-prop-types': 'off',
+    },
+  },
+
+  // ==========================================
+  // Cypress Configuration
+  // ==========================================
+  {
+    files: ['cypress/**/*.{js,ts}'],
+    ...pluginCypress.configs.recommended,
+  },
+
+  // ==========================================
+  // Testing Library Configuration
+  // ==========================================
+  {
+    files: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**/*.ts'],
+    ...testingLibrary.configs['flat/vue'],
+    rules: {
+      // Relax rules that conflict with Vue testing patterns
+      // Vue tests often need DOM access to verify parent-child relationships
+      'testing-library/no-node-access': 'off',
+      'testing-library/no-container': 'off',
+      // Allow common naming patterns for render results in Vue tests
+      'testing-library/render-result-naming-convention': 'off',
     },
   },
 

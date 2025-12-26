@@ -403,16 +403,17 @@ function applyConfigSilently(values: FormValues, plugin_name: string): void {
     }
 
     if (plugin_name === 'license-finder') {
-        configuration.value[plugin_name]['licensePolicy'] = selected_license_policy.value;
+        configuration.value[plugin_name].licensePolicy = selected_license_policy.value;
     }
     if (plugin_name === 'vuln-finder') {
         // Send policy ID if one is selected, otherwise send empty array for no policy
-        configuration.value[plugin_name]['vulnerabilityPolicy'] =
-            selected_vulnerability_policy.value ? [selected_vulnerability_policy.value] : [];
+        configuration.value[plugin_name].vulnerabilityPolicy = selected_vulnerability_policy.value
+            ? [selected_vulnerability_policy.value]
+            : [];
     }
     if (plugin_name === 'js-sbom' || plugin_name === 'php-sbom' || plugin_name === 'codeql') {
         const branchValue = values.branch ?? 'main';
-        configuration.value[plugin_name]['project'] =
+        configuration.value[plugin_name].project =
             `${user.defaultOrg?.id ?? ''}/projects/${project_id.value}/${branchValue}`;
         selected_branch.value = branchValue;
     }

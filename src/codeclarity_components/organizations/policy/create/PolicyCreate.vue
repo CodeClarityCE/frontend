@@ -134,7 +134,7 @@ const onSubmit = handleSubmit(async (values): Promise<void> => {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _orgId = route.params['orgId'];
+    const _orgId = route.params.orgId;
 
     if (!_orgId) {
         router.back();

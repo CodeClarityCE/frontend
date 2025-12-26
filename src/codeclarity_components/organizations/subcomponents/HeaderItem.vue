@@ -10,7 +10,7 @@ import router from '@/router';
 import Badge from '@/shadcn/ui/badge/Badge.vue';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { type APIErrors } from '@/utils/api/ApiErrors';
+import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate, formatCurrentDate } from '@/utils/dateUtils';
 import { Icon } from '@iconify/vue';
@@ -90,10 +90,10 @@ void init();
                         <div class="flex flex-col gap-2">
                             <div>We failed to retrieve information on the organization</div>
                             <div v-if="errorCode" style="font-size: 0.7em">
-                                <div v-if="(errorCode as APIErrors) === APIErrors.EntityNotFound">
+                                <div v-if="errorCode === APIErrors.EntityNotFound">
                                     This organization does not exist.
                                 </div>
-                                <div v-if="(errorCode as APIErrors) === APIErrors.NotAuthorized">
+                                <div v-if="errorCode === APIErrors.NotAuthorized">
                                     You do not have the correct permissions to view this
                                     organization.
                                 </div>
@@ -111,7 +111,7 @@ void init();
                         </div>
                         <div class="flex flex-row gap2 items-center flex-wrap">
                             <Button
-                                v-if="(errorCode as APIErrors) !== APIErrors.NotAuthorized"
+                                v-if="errorCode !== APIErrors.NotAuthorized"
                                 @click="fetchOrgInfo()"
                             >
                                 Try again

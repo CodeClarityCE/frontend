@@ -58,13 +58,13 @@ async function revokeInvitation(): Promise<void> {
     } catch (err) {
         if (err instanceof BusinessLogicError) {
             if (
-                (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified ||
-                (err.error_code as APIErrors) === APIErrors.InternalError
+                err.error_code === APIErrors.PersonalOrgCannotBeModified ||
+                err.error_code === APIErrors.InternalError
             ) {
                 void errorToast('Failed to revoke the invitation.');
-            } else if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+            } else if (err.error_code === APIErrors.NotAuthorized) {
                 void errorToast('You are not authorized to perform this action');
-            } else if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+            } else if (err.error_code === APIErrors.EntityNotFound) {
                 void successToast('Successfully revoked the invitation');
             }
         } else {
@@ -96,13 +96,13 @@ async function resendInvitation(): Promise<void> {
     } catch (err) {
         if (err instanceof BusinessLogicError) {
             if (
-                (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified ||
-                (err.error_code as APIErrors) === APIErrors.InternalError
+                err.error_code === APIErrors.PersonalOrgCannotBeModified ||
+                err.error_code === APIErrors.InternalError
             ) {
                 void errorToast('Failed to resend the invitation.');
-            } else if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+            } else if (err.error_code === APIErrors.NotAuthorized) {
                 void errorToast('You are not authorized to perform this action');
-            } else if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+            } else if (err.error_code === APIErrors.EntityNotFound) {
                 void successToast('Successfully resent the invitation');
             }
         } else {

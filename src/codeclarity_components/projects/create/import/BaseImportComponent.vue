@@ -114,18 +114,15 @@ function getImportErrorMessage(err: unknown): string {
         return 'An error occured during the project import.';
     }
 
-    if ((err.error_code as APIErrors) === APIErrors.AlreadyExists) {
+    if (err.error_code === APIErrors.AlreadyExists) {
         return 'Already imported';
     }
 
-    if (
-        (err.error_code as APIErrors) === APIErrors.InternalError ||
-        (err.error_code as APIErrors) === APIErrors.EntityNotFound
-    ) {
+    if (err.error_code === APIErrors.InternalError || err.error_code === APIErrors.EntityNotFound) {
         return 'An error occured during the project import.';
     }
 
-    if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+    if (err.error_code === APIErrors.NotAuthorized) {
         return 'You do not have permission to import this repository';
     }
 

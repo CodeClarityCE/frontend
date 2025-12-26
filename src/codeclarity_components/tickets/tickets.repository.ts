@@ -205,34 +205,34 @@ export class TicketsRepository extends BaseRepository {
         // Add filter parameters
         if (options.filters) {
             if (options.filters.status?.length) {
-                queryParams['status'] = options.filters.status;
+                queryParams.status = options.filters.status;
             }
             if (options.filters.priority?.length) {
-                queryParams['priority'] = options.filters.priority;
+                queryParams.priority = options.filters.priority;
             }
             if (options.filters.type?.length) {
-                queryParams['type'] = options.filters.type;
+                queryParams.type = options.filters.type;
             }
             if (options.filters.project_id) {
-                queryParams['project_id'] = options.filters.project_id;
+                queryParams.project_id = options.filters.project_id;
             }
             if (options.filters.assigned_to_id) {
-                queryParams['assigned_to_id'] = options.filters.assigned_to_id;
+                queryParams.assigned_to_id = options.filters.assigned_to_id;
             }
             if (options.filters.has_external_link !== undefined) {
-                queryParams['has_external_link'] = options.filters.has_external_link ? '1' : '0';
+                queryParams.has_external_link = options.filters.has_external_link ? '1' : '0';
             }
             if (options.filters.vulnerability_id) {
-                queryParams['vulnerability_id'] = options.filters.vulnerability_id;
+                queryParams.vulnerability_id = options.filters.vulnerability_id;
             }
             if (options.filters.severity_class?.length) {
-                queryParams['severity_class'] = options.filters.severity_class;
+                queryParams.severity_class = options.filters.severity_class;
             }
             if (options.filters.created_after) {
-                queryParams['created_after'] = options.filters.created_after;
+                queryParams.created_after = options.filters.created_after;
             }
             if (options.filters.created_before) {
-                queryParams['created_before'] = options.filters.created_before;
+                queryParams.created_before = options.filters.created_before;
             }
         }
 
@@ -271,13 +271,13 @@ export class TicketsRepository extends BaseRepository {
         // Add filter parameters (excluding project_id since it's in the URL)
         if (options.filters) {
             if (options.filters.status?.length) {
-                queryParams['status'] = options.filters.status;
+                queryParams.status = options.filters.status;
             }
             if (options.filters.priority?.length) {
-                queryParams['priority'] = options.filters.priority;
+                queryParams.priority = options.filters.priority;
             }
             if (options.filters.type?.length) {
-                queryParams['type'] = options.filters.type;
+                queryParams.type = options.filters.type;
             }
         }
 
@@ -811,7 +811,7 @@ export class TicketsRepository extends BaseRepository {
     async unlinkTicket(options: UnlinkTicketRequestOptions): Promise<NoDataResponse> {
         const queryParams: Record<string, string> = {};
         if (options.deleteExternal) {
-            queryParams['delete_external'] = '1';
+            queryParams.delete_external = '1';
         }
 
         const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/sync/${options.linkId}`;

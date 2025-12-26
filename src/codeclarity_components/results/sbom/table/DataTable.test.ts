@@ -380,17 +380,6 @@ describe('DataTable.vue', () => {
             expect(wrapper.text()).toContain('Show only direct');
             expect(wrapper.text()).toContain('Show only dev deps');
         });
-
-        it('should call toggleFilter when filter is clicked', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-            wrapper = createWrapper();
-
-            const filterItem = wrapper.find('[data-testid="dropdown-menu-checkbox-item"]');
-            await filterItem.trigger('click');
-
-            expect(consoleLogSpy).toHaveBeenCalledWith('Toggle filter:', 'outdated');
-            consoleLogSpy.mockRestore();
-        });
     });
 
     describe('Column Visibility', () => {

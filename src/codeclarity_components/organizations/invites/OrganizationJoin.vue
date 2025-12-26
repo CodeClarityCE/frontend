@@ -3,7 +3,7 @@ import FaqBox from '@/base_components/layout/FaqBox.vue';
 import router from '@/router';
 import Button from '@/shadcn/ui/button/Button.vue';
 import { useAuthStore } from '@/stores/auth';
-import { type APIErrors } from '@/utils/api/ApiErrors';
+import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
 import { formatDate } from '@/utils/dateUtils';
 import { successToast } from '@/utils/toasts';
@@ -117,8 +117,7 @@ async function joinOrg(): Promise<void> {
                                 <div v-if="joinErrorCode" style="font-size: 0.7em">
                                     <div
                                         v-if="
-                                            (joinErrorCode as APIErrors) ===
-                                            APIErrors.InvitationInvalidOrExpired
+                                            joinErrorCode === APIErrors.InvitationInvalidOrExpired
                                         "
                                     >
                                         This invite link does not exist or has expired.

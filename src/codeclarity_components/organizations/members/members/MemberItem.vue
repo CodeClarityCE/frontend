@@ -49,19 +49,17 @@ async function kickUser(): Promise<void> {
             if (resp) successToast('Succesfully kicked the user');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+                if (err.error_code === APIErrors.NotAuthorized) {
                     errorToast(
                         'Failed to kick the user, because you do not have the correct role to be able to kick them.'
                     );
-                } else if ((err.error_code as APIErrors) === APIErrors.CannotRevokeOwnMembership) {
+                } else if (err.error_code === APIErrors.CannotRevokeOwnMembership) {
                     void errorToast('Failed to kick the user, because you cannot kick yourself.');
-                } else if (
-                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
-                ) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(
                         'Failed to kick the user, because this is a personal organization, and personal organizations cannot be modified.'
                     );
-                } else if ((err.error_code as APIErrors) === APIErrors.NotAMember) {
+                } else if (err.error_code === APIErrors.NotAMember) {
                     void successToast('Succesfully kicked the user');
                 } else {
                     void errorToast('Failed to kick the user.');

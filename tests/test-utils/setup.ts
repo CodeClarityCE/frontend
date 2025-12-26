@@ -70,15 +70,15 @@ export function mountWithSetup<T extends ComponentPublicInstance>(
     pinia,
     async mount(mountOptions: Record<string, unknown> = {}): Promise<VueWrapper<T>> {
       // Merge options
-      const globalOptions = options['global'] as Record<string, unknown> | undefined
-      const mountGlobalOptions = mountOptions['global'] as Record<string, unknown> | undefined
+      const globalOptions = options.global as Record<string, unknown> | undefined
+      const mountGlobalOptions = mountOptions.global as Record<string, unknown> | undefined
       const finalOptions = {
         ...options,
         ...mountOptions,
         global: {
           ...globalOptions,
           ...mountGlobalOptions,
-          plugins: [pinia as Plugin, ...((mountGlobalOptions?.['plugins'] as Plugin[]) ?? [])]
+          plugins: [pinia as Plugin, ...((mountGlobalOptions?.plugins as Plugin[]) ?? [])]
         }
       }
 

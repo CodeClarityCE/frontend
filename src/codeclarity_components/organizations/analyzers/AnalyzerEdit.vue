@@ -91,7 +91,7 @@ async function submit(): Promise<void> {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _orgId = route.params['orgId'];
+    const _orgId = route.params.orgId;
 
     if (!_orgId) {
         router.back();
@@ -119,7 +119,7 @@ async function init(): Promise<void> {
     }
 
     try {
-        analyzer_id.value = route.query['analyzerId'] as string;
+        analyzer_id.value = route.query.analyzerId as string;
         const res = await analyzerRepo.getAnalyzer({
             orgId: defaultOrg!.value!.id,
             bearerToken: authStore.getToken ?? '',

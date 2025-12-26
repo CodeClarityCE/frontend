@@ -75,11 +75,11 @@ async function deleteAnalysis(): Promise<void> {
         successToast('Succesfully deleted the integration');
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            if ((_err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+            if (_err.error_code === APIErrors.NotAuthorized) {
                 void errorToast('You are not authorized to perform this action.');
-            } else if ((_err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+            } else if (_err.error_code === APIErrors.EntityNotFound) {
                 errorToast('Succesfully deleted the integration');
-            } else if ((_err.error_code as APIErrors) === APIErrors.InternalError) {
+            } else if (_err.error_code === APIErrors.InternalError) {
                 errorToast('Failed to delete the integration.');
             } else {
                 errorToast('Failed to delete the integration.');

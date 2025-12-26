@@ -31,7 +31,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }))
 
 // Mock process.env for reka-ui
-process.env['NODE_ENV'] = 'test'
+process.env.NODE_ENV = 'test'
 
 // Mock import.meta.env for Vite compatibility
 Object.defineProperty(global, 'import', {
@@ -111,9 +111,8 @@ if (typeof Element !== 'undefined') {
 
 // Mock router
 vi.mock('vue-router', async (importOriginal) => {
-  const actual = (await importOriginal())
-  return {
-    ...actual,
+  const actual = await importOriginal()
+  return Object.assign({}, actual, {
     useRouter: () => ({
       push: vi.fn(),
       replace: vi.fn(),
@@ -133,7 +132,7 @@ vi.mock('vue-router', async (importOriginal) => {
       template: '<a v-bind="$attrs" :href="typeof to === \'string\' ? to : (to.name ?? to.path ?? \'#\')"><slot /></a>',
       props: ['to', 'replace', 'activeClass', 'exactActiveClass', 'custom', 'ariaCurrentValue', 'viewTransition']
     }
-  } as Record<string, unknown>
+  })
 })
 
 // Mock Pinia with singleton instance

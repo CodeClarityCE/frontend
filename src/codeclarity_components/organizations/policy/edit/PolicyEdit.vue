@@ -141,7 +141,7 @@ async function init(): Promise<void> {
     policy_id.value = searchParams.get('policyId') ?? '';
 
     const route = useRoute();
-    const _orgId = route.params['orgId'];
+    const _orgId = route.params.orgId;
 
     if (!_orgId) {
         router.back();

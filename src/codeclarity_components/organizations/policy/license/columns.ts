@@ -53,7 +53,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'description',
         header: 'Description',
         cell: ({ row }) => {
-            const description = row.getValue('description');
+            const description = row.original.description;
             return h(
                 'div',
                 {
@@ -68,7 +68,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'policy_type',
         header: 'Type',
         cell: ({ row }) => {
-            const type = row.getValue('policy_type');
+            const type = row.original.policy_type;
             const isWhitelist = type === 'WHITELIST';
             return h(
                 Badge,
@@ -92,7 +92,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'content',
         header: 'Licenses',
         cell: ({ row }) => {
-            const licenses: string[] | undefined = row.getValue('content');
+            const licenses = row.original.content;
             const count = licenses?.length ?? 0;
             return h('div', { class: 'flex items-center gap-2' }, [
                 h(
@@ -110,7 +110,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_by',
         header: 'Created By',
         cell: ({ row }) => {
-            const createdBy = row.getValue('created_by');
+            const createdBy = row.original.created_by;
             return h('div', { class: 'text-sm text-gray-600' }, createdBy ?? 'Unknown');
         }
     },
@@ -118,7 +118,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
         accessorKey: 'created_on',
         header: 'Created On',
         cell: ({ row }) => {
-            const date = row.getValue('created_on');
+            const date = row.original.created_on;
             if (!date) return h('span', { class: 'text-gray-400' }, 'Unknown');
 
             return h(

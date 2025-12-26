@@ -61,7 +61,7 @@ async function fetchIntegration(): Promise<void> {
 
 async function init(): Promise<void> {
     const route = useRoute();
-    const _integrationId = route.query['integrationId'] as string;
+    const _integrationId = route.query.integrationId as string;
 
     if (!_integrationId) {
         router.back();
@@ -90,11 +90,11 @@ async function deleteIntegration(): Promise<void> {
         });
     } catch (_err) {
         if (_err instanceof BusinessLogicError) {
-            if ((_err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+            if (_err.error_code === APIErrors.NotAuthorized) {
                 void errorToast('You are not authorized to perform this action.');
-            } else if ((_err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+            } else if (_err.error_code === APIErrors.EntityNotFound) {
                 errorToast('Succesfully deleted the integration');
-            } else if ((_err.error_code as APIErrors) === APIErrors.InternalError) {
+            } else if (_err.error_code === APIErrors.InternalError) {
                 errorToast('Failed to delete the integration.');
             } else {
                 errorToast('Failed to delete the integration.');

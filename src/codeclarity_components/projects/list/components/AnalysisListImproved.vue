@@ -212,7 +212,7 @@ function viewResults(analysis: Analysis, runIndex?: number): void {
 
     // For scheduled analyses, add run_index (default to 0 for latest)
     if (analysis.schedule_type && analysis.schedule_type !== 'once') {
-        query['run_index'] = runIndex ?? 0;
+        query.run_index = runIndex ?? 0;
     }
 
     void router.push({

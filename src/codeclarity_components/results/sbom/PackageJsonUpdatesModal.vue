@@ -58,13 +58,13 @@ const packageJsonSnippet = computed((): string => {
     const snippet: Record<string, Record<string, string>> = {};
 
     if (productionUpdates.value.length > 0) {
-        snippet['dependencies'] = Object.fromEntries(
+        snippet.dependencies = Object.fromEntries(
             productionUpdates.value.map((update) => [update.name, `^${update.latestVersion}`])
         );
     }
 
     if (developmentUpdates.value.length > 0) {
-        snippet['devDependencies'] = Object.fromEntries(
+        snippet.devDependencies = Object.fromEntries(
             developmentUpdates.value.map((update) => [update.name, `^${update.latestVersion}`])
         );
     }

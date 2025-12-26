@@ -56,11 +56,9 @@ async function deleteOrg(orgId: string): Promise<void> {
             void router.push({ name: 'orgs', params: { page: 'list' } });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     void router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if (
-                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
-                ) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -82,13 +80,11 @@ async function leaveOrg(orgId: string): Promise<void> {
             void router.push({ name: 'orgs', params: { page: 'list' } });
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     void router.push({ name: 'orgs', params: { page: 'list' } });
-                } else if (
-                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
-                ) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     void errorToast(`You cannot leave a personal organization.`);
-                } else if ((err.error_code as APIErrors) === APIErrors.CannotLeaveAsLastOwner) {
+                } else if (err.error_code === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
                         `You cannot leave as the last owner of this organization. Instead delete the organization.`
                     );
@@ -133,7 +129,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
         // Revert on error
         autoResolveTickets.value = !enabled;
         if (err instanceof BusinessLogicError) {
-            if ((err.error_code as APIErrors) === APIErrors.NotAuthorized) {
+            if (err.error_code === APIErrors.NotAuthorized) {
                 void errorToast('You do not have permission to change this setting.');
             } else {
                 void errorToast('Failed to update settings.');

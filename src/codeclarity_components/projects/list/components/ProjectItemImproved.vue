@@ -121,7 +121,7 @@ async function deleteProject(): Promise<void> {
         void emit('onRefresh');
     } catch (err) {
         if (err instanceof BusinessLogicError) {
-            if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+            if (err.error_code === APIErrors.EntityNotFound) {
                 successToast(`Successfully deleted project\n${props.project.url}`);
             } else {
                 errorToast(`Failed to delete the project\n${props.project.url}`);

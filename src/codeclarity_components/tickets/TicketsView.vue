@@ -167,7 +167,7 @@ async function handleTicketUpdated(): Promise<void> {
 
 // Check for OAuth callback on mount
 onMounted(() => {
-    if (route.query['clickup_oauth'] === 'success') {
+    if (route.query.clickup_oauth === 'success') {
         // Open integrations modal to continue setup
         showIntegrationsModal.value = true;
         // Clear the query param from URL

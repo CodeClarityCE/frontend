@@ -42,11 +42,9 @@ async function deleteOrg(orgId: string): Promise<void> {
             void emit('refresh');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     void emit('refresh');
-                } else if (
-                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
-                ) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     errorToast(`You cannot delete a personal organization.`);
                 } else {
                     errorToast(`Failed to delete the organization.`);
@@ -70,13 +68,11 @@ async function leaveOrg(orgId: string): Promise<void> {
             void emit('refresh');
         } catch (err) {
             if (err instanceof BusinessLogicError) {
-                if ((err.error_code as APIErrors) === APIErrors.EntityNotFound) {
+                if (err.error_code === APIErrors.EntityNotFound) {
                     void emit('refresh');
-                } else if (
-                    (err.error_code as APIErrors) === APIErrors.PersonalOrgCannotBeModified
-                ) {
+                } else if (err.error_code === APIErrors.PersonalOrgCannotBeModified) {
                     void errorToast(`You cannot leave a personal organization.`);
-                } else if ((err.error_code as APIErrors) === APIErrors.CannotLeaveAsLastOwner) {
+                } else if (err.error_code === APIErrors.CannotLeaveAsLastOwner) {
                     errorToast(
                         `You cannot leave as the last owner of this organization. Instead delete the organization.`
                     );

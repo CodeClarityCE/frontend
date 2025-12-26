@@ -112,7 +112,7 @@ async function fetchDefaultOrg(
         return true;
     } catch (error) {
         if (error instanceof BusinessLogicError) {
-            const errorCode = error.error_code as APIErrors;
+            const errorCode = error.error_code;
             // It may happen that the org that the user had set as the default org has been deleted
             // or the user might have been removed from an org he had set as the default org
             if (errorCode === APIErrors.EntityNotFound || errorCode === APIErrors.NotAuthorized) {

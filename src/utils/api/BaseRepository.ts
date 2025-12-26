@@ -16,7 +16,7 @@ export class BaseRepository {
 
     constructor() {
         // Initialize base URL and toast notification service
-        this.BASE_URL = `https://${window.location.hostname}/${import.meta.env['VITE_API_URL']}`;
+        this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
         this.toast = useToast();
     }
 

@@ -56,7 +56,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const name = row.getValue('name');
+            const name = row.original.name;
 
             return h(
                 'span',
@@ -131,7 +131,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const version = row.getValue('version');
+            const version = row.original.version;
             if (!version || typeof version !== 'string') {
                 return h('div', { class: 'text-gray-400 text-sm' }, 'N/A');
             }
@@ -180,8 +180,8 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const currentVersion = row.getValue('version');
-            const newestVersion = row.getValue('newest_release');
+            const currentVersion = row.original.version;
+            const newestVersion = row.original.newest_release;
 
             if (
                 !currentVersion ||
@@ -300,8 +300,8 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDeprecated = row.getValue('deprecated');
-            const deprecatedMessage: string = row.original.deprecated_message ?? '';
+            const isDeprecated = row.original.deprecated;
+            const deprecatedMessage = row.original.deprecated_message ?? '';
 
             if (isDeprecated) {
                 return h(
@@ -359,7 +359,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDev = row.getValue('dev');
+            const isDev = row.original.dev;
 
             if (isDev) {
                 return h(
@@ -410,7 +410,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isProd = row.getValue('prod');
+            const isProd = row.original.prod;
 
             if (isProd) {
                 return h(
@@ -461,7 +461,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isDirectCount = row.getValue('is_direct_count');
+            const isDirectCount = row.original.is_direct_count;
             const isDirect = isDirectCount > 0;
 
             return h(
@@ -497,7 +497,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) => {
-            const isTransitiveCount = row.getValue('is_transitive_count');
+            const isTransitiveCount = row.original.is_transitive_count;
             const isTransitive = isTransitiveCount > 0;
 
             return h(
@@ -565,7 +565,7 @@ export const columns: ColumnDef<Dependency>[] = [
             );
         },
         cell: ({ row }) =>
-            h('div', { class: 'lowercase' }, formatLastPublished(row.getValue('release'))),
+            h('div', { class: 'lowercase' }, formatLastPublished(row.original.release ?? '')),
         enableSorting: false // Sorting done on the API side
     },
     {

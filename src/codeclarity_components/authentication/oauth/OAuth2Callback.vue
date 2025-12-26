@@ -115,13 +115,12 @@ async function finalizeAutentication(): Promise<void> {
             }
             errorCode.value = _error.error_code;
             if (
-                (_error.error_code as APIErrors) === APIErrors.FailedToAuthenticateSocialAccount ||
-                (_error.error_code as APIErrors) === APIErrors.IntegrationTokenRetrievalFailed ||
-                (_error.error_code as APIErrors) === APIErrors.IntegrationInvalidToken ||
-                (_error.error_code as APIErrors) ===
-                    APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                (_error.error_code as APIErrors) === APIErrors.IntegrationTokenExpired ||
-                (_error.error_code as APIErrors) === APIErrors.InternalError
+                _error.error_code === APIErrors.FailedToAuthenticateSocialAccount ||
+                _error.error_code === APIErrors.IntegrationTokenRetrievalFailed ||
+                _error.error_code === APIErrors.IntegrationInvalidToken ||
+                _error.error_code === APIErrors.IntegrationIntegrationTokenMissingPermissions ||
+                _error.error_code === APIErrors.IntegrationTokenExpired ||
+                _error.error_code === APIErrors.InternalError
             ) {
                 errorNonRecoverable.value = true;
             }

@@ -36,7 +36,9 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm<FormValues>({ validationSchema: toTypedSchema(formSchema) });
+const form = useForm<FormValues>({
+  validationSchema: toTypedSchema(formSchema),
+});
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {

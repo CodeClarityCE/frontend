@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
@@ -36,7 +37,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const form = useForm<FormValues>({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(formSchema),
 });
 
 const onSubmit = form.handleSubmit((values): void => {

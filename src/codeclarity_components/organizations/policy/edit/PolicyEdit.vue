@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
+import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { onBeforeMount, ref, type Ref, computed } from "vue";
 import { useRoute } from "vue-router";
@@ -88,7 +89,7 @@ function setOrgInfo(_orgInfo: Organization): void {
 
 // Methods
 const { handleSubmit, values } = useForm({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(formSchema),
   initialValues: {
     isDefault: false,
     name: "",

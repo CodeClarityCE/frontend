@@ -28,6 +28,7 @@ export interface FailedProjectImport {
 </script>
 <script lang="ts" setup>
 /* eslint-disable import/order */
+import { toTypedSchema } from "@vee-validate/zod";
 import { Icon } from "@iconify/vue";
 import { useForm } from "vee-validate";
 import { ref, type Ref } from "vue";
@@ -72,7 +73,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const form = useForm<FormValues>({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(formSchema),
 });
 
 const onSubmit = form.handleSubmit(async (values) => {

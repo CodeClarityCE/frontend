@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
 import { Icon } from "@iconify/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref, type Ref } from "vue";
 import { RouterLink } from "vue-router";
@@ -54,7 +55,7 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 const { handleSubmit } = useForm<FormValues>({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(formSchema),
 });
 
 const onSubmit = handleSubmit((values): void => {
@@ -138,7 +139,7 @@ async function submit(values: {
     </RouterLink>
     <div class="py-10">
       <div
-        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-87.5"
       >
         <img src="@/assets/images/logos/logo.svg" class="w-20 self-center" />
         <div class="flex flex-col space-y-2 text-center">

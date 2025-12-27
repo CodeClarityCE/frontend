@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
 import { toTypedSchema } from "@vee-validate/zod";
+import { storeToRefs } from "pinia";
 import { useForm } from "vee-validate";
 import { onBeforeMount, ref, type Ref, computed } from "vue";
 import { useRoute } from "vue-router";

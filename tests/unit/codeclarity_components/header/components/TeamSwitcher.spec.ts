@@ -380,8 +380,8 @@ describe('TeamSwitcher - Simplified', () => {
     it('applies correct button styling', () => {
       const button = wrapper.findComponent({ name: 'Button' });
       const classes = button.props('class');
-      
-      expect(classes).toContain('w-[220px]');
+
+      expect(classes).toContain('w-55');
       expect(classes).toContain('justify-between');
       expect(classes).toContain('bg-gray-50');
       expect(classes).toContain('border-gray-300');
@@ -390,7 +390,7 @@ describe('TeamSwitcher - Simplified', () => {
 
     it('applies correct popover content styling', () => {
       const popoverContent = wrapper.findComponent({ name: 'PopoverContent' });
-      expect(popoverContent.props('class')).toContain('w-[220px]');
+      expect(popoverContent.props('class')).toContain('w-55');
       expect(popoverContent.props('class')).toContain('p-0');
     });
 

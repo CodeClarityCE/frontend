@@ -5,9 +5,22 @@ import { InfoCard, StatCard } from "@/base_components";
 import TextLoader from "@/base_components/ui/loaders/TextLoader.vue";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import { AnalysisStats } from "@/codeclarity_components/results/stats.entity";
+import { Card, CardContent } from "@/shadcn/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shadcn/ui/tooltip";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
+import {
+  GRADE_DISPLAY_RANGES,
+  getGradeSubtitle,
+  getScoreBorderColor,
+  scoreToGrade,
+} from "@/utils/gradeUtils";
 import SelectWorkspace from "../SelectWorkspace.vue";
 
 export interface Props {
@@ -129,6 +142,15 @@ const securityRiskScore = computed(() => {
   return Math.max(0, Math.round(100 - riskPercentage));
 });
 
+// Security grade mapping using shared utility
+const securityGrade = computed(() => scoreToGrade(securityRiskScore.value));
+const securityGradeSubtitle = computed(() =>
+  getGradeSubtitle(securityGrade.value, "security"),
+);
+const securityScoreBorderColor = computed(() =>
+  getScoreBorderColor(securityRiskScore.value),
+);
+
 const criticalAndHighCount = computed(() => {
   return (
     (stats.value.number_of_critical ?? 0) + (stats.value.number_of_high ?? 0)
@@ -240,27 +262,104 @@ const topOwaspCategories = computed(() => {
         "
       />
 
-      <!-- Security Score -->
-      <StatCard
-        label="Security Score"
-        :value="`${securityRiskScore}%`"
-        icon="solar:shield-check-bold"
-        variant="primary"
-        :subtitle="
-          securityRiskScore >= 80
-            ? 'Excellent security posture'
-            : securityRiskScore >= 60
-              ? 'Good security posture'
-              : 'Needs immediate attention'
-        "
-        :subtitle-icon="
-          securityRiskScore >= 80
-            ? 'solar:shield-check-linear'
-            : securityRiskScore >= 60
-              ? 'solar:shield-linear'
-              : 'solar:shield-warning-linear'
-        "
-      />
+      <!-- Security Score with tooltip -->
+      <TooltipProvider>
+        <Card
+          class="border shadow-sm hover:shadow-md transition-shadow h-full border-l-4"
+          :class="securityScoreBorderColor"
+        >
+          <CardContent class="p-6 h-full flex flex-col">
+            <p
+              class="text-sm font-semibold uppercase tracking-wide text-theme-gray mb-2"
+            >
+              Security Score
+            </p>
+
+            <div class="flex-1 flex items-center">
+              <div class="flex items-center justify-between w-full">
+                <div class="space-y-2">
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <p
+                        class="text-3xl font-bold text-theme-black cursor-help flex items-center gap-2"
+                      >
+                        {{ securityGrade }}
+                        <Icon
+                          icon="solar:info-circle-line-duotone"
+                          class="w-5 h-5 text-gray-400"
+                        />
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="bottom"
+                      class="max-w-xs bg-white text-gray-900 border border-gray-200 shadow-lg p-3"
+                    >
+                      <div class="space-y-2">
+                        <p class="font-semibold text-sm text-gray-900">
+                          Security Grade Scale
+                        </p>
+                        <div class="space-y-1 text-xs">
+                          <div class="flex justify-between gap-4">
+                            <span class="text-green-600 font-medium"
+                              >A+ / A</span
+                            >
+                            <span class="text-gray-500"
+                              >Excellent ({{
+                                GRADE_DISPLAY_RANGES.excellent
+                              }})</span
+                            >
+                          </div>
+                          <div class="flex justify-between gap-4">
+                            <span class="text-blue-600 font-medium"
+                              >B+ / B</span
+                            >
+                            <span class="text-gray-500"
+                              >Good ({{ GRADE_DISPLAY_RANGES.good }})</span
+                            >
+                          </div>
+                          <div class="flex justify-between gap-4">
+                            <span class="text-yellow-600 font-medium"
+                              >C+ / C</span
+                            >
+                            <span class="text-gray-500"
+                              >Fair ({{ GRADE_DISPLAY_RANGES.fair }})</span
+                            >
+                          </div>
+                          <div class="flex justify-between gap-4">
+                            <span class="text-red-600 font-medium">D+ / D</span>
+                            <span class="text-gray-500"
+                              >Poor ({{ GRADE_DISPLAY_RANGES.poor }})</span
+                            >
+                          </div>
+                        </div>
+                        <p
+                          class="text-xs text-gray-500 pt-1 border-t border-gray-200"
+                        >
+                          Based on weighted critical and high severity
+                          vulnerabilities.
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <div class="flex items-center gap-1 text-xs">
+                    <span class="font-medium text-theme-gray">
+                      {{ securityGradeSubtitle }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-full bg-gray-100">
+                  <Icon
+                    icon="solar:shield-check-bold"
+                    class="h-8 w-8 text-gray-600"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </TooltipProvider>
 
       <!-- Severity Overview -->
       <InfoCard
@@ -514,7 +613,7 @@ const topOwaspCategories = computed(() => {
                   </p>
                 </div>
                 <span
-                  class="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full text-xs font-bold bg-theme-primary/10 text-theme-primary"
+                  class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-xs font-bold bg-theme-primary/10 text-theme-primary"
                 >
                   {{ category.count }}
                 </span>

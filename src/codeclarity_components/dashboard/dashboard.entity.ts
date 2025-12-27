@@ -88,6 +88,8 @@ export class QuickStats {
   nmb_deprecated!: number;
   @IsDefined()
   nmb_deprecated_trend!: StatsTrend;
+  @IsNumber()
+  nmb_projects!: number;
   @IsOptional()
   @IsString()
   owasp_top_10?: string;

@@ -122,9 +122,7 @@ function calculateOwaspTopTotalCount(): void {
               </div>
             </div>
           </CardHeader>
-          <CardContent
-            class="flex items-center justify-center grow min-h-50"
-          >
+          <CardContent class="flex items-center justify-center grow min-h-50">
             <VulnerabilitiesInfo :stats="stats" />
           </CardContent>
         </Card>
@@ -151,9 +149,7 @@ function calculateOwaspTopTotalCount(): void {
               </div>
             </div>
           </CardHeader>
-          <CardContent
-            class="flex items-center justify-center grow min-h-50"
-          >
+          <CardContent class="flex items-center justify-center grow min-h-50">
             <OwaspTopTen :stats="stats" />
           </CardContent>
         </Card>
@@ -181,9 +177,7 @@ function calculateOwaspTopTotalCount(): void {
               </div>
             </div>
           </CardHeader>
-          <CardContent
-            class="flex items-center justify-center grow min-h-50"
-          >
+          <CardContent class="flex items-center justify-center grow min-h-50">
             <SecurityImpact :stats="stats" />
           </CardContent>
         </Card>

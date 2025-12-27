@@ -172,7 +172,7 @@ void fetchProjects();
           class="block"
         >
           <div
-            class="h-full bg-linear-to-br from-theme-primary/10 to-theme-primary/5 border-2 border-dashed border-theme-primary/30 rounded-xl p-6 hover:border-theme-primary/50 hover:bg-theme-primary/15 transition-all duration-300 cursor-pointer group min-h-[280px]"
+            class="h-full bg-linear-to-br from-theme-primary/10 to-theme-primary/5 border-2 border-dashed border-theme-primary/30 rounded-xl p-6 hover:border-theme-primary/50 hover:bg-theme-primary/15 transition-all duration-300 cursor-pointer group min-h-70"
           >
             <div
               class="flex flex-col items-center text-center h-full justify-center"

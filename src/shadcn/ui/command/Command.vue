@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { cn } from "@/shadcn/lib/utils";
 import type { ListboxRootEmits, ListboxRootProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import { reactiveOmit } from "@vueuse/core";
 import { ListboxRoot, useFilter, useForwardPropsEmits } from "reka-ui";
-import { computed, type HTMLAttributes, reactive, ref, watch } from "vue";
+import { reactive, ref, watch } from "vue";
+import { cn } from "@/shadcn/lib/utils";
 import { provideCommandContext } from ".";
 
 const props = withDefaults(
@@ -14,11 +16,7 @@ const props = withDefaults(
 
 const emits = defineEmits<ListboxRootEmits>();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class");
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
@@ -34,7 +32,7 @@ const filterState = reactive({
     /** Map from visible item id to its search score. */
     items: new Map() as Map<string, number>,
     /** Set of groups with at least one visible item. */
-    groups: new Set<string>(),
+    groups: new Set() as Set<string>,
   },
 });
 
@@ -46,7 +44,7 @@ function filterItems() {
   }
 
   // Reset the groups
-  filterState.filtered.groups = new Set<string>();
+  filterState.filtered.groups = new Set();
   let itemCount = 0;
 
   // Check which items should be included

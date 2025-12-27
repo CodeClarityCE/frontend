@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { WithClassAsProps } from "./interface";
+import { ArrowLeft } from "lucide-vue-next";
 import { cn } from "@/shadcn/lib/utils";
 import { Button } from "@/shadcn/ui/button";
-import { ArrowLeft } from "lucide-vue-next";
-import type { WithClassAsProps } from "./interface";
 import { useCarousel } from "./useCarousel";
 
 const props = defineProps<WithClassAsProps>();
@@ -27,6 +27,7 @@ const { orientation, canScrollPrev, scrollPrev } = useCarousel();
   >
     <slot>
       <ArrowLeft class="h-4 w-4 text-current" />
+      <span class="sr-only">Previous Slide</span>
     </slot>
   </Button>
 </template>

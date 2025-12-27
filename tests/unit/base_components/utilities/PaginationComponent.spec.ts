@@ -9,12 +9,12 @@ vi.mock('@/shadcn/ui/pagination', () => ({
     template: '<div data-testid="pagination" class="pagination"><slot /></div>',
     props: ['total', 'itemsPerPage', 'siblingCount', 'showEdges', 'defaultPage']
   },
-  PaginationList: {
-    name: 'PaginationList',
+  PaginationContent: {
+    name: 'PaginationContent',
     template: '<div data-testid="pagination-list" class="pagination-list"><slot /></div>'
   },
-  PaginationListItem: {
-    name: 'PaginationListItem',
+  PaginationItem: {
+    name: 'PaginationItem',
     template: '<div data-testid="pagination-item" class="pagination-item"><slot /></div>',
     props: ['value', 'asChild']
   },
@@ -23,8 +23,8 @@ vi.mock('@/shadcn/ui/pagination', () => ({
     template: '<button data-testid="pagination-first" class="pagination-first" @click="$emit(\'click\')">First</button>',
     emits: ['click']
   },
-  PaginationPrev: {
-    name: 'PaginationPrev',
+  PaginationPrevious: {
+    name: 'PaginationPrevious',
     template: '<button data-testid="pagination-prev" class="pagination-prev" @click="$emit(\'click\')">Prev</button>',
     emits: ['click']
   },

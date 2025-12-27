@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { cn } from "@/shadcn/lib/utils";
-import { ChevronRight } from "lucide-vue-next";
 import type { HTMLAttributes } from "vue";
+import { ChevronRight } from "lucide-vue-next";
+import { cn } from "@/shadcn/lib/utils";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];

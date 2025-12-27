@@ -16,7 +16,6 @@ import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
 
@@ -30,14 +29,13 @@ const userStore = useUserStore();
 const user = userStore.user;
 
 // UPDATE INFO FORM
-const formSchema = toTypedSchema(
-  z.object({
-    first_name: z.string().min(2).max(25),
-    last_name: z.string().min(2).max(25),
-  }),
-);
+const formSchema = z.object({
+  first_name: z.string().min(2).max(25),
+  last_name: z.string().min(2).max(25),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm({
+const form = useForm<FormValues>({
   validationSchema: formSchema,
 });
 

@@ -10,13 +10,12 @@ import {
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { toast } from "@/shadcn/ui/toast";
 import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
+import { toast } from "vue-sonner";
 import { ZodError } from "zod";
 import * as z from "zod";
 import { OrgRepository } from "../organization.repository";
@@ -24,18 +23,19 @@ import { OrgRepository } from "../organization.repository";
 const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
 
-const formSchema = toTypedSchema(
-  z.object({
-    name: z
-      .string({ required_error: "A name is required." })
-      .min(2, { message: "The name must be at least 2 characters." }),
-    description: z
-      .string({ required_error: "A description is required." })
-      .min(2, { message: "The description must be at least 2 characters." }),
-  }),
-);
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: "A name is required." })
+    .min(2, { message: "The name must be at least 2 characters." }),
+  description: z
+    .string()
+    .min(1, { message: "A description is required." })
+    .min(2, { message: "The description must be at least 2 characters." }),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm({ validationSchema: formSchema });
+const form = useForm<FormValues>({ validationSchema: formSchema });
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
@@ -48,16 +48,14 @@ const onSubmit = form.handleSubmit(async (values) => {
       },
       handleBusinessErrors: true,
     });
-    void toast({ title: "Organization created!" });
+    toast.success("Organization created!");
   } catch (error) {
     if (error instanceof ZodError) {
-      void toast({
-        title: "Error during creation",
+      toast.error("Error during creation", {
         description: error.message,
       });
     } else if (error instanceof BusinessLogicError) {
-      void toast({
-        title: "Error during creation",
+      toast.error("Error during creation", {
         description: error.error_message,
       });
     }

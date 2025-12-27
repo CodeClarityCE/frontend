@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { cn } from "@/shadcn/lib/utils";
 import type { HTMLAttributes } from "vue";
-import { type AlertVariants, alertVariants } from ".";
+import type { AlertVariants } from ".";
+import { cn } from "@/shadcn/lib/utils";
+import { alertVariants } from ".";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];

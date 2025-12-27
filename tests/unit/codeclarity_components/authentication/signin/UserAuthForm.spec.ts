@@ -164,10 +164,6 @@ vi.mock('vee-validate', () => ({
   })
 }));
 
-vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: (schema: any) => schema
-}));
-
 // Mock auto-animate
 vi.mock('@formkit/auto-animate/vue', () => ({
   vAutoAnimate: {}

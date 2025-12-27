@@ -29,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { toast } from "@/shadcn/ui/toast";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
@@ -40,8 +39,9 @@ import { Icon } from "@iconify/vue";
 import { watchDeep } from "@vueuse/core";
 import { AlertCircle } from "lucide-vue-next";
 import { Form } from "vee-validate";
-import { h, ref, type Ref } from "vue";
+import { ref, type Ref } from "vue";
 import { RouterLink } from "vue-router";
+import { toast } from "vue-sonner";
 import ScheduleSelector from "./components/ScheduleSelector.vue";
 import SelectLicensePolicy from "./components/SelectLicensePolicy.vue";
 import SelectVulnerabilityPolicy from "./components/SelectVulnerabilityPolicy.vue";
@@ -440,27 +440,8 @@ function applyConfigSilently(values: FormValues, plugin_name: string): void {
 
 // Show final comprehensive configuration toast
 function showFinalConfigurationToast(): void {
-  toast({
-    title: "🔧 Configuration Applied",
-    description: h("div", { class: "space-y-2" }, [
-      h(
-        "p",
-        { class: "text-sm text-gray-600" },
-        "Complete configuration for API requests:",
-      ),
-      h(
-        "pre",
-        {
-          class:
-            "mt-2 w-[380px] rounded-md bg-slate-950 p-3 text-xs overflow-auto max-h-40",
-        },
-        h(
-          "code",
-          { class: "text-white" },
-          JSON.stringify(configuration.value, null, 2),
-        ),
-      ),
-    ]),
+  toast.success("Configuration Applied", {
+    description: "All plugin configurations have been set successfully.",
   });
 }
 
@@ -508,11 +489,9 @@ async function createAnalysisStart(): Promise<void> {
         handleBusinessErrors: true,
         data: analysisData,
       });
-      toast({
-        title: "✅ Analysis Created Successfully!",
+      toast.success("Analysis Created Successfully!", {
         description:
           "Your analysis has been started and will run in the background. You will be notified when results are available.",
-        variant: "default",
       });
       void router.push({ name: "projects" });
     }

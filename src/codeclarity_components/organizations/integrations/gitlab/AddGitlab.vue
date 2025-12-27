@@ -17,7 +17,6 @@ import {
 } from "@/utils/api/BaseRepository";
 import { successToast } from "@/utils/toasts";
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
@@ -132,17 +131,15 @@ async function submit(): Promise<void> {
 }
 
 // Form Validation
-const formValidationSchema = toTypedSchema(
-  z.object({
-    token: z
-      .string()
-      .min(1, "Enter a GitLab personal access token")
-      .regex(
-        gitlabPersonalAccessTokenRegex,
-        "Please enter a valid GitLab personal access token",
-      ),
-  }),
-);
+const formValidationSchema = z.object({
+  token: z
+    .string()
+    .min(1, "Enter a GitLab personal access token")
+    .regex(
+      gitlabPersonalAccessTokenRegex,
+      "Please enter a valid GitLab personal access token",
+    ),
+});
 
 const gitlabInstanceUrlValidationSchema = z.object({
   url: z
@@ -160,7 +157,7 @@ async function validateGitlabInstanceUrl(): Promise<void> {
   } catch (err) {
     if (err instanceof z.ZodError) {
       formGitlabInstanceUrlError.value =
-        err.errors[0]?.message ?? "Invalid URL";
+        err.issues[0]?.message ?? "Invalid URL";
     }
   }
 }

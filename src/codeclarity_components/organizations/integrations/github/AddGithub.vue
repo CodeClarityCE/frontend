@@ -16,7 +16,6 @@ import {
 } from "@/utils/api/BaseRepository";
 import { successToast } from "@/utils/toasts";
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
@@ -109,17 +108,15 @@ async function submit(): Promise<void> {
   }
 }
 // Form Validation
-const formValidationSchema = toTypedSchema(
-  z.object({
-    token: z
-      .string()
-      .min(1, "Enter a Github classic token")
-      .regex(
-        githubClassicTokenRegex,
-        "Please enter a valid Github classic token",
-      ),
-  }),
-);
+const formValidationSchema = z.object({
+  token: z
+    .string()
+    .min(1, "Enter a Github classic token")
+    .regex(
+      githubClassicTokenRegex,
+      "Please enter a valid Github classic token",
+    ),
+});
 
 async function init(): Promise<void> {
   const route = useRoute();

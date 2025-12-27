@@ -357,7 +357,13 @@ vi.mock('@vueuse/core', () => ({
   watch: vi.fn(),
   computed: vi.fn(),
   ref: vi.fn(),
-  reactive: vi.fn()
+  reactive: vi.fn(),
+  reactiveOmit: (obj: Record<string, unknown>, ...keys: string[]) => {
+    const result = { ...obj };
+    keys.forEach(key => delete result[key]);
+    return result;
+  },
+  watchDeep: vi.fn()
 }))
 
 // Mock lucide-vue-next icons

@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import { cn } from "@/shadcn/lib/utils";
 import type { PrimitiveProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import { reactiveOmit } from "@vueuse/core";
 import { Primitive } from "reka-ui";
-import { computed, type HTMLAttributes } from "vue";
+import { computed } from "vue";
+import { cn } from "@/shadcn/lib/utils";
 import { useCommand } from ".";
 
 const props = defineProps<
   PrimitiveProps & { class?: HTMLAttributes["class"] }
 >();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class");
 
 const { filterState } = useCommand();
 const isRender = computed(

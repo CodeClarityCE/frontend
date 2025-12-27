@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { cn } from "@/shadcn/lib/utils";
 import type { WithClassAsProps } from "./interface";
+import { cn } from "@/shadcn/lib/utils";
 import { useCarousel } from "./useCarousel";
 
 defineOptions({
@@ -10,7 +10,9 @@ defineOptions({
 const props = defineProps<WithClassAsProps>();
 
 const { carouselRef, orientation } = useCarousel();
-void carouselRef; // Used as template ref
+
+// Expose carouselRef for template binding
+defineExpose({ carouselRef });
 </script>
 
 <template>

@@ -29,7 +29,6 @@ export interface FailedProjectImport {
 <script lang="ts" setup>
 /* eslint-disable import/order */
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref, type Ref } from "vue";
 import * as z from "zod";
@@ -67,13 +66,12 @@ const reposFailedToImportPage: Ref<number> = ref(0);
 const reposFailedToImport: Ref<Record<string, FailedProjectImport>> = ref({});
 const selectedRepos: Ref<Repository[]> = ref([]);
 
-const formSchema = toTypedSchema(
-  z.object({
-    repository: z.string().min(2).max(150),
-  }),
-);
+const formSchema = z.object({
+  repository: z.string().min(2).max(150),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm({
+const form = useForm<FormValues>({
   validationSchema: formSchema,
 });
 

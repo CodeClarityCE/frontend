@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
-import SearchBar from "@/base_components/filters/SearchBar.vue";
-import UtilitiesFilters, {
+import {
   createNewFilterState,
   FilterType,
-  type FilterState,
   type FilterConfig,
-} from "@/base_components/filters/UtilitiesFilters.vue";
+  type FilterState,
+} from "@/base_components/filters/filterTypes";
+import SearchBar from "@/base_components/filters/SearchBar.vue";
+import UtilitiesFilters from "@/base_components/filters/UtilitiesFilters.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import PaginationComponent from "@/base_components/utilities/PaginationComponent.vue";
 import UtilitiesSort from "@/base_components/utilities/UtilitiesSort.vue";
@@ -85,10 +86,9 @@ function handleEcosystemFilterChanged(ecosystemType: string | null): void {
 }
 
 // Filters
-const filterConfigDef: FilterConfig = {
+const filterConfigDef = {
   ImportState: {
     name: "Language",
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     type: FilterType.RADIO,
     data: {
       js: {
@@ -97,8 +97,8 @@ const filterConfigDef: FilterConfig = {
       },
     },
   },
-};
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+} satisfies FilterConfig;
+
 const filterState: Ref<FilterState> = ref(
   createNewFilterState(filterConfigDef),
 );

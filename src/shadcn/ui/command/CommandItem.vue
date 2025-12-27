@@ -1,16 +1,10 @@
 <script setup lang="ts">
-// @ts-nocheck
-import { cn } from "@/shadcn/lib/utils";
-import { useCurrentElement } from "@vueuse/core";
 import type { ListboxItemEmits, ListboxItemProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import { reactiveOmit, useCurrentElement } from "@vueuse/core";
 import { ListboxItem, useForwardPropsEmits, useId } from "reka-ui";
-import {
-  computed,
-  type HTMLAttributes,
-  onMounted,
-  onUnmounted,
-  ref,
-} from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { cn } from "@/shadcn/lib/utils";
 import { useCommand, useCommandGroup } from ".";
 
 const props = defineProps<
@@ -18,11 +12,7 @@ const props = defineProps<
 >();
 const emits = defineEmits<ListboxItemEmits>();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class");
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
@@ -54,7 +44,7 @@ onMounted(() => {
   // textValue to perform filter
   allItems.value.set(
     id,
-    currentElement.value.textContent ?? props.value.toString(),
+    currentElement.value.textContent ?? props?.value!.toString(),
   );
 
   const groupId = groupContext?.id;

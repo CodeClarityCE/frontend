@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
-import { toast } from "@/shadcn/ui/toast";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import {
@@ -25,10 +24,10 @@ import {
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref, type Ref } from "vue";
 import { RouterLink } from "vue-router";
+import { toast } from "vue-sonner";
 import * as z from "zod";
 
 // Stores
@@ -44,25 +43,23 @@ const error: Ref<boolean> = ref(false);
 const validationError: Ref<ValidationError | undefined> = ref();
 
 // Form Validation
-const formSchema = toTypedSchema(
-  z.object({
-    email: z.string().email(),
-    first_name: z.string().min(2).max(25),
-    last_name: z.string().min(2).max(25),
-    handle: z.string().min(5).max(50),
-    plainPassword: z.string().min(10).max(75),
-    plainPasswordConfirm: z.string().min(10).max(75),
-    agreeTerms: z.boolean().default(false),
-  }),
-);
-const { handleSubmit } = useForm({
+const formSchema = z.object({
+  email: z.string().email(),
+  first_name: z.string().min(2).max(25),
+  last_name: z.string().min(2).max(25),
+  handle: z.string().min(5).max(50),
+  plainPassword: z.string().min(10).max(75),
+  plainPasswordConfirm: z.string().min(10).max(75),
+  agreeTerms: z.boolean().default(false),
+});
+type FormValues = z.infer<typeof formSchema>;
+const { handleSubmit } = useForm<FormValues>({
   validationSchema: formSchema,
 });
 
 const onSubmit = handleSubmit((values): void => {
   if (values.agreeTerms === false) {
-    toast({
-      title: "You must agree to our terms and conditions to continue",
+    toast.warning("You must agree to our terms and conditions to continue", {
       description: "Please check the box to continue",
     });
     return;
@@ -107,8 +104,7 @@ async function submit(values: {
       },
       handleBusinessErrors: true,
     });
-    toast({
-      title: "Account successfully created",
+    toast.success("Account successfully created", {
       description: "Please check your email to verify your account",
     });
     void router.push({ name: "login" });

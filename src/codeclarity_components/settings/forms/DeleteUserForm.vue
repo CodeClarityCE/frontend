@@ -10,15 +10,14 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
-import { toast } from "@/shadcn/ui/toast";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
+import { toast } from "vue-sonner";
 import * as z from "zod";
 
 const state = useStateStore();
@@ -31,13 +30,12 @@ const userStore = useUserStore();
 const user = userStore.user;
 
 // UPDATE INFO FORM
-const formSchema = toTypedSchema(
-  z.object({
-    password_deletion: z.string().min(10).max(75),
-  }),
-);
+const formSchema = z.object({
+  password_deletion: z.string().min(10).max(75),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm({
+const form = useForm<FormValues>({
   validationSchema: formSchema,
 });
 
@@ -60,9 +58,7 @@ async function deleteAccount(password: string): Promise<void> {
           password: password,
         },
       });
-      toast({
-        title: "Password updated",
-      });
+      toast.success("Password updated");
     } catch (err) {
       if (err instanceof BusinessLogicError) {
         console.error(err);

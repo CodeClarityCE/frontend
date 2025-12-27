@@ -149,17 +149,15 @@ describe("ResultsVulnerabilities", () => {
       writable: true,
     });
 
-    // Mock setTimeout
-    global.setTimeout = vi.fn((callback: () => void) => {
-      callback();
-      return 1;
-    }) as any;
+    // Use fake timers for controlled timer behavior
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     if (wrapper) {
       wrapper.unmount();
     }
+    vi.useRealTimers();
   });
 
   it("renders correctly with required props", () => {

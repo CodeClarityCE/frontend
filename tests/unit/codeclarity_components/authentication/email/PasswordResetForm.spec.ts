@@ -110,10 +110,6 @@ vi.mock('vee-validate', async () => {
   };
 });
 
-vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: vi.fn((schema: any) => schema)
-}));
-
 vi.mock('@/shadcn/ui/alert/Alert.vue', async () => {
   const { defineComponent } = await import('vue');
   return {

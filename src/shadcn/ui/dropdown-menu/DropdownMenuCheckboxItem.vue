@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { cn } from "@/shadcn/lib/utils";
+import type {
+  DropdownMenuCheckboxItemEmits,
+  DropdownMenuCheckboxItemProps,
+} from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import { reactiveOmit } from "@vueuse/core";
 import { Check } from "lucide-vue-next";
 import {
   DropdownMenuCheckboxItem,
-  type DropdownMenuCheckboxItemEmits,
-  type DropdownMenuCheckboxItemProps,
   DropdownMenuItemIndicator,
   useForwardPropsEmits,
 } from "reka-ui";
-import { computed, type HTMLAttributes } from "vue";
+import { cn } from "@/shadcn/lib/utils";
 
 const props = defineProps<
   DropdownMenuCheckboxItemProps & { class?: HTMLAttributes["class"] }
 >();
 const emits = defineEmits<DropdownMenuCheckboxItemEmits>();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class");
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>

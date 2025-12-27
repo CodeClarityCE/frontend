@@ -4031,18 +4031,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vee-validate/zod@npm:4.15.1":
-  version: 4.15.1
-  resolution: "@vee-validate/zod@npm:4.15.1"
-  dependencies:
-    type-fest: "npm:^4.8.3"
-    vee-validate: "npm:4.15.1"
-  peerDependencies:
-    zod: ^3.24.0
-  checksum: 10/3c907887dd430f28beb0a08041c57c9a7b4a9544d409276dd3056e83f74bfbeb285739b9692aec05377db4e0bb82ce2946aec630b8b409a2dc67ceab606a76f6
-  languageName: node
-  linkType: hard
-
 "@vitejs/plugin-vue@npm:6.0.3":
   version: 6.0.3
   resolution: "@vitejs/plugin-vue@npm:6.0.3"
@@ -6973,6 +6961,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"embla-carousel-reactive-utils@npm:8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel-reactive-utils@npm:8.6.0"
+  peerDependencies:
+    embla-carousel: 8.6.0
+  checksum: 10/48b31931572b32b49705e6125d4f10c240fca0ee8a078867fc91f7c889f6adee95f7fd0b0fdf5dfef6d83d497115759f3f3ca2e8320e331efa0de1c9e6fb4638
+  languageName: node
+  linkType: hard
+
+"embla-carousel-vue@npm:8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel-vue@npm:8.6.0"
+  dependencies:
+    embla-carousel: "npm:8.6.0"
+    embla-carousel-reactive-utils: "npm:8.6.0"
+  peerDependencies:
+    vue: ^3.2.37
+  checksum: 10/0375afdc895efbcc93a7e9a0d912867e1356a4d8427c24f25c9ab791853a26ad5caff33c5a45c381e8451b88ec2404981e6320d845ef3cd297cd48acff845806
+  languageName: node
+  linkType: hard
+
+"embla-carousel@npm:8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel@npm:8.6.0"
+  checksum: 10/6c1c4268160ce2a150c80f0c84edd4c42b47567f8ef25f56fb21819a4094cfa885614cb0837d180e8da8159ff79a077e0a2e1e679ed2c500ff52697d3ec94b78
+  languageName: node
+  linkType: hard
+
 "emoji-regex@npm:^10.3.0, emoji-regex@npm:~10.6.0":
   version: 10.6.0
   resolution: "emoji-regex@npm:10.6.0"
@@ -8065,7 +8081,6 @@ __metadata:
     "@types/node": "npm:25.0.3"
     "@types/validator": "npm:13.15.10"
     "@types/webpack-bundle-analyzer": "npm:4.7.0"
-    "@vee-validate/zod": "npm:4.15.1"
     "@vitejs/plugin-vue": "npm:6.0.3"
     "@vitest/coverage-v8": "npm:4.0.16"
     "@vue-flow/background": "npm:1.3.2"
@@ -8087,6 +8102,7 @@ __metadata:
     cypress-axe: "npm:1.7.0"
     cypress-real-events: "npm:1.15.0"
     d3: "npm:7.9.0"
+    embla-carousel-vue: "npm:8.6.0"
     eslint: "npm:9.39.2"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-cypress: "npm:5.2.0"
@@ -8124,11 +8140,12 @@ __metadata:
     vue-eslint-parser: "npm:10.2.0"
     vue-markdown-render: "npm:2.3.0"
     vue-router: "npm:4.6.4"
+    vue-sonner: "npm:2.0.9"
     vue-tippy: "npm:6.7.1"
     vue-toast-notification: "npm:3.1.3"
     vue-tsc: "npm:3.2.1"
     webpack-bundle-analyzer: "npm:5.1.0"
-    zod: "npm:3.25.67"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -13571,6 +13588,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-sonner@npm:2.0.9":
+  version: 2.0.9
+  resolution: "vue-sonner@npm:2.0.9"
+  peerDependencies:
+    "@nuxt/kit": ^4.0.3
+    "@nuxt/schema": ^4.0.3
+    nuxt: ^4.0.3
+  peerDependenciesMeta:
+    "@nuxt/kit":
+      optional: true
+    "@nuxt/schema":
+      optional: true
+    nuxt:
+      optional: true
+  checksum: 10/178621c391c82587a8ec15e0e46d966aa3066a18cf368096140808cee431d086c6c4a5c0170b122ec4f318f678da39f6badc41f1eed9e3e0df355c4bc3b63dd8
+  languageName: node
+  linkType: hard
+
 "vue-tippy@npm:6.7.1":
   version: 6.7.1
   resolution: "vue-tippy@npm:6.7.1"
@@ -14121,10 +14156,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.25.67":
-  version: 3.25.67
-  resolution: "zod@npm:3.25.67"
-  checksum: 10/0e35432dcca7f053e63f5dd491a87c78abe0d981817547252c3b6d05f0f58788695d1a69724759c6501dff3fd62929be24c9f314a3625179bee889150f7a61fa
+"zod@npm:4.2.1, zod@npm:^4.1.12":
+  version: 4.2.1
+  resolution: "zod@npm:4.2.1"
+  checksum: 10/f21d106ce31e0f24040aa13b13fdd1300fcc8119622b28ca1b1b726ff70b75190dbcfeb927d34f19174683afa298e5df4d806f622abe9b037a0aadb9cdef6443
   languageName: node
   linkType: hard
 
@@ -14132,12 +14167,5 @@ __metadata:
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
-  languageName: node
-  linkType: hard
-
-"zod@npm:^4.1.12":
-  version: 4.2.1
-  resolution: "zod@npm:4.2.1"
-  checksum: 10/f21d106ce31e0f24040aa13b13fdd1300fcc8119622b28ca1b1b726ff70b75190dbcfeb927d34f19174683afa298e5df4d806f622abe9b037a0aadb9cdef6443
   languageName: node
   linkType: hard

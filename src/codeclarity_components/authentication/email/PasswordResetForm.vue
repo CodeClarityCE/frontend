@@ -11,7 +11,6 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { onMounted, ref, type Ref } from "vue";
 import * as z from "zod";
@@ -37,17 +36,15 @@ const formPassword: Ref<string> = ref("");
 const formPasswordConfirmation: Ref<string> = ref("");
 
 // Form Validation
-const formValidationSchema = toTypedSchema(
-  z
-    .object({
-      new_password: z.string().min(10, "Too short").max(75, "Too long"),
-      new_password_confirmation: z.string(),
-    })
-    .refine((data) => data.new_password === data.new_password_confirmation, {
-      message: "Passwords must match",
-      path: ["new_password_confirmation"],
-    }),
-);
+const formValidationSchema = z
+  .object({
+    new_password: z.string().min(10, "Too short").max(75, "Too long"),
+    new_password_confirmation: z.string(),
+  })
+  .refine((data) => data.new_password === data.new_password_confirmation, {
+    message: "Passwords must match",
+    path: ["new_password_confirmation"],
+  });
 
 // Methods
 async function submit(): Promise<void> {

@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import { cn } from "@/shadcn/lib/utils";
-import { Check } from "lucide-vue-next";
 import type { RadioGroupItemProps } from "reka-ui";
-import { RadioGroupIndicator, RadioGroupItem, useForwardProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { computed } from "vue";
+import { reactiveOmit } from "@vueuse/core";
+import { Check } from "lucide-vue-next";
+import { RadioGroupIndicator, RadioGroupItem, useForwardProps } from "reka-ui";
+import { cn } from "@/shadcn/lib/utils";
 
 const props = defineProps<
   RadioGroupItemProps & { class?: HTMLAttributes["class"] }
 >();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class");
 
 const forwardedProps = useForwardProps(delegatedProps);
 </script>

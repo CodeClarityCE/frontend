@@ -2,13 +2,13 @@
 import { Button } from "@/shadcn/ui/button";
 import {
   Pagination,
+  PaginationContent,
   PaginationEllipsis,
   PaginationFirst,
+  PaginationItem,
   PaginationLast,
-  PaginationList,
-  PaginationListItem,
   PaginationNext,
-  PaginationPrev,
+  PaginationPrevious,
 } from "@/shadcn/ui/pagination";
 
 // Models
@@ -39,12 +39,12 @@ function changePage(_page: number): void {
         show-edges
         :default-page="pageModel + 1"
       >
-        <PaginationList v-slot="{ items }" class="flex items-center gap-1">
+        <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
           <PaginationFirst @click="changePage(0)" />
-          <PaginationPrev @click="pageModel -= 1" />
+          <PaginationPrevious @click="pageModel -= 1" />
 
           <template v-for="(item, index) in items">
-            <PaginationListItem
+            <PaginationItem
               v-if="item.type === 'page'"
               :key="index"
               :value="item.value"
@@ -57,13 +57,13 @@ function changePage(_page: number): void {
               >
                 {{ item.value }}
               </Button>
-            </PaginationListItem>
+            </PaginationItem>
             <PaginationEllipsis v-else :key="item.type" :index="index" />
           </template>
 
           <PaginationNext @click="pageModel += 1" />
           <PaginationLast @click="changePage(totalPages - 1)" />
-        </PaginationList>
+        </PaginationContent>
       </Pagination>
     </div>
   </div>

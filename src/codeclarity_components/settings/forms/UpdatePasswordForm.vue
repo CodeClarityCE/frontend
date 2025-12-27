@@ -16,7 +16,6 @@ import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
 
@@ -30,15 +29,14 @@ const userStore = useUserStore();
 const user = userStore.user;
 
 // UPDATE INFO FORM
-const formSchema = toTypedSchema(
-  z.object({
-    old_password: z.string().min(10).max(75),
-    password: z.string().min(10).max(75),
-    password_confirmation: z.string().min(2).max(25),
-  }),
-);
+const formSchema = z.object({
+  old_password: z.string().min(10).max(75),
+  password: z.string().min(10).max(75),
+  password_confirmation: z.string().min(2).max(25),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm({
+const form = useForm<FormValues>({
   validationSchema: formSchema,
 });
 

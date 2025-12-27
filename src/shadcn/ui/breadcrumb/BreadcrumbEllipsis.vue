@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { cn } from "@/shadcn/lib/utils";
-import { MoreHorizontal } from "lucide-vue-next";
 import type { HTMLAttributes } from "vue";
+import { MoreHorizontal } from "lucide-vue-next";
+import { cn } from "@/shadcn/lib/utils";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];

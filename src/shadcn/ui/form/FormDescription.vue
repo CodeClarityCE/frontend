@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { cn } from "@/shadcn/lib/utils";
 import type { HTMLAttributes } from "vue";
+import { cn } from "@/shadcn/lib/utils";
 import { useFormField } from "./useFormField";
 
 const props = defineProps<{

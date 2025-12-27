@@ -7,10 +7,15 @@ import { ref } from 'vue';
 vi.mock('@vueuse/core', () => ({
   useMagicKeys: () => ({
     Meta_K: ref(false),
-    Ctrl_K: ref(false),  
+    Ctrl_K: ref(false),
     enter: ref(false)
   }),
-  useCurrentElement: () => ({ value: null })
+  useCurrentElement: () => ({ value: null }),
+  reactiveOmit: (obj: Record<string, unknown>, ...keys: string[]) => {
+    const result = { ...obj };
+    keys.forEach(key => delete result[key]);
+    return result;
+  }
 }));
 
 // Mock router

@@ -25,7 +25,6 @@ import {
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref, type Ref } from "vue";
 import * as z from "zod";
@@ -40,13 +39,12 @@ const errorCode: Ref<string | undefined> = ref();
 const validationError: Ref<ValidationError | undefined> = ref();
 
 // Form Validation
-const formSchema = toTypedSchema(
-  z.object({
-    email: z.string().email(),
-    password: z.string().min(10).max(75),
-  }),
-);
-const { handleSubmit } = useForm({
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(10).max(75),
+});
+type FormValues = z.infer<typeof formSchema>;
+const { handleSubmit } = useForm<FormValues>({
   validationSchema: formSchema,
 });
 

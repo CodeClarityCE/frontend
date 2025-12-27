@@ -4,6 +4,18 @@ import { config } from '@vue/test-utils'
 import { vi, beforeEach } from 'vitest'
 import { getPiniaMock, resetPiniaMock } from './test-utils/setup.js'
 
+// Suppress known Zod v4 cleanup errors during test teardown
+// These occur when components using Zod schemas and @formkit/auto-animate are unmounted
+process.on('unhandledRejection', (reason: unknown) => {
+  const message = reason instanceof Error ? reason.message : String(reason)
+  if (message.includes('_zod') || message.includes('Closing rpc while')) {
+    // Known Zod v4 / Vitest cleanup issue - suppress in tests
+    return
+  }
+  // Re-throw other unhandled rejections
+  throw reason
+})
+
 // Mock Icon component globally for tests
 config.global.stubs = {
   Icon: {

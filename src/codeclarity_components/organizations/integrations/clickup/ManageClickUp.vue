@@ -349,7 +349,7 @@ onMounted(() => {
             <div class="space-y-4">
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
                 >
                   <Icon
                     icon="solar:ticket-bold"

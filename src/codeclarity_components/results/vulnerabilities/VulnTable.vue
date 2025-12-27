@@ -624,7 +624,7 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
 
       <!-- Security Indicators Legend -->
       <div
-        class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200"
+        class="bg-linear-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200"
       >
         <h3
           class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2"

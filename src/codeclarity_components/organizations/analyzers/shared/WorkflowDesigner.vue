@@ -406,7 +406,7 @@ onUnmounted(() => {
               @click="addNodeToGraph(plugin)"
             >
               <div
-                class="flex-shrink-0 w-8 h-8 bg-theme-primary/10 rounded-lg flex items-center justify-center group-hover:bg-theme-primary/20 transition-colors duration-200"
+                class="shrink-0 w-8 h-8 bg-theme-primary/10 rounded-lg flex items-center justify-center group-hover:bg-theme-primary/20 transition-colors duration-200"
               >
                 <Icon
                   icon="solar:cpu-bolt-bold"

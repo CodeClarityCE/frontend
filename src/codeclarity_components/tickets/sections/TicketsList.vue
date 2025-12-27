@@ -71,7 +71,7 @@ function getRelativeTime(date: Date): string {
           <div class="col-span-4">
             <div class="flex items-start gap-3">
               <div
-                class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+                class="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
                 :class="TicketTypeColors[ticket.type]"
               >
                 <Icon
@@ -154,7 +154,7 @@ function getRelativeTime(date: Date): string {
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
               <div
-                class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+                class="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
                 :class="TicketTypeColors[ticket.type]"
               >
                 <Icon
@@ -180,7 +180,7 @@ function getRelativeTime(date: Date): string {
             </div>
             <Icon
               icon="solar:alt-arrow-right-linear"
-              class="w-4 h-4 text-gray-400 flex-shrink-0"
+              class="w-4 h-4 text-gray-400 shrink-0"
             />
           </div>
           <div class="flex items-center gap-2 flex-wrap">

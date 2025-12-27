@@ -203,7 +203,7 @@ void getChart(props.projectID, props.analysis.id);
       class="flex gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 transition-all duration-200"
     >
       <!-- Language/Tech icon with better styling -->
-      <div class="flex-shrink-0 p-1.5 bg-amber-100 rounded-lg">
+      <div class="shrink-0 p-1.5 bg-amber-100 rounded-lg">
         <Icon icon="devicon:javascript" class="h-5 w-5" />
       </div>
 
@@ -278,7 +278,7 @@ void getChart(props.projectID, props.analysis.id);
                     >
                       <div class="flex items-center gap-2">
                         <div
-                          class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
+                          class="shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
                         >
                           {{ index + 1 }}
                         </div>
@@ -415,7 +415,7 @@ void getChart(props.projectID, props.analysis.id);
                       >
                         <div class="flex items-center gap-2">
                           <div
-                            class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
+                            class="shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
                           >
                             {{ index + 1 }}
                           </div>
@@ -568,7 +568,7 @@ void getChart(props.projectID, props.analysis.id);
                       >
                         <div class="flex items-center gap-2">
                           <div
-                            class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
+                            class="shrink-0 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center"
                           >
                             {{ index + 1 }}
                           </div>
@@ -654,7 +654,7 @@ void getChart(props.projectID, props.analysis.id);
       </div>
 
       <!-- Quick actions positioned to the right -->
-      <div class="flex flex-col items-end gap-1 flex-shrink-0">
+      <div class="flex flex-col items-end gap-1 shrink-0">
         <div class="flex items-center gap-1">
           <Button
             v-if="

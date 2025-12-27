@@ -479,7 +479,7 @@ const exploitableCount = computed(() => {
 
       <!-- Security Indicators Legend -->
       <div
-        class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200"
+        class="bg-linear-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200"
       >
         <h3
           class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2"
@@ -592,7 +592,7 @@ const exploitableCount = computed(() => {
             @click="toggleCardExpansion(report.Vulnerability)"
           >
             <!-- Severity Indicator -->
-            <div class="severity-badge flex-shrink-0">
+            <div class="severity-badge shrink-0">
               <div
                 v-if="isCriticalSeverity(report.Severity.Severity)"
                 class="px-4 py-2 text-sm font-bold text-white bg-severity-critical rounded-md shadow-sm"
@@ -764,7 +764,7 @@ const exploitableCount = computed(() => {
             </div>
 
             <!-- Quick Actions & Key Metrics -->
-            <div class="flex-shrink-0 flex items-center gap-2">
+            <div class="shrink-0 flex items-center gap-2">
               <!-- Create Ticket Button -->
               <CreateTicketButton
                 :project-id="props.projectID"

@@ -12,7 +12,7 @@
           <Icon
             v-if="icon"
             :icon="icon"
-            class="h-5 w-5 text-gray-600 flex-shrink-0"
+            class="h-5 w-5 text-gray-600 shrink-0"
           />
           <div class="min-w-0 flex-1">
             <CardTitle
@@ -31,7 +31,7 @@
         </div>
 
         <!-- Header actions slot -->
-        <div v-if="$slots['actions']" class="flex-shrink-0 ml-2">
+        <div v-if="$slots['actions']" class="shrink-0 ml-2">
           <slot name="actions"></slot>
         </div>
       </div>

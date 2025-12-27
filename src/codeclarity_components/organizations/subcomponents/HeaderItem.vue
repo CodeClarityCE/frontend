@@ -220,10 +220,10 @@ void init();
 
           <!-- Right Section: Owner Info Card - More Prominent -->
           <div
-            class="bg-gradient-to-br from-theme-primary/5 to-theme-primary/10 rounded-xl p-5 border border-theme-primary/20 min-w-0 lg:w-80"
+            class="bg-linear-to-br from-theme-primary/5 to-theme-primary/10 rounded-xl p-5 border border-theme-primary/20 min-w-0 lg:w-80"
           >
             <div class="flex items-center gap-4">
-              <div class="flex-shrink-0">
+              <div class="shrink-0">
                 <div v-if="orgInfo.created_by">
                   <div v-if="orgInfo.created_by.avatar_url" class="relative">
                     <img

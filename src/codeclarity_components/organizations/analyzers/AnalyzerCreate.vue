@@ -225,7 +225,7 @@ void init();
               </button>
               <LoadingSubmitButton
                 ref="loadingButtonRef"
-                class="px-6 py-2 bg-gradient-to-r from-theme-primary to-green-600 hover:from-theme-primary/90 hover:to-green-600/90 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
+                class="px-6 py-2 bg-linear-to-r from-theme-primary to-green-600 hover:from-theme-primary/90 hover:to-green-600/90 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
               >
                 <svg
                   class="w-4 h-4"

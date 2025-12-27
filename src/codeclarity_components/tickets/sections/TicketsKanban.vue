@@ -55,7 +55,7 @@ function getColumnCount(status: TicketStatus): number {
     <div
       v-for="column in KanbanColumns"
       :key="column.status"
-      class="flex-shrink-0 w-80 bg-gray-50 rounded-xl border border-gray-200"
+      class="shrink-0 w-80 bg-gray-50 rounded-xl border border-gray-200"
       @dragover="onDragOver"
       @drop="onDrop($event, column.status)"
     >

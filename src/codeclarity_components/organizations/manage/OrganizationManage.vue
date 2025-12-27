@@ -445,7 +445,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
           <div class="space-y-4">
             <div class="flex items-start gap-3">
               <div
-                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center shrink-0 mt-1"
               >
                 <Icon
                   icon="solar:user-bold-duotone"
@@ -466,7 +466,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
 
             <div class="flex items-start gap-3">
               <div
-                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center shrink-0 mt-1"
               >
                 <Icon
                   icon="solar:widget-add-bold-duotone"
@@ -487,7 +487,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
 
             <div class="flex items-start gap-3">
               <div
-                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center shrink-0 mt-1"
               >
                 <Icon
                   icon="solar:document-text-bold-duotone"
@@ -510,7 +510,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
           <div class="space-y-4">
             <div class="flex items-start gap-3">
               <div
-                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center shrink-0 mt-1"
               >
                 <Icon
                   icon="solar:user-plus-bold-duotone"
@@ -530,7 +530,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
 
             <div class="flex items-start gap-3">
               <div
-                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center shrink-0 mt-1"
               >
                 <Icon
                   icon="solar:letter-undo-bold-duotone"
@@ -550,7 +550,7 @@ async function updateAutoResolveSetting(enabled: boolean): Promise<void> {
 
             <div class="flex items-start gap-3">
               <div
-                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center shrink-0 mt-1"
               >
                 <Icon
                   icon="solar:clock-circle-bold-duotone"

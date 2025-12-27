@@ -67,7 +67,7 @@ describe("BulletLegend.vue", () => {
       const items = createMockItems();
       const wrapper = createWrapper(items);
 
-      const circles = wrapper.findAll(".w-3.h-3.rounded-full.flex-shrink-0");
+      const circles = wrapper.findAll(".w-3.h-3.rounded-full.shrink-0");
       expect(circles.length).toBe(items.length);
     });
 
@@ -75,7 +75,7 @@ describe("BulletLegend.vue", () => {
       const items = createMockItems();
       const wrapper = createWrapper(items);
 
-      const circles = wrapper.findAll(".w-3.h-3.rounded-full.flex-shrink-0");
+      const circles = wrapper.findAll(".w-3.h-3.rounded-full.shrink-0");
 
       items.forEach((item, index) => {
         const circleStyle = circles[index]?.attributes("style");
@@ -172,7 +172,7 @@ describe("BulletLegend.vue", () => {
       ];
       const wrapper = createWrapper(items);
 
-      const circles = wrapper.findAll(".w-3.h-3.rounded-full.flex-shrink-0");
+      const circles = wrapper.findAll(".w-3.h-3.rounded-full.shrink-0");
       // Browsers normalize hex colors to rgb format
       expect(circles[0]?.attributes("style")).toContain(
         "background-color: rgb(255, 0, 0)",
@@ -244,7 +244,7 @@ describe("BulletLegend.vue", () => {
       const items = [{ label: "No Color", color: "", count: 1 }];
       const wrapper = createWrapper(items);
 
-      const circle = wrapper.find(".w-3.h-3.rounded-full.flex-shrink-0");
+      const circle = wrapper.find(".w-3.h-3.rounded-full.shrink-0");
       const style = circle.attributes("style");
       if (style) {
         expect(style).toContain("background-color");
@@ -273,7 +273,7 @@ describe("BulletLegend.vue", () => {
 
       // Each item should have circle, label, and count
       items.forEach((item) => {
-        expect(item.find(".w-3.h-3.rounded-full.flex-shrink-0").exists()).toBe(
+        expect(item.find(".w-3.h-3.rounded-full.shrink-0").exists()).toBe(
           true,
         );
         expect(item.find(".text-sm").exists()).toBe(true);

@@ -14,7 +14,7 @@
           class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <div
-            class="flex-shrink-0 p-2 rounded-lg"
+            class="shrink-0 p-2 rounded-lg"
             :class="getVariantClass(activity.variant)"
           >
             <Icon :icon="activity.icon" class="h-4 w-4 text-white" />
@@ -43,7 +43,7 @@
           class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <div
-            class="flex-shrink-0 p-2 rounded-lg"
+            class="shrink-0 p-2 rounded-lg"
             :class="getVariantClass(action.variant)"
           >
             <Icon :icon="action.icon" class="h-4 w-4 text-white" />
@@ -71,7 +71,7 @@
           class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <div
-            class="flex-shrink-0 p-2 rounded-lg"
+            class="shrink-0 p-2 rounded-lg"
             :class="getVariantClass(nav.variant)"
           >
             <Icon :icon="nav.icon" class="h-4 w-4 text-white" />

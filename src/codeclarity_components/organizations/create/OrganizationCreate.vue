@@ -219,7 +219,7 @@ const onSubmit = form.handleSubmit(async (values) => {
       <div class="mt-6 space-y-4">
         <div class="flex items-start gap-3">
           <div
-            class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+            class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center shrink-0 mt-1"
           >
             <span class="text-sm font-bold text-theme-primary">1</span>
           </div>
@@ -236,7 +236,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <div class="flex items-start gap-3">
           <div
-            class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+            class="w-8 h-8 bg-theme-black/10 rounded-full flex items-center justify-center shrink-0 mt-1"
           >
             <span class="text-sm font-bold text-theme-black">2</span>
           </div>
@@ -253,7 +253,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <div class="flex items-start gap-3">
           <div
-            class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+            class="w-8 h-8 bg-theme-primary/10 rounded-full flex items-center justify-center shrink-0 mt-1"
           >
             <span class="text-sm font-bold text-theme-primary">3</span>
           </div>

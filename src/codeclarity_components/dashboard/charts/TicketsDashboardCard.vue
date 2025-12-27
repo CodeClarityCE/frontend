@@ -215,7 +215,7 @@ void fetch();
                   {{ ticket.title }}
                 </span>
               </div>
-              <span class="text-xs text-gray-400 flex-shrink-0 ml-2">
+              <span class="text-xs text-gray-400 shrink-0 ml-2">
                 {{ formatDate(ticket.created_on) }}
               </span>
             </div>

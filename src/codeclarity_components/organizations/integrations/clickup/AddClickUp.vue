@@ -68,7 +68,7 @@ void init();
               class="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-200"
             >
               <div
-                class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
+                class="shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
               >
                 <Icon
                   icon="simple-icons:clickup"
@@ -100,7 +100,7 @@ void init();
             >
               <Icon
                 icon="solar:shield-check-bold"
-                class="text-blue-600 mt-0.5 flex-shrink-0"
+                class="text-blue-600 mt-0.5 shrink-0"
               />
               <div class="text-xs text-blue-700">
                 <strong>Security Note:</strong> Your ClickUp credentials are
@@ -123,7 +123,7 @@ void init();
             <div class="space-y-4">
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
                 >
                   <Icon
                     icon="solar:check-circle-bold"
@@ -141,7 +141,7 @@ void init();
 
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
                 >
                   <Icon
                     icon="solar:refresh-circle-bold"
@@ -159,7 +159,7 @@ void init();
 
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
                 >
                   <Icon
                     icon="solar:folder-bold"
@@ -179,7 +179,7 @@ void init();
 
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center"
                 >
                   <Icon
                     icon="solar:link-bold"

@@ -454,7 +454,7 @@ describe.skip("VulnsGraph.vue", () => {
       const wrapper = createWrapper();
 
       expect(wrapper.find(".space-y-6").exists()).toBe(true);
-      expect(wrapper.find(".bg-gradient-to-r").exists()).toBe(true);
+      expect(wrapper.find(".bg-linear-to-r").exists()).toBe(true);
       expect(wrapper.find(".grid.gap-6.lg\\:grid-cols-3").exists()).toBe(true);
     });
 

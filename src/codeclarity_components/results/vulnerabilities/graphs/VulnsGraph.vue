@@ -85,7 +85,7 @@ function calculateOwaspTopTotalCount(): void {
   <div class="space-y-6">
     <!-- Enhanced Vulnerability Analysis Section -->
     <div
-      class="bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg p-6 border"
+      class="bg-linear-to-r from-slate-50 to-gray-50 rounded-lg p-6 border"
     >
       <div class="flex items-center gap-3 mb-6">
         <div class="bg-slate-600 p-3 rounded-xl">
@@ -104,7 +104,7 @@ function calculateOwaspTopTotalCount(): void {
       <div class="grid gap-6 lg:grid-cols-3">
         <!-- Vulnerability Distribution Card -->
         <Card
-          class="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200"
+          class="bg-linear-to-br from-blue-50 to-indigo-100 border-blue-200"
         >
           <CardHeader class="pb-4">
             <div class="flex items-center justify-between">
@@ -125,7 +125,7 @@ function calculateOwaspTopTotalCount(): void {
             </div>
           </CardHeader>
           <CardContent
-            class="flex items-center justify-center flex-grow min-h-[200px]"
+            class="flex items-center justify-center grow min-h-[200px]"
           >
             <VulnerabilitiesInfo :stats="stats" />
           </CardContent>
@@ -133,7 +133,7 @@ function calculateOwaspTopTotalCount(): void {
 
         <!-- OWASP Top 10 Card -->
         <Card
-          class="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200"
+          class="bg-linear-to-br from-purple-50 to-purple-100 border-purple-200"
         >
           <CardHeader class="pb-4">
             <div class="flex items-center justify-between">
@@ -154,14 +154,14 @@ function calculateOwaspTopTotalCount(): void {
             </div>
           </CardHeader>
           <CardContent
-            class="flex items-center justify-center flex-grow min-h-[200px]"
+            class="flex items-center justify-center grow min-h-[200px]"
           >
             <OwaspTopTen :stats="stats" />
           </CardContent>
         </Card>
 
         <!-- Security Impact Card -->
-        <Card class="bg-gradient-to-br from-red-50 to-rose-100 border-red-200">
+        <Card class="bg-linear-to-br from-red-50 to-rose-100 border-red-200">
           <CardHeader class="pb-4">
             <div class="flex items-center justify-between">
               <div>
@@ -184,7 +184,7 @@ function calculateOwaspTopTotalCount(): void {
             </div>
           </CardHeader>
           <CardContent
-            class="flex items-center justify-center flex-grow min-h-[200px]"
+            class="flex items-center justify-center grow min-h-[200px]"
           >
             <SecurityImpact :stats="stats" />
           </CardContent>

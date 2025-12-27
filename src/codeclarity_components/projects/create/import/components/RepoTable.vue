@@ -523,7 +523,7 @@ defineExpose({
                     <div class="flex items-center gap-3">
                       <Icon
                         icon="octicon:repo-16"
-                        class="text-gray-600 text-lg flex-shrink-0"
+                        class="text-gray-600 text-lg shrink-0"
                       />
                       <div class="flex flex-col min-w-0">
                         <div class="font-medium text-gray-900 truncate">

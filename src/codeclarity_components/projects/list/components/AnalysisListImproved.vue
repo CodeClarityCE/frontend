@@ -295,7 +295,7 @@ function showOneTimeHistory(): void {
               <div class="flex items-center gap-3">
                 <!-- Status icon -->
                 <div
-                  class="p-1 rounded-full border flex-shrink-0"
+                  class="p-1 rounded-full border shrink-0"
                   :class="getStatusColor(latestAnalyses.scheduled.status)"
                 >
                   <Icon
@@ -349,7 +349,7 @@ function showOneTimeHistory(): void {
               </div>
 
               <!-- Actions -->
-              <div class="flex items-center gap-0.5 flex-shrink-0">
+              <div class="flex items-center gap-0.5 shrink-0">
                 <TooltipProvider>
                   <!-- View Results -->
                   <Tooltip
@@ -609,7 +609,7 @@ function showOneTimeHistory(): void {
               <div class="flex items-center gap-3">
                 <!-- Status icon -->
                 <div
-                  class="p-1 rounded-full border flex-shrink-0"
+                  class="p-1 rounded-full border shrink-0"
                   :class="getStatusColor(latestAnalyses.oneTime.status)"
                 >
                   <Icon
@@ -652,7 +652,7 @@ function showOneTimeHistory(): void {
               </div>
 
               <!-- Actions -->
-              <div class="flex items-center gap-0.5 flex-shrink-0">
+              <div class="flex items-center gap-0.5 shrink-0">
                 <TooltipProvider>
                   <!-- View Results -->
                   <Tooltip
@@ -893,7 +893,7 @@ function showOneTimeHistory(): void {
           >
             <div class="flex items-center gap-3">
               <div
-                class="p-1 rounded-full border flex-shrink-0"
+                class="p-1 rounded-full border shrink-0"
                 :class="getStatusColor(analysis.status)"
               >
                 <Icon
@@ -974,7 +974,7 @@ function showOneTimeHistory(): void {
           >
             <div class="flex items-center gap-3">
               <div
-                class="p-1 rounded-full border flex-shrink-0"
+                class="p-1 rounded-full border shrink-0"
                 :class="getStatusColor(analysis.status)"
               >
                 <Icon

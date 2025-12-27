@@ -563,7 +563,7 @@ function createDepTypeChart(): void {
       >
         <div class="flex items-center justify-between gap-6">
           <!-- Chart -->
-          <div class="flex-shrink-0">
+          <div class="shrink-0">
             <div v-if="render" class="relative">
               <DoughnutChart
                 id="sbom-dependency-chart"
@@ -587,7 +587,7 @@ function createDepTypeChart(): void {
           <div class="flex-1 space-y-3">
             <div v-if="render" class="space-y-3">
               <div
-                class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent border border-green-100 rounded-lg hover:shadow-sm transition-shadow"
+                class="flex items-center justify-between p-3 bg-linear-to-r from-green-50 to-transparent border border-green-100 rounded-lg hover:shadow-sm transition-shadow"
               >
                 <div class="flex items-center gap-3">
                   <div
@@ -617,7 +617,7 @@ function createDepTypeChart(): void {
               </div>
 
               <div
-                class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                class="flex items-center justify-between p-3 bg-linear-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
               >
                 <div class="flex items-center gap-3">
                   <div class="w-4 h-4 rounded-full bg-gray-900 shadow-sm"></div>
@@ -647,7 +647,7 @@ function createDepTypeChart(): void {
               </div>
 
               <div
-                class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                class="flex items-center justify-between p-3 bg-linear-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
               >
                 <div class="flex items-center gap-3">
                   <div class="w-4 h-4 rounded-full bg-gray-400 shadow-sm"></div>

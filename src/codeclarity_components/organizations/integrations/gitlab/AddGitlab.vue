@@ -398,7 +398,7 @@ void init();
             >
               <Icon
                 icon="solar:shield-check-bold"
-                class="text-blue-600 mt-0.5 flex-shrink-0"
+                class="text-blue-600 mt-0.5 shrink-0"
               />
               <div class="text-xs text-blue-700">
                 <strong>Security Note:</strong> Your token is encrypted and
@@ -420,10 +420,10 @@ void init();
           >
             <div class="space-y-6">
               <div
-                class="flex items-start gap-3 p-4 bg-gradient-to-r from-theme-primary/10 to-blue-50 rounded-lg border border-theme-primary/20"
+                class="flex items-start gap-3 p-4 bg-linear-to-r from-theme-primary/10 to-blue-50 rounded-lg border border-theme-primary/20"
               >
                 <div
-                  class="flex-shrink-0 w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center"
+                  class="shrink-0 w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center"
                 >
                   <Icon icon="solar:star-bold" class="text-white text-sm" />
                 </div>
@@ -500,7 +500,7 @@ void init();
                 <ol class="space-y-2">
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >1</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -509,7 +509,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >2</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -519,7 +519,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >3</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -528,7 +528,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >4</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -552,7 +552,7 @@ void init();
                 class="flex items-start gap-3 p-4 bg-orange-50 rounded-lg border border-orange-200"
               >
                 <div
-                  class="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center"
                 >
                   <Icon icon="solar:settings-bold" class="text-white text-sm" />
                 </div>
@@ -605,7 +605,7 @@ void init();
                 <ol class="space-y-3">
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >1</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -614,7 +614,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >2</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -623,7 +623,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >3</span
                     >
                     <div class="flex-1">
@@ -672,7 +672,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >4</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -682,7 +682,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >5</span
                     >
                     <span class="text-sm text-theme-gray"
@@ -691,7 +691,7 @@ void init();
                   </li>
                   <li class="flex items-start gap-3">
                     <span
-                      class="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
                       >6</span
                     >
                     <span class="text-sm text-theme-gray"

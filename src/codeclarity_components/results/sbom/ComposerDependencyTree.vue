@@ -269,7 +269,7 @@ function selectPackage(packageName: string): void {
             <!-- Expand/collapse button -->
             <CollapsibleTrigger
               v-if="pkg.dependencies.length > 0"
-              class="flex-shrink-0 p-1 hover:bg-gray-200 rounded"
+              class="shrink-0 p-1 hover:bg-gray-200 rounded"
               @click="togglePackage(pkg.name)"
             >
               <Icon
@@ -327,7 +327,7 @@ function selectPackage(packageName: string): void {
             </div>
 
             <!-- Actions -->
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <button
                 class="p-1 text-gray-400 hover:text-gray-600 rounded"
                 title="View package details"

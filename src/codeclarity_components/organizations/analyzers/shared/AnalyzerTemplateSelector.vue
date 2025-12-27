@@ -170,7 +170,7 @@ onMounted(() => {
           <div class="flex items-start gap-3">
             <!-- Template Logo -->
             <div
-              class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg font-bold"
+              class="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg font-bold"
             >
               {{ getTemplateLogo(template.logo) }}
             </div>
@@ -183,7 +183,7 @@ onMounted(() => {
                 </h4>
                 <div
                   v-if="selectedTemplate?.name === template.name"
-                  class="flex-shrink-0"
+                  class="shrink-0"
                 >
                   <Icon
                     icon="solar:check-circle-bold"

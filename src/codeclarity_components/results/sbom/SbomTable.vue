@@ -272,7 +272,7 @@ watch(
 
       <!-- Status Legend -->
       <div
-        class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border"
+        class="bg-linear-to-r from-gray-50 to-gray-100 rounded-lg p-4 border"
       >
         <h3
           class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2"

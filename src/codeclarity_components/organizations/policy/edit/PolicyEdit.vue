@@ -496,7 +496,7 @@ onBeforeMount(async () => {
             <div class="space-y-4">
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
                 >
                   <Icon icon="solar:check-bold" class="text-white text-xs" />
                 </div>
@@ -511,7 +511,7 @@ onBeforeMount(async () => {
               </div>
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
                 >
                   <Icon icon="solar:check-bold" class="text-white text-xs" />
                 </div>
@@ -526,7 +526,7 @@ onBeforeMount(async () => {
               </div>
               <div class="flex items-start gap-3">
                 <div
-                  class="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
+                  class="shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
                 >
                   <Icon icon="solar:check-bold" class="text-white text-xs" />
                 </div>

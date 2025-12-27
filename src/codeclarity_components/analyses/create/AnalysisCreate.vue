@@ -627,9 +627,9 @@ async function createAnalysisStart(): Promise<void> {
             >
               <div class="flex items-start gap-4">
                 <!-- Modern Icon -->
-                <div class="flex-shrink-0">
+                <div class="shrink-0">
                   <div
-                    class="w-16 h-16 bg-gradient-to-br from-theme-primary to-theme-primary/80 rounded-2xl flex items-center justify-center shadow-lg"
+                    class="w-16 h-16 bg-linear-to-br from-theme-primary to-theme-primary/80 rounded-2xl flex items-center justify-center shadow-lg"
                   >
                     <Icon
                       :icon="getAnalyzerIcon(analyzer.name)"
@@ -679,7 +679,7 @@ async function createAnalysisStart(): Promise<void> {
 
                 <!-- Selection Indicator -->
                 <div
-                  class="flex-shrink-0 opacity-0 peer-checked:opacity-100 transition-opacity"
+                  class="shrink-0 opacity-0 peer-checked:opacity-100 transition-opacity"
                 >
                   <div
                     class="w-8 h-8 bg-theme-primary rounded-full flex items-center justify-center shadow-md"

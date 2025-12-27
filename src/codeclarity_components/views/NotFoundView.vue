@@ -48,7 +48,7 @@ import { Button } from "@/shadcn/ui/button";
 
 .notfound-wrapper .error-logo {
   height: 30rem;
-  flex-grow: 0;
+  grow: 0;
 }
 
 .notfound-wrapper .text-wrapper {

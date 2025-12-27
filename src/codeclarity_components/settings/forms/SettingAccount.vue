@@ -101,7 +101,7 @@ state.menu = "settingsAccount";
         <div
           class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100"
         >
-          <div class="p-2 bg-theme-primary/10 rounded-lg flex-shrink-0">
+          <div class="p-2 bg-theme-primary/10 rounded-lg shrink-0">
             <Lock class="w-5 h-5 text-theme-primary" />
           </div>
           <div>
@@ -118,7 +118,7 @@ state.menu = "settingsAccount";
         <div
           class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100"
         >
-          <div class="p-2 bg-theme-black/10 rounded-lg flex-shrink-0">
+          <div class="p-2 bg-theme-black/10 rounded-lg shrink-0">
             <Shield class="w-5 h-5 text-theme-black" />
           </div>
           <div>
@@ -133,7 +133,7 @@ state.menu = "settingsAccount";
         <div
           class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100"
         >
-          <div class="p-2 bg-blue-50 rounded-lg flex-shrink-0">
+          <div class="p-2 bg-blue-50 rounded-lg shrink-0">
             <Info class="w-5 h-5 text-blue-600" />
           </div>
           <div>

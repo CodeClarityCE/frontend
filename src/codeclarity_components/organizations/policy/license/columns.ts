@@ -36,7 +36,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
       return h("div", { class: "flex items-center gap-2" }, [
         h(Icon, {
           icon: "solar:shield-check-bold",
-          class: "text-green-500 flex-shrink-0",
+          class: "text-green-500 shrink-0",
         }),
         h("div", { class: "min-w-0" }, [
           h(

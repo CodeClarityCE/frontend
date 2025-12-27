@@ -441,7 +441,7 @@ onMounted(() => {
             riskBannerConfig.text,
           ]"
         >
-          <Icon :icon="riskBannerConfig.icon" class="w-6 h-6 flex-shrink-0" />
+          <Icon :icon="riskBannerConfig.icon" class="w-6 h-6 shrink-0" />
           <div>
             <p class="font-semibold">{{ riskBannerConfig.label }} Risk</p>
             <p class="text-sm opacity-90">
@@ -453,7 +453,7 @@ onMounted(() => {
         <!-- Risk Overview Section -->
         <div
           v-if="vulnerabilityDetails && hasRiskScores && !isLoadingVulnDetails"
-          class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200"
+          class="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200"
         >
           <h4
             class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"
@@ -491,25 +491,25 @@ onMounted(() => {
                     <div class="text-xs space-y-1 mt-2">
                       <div class="flex items-center gap-2">
                         <span
-                          class="w-2.5 h-2.5 rounded bg-black flex-shrink-0"
+                          class="w-2.5 h-2.5 rounded bg-black shrink-0"
                         ></span>
                         <span>Critical: 9.0-10.0</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <span
-                          class="w-2.5 h-2.5 rounded bg-red-600 flex-shrink-0"
+                          class="w-2.5 h-2.5 rounded bg-red-600 shrink-0"
                         ></span>
                         <span>High: 7.0-8.9</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <span
-                          class="w-2.5 h-2.5 rounded bg-amber-500 flex-shrink-0"
+                          class="w-2.5 h-2.5 rounded bg-amber-500 shrink-0"
                         ></span>
                         <span>Medium: 4.0-6.9</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <span
-                          class="w-2.5 h-2.5 rounded bg-green-500 flex-shrink-0"
+                          class="w-2.5 h-2.5 rounded bg-green-500 shrink-0"
                         ></span>
                         <span>Low: 0.1-3.9</span>
                       </div>
@@ -928,7 +928,7 @@ onMounted(() => {
                 >
                   <Icon
                     icon="solar:document-text-linear"
-                    class="w-4 h-4 text-gray-400 flex-shrink-0"
+                    class="w-4 h-4 text-gray-400 shrink-0"
                   />
                   <span class="truncate text-gray-700" :title="path">{{
                     path
@@ -964,7 +964,7 @@ onMounted(() => {
                 >
                   <Icon
                     icon="solar:arrow-right-up-linear"
-                    class="w-3 h-3 flex-shrink-0"
+                    class="w-3 h-3 shrink-0"
                   />
                   <span class="truncate">{{ reference.url }}</span>
                 </a>

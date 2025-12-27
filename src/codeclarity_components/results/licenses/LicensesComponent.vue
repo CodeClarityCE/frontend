@@ -277,7 +277,7 @@ void init();
 
       <!-- License Information Legend -->
       <div
-        class="bg-gradient-to-r from-gray-50 to-green-50 rounded-lg p-4 border border-theme-primary/20"
+        class="bg-linear-to-r from-gray-50 to-green-50 rounded-lg p-4 border border-theme-primary/20"
       >
         <h3
           class="text-sm font-medium text-theme-black mb-3 flex items-center gap-2"

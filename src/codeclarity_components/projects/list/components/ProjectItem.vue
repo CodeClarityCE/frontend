@@ -73,12 +73,12 @@ async function deleteProject(): Promise<void> {
   >
     <!-- Subtle gradient overlay -->
     <div
-      class="absolute inset-0 bg-gradient-to-br from-theme-primary/3 to-theme-primary/1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      class="absolute inset-0 bg-linear-to-br from-theme-primary/3 to-theme-primary/1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
     ></div>
 
     <!-- Theme accent border -->
     <div
-      class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-theme-primary to-theme-primary-light rounded-t-lg"
+      class="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-theme-primary to-theme-primary-light rounded-t-lg"
     ></div>
 
     <CardHeader class="pb-4 relative pt-6">
@@ -132,7 +132,7 @@ async function deleteProject(): Promise<void> {
         </div>
 
         <!-- Options menu with theme styling -->
-        <div class="relative flex-shrink-0">
+        <div class="relative shrink-0">
           <Button
             :id="'dot-menu-' + project.id"
             variant="ghost"

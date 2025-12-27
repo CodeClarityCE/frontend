@@ -419,7 +419,7 @@ createData();
                   class="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
                 >
                   <div
-                    class="rounded-full w-3 h-3 flex-shrink-0"
+                    class="rounded-full w-3 h-3 shrink-0"
                     :style="{ backgroundColor: value.color }"
                   ></div>
                   <div class="flex justify-between items-center w-full">

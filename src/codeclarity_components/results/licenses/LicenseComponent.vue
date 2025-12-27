@@ -312,7 +312,7 @@ function getLimitationDescription(limitation: string): string {
             >
               <Icon
                 icon="tabler:alert-triangle"
-                class="w-4 h-4 flex-shrink-0"
+                class="w-4 h-4 shrink-0"
               />
               <span class="font-medium">License Compliance Violation</span>
             </div>
@@ -321,7 +321,7 @@ function getLimitationDescription(limitation: string): string {
               v-if="props.license.unable_to_infer"
               class="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3"
             >
-              <Icon icon="tabler:help-circle" class="w-4 h-4 flex-shrink-0" />
+              <Icon icon="tabler:help-circle" class="w-4 h-4 shrink-0" />
               <span class="font-medium">Unknown license reference</span>
             </div>
           </div>
@@ -539,7 +539,7 @@ function getLimitationDescription(limitation: string): string {
               >
                 <Icon
                   :icon="getPropertyIcon(permission)"
-                  class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"
+                  class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0"
                 />
                 <div class="flex-1">
                   <div class="font-medium text-gray-900 mb-1">
@@ -585,7 +585,7 @@ function getLimitationDescription(limitation: string): string {
               >
                 <Icon
                   :icon="getPropertyIcon(condition)"
-                  class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
+                  class="w-5 h-5 text-amber-600 mt-0.5 shrink-0"
                 />
                 <div class="flex-1">
                   <div class="font-medium text-gray-900 mb-1">
@@ -629,7 +629,7 @@ function getLimitationDescription(limitation: string): string {
               >
                 <Icon
                   :icon="getPropertyIcon(limitation)"
-                  class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
+                  class="w-5 h-5 text-red-600 mt-0.5 shrink-0"
                 />
                 <div class="flex-1">
                   <div class="font-medium text-gray-900 mb-1">

@@ -289,7 +289,7 @@ function getProjectIcon(): string {
           <div class="flex items-start gap-3">
             <Icon
               icon="solar:danger-triangle-bold"
-              class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+              class="w-5 h-5 text-red-600 shrink-0 mt-0.5"
             />
             <div class="text-sm text-red-800">
               <p class="font-medium mb-1">This will permanently delete:</p>

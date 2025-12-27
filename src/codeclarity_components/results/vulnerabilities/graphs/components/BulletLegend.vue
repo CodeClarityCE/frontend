@@ -18,7 +18,7 @@ defineProps<{
       class="flex items-center gap-2"
     >
       <div
-        class="w-3 h-3 rounded-full flex-shrink-0"
+        class="w-3 h-3 rounded-full shrink-0"
         :style="{ backgroundColor: item.color }"
       ></div>
       <span class="text-sm">{{ item.label }}</span>

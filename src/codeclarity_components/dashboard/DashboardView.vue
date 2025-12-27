@@ -54,7 +54,7 @@ const {
         :is-loading="isLoading"
         @refresh="refreshData"
       />
-      <DashboardQuickStats />
+      <DashboardQuickStats :integration-ids="activeIntegrationIds" />
       <DashboardCharts :integration-ids="activeIntegrationIds" />
       <!-- <DashboardFooter /> -->
     </div>

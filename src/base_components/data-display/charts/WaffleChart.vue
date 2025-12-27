@@ -1,6 +1,6 @@
 <script lang="ts">
-/* eslint-disable import/order */
 import * as d3 from "d3";
+import { onMounted, onUnmounted, ref, type Ref } from "vue";
 import { interpolateColors } from "@/base_components/data-display/charts/colors-waffle";
 import Button from "@/shadcn/ui/button/Button.vue";
 import {
@@ -11,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-/* eslint-enable import/order */
 export interface WaffleChartEntry {
   label: string;
   value: number;
@@ -31,7 +30,6 @@ interface Square {
 }
 </script>
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, type Ref } from "vue";
 // Props
 const props = defineProps<{
   data: WaffleChartEntry[];

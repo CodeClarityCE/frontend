@@ -600,9 +600,7 @@ function createSeverityDistChart(): void {
         <CardHeader>
           <CardTitle> Issues </CardTitle>
         </CardHeader>
-        <CardContent
-          class="flex flex-col items-center justify-center grow"
-        >
+        <CardContent class="flex flex-col items-center justify-center grow">
           <div class="text-4xl font-bold flex gap-1 items-baseline">
             {{ stats.after_patch_number_of_issues }}
             <p class="text-sm text-muted-foreground">after patch</p>
@@ -617,9 +615,7 @@ function createSeverityDistChart(): void {
         <CardHeader>
           <CardTitle> Vulnerabilities </CardTitle>
         </CardHeader>
-        <CardContent
-          class="flex flex-col items-center justify-center grow"
-        >
+        <CardContent class="flex flex-col items-center justify-center grow">
           <div class="text-4xl font-bold flex gap-1 items-baseline">
             {{ stats.after_patch_number_of_vulnerabilities }}
             <p class="text-sm text-muted-foreground">after patch</p>
@@ -634,9 +630,7 @@ function createSeverityDistChart(): void {
         <CardHeader>
           <CardTitle> Vulnerable Dependencies </CardTitle>
         </CardHeader>
-        <CardContent
-          class="flex flex-col items-center justify-center grow"
-        >
+        <CardContent class="flex flex-col items-center justify-center grow">
           <div class="text-4xl font-bold flex gap-1 items-baseline">
             {{ stats.after_patch_number_of_vulnerable_dependencies }}
             <p class="text-sm text-muted-foreground">after patch</p>

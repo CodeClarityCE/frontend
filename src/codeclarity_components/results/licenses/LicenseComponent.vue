@@ -310,10 +310,7 @@ function getLimitationDescription(limitation: string): string {
               v-if="props.license.license_compliance_violation"
               class="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3"
             >
-              <Icon
-                icon="tabler:alert-triangle"
-                class="w-4 h-4 shrink-0"
-              />
+              <Icon icon="tabler:alert-triangle" class="w-4 h-4 shrink-0" />
               <span class="font-medium">License Compliance Violation</span>
             </div>
 

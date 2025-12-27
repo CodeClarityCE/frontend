@@ -273,9 +273,7 @@ describe("BulletLegend.vue", () => {
 
       // Each item should have circle, label, and count
       items.forEach((item) => {
-        expect(item.find(".w-3.h-3.rounded-full.shrink-0").exists()).toBe(
-          true,
-        );
+        expect(item.find(".w-3.h-3.rounded-full.shrink-0").exists()).toBe(true);
         expect(item.find(".text-sm").exists()).toBe(true);
         expect(item.find(".ml-auto.text-sm.font-semibold").exists()).toBe(true);
       });

@@ -84,9 +84,7 @@ function calculateOwaspTopTotalCount(): void {
 <template>
   <div class="space-y-6">
     <!-- Enhanced Vulnerability Analysis Section -->
-    <div
-      class="bg-linear-to-r from-slate-50 to-gray-50 rounded-lg p-6 border"
-    >
+    <div class="bg-linear-to-r from-slate-50 to-gray-50 rounded-lg p-6 border">
       <div class="flex items-center gap-3 mb-6">
         <div class="bg-slate-600 p-3 rounded-xl">
           <Icon icon="tabler:chart-bar" class="w-6 h-6 text-white" />

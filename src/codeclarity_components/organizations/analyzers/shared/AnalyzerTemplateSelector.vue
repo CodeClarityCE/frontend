@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { useAuthStore } from "@/stores/auth";
 import { Icon } from "@iconify/vue";
 import { ref, computed, onMounted, type Ref } from "vue";
+import { useAuthStore } from "@/stores/auth";
 import {
   AnalyzerTemplatesRepository,
   type AnalyzerTemplate,

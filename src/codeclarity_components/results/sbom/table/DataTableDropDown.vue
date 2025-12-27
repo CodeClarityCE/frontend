@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { MoreHorizontal } from "lucide-vue-next";
+import { ref } from "vue";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -8,8 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-vue-next";
-import { ref } from "vue";
 
 defineProps<{
   dependency: {

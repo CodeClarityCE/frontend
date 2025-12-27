@@ -1,10 +1,10 @@
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 import PasswordResetForm from '@/codeclarity_components/authentication/email/PasswordResetForm.vue';
 import router from '@/router';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { nextTick } from 'vue';
 
 const { mockAuthRepository } = vi.hoisted(() => ({
   mockAuthRepository: {

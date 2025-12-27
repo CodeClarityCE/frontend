@@ -1,8 +1,8 @@
-import FormInlineCheckboxField from '@/base_components/forms/FormInlineCheckboxField.vue';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/vue';
 import { Form } from 'vee-validate';
 import { describe, it, expect, vi } from 'vitest';
+import FormInlineCheckboxField from '@/base_components/forms/FormInlineCheckboxField.vue';
 
 // Mock vee-validate Field and ErrorMessage components
 vi.mock('vee-validate', async () => {

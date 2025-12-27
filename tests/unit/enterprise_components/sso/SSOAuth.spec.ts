@@ -1,7 +1,7 @@
-import SSOAuth from '@/enterprise_components/sso/SSOAuth.vue';
-import { createOAuthState } from '@/enterprise_components/sso/utils';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import SSOAuth from '@/enterprise_components/sso/SSOAuth.vue';
+import { createOAuthState } from '@/enterprise_components/sso/utils';
 
 const { mockAuthStore } = vi.hoisted(() => ({
   mockAuthStore: {

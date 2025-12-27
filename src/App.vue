@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import "vue-sonner/style.css";
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
-import { Toaster } from "@/shadcn/ui/sonner";
-import { useAuthStore } from "@/stores/auth";
 import {
   defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
 } from "vue";
 import { RouterView, useRoute } from "vue-router";
+import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
+import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
+import { Toaster } from "@/shadcn/ui/sonner";
+import { useAuthStore } from "@/stores/auth";
 
 const HeaderComponent = defineAsyncComponent({
   loader: (() =>

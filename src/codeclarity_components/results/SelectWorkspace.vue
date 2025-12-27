@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, ref, computed, type Ref } from "vue";
 import EcosystemBadge from "@/base_components/ui/EcosystemBadge.vue";
 import {
   Select,
@@ -12,7 +13,6 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { ECOSYSTEMS } from "@/utils/packageEcosystem";
-import { onMounted, ref, computed, type Ref } from "vue";
 import { ResultsRepository } from "./results.repository";
 import { WorkspacesOutput } from "./workspace.entity";
 

@@ -5,9 +5,9 @@ export interface SortOption {
 }
 </script>
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import type { TableHeader } from "@/base_components/data-display/tables/SortableTable.vue";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
-import { Icon } from "@iconify/vue";
 
 // Props
 const props = defineProps<{

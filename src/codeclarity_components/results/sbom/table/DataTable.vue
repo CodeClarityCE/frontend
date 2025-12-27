@@ -1,4 +1,18 @@
 <script setup lang="ts" generic="TData, TValue">
+import { Icon } from "@iconify/vue";
+import {
+  FlexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  useVueTable,
+  type ColumnDef,
+  type SortingState,
+  type ColumnFiltersState,
+  type VisibilityState,
+} from "@tanstack/vue-table";
+import { ref } from "vue";
 import { valueUpdater } from "@/shadcn/lib/utils";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -23,20 +37,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
-import { Icon } from "@iconify/vue";
-import {
-  FlexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  useVueTable,
-  type ColumnDef,
-  type SortingState,
-  type ColumnFiltersState,
-  type VisibilityState,
-} from "@tanstack/vue-table";
-import { ref } from "vue";
 
 const props = defineProps<{
   columns: ColumnDef<TData, TValue>[];

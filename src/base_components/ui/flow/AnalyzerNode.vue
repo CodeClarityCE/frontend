@@ -40,9 +40,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import { Icon } from "@iconify/vue";
 import { Handle, Position } from "@vue-flow/core";
+import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 
 interface Props {
   data: {

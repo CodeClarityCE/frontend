@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref } from "vue";
 import CenteredModal from "@/base_components/ui/modals/CenteredModal.vue";
 import {
   MemberRole,
@@ -14,8 +16,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
 
 const props = defineProps<{
   member: TeamMember;

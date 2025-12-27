@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
-import { useStateStore } from "@/stores/state";
 import {
   defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
 } from "vue";
+import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
+import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
+import { useStateStore } from "@/stores/state";
 
 const ProjectsList = defineAsyncComponent({
   loader: (() => import("./list/ProjectsList.vue")) as AsyncComponentLoader,

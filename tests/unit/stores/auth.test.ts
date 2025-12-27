@@ -1,6 +1,6 @@
-import { useAuthStore, loadAuthStoreFromLocalStorage } from '@/stores/auth'
 import { setActivePinia, createPinia } from 'pinia'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { useAuthStore, loadAuthStoreFromLocalStorage } from '@/stores/auth'
 
 // Mock localStorage
 const localStorageMock = {

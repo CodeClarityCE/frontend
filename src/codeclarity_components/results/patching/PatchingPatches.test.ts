@@ -1,11 +1,11 @@
+import { flushPromises, mount } from "@vue/test-utils";
+import { createPinia } from "pinia";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   PatchedManifestData,
   PatchType,
 } from "@/codeclarity_components/results/patching/Patching";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
-import { flushPromises, mount } from "@vue/test-utils";
-import { createPinia } from "pinia";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PatchingPatches from "./PatchingPatches.vue";
 // Mock stores before importing
 vi.mock("@/stores/user", () => ({

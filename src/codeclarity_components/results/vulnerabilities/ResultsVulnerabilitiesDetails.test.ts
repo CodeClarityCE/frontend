@@ -1,10 +1,10 @@
+import { mount, type VueWrapper } from "@vue/test-utils";
+import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import { Project } from "@/codeclarity_components/projects/project.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
-import { mount, type VueWrapper } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import ResultsVulnerabilitiesDetails from "./ResultsVulnerabilitiesDetails.vue";
 
 // Mock vue router

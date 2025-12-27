@@ -20,6 +20,8 @@
   <ScheduleSelector v-model="scheduleConfig" />
 -->
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, computed, watch } from "vue";
 import { cn } from "@/shadcn/lib/utils";
 import Button from "@/shadcn/ui/button/Button.vue";
 import { FormField } from "@/shadcn/ui/form";
@@ -38,8 +40,6 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { formatDate } from "@/utils/dateUtils";
-import { Icon } from "@iconify/vue";
-import { ref, computed, watch } from "vue";
 
 /**
  * Type definition for schedule configuration data

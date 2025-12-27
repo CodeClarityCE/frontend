@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { ref, onMounted } from "vue";
 import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import router from "@/router";
@@ -13,8 +15,6 @@ import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { formatDate } from "@/utils/dateUtils";
-import { Icon } from "@iconify/vue";
-import { ref, onMounted } from "vue";
 
 const props = defineProps({
   analysis: {

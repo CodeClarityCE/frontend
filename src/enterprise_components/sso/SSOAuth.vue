@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
-import { Icon } from "@iconify/vue";
 import { createOAuthState } from "./utils";
 
 // Stores

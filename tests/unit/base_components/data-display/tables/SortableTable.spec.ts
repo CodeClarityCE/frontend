@@ -1,7 +1,7 @@
-import SortableTable, { type TableHeader } from '@/base_components/data-display/tables/SortableTable.vue'
-import { SortDirection } from '@/utils/api/PaginatedRequestOptions'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import SortableTable, { type TableHeader } from '@/base_components/data-display/tables/SortableTable.vue'
+import { SortDirection } from '@/utils/api/PaginatedRequestOptions'
 
 // Mock iconify icons
 vi.mock('@iconify/vue', () => ({

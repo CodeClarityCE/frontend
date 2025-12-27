@@ -1,7 +1,7 @@
-import type { Project } from "@/codeclarity_components/projects/project.entity";
-import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 import { defineStore } from "pinia";
 import { ref, type Ref } from "vue";
+import type { Project } from "@/codeclarity_components/projects/project.entity";
+import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 
 export const useProjectsMainStore = defineStore("projectsMain", () => {
   const projectsResponse: Ref<PaginatedResponse<Project> | undefined> = ref();

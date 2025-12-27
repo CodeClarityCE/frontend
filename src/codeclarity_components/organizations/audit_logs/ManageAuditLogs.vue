@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, watch, type Ref } from "vue";
+import { useRoute } from "vue-router";
 import type { TableHeader } from "@/base_components/data-display/tables/SortableTable.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import type { AuditLog } from "@/codeclarity_components/organizations/audit_logs/AuditLog";
@@ -17,9 +20,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { debounce } from "@/utils/searchUtils";
-import { Icon } from "@iconify/vue";
-import { ref, watch, type Ref } from "vue";
-import { useRoute } from "vue-router";
 
 const orgRepo = new OrgRepository();
 const authStore = useAuthStore();

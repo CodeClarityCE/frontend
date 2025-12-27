@@ -1,3 +1,5 @@
+import { storeToRefs } from "pinia";
+import { ref, computed, onMounted, type ComputedRef, type Ref } from "vue";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type {
   Integration,
@@ -8,8 +10,6 @@ import { OrgRepository } from "@/codeclarity_components/organizations/organizati
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
-import { storeToRefs } from "pinia";
-import { ref, computed, onMounted, type ComputedRef, type Ref } from "vue";
 
 /**
  * useDashboardData - Simple dashboard data management

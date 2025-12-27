@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { vAutoAnimate } from "@formkit/auto-animate/vue";
+import { Icon } from "@iconify/vue";
+import { useForm } from "vee-validate";
+import { ref, type Ref } from "vue";
+import * as z from "zod";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { Token } from "@/codeclarity_components/authentication/token.entity";
@@ -23,11 +28,6 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
-import { vAutoAnimate } from "@formkit/auto-animate/vue";
-import { Icon } from "@iconify/vue";
-import { useForm } from "vee-validate";
-import { ref, type Ref } from "vue";
-import * as z from "zod";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref } from "vue";
 import CenteredModal from "@/base_components/ui/modals/CenteredModal.vue";
 import PositionedModal from "@/base_components/ui/modals/PositionedModal.vue";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
@@ -13,8 +15,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref } from "vue";
 import AnalysisList from "./AnalysisList.vue";
 
 // Props

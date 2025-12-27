@@ -1,7 +1,7 @@
-import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
-import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import { mount } from "@vue/test-utils";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
+import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import IntegrationsList from "./IntegrationsList.vue";
 
 // Mock router

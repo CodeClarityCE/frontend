@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { ref, type Ref, computed, watch } from "vue";
 import {
   type Notification,
   NotificationContentType,
@@ -34,8 +36,6 @@ import {
   shouldRecommendUpgrade,
   getUpgradeType,
 } from "@/utils/semver";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref, computed, watch } from "vue";
 
 const userStore = useUserStore();
 const authStore = useAuthStore();

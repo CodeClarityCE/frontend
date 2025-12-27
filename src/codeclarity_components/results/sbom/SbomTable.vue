@@ -1,11 +1,4 @@
 <script setup lang="ts">
-import PaginationComponent from "@/base_components/utilities/PaginationComponent.vue";
-import { ProjectsSortInterface } from "@/codeclarity_components/projects/project.repository";
-import type { Dependency } from "@/codeclarity_components/results/graph.entity";
-import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
-import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
-import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { Icon } from "@iconify/vue";
 import type {
   ColumnFiltersState,
@@ -13,6 +6,13 @@ import type {
   VisibilityState,
 } from "@tanstack/vue-table";
 import { ref, onMounted, type Ref, watch, shallowRef, computed } from "vue";
+import PaginationComponent from "@/base_components/utilities/PaginationComponent.vue";
+import { ProjectsSortInterface } from "@/codeclarity_components/projects/project.repository";
+import type { Dependency } from "@/codeclarity_components/results/graph.entity";
+import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
+import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { columns } from "./table/columns";
 import DataTable from "./table/DataTable.vue";
 

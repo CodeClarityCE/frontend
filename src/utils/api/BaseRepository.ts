@@ -1,6 +1,6 @@
 import "vue-toast-notification/dist/theme-sugar.css";
-import router from "@/router";
 import { useToast, type ToastPluginApi } from "vue-toast-notification";
+import router from "@/router";
 import { APIErrors } from "./ApiErrors";
 
 /**

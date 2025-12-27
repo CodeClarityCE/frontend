@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref } from "vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import {
@@ -13,8 +15,6 @@ import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate, formatCurrentDate } from "@/utils/dateUtils";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
 
 const loading: Ref<boolean> = ref(false);
 const orgInfo: Ref<Organization | undefined> = ref();

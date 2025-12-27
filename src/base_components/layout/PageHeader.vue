@@ -50,8 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import Button from "@/shadcn/ui/button/Button.vue";
 import { Icon } from "@iconify/vue";
+import Button from "@/shadcn/ui/button/Button.vue";
 
 /**
  * PageHeader - Reusable page header component

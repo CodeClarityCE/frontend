@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+import type { Edge } from "@vue-flow/core";
+import { storeToRefs } from "pinia";
+import { Form } from "vee-validate";
+import { ref, type Ref } from "vue";
+import { useRoute } from "vue-router";
 import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
@@ -20,11 +25,6 @@ import {
   type AnalyzerNode,
   type ConfigNode,
 } from "@/utils/vueFlow";
-import type { Edge } from "@vue-flow/core";
-import { storeToRefs } from "pinia";
-import { Form } from "vee-validate";
-import { ref, type Ref } from "vue";
-import { useRoute } from "vue-router";
 import AnalyzerFormFields from "./shared/AnalyzerFormFields.vue";
 import { analyzerValidationSchema } from "./shared/analyzerValidation";
 import WorkflowDesigner from "./shared/WorkflowDesigner.vue";

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { computed, type PropType } from "vue";
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
 import { Badge } from "@/shadcn/ui/badge";
 import { useAuthStore } from "@/stores/auth";
@@ -11,8 +13,6 @@ import {
   EcosystemDetector,
   EcosystemMetadataExtractor,
 } from "@/utils/packageEcosystem";
-import { Icon } from "@iconify/vue";
-import { computed, type PropType } from "vue";
 
 const authStore = useAuthStore();
 

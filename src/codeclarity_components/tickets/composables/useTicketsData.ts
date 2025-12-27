@@ -1,8 +1,8 @@
+import { storeToRefs } from "pinia";
+import { ref, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
-import { storeToRefs } from "pinia";
-import { ref, computed, watch } from "vue";
 import {
   type TicketSummary,
   type TicketDetails,

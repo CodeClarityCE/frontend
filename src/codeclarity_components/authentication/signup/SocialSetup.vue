@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { Form } from "vee-validate";
+import { ref, type Ref } from "vue";
+import * as z from "zod";
 import FormInlineCheckboxField from "@/base_components/forms/FormInlineCheckboxField.vue";
 import FormTextField from "@/base_components/forms/FormTextField.vue";
 import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
@@ -17,10 +21,6 @@ import {
   BusinessLogicError,
   ValidationError,
 } from "@/utils/api/BaseRepository";
-import { Icon } from "@iconify/vue";
-import { Form } from "vee-validate";
-import { ref, type Ref } from "vue";
-import * as z from "zod";
 
 // Props
 const props = defineProps<{

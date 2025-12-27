@@ -1,11 +1,11 @@
+import { mount } from "@vue/test-utils";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   SeverityType,
   Impact,
   type PatchInfo,
   type ToPatch,
 } from "@/codeclarity_components/results/patching/Patching";
-import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import PatchInformation from "./PatchInformation.vue";
 
 // Mock child components

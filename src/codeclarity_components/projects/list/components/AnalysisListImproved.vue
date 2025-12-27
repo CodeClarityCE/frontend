@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { ref, computed } from "vue";
 import {
   AnalysisStatus,
   type Analysis,
@@ -32,8 +34,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { formatDate, formatDistanceToNow } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, computed } from "vue";
 import AnalysisRuns from "./AnalysisRuns.vue";
 
 const props = defineProps({

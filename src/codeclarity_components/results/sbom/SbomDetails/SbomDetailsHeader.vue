@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
-import { Badge } from "@/shadcn/ui/badge";
 import { Icon } from "@iconify/vue";
 import type { PropType } from "vue";
+import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
+import { Badge } from "@/shadcn/ui/badge";
 
 defineProps({
   dependency: {

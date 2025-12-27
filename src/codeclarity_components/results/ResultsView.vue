@@ -1,4 +1,14 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import {
+  onBeforeMount,
+  ref,
+  defineAsyncComponent,
+  watch,
+  type Ref,
+  type Component,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import {
@@ -13,16 +23,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
-import { Icon } from "@iconify/vue";
-import {
-  onBeforeMount,
-  ref,
-  defineAsyncComponent,
-  watch,
-  type Ref,
-  type Component,
-} from "vue";
-import { useRoute, useRouter } from "vue-router";
 
 const ResultsSBOM = defineAsyncComponent({
   loader: (() => import("./sbom/ResultsSBOM.vue")) as () => Promise<Component>,

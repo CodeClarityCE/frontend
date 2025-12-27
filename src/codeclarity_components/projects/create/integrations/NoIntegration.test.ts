@@ -1,10 +1,10 @@
+import { mount } from "@vue/test-utils";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { createRouter, createWebHistory } from "vue-router";
 import {
   MemberRole,
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
-import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { createRouter, createWebHistory } from "vue-router";
 import NoIntegration from "./NoIntegration.vue";
 
 // Mock dependencies

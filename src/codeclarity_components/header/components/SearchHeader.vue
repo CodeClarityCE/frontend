@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { useMagicKeys } from "@vueuse/core";
+import { ref, watch } from "vue";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -11,9 +14,6 @@ import {
   CommandSeparator,
 } from "@/shadcn/ui/command";
 import { useUserStore } from "@/stores/user";
-import { Icon } from "@iconify/vue";
-import { useMagicKeys } from "@vueuse/core";
-import { ref, watch } from "vue";
 
 const userStore = useUserStore();
 

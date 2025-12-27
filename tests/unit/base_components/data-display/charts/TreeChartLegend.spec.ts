@@ -1,6 +1,6 @@
-import TreeChartLegend from '@/base_components/data-display/charts/TreeChartLegend.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import TreeChartLegend from '@/base_components/data-display/charts/TreeChartLegend.vue'
 
 // Create comprehensive D3 mock for TreeChartLegend
 const createMockSelection = (): any => {

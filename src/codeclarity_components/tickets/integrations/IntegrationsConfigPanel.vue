@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Button } from "@/shadcn/ui/button";
-import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
 import { ref, onMounted } from "vue";
+import { Button } from "@/shadcn/ui/button";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import {
   ExternalTicketProvider,
   ExternalProviderLabels,

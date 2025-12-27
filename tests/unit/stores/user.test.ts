@@ -1,8 +1,8 @@
+import { setActivePinia, createPinia } from 'pinia'
+import { describe, it, expect, beforeEach } from 'vitest'
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity'
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity'
 import { useUserStore } from '@/stores/user'
-import { setActivePinia, createPinia } from 'pinia'
-import { describe, it, expect, beforeEach } from 'vitest'
 
 // Mock data factories
 const createMockOrganization = (overrides: Partial<Organization> = {}): Organization => ({

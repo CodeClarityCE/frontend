@@ -1,9 +1,4 @@
 <script lang="ts" setup>
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
-import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
-import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import {
   defineAsyncComponent,
   ref,
@@ -11,6 +6,11 @@ import {
   type AsyncComponentLoader,
   type Component,
 } from "vue";
+import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
+import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
+import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
+import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
 const OrgPoliciesList = defineAsyncComponent({
   loader: (() => import("./list/PoliciesList.vue")) as AsyncComponentLoader,

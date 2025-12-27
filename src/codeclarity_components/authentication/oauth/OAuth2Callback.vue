@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { onMounted, ref } from "vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { Token } from "@/codeclarity_components/authentication/token.entity";
@@ -9,8 +11,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { Icon } from "@iconify/vue";
-import { onMounted, ref } from "vue";
 
 // Props
 const props = defineProps<{

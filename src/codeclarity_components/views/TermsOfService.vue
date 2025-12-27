@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import VueMarkdown from "vue-markdown-render";
 import router from "@/router";
 import Button from "@/shadcn/ui/button/Button.vue";
-import VueMarkdown from "vue-markdown-render";
 
 const data = `
 *Last updated: March 19, 2024*

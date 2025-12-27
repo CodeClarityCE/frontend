@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import Alert from "@/shadcn/ui/alert/Alert.vue";
-import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
 import { Icon } from "@iconify/vue";
 import { ref } from "vue";
+import Alert from "@/shadcn/ui/alert/Alert.vue";
+import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
 
 const loading = ref(true);
 const content = ref(false);

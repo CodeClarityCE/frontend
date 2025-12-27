@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Badge from "@/shadcn/ui/badge/Badge.vue";
 import { Icon } from "@iconify/vue";
+import Badge from "@/shadcn/ui/badge/Badge.vue";
 import type { VulnerabilityDetails } from "./VulnDetails.ts";
 
 defineProps<{

@@ -1,6 +1,6 @@
-import TeamSwitcher from '@/codeclarity_components/header/components/TeamSwitcher.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import TeamSwitcher from '@/codeclarity_components/header/components/TeamSwitcher.vue';
 
 // Mock external dependencies
 vi.mock('@/router', () => ({

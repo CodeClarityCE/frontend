@@ -1,4 +1,6 @@
 <script lang="ts">
+import { Icon } from "@iconify/vue";
+import { ref, watch, type Ref } from "vue";
 import SortableTable, {
   type TableHeader,
 } from "@/base_components/data-display/tables/SortableTable.vue";
@@ -29,8 +31,6 @@ import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 import { formatDate } from "@/utils/dateUtils";
 import { debounce } from "@/utils/searchUtils";
-import { Icon } from "@iconify/vue";
-import { ref, watch, type Ref } from "vue";
 
 // Types
 export interface GetReposOptions extends GetRepositoriesRequestOptions {

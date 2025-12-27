@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref, watch } from "vue";
 import type { GroupedBarChartData } from "@/base_components/data-display/charts/groupedBarChart";
 import GroupedBarChart from "@/base_components/data-display/charts/GroupedBarChart.vue";
 import type { RadarChartData } from "@/base_components/data-display/charts/radarChart";
@@ -17,8 +19,6 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch } from "vue";
 import SelectWorkspace from "../SelectWorkspace.vue";
 import Patches from "./PatchingPatches.vue";
 import PatchesTable from "./PatchingTable.vue";

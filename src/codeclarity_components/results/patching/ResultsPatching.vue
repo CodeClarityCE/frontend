@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import { onMounted, ref } from "vue";
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
-import { onMounted, ref } from "vue";
 import PatchingContent from "./PatchingContent.vue";
 
 defineProps<{

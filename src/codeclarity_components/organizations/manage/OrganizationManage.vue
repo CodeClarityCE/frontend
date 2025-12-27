@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref, watch } from "vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import CenteredModal from "@/base_components/ui/modals/CenteredModal.vue";
 import {
@@ -14,8 +16,6 @@ import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch } from "vue";
 
 const authStore = useAuthStore();
 

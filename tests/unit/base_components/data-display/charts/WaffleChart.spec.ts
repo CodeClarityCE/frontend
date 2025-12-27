@@ -1,6 +1,6 @@
-import WaffleChart from '@/base_components/data-display/charts/WaffleChart.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import WaffleChart from '@/base_components/data-display/charts/WaffleChart.vue'
 
 // ResizeObserver is mocked globally in tests/setup.ts
 

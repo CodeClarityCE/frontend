@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { vAutoAnimate } from "@formkit/auto-animate/vue";
+import { useForm } from "vee-validate";
+import * as z from "zod";
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
@@ -15,9 +18,6 @@ import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
-import { vAutoAnimate } from "@formkit/auto-animate/vue";
-import { useForm } from "vee-validate";
-import * as z from "zod";
 
 const state = useStateStore();
 const authStore = useAuthStore();

@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { storeToRefs } from "pinia";
+import { defineAsyncComponent, ref, onMounted, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
-import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
-import { defineAsyncComponent, ref, onMounted, computed, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import { useTicketsData } from "./composables/useTicketsData";
 import IntegrationsConfigPanel from "./integrations/IntegrationsConfigPanel.vue";
 import { TicketsRepository } from "./tickets.repository";

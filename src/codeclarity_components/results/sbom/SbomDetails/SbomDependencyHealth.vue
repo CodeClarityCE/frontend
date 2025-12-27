@@ -1,9 +1,9 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { computed, type PropType } from "vue";
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
 import Badge from "@/shadcn/ui/badge/Badge.vue";
 import { calculateDateDifference, formatRelativeTime } from "@/utils/dateUtils";
-import { Icon } from "@iconify/vue";
-import { computed, type PropType } from "vue";
 
 const props = defineProps({
   dependency: {

@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { Form } from "vee-validate";
+import { ref, type Ref } from "vue";
+import { useRoute } from "vue-router";
+import * as z from "zod";
 import FormTextField from "@/base_components/forms/FormTextField.vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
@@ -16,11 +21,6 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { Form } from "vee-validate";
-import { ref, type Ref } from "vue";
-import { useRoute } from "vue-router";
-import * as z from "zod";
 
 enum FormMode {
   UPDATE = "UPDATE",

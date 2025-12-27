@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PaginationComponent } from "@/base_components";
 import { Icon } from "@iconify/vue";
+import { PaginationComponent } from "@/base_components";
 import {
   type TicketSummary,
   TicketStatusLabels,

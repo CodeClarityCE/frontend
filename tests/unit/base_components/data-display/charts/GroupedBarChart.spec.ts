@@ -1,7 +1,7 @@
-import type { GroupedBarChartData, GroupedBarChartOptions } from '@/base_components/data-display'
-import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { GroupedBarChartData, GroupedBarChartOptions } from '@/base_components/data-display'
+import GroupedBarChart from '@/base_components/data-display/charts/GroupedBarChart.vue'
 
 // Create comprehensive D3 mock chain
 interface MockNode {

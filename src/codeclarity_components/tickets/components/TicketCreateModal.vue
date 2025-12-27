@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { ref, computed, watch } from "vue";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -20,8 +22,6 @@ import {
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { Icon } from "@iconify/vue";
-import { ref, computed, watch } from "vue";
 import {
   TicketPriority,
   TicketType,

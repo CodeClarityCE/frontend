@@ -1,9 +1,9 @@
-import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import { mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
+import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import { ResultsRepository } from "../results.repository";
 import { VulnerabilityDetails } from "./VulnDetails/VulnDetails";
 import VulnDetails from "./VulnDetails.vue";

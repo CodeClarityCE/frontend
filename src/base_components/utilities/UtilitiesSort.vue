@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Imports
+import { Icon } from "@iconify/vue";
 import {
   Select,
   SelectContent,
@@ -10,7 +11,6 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
-import { Icon } from "@iconify/vue";
 
 // Types
 interface SortOption {

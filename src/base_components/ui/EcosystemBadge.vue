@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { EcosystemInfo } from "@/utils/packageEcosystem";
 import { Icon } from "@iconify/vue";
+import type { EcosystemInfo } from "@/utils/packageEcosystem";
 
 defineProps<{
   ecosystem: EcosystemInfo;

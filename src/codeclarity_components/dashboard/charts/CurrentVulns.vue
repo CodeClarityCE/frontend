@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { storeToRefs } from "pinia";
+import { ref, watch, type Ref } from "vue";
 import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import Button from "@/shadcn/ui/button/Button.vue";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
@@ -6,9 +9,6 @@ import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
 
 // Props
 const props = defineProps<{

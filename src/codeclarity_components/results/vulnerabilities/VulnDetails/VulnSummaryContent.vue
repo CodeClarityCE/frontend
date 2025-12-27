@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import InfoMarkdown from "@/base_components/ui/InfoMarkdown.vue";
 import type CenteredModalVue from "@/base_components/ui/modals/CenteredModal.vue";
@@ -11,7 +12,6 @@ import {
   CardTitle,
 } from "@/shadcn/ui/card";
 import { formatDate } from "@/utils/dateUtils";
-import { Icon } from "@iconify/vue";
 
 defineProps<{
   finding: VulnerabilityDetails;

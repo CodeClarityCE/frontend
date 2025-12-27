@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { PageHeader, InfoCard, StatCard } from "@/base_components";
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
-import { Button } from "@/shadcn/ui/button";
-import { useStateStore } from "@/stores/state";
 import { User, Lock, Trash2, Shield } from "lucide-vue-next";
 import {
   defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
 } from "vue";
+import { PageHeader, InfoCard, StatCard } from "@/base_components";
+import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
+import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
+import { Button } from "@/shadcn/ui/button";
+import { useStateStore } from "@/stores/state";
 
 const SettingAccount = defineAsyncComponent({
   loader: (() => import("./forms/SettingAccount.vue")) as AsyncComponentLoader,

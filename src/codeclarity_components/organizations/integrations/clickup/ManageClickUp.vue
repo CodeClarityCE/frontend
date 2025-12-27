@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, onMounted } from "vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
@@ -12,8 +14,6 @@ import router from "@/router";
 import Button from "@/shadcn/ui/button/Button.vue";
 import { useAuthStore } from "@/stores/auth";
 import { successToast, errorToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, onMounted } from "vue";
 
 const props = defineProps<{
   orgId: string;

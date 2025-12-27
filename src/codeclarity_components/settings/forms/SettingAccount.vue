@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Lock, Trash2, Shield, Info, AlertTriangle } from "lucide-vue-next";
 import { InfoCard } from "@/base_components";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import Button from "@/shadcn/ui/button/Button.vue";
@@ -9,7 +10,6 @@ import DialogHeader from "@/shadcn/ui/dialog/DialogHeader.vue";
 import DialogTitle from "@/shadcn/ui/dialog/DialogTitle.vue";
 import DialogTrigger from "@/shadcn/ui/dialog/DialogTrigger.vue";
 import { useStateStore } from "@/stores/state";
-import { Lock, Trash2, Shield, Info, AlertTriangle } from "lucide-vue-next";
 import DeleteUserForm from "./DeleteUserForm.vue";
 import UpdateInfoForm from "./UpdateInfoForm.vue";
 import UpdatePasswordForm from "./UpdatePasswordForm.vue";

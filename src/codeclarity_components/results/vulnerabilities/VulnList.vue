@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, watch, computed, type Ref } from "vue";
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
@@ -36,9 +38,7 @@ import {
   isLowSeverity,
   isMediumSeverity,
 } from "@/utils/severity";
-import { Icon } from "@iconify/vue";
 // Import stores
-import { ref, watch, computed, type Ref } from "vue";
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 
 export interface Props {

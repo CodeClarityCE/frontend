@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
 import type { PatchInfo } from "@/codeclarity_components/results/patching/Patching";
 import Badge from "@/shadcn/ui/badge/Badge.vue";
 import Card from "@/shadcn/ui/card/Card.vue";
@@ -7,7 +8,6 @@ import Tabs from "@/shadcn/ui/tabs/Tabs.vue";
 import TabsContent from "@/shadcn/ui/tabs/TabsContent.vue";
 import TabsList from "@/shadcn/ui/tabs/TabsList.vue";
 import TabsTrigger from "@/shadcn/ui/tabs/TabsTrigger.vue";
-import { Icon } from "@iconify/vue";
 import PatchInformation from "./PatchInformation.vue";
 
 export interface Props {

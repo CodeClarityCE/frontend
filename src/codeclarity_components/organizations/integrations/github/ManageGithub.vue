@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref } from "vue";
+import { useRoute } from "vue-router";
 import { GithubTokenType } from "@/codeclarity_components/organizations/integrations/integration_add.http";
 import {
   IntegrationProvider,
@@ -10,9 +13,6 @@ import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
-import { useRoute } from "vue-router";
 import OrgIntegrationManageTokenBasedIntegration from "../IntegrationManageTokenBasedIntegration.vue";
 
 const integration: Ref<GithubIntegration | undefined> = ref();

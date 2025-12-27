@@ -1,3 +1,5 @@
+import type { Component } from "vue";
+import { createRouter, createWebHistory } from "vue-router";
 import AnalysesView from "@/codeclarity_components/analyses/AnalysesView.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
@@ -23,8 +25,6 @@ import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import type { Component } from "vue";
-import { createRouter, createWebHistory } from "vue-router";
 
 // Helper functions to reduce complexity in beforeEach guard
 async function refreshTokenIfNeeded(

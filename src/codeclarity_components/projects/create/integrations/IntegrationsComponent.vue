@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import {
   IntegrationProvider,
   type VCS,
 } from "@/codeclarity_components/organizations/integrations/Integrations";
-import { Icon } from "@iconify/vue";
 
 defineProps<{
   vcsIntegrations: VCS[];

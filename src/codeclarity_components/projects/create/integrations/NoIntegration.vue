@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { RouterLink } from "vue-router";
 import { InfoCard } from "@/base_components";
 import {
   MemberRole,
@@ -6,8 +8,6 @@ import {
   isMemberRoleGreaterOrEqualTo,
 } from "@/codeclarity_components/organizations/organization.entity";
 import Button from "@/shadcn/ui/button/Button.vue";
-import { Icon } from "@iconify/vue";
-import { RouterLink } from "vue-router";
 
 defineProps<{
   defaultOrg: Organization;

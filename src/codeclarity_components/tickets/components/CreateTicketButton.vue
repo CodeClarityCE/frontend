@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { ref } from "vue";
 import { Button } from "@/shadcn/ui/button";
 import {
   Tooltip,
@@ -6,8 +8,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
-import { Icon } from "@iconify/vue";
-import { ref } from "vue";
 import TicketCreateModal, {
   type VulnerabilityData,
 } from "./TicketCreateModal.vue";

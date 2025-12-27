@@ -1,6 +1,6 @@
-import DashboardEmptyState from '@/codeclarity_components/dashboard/layout/DashboardEmptyState.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import DashboardEmptyState from '@/codeclarity_components/dashboard/layout/DashboardEmptyState.vue';
 
 describe('DashboardEmptyState', () => {
   const defaultProps = {

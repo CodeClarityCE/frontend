@@ -1,7 +1,7 @@
-import { PatchingStats } from "@/codeclarity_components/results/stats.entity";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PatchingStats } from "@/codeclarity_components/results/stats.entity";
 import PatchingSummary from "./PatchingSummary.vue";
 // Mock stores before importing
 vi.mock("@/stores/user", () => ({

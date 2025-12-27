@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { storeToRefs } from "pinia";
+import { ref, computed, onMounted } from "vue";
 import {
   Accordion,
   AccordionContent,
@@ -21,9 +24,6 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { getOwaspInfoById } from "@/utils/owasp";
-import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
-import { ref, computed, onMounted } from "vue";
 import RiskScoreGauge from "../components/RiskScoreGauge.vue";
 import ScoreProgressBar from "../components/ScoreProgressBar.vue";
 import {

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, watch, computed, type Ref } from "vue";
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import SeverityBubble from "@/base_components/data-display/bubbles/SeverityBubble.vue";
 import SortableTable, {
@@ -33,8 +35,6 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
-import { Icon } from "@iconify/vue";
-import { ref, watch, computed, type Ref } from "vue";
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 
 export interface Props {

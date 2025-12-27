@@ -1,11 +1,11 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref } from "vue";
+import { useRoute } from "vue-router";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import ClickUpConfigModal from "@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue";
 import router from "@/router";
 import Button from "@/shadcn/ui/button/Button.vue";
-import { Icon } from "@iconify/vue";
-import { ref } from "vue";
-import { useRoute } from "vue-router";
 
 // State
 const orgId = ref("");

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref } from "vue";
 import CenteredModal from "@/base_components/ui/modals/CenteredModal.vue";
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
@@ -9,8 +11,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
 
 enum OrgAction {
   DELETE = "delete",

@@ -6,8 +6,8 @@ export interface TableHeader {
 </script>
 <script setup lang="ts">
 // Imports
-import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { Icon } from "@iconify/vue";
+import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 
 // Props
 const props = defineProps<{

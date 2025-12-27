@@ -11,6 +11,8 @@
  * - Interactive charts and statistics
  */
 
+import { Icon } from "@iconify/vue";
+import { computed, ref, type Ref, watch } from "vue";
 import type { DoughnutChartData } from "@/base_components/data-display/charts/doughnutChart";
 import DoughnutChart from "@/base_components/data-display/charts/DoughnutChart.vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
@@ -23,8 +25,6 @@ import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
-import { Icon } from "@iconify/vue";
-import { computed, ref, type Ref, watch } from "vue";
 import SelectWorkspace from "../SelectWorkspace.vue";
 import {
   convertToCycloneDX,

@@ -1,6 +1,6 @@
-import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import { mount } from "@vue/test-utils";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import AnalyzersList from "./AnalyzersList.vue";
 
 // Mock router

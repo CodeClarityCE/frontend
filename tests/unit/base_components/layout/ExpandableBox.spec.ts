@@ -1,6 +1,6 @@
-import ExpandableBox from '@/base_components/layout/ExpandableBox.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
+import ExpandableBox from '@/base_components/layout/ExpandableBox.vue';
 
 // Mock external dependencies
 vi.mock('@iconify/vue', () => ({

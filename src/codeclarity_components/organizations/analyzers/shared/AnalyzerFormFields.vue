@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import FormTextField from "@/base_components/forms/FormTextField.vue";
 import { Icon } from "@iconify/vue";
+import FormTextField from "@/base_components/forms/FormTextField.vue";
 
 defineProps<{
   name: string;

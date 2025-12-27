@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref } from "vue";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -8,8 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
 
 const emit = defineEmits<{
   export: [format: "csv" | "json" | "cyclonedx" | "html"];

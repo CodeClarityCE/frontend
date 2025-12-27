@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { ref, type Ref } from "vue";
 import type {
   RadarChartData,
   RadarChartOptions,
 } from "@/base_components/data-display/charts/radarChart";
 import RadarChart from "@/base_components/data-display/charts/RadarChart.vue";
-import { ref, type Ref } from "vue";
 
 // Props
 const props = defineProps<{

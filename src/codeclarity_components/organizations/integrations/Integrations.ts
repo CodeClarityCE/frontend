@@ -1,4 +1,3 @@
-import { OptionalDateTransform } from "@/utils/OptionalDate";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
@@ -8,6 +7,7 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
+import { OptionalDateTransform } from "@/utils/OptionalDate";
 import { TeamMember } from "../organization.entity";
 import { GithubTokenType, GitlabTokenType } from "./integration_add.http";
 

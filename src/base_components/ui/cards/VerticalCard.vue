@@ -53,6 +53,7 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import {
   Card,
   CardContent,
@@ -60,7 +61,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shadcn/ui/card";
-import { Icon } from "@iconify/vue";
 
 /**
  * VerticalCard - A flexible vertical card component with header, content, and footer sections

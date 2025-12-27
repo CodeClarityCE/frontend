@@ -1,9 +1,9 @@
-import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
-import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { License } from "./License";
 import LicensesComponent from "./LicensesComponent.vue";
 

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref, watch, computed } from "vue";
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import {
   createNewFilterState,
@@ -17,8 +19,6 @@ import { ResultsRepository } from "@/codeclarity_components/results/results.repo
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch, computed } from "vue";
 import SelectWorkspace from "../SelectWorkspace.vue";
 import LicenseComponent from "./LicenseComponent.vue";
 // Import stores

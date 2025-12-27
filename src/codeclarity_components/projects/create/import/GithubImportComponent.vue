@@ -1,9 +1,9 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
-import { Icon } from "@iconify/vue";
 import BaseImportComponent, {
   type GetReposOptions,
 } from "./BaseImportComponent.vue";

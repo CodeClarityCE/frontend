@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { CheckIcon } from "lucide-vue-next";
+import { ref, watch } from "vue";
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import router from "@/router";
@@ -19,9 +22,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { CheckIcon } from "lucide-vue-next";
-import { ref, watch } from "vue";
 
 const userStore = useUserStore();
 const authStore = useAuthStore();

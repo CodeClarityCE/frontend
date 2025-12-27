@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import { ref } from "vue";
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
 import router from "@/router";
-import { ref } from "vue";
 
 const text = ref("Confirming registration...");
 const counter = ref(0);

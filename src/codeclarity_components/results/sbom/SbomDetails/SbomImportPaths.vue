@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { onMounted, type PropType, ref, type Ref } from "vue";
 import TreeChart from "@/base_components/data-display/charts/TreeChart.vue";
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { Icon } from "@iconify/vue";
-import { onMounted, type PropType, ref, type Ref } from "vue";
 import type { GraphDependency } from "../../graph.entity";
 import { ResultsRepository } from "../../results.repository";
 

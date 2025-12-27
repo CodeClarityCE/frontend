@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+import { onMounted, onUpdated, ref, watch, type Ref } from "vue";
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import { onMounted, onUpdated, ref, watch, type Ref } from "vue";
 import VulnContent from "./VulnContent.vue";
 import List from "./VulnList.vue";
 import Table from "./VulnTable.vue";

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, onMounted, type Ref } from "vue";
 import LanguageBadge from "@/base_components/ui/LanguageBadge.vue";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import Skeleton from "@/shadcn/ui/skeleton/Skeleton.vue";
@@ -8,8 +10,6 @@ import {
   LanguageDetectionService,
   type DetectedLanguage,
 } from "@/utils/languageDetection";
-import { Icon } from "@iconify/vue";
-import { ref, onMounted, type Ref } from "vue";
 
 const props = defineProps<{
   project: Project;

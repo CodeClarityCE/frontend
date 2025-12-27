@@ -1,6 +1,6 @@
-import MainNav from '@/codeclarity_components/header/components/MainNav.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import MainNav from '@/codeclarity_components/header/components/MainNav.vue';
 
 // Mock store
 const mockStateStore = {

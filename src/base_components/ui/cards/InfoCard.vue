@@ -33,6 +33,7 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import {
   Card,
   CardContent,
@@ -40,7 +41,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shadcn/ui/card";
-import { Icon } from "@iconify/vue";
 
 /**
  * InfoCard - A simple card component with icon, title, description and actions

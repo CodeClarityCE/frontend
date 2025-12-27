@@ -1,6 +1,6 @@
-import SignupForm from '@/codeclarity_components/authentication/signup/SignupForm.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import SignupForm from '@/codeclarity_components/authentication/signup/SignupForm.vue';
 
 // Mock stores
 const mockAuthStore = {

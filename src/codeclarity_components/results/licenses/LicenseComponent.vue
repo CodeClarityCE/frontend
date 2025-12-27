@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, computed } from "vue";
 import { type License } from "@/codeclarity_components/results/licenses/License";
 import Badge from "@/shadcn/ui/badge/Badge.vue";
 import { Button } from "@/shadcn/ui/button";
@@ -12,8 +14,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
-import { Icon } from "@iconify/vue";
-import { ref, computed } from "vue";
 
 const isExpanded = ref(false);
 

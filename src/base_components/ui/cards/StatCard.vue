@@ -47,8 +47,8 @@
 </template>
 
 <script setup lang="ts">
-import { Card, CardContent } from "@/shadcn/ui/card";
 import { Icon } from "@iconify/vue";
+import { Card, CardContent } from "@/shadcn/ui/card";
 
 /**
  * StatCard - A statistics card component for displaying key metrics

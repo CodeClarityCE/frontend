@@ -1,6 +1,6 @@
-import TextLoader from '@/base_components/ui/loaders/TextLoader.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
+import TextLoader from '@/base_components/ui/loaders/TextLoader.vue'
 
 describe('TextLoader', () => {
   describe('Component Rendering', () => {

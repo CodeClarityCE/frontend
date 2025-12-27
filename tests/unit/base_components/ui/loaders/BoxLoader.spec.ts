@@ -1,6 +1,6 @@
-import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect } from 'vitest';
+import BoxLoader from '@/base_components/ui/loaders/BoxLoader.vue';
 
 describe('BoxLoader', () => {
     describe('Basic Rendering', () => {

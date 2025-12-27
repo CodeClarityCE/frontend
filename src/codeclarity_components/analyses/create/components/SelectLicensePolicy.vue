@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, type Ref } from "vue";
+import { RouterLink } from "vue-router";
 import LoadingContainer from "@/base_components/ui/loaders/LoadingContainer.vue";
 import PaginationComponent from "@/base_components/utilities/PaginationComponent.vue";
 import { type LicensePolicy } from "@/codeclarity_components/organizations/policy/license_policy.entity";
@@ -7,8 +9,6 @@ import Badge from "@/shadcn/ui/badge/Badge.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
-import { ref, type Ref } from "vue";
-import { RouterLink } from "vue-router";
 const user = useUserStore();
 const auth = useAuthStore();
 

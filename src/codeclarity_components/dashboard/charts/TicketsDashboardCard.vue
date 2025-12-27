@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { storeToRefs } from "pinia";
+import { ref, watch, type Ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   TicketPriorityLabels,
   TicketPriorityColors,
@@ -11,10 +15,6 @@ import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
-import { useRouter } from "vue-router";
 
 // Props
 const props = defineProps<{

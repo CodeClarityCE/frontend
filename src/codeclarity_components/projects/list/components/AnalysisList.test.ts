@@ -1,9 +1,9 @@
+import { mount } from "@vue/test-utils";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   AnalysisStatus,
   type Analysis,
 } from "@/codeclarity_components/analyses/analysis.entity";
-import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AnalysisList from "./AnalysisList.vue";
 
 // Mock child components

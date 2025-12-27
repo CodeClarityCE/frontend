@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 // Chart.js imports removed - using d3 components
 // Chart.js registration removed
+import { Icon } from "@iconify/vue";
+import { ref, type Ref, watch } from "vue";
 import type { GroupedBarChartData } from "@/base_components/data-display/charts/groupedBarChart";
 import GroupedBarChart from "@/base_components/data-display/charts/GroupedBarChart.vue";
 import type { RadarChartData } from "@/base_components/data-display/charts/radarChart";
@@ -13,8 +15,6 @@ import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch } from "vue";
 // Chart.js registration removed
 
 interface Props {

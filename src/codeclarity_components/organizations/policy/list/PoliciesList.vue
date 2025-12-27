@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, onBeforeMount, computed, type Ref } from "vue";
+import { useRouter } from "vue-router";
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import Button from "@/shadcn/ui/button/Button.vue";
@@ -12,9 +15,6 @@ import {
 } from "@/shadcn/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { Icon } from "@iconify/vue";
-import { ref, onBeforeMount, computed, type Ref } from "vue";
-import { useRouter } from "vue-router";
 import LicensePolicyDataTable from "../license/LicensePolicyDataTable.vue";
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";

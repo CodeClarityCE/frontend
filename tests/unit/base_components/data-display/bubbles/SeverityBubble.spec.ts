@@ -1,6 +1,6 @@
-import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach } from 'vitest'
+import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue'
 
 // TODO: These tests need to be rewritten to match the current component implementation.
 // The component structure has changed - it no longer uses .severity-box, .severity-class classes.

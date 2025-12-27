@@ -1,6 +1,6 @@
-import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import EmailActionView from '@/codeclarity_components/authentication/email/EmailActionView.vue';
 
 const { mockStateStore } = vi.hoisted(() => ({
   mockStateStore: {

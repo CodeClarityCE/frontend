@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { onMounted, ref, watch, type Ref } from "vue";
+import { useRoute } from "vue-router";
 import SortableTable from "@/base_components/data-display/tables/SortableTable.vue";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
@@ -18,9 +21,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { debounce } from "@/utils/searchUtils";
-import { Icon } from "@iconify/vue";
-import { onMounted, ref, watch, type Ref } from "vue";
-import { useRoute } from "vue-router";
 import OrgMemberItem from "./members/MemberItem.vue";
 
 const orgRepo = new OrgRepository();

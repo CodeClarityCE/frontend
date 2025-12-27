@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { Icon } from "@iconify/vue";
+import { ref, type Ref } from "vue";
+import { RouterLink } from "vue-router";
 import {
   Analysis,
   type AnalysisStage,
@@ -23,9 +26,6 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import { formatDate, calculateDateDifference } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
-import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
-import { RouterLink } from "vue-router";
 import AnalysisRuns from "./AnalysisRuns.vue";
 
 // State for modals

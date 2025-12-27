@@ -1,4 +1,6 @@
 // Pinia imports removed to prevent plugin duplication warnings
+import { mount } from "@vue/test-utils";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   Analysis,
   AnalysisStatus,
@@ -8,8 +10,6 @@ import { Project } from "@/codeclarity_components/projects/project.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
-import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Result } from "../result.entity";
 import { ResultsRepository } from "../results.repository";
 import type { CodeQLResult } from "./codeql.entity";

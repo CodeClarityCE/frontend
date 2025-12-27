@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { formatDate } from "@/utils/dateUtils";
 import { Icon } from "@iconify/vue";
+import { formatDate } from "@/utils/dateUtils";
 
 defineProps<{
   createdOn?: Date | string;

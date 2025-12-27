@@ -1,7 +1,7 @@
-import { PatchType } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
-import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PatchType } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import VulnTable from "./VulnTable.vue";
 
 // Mock BaseRepository before any imports that depend on it

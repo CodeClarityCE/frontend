@@ -76,24 +76,38 @@
                             <span class="text-green-600 font-medium"
                               >A+ / A</span
                             >
-                            <span class="text-gray-500">Excellent (9-10)</span>
+                            <span class="text-gray-500"
+                              >Excellent ({{
+                                GRADE_DISPLAY_RANGES.excellent
+                              }})</span
+                            >
                           </div>
                           <div class="flex justify-between gap-4">
-                            <span class="text-blue-600 font-medium">B+ / B</span>
-                            <span class="text-gray-500">Good (6-8)</span>
+                            <span class="text-blue-600 font-medium"
+                              >B+ / B</span
+                            >
+                            <span class="text-gray-500"
+                              >Good ({{ GRADE_DISPLAY_RANGES.good }})</span
+                            >
                           </div>
                           <div class="flex justify-between gap-4">
                             <span class="text-yellow-600 font-medium"
                               >C+ / C</span
                             >
-                            <span class="text-gray-500">Fair (4-5)</span>
+                            <span class="text-gray-500"
+                              >Fair ({{ GRADE_DISPLAY_RANGES.fair }})</span
+                            >
                           </div>
                           <div class="flex justify-between gap-4">
                             <span class="text-red-600 font-medium">D+ / D</span>
-                            <span class="text-gray-500">Poor (0-3)</span>
+                            <span class="text-gray-500"
+                              >Poor ({{ GRADE_DISPLAY_RANGES.poor }})</span
+                            >
                           </div>
                         </div>
-                        <p class="text-xs text-gray-500 pt-1 border-t border-gray-200">
+                        <p
+                          class="text-xs text-gray-500 pt-1 border-t border-gray-200"
+                        >
                           Based on average vulnerability severity.
                         </p>
                       </div>
@@ -139,6 +153,11 @@ import {
 } from "@/shadcn/ui/tooltip";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import {
+  GRADE_DISPLAY_RANGES,
+  getGradeSubtitle,
+  type Grade,
+} from "@/utils/gradeUtils";
 
 /**
  * DashboardQuickStats - Simple 4-stat overview
@@ -190,17 +209,19 @@ const highSubtitle = computed(() => {
 });
 
 const scoreSubtitle = computed(() => {
-  const grade = stats.value.gradeClass;
-  if (grade === ProjectGradeClass.A_PLUS || grade === ProjectGradeClass.A) {
-    return "Excellent security posture";
-  }
-  if (grade === ProjectGradeClass.B_PLUS || grade === ProjectGradeClass.B) {
-    return "Good standing";
-  }
-  if (grade === ProjectGradeClass.C_PLUS || grade === ProjectGradeClass.C) {
-    return "Needs attention";
-  }
-  return "Critical - immediate action required";
+  // Convert ProjectGradeClass enum to Grade type for shared utility
+  const gradeClass = stats.value.gradeClass;
+  const gradeMap: Record<ProjectGradeClass, Grade> = {
+    [ProjectGradeClass.A_PLUS]: "A+",
+    [ProjectGradeClass.A]: "A",
+    [ProjectGradeClass.B_PLUS]: "B+",
+    [ProjectGradeClass.B]: "B",
+    [ProjectGradeClass.C_PLUS]: "C+",
+    [ProjectGradeClass.C]: "C",
+    [ProjectGradeClass.D_PLUS]: "D+",
+    [ProjectGradeClass.D]: "D",
+  };
+  return getGradeSubtitle(gradeMap[gradeClass] ?? "A+", "security");
 });
 
 async function fetchData(refresh = false): Promise<void> {

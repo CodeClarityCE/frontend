@@ -156,7 +156,7 @@ void fetch();
           aria-label="Select an organization"
           :class="
             cn(
-              'w-[220px] justify-between bg-gray-50 border-gray-300 hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900',
+              'w-55 justify-between bg-gray-50 border-gray-300 hover:bg-gray-100 transition-colors duration-200 text-gray-700 hover:text-gray-900',
               $attrs['class'] ?? '',
             )
           "
@@ -175,7 +175,7 @@ void fetch();
           ></Icon>
         </Button>
       </PopoverTrigger>
-      <PopoverContent class="w-[220px] p-0">
+      <PopoverContent class="w-55 p-0">
         <Command
           :filter-function="
             (list: any[], term: string) =>

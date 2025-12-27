@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { toast } from "vue-sonner";
 import { ZodError } from "zod";
@@ -35,7 +36,7 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
-const form = useForm<FormValues>({ validationSchema: formSchema });
+const form = useForm<FormValues>({ validationSchema: toTypedSchema(formSchema) });
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {

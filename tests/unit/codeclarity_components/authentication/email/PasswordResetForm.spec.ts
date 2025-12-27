@@ -1,10 +1,10 @@
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 import PasswordResetForm from '@/codeclarity_components/authentication/email/PasswordResetForm.vue';
 import router from '@/router';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { nextTick } from 'vue';
 
 const { mockAuthRepository } = vi.hoisted(() => ({
   mockAuthRepository: {
@@ -13,7 +13,9 @@ const { mockAuthRepository } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    resetPassword = mockAuthRepository.resetPassword
+  }
 }));
 
 // Mock BaseRepository with error classes
@@ -107,10 +109,6 @@ vi.mock('vee-validate', async () => {
     })
   };
 });
-
-vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: vi.fn((schema: any) => schema)
-}));
 
 vi.mock('@/shadcn/ui/alert/Alert.vue', async () => {
   const { defineComponent } = await import('vue');

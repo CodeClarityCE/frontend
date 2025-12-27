@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { cn } from '@/shadcn/lib/utils';
-import type { HTMLAttributes } from 'vue';
-import { type BadgeVariants, badgeVariants } from '.';
+import type { HTMLAttributes } from "vue";
+import type { BadgeVariants } from ".";
+import { cn } from "@/shadcn/lib/utils";
+import { badgeVariants } from ".";
 
 const props = defineProps<{
-    variant?: BadgeVariants['variant'];
-    class?: HTMLAttributes['class'];
+  variant?: BadgeVariants["variant"];
+  class?: HTMLAttributes["class"];
 }>();
 </script>
 
 <template>
-    <div :class="cn(badgeVariants({ variant }), props.class)">
-        <slot />
-    </div>
+  <div :class="cn(badgeVariants({ variant }), props.class)">
+    <slot />
+  </div>
 </template>

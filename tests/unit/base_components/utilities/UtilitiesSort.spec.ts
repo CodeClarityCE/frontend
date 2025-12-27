@@ -62,11 +62,11 @@ describe('UtilitiesSort', () => {
 
     interface ModelValues {
         pageLimitSelected?: number;
-        'onUpdate:pageLimitSelected'?: ReturnType<typeof vi.fn>;
+        'onUpdate:pageLimitSelected'?: (value: number) => void;
         sortKey?: string;
-        'onUpdate:sortKey'?: ReturnType<typeof vi.fn>;
+        'onUpdate:sortKey'?: (value: string) => void;
         sortDirection?: SortDirection;
-        'onUpdate:sortDirection'?: ReturnType<typeof vi.fn>;
+        'onUpdate:sortDirection'?: (value: SortDirection) => void;
     }
 
     const createWrapper = (props: Record<string, unknown> = {}, modelValues: ModelValues = {}) => {
@@ -75,11 +75,11 @@ describe('UtilitiesSort', () => {
                 ...defaultProps,
                 ...props,
                 'pageLimitSelected': modelValues.pageLimitSelected ?? 10,
-                'onUpdate:pageLimitSelected': modelValues['onUpdate:pageLimitSelected'] ?? vi.fn(),
+                'onUpdate:pageLimitSelected': modelValues['onUpdate:pageLimitSelected'] ?? vi.fn<(value: number) => void>(),
                 'sortKey': modelValues.sortKey ?? '',
-                'onUpdate:sortKey': modelValues['onUpdate:sortKey'] ?? vi.fn(),
+                'onUpdate:sortKey': modelValues['onUpdate:sortKey'] ?? vi.fn<(value: string) => void>(),
                 'sortDirection': modelValues.sortDirection ?? SortDirection.DESC,
-                'onUpdate:sortDirection': modelValues['onUpdate:sortDirection'] ?? vi.fn()
+                'onUpdate:sortDirection': modelValues['onUpdate:sortDirection'] ?? vi.fn<(value: SortDirection) => void>()
             }
         });
     };

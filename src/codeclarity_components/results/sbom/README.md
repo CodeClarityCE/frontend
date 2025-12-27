@@ -74,7 +74,10 @@ Export functionality:
 ### Using SBOM Utilities
 
 ```typescript
-import { calculateHealthScore, getDirectDependenciesNeedingUpdates } from './utils/sbomUtils';
+import {
+  calculateHealthScore,
+  getDirectDependenciesNeedingUpdates,
+} from "./utils/sbomUtils";
 
 const healthScore = calculateHealthScore(stats);
 const actionableDeps = getDirectDependenciesNeedingUpdates(dependencies);
@@ -83,10 +86,13 @@ const actionableDeps = getDirectDependenciesNeedingUpdates(dependencies);
 ### Using Package Manager Utilities
 
 ```typescript
-import { generateUpdateCommands, getPackageManagerIcon } from './utils/packageManagerUtils';
+import {
+  generateUpdateCommands,
+  getPackageManagerIcon,
+} from "./utils/packageManagerUtils";
 
-const commands = generateUpdateCommands('yarn', updates);
-const icon = getPackageManagerIcon('npm');
+const commands = generateUpdateCommands("yarn", updates);
+const icon = getPackageManagerIcon("npm");
 ```
 
 ## Data Flow

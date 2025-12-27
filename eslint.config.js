@@ -78,7 +78,9 @@ export default typescriptEslint.config(
     },
 
     settings: {
-      // Explicitly mark src/** as internal modules for import/order
+      // Required for Yarn PnP to find external dependencies
+      'import/external-module-folders': ['.yarn'],
+      // Explicitly mark @/* as internal modules for import/order
       'import/internal-regex': '^@/',
     },
 

@@ -1,32 +1,32 @@
 export interface CodeQLResult {
-    ruleId: string;
-    ruleIndex: number;
-    message: Message;
-    locations: Location[];
+  ruleId: string;
+  ruleIndex: number;
+  message: Message;
+  locations: Location[];
 }
 
 export interface Message {
-    text: string;
+  text: string;
 }
 
 export interface Location {
-    physicalLocation: PhysicalLocation;
+  physicalLocation: PhysicalLocation;
 }
 
 interface PhysicalLocation {
-    artifactLocation: ArtifactLocation;
-    region: Region;
+  artifactLocation: ArtifactLocation;
+  region: Region;
 }
 
 interface ArtifactLocation {
-    uri: string;
-    uriBaseId: string;
-    index: number;
+  uri: string;
+  uriBaseId: string;
+  index: number;
 }
 
 interface Region {
-    startLine: number;
-    endLine: number;
-    startColumn: number;
-    endColumn: number;
+  startLine: number;
+  endLine: number;
+  startColumn: number;
+  endColumn: number;
 }

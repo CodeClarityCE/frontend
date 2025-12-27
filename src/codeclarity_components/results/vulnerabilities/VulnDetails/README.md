@@ -20,7 +20,7 @@ This folder contains modular Vue components and types for displaying vulnerabili
 Import components or types from the index:
 
 ```ts
-import { VulnSecurityAnalysis, VulnDetailsHeader } from './VulnDetails';
+import { VulnSecurityAnalysis, VulnDetailsHeader } from "./VulnDetails";
 ```
 
 ## Contribution

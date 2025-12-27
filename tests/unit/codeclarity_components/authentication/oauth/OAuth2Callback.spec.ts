@@ -2,14 +2,14 @@
 global.Reflect = global.Reflect ?? {};
 global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 import OAuth2Callback from '@/codeclarity_components/authentication/oauth/OAuth2Callback.vue';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import router from '@/router';
 import { APIErrors } from '@/utils/api/ApiErrors';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { nextTick } from 'vue';
 
 interface MockAuthRepository {
   gitlabAuthFinalize: ReturnType<typeof vi.fn>;
@@ -56,7 +56,11 @@ const { mockAuthRepository, mockAuthStore, mockUserStore } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    gitlabAuthFinalize = mockAuthRepository.gitlabAuthFinalize
+    githubAuthFinalize = mockAuthRepository.githubAuthFinalize
+    getAuthenticatedUser = mockAuthRepository.getAuthenticatedUser
+  }
 }));
 
 // Mock BaseRepository with error classes

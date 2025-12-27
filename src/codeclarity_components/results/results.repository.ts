@@ -1,480 +1,517 @@
-import type { VulnerabilityMerged } from '@/codeclarity_components/results/vulnerabilities/VulnStats';
-import { Entity } from '../../utils/api/BaseEntity';
+import type { VulnerabilityMerged } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+import { Entity } from "../../utils/api/BaseEntity";
 import {
-    BaseRepository,
-    type AuthRepoMethodGetRequestOptions,
-    type PaginatedRepoMethodRequestOptions,
-    type SortableRepoMethodRequestOptions
-} from '../../utils/api/BaseRepository';
-import { DataResponse } from '../../utils/api/responses/DataResponse';
-import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import type { Dependency, GraphDependency } from './graph.entity';
-import type { License } from './licenses/License';
-import type { PatchOccurenceInfo, PatchedManifestData, Workspace } from './patching/Patching';
-import type { Result } from './result.entity';
-import { type DependencyDetails } from './sbom/SbomDetails/SbomDetails';
-import type { AnalysisStats, PatchingStats, SbomStats } from './stats.entity';
-import type { VulnerabilityDetails } from './vulnerabilities/VulnDetails/VulnDetails';
-import type { WorkspacesOutput } from './workspace.entity';
+  BaseRepository,
+  type AuthRepoMethodGetRequestOptions,
+  type PaginatedRepoMethodRequestOptions,
+  type SortableRepoMethodRequestOptions,
+} from "../../utils/api/BaseRepository";
+import { DataResponse } from "../../utils/api/responses/DataResponse";
+import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
+import type { Dependency, GraphDependency } from "./graph.entity";
+import type { License } from "./licenses/License";
+import type {
+  PatchOccurenceInfo,
+  PatchedManifestData,
+  Workspace,
+} from "./patching/Patching";
+import type { Result } from "./result.entity";
+import { type DependencyDetails } from "./sbom/SbomDetails/SbomDetails";
+import type { AnalysisStats, PatchingStats, SbomStats } from "./stats.entity";
+import type { VulnerabilityDetails } from "./vulnerabilities/VulnDetails/VulnDetails";
+import type { WorkspacesOutput } from "./workspace.entity";
 
 export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
-    orgId: string;
-    projectId: string;
-    analysisId: string;
-    workspace: string;
-    ecosystem_filter?: string;
-    runIndex?: number | null;
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  workspace: string;
+  ecosystem_filter?: string;
+  runIndex?: number | null;
 }
 
 export interface GetSbomWorkspacesRequestOptions extends AuthRepoMethodGetRequestOptions {
-    orgId: string;
-    projectId: string;
-    analysisId: string;
-    runIndex?: number | null;
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  runIndex?: number | null;
 }
 
 export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOptions {
-    orgId: string;
-    projectId: string;
-    analysisId: string;
-    vulnerability_id: string;
-    workspace: string;
-    runIndex?: number | null;
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  vulnerability_id: string;
+  workspace: string;
+  runIndex?: number | null;
 }
 
 export interface GetSbomRequestOptions
-    extends AuthRepoMethodGetRequestOptions,
-        PaginatedRepoMethodRequestOptions,
-        SortableRepoMethodRequestOptions {
-    orgId: string;
-    projectId: string;
-    analysisId: string;
-    workspace: string;
-    active_filters: string;
-    search_key: string;
-    ecosystem_filter?: string;
-    runIndex?: number | null;
-    show_blacklisted?: boolean;
+  extends
+    AuthRepoMethodGetRequestOptions,
+    PaginatedRepoMethodRequestOptions,
+    SortableRepoMethodRequestOptions {
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  workspace: string;
+  active_filters: string;
+  search_key: string;
+  ecosystem_filter?: string;
+  runIndex?: number | null;
+  show_blacklisted?: boolean;
 }
 
 export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOptions {
-    orgId: string;
-    projectId: string;
-    analysisId: string;
-    dependency: string;
-    workspace: string;
-    runIndex?: number | null;
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  dependency: string;
+  workspace: string;
+  runIndex?: number | null;
 }
 
 export interface GetResultByTypeRequestOptions extends AuthRepoMethodGetRequestOptions {
-    orgId: string;
-    projectId: string;
-    analysisId: string;
-    type: string;
-    runIndex?: number | null;
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  type: string;
+  runIndex?: number | null;
 }
 
 export class ResultsRepository extends BaseRepository {
-    async getSbomStat(options: GetSbomStatsRequestOptions): Promise<DataResponse<SbomStats>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/stats`;
+  async getSbomStat(
+    options: GetSbomStatsRequestOptions,
+  ): Promise<DataResponse<SbomStats>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/stats`;
 
-        const queryParams: Record<string, string | number> = {
-            workspace: options.workspace
-        };
+    const queryParams: Record<string, string | number> = {
+      workspace: options.workspace,
+    };
 
-        if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
-        }
-
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<DataResponse<SbomStats>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<SbomStats>>(response, DataResponse<SbomStats>);
+    if (options.ecosystem_filter) {
+      queryParams.ecosystem_filter = options.ecosystem_filter;
     }
 
-    async getSbomWorkspaces(
-        options: GetSbomWorkspacesRequestOptions
-    ): Promise<DataResponse<WorkspacesOutput>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/workspaces`;
-
-        const queryParams: Record<string, string | number> = {};
-
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<DataResponse<WorkspacesOutput>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<WorkspacesOutput>>(
-            response,
-            DataResponse<WorkspacesOutput>
-        );
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getSbom(options: GetSbomRequestOptions): Promise<PaginatedResponse<Dependency>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom`;
+    const response = await this.getRequest<DataResponse<SbomStats>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const queryParams: Record<string, string | number | undefined> = {
-            workspace: options.workspace,
-            page: options.pagination.page,
-            entries_per_page: options.pagination.entries_per_page,
-            sort_by: options.sort.sortKey,
-            sort_direction: options.sort.sortDirection,
-            active_filters: options.active_filters,
-            search_key: options.search_key
-        };
+    return Entity.unMarshal<DataResponse<SbomStats>>(
+      response,
+      DataResponse<SbomStats>,
+    );
+  }
 
-        if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
-        }
+  async getSbomWorkspaces(
+    options: GetSbomWorkspacesRequestOptions,
+  ): Promise<DataResponse<WorkspacesOutput>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/workspaces`;
 
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
+    const queryParams: Record<string, string | number> = {};
 
-        const response = await this.getRequest<PaginatedResponse<Dependency>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<PaginatedResponse<Dependency>>(
-            response,
-            PaginatedResponse<Dependency>
-        );
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getDependency(
-        options: GetDependencyRequestOptions
-    ): Promise<DataResponse<DependencyDetails>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency`;
+    const response = await this.getRequest<DataResponse<WorkspacesOutput>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const queryParams: Record<string, string | number> = {
-            workspace: options.workspace,
-            dependency: options.dependency
-        };
+    return Entity.unMarshal<DataResponse<WorkspacesOutput>>(
+      response,
+      DataResponse<WorkspacesOutput>,
+    );
+  }
 
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
+  async getSbom(
+    options: GetSbomRequestOptions,
+  ): Promise<PaginatedResponse<Dependency>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom`;
 
-        const response = await this.getRequest<DataResponse<DependencyDetails>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
+    const queryParams: Record<string, string | number | undefined> = {
+      workspace: options.workspace,
+      page: options.pagination.page,
+      entries_per_page: options.pagination.entries_per_page,
+      sort_by: options.sort.sortKey,
+      sort_direction: options.sort.sortDirection,
+      active_filters: options.active_filters,
+      search_key: options.search_key,
+    };
 
-        return Entity.unMarshal<DataResponse<DependencyDetails>>(
-            response,
-            DataResponse<DependencyDetails>
-        );
+    if (options.ecosystem_filter) {
+      queryParams.ecosystem_filter = options.ecosystem_filter;
     }
 
-    async getDependencyGraph(
-        options: GetDependencyRequestOptions
-    ): Promise<DataResponse<GraphDependency[]>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency/graph`;
-
-        const queryParams: Record<string, string | number> = {
-            workspace: options.workspace,
-            dependency: options.dependency
-        };
-
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<DataResponse<GraphDependency[]>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<GraphDependency[]>>(
-            response,
-            DataResponse<GraphDependency[]>
-        );
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getLicenses(options: GetSbomRequestOptions): Promise<PaginatedResponse<License>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/licenses`;
+    const response = await this.getRequest<PaginatedResponse<Dependency>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const queryParams: Record<string, string | number | undefined> = {
-            workspace: options.workspace,
-            page: options.pagination.page,
-            entries_per_page: options.pagination.entries_per_page,
-            sort_by: options.sort.sortKey,
-            sort_direction: options.sort.sortDirection,
-            active_filters: options.active_filters,
-            search_key: options.search_key
-        };
+    return Entity.unMarshal<PaginatedResponse<Dependency>>(
+      response,
+      PaginatedResponse<Dependency>,
+    );
+  }
 
-        if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
-        }
+  async getDependency(
+    options: GetDependencyRequestOptions,
+  ): Promise<DataResponse<DependencyDetails>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency`;
 
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
+    const queryParams: Record<string, string | number> = {
+      workspace: options.workspace,
+      dependency: options.dependency,
+    };
 
-        const response = await this.getRequest<PaginatedResponse<License>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<PaginatedResponse<License>>(response, PaginatedResponse<License>);
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getVulnerabilitiesStat(
-        options: GetSbomStatsRequestOptions
-    ): Promise<DataResponse<AnalysisStats>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
+    const response = await this.getRequest<DataResponse<DependencyDetails>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const queryParams: Record<string, string | number> = {
-            workspace: options.workspace
-        };
+    return Entity.unMarshal<DataResponse<DependencyDetails>>(
+      response,
+      DataResponse<DependencyDetails>,
+    );
+  }
 
-        if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
-        }
+  async getDependencyGraph(
+    options: GetDependencyRequestOptions,
+  ): Promise<DataResponse<GraphDependency[]>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/sbom/dependency/graph`;
 
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
+    const queryParams: Record<string, string | number> = {
+      workspace: options.workspace,
+      dependency: options.dependency,
+    };
 
-        const response = await this.getRequest<DataResponse<AnalysisStats>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<AnalysisStats>>(response, DataResponse<AnalysisStats>);
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getVulnerabilities(
-        options: GetSbomRequestOptions
-    ): Promise<PaginatedResponse<VulnerabilityMerged>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities`;
+    const response = await this.getRequest<DataResponse<GraphDependency[]>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const queryParams: Record<string, string | number | undefined> = {
-            workspace: options.workspace,
-            page: options.pagination.page,
-            entries_per_page: options.pagination.entries_per_page,
-            sort_by: options.sort.sortKey,
-            sort_direction: options.sort.sortDirection,
-            active_filters: options.active_filters,
-            search_key: options.search_key
-        };
+    return Entity.unMarshal<DataResponse<GraphDependency[]>>(
+      response,
+      DataResponse<GraphDependency[]>,
+    );
+  }
 
-        if (options.ecosystem_filter) {
-            queryParams.ecosystem_filter = options.ecosystem_filter;
-        }
+  async getLicenses(
+    options: GetSbomRequestOptions,
+  ): Promise<PaginatedResponse<License>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/licenses`;
 
-        if (options.show_blacklisted !== undefined) {
-            queryParams.show_blacklisted = options.show_blacklisted.toString();
-        }
+    const queryParams: Record<string, string | number | undefined> = {
+      workspace: options.workspace,
+      page: options.pagination.page,
+      entries_per_page: options.pagination.entries_per_page,
+      sort_by: options.sort.sortKey,
+      sort_direction: options.sort.sortDirection,
+      active_filters: options.active_filters,
+      search_key: options.search_key,
+    };
 
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<PaginatedResponse<VulnerabilityMerged>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<PaginatedResponse<VulnerabilityMerged>>(
-            response,
-            PaginatedResponse<VulnerabilityMerged>
-        );
+    if (options.ecosystem_filter) {
+      queryParams.ecosystem_filter = options.ecosystem_filter;
     }
 
-    async getFinding(
-        options: GetFindingRequestOptions
-    ): Promise<DataResponse<VulnerabilityDetails>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/vulnerability/${options.vulnerability_id}`;
-
-        const queryParams: Record<string, string | number> = {
-            workspace: options.workspace
-        };
-
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<VulnerabilityDetails>>(
-            response,
-            DataResponse<VulnerabilityDetails>
-        );
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getPatchesStat(
-        options: GetSbomStatsRequestOptions
-    ): Promise<DataResponse<PatchingStats>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/stats`;
+    const response = await this.getRequest<PaginatedResponse<License>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const queryParams: Record<string, string | number> = {
-            workspace: options.workspace
-        };
+    return Entity.unMarshal<PaginatedResponse<License>>(
+      response,
+      PaginatedResponse<License>,
+    );
+  }
 
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
+  async getVulnerabilitiesStat(
+    options: GetSbomStatsRequestOptions,
+  ): Promise<DataResponse<AnalysisStats>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
 
-        const response = await this.getRequest<DataResponse<PatchingStats>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
+    const queryParams: Record<string, string | number> = {
+      workspace: options.workspace,
+    };
 
-        return Entity.unMarshal<DataResponse<PatchingStats>>(response, DataResponse<PatchingStats>);
+    if (options.ecosystem_filter) {
+      queryParams.ecosystem_filter = options.ecosystem_filter;
     }
 
-    async getPatches(options: GetSbomRequestOptions): Promise<DataResponse<Workspace>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching`;
-
-        const queryParams: Record<string, string | number | undefined> = {
-            workspace: options.workspace,
-            page: options.pagination.page,
-            entries_per_page: options.pagination.entries_per_page,
-            sort_by: options.sort.sortKey,
-            sort_direction: options.sort.sortDirection,
-            active_filters: options.active_filters,
-            search_key: options.search_key
-        };
-
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<DataResponse<Workspace>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<Workspace>>(response, DataResponse<Workspace>);
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
 
-    async getPatchesManifest(
-        options: GetSbomStatsRequestOptions
-    ): Promise<DataResponse<PatchedManifestData>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/manifest`;
+    const response = await this.getRequest<DataResponse<AnalysisStats>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        const response = await this.getRequest<DataResponse<PatchedManifestData>>({
-            queryParams: {
-                workspace: options.workspace
-            },
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
+    return Entity.unMarshal<DataResponse<AnalysisStats>>(
+      response,
+      DataResponse<AnalysisStats>,
+    );
+  }
 
-        return Entity.unMarshal<DataResponse<PatchedManifestData>>(
-            response,
-            DataResponse<PatchedManifestData>
-        );
+  async getVulnerabilities(
+    options: GetSbomRequestOptions,
+  ): Promise<PaginatedResponse<VulnerabilityMerged>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities`;
+
+    const queryParams: Record<string, string | number | undefined> = {
+      workspace: options.workspace,
+      page: options.pagination.page,
+      entries_per_page: options.pagination.entries_per_page,
+      sort_by: options.sort.sortKey,
+      sort_direction: options.sort.sortDirection,
+      active_filters: options.active_filters,
+      search_key: options.search_key,
+    };
+
+    if (options.ecosystem_filter) {
+      queryParams.ecosystem_filter = options.ecosystem_filter;
     }
 
-    async getPatchingGraph(
-        options: GetSbomStatsRequestOptions
-    ): Promise<DataResponse<Map<string, PatchOccurenceInfo>>> {
-        const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/tree`;
-
-        const response = await this.getRequest<DataResponse<Map<string, PatchOccurenceInfo>>>({
-            queryParams: {
-                workspace: options.workspace
-            },
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<Map<string, PatchOccurenceInfo>>>(
-            response,
-            DataResponse<Map<string, PatchOccurenceInfo>>
-        );
+    if (options.show_blacklisted !== undefined) {
+      queryParams.show_blacklisted = options.show_blacklisted.toString();
     }
 
-    async getResultByType(options: GetResultByTypeRequestOptions): Promise<DataResponse<Result>> {
-        const RELATIVE_URL = `/result`;
-
-        const queryParams: Record<string, string | number> = {
-            org_id: options.orgId,
-            project_id: options.projectId,
-            analysis_id: options.analysisId,
-            type: options.type
-        };
-
-        if (options.runIndex !== null && options.runIndex !== undefined) {
-            queryParams.run_index = options.runIndex;
-        }
-
-        const response = await this.getRequest<DataResponse<Result>>({
-            queryParams,
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
-
-        return Entity.unMarshal<DataResponse<Result>>(response, DataResponse<Result>);
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
     }
+
+    const response = await this.getRequest<
+      PaginatedResponse<VulnerabilityMerged>
+    >({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<PaginatedResponse<VulnerabilityMerged>>(
+      response,
+      PaginatedResponse<VulnerabilityMerged>,
+    );
+  }
+
+  async getFinding(
+    options: GetFindingRequestOptions,
+  ): Promise<DataResponse<VulnerabilityDetails>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/vulnerability/${options.vulnerability_id}`;
+
+    const queryParams: Record<string, string | number> = {
+      workspace: options.workspace,
+    };
+
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
+    }
+
+    const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<VulnerabilityDetails>>(
+      response,
+      DataResponse<VulnerabilityDetails>,
+    );
+  }
+
+  async getPatchesStat(
+    options: GetSbomStatsRequestOptions,
+  ): Promise<DataResponse<PatchingStats>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/stats`;
+
+    const queryParams: Record<string, string | number> = {
+      workspace: options.workspace,
+    };
+
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
+    }
+
+    const response = await this.getRequest<DataResponse<PatchingStats>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<PatchingStats>>(
+      response,
+      DataResponse<PatchingStats>,
+    );
+  }
+
+  async getPatches(
+    options: GetSbomRequestOptions,
+  ): Promise<DataResponse<Workspace>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching`;
+
+    const queryParams: Record<string, string | number | undefined> = {
+      workspace: options.workspace,
+      page: options.pagination.page,
+      entries_per_page: options.pagination.entries_per_page,
+      sort_by: options.sort.sortKey,
+      sort_direction: options.sort.sortDirection,
+      active_filters: options.active_filters,
+      search_key: options.search_key,
+    };
+
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
+    }
+
+    const response = await this.getRequest<DataResponse<Workspace>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<Workspace>>(
+      response,
+      DataResponse<Workspace>,
+    );
+  }
+
+  async getPatchesManifest(
+    options: GetSbomStatsRequestOptions,
+  ): Promise<DataResponse<PatchedManifestData>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/manifest`;
+
+    const response = await this.getRequest<DataResponse<PatchedManifestData>>({
+      queryParams: {
+        workspace: options.workspace,
+      },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<PatchedManifestData>>(
+      response,
+      DataResponse<PatchedManifestData>,
+    );
+  }
+
+  async getPatchingGraph(
+    options: GetSbomStatsRequestOptions,
+  ): Promise<DataResponse<Map<string, PatchOccurenceInfo>>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/tree`;
+
+    const response = await this.getRequest<
+      DataResponse<Map<string, PatchOccurenceInfo>>
+    >({
+      queryParams: {
+        workspace: options.workspace,
+      },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<Map<string, PatchOccurenceInfo>>>(
+      response,
+      DataResponse<Map<string, PatchOccurenceInfo>>,
+    );
+  }
+
+  async getResultByType(
+    options: GetResultByTypeRequestOptions,
+  ): Promise<DataResponse<Result>> {
+    const RELATIVE_URL = `/result`;
+
+    const queryParams: Record<string, string | number> = {
+      org_id: options.orgId,
+      project_id: options.projectId,
+      analysis_id: options.analysisId,
+      type: options.type,
+    };
+
+    if (options.runIndex !== null && options.runIndex !== undefined) {
+      queryParams.run_index = options.runIndex;
+    }
+
+    const response = await this.getRequest<DataResponse<Result>>({
+      queryParams,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<Result>>(
+      response,
+      DataResponse<Result>,
+    );
+  }
 }

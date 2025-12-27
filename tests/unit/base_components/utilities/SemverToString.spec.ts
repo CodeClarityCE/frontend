@@ -1,6 +1,6 @@
-import SemverToString from '@/base_components/utilities/SemverToString.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
+import SemverToString from '@/base_components/utilities/SemverToString.vue'
 
 // Mock Badge component
 const mockBadge = {

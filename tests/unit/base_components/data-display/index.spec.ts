@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 describe('Data Display Index Exports', () => {
+  // Reset module cache before each test to ensure clean imports
+  beforeEach(() => {
+    vi.resetModules()
+  })
   describe('Component Exports', () => {
     it('exports all chart components', async () => {
       const chartComponents = [

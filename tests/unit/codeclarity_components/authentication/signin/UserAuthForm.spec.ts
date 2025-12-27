@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { nextTick } from 'vue';
+import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 
 // Mock stores
 const mockAuthStore = {
@@ -33,7 +33,10 @@ const mockAuthRepository = {
 };
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    authenticate = mockAuthRepository.authenticate
+    getAuthenticatedUser = mockAuthRepository.getAuthenticatedUser
+  }
 }));
 
 // Mock API errors
@@ -159,10 +162,6 @@ vi.mock('vee-validate', () => ({
       fn({ email: 'test@example.com', password: 'password123' });
     }
   })
-}));
-
-vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: (schema: any) => schema
 }));
 
 // Mock auto-animate

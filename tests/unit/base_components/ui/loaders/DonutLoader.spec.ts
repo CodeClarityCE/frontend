@@ -1,6 +1,6 @@
-import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
+import DonutLoader from '@/base_components/ui/loaders/DonutLoader.vue'
 
 describe('DonutLoader', () => {
   describe('Component Rendering', () => {

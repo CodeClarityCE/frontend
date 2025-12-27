@@ -1,3 +1,3 @@
 export interface UpdateDefaultOrgBody {
-    default_org: string;
+  default_org: string;
 }

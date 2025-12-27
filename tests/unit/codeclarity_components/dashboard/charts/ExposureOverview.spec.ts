@@ -1,6 +1,6 @@
-import ExposureOverview from '@/codeclarity_components/dashboard/charts/ExposureOverview.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import ExposureOverview from '@/codeclarity_components/dashboard/charts/ExposureOverview.vue';
 
 // Mock external dependencies
 vi.mock('@/utils/api/BaseRepository', () => ({
@@ -8,9 +8,9 @@ vi.mock('@/utils/api/BaseRepository', () => ({
 }));
 
 vi.mock('@/codeclarity_components/dashboard/dashboard.repository', () => ({
-  DashboardRepository: vi.fn(() => ({
-    getExposureOverview: vi.fn()
-  }))
+  DashboardRepository: class {
+    getExposureOverview = vi.fn()
+  }
 }));
 
 vi.mock('@/stores/auth', () => ({

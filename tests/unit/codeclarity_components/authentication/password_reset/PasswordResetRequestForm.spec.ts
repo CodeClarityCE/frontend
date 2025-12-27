@@ -2,11 +2,11 @@
 global.Reflect = global.Reflect ?? {};
 global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
-import PasswordResetRequestForm from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue';
-import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { nextTick } from 'vue';
+import PasswordResetRequestForm from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue';
+import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 
 const { mockAuthRepository } = vi.hoisted(() => ({
   mockAuthRepository: {
@@ -15,7 +15,9 @@ const { mockAuthRepository } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/codeclarity_components/authentication/auth.repository', () => ({
-  AuthRepository: vi.fn(() => mockAuthRepository)
+  AuthRepository: class {
+    requestPasswordReset = mockAuthRepository.requestPasswordReset
+  }
 }));
 
 // Mock BaseRepository with error classes
@@ -103,10 +105,6 @@ vi.mock('vee-validate', async () => {
     })
   };
 });
-
-vi.mock('@vee-validate/zod', () => ({
-  toTypedSchema: vi.fn((schema: any) => schema)
-}));
 
 vi.mock('vue-router', async () => {
   const { defineComponent } = await import('vue');

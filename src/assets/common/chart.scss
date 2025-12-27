@@ -1,63 +1,63 @@
 .chart-tool-tip {
-    background-color: #fff;
-    box-shadow: 0 0.1rem 0.9rem 0.5rem rgba(58, 59, 69, 0.15) !important;
-    padding: 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    border-bottom-left-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    row-gap: 10px;
-    padding-bottom: 25px;
-    padding-left: 20px;
-    padding-right: 20px;
-    z-index: 2;
-    position: relative;
+  background-color: #fff;
+  box-shadow: 0 0.1rem 0.9rem 0.5rem rgba(58, 59, 69, 0.15) !important;
+  padding: 15px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  border-bottom-left-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  padding-bottom: 25px;
+  padding-left: 20px;
+  padding-right: 20px;
+  z-index: 2;
+  position: relative;
 }
 
 .chart-tool-tip .chart-tool-tip-title {
-    font-weight: 700;
-    color: rgb(82, 82, 82);
-    font-family: roboto;
+  font-weight: 700;
+  color: rgb(82, 82, 82);
+  font-family: roboto;
 }
 
 .chart-tool-tip .chart-tool-tip-data {
-    font-weight: 400;
-    color: rgb(79, 79, 79);
-    display: flex;
-    font-family: roboto;
-    flex-direction: column;
-    row-gap: 7px;
+  font-weight: 400;
+  color: rgb(79, 79, 79);
+  display: flex;
+  font-family: roboto;
+  flex-direction: column;
+  row-gap: 7px;
 }
 
 .chart-tool-tip .chart-tool-tip-color-bubble {
-    border-radius: 50%;
-    width: 7px;
-    height: 7px;
+  border-radius: 50%;
+  width: 7px;
+  height: 7px;
 }
 
 .chart-tool-tip .chart-tool-tip-data-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    column-gap: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 15px;
 }
 
 .chart-tool-tip .chart-tool-tip-data-row > *:first-child {
-    display: flex;
-    column-gap: 7px;
-    align-items: center;
+  display: flex;
+  column-gap: 7px;
+  align-items: center;
 }
 
 .chart-tool-tip .chart-tool-tip-data-value {
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .chart-tool-tip-title-divider {
-    background-color: #eaeaea;
-    height: 1px;
-    margin-left: 2px;
-    margin-right: 2px;
-    margin-top: 2px;
-    margin-bottom: 8px;
+  background-color: #eaeaea;
+  height: 1px;
+  margin-left: 2px;
+  margin-right: 2px;
+  margin-top: 2px;
+  margin-bottom: 8px;
 }

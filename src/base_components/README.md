@@ -103,29 +103,29 @@ base_components/
 
 ```vue
 <template>
-    <!-- Statistics Card -->
-    <StatCard
-        label="Critical Issues"
-        :value="14"
-        icon="solar:danger-triangle-bold"
-        subtitle-icon="solar:arrow-up-linear"
-        subtitle="+2 this week"
-        variant="default"
-    />
+  <!-- Statistics Card -->
+  <StatCard
+    label="Critical Issues"
+    :value="14"
+    icon="solar:danger-triangle-bold"
+    subtitle-icon="solar:arrow-up-linear"
+    subtitle="+2 this week"
+    variant="default"
+  />
 
-    <!-- Information Card -->
-    <InfoCard
-        title="Vulnerability Overview"
-        description="Security analysis results"
-        icon="solar:chart-square-bold"
-        variant="primary"
-    >
-        <YourContent />
-    </InfoCard>
+  <!-- Information Card -->
+  <InfoCard
+    title="Vulnerability Overview"
+    description="Security analysis results"
+    icon="solar:chart-square-bold"
+    variant="primary"
+  >
+    <YourContent />
+  </InfoCard>
 </template>
 
 <script setup>
-import { StatCard, InfoCard } from '@/base_components';
+import { StatCard, InfoCard } from "@/base_components";
 </script>
 ```
 
@@ -133,15 +133,15 @@ import { StatCard, InfoCard } from '@/base_components';
 
 ```vue
 <template>
-    <!-- Chart -->
-    <BarChart :data="chartData" :options="chartOptions" />
+  <!-- Chart -->
+  <BarChart :data="chartData" :options="chartOptions" />
 
-    <!-- Table -->
-    <SortableTable :data="tableData" :columns="columns" />
+  <!-- Table -->
+  <SortableTable :data="tableData" :columns="columns" />
 </template>
 
 <script setup>
-import { BarChart, SortableTable } from '@/base_components';
+import { BarChart, SortableTable } from "@/base_components";
 </script>
 ```
 
@@ -149,13 +149,21 @@ import { BarChart, SortableTable } from '@/base_components';
 
 ```vue
 <template>
-    <FormTextField v-model="inputValue" label="Username" placeholder="Enter username" />
+  <FormTextField
+    v-model="inputValue"
+    label="Username"
+    placeholder="Enter username"
+  />
 
-    <FormSelectField v-model="selectedOption" label="Category" :options="categoryOptions" />
+  <FormSelectField
+    v-model="selectedOption"
+    label="Category"
+    :options="categoryOptions"
+  />
 </template>
 
 <script setup>
-import { FormTextField, FormSelectField } from '@/base_components';
+import { FormTextField, FormSelectField } from "@/base_components";
 </script>
 ```
 
@@ -174,14 +182,14 @@ Many components support visual variants:
 ### Individual Imports
 
 ```javascript
-import { StatCard, InfoCard, BarChart } from '@/base_components';
+import { StatCard, InfoCard, BarChart } from "@/base_components";
 ```
 
 ### Direct Path Imports
 
 ```javascript
-import StatCard from '@/base_components/ui/cards/StatCard.vue';
-import BarChart from '@/base_components/data-display/charts/BarChart.vue';
+import StatCard from "@/base_components/ui/cards/StatCard.vue";
+import BarChart from "@/base_components/data-display/charts/BarChart.vue";
 ```
 
 ## Features

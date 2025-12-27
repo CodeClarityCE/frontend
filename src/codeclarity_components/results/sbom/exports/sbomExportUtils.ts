@@ -2,25 +2,25 @@
  * Utility functions for exporting SBOM data in various formats
  */
 
-import type { License } from '@/codeclarity_components/results/graph.entity';
+import type { License } from "@/codeclarity_components/results/graph.entity";
 
 export interface ExportDependency {
-    name: string;
-    version: string;
-    newest_release?: string;
-    is_direct?: boolean;
-    is_direct_count: number;
-    prod?: boolean;
-    dev?: boolean;
-    outdated?: boolean;
-    deprecated?: boolean;
-    purl?: string;
-    licenses?: License[];
+  name: string;
+  version: string;
+  newest_release?: string;
+  is_direct?: boolean;
+  is_direct_count: number;
+  prod?: boolean;
+  dev?: boolean;
+  outdated?: boolean;
+  deprecated?: boolean;
+  purl?: string;
+  licenses?: License[];
 }
 
 export interface ExportOptions {
-    projectName: string;
-    projectId: string;
+  projectName: string;
+  projectId: string;
 }
 
 /**
@@ -30,162 +30,171 @@ export interface ExportOptions {
  * 3. Transitive + Production
  * 4. Other transitive dependencies
  */
-export function sortDependenciesByPriority(dependencies: ExportDependency[]): ExportDependency[] {
-    return [...dependencies].sort((a, b) => {
-        // Use is_direct_count > 0 to determine if direct, matching the table logic
-        const aDirect = a.is_direct_count > 0 || a.is_direct;
-        const bDirect = b.is_direct_count > 0 || b.is_direct;
+export function sortDependenciesByPriority(
+  dependencies: ExportDependency[],
+): ExportDependency[] {
+  return [...dependencies].sort((a, b) => {
+    // Use is_direct_count > 0 to determine if direct, matching the table logic
+    const aDirect = a.is_direct_count > 0 || a.is_direct;
+    const bDirect = b.is_direct_count > 0 || b.is_direct;
 
-        // Priority 1: Direct + Production
-        const aDirectProd = aDirect && a.prod;
-        const bDirectProd = bDirect && b.prod;
-        if (aDirectProd && !bDirectProd) return -1;
-        if (!aDirectProd && bDirectProd) return 1;
+    // Priority 1: Direct + Production
+    const aDirectProd = aDirect && a.prod;
+    const bDirectProd = bDirect && b.prod;
+    if (aDirectProd && !bDirectProd) return -1;
+    if (!aDirectProd && bDirectProd) return 1;
 
-        // Priority 2: Direct + Dev
-        const aDirectDev = aDirect && a.dev;
-        const bDirectDev = bDirect && b.dev;
-        if (aDirectDev && !bDirectDev) return -1;
-        if (!aDirectDev && bDirectDev) return 1;
+    // Priority 2: Direct + Dev
+    const aDirectDev = aDirect && a.dev;
+    const bDirectDev = bDirect && b.dev;
+    if (aDirectDev && !bDirectDev) return -1;
+    if (!aDirectDev && bDirectDev) return 1;
 
-        // Priority 3: Transitive + Production
-        const aTransitiveProd = !aDirect && a.prod;
-        const bTransitiveProd = !bDirect && b.prod;
-        if (aTransitiveProd && !bTransitiveProd) return -1;
-        if (!aTransitiveProd && bTransitiveProd) return 1;
+    // Priority 3: Transitive + Production
+    const aTransitiveProd = !aDirect && a.prod;
+    const bTransitiveProd = !bDirect && b.prod;
+    if (aTransitiveProd && !bTransitiveProd) return -1;
+    if (!aTransitiveProd && bTransitiveProd) return 1;
 
-        // Within same priority, sort by name
-        return (a.name ?? '').localeCompare(b.name ?? '');
-    });
+    // Within same priority, sort by name
+    return (a.name ?? "").localeCompare(b.name ?? "");
+  });
 }
 
 /**
  * Converts dependencies to CSV format focused on package.json updates
  */
 export function convertToCSV(dependencies: ExportDependency[]): string {
-    const sortedDeps = sortDependenciesByPriority(dependencies);
-    const headers = [
-        'Package Name',
-        'Current Version',
-        'Latest Version',
-        'Dependency Type',
-        'Update Available',
-        'Package.json Update Needed'
+  const sortedDeps = sortDependenciesByPriority(dependencies);
+  const headers = [
+    "Package Name",
+    "Current Version",
+    "Latest Version",
+    "Dependency Type",
+    "Update Available",
+    "Package.json Update Needed",
+  ];
+
+  const rows = sortedDeps.map((dep) => {
+    const isDirect = dep.is_direct_count > 0 || dep.is_direct;
+    const hasUpdate =
+      dep.outdated ??
+      !!(dep.newest_release && dep.version !== dep.newest_release);
+    let dependencyType: string;
+    if (isDirect) {
+      if (dep.prod) {
+        dependencyType = "Direct Production";
+      } else if (dep.dev) {
+        dependencyType = "Direct Development";
+      } else {
+        dependencyType = "Direct";
+      }
+    } else {
+      if (dep.prod) {
+        dependencyType = "Transitive Production";
+      } else {
+        dependencyType = "Transitive Development";
+      }
+    }
+    const needsPackageJsonUpdate = isDirect && hasUpdate;
+
+    return [
+      dep.name ?? "",
+      dep.version ?? "",
+      dep.newest_release ?? dep.version ?? "",
+      dependencyType,
+      hasUpdate ? "Yes" : "No",
+      needsPackageJsonUpdate
+        ? "YES - Update package.json"
+        : "No - Transitive dependency",
     ];
+  });
 
-    const rows = sortedDeps.map((dep) => {
-        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
-        const hasUpdate =
-            dep.outdated ?? !!(dep.newest_release && dep.version !== dep.newest_release);
-        let dependencyType: string;
-        if (isDirect) {
-            if (dep.prod) {
-                dependencyType = 'Direct Production';
-            } else if (dep.dev) {
-                dependencyType = 'Direct Development';
-            } else {
-                dependencyType = 'Direct';
-            }
-        } else {
-            if (dep.prod) {
-                dependencyType = 'Transitive Production';
-            } else {
-                dependencyType = 'Transitive Development';
-            }
-        }
-        const needsPackageJsonUpdate = isDirect && hasUpdate;
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+  ].join("\n");
 
-        return [
-            dep.name ?? '',
-            dep.version ?? '',
-            dep.newest_release ?? dep.version ?? '',
-            dependencyType,
-            hasUpdate ? 'Yes' : 'No',
-            needsPackageJsonUpdate ? 'YES - Update package.json' : 'No - Transitive dependency'
-        ];
-    });
-
-    const csvContent = [
-        headers.join(','),
-        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))
-    ].join('\n');
-
-    return csvContent;
+  return csvContent;
 }
 
 /**
  * Converts dependencies to HTML report format (optimized for large datasets)
  */
-export function convertToHTML(dependencies: ExportDependency[], options: ExportOptions): string {
-    const sortedDeps = sortDependenciesByPriority(dependencies);
-    const projectName = options.projectName ?? options.projectId;
-    const date = new Date().toLocaleDateString();
-    const totalDeps = sortedDeps.length;
+export function convertToHTML(
+  dependencies: ExportDependency[],
+  options: ExportOptions,
+): string {
+  const sortedDeps = sortDependenciesByPriority(dependencies);
+  const projectName = options.projectName ?? options.projectId;
+  const date = new Date().toLocaleDateString();
+  const totalDeps = sortedDeps.length;
 
-    // Pre-calculate statistics for better performance
-    let directCount = 0;
-    let prodCount = 0;
-    let packageJsonUpdatesCount = 0;
-    let totalUpdatesCount = 0;
+  // Pre-calculate statistics for better performance
+  let directCount = 0;
+  let prodCount = 0;
+  let packageJsonUpdatesCount = 0;
+  let totalUpdatesCount = 0;
 
-    // Pre-process dependencies to avoid repeated calculations
-    const processedDeps = sortedDeps.map((dep) => {
-        const isDirect = dep.is_direct_count > 0 || dep.is_direct;
-        const hasUpdate: boolean =
-            dep.outdated ?? !!(dep.newest_release && dep.version !== dep.newest_release);
-        const needsPackageJsonUpdate = !!(isDirect && hasUpdate);
+  // Pre-process dependencies to avoid repeated calculations
+  const processedDeps = sortedDeps.map((dep) => {
+    const isDirect = dep.is_direct_count > 0 || dep.is_direct;
+    const hasUpdate: boolean =
+      dep.outdated ??
+      !!(dep.newest_release && dep.version !== dep.newest_release);
+    const needsPackageJsonUpdate = !!(isDirect && hasUpdate);
 
-        // Update counters
-        if (isDirect) directCount++;
-        if (dep.prod) prodCount++;
-        if (needsPackageJsonUpdate) packageJsonUpdatesCount++;
-        if (hasUpdate) totalUpdatesCount++;
+    // Update counters
+    if (isDirect) directCount++;
+    if (dep.prod) prodCount++;
+    if (needsPackageJsonUpdate) packageJsonUpdatesCount++;
+    if (hasUpdate) totalUpdatesCount++;
 
-        let dependencyType: string;
-        if (isDirect) {
-            if (dep.prod) {
-                dependencyType = 'Direct Production';
-            } else if (dep.dev) {
-                dependencyType = 'Direct Development';
-            } else {
-                dependencyType = 'Direct';
-            }
-        } else {
-            if (dep.prod) {
-                dependencyType = 'Transitive Production';
-            } else {
-                dependencyType = 'Transitive Development';
-            }
-        }
+    let dependencyType: string;
+    if (isDirect) {
+      if (dep.prod) {
+        dependencyType = "Direct Production";
+      } else if (dep.dev) {
+        dependencyType = "Direct Development";
+      } else {
+        dependencyType = "Direct";
+      }
+    } else {
+      if (dep.prod) {
+        dependencyType = "Transitive Production";
+      } else {
+        dependencyType = "Transitive Development";
+      }
+    }
 
-        let currentGroup = '';
-        if (isDirect && dep.prod) {
-            currentGroup = 'Direct Production Dependencies (Update package.json)';
-        } else if (isDirect && dep.dev) {
-            currentGroup = 'Direct Development Dependencies (Update package.json)';
-        } else if (!isDirect && dep.prod) {
-            currentGroup = 'Transitive Production Dependencies (Auto-updated)';
-        } else {
-            currentGroup = 'Other Transitive Dependencies (Auto-updated)';
-        }
+    let currentGroup = "";
+    if (isDirect && dep.prod) {
+      currentGroup = "Direct Production Dependencies (Update package.json)";
+    } else if (isDirect && dep.dev) {
+      currentGroup = "Direct Development Dependencies (Update package.json)";
+    } else if (!isDirect && dep.prod) {
+      currentGroup = "Transitive Production Dependencies (Auto-updated)";
+    } else {
+      currentGroup = "Other Transitive Dependencies (Auto-updated)";
+    }
 
-        return {
-            name: dep.name ?? '',
-            version: dep.version ?? '',
-            latestVersion: dep.newest_release ?? dep.version ?? '',
-            isDirect,
-            hasUpdate,
-            needsPackageJsonUpdate,
-            dependencyType,
-            currentGroup
-        };
-    });
+    return {
+      name: dep.name ?? "",
+      version: dep.version ?? "",
+      latestVersion: dep.newest_release ?? dep.version ?? "",
+      isDirect,
+      hasUpdate,
+      needsPackageJsonUpdate,
+      dependencyType,
+      currentGroup,
+    };
+  });
 
-    // Use array-based approach for much better performance
-    const htmlParts = [];
+  // Use array-based approach for much better performance
+  const htmlParts = [];
 
-    // Add header and styles
-    htmlParts.push(`<!DOCTYPE html>
+  // Add header and styles
+  htmlParts.push(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -331,32 +340,32 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
             </thead>
             <tbody>`);
 
-    // Generate table rows efficiently
-    let lastGroup = '';
-    for (const dep of processedDeps) {
-        // Add group header if group changed
-        if (dep.currentGroup !== lastGroup) {
-            htmlParts.push(
-                `<tr class="group-header"><td colspan="6">${dep.currentGroup}</td></tr>`
-            );
-            lastGroup = dep.currentGroup;
-        }
-
-        // Add dependency row
-        htmlParts.push(
-            `<tr class="${dep.needsPackageJsonUpdate ? 'highlight' : ''}">`,
-            `<td><strong>${dep.name}</strong></td>`,
-            `<td>${dep.version}</td>`,
-            `<td class="${dep.hasUpdate ? 'version-mismatch' : ''}">${dep.latestVersion}</td>`,
-            `<td><span class="badge ${dep.isDirect ? 'badge-yes' : 'badge-no'}">${dep.dependencyType}</span></td>`,
-            `<td><span class="badge ${dep.needsPackageJsonUpdate ? 'badge-yes' : 'badge-no'}">${dep.needsPackageJsonUpdate ? 'Required' : 'Not Needed'}</span></td>`,
-            `<td>${getUpdateInstructions(dep.needsPackageJsonUpdate, dep.hasUpdate)}</td>`,
-            '</tr>'
-        );
+  // Generate table rows efficiently
+  let lastGroup = "";
+  for (const dep of processedDeps) {
+    // Add group header if group changed
+    if (dep.currentGroup !== lastGroup) {
+      htmlParts.push(
+        `<tr class="group-header"><td colspan="6">${dep.currentGroup}</td></tr>`,
+      );
+      lastGroup = dep.currentGroup;
     }
 
-    // Add footer
-    htmlParts.push(`            </tbody>
+    // Add dependency row
+    htmlParts.push(
+      `<tr class="${dep.needsPackageJsonUpdate ? "highlight" : ""}">`,
+      `<td><strong>${dep.name}</strong></td>`,
+      `<td>${dep.version}</td>`,
+      `<td class="${dep.hasUpdate ? "version-mismatch" : ""}">${dep.latestVersion}</td>`,
+      `<td><span class="badge ${dep.isDirect ? "badge-yes" : "badge-no"}">${dep.dependencyType}</span></td>`,
+      `<td><span class="badge ${dep.needsPackageJsonUpdate ? "badge-yes" : "badge-no"}">${dep.needsPackageJsonUpdate ? "Required" : "Not Needed"}</span></td>`,
+      `<td>${getUpdateInstructions(dep.needsPackageJsonUpdate, dep.hasUpdate)}</td>`,
+      "</tr>",
+    );
+  }
+
+  // Add footer
+  htmlParts.push(`            </tbody>
         </table>
         
         <div class="legend">
@@ -373,71 +382,74 @@ export function convertToHTML(dependencies: ExportDependency[], options: ExportO
 </body>
 </html>`);
 
-    return htmlParts.join('');
+  return htmlParts.join("");
 }
 
-function getUpdateInstructions(needsPackageJsonUpdate: boolean, hasUpdate: boolean): string {
-    if (needsPackageJsonUpdate) {
-        return '<strong style="color: #d73502;">Update package.json</strong>';
-    }
-    if (hasUpdate) {
-        return 'Transitive - will update automatically';
-    }
-    return 'Up to date';
+function getUpdateInstructions(
+  needsPackageJsonUpdate: boolean,
+  hasUpdate: boolean,
+): string {
+  if (needsPackageJsonUpdate) {
+    return '<strong style="color: #d73502;">Update package.json</strong>';
+  }
+  if (hasUpdate) {
+    return "Transitive - will update automatically";
+  }
+  return "Up to date";
 }
 
 /**
  * Converts dependencies to CycloneDX format
  */
 export function convertToCycloneDX(
-    dependencies: ExportDependency[],
-    options: ExportOptions
+  dependencies: ExportDependency[],
+  options: ExportOptions,
 ): string {
-    const sortedDeps = sortDependenciesByPriority(dependencies);
-    const cycloneDX = {
-        bomFormat: 'CycloneDX',
-        specVersion: '1.4',
-        serialNumber: `urn:uuid:${crypto.randomUUID()}`,
-        version: 1,
-        metadata: {
-            timestamp: new Date().toISOString(),
-            tools: [
-                {
-                    vendor: 'CodeClarity',
-                    name: 'CodeClarity SBOM Generator',
-                    version: '1.0.0'
-                }
-            ],
-            component: {
-                type: 'application',
-                name: options.projectName ?? options.projectId,
-                version: '1.0.0'
-            }
+  const sortedDeps = sortDependenciesByPriority(dependencies);
+  const cycloneDX = {
+    bomFormat: "CycloneDX",
+    specVersion: "1.4",
+    serialNumber: `urn:uuid:${crypto.randomUUID()}`,
+    version: 1,
+    metadata: {
+      timestamp: new Date().toISOString(),
+      tools: [
+        {
+          vendor: "CodeClarity",
+          name: "CodeClarity SBOM Generator",
+          version: "1.0.0",
         },
-        components: sortedDeps.map((dep) => ({
-            type: 'library',
-            'bom-ref': dep.purl ?? `pkg:generic/${dep.name}@${dep.version}`,
-            name: dep.name,
-            version: dep.version,
-            purl: dep.purl,
-            licenses:
-                dep.licenses && dep.licenses.length > 0
-                    ? dep.licenses.map((license: License) => ({
-                          license: {
-                              id: license.id ?? license.name ?? 'UNKNOWN'
-                          }
-                      }))
-                    : [],
-            properties: [
-                {
-                    name: 'codeclarity:is_direct',
-                    value: String(dep.is_direct_count > 0 || dep.is_direct)
-                },
-                { name: 'codeclarity:is_deprecated', value: String(dep.deprecated) },
-                { name: 'codeclarity:is_outdated', value: String(dep.outdated) }
-            ]
-        }))
-    };
+      ],
+      component: {
+        type: "application",
+        name: options.projectName ?? options.projectId,
+        version: "1.0.0",
+      },
+    },
+    components: sortedDeps.map((dep) => ({
+      type: "library",
+      "bom-ref": dep.purl ?? `pkg:generic/${dep.name}@${dep.version}`,
+      name: dep.name,
+      version: dep.version,
+      purl: dep.purl,
+      licenses:
+        dep.licenses && dep.licenses.length > 0
+          ? dep.licenses.map((license: License) => ({
+              license: {
+                id: license.id ?? license.name ?? "UNKNOWN",
+              },
+            }))
+          : [],
+      properties: [
+        {
+          name: "codeclarity:is_direct",
+          value: String(dep.is_direct_count > 0 || dep.is_direct),
+        },
+        { name: "codeclarity:is_deprecated", value: String(dep.deprecated) },
+        { name: "codeclarity:is_outdated", value: String(dep.outdated) },
+      ],
+    })),
+  };
 
-    return JSON.stringify(cycloneDX, null, 2);
+  return JSON.stringify(cycloneDX, null, 2);
 }

@@ -1,6 +1,6 @@
-import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
+import PositionedModal from '@/base_components/ui/modals/PositionedModal.vue'
 
 describe('PositionedModal', () => {
   describe('Component Props', () => {

@@ -1,22 +1,22 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
 export interface StateStore {
-    page: string;
-    menu: string;
-    publicPage: boolean;
+  page: string;
+  menu: string;
+  publicPage: boolean;
 }
 
-export const useStateStore = defineStore('state', () => {
-    const page = ref('');
-    const menu = ref('');
-    const publicPage = ref(false);
+export const useStateStore = defineStore("state", () => {
+  const page = ref("");
+  const menu = ref("");
+  const publicPage = ref(false);
 
-    function $reset(): void {
-        page.value = '';
-        menu.value = '';
-        publicPage.value = false;
-    }
+  function $reset(): void {
+    page.value = "";
+    menu.value = "";
+    publicPage.value = false;
+  }
 
-    return { page, menu, publicPage, $reset };
+  return { page, menu, publicPage, $reset };
 });

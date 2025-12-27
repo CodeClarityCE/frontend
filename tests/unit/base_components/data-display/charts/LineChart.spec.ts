@@ -1,6 +1,6 @@
-import LineChart from '@/base_components/data-display/charts/LineChart.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import LineChart from '@/base_components/data-display/charts/LineChart.vue'
 
 // LineChart types (defined inline since not exported)
 interface ChartData {

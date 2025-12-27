@@ -1,7 +1,7 @@
-import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import { h } from 'vue';
+import InfoCard from '@/base_components/ui/cards/InfoCard.vue';
 
 // Mock shadcn/ui card components
 vi.mock('@/shadcn/ui/card', () => ({

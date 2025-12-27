@@ -1,96 +1,96 @@
-import { Type } from 'class-transformer';
-import { IsDate, IsDefined, IsEnum, IsNotEmpty } from 'class-validator';
-import { Analyzer } from '../organizations/analyzers/Analyzer';
+import { Type } from "class-transformer";
+import { IsDate, IsDefined, IsEnum, IsNotEmpty } from "class-validator";
+import { Analyzer } from "../organizations/analyzers/Analyzer";
 
 export enum AnalysisStatus {
-    REQUESTED = 'requested',
-    TRIGGERED = 'triggered',
-    STARTED = 'started',
-    FINISHED = 'finished',
-    COMPLETED = 'completed',
-    FAILED = 'failed',
-    FAILURE = 'failure',
-    SUCCESS = 'success',
-    UPDATING_DB = 'updating_db',
-    ONGOING = 'ongoing'
+  REQUESTED = "requested",
+  TRIGGERED = "triggered",
+  STARTED = "started",
+  FINISHED = "finished",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  FAILURE = "failure",
+  SUCCESS = "success",
+  UPDATING_DB = "updating_db",
+  ONGOING = "ongoing",
 }
 
 export class Analysis {
-    @IsNotEmpty()
-    id!: string;
+  @IsNotEmpty()
+  id!: string;
 
-    @IsDate()
-    @Type(() => Date)
-    created_on!: Date;
+  @IsDate()
+  @Type(() => Date)
+  created_on!: Date;
 
-    @IsNotEmpty()
-    @Type(() => Analyzer)
-    analyzer!: Analyzer;
+  @IsNotEmpty()
+  @Type(() => Analyzer)
+  analyzer!: Analyzer;
 
-    // @IsOptional()
-    // @Type(() => TeamMember)
-    // created_by?: TeamMember;
+  // @IsOptional()
+  // @Type(() => TeamMember)
+  // created_by?: TeamMember;
 
-    // @IsDefined()
-    // config!: { [key: string]: { [key: string]: any } };
+  // @IsDefined()
+  // config!: { [key: string]: { [key: string]: any } };
 
-    // @IsNumber()
-    // stage!: number;
+  // @IsNumber()
+  // stage!: number;
 
-    @IsEnum(AnalysisStatus)
-    status!: AnalysisStatus;
+  @IsEnum(AnalysisStatus)
+  status!: AnalysisStatus;
 
-    @IsDefined()
-    steps!: AnalysisStage[][];
+  @IsDefined()
+  steps!: AnalysisStage[][];
 
-    // @IsOptional()
-    // @Type(() => Date)
-    // started_on?: Date;
+  // @IsOptional()
+  // @Type(() => Date)
+  // started_on?: Date;
 
-    // @IsOptional()
-    // @Type(() => Date)
-    // ended_on?: Date;
+  // @IsOptional()
+  // @Type(() => Date)
+  // ended_on?: Date;
 
-    @IsNotEmpty()
-    branch!: string;
+  @IsNotEmpty()
+  branch!: string;
 
-    // @IsOptional()
-    // @IsNotEmpty()
-    // tag?: string;
+  // @IsOptional()
+  // @IsNotEmpty()
+  // tag?: string;
 
-    // @IsOptional()
-    // @IsNotEmpty()
-    // commit_hash?: string;
+  // @IsOptional()
+  // @IsNotEmpty()
+  // commit_hash?: string;
 
-    // @IsNotEmpty()
-    // project_id!: string;
+  // @IsNotEmpty()
+  // project_id!: string;
 
-    // @IsNotEmpty()
-    // organization_id!: string;
+  // @IsNotEmpty()
+  // organization_id!: string;
 
-    // Scheduling fields
-    schedule_type?: 'once' | 'daily' | 'weekly';
+  // Scheduling fields
+  schedule_type?: "once" | "daily" | "weekly";
 
-    @IsDate()
-    @Type(() => Date)
-    next_scheduled_run?: Date;
+  @IsDate()
+  @Type(() => Date)
+  next_scheduled_run?: Date;
 
-    is_active?: boolean;
+  is_active?: boolean;
 }
 
 export class StageBase {
-    Name!: string;
-    Version!: string;
+  Name!: string;
+  Version!: string;
 }
 
 export class Stage extends StageBase {
-    config!: Record<string, unknown>;
-    persistant_config!: Record<string, unknown>;
+  config!: Record<string, unknown>;
+  persistant_config!: Record<string, unknown>;
 }
 
 export class AnalysisStage extends StageBase {
-    Status!: AnalysisStatus;
-    Result: string | undefined;
-    Started_on?: Date;
-    Ended_on?: Date;
+  Status!: AnalysisStatus;
+  Result: string | undefined;
+  Started_on?: Date;
+  Ended_on?: Date;
 }

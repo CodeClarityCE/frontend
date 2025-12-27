@@ -1,8 +1,8 @@
-import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { nextTick, h } from 'vue';
+import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
 
 // Mock data structure for testing
 interface TestData {

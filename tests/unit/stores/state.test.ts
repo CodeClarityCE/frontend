@@ -1,6 +1,6 @@
-import { useStateStore } from '@/stores/state'
 import { setActivePinia, createPinia } from 'pinia'
 import { describe, it, expect, beforeEach } from 'vitest'
+import { useStateStore } from '@/stores/state'
 
 describe.skip('State Store', () => {
   let stateStore: ReturnType<typeof useStateStore>

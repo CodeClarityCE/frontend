@@ -1,7 +1,7 @@
-import type { BarChartData, BarChartOptions } from '@/base_components/data-display'
-import BarChart from '@/base_components/data-display/charts/BarChart.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { BarChartData, BarChartOptions } from '@/base_components/data-display'
+import BarChart from '@/base_components/data-display/charts/BarChart.vue'
 
 // Create comprehensive D3 mock chain
 const createMockNode = (): any => {

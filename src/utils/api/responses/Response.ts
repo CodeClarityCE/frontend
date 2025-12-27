@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber } from "class-validator";
 
 export class Response {
-    @IsNumber()
-    status_code!: number;
+  @IsNumber()
+  status_code!: number;
 
-    @IsNotEmpty()
-    status!: number;
+  @IsNotEmpty()
+  status!: number;
 }

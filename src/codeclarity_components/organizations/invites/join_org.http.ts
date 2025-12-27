@@ -1,4 +1,4 @@
 export interface JoinOrg {
-    token: string;
-    email_digest: string;
+  token: string;
+  email_digest: string;
 }

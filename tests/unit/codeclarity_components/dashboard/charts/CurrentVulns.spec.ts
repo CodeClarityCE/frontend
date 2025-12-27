@@ -1,6 +1,6 @@
-import CurrentVulns from '@/codeclarity_components/dashboard/charts/CurrentVulns.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import CurrentVulns from '@/codeclarity_components/dashboard/charts/CurrentVulns.vue';
 
 // Mock external dependencies
 vi.mock('@/utils/api/BaseRepository', () => ({
@@ -8,9 +8,9 @@ vi.mock('@/utils/api/BaseRepository', () => ({
 }));
 
 vi.mock('@/codeclarity_components/dashboard/dashboard.repository', () => ({
-  DashboardRepository: vi.fn(() => ({
-    getCurrentVulns: vi.fn()
-  }))
+  DashboardRepository: class {
+    getCurrentVulns = vi.fn()
+  }
 }));
 
 vi.mock('@/stores/auth', () => ({

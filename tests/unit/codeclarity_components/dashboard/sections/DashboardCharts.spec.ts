@@ -1,6 +1,6 @@
-import DashboardCharts from '@/codeclarity_components/dashboard/sections/DashboardCharts.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import DashboardCharts from '@/codeclarity_components/dashboard/sections/DashboardCharts.vue';
 
 // Mock InfoCard component
 vi.mock('@/base_components/ui/cards/InfoCard.vue', () => ({

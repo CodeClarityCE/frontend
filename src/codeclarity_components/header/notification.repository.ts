@@ -1,102 +1,107 @@
-import { Entity } from '../../utils/api/BaseEntity';
+import { Entity } from "../../utils/api/BaseEntity";
 import {
-    BaseRepository,
-    type AuthRepoMethodEmptyDeleteRequestOptions,
-    type AuthRepoMethodGetRequestOptions,
-    type EmptyPostData
-} from '../../utils/api/BaseRepository';
-import { DataResponse } from '../../utils/api/responses/DataResponse';
-import { NoDataResponse } from '../../utils/api/responses/NoDataResponse';
-import { PaginatedResponse } from '../../utils/api/responses/PaginatedResponse';
-import type { Notification } from './notification.entity';
+  BaseRepository,
+  type AuthRepoMethodEmptyDeleteRequestOptions,
+  type AuthRepoMethodGetRequestOptions,
+  type EmptyPostData,
+} from "../../utils/api/BaseRepository";
+import { DataResponse } from "../../utils/api/responses/DataResponse";
+import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
+import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
+import type { Notification } from "./notification.entity";
 
 export interface GetNotificationsRequestOptions extends AuthRepoMethodGetRequestOptions {
-    page: number;
-    entries_per_page: number;
+  page: number;
+  entries_per_page: number;
 }
 
 export interface GetNotificationRequestOptions extends AuthRepoMethodGetRequestOptions {
-    notification_id: string;
+  notification_id: string;
 }
 
 export interface DeleteNotificationRequestOptions extends AuthRepoMethodEmptyDeleteRequestOptions {
-    notification_id: string;
+  notification_id: string;
 }
 
 export class NotificationRepository extends BaseRepository {
-    async getNotifications(
-        options: GetNotificationsRequestOptions
-    ): Promise<PaginatedResponse<Notification>> {
-        const RELATIVE_URL = `/notifications`;
+  async getNotifications(
+    options: GetNotificationsRequestOptions,
+  ): Promise<PaginatedResponse<Notification>> {
+    const RELATIVE_URL = `/notifications`;
 
-        const response = await this.getRequest<PaginatedResponse<Notification>>({
-            queryParams: {
-                page: options.page,
-                entries_per_page: options.entries_per_page
-            },
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
+    const response = await this.getRequest<PaginatedResponse<Notification>>({
+      queryParams: {
+        page: options.page,
+        entries_per_page: options.entries_per_page,
+      },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        return Entity.unMarshal<PaginatedResponse<Notification>>(
-            response,
-            PaginatedResponse<Notification>
-        );
-    }
+    return Entity.unMarshal<PaginatedResponse<Notification>>(
+      response,
+      PaginatedResponse<Notification>,
+    );
+  }
 
-    async getNotification(
-        options: GetNotificationRequestOptions
-    ): Promise<DataResponse<Notification>> {
-        const RELATIVE_URL = `/notifications/${options.notification_id}`;
+  async getNotification(
+    options: GetNotificationRequestOptions,
+  ): Promise<DataResponse<Notification>> {
+    const RELATIVE_URL = `/notifications/${options.notification_id}`;
 
-        const response = await this.getRequest<DataResponse<Notification>>({
-            // queryParams: {
-            //     page: options.page,
-            //     entries_per_page: options.entries_per_page,
-            //     search_key: options.search_key
-            // },
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors
-        });
+    const response = await this.getRequest<DataResponse<Notification>>({
+      // queryParams: {
+      //     page: options.page,
+      //     entries_per_page: options.entries_per_page,
+      //     search_key: options.search_key
+      // },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
 
-        return Entity.unMarshal<DataResponse<Notification>>(response, DataResponse<Notification>);
-    }
+    return Entity.unMarshal<DataResponse<Notification>>(
+      response,
+      DataResponse<Notification>,
+    );
+  }
 
-    async deleteNotification(options: DeleteNotificationRequestOptions): Promise<NoDataResponse> {
-        const RELATIVE_URL = `/notifications/${options.notification_id}`;
+  async deleteNotification(
+    options: DeleteNotificationRequestOptions,
+  ): Promise<NoDataResponse> {
+    const RELATIVE_URL = `/notifications/${options.notification_id}`;
 
-        const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors,
-            data: {}
-        });
+    const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+      data: {},
+    });
 
-        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
-    }
+    return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
 
-    async deleteAllNotifications(
-        options: AuthRepoMethodEmptyDeleteRequestOptions
-    ): Promise<NoDataResponse> {
-        const RELATIVE_URL = `/notifications`;
+  async deleteAllNotifications(
+    options: AuthRepoMethodEmptyDeleteRequestOptions,
+  ): Promise<NoDataResponse> {
+    const RELATIVE_URL = `/notifications`;
 
-        const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-            bearerToken: options.bearerToken,
-            url: this.buildUrl(RELATIVE_URL),
-            handleBusinessErrors: options.handleBusinessErrors,
-            handleHTTPErrors: options.handleHTTPErrors,
-            handleOtherErrors: options.handleOtherErrors,
-            data: {}
-        });
+    const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+      data: {},
+    });
 
-        return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
-    }
+    return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
 }

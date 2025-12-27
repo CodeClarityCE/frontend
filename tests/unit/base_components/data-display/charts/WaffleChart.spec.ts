@@ -1,13 +1,8 @@
-import WaffleChart from '@/base_components/data-display/charts/WaffleChart.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import WaffleChart from '@/base_components/data-display/charts/WaffleChart.vue'
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
+// ResizeObserver is mocked globally in tests/setup.ts
 
 // Mock getBoundingClientRect for tests
 Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {

@@ -1,6 +1,6 @@
-import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
+import LoadingSubmitButton from '@/base_components/ui/loaders/LoadingSubmitButton.vue'
 
 describe('LoadingSubmitButton', () => {
   describe('Component Rendering', () => {

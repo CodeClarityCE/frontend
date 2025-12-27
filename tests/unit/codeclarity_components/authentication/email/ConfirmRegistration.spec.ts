@@ -1,8 +1,8 @@
-import ConfirmRegistration from '@/codeclarity_components/authentication/email/ConfirmRegistration.vue';
-import router from '@/router';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { nextTick } from 'vue';
+import ConfirmRegistration from '@/codeclarity_components/authentication/email/ConfirmRegistration.vue';
+import router from '@/router';
 
 const mockUserRepository = {
   confirmRegistration: vi.fn()
@@ -41,9 +41,9 @@ describe.skip('ConfirmRegistration', () => {
       return 1;
     });
     mockClearInterval = vi.fn();
-    
-    global.setInterval = mockSetInterval;
-    global.clearInterval = mockClearInterval;
+
+    vi.stubGlobal('setInterval', mockSetInterval);
+    vi.stubGlobal('clearInterval', mockClearInterval);
   });
 
   afterEach(() => {

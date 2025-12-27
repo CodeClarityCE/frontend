@@ -1,11 +1,11 @@
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 import { type VCS, IntegrationProvider, IntegrationType } from '@/codeclarity_components/organizations/integrations/Integrations';
 import { IntegrationsRepository } from '@/codeclarity_components/organizations/integrations/IntegrationsRepository';
 import CreateProject from '@/codeclarity_components/projects/create/CreateProject.vue';
 import router from '@/router';
 import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { nextTick } from 'vue';
 // import { createTestWrapper } from '../../utils/test-utils';
 import { mockStores } from '../../utils/test-utils';
 

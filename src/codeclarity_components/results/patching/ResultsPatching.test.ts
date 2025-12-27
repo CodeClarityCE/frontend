@@ -1,157 +1,167 @@
-import { Analysis } from '@/codeclarity_components/analyses/analysis.entity';
-import { Project } from '@/codeclarity_components/projects/project.entity';
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mount } from "@vue/test-utils";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
+import { Project } from "@/codeclarity_components/projects/project.entity";
 // Pinia imports removed to prevent plugin duplication warnings
-import ResultsPatching from './ResultsPatching.vue';
+import ResultsPatching from "./ResultsPatching.vue";
 
 // Mock child components
-vi.mock('./PatchingContent.vue', () => ({
-    default: {
-        name: 'PatchingContent',
-        template: '<div data-testid="patching-content">Patching Content</div>',
-        props: ['analysisID', 'projectID']
-    }
+vi.mock("./PatchingContent.vue", () => ({
+  default: {
+    name: "PatchingContent",
+    template: '<div data-testid="patching-content">Patching Content</div>',
+    props: ["analysisID", "projectID"],
+  },
 }));
 
-describe('ResultsPatching.vue', () => {
-    beforeEach(() => {
-        // setActivePinia removed to prevent plugin duplication warnings
+describe("ResultsPatching.vue", () => {
+  beforeEach(() => {
+    // setActivePinia removed to prevent plugin duplication warnings
 
-        // Mock DOM elements
-        const mockLoader = document.createElement('div');
-        mockLoader.id = 'loader';
-        mockLoader.style.display = 'block';
-        document.body.appendChild(mockLoader);
-    });
+    // Mock DOM elements
+    const mockLoader = document.createElement("div");
+    mockLoader.id = "loader";
+    mockLoader.style.display = "block";
+    document.body.appendChild(mockLoader);
+  });
 
-    afterEach(() => {
-        vi.clearAllMocks();
-        // Clean up DOM
-        const loader = document.getElementById('loader');
-        if (loader) {
-            document.body.removeChild(loader);
-        }
-    });
+  afterEach(() => {
+    vi.clearAllMocks();
+    // Clean up DOM
+    const loader = document.getElementById("loader");
+    if (loader) {
+      document.body.removeChild(loader);
+    }
+  });
 
-    const createMockProject = (): Project => {
-        const project = new Project();
-        project.id = 'project-123';
-        project.name = 'Test Project';
-        return project;
+  const createMockProject = (): Project => {
+    const project = new Project();
+    project.id = "project-123";
+    project.name = "Test Project";
+    return project;
+  };
+
+  const createMockAnalysis = (): Analysis => {
+    const analysis = new Analysis();
+    analysis.id = "analysis-123";
+    analysis.branch = "main";
+    return analysis;
+  };
+
+  const createWrapper = (props = {}) => {
+    const defaultProps = {
+      analysis: createMockAnalysis(),
+      project: createMockProject(),
     };
 
-    const createMockAnalysis = (): Analysis => {
-        const analysis = new Analysis();
-        analysis.id = 'analysis-123';
-        analysis.branch = 'main';
-        return analysis;
-    };
+    return mount(ResultsPatching, {
+      props: { ...defaultProps, ...props },
+    });
+  };
 
-    const createWrapper = (props = {}) => {
-        const defaultProps = {
-            analysis: createMockAnalysis(),
-            project: createMockProject()
-        };
+  it("renders correctly with required props", () => {
+    const wrapper = createWrapper();
 
-        return mount(ResultsPatching, {
-            props: { ...defaultProps, ...props }
-        });
-    };
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(
+      true,
+    );
+  });
 
-    it('renders correctly with required props', () => {
-        const wrapper = createWrapper();
+  it("passes correct props to PatchingContent", () => {
+    const mockProject = createMockProject();
+    const mockAnalysis = createMockAnalysis();
 
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(true);
+    const wrapper = createWrapper({
+      analysis: mockAnalysis,
+      project: mockProject,
     });
 
-    it('passes correct props to PatchingContent', () => {
-        const mockProject = createMockProject();
-        const mockAnalysis = createMockAnalysis();
+    const patchingContent = wrapper.findComponent({ name: "PatchingContent" });
+    expect(patchingContent.exists()).toBe(true);
+  });
 
-        const wrapper = createWrapper({
-            analysis: mockAnalysis,
-            project: mockProject
-        });
+  it("shows content when details is false", () => {
+    const wrapper = createWrapper();
 
-        const patchingContent = wrapper.findComponent({ name: 'PatchingContent' });
-        expect(patchingContent.exists()).toBe(true);
-    });
+    expect(wrapper.find(".flex.flex-col.gap-14").exists()).toBe(true);
+    expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(
+      true,
+    );
+  });
 
-    it('shows content when details is false', () => {
-        const wrapper = createWrapper();
+  it("hides loader on mount", async () => {
+    const loader = document.getElementById("loader");
+    expect(loader?.style.display).toBe("block");
 
-        expect(wrapper.find('.flex.flex-col.gap-14').exists()).toBe(true);
-        expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(true);
-    });
+    createWrapper();
 
-    it('hides loader on mount', async () => {
-        const loader = document.getElementById('loader');
-        expect(loader?.style.display).toBe('block');
+    // Wait for onMounted to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-        createWrapper();
+    expect(loader?.style.display).toBe("none");
+  });
 
-        // Wait for onMounted to complete
-        await new Promise((resolve) => setTimeout(resolve, 0));
+  it("handles missing loader element gracefully", async () => {
+    // Remove loader before mounting
+    const loader = document.getElementById("loader");
+    if (loader) {
+      document.body.removeChild(loader);
+    }
 
-        expect(loader?.style.display).toBe('none');
-    });
+    // Should not throw error
+    expect(() => createWrapper()).not.toThrow();
+  });
 
-    it('handles missing loader element gracefully', async () => {
-        // Remove loader before mounting
-        const loader = document.getElementById('loader');
-        if (loader) {
-            document.body.removeChild(loader);
-        }
+  it("renders with different project data", () => {
+    const customProject = createMockProject();
+    customProject.id = "custom-project-456";
+    customProject.name = "Custom Project";
 
-        // Should not throw error
-        expect(() => createWrapper()).not.toThrow();
-    });
+    const wrapper = createWrapper({ project: customProject });
 
-    it('renders with different project data', () => {
-        const customProject = createMockProject();
-        customProject.id = 'custom-project-456';
-        customProject.name = 'Custom Project';
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(
+      true,
+    );
+  });
 
-        const wrapper = createWrapper({ project: customProject });
+  it("renders with different analysis data", () => {
+    const customAnalysis = createMockAnalysis();
+    customAnalysis.id = "custom-analysis-789";
+    customAnalysis.branch = "develop";
 
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(true);
-    });
+    const wrapper = createWrapper({ analysis: customAnalysis });
 
-    it('renders with different analysis data', () => {
-        const customAnalysis = createMockAnalysis();
-        customAnalysis.id = 'custom-analysis-789';
-        customAnalysis.branch = 'develop';
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(
+      true,
+    );
+  });
 
-        const wrapper = createWrapper({ analysis: customAnalysis });
+  it("has correct component structure", () => {
+    const wrapper = createWrapper();
 
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(true);
-    });
+    const mainDiv = wrapper.find(".flex.flex-col.gap-14");
+    expect(mainDiv.exists()).toBe(true);
+    expect(mainDiv.isVisible()).toBe(true);
+  });
 
-    it('has correct component structure', () => {
-        const wrapper = createWrapper();
+  it("initializes with default state", () => {
+    const wrapper = createWrapper();
 
-        const mainDiv = wrapper.find('.flex.flex-col.gap-14');
-        expect(mainDiv.exists()).toBe(true);
-        expect(mainDiv.isVisible()).toBe(true);
-    });
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(
+      true,
+    );
+  });
 
-    it('initializes with default state', () => {
-        const wrapper = createWrapper();
+  it("renders patching content component with correct props", () => {
+    const wrapper = createWrapper();
+    const patchingContent = wrapper.findComponent({ name: "PatchingContent" });
 
-        expect(wrapper.exists()).toBe(true);
-        expect(wrapper.find('[data-testid="patching-content"]').exists()).toBe(true);
-    });
-
-    it('renders patching content component with correct props', () => {
-        const wrapper = createWrapper();
-        const patchingContent = wrapper.findComponent({ name: 'PatchingContent' });
-
-        expect(patchingContent.exists()).toBe(true);
-        expect(patchingContent.props('analysisID')).toBe('analysis-123');
-        expect(patchingContent.props('projectID')).toBe('project-123');
-    });
+    expect(patchingContent.exists()).toBe(true);
+    expect(patchingContent.props("analysisID")).toBe("analysis-123");
+    expect(patchingContent.props("projectID")).toBe("project-123");
+  });
 });

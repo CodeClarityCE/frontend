@@ -1,18 +1,18 @@
-import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsObject, IsString } from "class-validator";
 export class Plugin {
-    @IsNotEmpty()
-    @IsString()
-    name!: string;
+  @IsNotEmpty()
+  @IsString()
+  name!: string;
 
-    @IsString()
-    description!: string;
+  @IsString()
+  description!: string;
 
-    @IsString()
-    version!: string;
+  @IsString()
+  version!: string;
 
-    @IsArray()
-    depends_on!: string[];
+  @IsArray()
+  depends_on!: string[];
 
-    @IsObject()
-    config!: Record<string, unknown>;
+  @IsObject()
+  config!: Record<string, unknown>;
 }

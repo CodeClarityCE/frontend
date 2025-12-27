@@ -3,17 +3,22 @@
 /////////////////////////////////////////////////////////
 
 export interface DoughnutChartSlice {
-    label: VulnerabilityLabel;
-    color: string;
-    count: number;
+  label: VulnerabilityLabel;
+  color: string;
+  count: number;
 }
 
-export type VulnerabilityLabel = 'Critical' | 'High' | 'Medium' | 'Low' | 'None';
+export type VulnerabilityLabel =
+  | "Critical"
+  | "High"
+  | "Medium"
+  | "Low"
+  | "None";
 
 export type DoughnutChartData = DoughnutChartSlice[];
 
 export interface DoughnutChartOptions {
-    w: number;
-    h: number;
-    p: number;
+  w: number;
+  h: number;
+  p: number;
 }

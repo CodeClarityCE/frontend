@@ -1,6 +1,6 @@
-import DashboardQuickStats from '@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue';
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import DashboardQuickStats from '@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue';
 
 // Mock StatCard component
 vi.mock('@/base_components/ui/cards/StatCard.vue', () => ({

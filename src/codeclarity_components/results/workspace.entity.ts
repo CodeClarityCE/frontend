@@ -1,9 +1,9 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from "class-validator";
 
 export class WorkspacesOutput {
-    @IsNotEmpty()
-    workspaces!: string[];
+  @IsNotEmpty()
+  workspaces!: string[];
 
-    @IsNotEmpty()
-    package_manager!: string;
+  @IsNotEmpty()
+  package_manager!: string;
 }

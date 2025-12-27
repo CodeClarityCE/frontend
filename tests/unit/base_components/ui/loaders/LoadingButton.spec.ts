@@ -1,8 +1,8 @@
-import LoadingButton from '@/base_components/ui/loaders/LoadingButton.vue'
 import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/vue'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
+import LoadingButton from '@/base_components/ui/loaders/LoadingButton.vue'
 
 describe('LoadingButton', () => {
   describe('Initial Render', () => {

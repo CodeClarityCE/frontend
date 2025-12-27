@@ -9,6 +9,7 @@
       "@/*": ["./src/*"]
     },
     "experimentalDecorators": true,
+    "verbatimModuleSyntax": true,
 
     // Strict Type Checking
     "strict": true,

@@ -1,13 +1,17 @@
-import { IsDateString, IsNotEmpty } from 'class-validator';
-import type { Organization, TeamMember, MemberRole } from './organization.entity';
+import { IsDateString, IsNotEmpty } from "class-validator";
+import type {
+  Organization,
+  TeamMember,
+  MemberRole,
+} from "./organization.entity";
 
 export class OrganizationMembership {
-    @IsDateString()
-    joined_on!: Date;
+  @IsDateString()
+  joined_on!: Date;
 
-    @IsNotEmpty()
-    organization!: Organization;
+  @IsNotEmpty()
+  organization!: Organization;
 
-    user!: TeamMember;
-    role!: MemberRole;
+  user!: TeamMember;
+  role!: MemberRole;
 }

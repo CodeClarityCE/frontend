@@ -1,20 +1,20 @@
 <script lang="ts" setup>
-import { AuthRepository } from '@/codeclarity_components/authentication/auth.repository';
-import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity';
-import type { Token } from '@/codeclarity_components/authentication/token.entity';
-import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
-import router from '@/router';
-import Button from '@/shadcn/ui/button/Button.vue';
-import { useAuthStore } from '@/stores/auth';
-import { useUserStore } from '@/stores/user';
-import { APIErrors } from '@/utils/api/ApiErrors';
-import { BusinessLogicError } from '@/utils/api/BaseRepository';
-import { Icon } from '@iconify/vue';
-import { onMounted, ref } from 'vue';
+import { Icon } from "@iconify/vue";
+import { onMounted, ref } from "vue";
+import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
+import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
+import type { Token } from "@/codeclarity_components/authentication/token.entity";
+import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
+import router from "@/router";
+import Button from "@/shadcn/ui/button/Button.vue";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
 // Props
 const props = defineProps<{
-    provider: SocialProvider;
+  provider: SocialProvider;
 }>();
 
 // Repositories
@@ -32,190 +32,218 @@ const errorCode = ref();
 
 // Methods
 async function finalizeAutentication(): Promise<void> {
-    const url = new URL(window.location.href);
-    const searchParams = url.searchParams;
+  const url = new URL(window.location.href);
+  const searchParams = url.searchParams;
 
-    // Oauth2 callback state
-    const state = searchParams.get('state');
+  // Oauth2 callback state
+  const state = searchParams.get("state");
 
-    // Oauth2 callback code
-    const code = searchParams.get('code');
+  // Oauth2 callback code
+  const code = searchParams.get("code");
 
-    if (!state || !code) {
-        void router.push('/login');
-        return;
-    }
+  if (!state || !code) {
+    void router.push("/login");
+    return;
+  }
 
-    if (props.provider !== SocialProvider.GITLAB && props.provider !== SocialProvider.GITHUB) {
-        void router.push('/login');
-        return;
-    }
+  if (
+    props.provider !== SocialProvider.GITLAB &&
+    props.provider !== SocialProvider.GITHUB
+  ) {
+    void router.push("/login");
+    return;
+  }
 
-    // Check the state returned in the url
-    // CSRF protection: the state must be the same as the one that was stored when the user
-    // clicked on the gitlab/github connect button
-    // If the state is different then the user clicked on a link send by an adversary
-    if (authStore.getSocialAuthState === undefined || authStore.getSocialAuthState !== state) {
-        void router.push('/login');
-        return;
+  // Check the state returned in the url
+  // CSRF protection: the state must be the same as the one that was stored when the user
+  // clicked on the gitlab/github connect button
+  // If the state is different then the user clicked on a link send by an adversary
+  if (
+    authStore.getSocialAuthState === undefined ||
+    authStore.getSocialAuthState !== state
+  ) {
+    void router.push("/login");
+    return;
+  } else {
+    authStore.socialAuthState = undefined;
+  }
+
+  // Use the code returned from gitlab/github to finish the authenticated processs
+  try {
+    let token: Token;
+
+    if (props.provider === SocialProvider.GITLAB) {
+      token = await authRepository.gitlabAuthFinalize({
+        data: { code: code },
+        handleBusinessErrors: true,
+      });
+    } else if (props.provider === SocialProvider.GITHUB) {
+      token = await authRepository.githubAuthFinalize({
+        data: { code: code },
+        handleBusinessErrors: true,
+      });
     } else {
-        authStore.socialAuthState = undefined;
+      void router.push("/login");
+      return;
     }
 
-    // Use the code returned from gitlab/github to finish the authenticated processs
-    try {
-        let token: Token;
+    const user: AuthenticatedUser = await authRepository.getAuthenticatedUser({
+      bearerToken: token.token,
+      handleBusinessErrors: true,
+      validate: false,
+    });
 
-        if (props.provider === SocialProvider.GITLAB) {
-            token = await authRepository.gitlabAuthFinalize({
-                data: { code: code },
-                handleBusinessErrors: true
-            });
-        } else if (props.provider === SocialProvider.GITHUB) {
-            token = await authRepository.githubAuthFinalize({
-                data: { code: code },
-                handleBusinessErrors: true
-            });
-        } else {
-            void router.push('/login');
-            return;
-        }
+    authStore.setToken(token.token);
+    authStore.setTokenExpiry(token.token_expiry);
+    authStore.setRefreshToken(token.refresh_token);
+    authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
 
-        const user: AuthenticatedUser = await authRepository.getAuthenticatedUser({
-            bearerToken: token.token,
-            handleBusinessErrors: true,
-            validate: false
+    if (user.setup_done === false) {
+      if (props.provider === SocialProvider.GITLAB) {
+        void router.push({
+          name: "signup",
+          query: { provider: SocialProvider.GITLAB },
         });
-
-        authStore.setToken(token.token);
-        authStore.setTokenExpiry(token.token_expiry);
-        authStore.setRefreshToken(token.refresh_token);
-        authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
-
-        if (user.setup_done === false) {
-            if (props.provider === SocialProvider.GITLAB) {
-                void router.push({ name: 'signup', query: { provider: SocialProvider.GITLAB } });
-            } else if (props.provider === SocialProvider.GITHUB) {
-                void router.push({ name: 'signup', query: { provider: SocialProvider.GITHUB } });
-            } else {
-                void router.push('/login');
-            }
-            return;
-        } else {
-            authStore.setAuthenticated(true);
-            userStore.setUser(user);
-            void router.push('/');
-            return;
-        }
-    } catch (_error) {
-        error.value = true;
-        if (_error instanceof BusinessLogicError) {
-            if (_error.error_code === 'AccountNotActivated') {
-                void router.push('/trial');
-            }
-            errorCode.value = _error.error_code;
-            if (
-                _error.error_code === APIErrors.FailedToAuthenticateSocialAccount ||
-                _error.error_code === APIErrors.IntegrationTokenRetrievalFailed ||
-                _error.error_code === APIErrors.IntegrationInvalidToken ||
-                _error.error_code === APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                _error.error_code === APIErrors.IntegrationTokenExpired ||
-                _error.error_code === APIErrors.InternalError
-            ) {
-                errorNonRecoverable.value = true;
-            }
-        }
-    } finally {
-        loading.value = false;
+      } else if (props.provider === SocialProvider.GITHUB) {
+        void router.push({
+          name: "signup",
+          query: { provider: SocialProvider.GITHUB },
+        });
+      } else {
+        void router.push("/login");
+      }
+      return;
+    } else {
+      authStore.setAuthenticated(true);
+      userStore.setUser(user);
+      void router.push("/");
+      return;
     }
+  } catch (_error) {
+    error.value = true;
+    if (_error instanceof BusinessLogicError) {
+      if (_error.error_code === "AccountNotActivated") {
+        void router.push("/trial");
+      }
+      errorCode.value = _error.error_code;
+      if (
+        _error.error_code === APIErrors.FailedToAuthenticateSocialAccount ||
+        _error.error_code === APIErrors.IntegrationTokenRetrievalFailed ||
+        _error.error_code === APIErrors.IntegrationInvalidToken ||
+        _error.error_code ===
+          APIErrors.IntegrationIntegrationTokenMissingPermissions ||
+        _error.error_code === APIErrors.IntegrationTokenExpired ||
+        _error.error_code === APIErrors.InternalError
+      ) {
+        errorNonRecoverable.value = true;
+      }
+    }
+  } finally {
+    loading.value = false;
+  }
 }
 
 function nonRecoverableErrorRedirect(): void {
-    authStore.$reset();
-    userStore.$reset();
-    void router.push('/login');
+  authStore.$reset();
+  userStore.$reset();
+  void router.push("/login");
 }
 
 // Lifecycle
 onMounted(async () => {
-    await finalizeAutentication();
+  await finalizeAutentication();
 });
 </script>
 <template>
-    <div class="oauth-status-wrapper flex flex-col items-center justify-center h-screen">
-        <div class="oauth-status-inner-wrapper -translate-y-3/4 flex flex-col items-center">
-            <div class="header">
-                <div v-if="props.provider === SocialProvider.GITLAB">
-                    <Icon class="icon" icon="devicon:gitlab" />
-                </div>
-                <div v-if="props.provider === SocialProvider.GITHUB">
-                    <span style="color: black">
-                        <Icon class="icon" icon="simple-icons:github" />
-                    </span>
-                </div>
-                <div class="provider">Authentication</div>
+  <div
+    class="oauth-status-wrapper flex flex-col items-center justify-center h-screen"
+  >
+    <div
+      class="oauth-status-inner-wrapper -translate-y-3/4 flex flex-col items-center"
+    >
+      <div class="header">
+        <div v-if="props.provider === SocialProvider.GITLAB">
+          <Icon class="icon" icon="devicon:gitlab" />
+        </div>
+        <div v-if="props.provider === SocialProvider.GITHUB">
+          <span style="color: black">
+            <Icon class="icon" icon="simple-icons:github" />
+          </span>
+        </div>
+        <div class="provider">Authentication</div>
+      </div>
+
+      <!-- <div v-if="loading" class="spinner"></div> -->
+      <Icon
+        v-if="loading"
+        icon="tabler:loader-2"
+        class="h-10 w-10 animate-spin"
+      />
+
+      <template v-else-if="error">
+        <div v-if="!errorCode || errorNonRecoverable">
+          <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
+            <div style="font-size: 1.5em">
+              <div>Whoops</div>
+              <div v-if="errorCode" style="font-size: 0.8em">
+                Error code:
+                <span
+                  style="
+                    font-family: &quot;Courier New&quot;, Courier, monospace;
+                  "
+                  >{{ errorCode }}</span
+                >
+              </div>
+            </div>
+            <div v-if="errorCode" style="font-size: 1.2em">
+              We encountered some non-recoverable issue during the
+              authentication. Please click on the button below and try again. If
+              this error persists, then please contact the webmaster and provide
+              them with the error code listed above.
+            </div>
+            <div v-else style="font-size: 1.2em">
+              We encountered some non-recoverable issue during the
+              authentication. Please click on the button below and try again. If
+              this error persists, then please contact the webmaster and provide
+              them with the events leading up to this problem.
+            </div>
+            <div>
+              <Button @click="nonRecoverableErrorRedirect()"> Okay </Button>
+            </div>
+          </div>
+        </div>
+
+        <div v-else>
+          <div style="display: flex; flex-direction: column; row-gap: 1rem">
+            <div style="font-size: 1.5em">
+              <div>Error</div>
             </div>
 
-            <!-- <div v-if="loading" class="spinner"></div> -->
-            <Icon v-if="loading" icon="tabler:loader-2" class="h-10 w-10 animate-spin" />
+            <div v-if="errorCode" style="font-size: 1.2em">
+              <div v-if="errorCode === APIErrors.AlreadyExists">
+                A user with that email already exists.
+              </div>
+              <div v-else>
+                An error occured during the processing of the request.
+              </div>
+            </div>
 
-            <template v-else-if="error">
-                <div v-if="!errorCode || errorNonRecoverable">
-                    <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
-                        <div style="font-size: 1.5em">
-                            <div>Whoops</div>
-                            <div v-if="errorCode" style="font-size: 0.8em">
-                                Error code:
-                                <span style="font-family: 'Courier New', Courier, monospace">{{
-                                    errorCode
-                                }}</span>
-                            </div>
-                        </div>
-                        <div v-if="errorCode" style="font-size: 1.2em">
-                            We encountered some non-recoverable issue during the authentication.
-                            Please click on the button below and try again. If this error persists,
-                            then please contact the webmaster and provide them with the error code
-                            listed above.
-                        </div>
-                        <div v-else style="font-size: 1.2em">
-                            We encountered some non-recoverable issue during the authentication.
-                            Please click on the button below and try again. If this error persists,
-                            then please contact the webmaster and provide them with the events
-                            leading up to this problem.
-                        </div>
-                        <div>
-                            <Button @click="nonRecoverableErrorRedirect()"> Okay </Button>
-                        </div>
-                    </div>
-                </div>
+            <div v-else style="font-size: 1.2em">
+              An error occured during the processing of the request.
+            </div>
 
-                <div v-else>
-                    <div style="display: flex; flex-direction: column; row-gap: 1rem">
-                        <div style="font-size: 1.5em">
-                            <div>Error</div>
-                        </div>
-
-                        <div v-if="errorCode" style="font-size: 1.2em">
-                            <div v-if="errorCode === APIErrors.AlreadyExists">
-                                A user with that email already exists.
-                            </div>
-                            <div v-else>An error occured during the processing of the request.</div>
-                        </div>
-
-                        <div v-else style="font-size: 1.2em">
-                            An error occured during the processing of the request.
-                        </div>
-
-                        <div>
-                            <Button @click="nonRecoverableErrorRedirect()"> Back to login </Button>
-                        </div>
-                    </div>
-                </div>
-            </template>
+            <div>
+              <Button @click="nonRecoverableErrorRedirect()">
+                Back to login
+              </Button>
+            </div>
+          </div>
         </div>
+      </template>
     </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
-@use '@/assets/common/oauth.scss';
+@use "@/assets/common/oauth.scss";
 </style>

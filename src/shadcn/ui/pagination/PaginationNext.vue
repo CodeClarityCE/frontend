@@ -1,30 +1,44 @@
 <script setup lang="ts">
-import { cn } from '@/shadcn/lib/utils';
-import { Button } from '@/shadcn/ui/button';
-import { ChevronRight } from 'lucide-vue-next';
-import { PaginationNext, type PaginationNextProps } from 'reka-ui';
-import { computed, type HTMLAttributes } from 'vue';
+import type { PaginationNextProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import type { ButtonVariants } from "@/shadcn/ui/button";
+import { reactiveOmit } from "@vueuse/core";
+import { ChevronRightIcon } from "lucide-vue-next";
+import { PaginationNext, useForwardProps } from "reka-ui";
+import { cn } from "@/shadcn/lib/utils";
+import { buttonVariants } from "@/shadcn/ui/button";
 
 const props = withDefaults(
-    defineProps<PaginationNextProps & { class?: HTMLAttributes['class'] }>(),
-    {
-        asChild: true
+  defineProps<
+    PaginationNextProps & {
+      size?: ButtonVariants["size"];
+      class?: HTMLAttributes["class"];
     }
+  >(),
+  {
+    size: "default",
+  },
 );
 
-const delegatedProps = computed(() => {
-    const { class: _, ...delegated } = props;
-
-    return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class", "size");
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
-    <PaginationNext v-bind="delegatedProps">
-        <Button :class="cn('w-9 h-9 p-0', props.class)" variant="outline">
-            <slot>
-                <ChevronRight />
-            </slot>
-        </Button>
-    </PaginationNext>
+  <PaginationNext
+    data-slot="pagination-next"
+    :class="
+      cn(
+        buttonVariants({ variant: 'ghost', size }),
+        'gap-1 px-2.5 sm:pr-2.5',
+        props.class,
+      )
+    "
+    v-bind="forwarded"
+  >
+    <slot>
+      <span class="hidden sm:block">Next</span>
+      <ChevronRightIcon />
+    </slot>
+  </PaginationNext>
 </template>

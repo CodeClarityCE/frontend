@@ -1,5 +1,5 @@
-import { interpolateColors, type ColorsInterpolateOptions } from '@/base_components/data-display/charts/colors-waffle'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { interpolateColors, type ColorsInterpolateOptions } from '@/base_components/data-display/charts/colors-waffle'
 
 describe('colors-waffle utilities', () => {
   describe('interpolateColors', () => {

@@ -115,7 +115,7 @@ function generateChart(stats: SeverityInfoByWeek[]): void {
   <div class="flex flex-col xl:flex-row xl:flex-none items-center">
     <div>
       <div v-if="loading || noData" class="flex flex-col gap-2 relative">
-        <Skeleton class="h-[200px] w-[300px] rounded-xl" />
+        <Skeleton class="h-50 w-75 rounded-xl" />
         <div
           v-if="noData"
           class="flex flex-row justify-center items-center absolute w-full h-full"
@@ -137,7 +137,7 @@ function generateChart(stats: SeverityInfoByWeek[]): void {
         <Skeleton
           v-for="index in 4"
           :key="index"
-          class="h-[30px] w-[100px] rounded-xl"
+          class="h-7.5 w-25 rounded-xl"
         />
       </div>
       <div v-else>

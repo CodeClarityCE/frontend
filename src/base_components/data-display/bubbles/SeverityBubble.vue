@@ -60,8 +60,11 @@ defineProps({
         H
       </div>
       <div
-        class="severity-value"
-        :class="{ 'severity-value-high': !deactivated }"
+        class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600"
+        :class="{
+          'severity-value-high': !deactivated,
+          'bg-gray-200': deactivated,
+        }"
       >
         <slot name="high"></slot>
         <slot name="content"></slot>
@@ -78,8 +81,11 @@ defineProps({
         M
       </div>
       <div
-        class="severity-value"
-        :class="{ 'severity-value-medium': !deactivated }"
+        class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600"
+        :class="{
+          'severity-value-medium': !deactivated,
+          'bg-gray-200': deactivated,
+        }"
       >
         <slot name="medium"></slot>
         <slot name="content"></slot>
@@ -96,8 +102,11 @@ defineProps({
         L
       </div>
       <div
-        class="severity-value"
-        :class="{ 'severity-value-low': !deactivated }"
+        class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600"
+        :class="{
+          'severity-value-low': !deactivated,
+          'bg-gray-200': deactivated,
+        }"
       >
         <slot name="low"></slot>
         <slot name="content"></slot>
@@ -114,8 +123,11 @@ defineProps({
         N
       </div>
       <div
-        class="severity-value"
-        :class="{ 'severity-value-none': !deactivated }"
+        class="px-2 py-0.5 pl-2.5 pr-1.5 -ml-1.5 z-0 rounded-md text-gray-600"
+        :class="{
+          'severity-value-none': !deactivated,
+          'bg-gray-200': deactivated,
+        }"
       >
         <slot name="none"></slot>
         <slot name="content"></slot>

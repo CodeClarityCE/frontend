@@ -31,6 +31,25 @@ export class LanguageDetectionService {
   }
 
   /**
+   * Gets the list of SBOM plugins that were successfully executed in the analysis
+   */
+  private getExecutedSbomPlugins(analysis: Analysis): string[] {
+    const plugins: string[] = [];
+    if (!analysis.steps) return plugins;
+
+    for (const step of analysis.steps) {
+      for (const stage of step) {
+        if (stage.Status === AnalysisStatus.SUCCESS) {
+          if (stage.Name === "js-sbom" || stage.Name === "php-sbom") {
+            plugins.push(stage.Name);
+          }
+        }
+      }
+    }
+    return plugins;
+  }
+
+  /**
    * Detects languages in a project by checking which SBOM plugins produced results
    * with actual dependencies (not just empty results)
    */
@@ -42,41 +61,48 @@ export class LanguageDetectionService {
   ): Promise<DetectedLanguage[]> {
     const detectedLanguages: DetectedLanguage[] = [];
 
+    // First, check which SBOM plugins were actually executed
+    const executedPlugins = this.getExecutedSbomPlugins(analysis);
+
     try {
-      // Check for JavaScript by looking for js-sbom results with actual dependencies
-      try {
-        const jsResult = await this.resultsRepository.getResultByType({
-          orgId,
-          projectId,
-          analysisId: analysis.id,
-          type: "js-sbom",
-          bearerToken,
-          handleBusinessErrors: true,
-        });
-        if (this.hasActualDependencies(jsResult.data)) {
-          const jsLang = SUPPORTED_LANGUAGES.javascript;
-          if (jsLang) detectedLanguages.push(jsLang);
+      // Check for JavaScript only if js-sbom was executed
+      if (executedPlugins.includes("js-sbom")) {
+        try {
+          const jsResult = await this.resultsRepository.getResultByType({
+            orgId,
+            projectId,
+            analysisId: analysis.id,
+            type: "js-sbom",
+            bearerToken,
+            handleBusinessErrors: true,
+          });
+          if (this.hasActualDependencies(jsResult.data)) {
+            const jsLang = SUPPORTED_LANGUAGES.javascript;
+            if (jsLang) detectedLanguages.push(jsLang);
+          }
+        } catch {
+          // No js-sbom results found, JavaScript not detected
         }
-      } catch {
-        // No js-sbom results found, JavaScript not detected
       }
 
-      // Check for PHP by looking for php-sbom results with actual dependencies
-      try {
-        const phpResult = await this.resultsRepository.getResultByType({
-          orgId,
-          projectId,
-          analysisId: analysis.id,
-          type: "php-sbom",
-          bearerToken,
-          handleBusinessErrors: true,
-        });
-        if (this.hasActualDependencies(phpResult.data)) {
-          const phpLang = SUPPORTED_LANGUAGES.php;
-          if (phpLang) detectedLanguages.push(phpLang);
+      // Check for PHP only if php-sbom was executed
+      if (executedPlugins.includes("php-sbom")) {
+        try {
+          const phpResult = await this.resultsRepository.getResultByType({
+            orgId,
+            projectId,
+            analysisId: analysis.id,
+            type: "php-sbom",
+            bearerToken,
+            handleBusinessErrors: true,
+          });
+          if (this.hasActualDependencies(phpResult.data)) {
+            const phpLang = SUPPORTED_LANGUAGES.php;
+            if (phpLang) detectedLanguages.push(phpLang);
+          }
+        } catch {
+          // No php-sbom results found, PHP not detected
         }
-      } catch {
-        // No php-sbom results found, PHP not detected
       }
     } catch (error) {
       console.error("Error detecting project languages:", error);

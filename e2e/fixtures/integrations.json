@@ -1,0 +1,77 @@
+{
+  "githubIntegration": {
+    "id": "int-github-001",
+    "provider": "github",
+    "status": "active",
+    "connected_at": "2024-01-01T00:00:00Z",
+    "account_name": "example-org",
+    "account_type": "organization",
+    "repositories": 25,
+    "avatar_url": "https://github.com/example-org.png"
+  },
+  "gitlabIntegration": {
+    "id": "int-gitlab-001",
+    "provider": "gitlab",
+    "status": "active",
+    "connected_at": "2024-01-05T00:00:00Z",
+    "account_name": "example-group",
+    "account_type": "group",
+    "repositories": 12,
+    "avatar_url": "https://gitlab.com/example-group.png"
+  },
+  "clickupIntegration": {
+    "id": "int-clickup-001",
+    "provider": "clickup",
+    "status": "active",
+    "connected_at": "2024-01-10T00:00:00Z",
+    "workspace_name": "Security Team",
+    "workspace_id": "12345"
+  },
+  "integrationList": [
+    {
+      "id": "int-github-001",
+      "provider": "github",
+      "status": "active",
+      "account_name": "example-org",
+      "repositories": 25
+    },
+    {
+      "id": "int-gitlab-001",
+      "provider": "gitlab",
+      "status": "active",
+      "account_name": "example-group",
+      "repositories": 12
+    }
+  ],
+  "availableIntegrations": [
+    {
+      "provider": "github",
+      "name": "GitHub",
+      "description": "Connect your GitHub repositories for automated security scanning",
+      "icon": "mdi:github",
+      "oauth_url": "/api/auth/oauth/github"
+    },
+    {
+      "provider": "gitlab",
+      "name": "GitLab",
+      "description": "Connect your GitLab repositories for automated security scanning",
+      "icon": "mdi:gitlab",
+      "oauth_url": "/api/auth/oauth/gitlab"
+    },
+    {
+      "provider": "clickup",
+      "name": "ClickUp",
+      "description": "Create vulnerability tickets automatically in ClickUp",
+      "icon": "simple-icons:clickup",
+      "oauth_url": "/api/auth/oauth/clickup"
+    }
+  ],
+  "disconnectedIntegration": {
+    "id": "int-github-002",
+    "provider": "github",
+    "status": "disconnected",
+    "disconnected_at": "2024-01-12T00:00:00Z",
+    "account_name": "old-org",
+    "reason": "Token expired"
+  }
+}

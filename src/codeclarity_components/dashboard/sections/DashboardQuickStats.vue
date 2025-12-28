@@ -6,7 +6,7 @@
       <Skeleton
         v-for="index in 4"
         :key="index"
-        class="h-[120px] w-full rounded-xl"
+        class="h-30 w-full rounded-xl"
       />
     </template>
 

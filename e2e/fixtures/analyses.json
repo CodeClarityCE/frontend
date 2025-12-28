@@ -1,0 +1,122 @@
+{
+  "sampleAnalysis": {
+    "id": "analysis-123",
+    "project_id": "proj-123",
+    "project_name": "Sample Security Project",
+    "status": "completed",
+    "created_at": "2024-01-15T10:30:00Z",
+    "completed_at": "2024-01-15T10:45:00Z",
+    "branch": "main",
+    "commit": "abc123def456",
+    "steps": [
+      [{ "Name": "js-sbom", "Status": "SUCCESS", "Duration": 120 }],
+      [{ "Name": "vuln-finder", "Status": "SUCCESS", "Duration": 90 }],
+      [{ "Name": "license-finder", "Status": "SUCCESS", "Duration": 60 }]
+    ],
+    "summary": {
+      "vulnerabilities": 15,
+      "critical": 2,
+      "high": 5,
+      "medium": 5,
+      "low": 3,
+      "dependencies": 127
+    }
+  },
+  "runningAnalysis": {
+    "id": "analysis-456",
+    "project_id": "proj-123",
+    "project_name": "Sample Security Project",
+    "status": "running",
+    "created_at": "2024-01-15T11:00:00Z",
+    "branch": "develop",
+    "progress": 65,
+    "current_step": "vuln-finder",
+    "steps": [
+      [{ "Name": "js-sbom", "Status": "SUCCESS", "Duration": 115 }],
+      [{ "Name": "vuln-finder", "Status": "RUNNING", "Duration": null }]
+    ]
+  },
+  "failedAnalysis": {
+    "id": "analysis-789",
+    "project_id": "proj-123",
+    "project_name": "Sample Security Project",
+    "status": "failed",
+    "created_at": "2024-01-15T09:00:00Z",
+    "failed_at": "2024-01-15T09:05:23Z",
+    "branch": "feature/new-auth",
+    "error": "Repository access denied. Please check your integration credentials.",
+    "error_code": "AUTH_FAILED",
+    "steps": [
+      [{ "Name": "js-sbom", "Status": "FAILED", "Duration": 23, "Error": "Repository access denied" }]
+    ]
+  },
+  "scheduledAnalysis": {
+    "id": "scheduled-001",
+    "project_id": "proj-123",
+    "project_name": "Sample Security Project",
+    "schedule_type": "weekly",
+    "is_active": true,
+    "branch": "main",
+    "analyzer_id": "1",
+    "next_run": "2024-01-22T10:00:00Z",
+    "last_run": "2024-01-15T10:00:00Z",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  "analysisList": [
+    {
+      "id": "analysis-001",
+      "project_id": "proj-001",
+      "project_name": "Frontend App",
+      "status": "completed",
+      "created_at": "2024-01-14T08:00:00Z",
+      "completed_at": "2024-01-14T08:15:00Z",
+      "branch": "main",
+      "summary": {
+        "vulnerabilities": 5,
+        "critical": 0,
+        "high": 2,
+        "medium": 2,
+        "low": 1
+      }
+    },
+    {
+      "id": "analysis-002",
+      "project_id": "proj-002",
+      "project_name": "Backend API",
+      "status": "running",
+      "created_at": "2024-01-15T10:00:00Z",
+      "branch": "main",
+      "progress": 30,
+      "current_step": "js-sbom"
+    },
+    {
+      "id": "analysis-003",
+      "project_id": "proj-001",
+      "project_name": "Frontend App",
+      "status": "failed",
+      "created_at": "2024-01-13T14:00:00Z",
+      "failed_at": "2024-01-13T14:02:00Z",
+      "branch": "develop",
+      "error": "Build failed",
+      "error_code": "BUILD_ERROR"
+    }
+  ],
+  "scheduledList": [
+    {
+      "id": "scheduled-001",
+      "project_id": "proj-123",
+      "project_name": "Sample Security Project",
+      "schedule_type": "weekly",
+      "is_active": true,
+      "next_run": "2024-01-22T10:00:00Z"
+    },
+    {
+      "id": "scheduled-002",
+      "project_id": "proj-002",
+      "project_name": "Backend API",
+      "schedule_type": "daily",
+      "is_active": false,
+      "next_run": null
+    }
+  ]
+}

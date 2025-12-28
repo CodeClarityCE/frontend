@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { computed } from "vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
+import {
+  AnalysisStatus,
+  type Analysis,
+} from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { AlertDescription } from "@/shadcn/ui/alert";
 import Alert from "@/shadcn/ui/alert/Alert.vue";
@@ -9,11 +13,26 @@ import Licenses from "./LicensesComponent.vue";
 // Import stores
 // Import theme components
 
-defineProps<{
+const props = defineProps<{
   analysis: Analysis;
   project: Project;
   runIndex?: number | null;
 }>();
+
+// Compute which SBOM plugins were successfully executed
+const executedSbomPlugins = computed(() => {
+  const plugins: string[] = [];
+  for (const step of props.analysis.steps) {
+    for (const result of step) {
+      if (result.Status === AnalysisStatus.SUCCESS) {
+        if (result.Name === "js-sbom" || result.Name === "php-sbom") {
+          plugins.push(result.Name);
+        }
+      }
+    }
+  }
+  return plugins;
+});
 
 const no_deps = false;
 </script>
@@ -116,6 +135,7 @@ const no_deps = false;
         ref="licenses_ref"
         :analysis-i-d="analysis.id"
         :project-i-d="project.id"
+        :executed-sbom-plugins="executedSbomPlugins"
       />
     </InfoCard>
   </div>

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { ref, type Ref } from "vue";
 import * as z from "zod";
@@ -29,12 +30,14 @@ const validationError: Ref<ValidationError | undefined> = ref();
 const formEmail: Ref<string> = ref("");
 
 // Form Validation
-const formValidationSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Please enter your email")
-    .email("Please enter a valid email"),
-});
+const formValidationSchema = toTypedSchema(
+  z.object({
+    email: z
+      .string()
+      .min(1, "Please enter your email")
+      .email("Please enter a valid email"),
+  }),
+);
 
 // Methods
 async function submit(): Promise<void> {

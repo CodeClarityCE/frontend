@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Edge } from "@vue-flow/core";
 import { storeToRefs } from "pinia";
+import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
@@ -54,7 +55,7 @@ const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
 // Form Validation
-const formValidationSchema = analyzerValidationSchema;
+const formValidationSchema = toTypedSchema(analyzerValidationSchema);
 
 function setOrgInfo(_orgInfo: Organization): void {
   orgInfo.value = _orgInfo;

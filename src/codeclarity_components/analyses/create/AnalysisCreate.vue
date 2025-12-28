@@ -50,7 +50,7 @@ import SelectVulnerabilityPolicy from "./components/SelectVulnerabilityPolicy.vu
 /*                                  Interfaces                               */
 /*****************************************************************************/
 interface AvailableAnalyzer {
-  id: number;
+  id: string;
   name: string;
   displayName: string;
   description: string;
@@ -102,7 +102,7 @@ const projectRepo: ProjectRepository = new ProjectRepository();
 
 const selected_branch: Ref<string> = ref("");
 const selected_commit_hash: Ref<string> = ref("");
-const selected_analyzers: Ref<number[]> = ref([]);
+const selected_analyzers: Ref<string[]> = ref([]);
 const selected_license_policy: Ref<string[]> = ref([]);
 const selected_vulnerability_policy: Ref<string | null> = ref(null);
 const selected_analyzers_list: Ref<Analyzer[]> = ref([]);
@@ -179,7 +179,7 @@ async function fetchAvailableAnalyzers(): Promise<void> {
       // Transform the data to include display names
       availableAnalyzers.value = res.data.map(
         (analyzer: Analyzer): AvailableAnalyzer => {
-          const id = Number(analyzer.id);
+          const id = analyzer.id;
           const name = String(analyzer.name);
           const displayName = name === "JS" ? "JavaScript Analyzer" : name;
           const description =

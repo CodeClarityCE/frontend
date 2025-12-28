@@ -7,6 +7,7 @@ import type {
   OrganizationMetaData,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
+import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
@@ -18,7 +19,7 @@ import { useUserStore } from "@/stores/user";
  * - Loading organization and integration data
  * - Simple error states
  * - Loading states
- * - Empty state logic
+ * - Empty state logic (no integrations, no projects, no analyses)
  */
 export function useDashboardData(): {
   isLoading: Ref<boolean>;
@@ -32,6 +33,7 @@ export function useDashboardData(): {
   loadDashboardData: () => Promise<void>;
   hasIntegrations: ComputedRef<boolean>;
   hasProjects: ComputedRef<boolean>;
+  hasAnalyses: ComputedRef<boolean>;
   refreshData: () => Promise<void>;
   defaultOrg: Ref<Organization | undefined>;
 } {
@@ -48,16 +50,22 @@ export function useDashboardData(): {
   const hasError = ref(false);
   const orgData = ref<OrganizationMetaData | null>(null);
   const integrations = ref<Integration[]>([]);
+  const projectsScanned = ref<number>(0);
 
   // Computed helpers
   const isReady = computed(
     () => !!(defaultOrg?.value && auth.getAuthenticated && auth.getToken),
   );
+  const hasIntegrations = computed(() => integrations.value.length > 0);
+  const hasProjects = computed(
+    () => (orgData.value?.projects?.length ?? 0) > 0,
+  );
+  const hasAnalyses = computed(() => projectsScanned.value > 0);
   const hasData = computed(
-    () => !!(orgData.value && integrations.value.length > 0),
+    () => hasIntegrations.value && hasProjects.value && hasAnalyses.value,
   );
   const shouldShowEmptyState = computed(
-    () => isLoading.value ?? hasError.value ?? !hasData.value,
+    () => isLoading.value || hasError.value || !hasData.value,
   );
   const activeIntegrationIds = computed((): string[] =>
     integrations.value.map(
@@ -100,6 +108,23 @@ export function useDashboardData(): {
       if (integrationsResponse.status === "fulfilled") {
         integrations.value = (integrationsResponse.value.data ??
           []) as unknown as Integration[];
+
+        // If we have integrations, fetch quick stats to check for analyses
+        if (integrations.value.length > 0) {
+          const integrationIds = integrations.value.map((i) => i.id ?? "");
+          try {
+            const quickStatsResponse = await new DashboardRepository().getQuickStats({
+              orgId: defaultOrg.value.id,
+              bearerToken: auth.getToken,
+              handleBusinessErrors: true,
+              integrationIds,
+            });
+            projectsScanned.value = quickStatsResponse.data.nmb_projects ?? 0;
+          } catch {
+            // If quick stats fail, assume no analyses yet
+            projectsScanned.value = 0;
+          }
+        }
       }
 
       // Show error only if both failed
@@ -136,8 +161,9 @@ export function useDashboardData(): {
     hasData,
 
     // Computed
-    hasIntegrations: computed(() => integrations.value.length > 0),
-    hasProjects: computed(() => !!orgData.value),
+    hasIntegrations,
+    hasProjects,
+    hasAnalyses,
 
     // Actions
     loadDashboardData,

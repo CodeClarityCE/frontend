@@ -28,6 +28,7 @@ const {
   shouldShowEmptyState,
   hasIntegrations,
   hasProjects,
+  hasAnalyses,
   hasError,
   isLoading,
   defaultOrg,
@@ -43,7 +44,9 @@ const {
       :is-error="hasError"
       :has-integrations="hasIntegrations"
       :has-projects="hasProjects"
+      :has-analyses="hasAnalyses"
       :org-id="defaultOrg?.id"
+      @retry="refreshData"
     />
 
     <!-- Main dashboard: header + stats + charts + sidebar -->

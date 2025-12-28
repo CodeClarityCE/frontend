@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { ref, type Ref } from "vue";
 import * as z from "zod";
@@ -53,26 +54,28 @@ const formFirstName: Ref<string> = ref("");
 const formLastName: Ref<string> = ref("");
 
 // Form Validation
-const formValidationSchema = z.object({
-  "social_form[firstName]": z
-    .string()
-    .min(1, "A first name is required")
-    .max(25, "Too long"),
-  "social_form[lastName]": z
-    .string()
-    .min(1, "A last name is required")
-    .max(25, "Too long"),
-  "social_form[handle]": z
-    .string()
-    .min(5, "A handle is required")
-    .max(50, "Too long"),
-  "social_form[agreeTerms]": z
-    .boolean()
-    .refine(
-      (val) => val === true,
-      "You must accept our terms and conditions to continue",
-    ),
-});
+const formValidationSchema = toTypedSchema(
+  z.object({
+    "social_form[firstName]": z
+      .string()
+      .min(1, "A first name is required")
+      .max(25, "Too long"),
+    "social_form[lastName]": z
+      .string()
+      .min(1, "A last name is required")
+      .max(25, "Too long"),
+    "social_form[handle]": z
+      .string()
+      .min(5, "A handle is required")
+      .max(50, "Too long"),
+    "social_form[agreeTerms]": z
+      .boolean()
+      .refine(
+        (val) => val === true,
+        "You must accept our terms and conditions to continue",
+      ),
+  }),
+);
 
 // Sanity Checks
 if (authStore.getAuthenticated) {

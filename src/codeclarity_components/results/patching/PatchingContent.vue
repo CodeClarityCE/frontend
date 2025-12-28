@@ -29,10 +29,12 @@ import PatchesTable from "./PatchingTable.vue";
 export interface Props {
   analysisID?: string;
   projectID?: string;
+  executedSbomPlugins?: string[];
 }
 const props = withDefaults(defineProps<Props>(), {
   projectID: "",
   analysisID: "",
+  executedSbomPlugins: () => [],
 });
 
 watch(
@@ -243,6 +245,7 @@ function createSeverityDistChart(): void {
     v-model:selected_workspace="selected_workspace"
     :project-i-d="projectID"
     :analysis-i-d="analysisID"
+    :executed-sbom-plugins="executedSbomPlugins"
   ></SelectWorkspace>
   <div value="sbom" class="space-y-4">
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

@@ -61,11 +61,13 @@ export interface Props {
   analysisID?: string;
   projectID?: string;
   projectName?: string;
+  executedSbomPlugins?: string[];
 }
 const props = withDefaults(defineProps<Props>(), {
   projectID: "",
   analysisID: "",
   projectName: "",
+  executedSbomPlugins: () => [],
 });
 
 // Repositories and stores
@@ -499,6 +501,7 @@ function createDepTypeChart(): void {
       v-model:selected_workspace="selected_workspace"
       :project-i-d="projectID"
       :analysis-i-d="analysisID"
+      :executed-sbom-plugins="executedSbomPlugins"
       @package-manager-loaded="handlePackageManagerLoaded"
       @ecosystem-filter-changed="handleEcosystemFilterChanged"
     ></SelectWorkspace>

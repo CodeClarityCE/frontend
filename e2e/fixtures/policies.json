@@ -1,0 +1,107 @@
+{
+  "licensePolicies": [
+    {
+      "id": "license-policy-001",
+      "name": "Permissive Only",
+      "description": "Allow only permissive open source licenses",
+      "allowed_licenses": ["MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause", "ISC", "0BSD"],
+      "denied_licenses": ["GPL-3.0", "GPL-2.0", "AGPL-3.0", "LGPL-3.0"],
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-10T00:00:00Z",
+      "created_by": "admin@example.com"
+    },
+    {
+      "id": "license-policy-002",
+      "name": "All Open Source",
+      "description": "Allow all OSI-approved licenses",
+      "allowed_licenses": ["*"],
+      "denied_licenses": [],
+      "created_at": "2024-01-05T00:00:00Z",
+      "updated_at": "2024-01-05T00:00:00Z",
+      "created_by": "admin@example.com"
+    },
+    {
+      "id": "license-policy-003",
+      "name": "Commercial Safe",
+      "description": "Licenses safe for commercial use without copyleft",
+      "allowed_licenses": ["MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause", "ISC", "Unlicense", "CC0-1.0"],
+      "denied_licenses": ["GPL-3.0", "GPL-2.0", "AGPL-3.0", "LGPL-3.0", "MPL-2.0", "EPL-2.0"],
+      "created_at": "2024-01-08T00:00:00Z",
+      "updated_at": "2024-01-08T00:00:00Z",
+      "created_by": "admin@example.com"
+    }
+  ],
+  "vulnerabilityPolicies": [
+    {
+      "id": "vuln-policy-001",
+      "name": "Critical Only",
+      "description": "Block only critical severity vulnerabilities",
+      "min_severity": "critical",
+      "blocked_severities": ["critical"],
+      "blocked_cves": [],
+      "max_age_days": null,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "created_by": "admin@example.com"
+    },
+    {
+      "id": "vuln-policy-002",
+      "name": "High and Above",
+      "description": "Block high and critical severity vulnerabilities",
+      "min_severity": "high",
+      "blocked_severities": ["critical", "high"],
+      "blocked_cves": ["CVE-2021-44228"],
+      "max_age_days": null,
+      "created_at": "2024-01-02T00:00:00Z",
+      "updated_at": "2024-01-15T00:00:00Z",
+      "created_by": "admin@example.com"
+    },
+    {
+      "id": "vuln-policy-003",
+      "name": "Strict Security",
+      "description": "Block all vulnerabilities medium severity and above",
+      "min_severity": "medium",
+      "blocked_severities": ["critical", "high", "medium"],
+      "blocked_cves": [],
+      "max_age_days": 30,
+      "created_at": "2024-01-03T00:00:00Z",
+      "updated_at": "2024-01-03T00:00:00Z",
+      "created_by": "security@example.com"
+    }
+  ],
+  "policyActions": {
+    "block": {
+      "id": "block",
+      "name": "Block",
+      "description": "Fail the analysis if policy is violated"
+    },
+    "warn": {
+      "id": "warn",
+      "name": "Warn",
+      "description": "Show warning but allow analysis to pass"
+    },
+    "ignore": {
+      "id": "ignore",
+      "name": "Ignore",
+      "description": "Do not check this policy"
+    }
+  },
+  "availableLicenses": [
+    { "id": "MIT", "name": "MIT License", "type": "permissive" },
+    { "id": "Apache-2.0", "name": "Apache License 2.0", "type": "permissive" },
+    { "id": "BSD-3-Clause", "name": "BSD 3-Clause License", "type": "permissive" },
+    { "id": "BSD-2-Clause", "name": "BSD 2-Clause License", "type": "permissive" },
+    { "id": "ISC", "name": "ISC License", "type": "permissive" },
+    { "id": "GPL-3.0", "name": "GNU GPL v3", "type": "copyleft" },
+    { "id": "GPL-2.0", "name": "GNU GPL v2", "type": "copyleft" },
+    { "id": "AGPL-3.0", "name": "GNU AGPL v3", "type": "copyleft" },
+    { "id": "LGPL-3.0", "name": "GNU LGPL v3", "type": "weak-copyleft" },
+    { "id": "MPL-2.0", "name": "Mozilla Public License 2.0", "type": "weak-copyleft" }
+  ],
+  "severityLevels": [
+    { "id": "critical", "name": "Critical", "color": "#dc2626", "min_score": 9.0 },
+    { "id": "high", "name": "High", "color": "#ea580c", "min_score": 7.0 },
+    { "id": "medium", "name": "Medium", "color": "#ca8a04", "min_score": 4.0 },
+    { "id": "low", "name": "Low", "color": "#16a34a", "min_score": 0.1 }
+  ]
+}

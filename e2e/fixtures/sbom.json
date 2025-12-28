@@ -1,0 +1,124 @@
+{
+  "dependencies": [
+    {
+      "name": "express",
+      "version": "4.18.2",
+      "type": "production",
+      "ecosystem": "npm",
+      "license": "MIT",
+      "vulnerabilities": 0,
+      "purl": "pkg:npm/express@4.18.2"
+    },
+    {
+      "name": "lodash",
+      "version": "4.17.21",
+      "type": "production",
+      "ecosystem": "npm",
+      "license": "MIT",
+      "vulnerabilities": 1,
+      "purl": "pkg:npm/lodash@4.17.21"
+    },
+    {
+      "name": "axios",
+      "version": "1.6.0",
+      "type": "production",
+      "ecosystem": "npm",
+      "license": "MIT",
+      "vulnerabilities": 0,
+      "purl": "pkg:npm/axios@1.6.0"
+    },
+    {
+      "name": "react",
+      "version": "18.2.0",
+      "type": "production",
+      "ecosystem": "npm",
+      "license": "MIT",
+      "vulnerabilities": 0,
+      "purl": "pkg:npm/react@18.2.0"
+    },
+    {
+      "name": "jest",
+      "version": "29.5.0",
+      "type": "development",
+      "ecosystem": "npm",
+      "license": "MIT",
+      "vulnerabilities": 0,
+      "purl": "pkg:npm/jest@29.5.0"
+    },
+    {
+      "name": "typescript",
+      "version": "5.3.0",
+      "type": "development",
+      "ecosystem": "npm",
+      "license": "Apache-2.0",
+      "vulnerabilities": 0,
+      "purl": "pkg:npm/typescript@5.3.0"
+    },
+    {
+      "name": "laravel/framework",
+      "version": "10.0.0",
+      "type": "production",
+      "ecosystem": "composer",
+      "license": "MIT",
+      "vulnerabilities": 0,
+      "purl": "pkg:composer/laravel/framework@10.0.0"
+    },
+    {
+      "name": "guzzlehttp/guzzle",
+      "version": "7.8.0",
+      "type": "production",
+      "ecosystem": "composer",
+      "license": "MIT",
+      "vulnerabilities": 0,
+      "purl": "pkg:composer/guzzlehttp/guzzle@7.8.0"
+    }
+  ],
+  "summary": {
+    "total": 150,
+    "production": 45,
+    "development": 105,
+    "vulnerable": 8,
+    "outdated": 23
+  },
+  "ecosystems": {
+    "npm": {
+      "count": 120,
+      "vulnerabilities": 6,
+      "production": 35,
+      "development": 85
+    },
+    "composer": {
+      "count": 30,
+      "vulnerabilities": 2,
+      "production": 10,
+      "development": 20
+    }
+  },
+  "licenses": {
+    "MIT": 125,
+    "Apache-2.0": 15,
+    "ISC": 5,
+    "BSD-3-Clause": 3,
+    "GPL-3.0": 2
+  },
+  "exportFormats": [
+    {
+      "id": "spdx",
+      "name": "SPDX",
+      "description": "Software Package Data Exchange format",
+      "extension": ".spdx.json"
+    },
+    {
+      "id": "cyclonedx",
+      "name": "CycloneDX",
+      "description": "OWASP CycloneDX format",
+      "extension": ".cdx.json"
+    },
+    {
+      "id": "csv",
+      "name": "CSV",
+      "description": "Comma-separated values",
+      "extension": ".csv"
+    }
+  ]
+}

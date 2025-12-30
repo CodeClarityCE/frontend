@@ -1,17 +1,35 @@
 <script lang="ts" setup>
-import { onUpdated, ref, watch, type Ref } from "vue";
-import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
+import { computed, onUpdated, ref, watch, type Ref } from "vue";
+import {
+  AnalysisStatus,
+  type Analysis,
+} from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import SbomContent from "./SbomContent.vue";
 
 // Import stores
 
-defineProps<{
+const props = defineProps<{
   analysis: Analysis;
   project: Project;
   runIndex?: number | null;
 }>();
+
+// Compute which SBOM plugins were successfully executed
+const executedSbomPlugins = computed(() => {
+  const plugins: string[] = [];
+  for (const step of props.analysis.steps) {
+    for (const result of step) {
+      if (result.Status === AnalysisStatus.SUCCESS) {
+        if (result.Name === "js-sbom" || result.Name === "php-sbom") {
+          plugins.push(result.Name);
+        }
+      }
+    }
+  }
+  return plugins;
+});
 
 const bill_of_materials = ref([]);
 const details = ref(false);
@@ -149,6 +167,7 @@ watch(activeTab, async (newTab, oldTab) => {
       :analysis-i-d="analysis.id"
       :project-i-d="project.id"
       :project-name="project.name"
+      :executed-sbom-plugins="executedSbomPlugins"
     ></SbomContent>
   </div>
 </template>

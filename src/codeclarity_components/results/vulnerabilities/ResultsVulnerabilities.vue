@@ -1,6 +1,9 @@
 <script lang="ts" setup>
-import { onMounted, onUpdated, ref, watch, type Ref } from "vue";
-import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
+import { computed, onMounted, onUpdated, ref, watch, type Ref } from "vue";
+import {
+  AnalysisStatus,
+  type Analysis,
+} from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
@@ -10,11 +13,26 @@ import List from "./VulnList.vue";
 import Table from "./VulnTable.vue";
 // Import stores
 
-defineProps<{
+const props = defineProps<{
   analysis: Analysis;
   project: Project;
   runIndex?: number | null;
 }>();
+
+// Compute which SBOM plugins were successfully executed
+const executedSbomPlugins = computed(() => {
+  const plugins: string[] = [];
+  for (const step of props.analysis.steps) {
+    for (const result of step) {
+      if (result.Status === AnalysisStatus.SUCCESS) {
+        if (result.Name === "js-sbom" || result.Name === "php-sbom") {
+          plugins.push(result.Name);
+        }
+      }
+    }
+  }
+  return plugins;
+});
 
 const no_deps = false;
 
@@ -146,6 +164,7 @@ watch(active_tab, async (newTab, oldTab) => {
       v-model:selected_workspace="selected_workspace"
       :analysis-i-d="analysis.id"
       :project-i-d="project.id"
+      :executed-sbom-plugins="executedSbomPlugins"
       @ecosystem-filter-changed="
         (filter: string | null) => (selectedEcosystemFilter = filter)
       "

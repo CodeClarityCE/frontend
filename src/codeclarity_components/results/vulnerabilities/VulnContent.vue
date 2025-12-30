@@ -26,10 +26,12 @@ import SelectWorkspace from "../SelectWorkspace.vue";
 export interface Props {
   analysisID?: string;
   projectID?: string;
+  executedSbomPlugins?: string[];
 }
 const props = withDefaults(defineProps<Props>(), {
   projectID: "",
   analysisID: "",
+  executedSbomPlugins: () => [],
 });
 
 const emit = defineEmits<{
@@ -205,6 +207,7 @@ const topOwaspCategories = computed(() => {
       v-model:selected_workspace="selected_workspace"
       :project-i-d="projectID"
       :analysis-i-d="analysisID"
+      :executed-sbom-plugins="executedSbomPlugins"
       @ecosystem-filter-changed="handleEcosystemFilterChanged"
     />
 

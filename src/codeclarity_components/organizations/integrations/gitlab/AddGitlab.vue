@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
 import { ref, type Ref } from "vue";
 import { useRoute } from "vue-router";
@@ -131,15 +132,17 @@ async function submit(): Promise<void> {
 }
 
 // Form Validation
-const formValidationSchema = z.object({
-  token: z
-    .string()
-    .min(1, "Enter a GitLab personal access token")
-    .regex(
-      gitlabPersonalAccessTokenRegex,
-      "Please enter a valid GitLab personal access token",
-    ),
-});
+const formValidationSchema = toTypedSchema(
+  z.object({
+    token: z
+      .string()
+      .min(1, "Enter a GitLab personal access token")
+      .regex(
+        gitlabPersonalAccessTokenRegex,
+        "Please enter a valid GitLab personal access token",
+      ),
+  }),
+);
 
 const gitlabInstanceUrlValidationSchema = z.object({
   url: z

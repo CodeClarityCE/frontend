@@ -27,11 +27,13 @@ export interface Props {
   analysisID?: string;
   projectID?: string;
   ecosystemFilter?: string | null;
+  executedSbomPlugins?: string[];
 }
 const props = withDefaults(defineProps<Props>(), {
   analysisID: "",
   projectID: "",
   ecosystemFilter: null,
+  executedSbomPlugins: () => [],
 });
 
 const render = ref(false);
@@ -212,6 +214,7 @@ void init();
         v-model:selected_workspace="selected_workspace"
         :project-i-d="projectID"
         :analysis-i-d="analysisID"
+        :executed-sbom-plugins="executedSbomPlugins"
         @ecosystem-filter-changed="handleEcosystemFilterChanged"
       />
 

@@ -19,10 +19,13 @@ import { WorkspacesOutput } from "./workspace.entity";
 export interface Props {
   analysisID?: string;
   projectID?: string;
+  /** List of SBOM plugins that were executed (e.g., ['js-sbom', 'php-sbom']). Only checks for these plugins. */
+  executedSbomPlugins?: string[];
 }
 const props = withDefaults(defineProps<Props>(), {
   projectID: "",
   analysisID: "",
+  executedSbomPlugins: () => [],
 });
 
 const emit = defineEmits<{
@@ -116,48 +119,25 @@ function handleEcosystemFilterChange(
   void emit("ecosystem-filter-changed", value);
 }
 
-// Function to detect available ecosystems from SBOM data
-async function detectAvailableEcosystems(): Promise<void> {
-  if (!userStore.getDefaultOrg) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
+// Function to detect available ecosystems from executed SBOM plugins
+function detectAvailableEcosystems(): void {
+  const ecosystems = new Set<string>();
 
-  try {
-    const ecosystems = new Set<string>();
+  // Map plugin names to ecosystems
+  const pluginToEcosystem: Record<string, string> = {
+    "js-sbom": "npm",
+    "php-sbom": "packagist",
+  };
 
-    // Check for js-sbom results
-    try {
-      await sbomRepo.getResultByType({
-        orgId: userStore.getDefaultOrg.id,
-        projectId: props.projectID,
-        analysisId: props.analysisID,
-        type: "js-sbom",
-        bearerToken: authStore.getToken,
-        handleBusinessErrors: true,
-      });
-      ecosystems.add("npm");
-    } catch {
-      // No js-sbom results
+  // If executedSbomPlugins is provided, use it directly without API calls
+  for (const plugin of props.executedSbomPlugins) {
+    const ecosystem = pluginToEcosystem[plugin];
+    if (ecosystem) {
+      ecosystems.add(ecosystem);
     }
-
-    // Check for php-sbom results
-    try {
-      await sbomRepo.getResultByType({
-        orgId: userStore.getDefaultOrg.id,
-        projectId: props.projectID,
-        analysisId: props.analysisID,
-        type: "php-sbom",
-        bearerToken: authStore.getToken,
-        handleBusinessErrors: true,
-      });
-      ecosystems.add("packagist");
-    } catch {
-      // No php-sbom results
-    }
-
-    availableEcosystems.value = ecosystems;
-  } catch (error) {
-    console.error("Error detecting ecosystems:", error);
   }
+
+  availableEcosystems.value = ecosystems;
 }
 
 async function getSbomWorkspaces(): Promise<void> {
@@ -186,8 +166,8 @@ async function getSbomWorkspaces(): Promise<void> {
   }
 }
 
-onMounted(async () => {
-  await detectAvailableEcosystems();
+onMounted(() => {
+  detectAvailableEcosystems();
   void getSbomWorkspaces();
 });
 </script>

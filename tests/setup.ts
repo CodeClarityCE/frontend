@@ -1,9 +1,10 @@
+import 'reflect-metadata'
+
 import { config } from '@vue/test-utils'
 import { beforeEach,vi } from 'vitest'
 
 import { getPiniaMock, resetPiniaMock } from './test-utils/setup.js'
 
-import 'reflect-metadata'
 import '@testing-library/jest-dom'
 
 // Suppress known Zod v4 cleanup errors during test teardown

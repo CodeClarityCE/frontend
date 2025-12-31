@@ -280,11 +280,14 @@ export default typescriptEslint.config(
       'import/no-duplicates': ['error'],
 
       // Use simple-import-sort for reliable import ordering
-      // Groups: external packages first, then @/ internal imports, then relative imports
+      // Groups: polyfills first, then external packages, then @/ internal imports, then relative imports
       'simple-import-sort/imports': [
         'warn',
         {
           groups: [
+            // Side-effect polyfills that must load first (e.g., reflect-metadata)
+            // \u0000 prefix matches side-effect imports (no specifiers)
+            ['^\\u0000reflect-metadata'],
             // External packages (npm modules)
             ['^@?\\w'],
             // Internal @/ imports
@@ -293,6 +296,8 @@ export default typescriptEslint.config(
             ['^\\.\\.'],
             // Sibling imports (./)
             ['^\\./'],
+            // Side-effect imports (css, etc.) - at the end
+            ['^\\u0000'],
           ],
         },
       ],

@@ -1,10 +1,11 @@
 import { expect, test } from "vitest";
+
 import {
-  isNoneSeverity,
+  isCriticalSeverity,
+  isHighSeverity,
   isLowSeverity,
   isMediumSeverity,
-  isHighSeverity,
-  isCriticalSeverity,
+  isNoneSeverity,
 } from "./severity";
 
 // TEST NONE

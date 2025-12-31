@@ -2,7 +2,9 @@
 import { Icon } from "@iconify/vue";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
 import { useAuthStore } from "@/stores/auth";
+
 import { TicketsRepository } from "../tickets.repository";
 
 const route = useRoute();

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
+
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -9,14 +10,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+
 import {
-  type PackageUpdate,
-  type PackageManager,
-  getPackageManagerIcon,
-  getLockfileName,
-  getInstallCommand,
   generateUpdateCommands,
+  getInstallCommand,
+  getLockfileName,
   getPackageManagerHelpText,
+  getPackageManagerIcon,
+  type PackageManager,
+  type PackageUpdate,
 } from "./utils/packageManagerUtils";
 
 interface Props {

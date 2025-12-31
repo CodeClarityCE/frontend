@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ref, type computed } from 'vue';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { type computed,ref } from 'vue';
+
 import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
 
 // Mock stores
@@ -120,6 +121,7 @@ describe('DashboardView', () => {
       loadDashboardData: vi.fn(),
       hasIntegrations: ref(false) as any,
       hasProjects: ref(false) as any,
+      hasAnalyses: ref(false) as any,
       refreshData: vi.fn(),
       defaultOrg: ref({ id: 'org-123' } as any)
     });
@@ -177,6 +179,7 @@ describe('DashboardView', () => {
       loadDashboardData: vi.fn(),
       hasIntegrations: ref(false) as any,
       hasProjects: ref(true) as any,
+      hasAnalyses: ref(false) as any,
       refreshData: vi.fn(),
       defaultOrg: ref({ id: 'org-123' } as any)
     });

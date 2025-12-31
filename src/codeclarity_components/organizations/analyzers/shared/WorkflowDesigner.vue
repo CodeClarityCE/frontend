@@ -3,29 +3,31 @@ import { Icon } from "@iconify/vue";
 import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
 import {
-  Position,
   type Edge,
   type NodeMouseEvent,
+  Position,
   useVueFlow,
   VueFlow,
 } from "@vue-flow/core";
 import {
+  type Component,
   computed,
   markRaw,
   onMounted,
   onUnmounted,
   ref,
-  type Component,
 } from "vue";
+
 import AnalyzerNodeComponent from "@/base_components/ui/flow/AnalyzerNode.vue";
 import ConfigNodeComponent from "@/base_components/ui/flow/ConfigNode.vue";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import {
-  createEdgesFromNodes,
-  layoutNodes,
   type AnalyzerNode,
   type ConfigNode,
+  createEdgesFromNodes,
+  layoutNodes,
 } from "@/utils/vueFlow";
+
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 

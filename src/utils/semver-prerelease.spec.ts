@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { isPrerelease, shouldRecommendUpgrade } from "./semver";
 
 // Test the filtering logic that would be used in the component

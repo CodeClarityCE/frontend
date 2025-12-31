@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
@@ -10,6 +11,7 @@ import type { OrganizationMembership } from "@/codeclarity_components/organizati
 import Button from "@/shadcn/ui/button/Button.vue";
 import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
 import OrgListItem from "./ListItem.vue";
 
 const search = ref("");

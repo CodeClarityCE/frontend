@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
 

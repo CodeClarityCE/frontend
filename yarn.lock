@@ -7117,6 +7117,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-simple-import-sort@npm:^12.1.1":
+  version: 12.1.1
+  resolution: "eslint-plugin-simple-import-sort@npm:12.1.1"
+  peerDependencies:
+    eslint: ">=5.0.0"
+  checksum: 10/2a690cea9243fbefa70345687bca8952f5e185fa459b7a8db687a908cc31082435cfee236c619d5245548fa5f89a2f2c4f8499f80512e048d2bedc60e3662d5a
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-testing-library@npm:7.15.3":
   version: 7.15.3
   resolution: "eslint-plugin-testing-library@npm:7.15.3"
@@ -7691,6 +7700,7 @@ __metadata:
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-security: "npm:3.0.1"
+    eslint-plugin-simple-import-sort: "npm:^12.1.1"
     eslint-plugin-testing-library: "npm:7.15.3"
     eslint-plugin-vue: "npm:10.6.2"
     globals: "npm:16.5.0"

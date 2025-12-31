@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { ref, type Ref, watch } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import {
   createNewFilterState,
-  FilterType,
   type FilterState,
+  FilterType,
 } from "@/base_components/filters/filterTypes";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import UtilitiesFilters from "@/base_components/filters/UtilitiesFilters.vue";
@@ -20,6 +21,7 @@ import { ResultsRepository } from "@/codeclarity_components/results/results.repo
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
+
 import Patch from "./patch/PatchComponent.vue";
 
 export interface Props {

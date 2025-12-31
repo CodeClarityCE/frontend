@@ -1,8 +1,10 @@
-import 'reflect-metadata';
-import { mount, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { flushPromises,mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
+
+import 'reflect-metadata';
 
 // Mock stores
 const mockAuthStore = {

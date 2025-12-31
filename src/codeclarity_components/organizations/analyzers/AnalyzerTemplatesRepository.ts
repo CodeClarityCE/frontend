@@ -1,8 +1,9 @@
 import {
-  BaseRepository,
   type AuthRepoMethodGetRequestOptions,
+  BaseRepository,
 } from "../../../utils/api/BaseRepository";
 import { type DataResponse } from "../../../utils/api/responses/DataResponse";
+
 import type { TemplateStep } from "./shared/analyzerUtils";
 
 export interface AnalyzerTemplate {

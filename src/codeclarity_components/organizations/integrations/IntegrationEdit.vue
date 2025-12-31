@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { useRoute } from "vue-router";
+
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import {
   isMemberRoleGreaterOrEqualTo,
@@ -9,6 +10,7 @@ import {
 } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import router from "@/router";
+
 import OrgIntegrationManageClickUp from "./clickup/ManageClickUp.vue";
 import OrgIntegrationManageGithub from "./github/ManageGithub.vue";
 import OrgIntegrationManageGitlab from "./gitlab/ManageGitlab.vue";

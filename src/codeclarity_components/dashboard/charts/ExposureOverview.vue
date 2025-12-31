@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import SeverityBubble from "@/base_components/data-display/bubbles/SeverityBubble.vue";
 import LineChart from "@/base_components/data-display/charts/LineChart.vue";
 import { type SeverityInfoByWeek } from "@/codeclarity_components/dashboard/dashboard.entity";
@@ -12,7 +13,7 @@ import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { getWeekRange, formatDateRange } from "@/utils/dateUtils";
+import { formatDateRange, getWeekRange } from "@/utils/dateUtils";
 
 // Props
 const props = defineProps<{

@@ -3,8 +3,9 @@ global.Reflect = global.Reflect ?? {};
 global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach,describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+
 import PasswordResetRequestForm from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue';
 import { BusinessLogicError, ValidationError } from '@/utils/api/BaseRepository';
 

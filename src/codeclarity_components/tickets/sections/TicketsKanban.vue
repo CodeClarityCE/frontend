@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+
 import {
-  type TicketSummary,
-  type TicketStatus,
+  KanbanColumns,
   TicketPriorityColors,
   TicketPriorityLabels,
-  KanbanColumns,
+  type TicketStatus,
+  type TicketSummary,
 } from "../tickets.entity";
 
 const props = defineProps<{

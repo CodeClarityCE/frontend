@@ -1,4 +1,5 @@
 import { Position } from "@vue-flow/core";
+
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import type { AnalyzerNode } from "@/utils/vueFlow";
 

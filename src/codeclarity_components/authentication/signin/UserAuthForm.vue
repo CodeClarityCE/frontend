@@ -3,8 +3,9 @@ import { vAutoAnimate } from "@formkit/auto-animate/vue";
 import { Icon } from "@iconify/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import * as z from "zod";
+
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { Token } from "@/codeclarity_components/authentication/token.entity";

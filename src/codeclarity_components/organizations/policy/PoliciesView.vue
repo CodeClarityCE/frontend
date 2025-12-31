@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import {
-  defineAsyncComponent,
-  ref,
-  computed,
   type AsyncComponentLoader,
   type Component,
+  computed,
+  defineAsyncComponent,
+  ref,
 } from "vue";
+
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import type { Organization } from "@/codeclarity_components/organizations/organization.entity";

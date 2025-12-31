@@ -1,12 +1,14 @@
 import { Icon } from "@iconify/vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import { h } from "vue";
+
 import { Badge } from "@/shadcn/ui/badge";
 import Button from "@/shadcn/ui/button/Button.vue";
 import { Checkbox } from "@/shadcn/ui/checkbox";
+
 import {
-  LicensePolicyType,
   type LicensePolicy,
+  LicensePolicyType,
 } from "../license_policy.entity";
 
 export const columns: ColumnDef<LicensePolicy>[] = [

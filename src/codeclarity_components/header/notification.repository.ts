@@ -1,13 +1,14 @@
 import { Entity } from "../../utils/api/BaseEntity";
 import {
-  BaseRepository,
   type AuthRepoMethodEmptyDeleteRequestOptions,
   type AuthRepoMethodGetRequestOptions,
+  BaseRepository,
   type EmptyPostData,
 } from "../../utils/api/BaseRepository";
 import { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
+
 import type { Notification } from "./notification.entity";
 
 export interface GetNotificationsRequestOptions extends AuthRepoMethodGetRequestOptions {

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { User, Lock, Trash2, Shield } from "lucide-vue-next";
+import { Lock, Shield, Trash2, User } from "lucide-vue-next";
 import {
-  defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
+  defineAsyncComponent,
 } from "vue";
-import { PageHeader, InfoCard, StatCard } from "@/base_components";
+
+import { InfoCard, PageHeader, StatCard } from "@/base_components";
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import { Button } from "@/shadcn/ui/button";

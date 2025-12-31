@@ -5,6 +5,7 @@
  */
 
 import { performance } from 'perf_hooks';
+
 import type { MemoryInfo } from './types';
 
 /**

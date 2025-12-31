@@ -21,7 +21,8 @@
 -->
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
+
 import { cn } from "@/shadcn/lib/utils";
 import Button from "@/shadcn/ui/button/Button.vue";
 import { FormField } from "@/shadcn/ui/form";

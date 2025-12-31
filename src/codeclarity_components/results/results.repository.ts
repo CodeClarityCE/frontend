@@ -1,18 +1,20 @@
 import type { VulnerabilityMerged } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+
 import { Entity } from "../../utils/api/BaseEntity";
 import {
-  BaseRepository,
   type AuthRepoMethodGetRequestOptions,
+  BaseRepository,
   type PaginatedRepoMethodRequestOptions,
   type SortableRepoMethodRequestOptions,
 } from "../../utils/api/BaseRepository";
 import { DataResponse } from "../../utils/api/responses/DataResponse";
 import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
+
 import type { Dependency, GraphDependency } from "./graph.entity";
 import type { License } from "./licenses/License";
 import type {
-  PatchOccurenceInfo,
   PatchedManifestData,
+  PatchOccurenceInfo,
   Workspace,
 } from "./patching/Patching";
 import type { Result } from "./result.entity";

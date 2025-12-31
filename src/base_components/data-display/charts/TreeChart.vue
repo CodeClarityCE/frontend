@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import * as d3 from "d3";
 import { onMounted, ref } from "vue";
+
 import type { GraphDependency } from "@/codeclarity_components/results/graph.entity";
+
 import TreeChartLegend from "./TreeChartLegend.vue";
 
 /**

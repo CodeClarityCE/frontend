@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import * as d3 from "d3";
 import { onMounted } from "vue";
+
 import {
   RadarChart,
   type RadarChartData,

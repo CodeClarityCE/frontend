@@ -1,20 +1,21 @@
 import { Entity } from "../../utils/api/BaseEntity";
 import {
-  BaseRepository,
   type AuthRepoMethodGetRequestOptions,
+  BaseRepository,
   type PaginatedRepoMethodRequestOptions,
   type SortableRepoMethodRequestOptions,
 } from "../../utils/api/BaseRepository";
 import { DataResponse } from "../../utils/api/responses/DataResponse";
 import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
+
 import {
   AttackVectorDist,
-  type QuickStats,
-  ProjectQuickStats,
-  type LatestVulns,
   CIAImpact,
-  SeverityInfoByWeek,
+  type LatestVulns,
   type LicenseDist,
+  ProjectQuickStats,
+  type QuickStats,
+  SeverityInfoByWeek,
 } from "./dashboard.entity";
 
 export interface GetProjectsQuickStatsRequestOptions

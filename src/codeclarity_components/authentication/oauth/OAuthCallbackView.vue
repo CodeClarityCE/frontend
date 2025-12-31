@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import {
-  defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
+  defineAsyncComponent,
 } from "vue";
+
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import type { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { useStateStore } from "@/stores/state";
+
 import type OAuth2CallbackComponent from "./OAuth2Callback.vue";
 
 const loader: AsyncComponentLoader<typeof OAuth2CallbackComponent> = async () =>

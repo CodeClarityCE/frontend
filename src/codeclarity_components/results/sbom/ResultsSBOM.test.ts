@@ -1,9 +1,11 @@
-import { mount, flushPromises } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { AnalysisStatus } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Analyzer } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
+
 import ResultsSBOM from "./ResultsSBOM.vue";
 
 // Mock child components

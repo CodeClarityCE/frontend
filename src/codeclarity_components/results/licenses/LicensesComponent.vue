@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch, computed } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
+
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import {
   createNewFilterState,
-  FilterType,
   type FilterConfig,
   type FilterState,
+  FilterType,
 } from "@/base_components/filters/filterTypes";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import UtilitiesFilters from "@/base_components/filters/UtilitiesFilters.vue";
@@ -19,7 +20,9 @@ import { ResultsRepository } from "@/codeclarity_components/results/results.repo
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
+
 import SelectWorkspace from "../SelectWorkspace.vue";
+
 import LicenseComponent from "./LicenseComponent.vue";
 // Import stores
 

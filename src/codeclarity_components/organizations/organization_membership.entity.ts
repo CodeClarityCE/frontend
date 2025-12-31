@@ -1,8 +1,9 @@
 import { IsDateString, IsNotEmpty } from "class-validator";
+
 import type {
+  MemberRole,
   Organization,
   TeamMember,
-  MemberRole,
 } from "./organization.entity";
 
 export class OrganizationMembership {

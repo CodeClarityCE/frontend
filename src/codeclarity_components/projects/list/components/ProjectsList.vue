@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import Pagination from "@/base_components/utilities/PaginationComponent.vue";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import {
-  ProjectsSortInterface,
   ProjectRepository,
+  ProjectsSortInterface,
 } from "@/codeclarity_components/projects/project.repository";
 import router from "@/router";
 import Button from "@/shadcn/ui/button/Button.vue";
@@ -16,6 +17,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { debounce } from "@/utils/searchUtils";
+
 import NoProjects from "./NoProjects.vue";
 import ProjectItem from "./ProjectItemImproved.vue";
 import ProjectsListHeader from "./ProjectsListHeader.vue";

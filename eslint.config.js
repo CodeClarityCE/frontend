@@ -1,11 +1,11 @@
 import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import pluginCypress from 'eslint-plugin-cypress/flat';
 import eslintPluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 import security from 'eslint-plugin-security';
 import importPlugin from 'eslint-plugin-import';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import testingLibrary from 'eslint-plugin-testing-library';
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -21,6 +21,7 @@ export default typescriptEslint.config(
       '**/shadcn',
       '**/.yarn',
       '**/cypress',
+      '**/e2e/**',
       '.pnp.*',
       '**/node_modules/**',
       '**/public/**',
@@ -75,13 +76,7 @@ export default typescriptEslint.config(
 
     plugins: {
       import: importPlugin,
-    },
-
-    settings: {
-      // Required for Yarn PnP to find external dependencies
-      'import/external-module-folders': ['.yarn'],
-      // Explicitly mark @/* as internal modules for import/order
-      'import/internal-regex': '^@/',
+      'simple-import-sort': simpleImportSort,
     },
 
     rules: {
@@ -283,24 +278,25 @@ export default typescriptEslint.config(
 
       'import/no-unresolved': 'off', // TypeScript handles this
       'import/no-duplicates': ['error'],
-      'import/order': [
+
+      // Use simple-import-sort for reliable import ordering
+      // Groups: external packages first, then @/ internal imports, then relative imports
+      'simple-import-sort/imports': [
         'warn',
         {
           groups: [
-            'builtin', // Node.js built-in modules
-            'external', // npm packages
-            'internal', // Internal modules (@/*)
-            'parent', // Parent directories (../)
-            'sibling', // Same directory (./)
-            'index', // Index files
+            // External packages (npm modules)
+            ['^@?\\w'],
+            // Internal @/ imports
+            ['^@/'],
+            // Parent imports (..)
+            ['^\\.\\.'],
+            // Sibling imports (./)
+            ['^\\./'],
           ],
-          'newlines-between': 'never',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
         },
       ],
+      'simple-import-sort/exports': 'warn',
     },
   },
 
@@ -333,14 +329,6 @@ export default typescriptEslint.config(
       'vue/one-component-per-file': 'off',
       'vue/require-prop-types': 'off',
     },
-  },
-
-  // ==========================================
-  // Cypress Configuration
-  // ==========================================
-  {
-    files: ['cypress/**/*.{js,ts}'],
-    ...pluginCypress.configs.recommended,
   },
 
   // ==========================================

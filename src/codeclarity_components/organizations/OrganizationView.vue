@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import {
-  defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
+  defineAsyncComponent,
 } from "vue";
+
 import PageHeader from "@/base_components/layout/PageHeader.vue";
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";

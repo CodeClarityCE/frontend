@@ -1,15 +1,16 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
+
 import {
-  expectNoAccessibilityViolations,
-  expectAccessibilityRule,
-  getAccessibilityInsights,
-  testKeyboardNavigation,
   accessibilityTestScenarios,
-  formAxeConfig
-} from '../../utils/accessibility-utils';
+  expectAccessibilityRule,
+  expectNoAccessibilityViolations,
+  formAxeConfig,
+  getAccessibilityInsights,
+  testKeyboardNavigation} from '../../utils/accessibility-utils';
 
 // Mock dependencies
 vi.mock('@/codeclarity_components/authentication/auth.repository');

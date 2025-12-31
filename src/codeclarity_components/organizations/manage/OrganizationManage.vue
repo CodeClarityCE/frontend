@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import CenteredModal from "@/base_components/ui/modals/CenteredModal.vue";
 import {

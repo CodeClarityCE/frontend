@@ -1,5 +1,4 @@
 <script lang="ts">
-/* eslint-disable import/order */
 import { InfoCard } from "@/base_components";
 import { type GetRepositoriesRequestOptions } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import { type Repository } from "@/codeclarity_components/projects/project.entity";
@@ -15,7 +14,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import Input from "@/shadcn/ui/input/Input.vue";
-/* eslint-enable import/order */
+
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
   forceRefresh: boolean;
   activeFilters: string[];
@@ -27,23 +26,24 @@ export interface FailedProjectImport {
 }
 </script>
 <script lang="ts" setup>
-/* eslint-disable import/order */
-import { toTypedSchema } from "@vee-validate/zod";
 import { Icon } from "@iconify/vue";
+import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import * as z from "zod";
+
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { filterUndefined } from "@/utils/form/filterUndefined";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
+import { filterUndefined } from "@/utils/form/filterUndefined";
 import { errorToast, successToast } from "@/utils/toasts";
+
 import Faq from "./components/FaqComponent.vue";
 import ImportErrorTable from "./components/ImportErrorTable.vue";
 import RepoTable from "./components/RepoTable.vue";
-/* eslint-enable import/order */
+
 // Repositories
 const projectsRepo: ProjectRepository = new ProjectRepository();
 

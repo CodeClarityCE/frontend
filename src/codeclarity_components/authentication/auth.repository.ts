@@ -1,15 +1,17 @@
 import { RefreshToken } from "@/codeclarity_components/authentication/refresh_token.entity";
 import { Token } from "@/codeclarity_components/authentication/token.entity";
+
 import { Entity } from "../../utils/api/BaseEntity";
 import {
+  type AuthRepoMethodGetRequestOptions,
   BaseRepository,
   type EmptyPostData,
   type RepoMethodPostRequestOptions,
-  type AuthRepoMethodGetRequestOptions,
 } from "../../utils/api/BaseRepository";
 import { CreatedResponse } from "../../utils/api/responses/CreatedResponse";
 import type { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
+
 import type { AuthenticateBody } from "./authenticate.http";
 import { AuthenticatedUser } from "./authenticated_user.entity";
 import type { Oauth2FinalizeBody } from "./oauth/oauth2_finalize.http";

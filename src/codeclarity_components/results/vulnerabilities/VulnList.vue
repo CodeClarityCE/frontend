@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, watch, computed, type Ref } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
+
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import UtilitiesFilters, {
   createNewFilterState,
-  FilterType,
   type FilterConfig,
   type FilterState,
+  FilterType,
 } from "@/base_components/filters/UtilitiesFilters.vue";
 import InfoMarkdown from "@/base_components/ui/InfoMarkdown.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
@@ -32,12 +33,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import {
-  isNoneSeverity,
   isCriticalSeverity,
   isHighSeverity,
   isLowSeverity,
   isMediumSeverity,
+  isNoneSeverity,
 } from "@/utils/severity";
+
 // Import stores
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 

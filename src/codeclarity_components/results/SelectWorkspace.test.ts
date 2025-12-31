@@ -1,5 +1,6 @@
-import { mount, flushPromises } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import SelectWorkspace from "./SelectWorkspace.vue";
 import { WorkspacesOutput } from "./workspace.entity";
 

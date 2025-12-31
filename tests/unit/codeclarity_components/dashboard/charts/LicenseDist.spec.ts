@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import LicenseDist from '@/codeclarity_components/dashboard/charts/LicenseDist.vue';
 
 // Mock external dependencies

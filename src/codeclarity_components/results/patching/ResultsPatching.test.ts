@@ -1,7 +1,9 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { Project } from "@/codeclarity_components/projects/project.entity";
+
 // Pinia imports removed to prevent plugin duplication warnings
 import ResultsPatching from "./ResultsPatching.vue";
 
@@ -45,6 +47,7 @@ describe("ResultsPatching.vue", () => {
     const analysis = new Analysis();
     analysis.id = "analysis-123";
     analysis.branch = "main";
+    analysis.steps = [];
     return analysis;
   };
 

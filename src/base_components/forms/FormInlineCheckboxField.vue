@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Field, ErrorMessage } from "vee-validate";
+import { ErrorMessage, Field } from "vee-validate";
 
 const props = defineProps<{
   name: string;

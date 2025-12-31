@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { AnalysisStats } from "@/codeclarity_components/results/stats.entity";
+
 import VulnsGraph from "./VulnsGraph.vue";
 
 // Mock Icon component

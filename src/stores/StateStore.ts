@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 

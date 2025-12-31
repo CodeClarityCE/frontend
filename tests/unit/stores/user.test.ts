@@ -1,5 +1,6 @@
-import { setActivePinia, createPinia } from 'pinia'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { createPinia,setActivePinia } from 'pinia'
+import { beforeEach,describe, expect, it } from 'vitest'
+
 import type { AuthenticatedUser } from '@/codeclarity_components/authentication/authenticated_user.entity'
 import type { Organization } from '@/codeclarity_components/organizations/organization.entity'
 import { useUserStore } from '@/stores/user'

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import EmailActionJoinOrg from "@/codeclarity_components/organizations/invites/OrganizationJoin.vue";
 import { useStateStore } from "@/stores/state";
+
 import ConfirmRegistration from "./ConfirmRegistration.vue";
 import PasswordResetForm from "./PasswordResetForm.vue";
 

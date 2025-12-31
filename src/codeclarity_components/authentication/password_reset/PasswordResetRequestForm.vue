@@ -2,8 +2,9 @@
 import { Icon } from "@iconify/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import * as z from "zod";
+
 import FormTextField from "@/base_components/forms/FormTextField.vue";
 import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";

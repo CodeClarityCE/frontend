@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import {
-  defineAsyncComponent,
   type AsyncComponentLoader,
   type Component,
+  defineAsyncComponent,
 } from "vue";
+
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import { cn } from "@/shadcn/lib/utils";
 import { buttonVariants } from "@/shadcn/ui/button";
 import { useStateStore } from "@/stores/state";
+
 import type UserAuthFormComponent from "./UserAuthForm.vue";
 
 const loader: AsyncComponentLoader<typeof UserAuthFormComponent> = async () =>

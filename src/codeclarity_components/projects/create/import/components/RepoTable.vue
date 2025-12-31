@@ -1,23 +1,24 @@
 <script lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import SortableTable, {
   type TableHeader,
 } from "@/base_components/data-display/tables/SortableTable.vue";
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import {
-  createNewFilterState,
-  FilterType,
-  type FilterState,
   type ActiveFilter,
+  createNewFilterState,
+  type FilterState,
+  FilterType,
 } from "@/base_components/filters/filterTypes";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import FilterBox from "@/base_components/filters/UtilitiesFilters.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import Pagination from "@/base_components/utilities/PaginationComponent.vue";
 import {
-  GetRepositoriesSortInterface,
   type GetRepositoriesRequestOptions,
+  GetRepositoriesSortInterface,
 } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
 import router from "@/router";

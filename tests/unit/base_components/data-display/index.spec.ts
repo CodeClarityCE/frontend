@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('Data Display Index Exports', () => {
   // Reset module cache before each test to ensure clean imports

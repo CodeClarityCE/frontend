@@ -1,9 +1,10 @@
 import { Entity } from "../../../utils/api/BaseEntity";
 import {
-  BaseRepository,
   type AuthRepoMethodGetRequestOptions,
+  BaseRepository,
 } from "../../../utils/api/BaseRepository";
 import { PaginatedResponse } from "../../../utils/api/responses/PaginatedResponse";
+
 import type { Plugin } from "./Plugin";
 
 export interface GetPluginRequestOptions extends AuthRepoMethodGetRequestOptions {}

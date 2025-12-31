@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+
 import SearchBar from '@/base_components/filters/SearchBar.vue';
 
 describe('SearchBar User Interaction Tests', () => {

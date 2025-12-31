@@ -139,7 +139,8 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { ref, watch, computed, type Ref } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
+
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import { ProjectGradeClass } from "@/codeclarity_components/dashboard/dashboard.entity";
 import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
@@ -154,9 +155,9 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import {
-  GRADE_DISPLAY_RANGES,
   getGradeSubtitle,
   type Grade,
+  GRADE_DISPLAY_RANGES,
 } from "@/utils/gradeUtils";
 
 /**

@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
 } from "class-validator";
+
 import { MemberRole, TeamMember } from "../organization.entity";
 
 export class Invitation {

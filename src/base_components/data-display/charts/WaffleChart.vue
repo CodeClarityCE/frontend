@@ -1,6 +1,7 @@
 <script lang="ts">
 import * as d3 from "d3";
-import { onMounted, onUnmounted, ref, type Ref } from "vue";
+import { onMounted, onUnmounted, type Ref, ref } from "vue";
+
 import { interpolateColors } from "@/base_components/data-display/charts/colors-waffle";
 import Button from "@/shadcn/ui/button/Button.vue";
 import {

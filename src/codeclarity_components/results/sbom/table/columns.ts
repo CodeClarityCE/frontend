@@ -2,11 +2,13 @@ import { Icon } from "@iconify/vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import { ArrowUpDown } from "lucide-vue-next";
 import { h } from "vue";
+
 import EcosystemBadge from "@/base_components/ui/EcosystemBadge.vue";
 import type { Dependency } from "@/codeclarity_components/results/graph.entity";
 import { Button } from "@/shadcn/ui/button";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { EcosystemDetector } from "@/utils/packageEcosystem";
+
 import DropdownAction from "./DataTableDropDown.vue";
 
 function getUpdateIcon(updateType: string): string {

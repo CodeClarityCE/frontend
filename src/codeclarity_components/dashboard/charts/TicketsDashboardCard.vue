@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+
 import {
-  TicketPriorityLabels,
-  TicketPriorityColors,
   type TicketDashboardStats,
+  TicketPriorityColors,
+  TicketPriorityLabels,
 } from "@/codeclarity_components/tickets/tickets.entity";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
 import { Button } from "@/shadcn/ui/button";

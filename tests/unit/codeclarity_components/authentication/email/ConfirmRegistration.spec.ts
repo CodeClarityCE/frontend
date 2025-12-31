@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+
 import ConfirmRegistration from '@/codeclarity_components/authentication/email/ConfirmRegistration.vue';
 import router from '@/router';
 

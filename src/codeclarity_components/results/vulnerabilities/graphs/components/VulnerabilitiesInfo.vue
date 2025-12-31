@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import type {
   DoughnutChartData,
   DoughnutChartOptions,
 } from "@/base_components/data-display/charts/doughnutChart";
 import DoughnutChart from "@/base_components/data-display/charts/DoughnutChart.vue";
+
 import BulletLegend from "./BulletLegend.vue";
 
 // Props

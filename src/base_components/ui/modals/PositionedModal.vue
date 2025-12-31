@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, nextTick } from "vue";
+import { nextTick, ref } from "vue";
 
 const compRef = ref<HTMLElement | null>(null);
 const show_modal = ref<boolean>(false);

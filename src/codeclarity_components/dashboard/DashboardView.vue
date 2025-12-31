@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PageHeader } from "@/base_components";
 import { useStateStore } from "@/stores/state";
+
 import { useDashboardData } from "./composables/useDashboardData";
 import DashboardEmptyState from "./layout/DashboardEmptyState.vue";
 import DashboardCharts from "./sections/DashboardCharts.vue";

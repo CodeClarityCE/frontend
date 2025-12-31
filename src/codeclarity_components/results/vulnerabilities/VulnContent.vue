@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { computed, ref, type Ref, watch } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
+
 import { InfoCard, StatCard } from "@/base_components";
 import TextLoader from "@/base_components/ui/loaders/TextLoader.vue";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
@@ -16,11 +17,12 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import {
-  GRADE_DISPLAY_RANGES,
   getGradeSubtitle,
   getScoreBorderColor,
+  GRADE_DISPLAY_RANGES,
   scoreToGrade,
 } from "@/utils/gradeUtils";
+
 import SelectWorkspace from "../SelectWorkspace.vue";
 
 export interface Props {

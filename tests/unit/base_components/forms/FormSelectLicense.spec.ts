@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/vue';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
 import FormSelectLicense from '@/base_components/forms/FormSelectLicense.vue';
 import type { License } from '@/codeclarity_components/results/licenses/License';
 

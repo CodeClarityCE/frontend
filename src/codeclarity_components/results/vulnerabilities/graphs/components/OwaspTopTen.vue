@@ -4,6 +4,7 @@ import type {
   BarChartOptions,
 } from "@/base_components/data-display/charts/barChart";
 import BarChart from "@/base_components/data-display/charts/BarChart.vue";
+
 import BulletLegend from "./BulletLegend.vue";
 
 // Props

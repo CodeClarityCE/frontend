@@ -88,7 +88,9 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
+
 import { useMockData } from "../composables/useMockData";
 
 /**

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";

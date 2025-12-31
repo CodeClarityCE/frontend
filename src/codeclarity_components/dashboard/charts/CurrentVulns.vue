@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import Button from "@/shadcn/ui/button/Button.vue";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";

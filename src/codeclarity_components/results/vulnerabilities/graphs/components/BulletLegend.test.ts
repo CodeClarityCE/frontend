@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import BulletLegend, { type LegendItem } from "./BulletLegend.vue";
 
 // Helper function to convert hex to rgb format for comparison

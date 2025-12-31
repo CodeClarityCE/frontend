@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { onMounted, ref } from "vue";
+
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { Token } from "@/codeclarity_components/authentication/token.entity";

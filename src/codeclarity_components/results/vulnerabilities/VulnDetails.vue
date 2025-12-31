@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import InfoMarkdown from "@/base_components/ui/InfoMarkdown.vue";
@@ -16,6 +17,7 @@ import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import { cvssV2_fields_map, cvssV3_fields_map } from "@/utils/cvss";
 import { formatDate } from "@/utils/dateUtils";
+
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import VulnDetailsHeader from "./VulnDetails/VulnDetailsHeader.vue";
 import VulnDetailsLoader from "./VulnDetails/VulnDetailsLoader.vue";

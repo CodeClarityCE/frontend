@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { useRoute } from "vue-router";
+
 import { GitlabTokenType } from "@/codeclarity_components/organizations/integrations/integration_add.http";
 import {
-  IntegrationProvider,
   type GitlabIntegration,
+  IntegrationProvider,
 } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import router from "@/router";
@@ -13,6 +14,7 @@ import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
+
 import OrgIntegrationManageTokenBasedIntegration from "../IntegrationManageTokenBasedIntegration.vue";
 
 const integration: Ref<GitlabIntegration | undefined> = ref();

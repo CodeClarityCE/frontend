@@ -137,6 +137,6 @@ export const createRepositoryMock = <T extends Record<string, unknown>>(methods:
   return mockRepo as T
 }
 
-export * from '@testing-library/vue'
 export { userEvent } from '@testing-library/user-event'
+export * from '@testing-library/vue'
 // Test utilities ready for use

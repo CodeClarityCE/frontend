@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+
 import { PaginationComponent } from "@/base_components";
+
 import {
-  type TicketSummary,
-  TicketStatusLabels,
-  TicketStatusColors,
-  TicketPriorityLabels,
   TicketPriorityColors,
+  TicketPriorityLabels,
+  TicketStatusColors,
+  TicketStatusLabels,
+  type TicketSummary,
   TicketTypeColors,
 } from "../tickets.entity";
 

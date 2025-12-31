@@ -1,17 +1,19 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { ref } from "vue";
+
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Label } from "@/shadcn/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/shadcn/ui/radio-group";
 import { Separator } from "@/shadcn/ui/separator";
+
 import {
-  FilterType,
-  getActiveState,
   type FilterCategory,
   type FilterState,
+  FilterType,
+  getActiveState,
 } from "./filterTypes";
 
 // Props
@@ -96,14 +98,14 @@ init();
 <script lang="ts">
 // Re-export types from the filter types module for backwards compatibility
 export {
-  FilterType,
-  FilterState,
-  createNewFilterState,
-  getActiveState,
   type ActiveFilter,
-  type FilterConfig,
+  createNewFilterState,
   type FilterCategory,
+  type FilterConfig,
   type FilterOption,
+  FilterState,
+  FilterType,
+  getActiveState,
 } from "./filterTypes";
 </script>
 <template>

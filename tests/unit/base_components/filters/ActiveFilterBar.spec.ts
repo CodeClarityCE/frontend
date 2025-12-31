@@ -1,7 +1,8 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect } from 'vitest';
+import { describe, expect,it } from 'vitest';
+
 import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
-import { FilterType, type FilterState, type ActiveFilter } from '@/base_components/filters/UtilitiesFilters.vue';
+import { type ActiveFilter,type FilterState, FilterType } from '@/base_components/filters/UtilitiesFilters.vue';
 
 describe('ActiveFilterBar', () => {
   const createMockFilterState = (activeFilters: ActiveFilter[] = []): FilterState => ({

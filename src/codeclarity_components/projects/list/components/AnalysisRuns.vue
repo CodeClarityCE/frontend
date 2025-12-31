@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
+
 import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import router from "@/router";

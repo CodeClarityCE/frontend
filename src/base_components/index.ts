@@ -5,8 +5,8 @@
 // UI Components
 // -----------------------------------------------------------------------------
 // Cards
-export { default as StatCard } from "./ui/cards/StatCard.vue";
 export { default as InfoCard } from "./ui/cards/InfoCard.vue";
+export { default as StatCard } from "./ui/cards/StatCard.vue";
 
 // Loaders
 export { default as BoxLoader } from "./ui/loaders/BoxLoader.vue";
@@ -37,8 +37,8 @@ export { default as BubbleComponent } from "./data-display/bubbles/BubbleCompone
 export { default as SeverityBubble } from "./data-display/bubbles/SeverityBubble.vue";
 
 // Tables
-export { default as SortSelector } from "./data-display/tables/SortSelector.vue";
 export { default as SortableTable } from "./data-display/tables/SortableTable.vue";
+export { default as SortSelector } from "./data-display/tables/SortSelector.vue";
 
 // Form Components
 // -----------------------------------------------------------------------------

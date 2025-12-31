@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref, computed, watch, onMounted } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
@@ -15,6 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+
 import {
   ExternalTicketProvider,
   type IntegrationConfigSummary,

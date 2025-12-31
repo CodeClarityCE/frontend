@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
+
 import { type License } from "@/codeclarity_components/results/licenses/License";
 import Badge from "@/shadcn/ui/badge/Badge.vue";
 import { Button } from "@/shadcn/ui/button";

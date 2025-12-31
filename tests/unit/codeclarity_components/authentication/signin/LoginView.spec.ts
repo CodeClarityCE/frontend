@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import LoginView from '@/codeclarity_components/authentication/signin/LoginView.vue';
 
 // Mock the stores

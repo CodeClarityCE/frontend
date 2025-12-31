@@ -1,18 +1,19 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach,beforeEach, describe, expect, it } from 'vitest';
+
 import SearchBar from '@/base_components/filters/SearchBar.vue';
 import UserAuthForm from '@/codeclarity_components/authentication/signin/UserAuthForm.vue';
 import DataTable from '@/codeclarity_components/results/sbom/table/DataTable.vue';
+
 import { 
+  detectMemoryLeaks,
+  FPSMonitor,
   measureComponentPerformance, 
   measureUpdatePerformance,
-  stressTestComponent,
-  detectMemoryLeaks,
-  PerformanceTestSuite,
   PERFORMANCE_BENCHMARKS,
-  FPSMonitor,
-  RerenderCounter
-} from '../utils/performance-utils';
+  PerformanceTestSuite,
+  RerenderCounter,
+  stressTestComponent} from '../utils/performance-utils';
 // import { createTestWrapper } from '../utils/test-utils';
 
 // Import components to test

@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
+
 import PoliciesList from "./PoliciesList.vue";
 
 // Mock router

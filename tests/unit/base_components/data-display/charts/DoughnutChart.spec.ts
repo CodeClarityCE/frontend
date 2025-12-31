@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import type { DoughnutChartData, DoughnutChartOptions, VulnerabilityLabel } from '@/base_components/data-display/charts/doughnutChart'
 import DoughnutChart from '@/base_components/data-display/charts/DoughnutChart.vue'
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 
 const show: Ref<boolean> = ref(false);
 </script>

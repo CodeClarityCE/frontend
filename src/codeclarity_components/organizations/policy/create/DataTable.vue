@@ -1,14 +1,15 @@
 <script setup lang="ts" generic="TData, TValue">
 import {
+  type ColumnDef,
+  type ColumnFiltersState,
   FlexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   useVueTable,
-  type ColumnDef,
-  type ColumnFiltersState,
 } from "@tanstack/vue-table";
 import { ref } from "vue";
+
 import type { License } from "@/codeclarity_components/results/licenses/License";
 import { valueUpdater } from "@/shadcn/lib/utils";
 import Button from "@/shadcn/ui/button/Button.vue";

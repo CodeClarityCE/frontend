@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
+
 import {
-  parseSemver,
   compareSemver,
+  getUpgradeType,
+  isEqual,
   isGreaterThan,
   isLessThan,
-  isEqual,
-  sortVersions,
-  maxVersion,
-  minVersion,
   isPrerelease,
   isStable,
+  maxVersion,
+  minVersion,
+  parseSemver,
   shouldRecommendUpgrade,
-  getUpgradeType,
+  sortVersions,
 } from "./semver";
 
 describe("semver utilities", () => {

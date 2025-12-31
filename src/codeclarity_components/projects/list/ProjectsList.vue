@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { onBeforeUnmount, ref, type Ref } from "vue";
+import { onBeforeUnmount, type Ref, ref } from "vue";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import { AnalysisStatus } from "@/codeclarity_components/analyses/analysis.entity";
@@ -13,6 +14,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useProjectsMainStore } from "@/stores/StateStore";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
 import ProjectsList from "./components/ProjectsList.vue";
 
 // Repositories

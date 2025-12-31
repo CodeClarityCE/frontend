@@ -1,5 +1,6 @@
 import type { Component } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
+
 import AnalysesView from "@/codeclarity_components/analyses/AnalysesView.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";

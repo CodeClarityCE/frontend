@@ -3,8 +3,9 @@ import { Icon } from "@iconify/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { toast } from "vue-sonner";
-import { ZodError } from "zod";
 import * as z from "zod";
+import { ZodError } from "zod";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -19,6 +20,7 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+
 import { OrgRepository } from "../organization.repository";
 
 const authStore = useAuthStore();

@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue";
+
 import {
-  AnalysisStatus,
   type Analysis,
+  AnalysisStatus,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
+
 import PatchingContent from "./PatchingContent.vue";
 
 const props = defineProps<{

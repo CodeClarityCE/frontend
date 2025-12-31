@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref, watch } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import {

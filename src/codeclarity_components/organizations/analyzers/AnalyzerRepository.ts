@@ -1,15 +1,16 @@
 import { Entity } from "../../../utils/api/BaseEntity";
 import {
-  BaseRepository,
   type AuthRepoMethodEmptyDeleteRequestOptions,
   type AuthRepoMethodGetRequestOptions,
   type AuthRepoMethodPostRequestOptions,
+  BaseRepository,
   type EmptyPostData,
 } from "../../../utils/api/BaseRepository";
 import { CreatedResponse } from "../../../utils/api/responses/CreatedResponse";
 import { DataResponse } from "../../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../../utils/api/responses/NoDataResponse";
 import { PaginatedResponse } from "../../../utils/api/responses/PaginatedResponse";
+
 import { type Analyzer } from "./Analyzer";
 import type { CreateAnalyzer } from "./create_analyzer.http";
 

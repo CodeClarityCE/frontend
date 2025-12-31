@@ -1,14 +1,16 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import {
-  AnalysisStatus,
   type Analysis,
+  AnalysisStatus,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { AlertDescription } from "@/shadcn/ui/alert";
 import Alert from "@/shadcn/ui/alert/Alert.vue";
+
 import Licenses from "./LicensesComponent.vue";
 // Import stores
 // Import theme components

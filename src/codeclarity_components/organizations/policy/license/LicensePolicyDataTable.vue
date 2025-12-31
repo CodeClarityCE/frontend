@@ -1,14 +1,15 @@
 <script setup lang="ts" generic="TData, TValue">
 import { Icon } from "@iconify/vue";
 import {
+  type ColumnFiltersState,
   FlexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   useVueTable,
-  type ColumnFiltersState,
 } from "@tanstack/vue-table";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
+
 import { valueUpdater } from "@/shadcn/lib/utils";
 import Button from "@/shadcn/ui/button/Button.vue";
 import Input from "@/shadcn/ui/input/Input.vue";
@@ -18,7 +19,9 @@ import TableCell from "@/shadcn/ui/table/TableCell.vue";
 import TableHead from "@/shadcn/ui/table/TableHead.vue";
 import TableHeader from "@/shadcn/ui/table/TableHeader.vue";
 import TableRow from "@/shadcn/ui/table/TableRow.vue";
+
 import type { LicensePolicy } from "../license_policy.entity";
+
 import { columns } from "./columns";
 
 const props = defineProps<{

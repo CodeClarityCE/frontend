@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import { IsDate, IsDefined, IsNotEmpty, IsOptional } from "class-validator";
+
 import { TeamMember } from "../organization.entity";
 
 export class Analyzer {

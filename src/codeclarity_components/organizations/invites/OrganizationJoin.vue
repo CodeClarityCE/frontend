@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { onMounted, ref, type Ref } from "vue";
+import { onMounted, type Ref, ref } from "vue";
+
 import FaqBox from "@/base_components/layout/FaqBox.vue";
 import router from "@/router";
 import Button from "@/shadcn/ui/button/Button.vue";
@@ -9,9 +10,10 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
 import { successToast } from "@/utils/toasts";
+
 import {
-  type OrganizationInfoForInvitee,
   MemberRole,
+  type OrganizationInfoForInvitee,
 } from "../organization.entity";
 import { OrgRepository } from "../organization.repository";
 

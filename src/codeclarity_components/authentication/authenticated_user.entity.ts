@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
 } from "class-validator";
+
 import { SocialProvider } from "../organizations/integrations/Integrations";
 import { Organization } from "../organizations/organization.entity";
 

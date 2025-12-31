@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
+
 import {
-  AnalysisStatus,
   type Analysis,
+  AnalysisStatus,
   type AnalysisStatus as AnalysisStatusType,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
@@ -12,10 +13,10 @@ import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/shadcn/ui/dialog";
 import {
   DropdownMenu,
@@ -34,6 +35,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { formatDate, formatDistanceToNow } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
+
 import AnalysisRuns from "./AnalysisRuns.vue";
 
 const props = defineProps({

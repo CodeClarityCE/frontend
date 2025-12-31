@@ -129,4 +129,4 @@ function getRadarChartConfig(): {
   return d3_config;
 }
 
-export { getRadarChartData, getRadarChartConfig };
+export { getRadarChartConfig, getRadarChartData };

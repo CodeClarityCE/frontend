@@ -1,8 +1,10 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
+
 import ResultsVulnerabilities from "./ResultsVulnerabilities.vue";
 
 // Mock child components

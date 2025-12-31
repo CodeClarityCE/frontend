@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
+import { type Ref, ref, watch } from "vue";
+
 import WaffleChart, {
   type WaffleChartEntry,
 } from "@/base_components/data-display/charts/WaffleChart.vue";

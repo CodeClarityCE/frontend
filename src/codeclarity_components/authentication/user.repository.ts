@@ -1,15 +1,16 @@
 import { Entity } from "../../utils/api/BaseEntity";
 import {
-  BaseRepository,
-  type AuthRepoMethodPostRequestOptions,
-  type AuthRepoMethodPatchRequestOptions,
   type AuthRepoMethodDeleteRequestOptions,
+  type AuthRepoMethodPatchRequestOptions,
+  type AuthRepoMethodPostRequestOptions,
+  BaseRepository,
 } from "../../utils/api/BaseRepository";
 import { CreatedResponse } from "../../utils/api/responses/CreatedResponse";
 import type { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 import type { UpdateDefaultOrgBody } from "../organizations/update_default_org.http";
 import type { PasswordDeleteBody } from "../settings/forms/password_delete.http";
+
 import { AuthenticatedUser } from "./authenticated_user.entity";
 import type { ConfirmRegistrationBody } from "./confirm_registration.http";
 import type { PasswordPatchBody } from "./password_patch.http";

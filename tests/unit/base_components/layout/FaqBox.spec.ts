@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
 import FaqBox from '@/base_components/layout/FaqBox.vue';
 
 // Mock external dependencies

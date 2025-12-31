@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref, type Ref, computed, watch } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
+
 import {
   type Notification,
   NotificationContentType,
@@ -31,10 +32,10 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import {
+  getUpgradeType,
   isGreaterThan,
   isPrerelease as semverIsPrerelease,
   shouldRecommendUpgrade,
-  getUpgradeType,
 } from "@/utils/semver";
 
 const userStore = useUserStore();

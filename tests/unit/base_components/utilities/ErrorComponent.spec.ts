@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/vue';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
 import ErrorComponent from '@/base_components/utilities/ErrorComponent.vue';
 
 const renderComponent = (props = {}, attrs = {}) => {

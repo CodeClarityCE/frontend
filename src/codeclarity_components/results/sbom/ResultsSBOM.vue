@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import { computed, onUpdated, ref, watch, type Ref } from "vue";
+import { computed, onUpdated, type Ref, ref, watch } from "vue";
+
 import {
-  AnalysisStatus,
   type Analysis,
+  AnalysisStatus,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+
 import SbomContent from "./SbomContent.vue";
 
 // Import stores

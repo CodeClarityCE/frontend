@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { storeToRefs } from "pinia";
-import { ref, watch, type Ref } from "vue";
-import { PageHeader, InfoCard } from "@/base_components";
+import { type Ref, ref, watch } from "vue";
+
+import { InfoCard, PageHeader } from "@/base_components";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import {
   IntegrationProvider,
@@ -15,6 +16,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
 import GithubImportComponent from "./import/GithubImportComponent.vue";
 import GitlabImportComponent from "./import/GitlabImportComponent.vue";
 import Integrations from "./integrations/IntegrationsComponent.vue";

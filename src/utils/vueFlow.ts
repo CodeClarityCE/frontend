@@ -1,5 +1,6 @@
-import { Position, type Node, type Edge } from "@vue-flow/core";
+import { type Edge, type Node, Position } from "@vue-flow/core";
 import * as d3 from "d3";
+
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 
 export interface AnalyzerNode extends Node {

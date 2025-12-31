@@ -6,19 +6,21 @@ import {
 import { type Repository } from "@/codeclarity_components/projects/project.entity";
 import { Entity } from "@/utils/api/BaseEntity";
 import { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
+
 import {
-  BaseRepository,
-  type AuthRepoMethodGetRequestOptions,
-  type AuthRepoMethodPostRequestOptions,
-  type PaginatedRepoMethodRequestOptions,
   type AuthRepoMethodEmptyDeleteRequestOptions,
-  type EmptyPostData,
+  type AuthRepoMethodGetRequestOptions,
   type AuthRepoMethodPatchRequestOptions,
+  type AuthRepoMethodPostRequestOptions,
+  BaseRepository,
+  type EmptyPostData,
+  type PaginatedRepoMethodRequestOptions,
   type SearchableRepoMethodRequestOptions,
   type SortableRepoMethodRequestOptions,
 } from "../../../utils/api/BaseRepository";
 import type { DataResponse } from "../../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../../utils/api/responses/NoDataResponse";
+
 import type {
   GilabIntegrationAdd,
   GithubIntegrationAdd,

@@ -1,5 +1,5 @@
 import type { VueWrapper } from '@vue/test-utils';
-import { run as axeRun, type AxeResults, type Result, type RunOptions } from 'axe-core';
+import { type AxeResults, type Result, run as axeRun, type RunOptions } from 'axe-core';
 
 /**
  * Default axe configuration for CodeClarity accessibility testing

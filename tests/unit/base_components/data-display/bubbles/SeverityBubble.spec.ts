@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it } from 'vitest'
+
 import SeverityBubble from '@/base_components/data-display/bubbles/SeverityBubble.vue'
 
 // TODO: These tests need to be rewritten to match the current component implementation.

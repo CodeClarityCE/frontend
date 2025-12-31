@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { ref } from "vue";
+
 import { useVulnerabilityPolicyActions } from "@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions";
 import Button from "@/shadcn/ui/button/Button.vue";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 
 interface Props {

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
+
 import VerticalCard from "@/base_components/ui/cards/VerticalCard.vue";
 import { AnalysisStatus } from "@/codeclarity_components/analyses/analysis.entity";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
@@ -12,10 +13,10 @@ import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/shadcn/ui/dialog";
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
+
 import AnalysisListImproved from "./AnalysisListImproved.vue";
 
 // Props

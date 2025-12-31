@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { RouterLink } from "vue-router";
+
 import { InfoCard } from "@/base_components";
 import {
+  isMemberRoleGreaterOrEqualTo,
   MemberRole,
   type Organization,
-  isMemberRoleGreaterOrEqualTo,
 } from "@/codeclarity_components/organizations/organization.entity";
 import Button from "@/shadcn/ui/button/Button.vue";
 

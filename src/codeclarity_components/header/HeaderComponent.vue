@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+
 import MainNav from "./components/MainNav.vue";
 import SearchHeader from "./components/SearchHeader.vue";
 import TeamSwitcher from "./components/TeamSwitcher.vue";

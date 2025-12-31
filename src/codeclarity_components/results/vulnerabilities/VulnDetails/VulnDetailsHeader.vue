@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+
 import type PositionedModalVue from "@/base_components/ui/modals/PositionedModal.vue";
 import type { VulnerabilityDetails } from "@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails";
 defineProps<{

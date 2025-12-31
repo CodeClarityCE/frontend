@@ -1,4 +1,5 @@
 import { useToast } from "vue-toast-notification";
+
 import "vue-toast-notification/dist/theme-sugar.css";
 
 export function successToast(text: string): void {

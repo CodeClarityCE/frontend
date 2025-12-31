@@ -7,6 +7,7 @@ import {
   IsString,
   IsUrl,
 } from "class-validator";
+
 import { IntegrationProvider } from "../organizations/integrations/Integrations";
 
 export enum Trend {

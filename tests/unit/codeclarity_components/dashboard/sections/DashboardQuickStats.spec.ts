@@ -1,5 +1,6 @@
-import { mount, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { flushPromises,mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import DashboardQuickStats from '@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue';
 
 // Mock external dependencies

@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsOptional,
 } from "class-validator";
+
 import { type Analysis } from "../analyses/analysis.entity";
 import { IntegrationProvider } from "../organizations/integrations/Integrations";
 import { TeamMember } from "../organizations/organization.entity";

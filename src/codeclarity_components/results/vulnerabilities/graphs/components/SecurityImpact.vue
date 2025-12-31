@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import type {
   RadarChartData,
   RadarChartOptions,

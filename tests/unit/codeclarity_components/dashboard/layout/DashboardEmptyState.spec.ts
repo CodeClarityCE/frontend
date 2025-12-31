@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import DashboardEmptyState from '@/codeclarity_components/dashboard/layout/DashboardEmptyState.vue';
 
 describe('DashboardEmptyState', () => {

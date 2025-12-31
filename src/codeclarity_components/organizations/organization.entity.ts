@@ -10,7 +10,9 @@ import {
   IsNumber,
   IsOptional,
 } from "class-validator";
+
 import type { Project } from "../projects/project.entity";
+
 import type { OrganizationMembership } from "./organization_membership.entity";
 
 export class Organization {

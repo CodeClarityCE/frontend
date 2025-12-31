@@ -7,6 +7,7 @@ import Pagination from "@/base_components/utilities/PaginationComponent.vue";
 import type { AuditLog } from "@/codeclarity_components/organizations/audit_logs/AuditLog";
 import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
 import { type SortDirection } from "@/utils/api/PaginatedRequestOptions";
+
 import OrgAuditLogItem from "./audit/OrgAuditLogItem.vue";
 
 defineProps<{

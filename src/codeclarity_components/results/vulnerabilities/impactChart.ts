@@ -171,8 +171,8 @@ function getRadarChartConfig(): {
 }
 
 export {
-  getRadarChartData,
-  getRadarChartConfig,
   getContinousFromDiscreteCVSS2,
   getContinousFromDiscreteCVSS3,
+  getRadarChartConfig,
+  getRadarChartData,
 };

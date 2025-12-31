@@ -1,10 +1,10 @@
 import { Entity } from "../../utils/api/BaseEntity";
 import {
-  BaseRepository,
-  type AuthRepoMethodGetRequestOptions,
-  type AuthRepoMethodPostRequestOptions,
-  type AuthRepoMethodPatchRequestOptions,
   type AuthRepoMethodEmptyDeleteRequestOptions,
+  type AuthRepoMethodGetRequestOptions,
+  type AuthRepoMethodPatchRequestOptions,
+  type AuthRepoMethodPostRequestOptions,
+  BaseRepository,
   type PaginatedRepoMethodRequestOptions,
   type SortableRepoMethodRequestOptions,
 } from "../../utils/api/BaseRepository";
@@ -12,28 +12,29 @@ import { CreatedResponse } from "../../utils/api/responses/CreatedResponse";
 import { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
+
 import {
-  TicketSummary,
-  TicketDetails,
-  TicketEvent,
-  TicketDashboardStats,
-  type ExternalTicketProvider,
-  type ExternalLink,
-  type CreateTicketRequest,
-  type UpdateTicketRequest,
+  type BulkSyncFromExternalResult,
+  type BulkSyncResult,
+  type BulkUpdateResult,
   type BulkUpdateTicketsRequest,
   type CheckDuplicateRequest,
-  type BulkUpdateResult,
+  type ConfigureClickUpRequest,
+  type ConnectionTestResult,
+  type CreateTicketRequest,
   type DuplicateCheckResult,
-  type TicketFilters,
+  type ExternalLink,
+  type ExternalTicketProvider,
   type IntegrationConfigSummary,
   type IntegrationHierarchyItem,
-  type ConnectionTestResult,
-  type ConfigureClickUpRequest,
-  type SyncResult,
-  type BulkSyncResult,
   type SyncFromExternalResult,
-  type BulkSyncFromExternalResult,
+  type SyncResult,
+  TicketDashboardStats,
+  TicketDetails,
+  TicketEvent,
+  type TicketFilters,
+  TicketSummary,
+  type UpdateTicketRequest,
   type VulnerabilityDetailsReport,
 } from "./tickets.entity";
 

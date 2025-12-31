@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
+
 import SortableTable, {
   type TableHeader,
 } from "@/base_components/data-display/tables/SortableTable.vue";

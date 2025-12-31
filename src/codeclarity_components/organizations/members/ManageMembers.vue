@@ -1,16 +1,17 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, type Ref, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+
 import SortableTable from "@/base_components/data-display/tables/SortableTable.vue";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
 import Pagination from "@/base_components/utilities/PaginationComponent.vue";
 import {
-  MemberRole,
-  type TeamMember,
-  type Organization,
   isMemberRoleGreaterThan,
+  MemberRole,
+  type Organization,
+  type TeamMember,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
@@ -21,6 +22,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { debounce } from "@/utils/searchUtils";
+
 import OrgMemberItem from "./members/MemberItem.vue";
 
 const orgRepo = new OrgRepository();

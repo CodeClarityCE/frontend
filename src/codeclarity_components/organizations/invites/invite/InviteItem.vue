@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import LoadingButton from "@/base_components/ui/loaders/LoadingButton.vue";
 import CenteredModal from "@/base_components/ui/modals/CenteredModal.vue";
 import Button from "@/shadcn/ui/button/Button.vue";
@@ -10,6 +11,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate, formatRelativeTime } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
+
 import {
   isMemberRoleGreaterThan,
   MemberRole,

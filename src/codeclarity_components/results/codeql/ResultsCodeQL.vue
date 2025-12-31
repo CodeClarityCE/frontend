@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Rocket } from "lucide-vue-next";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import Alert from "@/shadcn/ui/alert/Alert.vue";
@@ -16,9 +17,11 @@ import {
 } from "@/shadcn/ui/card";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+
 import ResultTimestamp from "../components/ResultTimestamp.vue";
 import { Result } from "../result.entity";
 import { ResultsRepository } from "../results.repository";
+
 import type { CodeQLResult } from "./codeql.entity";
 
 const props = defineProps<{

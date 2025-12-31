@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import VulnDetailsLoader from "./VulnDetailsLoader.vue";
 
 // Mock child components

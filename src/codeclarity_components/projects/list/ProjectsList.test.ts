@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
+
 import ProjectsList from "./ProjectsList.vue";
 
 // Mock all dependencies

@@ -3,9 +3,10 @@ import { Icon } from "@iconify/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { storeToRefs } from "pinia";
 import { useForm } from "vee-validate";
-import { onBeforeMount, ref, type Ref, computed } from "vue";
+import { computed, onBeforeMount, type Ref, ref } from "vue";
 import { useRoute } from "vue-router";
 import { z } from "zod";
+
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
 import {
   isMemberRoleGreaterOrEqualTo,
@@ -39,6 +40,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+
 import { columns } from "./columns";
 import DataTable from "./DataTable.vue";
 

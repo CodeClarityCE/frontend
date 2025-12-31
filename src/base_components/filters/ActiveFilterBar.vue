@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+
 import {
-  FilterType,
   type ActiveFilter,
   type FilterState,
+  FilterType,
 } from "@/base_components/filters/filterTypes";
 
 const filterState = defineModel<FilterState>("filterState", { required: true });

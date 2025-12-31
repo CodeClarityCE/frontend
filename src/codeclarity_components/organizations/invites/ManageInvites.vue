@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, type Ref, ref, watch } from "vue";
+
 import SortableTable from "@/base_components/data-display/tables/SortableTable.vue";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
@@ -11,12 +12,14 @@ import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { debounce } from "@/utils/searchUtils";
+
 import {
   isMemberRoleGreaterThan,
   MemberRole,
   type Organization,
 } from "../organization.entity";
 import { OrgRepository } from "../organization.repository";
+
 import type { Invitation } from "./invitation.entity";
 import OrgInviteItem from "./invite/InviteItem.vue";
 

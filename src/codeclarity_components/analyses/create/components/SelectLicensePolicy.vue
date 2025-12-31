@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
+
 import LoadingContainer from "@/base_components/ui/loaders/LoadingContainer.vue";
 import PaginationComponent from "@/base_components/utilities/PaginationComponent.vue";
 import { type LicensePolicy } from "@/codeclarity_components/organizations/policy/license_policy.entity";

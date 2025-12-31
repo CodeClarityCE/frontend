@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { RadarChart as mockRadarChart, type RadarChartData, type RadarChartOptions } from '@/base_components/data-display/charts/radarChart'
 import RadarChart from '@/base_components/data-display/charts/RadarChart.vue'
 

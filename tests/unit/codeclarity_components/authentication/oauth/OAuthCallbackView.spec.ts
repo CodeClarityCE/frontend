@@ -2,7 +2,8 @@
 global.Reflect = global.Reflect ?? {};
 global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach,describe, expect, it, vi } from 'vitest';
+
 import OAuthCallbackView from '@/codeclarity_components/authentication/oauth/OAuthCallbackView.vue';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 

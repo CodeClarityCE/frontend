@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { onMounted, onUpdated, ref, type Ref, watch } from "vue";
+import { onMounted, onUpdated, type Ref, ref, watch } from "vue";
+
 import { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import { Project } from "@/codeclarity_components/projects/project.entity";
@@ -7,6 +8,7 @@ import { ProjectRepository } from "@/codeclarity_components/projects/project.rep
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
+
 import Details from "./SbomDetails.vue";
 // Import stores
 

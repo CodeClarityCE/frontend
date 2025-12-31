@@ -5,6 +5,7 @@
  */
 
 import type { VueWrapper } from '@vue/test-utils';
+
 import type { MemoryInfo } from './types';
 
 // Type for Vue component options with lifecycle hooks

@@ -12,7 +12,8 @@
  */
 
 import { Icon } from "@iconify/vue";
-import { computed, ref, type Ref, watch } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
+
 import type { DoughnutChartData } from "@/base_components/data-display/charts/doughnutChart";
 import DoughnutChart from "@/base_components/data-display/charts/DoughnutChart.vue";
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
@@ -33,18 +34,20 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import {
-  GRADE_DISPLAY_RANGES,
   getGradeSubtitle,
   getScoreBorderColor,
+  GRADE_DISPLAY_RANGES,
   scoreToGrade,
 } from "@/utils/gradeUtils";
+
 import SelectWorkspace from "../SelectWorkspace.vue";
+
 import {
-  convertToCycloneDX,
   convertToCSV,
+  convertToCycloneDX,
   convertToHTML,
-  sortDependenciesByPriority,
   type ExportOptions,
+  sortDependenciesByPriority,
 } from "./exports/sbomExportUtils";
 import PackageJsonUpdatesModal from "./PackageJsonUpdatesModal.vue";
 import SbomExportMenu from "./SbomExportMenu.vue";
@@ -53,8 +56,8 @@ import {
   calculateHealthScore,
   calculateSecurityIssues,
   convertToPackageUpdates,
-  getDirectDependenciesNeedingUpdates,
   type Dependency,
+  getDirectDependenciesNeedingUpdates,
 } from "./utils/sbomUtils";
 
 export interface Props {

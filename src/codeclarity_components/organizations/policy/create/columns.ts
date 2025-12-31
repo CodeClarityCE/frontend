@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { h } from "vue";
+
 import type { License } from "@/codeclarity_components/results/licenses/License";
 import Checkbox from "@/shadcn/ui/checkbox/Checkbox.vue";
 

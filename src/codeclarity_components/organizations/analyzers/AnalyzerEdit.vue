@@ -1,10 +1,11 @@
 <script lang="ts" setup>
+import { toTypedSchema } from "@vee-validate/zod";
 import type { Edge } from "@vue-flow/core";
 import { storeToRefs } from "pinia";
-import { toTypedSchema } from "@vee-validate/zod";
 import { Form } from "vee-validate";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { useRoute } from "vue-router";
+
 import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
@@ -20,12 +21,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import {
-  createAnalyzerNodes,
-  retrieveWorkflowSteps,
-  layoutNodes,
   type AnalyzerNode,
   type ConfigNode,
+  createAnalyzerNodes,
+  layoutNodes,
+  retrieveWorkflowSteps,
 } from "@/utils/vueFlow";
+
 import AnalyzerFormFields from "./shared/AnalyzerFormFields.vue";
 import { analyzerValidationSchema } from "./shared/analyzerValidation";
 import WorkflowDesigner from "./shared/WorkflowDesigner.vue";

@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, computed, onMounted, type Ref } from "vue";
+import { computed, onMounted, type Ref, ref } from "vue";
+
 import { useAuthStore } from "@/stores/auth";
+
 import {
-  AnalyzerTemplatesRepository,
   type AnalyzerTemplate,
+  AnalyzerTemplatesRepository,
 } from "../AnalyzerTemplatesRepository";
 
 const props = defineProps<{

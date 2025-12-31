@@ -3,9 +3,10 @@ import { Icon } from "@iconify/vue";
 import { watchDeep } from "@vueuse/core";
 import { AlertCircle } from "lucide-vue-next";
 import { Form } from "vee-validate";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { toast } from "vue-sonner";
+
 import { PageHeader } from "@/base_components";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import type {
@@ -42,6 +43,7 @@ import { useUserStore } from "@/stores/user";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+
 import ScheduleSelector from "./components/ScheduleSelector.vue";
 import SelectLicensePolicy from "./components/SelectLicensePolicy.vue";
 import SelectVulnerabilityPolicy from "./components/SelectVulnerabilityPolicy.vue";

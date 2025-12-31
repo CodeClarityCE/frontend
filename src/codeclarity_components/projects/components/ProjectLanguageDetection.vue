@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, onMounted, type Ref } from "vue";
+import { onMounted, type Ref, ref } from "vue";
+
 import LanguageBadge from "@/base_components/ui/LanguageBadge.vue";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import Skeleton from "@/shadcn/ui/skeleton/Skeleton.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useProjectsMainStore } from "@/stores/StateStore";
 import {
-  LanguageDetectionService,
   type DetectedLanguage,
+  LanguageDetectionService,
 } from "@/utils/languageDetection";
 
 const props = defineProps<{

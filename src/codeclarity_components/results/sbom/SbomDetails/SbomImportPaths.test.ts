@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { GraphDependency } from "../../graph.entity";
+
 import { type DependencyDetails } from "./SbomDetails";
 import SbomImportPaths from "./SbomImportPaths.vue";
 

@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import SbomDependencyHealth from "./SbomDependencyHealth.vue";
 import { type DependencyDetails } from "./SbomDetails";
 

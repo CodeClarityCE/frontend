@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import InfoMarkdown from "@/base_components/ui/InfoMarkdown.vue";
 import type CenteredModalVue from "@/base_components/ui/modals/CenteredModal.vue";

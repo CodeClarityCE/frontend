@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import LineChart from '@/base_components/data-display/charts/LineChart.vue'
 
 // LineChart types (defined inline since not exported)

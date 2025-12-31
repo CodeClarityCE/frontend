@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
+
 import LoadingComponent from '@/base_components/ui/loaders/LoadingComponent.vue'
 
 describe('LoadingComponent', () => {

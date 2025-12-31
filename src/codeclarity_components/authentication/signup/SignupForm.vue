@@ -3,10 +3,11 @@ import { vAutoAnimate } from "@formkit/auto-animate/vue";
 import { Icon } from "@iconify/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { toast } from "vue-sonner";
 import * as z from "zod";
+
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import router from "@/router";
 import { cn } from "@/shadcn/lib/utils";

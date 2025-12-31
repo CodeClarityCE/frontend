@@ -1,16 +1,18 @@
 import { storeToRefs } from "pinia";
-import { ref, computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
+
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
+
 import {
-  type TicketSummary,
   type TicketDetails,
   type TicketFilters,
-  type TicketSortField,
-  type VulnerabilityDetailsReport,
-  TicketStatus,
   TicketPriority,
+  type TicketSortField,
+  TicketStatus,
+  type TicketSummary,
+  type VulnerabilityDetailsReport,
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
 

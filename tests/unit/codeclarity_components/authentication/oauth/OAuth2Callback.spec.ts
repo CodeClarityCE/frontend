@@ -3,8 +3,9 @@ global.Reflect = global.Reflect ?? {};
 global.Reflect.getMetadata = global.Reflect.getMetadata ?? vi.fn();
 
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+
 import OAuth2Callback from '@/codeclarity_components/authentication/oauth/OAuth2Callback.vue';
 import { SocialProvider } from '@/codeclarity_components/organizations/integrations/Integrations';
 import router from '@/router';

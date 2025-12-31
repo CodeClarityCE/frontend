@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { ref, type Ref } from "vue";
+import { type Ref, ref } from "vue";
+
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,

@@ -1,9 +1,10 @@
 import {
-  plainToInstance,
   type ClassConstructor,
   instanceToPlain,
+  plainToInstance,
 } from "class-transformer";
 import { validateSync } from "class-validator";
+
 import { MalformedResponse } from "./ApiErrors";
 
 export abstract class Entity {

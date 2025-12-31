@@ -1,5 +1,7 @@
 import { storeToRefs } from "pinia";
-import { ref, computed, onMounted, type ComputedRef, type Ref } from "vue";
+import { computed, type ComputedRef, onMounted, type Ref, ref } from "vue";
+
+import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type {
   Integration,
@@ -7,7 +9,6 @@ import type {
   OrganizationMetaData,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
-import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
@@ -113,12 +114,13 @@ export function useDashboardData(): {
         if (integrations.value.length > 0) {
           const integrationIds = integrations.value.map((i) => i.id ?? "");
           try {
-            const quickStatsResponse = await new DashboardRepository().getQuickStats({
-              orgId: defaultOrg.value.id,
-              bearerToken: auth.getToken,
-              handleBusinessErrors: true,
-              integrationIds,
-            });
+            const quickStatsResponse =
+              await new DashboardRepository().getQuickStats({
+                orgId: defaultOrg.value.id,
+                bearerToken: auth.getToken,
+                handleBusinessErrors: true,
+                integrationIds,
+              });
             projectsScanned.value = quickStatsResponse.data.nmb_projects ?? 0;
           } catch {
             // If quick stats fail, assume no analyses yet

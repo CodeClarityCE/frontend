@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import {
-  onBeforeMount,
-  ref,
-  defineAsyncComponent,
-  watch,
-  type Ref,
   type Component,
+  defineAsyncComponent,
+  onBeforeMount,
+  type Ref,
+  ref,
+  watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
 import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
 import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import {

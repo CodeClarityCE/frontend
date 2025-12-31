@@ -23,7 +23,10 @@
     <!-- No integrations state -->
     <Empty v-else-if="!hasIntegrations" class="border border-gray-200">
       <EmptyHeader>
-        <EmptyMedia variant="icon" class="bg-theme-primary/10 text-theme-primary">
+        <EmptyMedia
+          variant="icon"
+          class="bg-theme-primary/10 text-theme-primary"
+        >
           <Icon icon="solar:link-circle-bold" class="size-6" />
         </EmptyMedia>
         <EmptyTitle>Connect Your Repository</EmptyTitle>
@@ -39,7 +42,9 @@
             params: { orgId: orgId, page: 'integrations', action: 'manage' },
           }"
         >
-          <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+          <Button
+            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+          >
             <Icon icon="solar:link-bold" class="size-4 mr-2" />
             Connect GitHub or GitLab
           </Button>
@@ -50,7 +55,10 @@
     <!-- No projects state -->
     <Empty v-else-if="!hasProjects" class="border border-gray-200">
       <EmptyHeader>
-        <EmptyMedia variant="icon" class="bg-theme-primary/10 text-theme-primary">
+        <EmptyMedia
+          variant="icon"
+          class="bg-theme-primary/10 text-theme-primary"
+        >
           <Icon icon="solar:folder-add-bold" class="size-6" />
         </EmptyMedia>
         <EmptyTitle>Import Your First Project</EmptyTitle>
@@ -61,7 +69,9 @@
       </EmptyHeader>
       <EmptyContent>
         <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-          <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+          <Button
+            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+          >
             <Icon icon="solar:add-circle-bold" class="size-4 mr-2" />
             Import Project
           </Button>
@@ -72,7 +82,10 @@
     <!-- No analyses state -->
     <Empty v-else-if="!hasAnalyses" class="border border-gray-200">
       <EmptyHeader>
-        <EmptyMedia variant="icon" class="bg-theme-primary/10 text-theme-primary">
+        <EmptyMedia
+          variant="icon"
+          class="bg-theme-primary/10 text-theme-primary"
+        >
           <Icon icon="solar:play-circle-bold" class="size-6" />
         </EmptyMedia>
         <EmptyTitle>Run Your First Analysis</EmptyTitle>
@@ -83,7 +96,9 @@
       </EmptyHeader>
       <EmptyContent>
         <RouterLink :to="{ name: 'projects', params: { page: 'list' } }">
-          <Button class="bg-theme-primary hover:bg-theme-primary-dark text-white">
+          <Button
+            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+          >
             <Icon icon="solar:folder-open-bold" class="size-4 mr-2" />
             Go to Projects
           </Button>
@@ -95,6 +110,8 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+
+import Button from "@/shadcn/ui/button/Button.vue";
 import {
   Empty,
   EmptyContent,
@@ -103,7 +120,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/shadcn/ui/empty";
-import Button from "@/shadcn/ui/button/Button.vue";
 
 /**
  * DashboardEmptyState - Shows when dashboard has no data

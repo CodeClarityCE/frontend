@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import TeamSwitcher from '@/codeclarity_components/header/components/TeamSwitcher.vue';
 
 // Mock external dependencies

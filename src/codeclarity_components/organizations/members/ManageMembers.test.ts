@@ -1,8 +1,10 @@
 import { mount } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
+
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import { APIErrors } from "@/utils/api/ApiErrors";
+
 import ManageMembers from "./ManageMembers.vue";
 
 // Mock router

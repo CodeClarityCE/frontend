@@ -24,7 +24,7 @@ jobs:
 
       - name: Start Analysis
         id: codeclarity-action
-        uses: CodeClarityCE/codeclarity-action@v0
+        uses: CodeClarityCE/codeclarity-action@v0.1.0
         with:
           branch: ${{ steps.branch-names.outputs.current_branch }}
           serverUrl: ${{ github.server_url }}

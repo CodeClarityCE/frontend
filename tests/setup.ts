@@ -1,3 +1,16 @@
+// Mock localStorage BEFORE any imports to prevent @vue/devtools-kit errors
+// This must be at the very top of the file
+const localStorageMock = {
+  getItem: (_key: string): string | null => null,
+  setItem: (_key: string, _value: string): void => {},
+  removeItem: (_key: string): void => {},
+  clear: (): void => {},
+  length: 0,
+  key: (_index: number): string | null => null
+}
+Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock, writable: true })
+Object.defineProperty(globalThis, 'sessionStorage', { value: localStorageMock, writable: true })
+
 import 'reflect-metadata'
 
 import { config } from '@vue/test-utils'

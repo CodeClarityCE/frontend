@@ -1,57 +1,106 @@
 pipeline {
     agent { label 'codeclarity' }
 
-    environment {
-        DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+    }
+
     stages {
-        stage('Login') {
-			steps {
-				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+        stage('Setup') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                 script {
-                    def project =readJSON file: 'package.json'
+                    def project = readJSON file: 'package.json'
                     env.Version = project.version
                     env.Name = project.name
-                    sh 'echo $Version'
+                    env.VersionTag = "v${Version}"
                     env.Tag = "codeclarityce/${Name}:${Version}"
-                    sh 'echo $Tag'
+                    echo "Version: ${Version}, Tag: ${Tag}"
                 }
-			}
-		}
-        stage('Reset') {
-            steps {
-                sh 'docker system prune -af'
                 sh 'git submodule update --init --recursive'
-                sh 'git fetch --tags --force'
+                sh 'git fetch --tags --force origin'
                 sh 'yarn'
             }
         }
-        stage('Test lint and format') {
+
+        stage('PR Version Check') {
+            when {
+                expression { env.CHANGE_TARGET == 'main' }
+            }
+            steps {
+                script {
+                    // Get version from main branch
+                    def mainVersion = sh(
+                        script: "git show origin/main:package.json | jq -r '.version'",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "PR Version: ${Version}"
+                    echo "Main Version: ${mainVersion}"
+
+                    if (Version == mainVersion) {
+                        error "Version not bumped! PR version (${Version}) equals main version (${mainVersion}). Please update package.json version."
+                    }
+                    echo "Version check passed: ${mainVersion} -> ${Version}"
+                }
+            }
+        }
+
+        stage('Test') {
             steps {
                 sh 'yarn lint'
                 sh 'yarn run vitest run'
                 sh 'yarn run prettier src --check'
             }
         }
+
         stage('Build') {
+            when {
+                not { branch 'main' }
+            }
             steps {
-                sh 'docker buildx rm frontend || true'
-                sh 'docker buildx create --name frontend --use --bootstrap'
-                sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64 --tag codeclarityce/frontend:latest --tag $Tag .'
+                sh 'docker build -f .cloud/docker/Dockerfile --tag codeclarityce/frontend:latest --tag $Tag .'
             }
         }
+
         stage('Deploy') {
             when {
                 branch 'main'
             }
             steps {
                 script {
-                    def result = sh(script: "sh .cloud/jenkins/check_version.sh ${Version}", returnStatus: true)
-                    if (result == 0) {
-                        sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'
+                    // Reuse existing builder or create new one
+                    sh 'docker buildx create --name frontend --use --bootstrap 2>/dev/null || docker buildx use frontend'
+
+                    // Build and push first (can be retried without side effects)
+                    sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'
+
+                    // Only create tag and release after successful push
+                    def tagExists = sh(script: "git tag -l '${VersionTag}' | grep -q .", returnStatus: true) == 0
+                    if (!tagExists) {
+                        sh """
+                            gh release create '${VersionTag}' \
+                                --title 'Release ${VersionTag}' \
+                                --generate-notes \
+                                --prerelease=\$(echo '${Version}' | grep -q 'alpha\\|beta' && echo true || echo false)
+                        """
                     }
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo "Build failed for ${Tag}"
+            sh 'docker buildx rm frontend || true'
         }
     }
 }

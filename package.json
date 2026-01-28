@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.0.37-alpha",
+  "version": "0.0.38-alpha",
   "private": true,
   "type": "module",
   "scripts": {

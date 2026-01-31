@@ -28,6 +28,7 @@ export enum IntegrationProvider {
   GITHUB = "GITHUB",
   GITLAB = "GITLAB",
   CLICKUP = "CLICKUP",
+  FILE = "FILE",
 }
 
 export class VCS {

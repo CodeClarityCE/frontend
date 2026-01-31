@@ -534,6 +534,11 @@ async function createAnalysisStart(): Promise<void> {
           icon="simple-icons:gitlab"
           class="h-6 w-6 text-gray-700"
         />
+        <Icon
+          v-else-if="project?.type === IntegrationProvider.FILE"
+          icon="solar:folder-bold"
+          class="h-6 w-6 text-gray-700"
+        />
         <div class="flex-1">
           <h3 class="font-semibold text-gray-900">{{ project?.name }}</h3>
           <p class="text-sm text-gray-600">{{ project?.type }}</p>
@@ -784,6 +789,24 @@ async function createAnalysisStart(): Promise<void> {
                     </h4>
                     <p class="text-sm text-gray-500">
                       Source code and dependency analysis settings
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Hint for FILE projects -->
+                <div
+                  v-if="project?.type === IntegrationProvider.FILE"
+                  class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <div class="flex items-start gap-2">
+                    <Icon
+                      icon="solar:info-circle-bold"
+                      class="w-5 h-5 text-blue-600 mt-0.5 shrink-0"
+                    />
+                    <p class="text-sm text-blue-700">
+                      For uploaded projects, the branch field is used as a
+                      version identifier. You can use "main" or any label you
+                      prefer (e.g., "v1.0", "initial").
                     </p>
                   </div>
                 </div>

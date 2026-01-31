@@ -19,6 +19,7 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
 import GithubImportComponent from "./import/GithubImportComponent.vue";
 import GitlabImportComponent from "./import/GitlabImportComponent.vue";
+import LocalUploadComponent from "./import/LocalUploadComponent.vue";
 import Integrations from "./integrations/IntegrationsComponent.vue";
 import NoIntegration from "./integrations/NoIntegration.vue";
 
@@ -44,6 +45,7 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 const selectedVCS: Ref<VCS | undefined> = ref();
+const showLocalUpload: Ref<boolean> = ref(false);
 
 // Data setup
 const vcsIntegrations: Ref<VCS[]> = ref([]);
@@ -87,6 +89,10 @@ async function onIntegrationsRefresh(): Promise<void> {
 
 async function onSelectedVCS(vcs: VCS): Promise<void> {
   selectedVCS.value = vcs;
+}
+
+function onLocalUpload(): void {
+  showLocalUpload.value = true;
 }
 
 void fetchVcsIntegrations();
@@ -162,13 +168,17 @@ void fetchVcsIntegrations();
         </div>
       </InfoCard>
 
+      <!-- Local Upload State -->
+      <LocalUploadComponent v-else-if="!error && showLocalUpload" />
+
       <!-- VCS Selection State -->
-      <template v-else-if="!error && !selectedVCS">
+      <template v-else-if="!error && !selectedVCS && !showLocalUpload">
         <!-- No Integrations -->
         <div v-if="vcsIntegrations.length === 0">
           <NoIntegration
             :default-org="defaultOrg!"
             @on-refresh="onIntegrationsRefresh"
+            @on-local-upload="onLocalUpload"
           />
         </div>
 
@@ -176,13 +186,14 @@ void fetchVcsIntegrations();
         <div v-else-if="vcsIntegrations.length > 0">
           <InfoCard
             title="Select Integration"
-            description="Choose the version control system you want to import projects from"
+            description="Choose the version control system or upload a local project"
             icon="solar:code-bold"
             variant="primary"
           >
             <Integrations
               :vcs-integrations="vcsIntegrations"
               @on-selected-v-c-s="onSelectedVCS"
+              @on-local-upload="onLocalUpload"
             />
           </InfoCard>
         </div>

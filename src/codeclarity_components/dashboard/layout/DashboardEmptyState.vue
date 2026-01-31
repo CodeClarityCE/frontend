@@ -20,33 +20,42 @@
       </EmptyContent>
     </Empty>
 
-    <!-- No integrations state -->
-    <Empty v-else-if="!hasIntegrations" class="border border-gray-200">
+    <!-- No integrations state - only show when there are also no projects or analyses -->
+    <Empty
+      v-else-if="!hasIntegrations && !hasProjects && !hasAnalyses"
+      class="border border-gray-200"
+    >
       <EmptyHeader>
         <EmptyMedia
           variant="icon"
           class="bg-theme-primary/10 text-theme-primary"
         >
-          <Icon icon="solar:link-circle-bold" class="size-6" />
+          <Icon icon="solar:folder-add-bold" class="size-6" />
         </EmptyMedia>
-        <EmptyTitle>Connect Your Repository</EmptyTitle>
+        <EmptyTitle>Get Started</EmptyTitle>
         <EmptyDescription>
-          Link your GitHub or GitLab account to get started with security
-          analysis of your projects.
+          Import a project from GitHub/GitLab or upload a local archive to begin
+          security analysis.
         </EmptyDescription>
       </EmptyHeader>
-      <EmptyContent>
+      <EmptyContent class="flex gap-3">
         <RouterLink
           :to="{
             name: 'orgs',
             params: { orgId: orgId, page: 'integrations', action: 'manage' },
           }"
         >
+          <Button variant="outline" class="border-gray-300">
+            <Icon icon="solar:link-bold" class="size-4 mr-2" />
+            Connect VCS
+          </Button>
+        </RouterLink>
+        <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
           <Button
             class="bg-theme-primary hover:bg-theme-primary-dark text-white"
           >
-            <Icon icon="solar:link-bold" class="size-4 mr-2" />
-            Connect GitHub or GitLab
+            <Icon icon="solar:upload-bold" class="size-4 mr-2" />
+            Upload Project
           </Button>
         </RouterLink>
       </EmptyContent>
@@ -63,8 +72,8 @@
         </EmptyMedia>
         <EmptyTitle>Import Your First Project</EmptyTitle>
         <EmptyDescription>
-          You have integrations set up. Now import a project from your
-          repositories to start analyzing for vulnerabilities.
+          Import a project from your repositories or upload a local archive to
+          start analyzing for vulnerabilities.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

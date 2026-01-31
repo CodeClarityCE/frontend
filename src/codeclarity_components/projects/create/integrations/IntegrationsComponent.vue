@@ -10,16 +10,19 @@ defineProps<{
   vcsIntegrations: VCS[];
 }>();
 
-const emit = defineEmits<(e: "onSelectedVCS", selected: VCS) => void>();
+const emit = defineEmits<{
+  (e: "onSelectedVCS", selected: VCS): void;
+  (e: "onLocalUpload"): void;
+}>();
 </script>
 <template>
   <div class="space-y-6">
     <div class="text-center">
       <h3 class="text-lg font-semibold text-theme-black mb-2">
-        Choose Integration
+        Choose Import Method
       </h3>
       <p class="text-sm text-theme-gray">
-        Select your version control system to import repositories
+        Select a version control system or upload your project directly
       </p>
     </div>
 
@@ -83,6 +86,28 @@ const emit = defineEmits<(e: "onSelectedVCS", selected: VCS) => void>();
           </div>
         </div>
       </template>
+
+      <!-- Local Upload Option -->
+      <div class="group cursor-pointer" @click="emit('onLocalUpload')">
+        <div
+          class="border border-gray-200 rounded-lg p-6 hover:border-theme-primary hover:bg-theme-primary/5 transition-all duration-200 hover:shadow-md"
+        >
+          <div class="flex flex-col items-center text-center space-y-3">
+            <div
+              class="p-3 bg-blue-100 rounded-xl group-hover:bg-theme-primary/10 transition-colors"
+            >
+              <Icon
+                icon="solar:upload-bold"
+                class="h-8 w-8 text-blue-600 group-hover:text-theme-primary"
+              />
+            </div>
+            <div>
+              <h4 class="font-semibold text-theme-black">Local Upload</h4>
+              <p class="text-sm text-theme-gray">Upload ZIP/TAR.GZ</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

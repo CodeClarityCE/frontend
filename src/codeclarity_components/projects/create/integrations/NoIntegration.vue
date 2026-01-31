@@ -14,42 +14,33 @@ defineProps<{
   defaultOrg: Organization;
 }>();
 
-const emit = defineEmits<(e: "onRefresh") => void>();
+const emit = defineEmits<{
+  (e: "onRefresh"): void;
+  (e: "onLocalUpload"): void;
+}>();
 </script>
 <template>
   <InfoCard
-    title="No VCS Integration Found"
-    description="Connect your version control system to start importing projects"
+    title="No VCS Integrations"
+    description="Connect a version control system or upload your project directly"
     icon="solar:code-square-bold"
-    variant="warning"
+    variant="default"
   >
     <div class="space-y-6">
       <!-- Explanation -->
-      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+      <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div class="flex items-start gap-3">
           <Icon
             icon="solar:info-circle-bold"
-            class="h-5 w-5 text-yellow-600 mt-0.5"
+            class="h-5 w-5 text-blue-600 mt-0.5"
           />
           <div>
-            <p class="font-medium text-yellow-800 mb-1">Integration Required</p>
-            <p class="text-sm text-yellow-700">
-              <span
-                v-if="
-                  isMemberRoleGreaterOrEqualTo(
-                    defaultOrg.role,
-                    MemberRole.ADMIN,
-                  )
-                "
-              >
-                To import projects, you need to add an integration with GitHub
-                or GitLab. Set up your integration and then refresh this page.
-              </span>
-              <span v-else>
-                To import projects, an integration with GitHub or GitLab is
-                required. Please ask an admin or organization owner to set up
-                the integration.
-              </span>
+            <p class="font-medium text-blue-800 mb-1">
+              VCS Integration Optional
+            </p>
+            <p class="text-sm text-blue-700">
+              You can connect to GitHub or GitLab to import repositories
+              directly, or upload your project files as a ZIP/TAR.GZ archive.
             </p>
           </div>
         </div>
@@ -59,6 +50,15 @@ const emit = defineEmits<(e: "onRefresh") => void>();
       <div class="flex flex-wrap gap-3">
         <Button
           class="bg-theme-primary hover:bg-theme-primary/90 text-white"
+          @click="emit('onLocalUpload')"
+        >
+          <Icon icon="solar:upload-bold" class="h-4 w-4 mr-2" />
+          Upload Local Project
+        </Button>
+
+        <Button
+          variant="outline"
+          class="border-gray-300 text-gray-700 hover:border-theme-primary hover:text-theme-primary"
           @click="emit('onRefresh')"
         >
           <Icon icon="solar:refresh-bold" class="h-4 w-4 mr-2" />
@@ -81,8 +81,12 @@ const emit = defineEmits<(e: "onRefresh") => void>();
         >
           <RouterLink
             :to="{
-              name: 'orgManage',
-              params: { orgId: defaultOrg.id, page: 'integrations' },
+              name: 'orgs',
+              params: {
+                orgId: defaultOrg.id,
+                page: 'integrations',
+                action: 'manage',
+              },
             }"
             target="_blank"
             class="flex items-center gap-2"

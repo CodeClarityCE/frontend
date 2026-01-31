@@ -177,7 +177,7 @@ function getLastActivityTime(): string {
             />
             {{ orgMetaDataLoading ? "Refreshing..." : "Refresh" }}
           </Button>
-          <div v-if="orgMetaData && orgMetaData.projects.length > 0">
+          <div v-if="orgMetaData">
             <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
               <Button
                 class="bg-theme-primary hover:bg-theme-primary-dark text-white shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-2"
@@ -187,16 +187,7 @@ function getLastActivityTime(): string {
               </Button>
             </RouterLink>
           </div>
-          <div v-else-if="!orgMetaDataLoading">
-            <Button
-              disabled
-              class="bg-gray-300 text-gray-500 flex items-center gap-2"
-            >
-              <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
-              Add Project
-            </Button>
-          </div>
-          <div v-else>
+          <div v-else-if="orgMetaDataLoading">
             <Skeleton class="h-10 w-32" />
           </div>
         </div>
@@ -285,28 +276,37 @@ function getLastActivityTime(): string {
         />
         <InfoCard
           v-else-if="orgMetaData && orgMetaData.integrations.length === 0"
-          title="No VCS Integration Yet"
-          description="You have no integration with a VCS system yet"
-          icon="solar:sleeping-square-linear"
+          title="Get Started"
+          description="Connect a VCS integration or upload projects directly"
+          icon="solar:folder-add-bold"
           variant="default"
         >
           <template #actions>
-            <RouterLink
-              :to="{
-                name: 'orgs',
-                params: {
-                  orgId: orgMetaData.id,
-                  page: 'integrations',
-                  action: 'manage',
-                },
-              }"
-            >
-              <Button
-                class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+            <div class="flex gap-3">
+              <RouterLink
+                :to="{
+                  name: 'orgs',
+                  params: {
+                    orgId: orgMetaData.id,
+                    page: 'integrations',
+                    action: 'manage',
+                  },
+                }"
               >
-                Link to Github or Gitlab
-              </Button>
-            </RouterLink>
+                <Button variant="outline" class="border-gray-300">
+                  <Icon icon="solar:link-bold" class="h-4 w-4 mr-2" />
+                  Connect VCS
+                </Button>
+              </RouterLink>
+              <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
+                <Button
+                  class="bg-theme-primary hover:bg-theme-primary-dark text-white"
+                >
+                  <Icon icon="solar:upload-bold" class="h-4 w-4 mr-2" />
+                  Upload Project
+                </Button>
+              </RouterLink>
+            </div>
           </template>
         </InfoCard>
         <InfoCard

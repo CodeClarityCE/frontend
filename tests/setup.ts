@@ -2,9 +2,9 @@
 // This must be at the very top of the file
 const localStorageMock = {
   getItem: (_key: string): string | null => null,
-  setItem: (_key: string, _value: string): void => {},
-  removeItem: (_key: string): void => {},
-  clear: (): void => {},
+  setItem: (_key: string, _value: string): void => { return; },
+  removeItem: (_key: string): void => { return; },
+  clear: (): void => { return; },
   length: 0,
   key: (_index: number): string | null => null
 }

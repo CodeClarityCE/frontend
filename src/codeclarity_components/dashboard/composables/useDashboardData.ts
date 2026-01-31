@@ -62,9 +62,7 @@ export function useDashboardData(): {
     () => (orgData.value?.projects?.length ?? 0) > 0,
   );
   const hasAnalyses = computed(() => projectsScanned.value > 0);
-  const hasData = computed(
-    () => hasIntegrations.value && hasProjects.value && hasAnalyses.value,
-  );
+  const hasData = computed(() => hasProjects.value && hasAnalyses.value);
   const shouldShowEmptyState = computed(
     () => isLoading.value || hasError.value || !hasData.value,
   );
@@ -109,24 +107,22 @@ export function useDashboardData(): {
       if (integrationsResponse.status === "fulfilled") {
         integrations.value = (integrationsResponse.value.data ??
           []) as unknown as Integration[];
+      }
 
-        // If we have integrations, fetch quick stats to check for analyses
-        if (integrations.value.length > 0) {
-          const integrationIds = integrations.value.map((i) => i.id ?? "");
-          try {
-            const quickStatsResponse =
-              await new DashboardRepository().getQuickStats({
-                orgId: defaultOrg.value.id,
-                bearerToken: auth.getToken,
-                handleBusinessErrors: true,
-                integrationIds,
-              });
-            projectsScanned.value = quickStatsResponse.data.nmb_projects ?? 0;
-          } catch {
-            // If quick stats fail, assume no analyses yet
-            projectsScanned.value = 0;
-          }
-        }
+      // Fetch quick stats to check for analyses (works for both VCS and FILE projects)
+      const integrationIds = integrations.value.map((i) => i.id ?? "");
+      try {
+        const quickStatsResponse =
+          await new DashboardRepository().getQuickStats({
+            orgId: defaultOrg.value.id,
+            bearerToken: auth.getToken,
+            handleBusinessErrors: true,
+            integrationIds,
+          });
+        projectsScanned.value = quickStatsResponse.data.nmb_projects ?? 0;
+      } catch {
+        // If quick stats fail, assume no analyses yet
+        projectsScanned.value = 0;
       }
 
       // Show error only if both failed

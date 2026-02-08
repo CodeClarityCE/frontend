@@ -53,8 +53,17 @@ const showDeleteModal = ref(false);
 const isDeletingProject = ref(false);
 
 // Computed
-const projectOwner = computed(() => props.project.name.split("/")[0]);
-const projectName = computed(() => props.project.name.split("/").slice(-1)[0]);
+const isFileProject = computed(
+  () => props.project.type === IntegrationProvider.FILE,
+);
+const projectOwner = computed(() =>
+  isFileProject.value ? "" : props.project.name.split("/")[0],
+);
+const projectName = computed(() =>
+  isFileProject.value
+    ? props.project.name
+    : props.project.name.split("/").slice(-1)[0],
+);
 
 const analysisStats = computed(() => {
   if (!props.project.analyses || props.project.analyses.length === 0) {

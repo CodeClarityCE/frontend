@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Icon } from "@iconify/vue";
 
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
@@ -14,12 +15,20 @@ import {
 } from "@/shadcn/ui/card";
 import { formatDate } from "@/utils/dateUtils";
 
-defineProps<{
+const props = defineProps<{
   finding: VulnerabilityDetails;
   readMeModalRef: typeof CenteredModalVue;
   readme: string;
   activeView: string;
 }>();
+
+const SOURCE_ORDER: Record<string, number> = { GCVE: 0, OSV: 1, NVD: 2 };
+
+const sortedSources = computed(() =>
+  [...(props.finding.vulnerability_info.sources ?? [])].sort(
+    (a, b) => (SOURCE_ORDER[a.name] ?? 99) - (SOURCE_ORDER[b.name] ?? 99),
+  ),
+);
 </script>
 
 <template>
@@ -70,45 +79,31 @@ defineProps<{
                   <div class="flex flex-row items-center gap-2">
                     <div class="font-normal text-gray-600">Sources:</div>
                     <div class="flex gap-2 text-sm">
-                      <BubbleComponent :slim="true">
-                        <template #content>
-                          <a
-                            :href="
-                              'https://vulnerability.circl.lu/vuln/' +
-                              finding.vulnerability_info.vulnerability_id
-                            "
-                            target="_blank"
-                            >Vulnerability Lookup</a
-                          >
-                        </template>
-                      </BubbleComponent>
                       <div
-                        v-for="source in finding.vulnerability_info.sources"
+                        v-for="source in sortedSources"
                         :key="source.name"
                       >
-                        <div v-if="source.name === 'NVD'">
-                          <BubbleComponent :slim="true">
-                            <template #content>
-                              <a :href="source.vuln_url" target="_blank">NVD</a>
-                            </template>
-                          </BubbleComponent>
-                        </div>
-                        <div v-if="source.name === 'OSV'">
-                          <BubbleComponent :slim="true">
-                            <template #content>
-                              <a :href="source.vuln_url" target="_blank">OSV</a>
-                            </template>
-                          </BubbleComponent>
-                        </div>
+                        <BubbleComponent :slim="true">
+                          <template #content>
+                            <a :href="source.vuln_url" target="_blank">{{
+                              source.name
+                            }}</a>
+                          </template>
+                        </BubbleComponent>
                       </div>
                     </div>
                   </div>
                   <div
-                    v-if="finding.vulnerability_info.sources.length < 2"
+                    v-if="
+                      finding.vulnerability_info.version_info.source_comparison &&
+                      !finding.vulnerability_info.version_info.source_comparison
+                        .agree
+                    "
                     class="text-severity-medium flex gap-1 items-center"
                   >
                     <Icon icon="tabler:alert-triangle-filled"></Icon>
-                    NVD and OSV do not agree
+                    Vulnerability sources do not fully agree on affected
+                    versions
                   </div>
                 </div>
               </div>

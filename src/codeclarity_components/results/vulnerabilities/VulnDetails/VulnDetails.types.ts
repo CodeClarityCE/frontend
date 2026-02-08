@@ -21,10 +21,13 @@ export interface SourceComparison {
   nvdAllVersions?: string;
   osvReason?: string;
   osvAllVersions?: string;
+  gcveReason?: string;
+  gcveAllVersions?: string;
 }
 
 export interface VersionInfo {
   affected_versions_string: string;
+  affected_versions_source?: string;
   patched_versions_string: string;
   versions: VulnerableVersionInfo[];
   source_comparison?: SourceComparison;

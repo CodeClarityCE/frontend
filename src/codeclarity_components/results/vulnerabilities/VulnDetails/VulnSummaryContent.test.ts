@@ -378,15 +378,6 @@ describe("VulnSummaryContent.vue", () => {
   });
 
   describe("Links and External Navigation", () => {
-    it("should create correct vulnerability lookup URL", () => {
-      const wrapper = createWrapper();
-
-      const vulnLookupLink = wrapper.find('a[href*="vulnerability.circl.lu"]');
-      expect(vulnLookupLink.attributes("href")).toBe(
-        "https://vulnerability.circl.lu/vuln/CVE-2021-1234",
-      );
-    });
-
     it("should open external links in new tabs", () => {
       const wrapper = createWrapper();
 

@@ -202,15 +202,6 @@ describe("VulnSummaryContent.vue", () => {
       expect(wrapper.text()).toContain("Sources:");
     });
 
-    it("should render Vulnerability Lookup link", () => {
-      const wrapper = createWrapper();
-
-      const vulnLookupLink = wrapper.find('a[href*="vulnerability.circl.lu"]');
-      expect(vulnLookupLink.exists()).toBe(true);
-      expect(vulnLookupLink.attributes("target")).toBe("_blank");
-      expect(vulnLookupLink.text()).toBe("Vulnerability Lookup");
-    });
-
     it("should render NVD source link when available", () => {
       const wrapper = createWrapper();
 
@@ -227,29 +218,35 @@ describe("VulnSummaryContent.vue", () => {
       expect(osvLink.text()).toBe("OSV");
     });
 
-    it("should show warning when sources disagree (less than 2 sources)", () => {
+    it("should show warning when sources disagree", () => {
       const finding = createMockFinding({
         vulnerability_info: {
           ...createMockFinding().vulnerability_info,
-          sources: [
-            {
-              name: "NVD",
-              vuln_url: "https://nvd.nist.gov/vuln/detail/CVE-2021-1234",
+          version_info: {
+            ...createMockFinding().vulnerability_info.version_info,
+            source_comparison: {
+              agree: false,
+              nvdReason: "in range",
+              osvReason: "not in range",
             },
-          ],
+          },
         },
       });
 
       const wrapper = createWrapper(finding);
 
-      expect(wrapper.text()).toContain("NVD and OSV do not agree");
+      expect(wrapper.text()).toContain(
+        "Vulnerability sources do not fully agree",
+      );
       expect(wrapper.find(".text-severity-medium").exists()).toBe(true);
     });
 
     it("should not show warning when sources agree (2 or more sources)", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.text()).not.toContain("NVD and OSV do not agree");
+      expect(wrapper.text()).not.toContain(
+        "Vulnerability sources do not fully agree",
+      );
     });
   });
 
@@ -318,7 +315,10 @@ describe("VulnSummaryContent.vue", () => {
       const wrapper = createWrapper(finding);
 
       expect(wrapper.text()).toContain("Sources:");
-      expect(wrapper.text()).toContain("NVD and OSV do not agree");
+      // Without source_comparison.agree = false, no disagree warning
+      expect(wrapper.text()).not.toContain(
+        "Vulnerability sources do not fully agree",
+      );
     });
 
     it("should handle missing publication dates", () => {

@@ -111,19 +111,17 @@ describe("VulnDetailsHeader.vue", () => {
       const wrapper = createWrapper(finding);
 
       expect(wrapper.text()).toContain(
-        "This vulnerability affects all versions of the library and might be a false positive",
+        "The affected version information is imprecise",
       );
-      expect(wrapper.find(".text-red-500").exists()).toBe(true);
-      expect(wrapper.find(".mock-icon").exists()).toBe(true);
+      expect(wrapper.find(".text-orange-600").exists()).toBe(true);
     });
 
     it("should not show warning for specific affected versions", () => {
       const wrapper = createWrapper();
 
       expect(wrapper.text()).not.toContain(
-        "This vulnerability affects all versions",
+        "The affected version information is imprecise",
       );
-      expect(wrapper.find(".text-red-500").exists()).toBe(false);
     });
   });
 

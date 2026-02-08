@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { Icon } from "@iconify/vue";
+import { computed } from "vue";
 
 import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
 import InfoMarkdown from "@/base_components/ui/InfoMarkdown.vue";
@@ -79,10 +79,7 @@ const sortedSources = computed(() =>
                   <div class="flex flex-row items-center gap-2">
                     <div class="font-normal text-gray-600">Sources:</div>
                     <div class="flex gap-2 text-sm">
-                      <div
-                        v-for="source in sortedSources"
-                        :key="source.name"
-                      >
+                      <div v-for="source in sortedSources" :key="source.name">
                         <BubbleComponent :slim="true">
                           <template #content>
                             <a :href="source.vuln_url" target="_blank">{{
@@ -95,7 +92,8 @@ const sortedSources = computed(() =>
                   </div>
                   <div
                     v-if="
-                      finding.vulnerability_info.version_info.source_comparison &&
+                      finding.vulnerability_info.version_info
+                        .source_comparison &&
                       !finding.vulnerability_info.version_info.source_comparison
                         .agree
                     "

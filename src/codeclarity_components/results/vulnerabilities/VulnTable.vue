@@ -1027,8 +1027,7 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
                             <!-- Trusted source star -->
                             <TooltipProvider
                               v-if="
-                                vla.Source ===
-                                report.Conflict?.ConflictWinner
+                                vla.Source === report.Conflict?.ConflictWinner
                               "
                             >
                               <Tooltip>
@@ -1042,8 +1041,8 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
                                   class="bg-white border border-gray-300 shadow-lg"
                                 >
                                   <p class="text-xs text-gray-700 p-1">
-                                    Trusted source (priority: OSV &gt; GCVE
-                                    &gt; NVD)
+                                    Trusted source (priority: OSV &gt; GCVE &gt;
+                                    NVD)
                                   </p>
                                 </TooltipContent>
                               </Tooltip>

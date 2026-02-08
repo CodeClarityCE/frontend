@@ -70,9 +70,6 @@ async function fetchVcsIntegrations(refresh = false): Promise<void> {
       handleBusinessErrors: true,
     });
     vcsIntegrations.value = resp.data.filter((vcs) => !vcs.invalid);
-    if (vcsIntegrations.value.length === 1) {
-      selectedVCS.value = vcsIntegrations.value[0];
-    }
   } catch (_err) {
     error.value = true;
     if (_err instanceof BusinessLogicError) {
@@ -93,6 +90,11 @@ async function onSelectedVCS(vcs: VCS): Promise<void> {
 
 function onLocalUpload(): void {
   showLocalUpload.value = true;
+}
+
+function goBackToSelection(): void {
+  selectedVCS.value = undefined;
+  showLocalUpload.value = false;
 }
 
 void fetchVcsIntegrations();
@@ -169,7 +171,17 @@ void fetchVcsIntegrations();
       </InfoCard>
 
       <!-- Local Upload State -->
-      <LocalUploadComponent v-else-if="!error && showLocalUpload" />
+      <template v-else-if="!error && showLocalUpload">
+        <button
+          v-if="vcsIntegrations.length > 0"
+          class="flex items-center gap-1 text-sm text-theme-gray hover:text-theme-primary transition-colors mb-4"
+          @click="goBackToSelection"
+        >
+          <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+          Back to import methods
+        </button>
+        <LocalUploadComponent />
+      </template>
 
       <!-- VCS Selection State -->
       <template v-else-if="!error && !selectedVCS && !showLocalUpload">
@@ -201,6 +213,13 @@ void fetchVcsIntegrations();
 
       <!-- Import Repository State -->
       <div v-else-if="!error && selectedVCS" class="space-y-8">
+        <button
+          class="flex items-center gap-1 text-sm text-theme-gray hover:text-theme-primary transition-colors"
+          @click="goBackToSelection"
+        >
+          <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+          Back to import methods
+        </button>
         <!-- Integration Info -->
         <InfoCard
           title="Repository Import"

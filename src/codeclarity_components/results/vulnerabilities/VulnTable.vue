@@ -906,8 +906,8 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
                             }}
                           </div>
                           <div class="text-gray-600">
-                            OSV and NVD vulnerability databases provide
-                            conflicting information about this match.
+                            Vulnerability databases provide conflicting
+                            information about this match.
                           </div>
                         </div>
                         <div class="pt-2 border-t border-gray-200">
@@ -1023,6 +1023,30 @@ watch(showBlacklistedFromFilter, (newValue: boolean) => {
                             >
                               {{ vla.Source }}
                             </span>
+
+                            <!-- Trusted source star -->
+                            <TooltipProvider
+                              v-if="
+                                vla.Source === report.Conflict?.ConflictWinner
+                              "
+                            >
+                              <Tooltip>
+                                <TooltipTrigger as-child>
+                                  <Icon
+                                    icon="tabler:star-filled"
+                                    class="w-3 h-3 text-yellow-500"
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  class="bg-white border border-gray-300 shadow-lg"
+                                >
+                                  <p class="text-xs text-gray-700 p-1">
+                                    Trusted source (priority: OSV &gt; GCVE &gt;
+                                    NVD)
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
 
                             <!-- Severity level indicator -->
                             <span

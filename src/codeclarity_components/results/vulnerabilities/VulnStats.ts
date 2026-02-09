@@ -176,4 +176,5 @@ export enum Source {
   Nvd = "NVD",
   Osv = "OSV",
   FriendsOfPHP = "FriendsOfPHP",
+  Gcve = "GCVE",
 }

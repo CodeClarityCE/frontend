@@ -102,22 +102,36 @@ async function deleteProject(): Promise<void> {
                 class="w-5 h-5"
               />
               <Icon
+                v-else-if="project.type === IntegrationProvider.FILE"
+                icon="solar:upload-bold"
+                class="w-5 h-5 text-blue-600"
+              />
+              <Icon
                 v-else
                 icon="fluent-mdl2:unknown-solid"
                 class="w-5 h-5 text-theme-gray"
               />
             </div>
             <div class="flex flex-col min-w-0 flex-1">
-              <div
-                class="text-xs text-theme-gray/70 font-semibold uppercase tracking-wider"
-              >
-                {{ project.name.split("/")[0] }}
-              </div>
-              <div
-                class="text-lg font-bold text-theme-black truncate group-hover:text-theme-primary transition-colors duration-300"
-              >
-                {{ project.name.split("/").slice(-1)[0] }}
-              </div>
+              <template v-if="project.type === IntegrationProvider.FILE">
+                <div
+                  class="text-lg font-bold text-theme-black truncate group-hover:text-theme-primary transition-colors duration-300"
+                >
+                  {{ project.name }}
+                </div>
+              </template>
+              <template v-else>
+                <div
+                  class="text-xs text-theme-gray/70 font-semibold uppercase tracking-wider"
+                >
+                  {{ project.name.split("/")[0] }}
+                </div>
+                <div
+                  class="text-lg font-bold text-theme-black truncate group-hover:text-theme-primary transition-colors duration-300"
+                >
+                  {{ project.name.split("/").slice(-1)[0] }}
+                </div>
+              </template>
             </div>
           </div>
 

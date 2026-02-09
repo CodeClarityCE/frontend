@@ -759,7 +759,7 @@ const exploitableCount = computed(() => {
                     report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
                   "
                 >
-                  OSV and NVD data sources disagree
+                  Vulnerability sources disagree
                 </span>
                 <span v-else> Vulnerability match is incorrect </span>
               </div>
@@ -920,7 +920,7 @@ const exploitableCount = computed(() => {
                           {{
                             report.Conflict.ConflictFlag ===
                             "MATCH_POSSIBLE_INCORRECT"
-                              ? "NVD and OSV databases disagree on this vulnerability match. The vulnerability may not actually affect this dependency version."
+                              ? "Vulnerability databases disagree on this match. The vulnerability may not actually affect this dependency version."
                               : "This vulnerability match has been determined to be incorrect. The vulnerability likely does not affect this dependency."
                           }}
                         </div>

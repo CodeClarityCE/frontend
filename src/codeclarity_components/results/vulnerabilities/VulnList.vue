@@ -17,12 +17,10 @@ import PaginationComponent from "@/base_components/utilities/PaginationComponent
 import UtilitiesSort from "@/base_components/utilities/UtilitiesSort.vue";
 import { ProjectsSortInterface } from "@/codeclarity_components/projects/project.repository";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
-import {
-  PatchType,
-  type VulnerabilityMerged,
-} from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+import { type VulnerabilityMerged } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
 import CreateTicketButton from "@/codeclarity_components/tickets/components/CreateTicketButton.vue";
 import { Badge } from "@/shadcn/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -381,168 +379,81 @@ const emit = defineEmits<{
 watch(showBlacklistedFromFilter, (newValue: boolean) => {
   void emit("update:showBlacklisted", newValue);
 });
-
-// Computed statistics for dashboard
-const criticalCount = computed(() => {
-  return findings.value.filter((vuln) =>
-    isCriticalSeverity(vuln.Severity.Severity),
-  ).length;
-});
-
-const highCount = computed(() => {
-  return findings.value.filter((vuln) => isHighSeverity(vuln.Severity.Severity))
-    .length;
-});
-
-const patchableCount = computed(() => {
-  return findings.value.filter((vuln) =>
-    vuln.Affected.some(
-      (dep) =>
-        dep.PatchType === PatchType.Full || dep.PatchType === PatchType.Partial,
-    ),
-  ).length;
-});
-
-const exploitableCount = computed(() => {
-  return findings.value.filter((vuln) => vuln.EPSS.Score > 0.1).length;
-});
 </script>
 
 <template>
   <div class="container py-6 mx-auto space-y-6">
-    <!-- Header Section -->
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900">Vulnerabilities</h2>
-          <p class="text-sm text-gray-600 mt-1">
-            Security vulnerabilities found in your project dependencies
-          </p>
-        </div>
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-          <Icon icon="tabler:shield-exclamation" class="w-4 h-4" />
-          <span>{{ nmbEntriesTotal }} total vulnerabilities</span>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white border rounded-lg p-3">
-          <div class="flex items-center gap-2">
-            <Icon icon="tabler:alert-triangle" class="w-4 h-4 text-red-500" />
-            <span class="text-xs text-gray-600 uppercase tracking-wide"
-              >Critical</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-gray-900">
-            {{ criticalCount }}
-          </div>
-        </div>
-
-        <div class="bg-white border rounded-lg p-3">
-          <div class="flex items-center gap-2">
-            <Icon
-              icon="tabler:exclamation-circle"
-              class="w-4 h-4 text-orange-500"
-            />
-            <span class="text-xs text-gray-600 uppercase tracking-wide"
-              >High</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-gray-900">
-            {{ highCount }}
-          </div>
-        </div>
-
-        <div class="bg-white border rounded-lg p-3">
-          <div class="flex items-center gap-2">
-            <Icon icon="tabler:trending-up" class="w-4 h-4 text-purple-500" />
-            <span class="text-xs text-gray-600 uppercase tracking-wide"
-              >Exploitable</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-gray-900">
-            {{ exploitableCount }}
-          </div>
-        </div>
-
-        <div class="bg-white border rounded-lg p-3">
-          <div class="flex items-center gap-2">
-            <Icon icon="tabler:bandage" class="w-4 h-4 text-green-500" />
-            <span class="text-xs text-gray-600 uppercase tracking-wide"
-              >Patchable</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-gray-900">
-            {{ patchableCount }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Security Indicators Legend -->
-      <div
-        class="bg-linear-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200"
-      >
-        <h3
-          class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2"
-        >
-          <Icon icon="tabler:info-circle" class="w-4 h-4" />
-          Vulnerability Indicators & Severity Levels
-        </h3>
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs"
-        >
-          <div class="space-y-2">
-            <div class="font-medium text-gray-900">Severity Levels</div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-severity-critical rounded"></div>
-                <span class="text-gray-600">Critical (9.0-10.0)</span>
+    <!-- Legend Popover + Total Count -->
+    <div class="flex items-center justify-between">
+      <Popover>
+        <PopoverTrigger as-child>
+          <button
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors border border-gray-200"
+          >
+            <Icon icon="tabler:info-circle" class="w-3.5 h-3.5" />
+            Legend
+          </button>
+        </PopoverTrigger>
+        <PopoverContent class="w-96 p-4" side="bottom" align="start">
+          <div class="space-y-3 text-xs">
+            <div class="space-y-2">
+              <div class="font-medium text-gray-900">Severity Levels</div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-severity-critical rounded"></div>
+                  <span class="text-gray-600">Critical (9.0-10.0)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-severity-high rounded"></div>
+                  <span class="text-gray-600">High (7.0-8.9)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-severity-medium rounded"></div>
+                  <span class="text-gray-600">Medium (4.0-6.9)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-severity-low rounded"></div>
+                  <span class="text-gray-600">Low (0.1-3.9)</span>
+                </div>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-severity-high rounded"></div>
-                <span class="text-gray-600">High (7.0-8.9)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-severity-medium rounded"></div>
-                <span class="text-gray-600">Medium (4.0-6.9)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-severity-low rounded"></div>
-                <span class="text-gray-600">Low (0.1-3.9)</span>
+            </div>
+            <div class="border-t border-gray-100 pt-2 space-y-2">
+              <div class="font-medium text-gray-900">Indicators</div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <Icon
+                    icon="tabler:trending-up"
+                    class="w-3 h-3 text-red-600"
+                  />
+                  <span class="text-gray-600"
+                    >EPSS > 10% (High exploitation risk)</span
+                  >
+                </div>
+                <div class="flex items-center gap-2">
+                  <Icon icon="tabler:brain" class="w-3 h-3 text-indigo-500" />
+                  <span class="text-gray-600"
+                    >AI-generated severity assessment (VLAI)</span
+                  >
+                </div>
+                <div class="flex items-center gap-2">
+                  <Icon
+                    icon="tabler:alert-triangle"
+                    class="w-3 h-3 text-amber-600"
+                  />
+                  <span class="text-gray-600">Sources disagree on match</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Icon icon="tabler:bandage" class="w-3 h-3 text-green-600" />
+                  <span class="text-gray-600">Patch available</span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="space-y-2">
-            <div class="font-medium text-gray-900">Exploitation Risk</div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <Icon icon="tabler:trending-up" class="w-3 h-3 text-red-600" />
-                <span class="text-gray-600">EPSS > 10% (High risk)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Icon
-                  icon="tabler:alert-triangle"
-                  class="w-3 h-3 text-amber-600"
-                />
-                <span class="text-gray-600">Possible false match</span>
-              </div>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <div class="font-medium text-gray-900">Patching Status</div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <Icon icon="tabler:bandage" class="w-3 h-3 text-green-600" />
-                <span class="text-gray-600">Patch available</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Icon icon="tabler:bandage-off" class="w-3 h-3 text-gray-500" />
-                <span class="text-gray-600">No patch available</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </PopoverContent>
+      </Popover>
+      <div class="flex items-center gap-2 text-sm text-gray-500">
+        <Icon icon="tabler:shield-exclamation" class="w-4 h-4" />
+        <span>{{ nmbEntriesTotal }} total vulnerabilities</span>
       </div>
     </div>
 
@@ -759,9 +670,11 @@ const exploitableCount = computed(() => {
                     report.Conflict.ConflictFlag === 'MATCH_POSSIBLE_INCORRECT'
                   "
                 >
-                  Vulnerability sources disagree
+                  Sources disagree on affected versions
                 </span>
-                <span v-else> Vulnerability match is incorrect </span>
+                <span v-else>
+                  Match conflict — may not affect this version
+                </span>
               </div>
             </div>
 
@@ -880,9 +793,9 @@ const exploitableCount = computed(() => {
                           'MATCH_POSSIBLE_INCORRECT'
                         "
                       >
-                        UNCERTAIN
+                        MATCH UNCERTAIN
                       </span>
-                      <span v-else> MISMATCH </span>
+                      <span v-else> MATCH CONFLICT </span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent
@@ -974,565 +887,461 @@ const exploitableCount = computed(() => {
           <!-- Expandable Content -->
           <div
             v-if="isCardExpanded(report.Vulnerability)"
-            class="card-body border-t border-gray-100 p-3"
+            class="card-body border-t border-gray-100 p-4"
           >
-            <!-- Secondary Metrics Row -->
-            <div class="flex flex-wrap gap-1.5 mb-3">
-              <!-- EPSS Score -->
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <Badge
-                      variant="secondary"
-                      class="text-xs px-2 py-1 cursor-help"
-                    >
-                      EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    class="bg-white border border-gray-300 shadow-lg"
-                  >
-                    <div class="max-w-sm space-y-3 p-3">
-                      <div class="flex items-center gap-2">
-                        <Icon
-                          icon="tabler:trending-up"
-                          class="w-4 h-4 text-red-600"
-                        />
-                        <span class="font-semibold text-base text-gray-900">
-                          EPSS Score:
-                          {{ (report.EPSS.Score * 100).toFixed(1) }}%
-                        </span>
-                      </div>
-
-                      <div class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg">
-                        <div class="font-medium text-gray-900">
-                          Exploit Prediction Scoring System
-                        </div>
-                        <div class="text-gray-600">
-                          Predicts the probability that this vulnerability will
-                          be exploited in the wild within the next 30 days.
-                        </div>
-                        <div class="text-gray-600">
-                          <strong>Score > 10%:</strong> High likelihood of
-                          exploitation - prioritize patching.
-                        </div>
-                      </div>
-
-                      <div class="pt-2 border-t border-gray-200">
-                        <a
-                          href="https://www.first.org/epss/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+            <!-- Metrics Grid: Exploit Risk | AI Assessments | Weaknesses -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <!-- Exploit Risk -->
+              <div>
+                <span class="section-label">Exploit Risk</span>
+                <div class="flex flex-wrap gap-1.5 mt-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Badge
+                          variant="secondary"
+                          class="text-xs px-2 py-1 cursor-help"
+                          :class="{
+                            'bg-red-50 text-red-700 border-red-200':
+                              report.EPSS.Score > 0.1,
+                          }"
                         >
-                          Learn more about EPSS
-                          <Icon icon="tabler:external-link" class="w-3 h-3" />
-                        </a>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <!-- Additional Severity Sources with Confidence -->
-              <div
-                v-for="vla in report.VLAI"
-                :key="vla.Source"
-                class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border severity-badge-bg"
-                :class="{
-                  'severity-critical-bg': vla.Score === 'critical',
-                  'severity-high-bg': vla.Score === 'high',
-                  'severity-medium-bg': vla.Score === 'medium',
-                  'severity-low-bg': vla.Score === 'low',
-                  'severity-none-bg': vla.Score === 'none',
-                }"
-              >
-                <!-- Source icon/name -->
-                <span
-                  class="font-semibold"
-                  :class="{
-                    'text-severity-critical': vla.Score === 'critical',
-                    'text-severity-high': vla.Score === 'high',
-                    'text-severity-medium': vla.Score === 'medium',
-                    'text-severity-low': vla.Score === 'low',
-                    'text-severity-none': vla.Score === 'none',
-                  }"
-                >
-                  {{ vla.Source }}
-                </span>
-
-                <!-- Confidence indicator -->
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <div
-                        class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold cursor-help"
-                        :class="{
-                          'bg-green-100 text-green-800': vla.Confidence >= 0.9,
-                          'bg-yellow-100 text-yellow-800':
-                            vla.Confidence >= 0.5 && vla.Confidence < 0.9,
-                          'bg-red-100 text-red-800': vla.Confidence < 0.5,
-                        }"
-                      >
-                        <Icon
-                          :icon="
-                            vla.Confidence >= 0.9
-                              ? 'tabler:check-circle'
-                              : vla.Confidence >= 0.5
-                                ? 'tabler:alert-circle'
-                                : 'tabler:x-circle'
-                          "
-                          class="w-3 h-3"
-                        />
-                        <span v-if="vla.Confidence >= 0.9">HIGH</span>
-                        <span v-else-if="vla.Confidence >= 0.5">MED</span>
-                        <span v-else>LOW</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      class="bg-white border border-gray-300 shadow-lg"
-                    >
-                      <div class="max-w-sm space-y-3 p-3">
-                        <div class="flex items-center gap-2">
                           <Icon
-                            :icon="
-                              vla.Confidence >= 0.9
-                                ? 'tabler:check-circle'
-                                : vla.Confidence >= 0.5
-                                  ? 'tabler:alert-circle'
-                                  : 'tabler:x-circle'
-                            "
-                            class="w-4 h-4"
-                            :class="{
-                              'text-green-600': vla.Confidence >= 0.9,
-                              'text-amber-600':
-                                vla.Confidence >= 0.5 && vla.Confidence < 0.9,
-                              'text-red-600': vla.Confidence < 0.5,
-                            }"
+                            icon="tabler:trending-up"
+                            class="w-3 h-3 mr-1"
                           />
-                          <span class="font-semibold text-base text-gray-900">
-                            {{ vla.Source }} Assessment Confidence
-                          </span>
-                        </div>
-
-                        <div
-                          class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
-                        >
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700 font-medium"
-                              >Confidence Score:</span
-                            >
-                            <span class="font-bold text-gray-900"
-                              >{{ Math.round(vla.Confidence * 100) }}%</span
-                            >
+                          EPSS {{ (report.EPSS.Score * 100).toFixed(1) }}%
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="bg-white border border-gray-300 shadow-lg"
+                      >
+                        <div class="max-w-sm space-y-3 p-3">
+                          <div class="flex items-center gap-2">
+                            <Icon
+                              icon="tabler:trending-up"
+                              class="w-4 h-4 text-red-600"
+                            />
+                            <span class="font-semibold text-base text-gray-900">
+                              EPSS Score:
+                              {{ (report.EPSS.Score * 100).toFixed(1) }}%
+                            </span>
                           </div>
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700 font-medium"
-                              >Severity Rating:</span
+                          <div
+                            class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                          >
+                            <div class="font-medium text-gray-900">
+                              Exploit Prediction Scoring System
+                            </div>
+                            <div class="text-gray-600">
+                              Predicts the probability that this vulnerability
+                              will be exploited in the wild within the next 30
+                              days.
+                            </div>
+                            <div class="text-gray-600">
+                              <strong>Score > 10%:</strong> High likelihood of
+                              exploitation - prioritize patching.
+                            </div>
+                          </div>
+                          <div class="pt-2 border-t border-gray-200">
+                            <a
+                              href="https://www.first.org/epss/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
                             >
-                            <span class="font-bold text-gray-900 capitalize">{{
-                              vla.Score
-                            }}</span>
+                              Learn more about EPSS
+                              <Icon
+                                icon="tabler:external-link"
+                                class="w-3 h-3"
+                              />
+                            </a>
                           </div>
                         </div>
-
-                        <div class="pt-2 border-t border-gray-200">
-                          <p
-                            v-if="vla.Confidence >= 0.9"
-                            class="text-sm text-gray-800 font-medium flex items-center gap-1"
-                          >
-                            <span class="text-green-600">✓</span> Highly
-                            reliable assessment with strong confidence
-                          </p>
-                          <p
-                            v-else-if="vla.Confidence >= 0.5"
-                            class="text-sm text-gray-800 font-medium flex items-center gap-1"
-                          >
-                            <span class="text-amber-600">⚠</span>
-                            Moderate reliability - cross-reference recommended
-                          </p>
-                          <p
-                            v-else
-                            class="text-sm text-gray-800 font-medium flex items-center gap-1"
-                          >
-                            <span class="text-red-600">⚠</span> Low confidence -
-                            verify with additional sources
-                          </p>
-                        </div>
-
-                        <div class="pt-2 border-t border-gray-200">
-                          <a
-                            href="https://www.vulnerability-lookup.org/user-manual/ai/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            Learn more about VLAI assessments
-                            <Icon icon="tabler:external-link" class="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
 
-              <!-- CWE Badges -->
-              <TooltipProvider
-                v-for="weakness in report.Weaknesses ?? []"
-                :key="weakness.WeaknessId"
-              >
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <Badge :cwe="true" class="text-xs px-2 py-1 cursor-help">
-                      {{ weakness.WeaknessId }}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    class="bg-white border border-gray-300 shadow-lg"
+              <!-- AI Assessments (VLAI) -->
+              <div v-if="report.VLAI && report.VLAI.length > 0">
+                <span class="section-label">
+                  <Icon
+                    icon="tabler:brain"
+                    class="w-3 h-3 inline-block mr-0.5"
+                  />
+                  AI Assessment
+                </span>
+                <div class="flex flex-wrap gap-1.5 mt-1">
+                  <div
+                    v-for="vla in report.VLAI"
+                    :key="vla.Source"
+                    class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border border-dashed bg-indigo-50 border-indigo-200"
                   >
-                    <div class="max-w-sm space-y-2 p-3">
-                      <div class="flex items-center gap-2">
-                        <Icon icon="tabler:bug" class="w-4 h-4 text-red-600" />
-                        <span class="font-semibold text-base text-gray-900">
-                          {{ weakness.WeaknessId }}
-                        </span>
-                      </div>
+                    <Icon icon="tabler:brain" class="w-3 h-3 text-indigo-500" />
+                    <span class="text-indigo-700 font-semibold">
+                      {{ vla.Source }}:
+                      <span class="capitalize">{{ vla.Score }}</span>
+                    </span>
 
-                      <div class="text-sm space-y-1">
-                        <div class="font-medium text-gray-900">
-                          {{ weakness.WeaknessName }}
-                        </div>
-                        <div class="text-gray-600">
-                          Common weakness pattern that can lead to security
-                          vulnerabilities
-                        </div>
-                      </div>
-
-                      <div class="pt-2 border-t border-gray-200">
-                        <a
-                          :href="`https://cwe.mitre.org/data/definitions/${weakness.WeaknessId.replace('CWE-', '')}.html`"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    <!-- Confidence indicator -->
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <div
+                            class="flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] font-semibold cursor-help"
+                            :class="{
+                              'bg-green-100 text-green-800':
+                                vla.Confidence >= 0.9,
+                              'bg-yellow-100 text-yellow-800':
+                                vla.Confidence >= 0.5 && vla.Confidence < 0.9,
+                              'bg-red-100 text-red-800': vla.Confidence < 0.5,
+                            }"
+                          >
+                            <Icon
+                              :icon="
+                                vla.Confidence >= 0.9
+                                  ? 'tabler:check-circle'
+                                  : vla.Confidence >= 0.5
+                                    ? 'tabler:alert-circle'
+                                    : 'tabler:x-circle'
+                              "
+                              class="w-2.5 h-2.5"
+                            />
+                            <span>{{ Math.round(vla.Confidence * 100) }}%</span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          class="bg-white border border-gray-300 shadow-lg"
                         >
-                          View CWE details
-                          <Icon icon="tabler:external-link" class="w-3 h-3" />
-                        </a>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                          <div class="max-w-sm space-y-3 p-3">
+                            <div class="flex items-center gap-2">
+                              <Icon
+                                icon="tabler:brain"
+                                class="w-4 h-4 text-indigo-500"
+                              />
+                              <span
+                                class="font-semibold text-base text-gray-900"
+                              >
+                                {{ vla.Source }} AI Assessment
+                              </span>
+                            </div>
+                            <div
+                              class="text-sm space-y-2 bg-gray-50 p-3 rounded-lg"
+                            >
+                              <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-medium"
+                                  >Confidence:</span
+                                >
+                                <span class="font-bold text-gray-900"
+                                  >{{ Math.round(vla.Confidence * 100) }}%</span
+                                >
+                              </div>
+                              <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-medium"
+                                  >AI Severity:</span
+                                >
+                                <span
+                                  class="font-bold text-gray-900 capitalize"
+                                  >{{ vla.Score }}</span
+                                >
+                              </div>
+                              <div class="text-gray-500 text-xs pt-1">
+                                This is an AI-generated severity assessment, not
+                                the official CVSS score from the source.
+                              </div>
+                            </div>
+                            <div class="pt-2 border-t border-gray-200">
+                              <a
+                                href="https://www.vulnerability-lookup.org/user-manual/ai/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                              >
+                                Learn more about VLAI
+                                <Icon
+                                  icon="tabler:external-link"
+                                  class="w-3 h-3"
+                                />
+                              </a>
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Weaknesses -->
+              <div v-if="report.Weaknesses && report.Weaknesses.length > 0">
+                <span class="section-label">Weaknesses</span>
+                <div class="flex flex-wrap gap-1.5 mt-1">
+                  <TooltipProvider
+                    v-for="weakness in report.Weaknesses"
+                    :key="weakness.WeaknessId"
+                  >
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Badge
+                          :cwe="true"
+                          class="text-xs px-2 py-1 cursor-help"
+                        >
+                          {{ weakness.WeaknessId }}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="bg-white border border-gray-300 shadow-lg"
+                      >
+                        <div class="max-w-sm space-y-2 p-3">
+                          <div class="flex items-center gap-2">
+                            <Icon
+                              icon="tabler:bug"
+                              class="w-4 h-4 text-red-600"
+                            />
+                            <span class="font-semibold text-base text-gray-900">
+                              {{ weakness.WeaknessId }}
+                            </span>
+                          </div>
+                          <div class="text-sm space-y-1">
+                            <div class="font-medium text-gray-900">
+                              {{ weakness.WeaknessName }}
+                            </div>
+                          </div>
+                          <div class="pt-2 border-t border-gray-200">
+                            <a
+                              :href="`https://cwe.mitre.org/data/definitions/${weakness.WeaknessId.replace('CWE-', '')}.html`"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              View CWE details
+                              <Icon
+                                icon="tabler:external-link"
+                                class="w-3 h-3"
+                              />
+                            </a>
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
             </div>
 
             <!-- Full Description -->
-            <div class="mb-3">
+            <div class="mb-4">
               <InfoMarkdown :markdown="report.Description.trim()" />
             </div>
 
-            <!-- Impact Information -->
-            <div class="flex gap-1.5 mb-3">
-              <TooltipProvider>
-                <Tooltip
-                  v-if="
-                    report.Severity?.ConfidentialityImpact !== 'NONE' &&
-                    report.Severity?.ConfidentialityImpact !== ''
-                  "
-                >
-                  <TooltipTrigger as-child>
-                    <BubbleComponent
-                      class="text-xs impact-bubble cursor-help"
-                      :class="{
-                        'impact-high':
-                          report.Severity?.ConfidentialityImpact === 'HIGH' ||
-                          report.Severity?.ConfidentialityImpact === 'COMPLETE',
-                        'impact-medium':
-                          report.Severity?.ConfidentialityImpact === 'LOW' ||
-                          report.Severity?.ConfidentialityImpact === 'PARTIAL',
-                      }"
+            <!-- Impact + OWASP row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+              <!-- Impact -->
+              <div
+                v-if="
+                  (report.Severity?.ConfidentialityImpact !== 'NONE' &&
+                    report.Severity?.ConfidentialityImpact !== '') ||
+                  (report.Severity?.AvailabilityImpact !== 'NONE' &&
+                    report.Severity?.AvailabilityImpact !== '') ||
+                  (report.Severity?.IntegrityImpact !== 'NONE' &&
+                    report.Severity?.IntegrityImpact !== '')
+                "
+              >
+                <span class="section-label">Impact</span>
+                <div class="flex gap-1.5 mt-1">
+                  <TooltipProvider>
+                    <Tooltip
+                      v-if="
+                        report.Severity?.ConfidentialityImpact !== 'NONE' &&
+                        report.Severity?.ConfidentialityImpact !== ''
+                      "
                     >
-                      <template #content>
-                        <Icon icon="tabler:shield-lock" class="w-3 h-3" />
-                        <span>Confidentiality</span>
-                        <span class="ml-1 text-xs font-bold text-white">
-                          {{ report.Severity?.ConfidentialityImpact }}
-                        </span>
-                      </template>
-                    </BubbleComponent>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    class="bg-white text-gray-800 shadow-lg border max-w-sm"
-                  >
-                    <div class="space-y-3 p-1">
-                      <div class="flex items-center gap-2">
-                        <Icon
-                          icon="tabler:shield-lock"
-                          class="w-4 h-4 text-blue-600"
-                        />
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-base"
-                            >Confidentiality Impact</span
-                          >
-                          <span
-                            class="px-2 py-1 rounded text-xs font-bold text-white"
-                            :class="{
-                              'bg-red-600':
-                                report.Severity?.ConfidentialityImpact ===
-                                  'HIGH' ||
-                                report.Severity?.ConfidentialityImpact ===
-                                  'COMPLETE',
-                              'bg-orange-600':
-                                report.Severity?.ConfidentialityImpact ===
-                                  'LOW' ||
-                                report.Severity?.ConfidentialityImpact ===
-                                  'PARTIAL',
-                            }"
-                          >
-                            {{ report.Severity?.ConfidentialityImpact }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="text-sm bg-gray-50 p-3 rounded-lg">
-                        <div class="font-medium text-gray-900 mb-2">
-                          {{
-                            report.Severity?.ConfidentialityImpact === "HIGH" ||
-                            report.Severity?.ConfidentialityImpact ===
-                              "COMPLETE"
-                              ? "High Impact"
-                              : "Limited Impact"
-                          }}
-                        </div>
-                        <div class="text-gray-600">
-                          <span
-                            v-if="
+                      <TooltipTrigger as-child>
+                        <BubbleComponent
+                          class="text-xs impact-bubble cursor-help"
+                          :class="{
+                            'impact-high':
                               report.Severity?.ConfidentialityImpact ===
                                 'HIGH' ||
                               report.Severity?.ConfidentialityImpact ===
-                                'COMPLETE'
-                            "
-                          >
-                            Complete loss of confidentiality - attackers can
-                            access all sensitive data, user credentials,
-                            encryption keys, or system secrets. This represents
-                            a total compromise of data privacy.
-                          </span>
-                          <span v-else>
-                            Partial confidentiality loss - attackers can access
-                            some restricted information, but cannot control what
-                            is obtained. The scope of information disclosure is
-                            limited.
-                          </span>
+                                'COMPLETE',
+                            'impact-medium':
+                              report.Severity?.ConfidentialityImpact ===
+                                'LOW' ||
+                              report.Severity?.ConfidentialityImpact ===
+                                'PARTIAL',
+                          }"
+                        >
+                          <template #content>
+                            <Icon icon="tabler:shield-lock" class="w-3 h-3" />
+                            <span>C</span>
+                            <span class="ml-0.5 text-xs font-bold text-white">
+                              {{ report.Severity?.ConfidentialityImpact }}
+                            </span>
+                          </template>
+                        </BubbleComponent>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="bg-white text-gray-800 shadow-lg border max-w-sm"
+                      >
+                        <div class="space-y-2 p-1">
+                          <div class="flex items-center gap-2">
+                            <Icon
+                              icon="tabler:shield-lock"
+                              class="w-4 h-4 text-blue-600"
+                            />
+                            <span class="font-semibold"
+                              >Confidentiality:
+                              {{ report.Severity?.ConfidentialityImpact }}</span
+                            >
+                          </div>
+                          <p class="text-sm text-gray-600">
+                            {{
+                              report.Severity?.ConfidentialityImpact ===
+                                "HIGH" ||
+                              report.Severity?.ConfidentialityImpact ===
+                                "COMPLETE"
+                                ? "Complete loss of confidentiality - attackers can access all sensitive data."
+                                : "Partial confidentiality loss - limited information disclosure."
+                            }}
+                          </p>
                         </div>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-              <TooltipProvider>
-                <Tooltip
-                  v-if="
-                    report.Severity?.AvailabilityImpact !== 'NONE' &&
-                    report.Severity?.AvailabilityImpact !== ''
-                  "
-                >
-                  <TooltipTrigger as-child>
-                    <BubbleComponent
-                      class="text-xs impact-bubble cursor-help"
-                      :class="{
-                        'impact-high':
-                          report.Severity?.AvailabilityImpact === 'HIGH' ||
-                          report.Severity?.AvailabilityImpact === 'COMPLETE',
-                        'impact-medium':
-                          report.Severity?.AvailabilityImpact === 'LOW' ||
-                          report.Severity?.AvailabilityImpact === 'PARTIAL',
-                      }"
-                    >
-                      <template #content>
-                        <Icon icon="tabler:server" class="w-3 h-3" />
-                        <span>Availability</span>
-                        <span class="ml-1 text-xs font-bold text-white">
-                          {{ report.Severity?.AvailabilityImpact }}
-                        </span>
-                      </template>
-                    </BubbleComponent>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    class="bg-white text-gray-800 shadow-lg border max-w-sm"
-                  >
-                    <div class="space-y-3 p-1">
-                      <div class="flex items-center gap-2">
-                        <Icon
-                          icon="tabler:server"
-                          class="w-4 h-4 text-purple-600"
-                        />
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-base"
-                            >Availability Impact</span
-                          >
-                          <span
-                            class="px-2 py-1 rounded text-xs font-bold text-white"
-                            :class="{
-                              'bg-red-600':
-                                report.Severity?.AvailabilityImpact ===
-                                  'HIGH' ||
-                                report.Severity?.AvailabilityImpact ===
-                                  'COMPLETE',
-                              'bg-orange-600':
-                                report.Severity?.AvailabilityImpact === 'LOW' ||
-                                report.Severity?.AvailabilityImpact ===
-                                  'PARTIAL',
-                            }"
-                          >
-                            {{ report.Severity?.AvailabilityImpact }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="text-sm bg-gray-50 p-3 rounded-lg">
-                        <div class="font-medium text-gray-900 mb-2">
-                          {{
-                            report.Severity?.AvailabilityImpact === "HIGH" ||
-                            report.Severity?.AvailabilityImpact === "COMPLETE"
-                              ? "Complete Service Disruption"
-                              : "Performance Degradation"
-                          }}
-                        </div>
-                        <div class="text-gray-600">
-                          <span
-                            v-if="
-                              report.Severity?.AvailabilityImpact === 'HIGH' ||
-                              report.Severity?.AvailabilityImpact === 'COMPLETE'
-                            "
-                          >
-                            Total shutdown or denial of service - attackers can
-                            completely prevent legitimate users from accessing
-                            the system or service, causing sustained outages and
-                            business disruption.
-                          </span>
-                          <span v-else>
-                            Reduced performance or intermittent interruptions -
-                            some resources may be partially available, but
-                            overall system functionality is degraded without
-                            complete failure.
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip
-                  v-if="
-                    report.Severity?.IntegrityImpact !== 'NONE' &&
-                    report.Severity?.IntegrityImpact !== ''
-                  "
-                >
-                  <TooltipTrigger as-child>
-                    <BubbleComponent
-                      class="text-xs impact-bubble cursor-help"
-                      :class="{
-                        'impact-high':
-                          report.Severity?.IntegrityImpact === 'HIGH' ||
-                          report.Severity?.IntegrityImpact === 'COMPLETE',
-                        'impact-medium':
-                          report.Severity?.IntegrityImpact === 'LOW' ||
-                          report.Severity?.IntegrityImpact === 'PARTIAL',
-                      }"
-                    >
-                      <template #content>
-                        <Icon icon="tabler:shield-check" class="w-3 h-3" />
-                        <span>Integrity</span>
-                        <span class="ml-1 text-xs font-bold text-white">
-                          {{ report.Severity?.IntegrityImpact }}
-                        </span>
-                      </template>
-                    </BubbleComponent>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    class="bg-white text-gray-800 shadow-lg border max-w-sm"
-                  >
-                    <div class="space-y-3 p-1">
-                      <div class="flex items-center gap-2">
-                        <Icon
-                          icon="tabler:shield-check"
-                          class="w-4 h-4 text-green-600"
-                        />
-                        <div class="flex items-center gap-2">
-                          <span class="font-semibold text-base"
-                            >Integrity Impact</span
-                          >
-                          <span
-                            class="px-2 py-1 rounded text-xs font-bold text-white"
-                            :class="{
-                              'bg-red-600':
-                                report.Severity?.IntegrityImpact === 'HIGH' ||
-                                report.Severity?.IntegrityImpact === 'COMPLETE',
-                              'bg-orange-600':
-                                report.Severity?.IntegrityImpact === 'LOW' ||
-                                report.Severity?.IntegrityImpact === 'PARTIAL',
-                            }"
-                          >
-                            {{ report.Severity?.IntegrityImpact }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="text-sm bg-gray-50 p-3 rounded-lg">
-                        <div class="font-medium text-gray-900 mb-2">
-                          {{
-                            report.Severity?.IntegrityImpact === "HIGH" ||
-                            report.Severity?.IntegrityImpact === "COMPLETE"
-                              ? "Complete Data Compromise"
-                              : "Limited Data Modification"
-                          }}
-                        </div>
-                        <div class="text-gray-600">
-                          <span
-                            v-if="
-                              report.Severity?.IntegrityImpact === 'HIGH' ||
-                              report.Severity?.IntegrityImpact === 'COMPLETE'
-                            "
-                          >
-                            Total loss of data integrity - attackers can modify,
-                            delete, or corrupt any system files, application
-                            data, or critical configurations, potentially
-                            rendering systems unreliable.
-                          </span>
-                          <span v-else>
-                            Limited data modification capability - attackers can
-                            alter some information but cannot control the scope
-                            or consequence of modifications. Impact is
-                            constrained but still concerning.
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-
-            <!-- OWASP Top 10 Information -->
-            <div
-              v-if="report.Weaknesses?.some((w: any) => w.OWASPTop10Id !== '')"
-              class="mb-3"
-            >
-              <div class="flex flex-wrap gap-2">
-                <div
-                  v-for="owaspID in getUniqueOWASP(report.Weaknesses ?? [])"
-                  :key="owaspID"
-                >
                   <TooltipProvider>
+                    <Tooltip
+                      v-if="
+                        report.Severity?.AvailabilityImpact !== 'NONE' &&
+                        report.Severity?.AvailabilityImpact !== ''
+                      "
+                    >
+                      <TooltipTrigger as-child>
+                        <BubbleComponent
+                          class="text-xs impact-bubble cursor-help"
+                          :class="{
+                            'impact-high':
+                              report.Severity?.AvailabilityImpact === 'HIGH' ||
+                              report.Severity?.AvailabilityImpact ===
+                                'COMPLETE',
+                            'impact-medium':
+                              report.Severity?.AvailabilityImpact === 'LOW' ||
+                              report.Severity?.AvailabilityImpact === 'PARTIAL',
+                          }"
+                        >
+                          <template #content>
+                            <Icon icon="tabler:server" class="w-3 h-3" />
+                            <span>A</span>
+                            <span class="ml-0.5 text-xs font-bold text-white">
+                              {{ report.Severity?.AvailabilityImpact }}
+                            </span>
+                          </template>
+                        </BubbleComponent>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="bg-white text-gray-800 shadow-lg border max-w-sm"
+                      >
+                        <div class="space-y-2 p-1">
+                          <div class="flex items-center gap-2">
+                            <Icon
+                              icon="tabler:server"
+                              class="w-4 h-4 text-purple-600"
+                            />
+                            <span class="font-semibold"
+                              >Availability:
+                              {{ report.Severity?.AvailabilityImpact }}</span
+                            >
+                          </div>
+                          <p class="text-sm text-gray-600">
+                            {{
+                              report.Severity?.AvailabilityImpact === "HIGH" ||
+                              report.Severity?.AvailabilityImpact === "COMPLETE"
+                                ? "Total shutdown or denial of service possible."
+                                : "Reduced performance or intermittent interruptions."
+                            }}
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip
+                      v-if="
+                        report.Severity?.IntegrityImpact !== 'NONE' &&
+                        report.Severity?.IntegrityImpact !== ''
+                      "
+                    >
+                      <TooltipTrigger as-child>
+                        <BubbleComponent
+                          class="text-xs impact-bubble cursor-help"
+                          :class="{
+                            'impact-high':
+                              report.Severity?.IntegrityImpact === 'HIGH' ||
+                              report.Severity?.IntegrityImpact === 'COMPLETE',
+                            'impact-medium':
+                              report.Severity?.IntegrityImpact === 'LOW' ||
+                              report.Severity?.IntegrityImpact === 'PARTIAL',
+                          }"
+                        >
+                          <template #content>
+                            <Icon icon="tabler:shield-check" class="w-3 h-3" />
+                            <span>I</span>
+                            <span class="ml-0.5 text-xs font-bold text-white">
+                              {{ report.Severity?.IntegrityImpact }}
+                            </span>
+                          </template>
+                        </BubbleComponent>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="bg-white text-gray-800 shadow-lg border max-w-sm"
+                      >
+                        <div class="space-y-2 p-1">
+                          <div class="flex items-center gap-2">
+                            <Icon
+                              icon="tabler:shield-check"
+                              class="w-4 h-4 text-green-600"
+                            />
+                            <span class="font-semibold"
+                              >Integrity:
+                              {{ report.Severity?.IntegrityImpact }}</span
+                            >
+                          </div>
+                          <p class="text-sm text-gray-600">
+                            {{
+                              report.Severity?.IntegrityImpact === "HIGH" ||
+                              report.Severity?.IntegrityImpact === "COMPLETE"
+                                ? "Total loss of data integrity - attackers can modify any data."
+                                : "Limited data modification capability."
+                            }}
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+
+              <!-- OWASP Top 10 -->
+              <div
+                v-if="
+                  report.Weaknesses?.some((w: any) => w.OWASPTop10Id !== '')
+                "
+              >
+                <span class="section-label">OWASP Top 10</span>
+                <div class="flex flex-wrap gap-1.5 mt-1">
+                  <TooltipProvider
+                    v-for="owaspID in getUniqueOWASP(report.Weaknesses ?? [])"
+                    :key="owaspID"
+                  >
                     <Tooltip>
                       <TooltipTrigger>
                         <div
                           :class="[
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all hover:shadow-sm cursor-help',
+                            'inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-medium cursor-help',
                             getOwaspInfo(owaspID).color,
                           ]"
                         >
@@ -1546,39 +1355,24 @@ const exploitableCount = computed(() => {
                       <TooltipContent
                         class="bg-white border border-gray-300 shadow-lg max-w-sm"
                       >
-                        <div class="space-y-3 p-3">
+                        <div class="space-y-2 p-3">
                           <div class="flex items-center gap-2">
                             <Icon
                               icon="simple-icons:owasp"
                               class="w-4 h-4 text-orange-600"
                             />
-                            <span class="font-semibold text-base text-gray-900">
+                            <span class="font-semibold text-gray-900">
                               OWASP {{ getOwaspInfo(owaspID).id }}
                             </span>
                           </div>
-
-                          <div class="space-y-2">
-                            <div>
-                              <h4
-                                class="font-medium text-sm text-gray-900 mb-1"
-                              >
-                                {{ getOwaspInfo(owaspID).name }}
-                              </h4>
-                              <p class="text-sm text-gray-600 leading-relaxed">
-                                {{ getOwaspInfo(owaspID).description }}
-                              </p>
-                            </div>
-
-                            <div class="bg-gray-50 p-2 rounded-lg">
-                              <h5
-                                class="font-medium text-xs text-gray-700 mb-1"
-                              >
-                                Potential Impact:
-                              </h5>
-                              <p class="text-xs text-gray-600 leading-relaxed">
-                                {{ getOwaspInfo(owaspID).impact }}
-                              </p>
-                            </div>
+                          <p class="text-sm text-gray-600">
+                            {{ getOwaspInfo(owaspID).description }}
+                          </p>
+                          <div class="bg-gray-50 p-2 rounded-lg">
+                            <p class="text-xs text-gray-600">
+                              <strong>Impact:</strong>
+                              {{ getOwaspInfo(owaspID).impact }}
+                            </p>
                           </div>
                         </div>
                       </TooltipContent>
@@ -1718,9 +1512,14 @@ const exploitableCount = computed(() => {
   line-height: 1.5;
 }
 
-// Enhanced spacing for badges and bubbles
-.card-body .flex.flex-wrap {
-  gap: 0.25rem;
+// Section labels for grouped metrics
+.section-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
 }
 
 // Color-coded left borders

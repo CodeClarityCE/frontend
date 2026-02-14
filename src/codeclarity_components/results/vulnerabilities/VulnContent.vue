@@ -55,6 +55,7 @@ const selected_workspace = defineModel<string>("selected_workspace", {
   default: ".",
 });
 const selectedEcosystemFilter: Ref<string | null> = ref(null);
+const showDetailedAnalysis = ref(false);
 
 watch(
   () => props.projectID,
@@ -426,8 +427,29 @@ const topOwaspCategories = computed(() => {
       </InfoCard>
     </div>
 
+    <!-- Detailed Analysis Toggle -->
+    <button
+      class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+      @click="showDetailedAnalysis = !showDetailedAnalysis"
+    >
+      <Icon
+        :icon="
+          showDetailedAnalysis ? 'tabler:chevron-up' : 'tabler:chevron-down'
+        "
+        class="w-4 h-4"
+      />
+      {{
+        showDetailedAnalysis
+          ? "Hide detailed analysis"
+          : "Show detailed analysis"
+      }}
+    </button>
+
     <!-- Detailed Analysis Grid -->
-    <div class="grid gap-4 grid-cols-1 lg:grid-cols-3">
+    <div
+      v-if="showDetailedAnalysis"
+      class="grid gap-4 grid-cols-1 lg:grid-cols-3"
+    >
       <!-- Vulnerability Distribution -->
       <InfoCard
         title="Vulnerability Distribution"

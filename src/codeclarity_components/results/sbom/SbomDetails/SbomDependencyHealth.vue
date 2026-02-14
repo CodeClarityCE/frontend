@@ -4,7 +4,7 @@ import { computed, type PropType } from "vue";
 
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
 import Badge from "@/shadcn/ui/badge/Badge.vue";
-import { calculateDateDifference, formatRelativeTime } from "@/utils/dateUtils";
+import { calculateDateDifference } from "@/utils/dateUtils";
 
 const props = defineProps({
   dependency: {
@@ -254,90 +254,6 @@ const getHealthStatusDescription = (): string => {
           </div>
         </div>
       </div>
-
-      <!-- Enhanced Healthy Indicators -->
-      <div v-if="!hasHealthIssues" class="health-indicators">
-        <div class="health-celebration">
-          <Icon icon="solar:medal-star-bold" class="celebration-icon" />
-          <h4 class="celebration-title">Excellent Package Health!</h4>
-          <p class="celebration-description">
-            This package meets all security and quality standards.
-          </p>
-        </div>
-
-        <div class="indicator-grid">
-          <div class="indicator-item security">
-            <Icon
-              icon="solar:shield-check-bold"
-              class="indicator-icon success"
-            />
-            <div class="indicator-content">
-              <span class="indicator-title">Security Clear</span>
-              <span class="indicator-desc">No known vulnerabilities</span>
-            </div>
-          </div>
-          <div class="indicator-item license">
-            <Icon
-              icon="solar:document-text-bold"
-              class="indicator-icon success"
-            />
-            <div class="indicator-content">
-              <span class="indicator-title">Licensed</span>
-              <span class="indicator-desc">{{
-                dependency.license ?? "Standard license"
-              }}</span>
-            </div>
-          </div>
-          <div class="indicator-item version">
-            <Icon icon="solar:refresh-bold" class="indicator-icon success" />
-            <div class="indicator-content">
-              <span class="indicator-title">Up to Date</span>
-              <span class="indicator-desc">Using latest version</span>
-            </div>
-          </div>
-          <div class="indicator-item maintenance">
-            <Icon icon="solar:tools-bold" class="indicator-icon success" />
-            <div class="indicator-content">
-              <span class="indicator-title">Well Maintained</span>
-              <span class="indicator-desc">Active development</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Health Score Metrics -->
-        <div class="health-metrics">
-          <div class="metric-item">
-            <Icon icon="solar:chart-bold" class="metric-icon" />
-            <div class="metric-content">
-              <span class="metric-label">Health Score</span>
-              <span class="metric-value">A+</span>
-            </div>
-          </div>
-          <div class="metric-item">
-            <Icon icon="solar:time-bold" class="metric-icon" />
-            <div class="metric-content">
-              <span class="metric-label">Last Updated</span>
-              <span class="metric-value">{{
-                dependency.release_date
-                  ? formatRelativeTime(dependency.release_date)
-                  : "Unknown"
-              }}</span>
-            </div>
-          </div>
-          <div class="metric-item">
-            <Icon
-              icon="solar:users-group-two-rounded-bold"
-              class="metric-icon"
-            />
-            <div class="metric-content">
-              <span class="metric-label">Dependency Type</span>
-              <span class="metric-value">{{
-                dependency.transitive ? "Transitive" : "Direct"
-              }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 </template>
@@ -427,8 +343,7 @@ const getHealthStatusDescription = (): string => {
   transition: all 0.2s ease-in-out;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #9ca3af;
   }
 
   &.outdated {
@@ -590,161 +505,6 @@ const getHealthStatusDescription = (): string => {
   letter-spacing: 0.025em;
 }
 
-/* Enhanced Health Indicators (for healthy packages) */
-.health-indicators {
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-}
-
-.health-celebration {
-  text-align: center;
-  padding: 2rem;
-  background: linear-gradient(
-    135deg,
-    rgba(29, 206, 121, 0.1) 0%,
-    rgba(29, 206, 121, 0.05) 100%
-  );
-  border-radius: 12px;
-  border: 1px solid rgba(29, 206, 121, 0.2);
-  margin-bottom: 2rem;
-}
-
-.celebration-icon {
-  font-size: 3rem;
-  color: var(--color-theme-primary);
-  margin-bottom: 1rem;
-}
-
-.celebration-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-theme-black);
-  margin: 0 0 0.5rem 0;
-}
-
-.celebration-description {
-  font-size: 0.95rem;
-  color: var(--color-theme-gray);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.indicator-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.indicator-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid rgba(29, 206, 121, 0.15);
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(29, 206, 121, 0.1);
-    border-color: rgba(29, 206, 121, 0.3);
-  }
-
-  &.security {
-    border-left: 4px solid var(--color-theme-primary);
-  }
-
-  &.license {
-    border-left: 4px solid #10b981;
-  }
-
-  &.version {
-    border-left: 4px solid #3b82f6;
-  }
-
-  &.maintenance {
-    border-left: 4px solid #8b5cf6;
-  }
-}
-
-.indicator-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.indicator-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--color-theme-black);
-}
-
-.indicator-desc {
-  font-size: 0.85rem;
-  color: var(--color-theme-gray);
-}
-
-.health-metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.metric-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.metric-icon {
-  font-size: 1.25rem;
-  color: var(--color-theme-primary);
-  background: rgba(29, 206, 121, 0.1);
-  padding: 0.5rem;
-  border-radius: 6px;
-}
-
-.metric-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.metric-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-theme-gray);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.metric-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-theme-black);
-}
-
-.indicator-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-
-  &.success {
-    color: var(--color-theme-primary);
-  }
-}
-
 /* Code styling */
 code {
   background: #f3f4f6;
@@ -762,22 +522,6 @@ code {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
-  }
-
-  .health-celebration {
-    padding: 1.5rem;
-  }
-
-  .celebration-icon {
-    font-size: 2.5rem;
-  }
-
-  .indicator-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .health-metrics {
-    grid-template-columns: 1fr;
   }
 }
 </style>

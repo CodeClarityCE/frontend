@@ -1,15 +1,25 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import type { PropType } from "vue";
+import { computed, type PropType } from "vue";
 
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
 import { Badge } from "@/shadcn/ui/badge";
 
-defineProps({
+const props = defineProps({
   dependency: {
     type: Object as PropType<DependencyDetails>,
     required: true,
   },
+});
+
+const isNpmEcosystem = computed(() => {
+  const pm = props.dependency.package_manager?.toLowerCase() ?? "";
+  return pm === "npm" || pm === "yarn" || pm === "pnpm" || pm === "";
+});
+
+const isComposerEcosystem = computed(() => {
+  const pm = props.dependency.package_manager?.toLowerCase() ?? "";
+  return pm === "composer";
 });
 </script>
 
@@ -23,7 +33,8 @@ defineProps({
     </div>
 
     <div class="external-links">
-      <Badge variant="secondary" class="link-badge">
+      <!-- npm ecosystem links -->
+      <Badge v-if="isNpmEcosystem" variant="secondary" class="link-badge">
         <a
           :href="`https://www.npmjs.com/package/${dependency.name}/v/${dependency.version}`"
           target="_blank"
@@ -35,7 +46,7 @@ defineProps({
         </a>
       </Badge>
 
-      <Badge variant="secondary" class="link-badge">
+      <Badge v-if="isNpmEcosystem" variant="secondary" class="link-badge">
         <a
           :href="`https://yarnpkg.com/package?name=${dependency.name}&version=${dependency.version}`"
           target="_blank"
@@ -47,6 +58,20 @@ defineProps({
         </a>
       </Badge>
 
+      <!-- Composer ecosystem link -->
+      <Badge v-if="isComposerEcosystem" variant="secondary" class="link-badge">
+        <a
+          :href="`https://packagist.org/packages/${dependency.name}#${dependency.version}`"
+          target="_blank"
+          class="link-content"
+          title="View on Packagist (opens in new tab)"
+        >
+          <Icon :icon="'simple-icons:packagist'" class="link-icon"></Icon>
+          <span>Packagist</span>
+        </a>
+      </Badge>
+
+      <!-- Source repository link -->
       <Badge v-if="dependency.source" variant="secondary" class="link-badge">
         <a
           v-if="dependency.source.Type === 'git'"
@@ -131,7 +156,6 @@ defineProps({
   &:hover {
     background: var(--color-theme-primary);
     color: white;
-    transform: translateY(-1px);
   }
 }
 

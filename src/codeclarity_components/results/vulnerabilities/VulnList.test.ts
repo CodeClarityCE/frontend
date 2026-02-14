@@ -531,7 +531,7 @@ describe("VulnList", () => {
     expect(uniqueOwasp.length).toBe(2);
   });
 
-  it("has computed properties for statistics", () => {
+  it("manages findings data correctly", () => {
     wrapper = mount(VulnList, {
       props: {
         highlightElem: "",
@@ -540,24 +540,18 @@ describe("VulnList", () => {
       },
     });
 
-    // Mock findings data
+    // Stats are now computed in VulnContent, not in VulnList
+    // Verify findings array is reactive
     wrapper.vm.findings = [
       {
-        Severity: { Severity: 9.5 }, // Critical
-        EPSS: { Score: 0.15 }, // Exploitable
-        Affected: [{ PatchType: PatchType.Full }], // Patchable
-      },
-      {
-        Severity: { Severity: 8.0 }, // High
-        EPSS: { Score: 0.05 }, // Not exploitable
-        Affected: [{ PatchType: PatchType.None }], // Not patchable
+        Severity: { Severity: 9.5 },
+        EPSS: { Score: 0.15 },
+        Affected: [{ PatchType: PatchType.Full }],
       },
     ];
 
-    expect(wrapper.vm.criticalCount).toBe(1);
-    expect(wrapper.vm.highCount).toBe(1);
-    expect(wrapper.vm.patchableCount).toBe(1);
-    expect(wrapper.vm.exploitableCount).toBe(1);
+    expect(wrapper.vm.findings.length).toBe(1);
+    expect(wrapper.vm.findings[0].Severity.Severity).toBe(9.5);
   });
 
   it("handles workspace model updates", async () => {
@@ -703,10 +697,10 @@ describe("VulnList", () => {
       },
     });
 
-    // Check for stats display elements
+    // Header is now in parent Card; VulnList shows legend + total count
     const headerText = wrapper.text();
-    expect(headerText).toContain("Vulnerabilities");
     expect(headerText).toContain("total vulnerabilities");
+    expect(headerText).toContain("Legend");
   });
 
   it("handles expandedCards state management", () => {
@@ -734,7 +728,7 @@ describe("VulnList", () => {
     expect(wrapper.vm.isCardExpanded(vuln2)).toBe(true);
   });
 
-  it("displays vulnerability legend and indicators", () => {
+  it("displays vulnerability legend as popover button", () => {
     wrapper = mount(VulnList, {
       props: {
         highlightElem: "",
@@ -744,9 +738,7 @@ describe("VulnList", () => {
     });
 
     const text = wrapper.text();
-    expect(text).toContain("Vulnerability Indicators");
-    expect(text).toContain("Severity Levels");
-    expect(text).toContain("Exploitation Risk");
-    expect(text).toContain("Patching Status");
+    // Legend is now a compact popover button instead of an always-visible box
+    expect(text).toContain("Legend");
   });
 });

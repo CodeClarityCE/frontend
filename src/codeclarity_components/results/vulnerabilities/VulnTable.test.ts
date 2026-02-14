@@ -170,6 +170,23 @@ vi.mock("@/shadcn/ui/badge", () => ({
   },
 }));
 
+vi.mock("@/shadcn/ui/popover", () => ({
+  Popover: {
+    name: "Popover",
+    template: '<div data-testid="popover"><slot></slot></div>',
+  },
+  PopoverContent: {
+    name: "PopoverContent",
+    template: '<div data-testid="popover-content"><slot></slot></div>',
+    props: ["class", "side", "align"],
+  },
+  PopoverTrigger: {
+    name: "PopoverTrigger",
+    template: '<div data-testid="popover-trigger"><slot></slot></div>',
+    props: ["as-child"],
+  },
+}));
+
 vi.mock("@/shadcn/ui/tooltip", () => ({
   Tooltip: {
     name: "Tooltip",
@@ -438,7 +455,7 @@ describe("VulnTable", () => {
     expect(wrapper.vm.isCriticalSeverity(9.0)).toBe(true);
   });
 
-  it("has computed properties for statistics", () => {
+  it("manages findings data correctly", () => {
     wrapper = mount(VulnTable, {
       props: {
         highlightElem: "",
@@ -450,24 +467,18 @@ describe("VulnTable", () => {
       },
     });
 
-    // Mock findings data
+    // Stats are now computed in VulnContent, not in VulnTable
+    // Verify findings array is reactive
     wrapper.vm.findings = [
       {
-        Severity: { Severity: 9.5 }, // Critical
-        EPSS: { Score: 0.15 }, // Exploitable
-        Affected: [{ PatchType: PatchType.Full }], // Patchable
-      },
-      {
-        Severity: { Severity: 8.0 }, // High
-        EPSS: { Score: 0.05 }, // Not exploitable
-        Affected: [{ PatchType: PatchType.None }], // Not patchable
+        Severity: { Severity: 9.5 },
+        EPSS: { Score: 0.15 },
+        Affected: [{ PatchType: PatchType.Full }],
       },
     ];
 
-    expect(wrapper.vm.criticalCount).toBe(1);
-    expect(wrapper.vm.highCount).toBe(1);
-    expect(wrapper.vm.patchableCount).toBe(1);
-    expect(wrapper.vm.exploitableCount).toBe(1);
+    expect(wrapper.vm.findings.length).toBe(1);
+    expect(wrapper.vm.findings[0].Severity.Severity).toBe(9.5);
   });
 
   it("has OWASP mapping functionality", () => {
@@ -676,7 +687,7 @@ describe("VulnTable", () => {
     consoleSpy.mockRestore();
   });
 
-  it("displays correct statistics in header", () => {
+  it("displays legend and total count in header", () => {
     wrapper = mount(VulnTable, {
       props: {
         highlightElem: "",
@@ -688,9 +699,9 @@ describe("VulnTable", () => {
       },
     });
 
-    // Check for stats display elements
+    // Header is now in parent Card; VulnTable shows legend popover + total count
     const headerText = wrapper.text();
-    expect(headerText).toContain("Vulnerabilities");
+    expect(headerText).toContain("Legend");
     expect(headerText).toContain("total vulnerabilities");
   });
 

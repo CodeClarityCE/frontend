@@ -1,12 +1,35 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+import { computed, ref } from "vue";
 
 import type PositionedModalVue from "@/base_components/ui/modals/PositionedModal.vue";
 import type { VulnerabilityDetails } from "@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails";
-defineProps<{
+
+const MAX_VERSIONS_LENGTH = 200;
+
+const props = defineProps<{
   finding: VulnerabilityDetails;
   versionsModalRef: typeof PositionedModalVue;
 }>();
+
+const versionsExpanded = ref(false);
+
+const affectedVersionsString = computed(() => {
+  return (
+    props.finding.vulnerability_info.version_info.affected_versions_string ?? ""
+  );
+});
+
+const isVersionsTruncated = computed(() => {
+  return affectedVersionsString.value.length > MAX_VERSIONS_LENGTH;
+});
+
+const displayedVersions = computed(() => {
+  if (!isVersionsTruncated.value || versionsExpanded.value) {
+    return affectedVersionsString.value;
+  }
+  return `${affectedVersionsString.value.slice(0, MAX_VERSIONS_LENGTH)}…`;
+});
 </script>
 
 <template>
@@ -50,7 +73,14 @@ defineProps<{
         <span class="font-black">
           Affected versions of {{ finding.dependency_info?.name }}:
         </span>
-        {{ finding.vulnerability_info.version_info.affected_versions_string }}
+        {{ displayedVersions }}
+        <button
+          v-if="isVersionsTruncated"
+          class="ml-1 text-xs font-medium text-theme-primary hover:underline cursor-pointer"
+          @click="versionsExpanded = !versionsExpanded"
+        >
+          {{ versionsExpanded ? "show less" : "show more" }}
+        </button>
         <span
           v-if="
             finding.vulnerability_info.version_info.affected_versions_source

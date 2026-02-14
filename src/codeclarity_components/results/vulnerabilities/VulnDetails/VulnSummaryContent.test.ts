@@ -36,38 +36,6 @@ vi.mock("@/base_components/ui/InfoMarkdown.vue", () => ({
   },
 }));
 
-// Mock Card components
-vi.mock("@/shadcn/ui/card", () => ({
-  Card: {
-    name: "Card",
-    template: '<div class="mock-card"><slot></slot></div>',
-  },
-  CardContent: {
-    name: "CardContent",
-    template: '<div class="mock-card-content"><slot></slot></div>',
-  },
-  CardDescription: {
-    name: "CardDescription",
-    template: '<div class="mock-card-description"><slot></slot></div>',
-  },
-  CardHeader: {
-    name: "CardHeader",
-    template: '<div class="mock-card-header"><slot></slot></div>',
-  },
-  CardTitle: {
-    name: "CardTitle",
-    template: '<div class="mock-card-title"><slot></slot></div>',
-  },
-}));
-
-// Mock CenteredModal
-vi.mock("@/base_components/ui/modals/CenteredModal.vue", () => ({
-  default: {
-    name: "CenteredModal",
-    template: '<div class="mock-centered-modal"></div>',
-  },
-}));
-
 describe("VulnSummaryContent.vue", () => {
   const createMockFinding = (overrides = {}) => {
     const finding = new VulnerabilityDetails();
@@ -120,13 +88,6 @@ describe("VulnSummaryContent.vue", () => {
     return mount(VulnSummaryContent, {
       props: {
         finding,
-        readMeModalRef: {
-          show: vi.fn(),
-          hide: vi.fn(),
-          toggle: vi.fn(),
-        } as any,
-        readme: "Test readme content",
-        activeView: "patches",
         ...props,
       },
     });
@@ -136,7 +97,7 @@ describe("VulnSummaryContent.vue", () => {
     it("should render the main vulnerability information section", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.find("section.bg-white").exists()).toBe(true);
+      expect(wrapper.find(".flex.flex-col.gap-8").exists()).toBe(true);
       expect(wrapper.text()).toContain("Vulnerability Information");
     });
 
@@ -146,10 +107,10 @@ describe("VulnSummaryContent.vue", () => {
       expect(wrapper.text()).toContain("Weakness information");
     });
 
-    it("should use grid layout for two columns", () => {
+    it("should use flex column layout", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.find(".grid.grid-cols-2").exists()).toBe(true);
+      expect(wrapper.find(".flex.flex-col.gap-8").exists()).toBe(true);
     });
   });
 
@@ -394,10 +355,8 @@ describe("VulnSummaryContent.vue", () => {
     it("should have correct CSS classes for sections", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.find(".bg-white.shadow-md.rounded-lg").exists()).toBe(
-        true,
-      );
-      expect(wrapper.find(".grid.grid-cols-2.gap-6").exists()).toBe(true);
+      expect(wrapper.find(".flex.flex-col.gap-8").exists()).toBe(true);
+      expect(wrapper.find(".flex.flex-col.gap-5").exists()).toBe(true);
     });
 
     it("should style vulnerability title correctly", () => {

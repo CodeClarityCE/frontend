@@ -30,10 +30,8 @@ describe("SbomDetailsLoader.vue", () => {
     it("should render the main container", () => {
       const wrapper = createWrapper();
 
-      const container = wrapper.find('div[style*="display: flex"]');
+      const container = wrapper.find(".loader-container");
       expect(container.exists()).toBe(true);
-      expect(container.attributes("style")).toContain("flex-direction: column");
-      expect(container.attributes("style")).toContain("row-gap: 10px");
     });
 
     it("should render all loader components", () => {
@@ -51,113 +49,72 @@ describe("SbomDetailsLoader.vue", () => {
     it("should render header box loader with correct dimensions", () => {
       const wrapper = createWrapper();
 
-      const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
-      const headerBoxLoader = boxLoaders[0]!;
+      const header = wrapper.find(".loader-header");
+      expect(header.exists()).toBe(true);
 
-      expect(headerBoxLoader.exists()).toBe(true);
-      expect(headerBoxLoader.props("dimensions")).toEqual({
+      const boxLoaders = header.findAllComponents({ name: "BoxLoader" });
+      expect(boxLoaders[0]!.props("dimensions")).toEqual({
         width: "30%",
-        height: "100px",
+        height: "40px",
       });
     });
 
-    it("should render header text loaders with correct styling", () => {
+    it("should render header text loader with correct styling", () => {
       const wrapper = createWrapper();
 
-      const textLoaders = wrapper.findAllComponents({ name: "TextLoader" });
+      const header = wrapper.find(".loader-header");
+      const textLoaders = header.findAllComponents({ name: "TextLoader" });
 
-      // Should have at least 2 text loaders for header section
-      expect(textLoaders.length).toBeGreaterThanOrEqual(2);
+      expect(textLoaders.length).toBe(1);
 
-      // Check the first two text loaders have max-width styling
-      const firstStyle = textLoaders[0]!.attributes("style") ?? "";
-      const secondStyle = textLoaders[1]!.attributes("style") ?? "";
-      expect(firstStyle).toContain("max-width: 50%");
-      expect(secondStyle).toContain("max-width: 50%");
+      const style = textLoaders[0]!.attributes("style") ?? "";
+      expect(style).toContain("max-width: 50%");
     });
   });
 
   describe("Content Section Loaders", () => {
-    it("should render content section containers", () => {
+    it("should render summary bar loader with correct dimensions", () => {
       const wrapper = createWrapper();
 
-      const sectionContainers = wrapper.findAll(
-        'div[style*="justify-content: space-between"]',
-      );
-      expect(sectionContainers.length).toBe(2); // v-for creates 2 sections
-    });
-
-    it("should render content sections with correct layout styling", () => {
-      const wrapper = createWrapper();
-
-      const sectionContainers = wrapper.findAll(
-        'div[style*="justify-content: space-between"]',
-      );
-
-      sectionContainers.forEach((container) => {
-        const style = container.attributes("style") ?? "";
-        expect(style).toContain("display: flex");
-        expect(style).toContain("flex-direction: row");
-        expect(style).toContain("justify-content: space-between");
-        expect(style).toContain("margin-top: 100px");
+      const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
+      // Second BoxLoader is the summary bar (after header one)
+      expect(boxLoaders[1]!.props("dimensions")).toEqual({
+        width: "100%",
+        height: "48px",
       });
     });
 
-    it("should render box loaders in content sections with correct dimensions", () => {
+    it("should render tab loaders in tabs section", () => {
       const wrapper = createWrapper();
 
-      const allBoxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
+      const tabs = wrapper.find(".loader-tabs");
+      expect(tabs.exists()).toBe(true);
 
-      // Should have 1 header box loader + 4 content box loaders (2 sections × 2 loaders each)
-      expect(allBoxLoaders.length).toBe(5);
-
-      // Check content box loaders (excluding the first header one)
-      const contentBoxLoaders = allBoxLoaders.slice(1);
-      contentBoxLoaders.forEach((loader) => {
-        expect(loader.props("dimensions")).toEqual({
-          width: "49%",
-          height: "300px",
-        });
+      const tabLoaders = tabs.findAllComponents({ name: "BoxLoader" });
+      expect(tabLoaders.length).toBe(3);
+      expect(tabLoaders[0]!.props("dimensions")).toEqual({
+        width: "100px",
+        height: "32px",
       });
-    });
-  });
-
-  describe("V-For Loop Generation", () => {
-    it("should generate correct number of content sections", () => {
-      const wrapper = createWrapper();
-
-      const sectionContainers = wrapper.findAll(
-        'div[style*="margin-top: 100px"]',
-      );
-      expect(sectionContainers.length).toBe(2); // v-for="index in 2"
-    });
-
-    it("should generate correct number of box loaders per section", () => {
-      const wrapper = createWrapper();
-
-      const sectionContainers = wrapper.findAll(
-        'div[style*="margin-top: 100px"]',
-      );
-
-      sectionContainers.forEach((section) => {
-        const sectionBoxLoaders = section.findAllComponents({
-          name: "BoxLoader",
-        });
-        expect(sectionBoxLoaders.length).toBe(2); // v-for="i in 2"
+      expect(tabLoaders[1]!.props("dimensions")).toEqual({
+        width: "140px",
+        height: "32px",
+      });
+      expect(tabLoaders[2]!.props("dimensions")).toEqual({
+        width: "80px",
+        height: "32px",
       });
     });
 
-    it("should have unique keys for v-for elements", () => {
+    it("should render content area loader with correct dimensions", () => {
       const wrapper = createWrapper();
 
-      // Test that the component renders without key conflicts
-      expect(wrapper.exists()).toBe(true);
-
-      // Check that all content sections are rendered
-      const sectionContainers = wrapper.findAll(
-        'div[style*="margin-top: 100px"]',
-      );
-      expect(sectionContainers.length).toBe(2);
+      const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
+      const lastLoader = boxLoaders[boxLoaders.length - 1]!;
+      expect(lastLoader.props("dimensions")).toEqual({
+        width: "100%",
+        height: "400px",
+      });
     });
   });
 
@@ -166,43 +123,41 @@ describe("SbomDetailsLoader.vue", () => {
       const wrapper = createWrapper();
 
       // Main container
-      const mainContainer = wrapper.find('div[style*="display: flex"]');
-      expect(mainContainer.exists()).toBe(true);
+      expect(wrapper.find(".loader-container").exists()).toBe(true);
 
-      // Header section (1 box loader + 2 text loaders)
-      const headerBoxLoader = wrapper.findAllComponents({
-        name: "BoxLoader",
-      })[0]!;
+      // Header section
+      expect(wrapper.find(".loader-header").exists()).toBe(true);
+
+      // Tabs section
+      expect(wrapper.find(".loader-tabs").exists()).toBe(true);
+
+      // Total loaders
+      const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
       const textLoaders = wrapper.findAllComponents({ name: "TextLoader" });
 
-      expect(headerBoxLoader.exists()).toBe(true);
-      expect(textLoaders.length).toBe(2);
-
-      // Content sections
-      const contentSections = wrapper.findAll(
-        'div[style*="margin-top: 100px"]',
-      );
-      expect(contentSections.length).toBe(2);
+      expect(boxLoaders.length).toBe(6);
+      expect(textLoaders.length).toBe(1);
     });
 
     it("should maintain proper spacing between sections", () => {
       const wrapper = createWrapper();
 
-      const mainContainer = wrapper.find('div[style*="row-gap: 10px"]');
-      expect(mainContainer.exists()).toBe(true);
+      // Loader container uses CSS gap
+      const container = wrapper.find(".loader-container");
+      expect(container.exists()).toBe(true);
 
-      const contentSections = wrapper.findAll(
-        'div[style*="margin-top: 100px"]',
-      );
-      contentSections.forEach((section) => {
-        const style = section.attributes("style") ?? "";
-        expect(style).toContain("margin-top: 100px");
-      });
+      // Header has its own gap
+      const header = wrapper.find(".loader-header");
+      expect(header.exists()).toBe(true);
+
+      // Tabs have their own gap
+      const tabs = wrapper.find(".loader-tabs");
+      expect(tabs.exists()).toBe(true);
     });
   });
 
   describe("Component Integration", () => {
-    it("should pass correct props to BoxLoader components", () => {
+    it("should pass correct props to all BoxLoader components", () => {
       const wrapper = createWrapper();
 
       const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
@@ -210,16 +165,31 @@ describe("SbomDetailsLoader.vue", () => {
       // Header box loader
       expect(boxLoaders[0]!.props("dimensions")).toEqual({
         width: "30%",
-        height: "100px",
+        height: "40px",
       });
-
-      // Content box loaders
-      for (let i = 1; i < boxLoaders.length; i++) {
-        expect(boxLoaders[i]!.props("dimensions")).toEqual({
-          width: "49%",
-          height: "300px",
-        });
-      }
+      // Summary bar
+      expect(boxLoaders[1]!.props("dimensions")).toEqual({
+        width: "100%",
+        height: "48px",
+      });
+      // Tab loaders
+      expect(boxLoaders[2]!.props("dimensions")).toEqual({
+        width: "100px",
+        height: "32px",
+      });
+      expect(boxLoaders[3]!.props("dimensions")).toEqual({
+        width: "140px",
+        height: "32px",
+      });
+      expect(boxLoaders[4]!.props("dimensions")).toEqual({
+        width: "80px",
+        height: "32px",
+      });
+      // Content area
+      expect(boxLoaders[5]!.props("dimensions")).toEqual({
+        width: "100%",
+        height: "400px",
+      });
     });
 
     it("should pass correct props to TextLoader components", () => {
@@ -227,10 +197,9 @@ describe("SbomDetailsLoader.vue", () => {
 
       const textLoaders = wrapper.findAllComponents({ name: "TextLoader" });
 
-      textLoaders.forEach((loader) => {
-        const style = loader.attributes("style") ?? "";
-        expect(style).toContain("max-width: 50%");
-      });
+      expect(textLoaders.length).toBe(1);
+      const style = textLoaders[0]!.attributes("style") ?? "";
+      expect(style).toContain("max-width: 50%");
     });
   });
 
@@ -240,12 +209,11 @@ describe("SbomDetailsLoader.vue", () => {
 
       const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
 
-      // Check that all box loaders use percentage widths
+      // Header uses percentage width
       expect(boxLoaders[0]!.props("dimensions")?.width).toBe("30%");
-
-      for (let i = 1; i < boxLoaders.length; i++) {
-        expect(boxLoaders[i]!.props("dimensions")?.width).toBe("49%");
-      }
+      // Summary and content use 100% width
+      expect(boxLoaders[1]!.props("dimensions")?.width).toBe("100%");
+      expect(boxLoaders[5]!.props("dimensions")?.width).toBe("100%");
     });
 
     it("should use max-width for text loaders", () => {
@@ -264,29 +232,26 @@ describe("SbomDetailsLoader.vue", () => {
     it("should simulate header loading state", () => {
       const wrapper = createWrapper();
 
-      // Header should have 1 box loader (for title) and 2 text loaders (for subtitle/metadata)
-      const allBoxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
-      const allTextLoaders = wrapper.findAllComponents({ name: "TextLoader" });
+      const header = wrapper.find(".loader-header");
+      expect(header.exists()).toBe(true);
 
-      expect(allBoxLoaders.length).toBeGreaterThanOrEqual(1);
-      expect(allTextLoaders.length).toBe(2);
+      const headerBoxLoaders = header.findAllComponents({ name: "BoxLoader" });
+      const headerTextLoaders = header.findAllComponents({
+        name: "TextLoader",
+      });
+
+      expect(headerBoxLoaders.length).toBe(1);
+      expect(headerTextLoaders.length).toBe(1);
     });
 
-    it("should simulate content grid loading state", () => {
+    it("should simulate tab bar loading state", () => {
       const wrapper = createWrapper();
 
-      // Should simulate a 2x2 grid layout for content
-      const contentSections = wrapper.findAll(
-        'div[style*="margin-top: 100px"]',
-      );
-      expect(contentSections.length).toBe(2);
+      const tabs = wrapper.find(".loader-tabs");
+      expect(tabs.exists()).toBe(true);
 
-      contentSections.forEach((section) => {
-        const sectionBoxLoaders = section.findAllComponents({
-          name: "BoxLoader",
-        });
-        expect(sectionBoxLoaders.length).toBe(2);
-      });
+      const tabLoaders = tabs.findAllComponents({ name: "BoxLoader" });
+      expect(tabLoaders.length).toBe(3);
     });
 
     it("should maintain consistent loader sizing", () => {
@@ -294,13 +259,12 @@ describe("SbomDetailsLoader.vue", () => {
 
       const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
 
-      // All content loaders should have same dimensions
-      const contentLoaders = boxLoaders.slice(1); // Skip header loader
-      contentLoaders.forEach((loader) => {
-        expect(loader.props("dimensions")).toEqual({
-          width: "49%",
-          height: "300px",
-        });
+      // All loaders should have valid dimensions
+      boxLoaders.forEach((loader) => {
+        const dims = loader.props("dimensions");
+        expect(dims).toBeDefined();
+        expect(dims.width).toBeDefined();
+        expect(dims.height).toBeDefined();
       });
     });
   });
@@ -316,7 +280,6 @@ describe("SbomDetailsLoader.vue", () => {
     it("should have proper component structure for screen readers", () => {
       const wrapper = createWrapper();
 
-      // Component should render as a loading state with proper structure
       const mainContainer = wrapper.find("div");
       expect(mainContainer.exists()).toBe(true);
 
@@ -342,12 +305,12 @@ describe("SbomDetailsLoader.vue", () => {
     it("should maintain loader count consistency", () => {
       const wrapper = createWrapper();
 
-      // Total expected loaders: 1 header box + 2 text + 4 content boxes = 7 loaders
+      // Total: 1 header + 1 summary + 3 tabs + 1 content = 6 box loaders
       const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
       const textLoaders = wrapper.findAllComponents({ name: "TextLoader" });
 
-      expect(boxLoaders.length).toBe(5); // 1 header + 4 content
-      expect(textLoaders.length).toBe(2); // 2 header text loaders
+      expect(boxLoaders.length).toBe(6);
+      expect(textLoaders.length).toBe(1);
     });
   });
 });

@@ -736,6 +736,27 @@ async function createAnalysisStart(): Promise<void> {
           </div>
         </div>
 
+        <!-- Create New Analyzer Link -->
+        <div v-if="availableAnalyzers.length > 0" class="text-center pt-4">
+          <p class="text-sm text-gray-500 mb-1">Don't see what you need?</p>
+          <Button variant="outline" size="sm" as-child>
+            <RouterLink
+              :to="{
+                name: 'orgs',
+                params: {
+                  action: 'add',
+                  page: 'analyzers',
+                  orgId: user.defaultOrg?.id,
+                },
+              }"
+              class="inline-flex items-center gap-2"
+            >
+              <Icon icon="solar:add-circle-linear" class="w-4 h-4" />
+              Create New Analyzer
+            </RouterLink>
+          </Button>
+        </div>
+
         <!-- Selection Summary -->
         <div v-if="selected_analyzers.length > 0" class="text-center">
           <div

@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { type Ref, ref } from "vue";
+import { computed, type Ref, ref } from "vue";
 
 import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import {
   DependencyDetails,
@@ -15,10 +14,10 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
+import SbomDependencyGraph from "./SbomDetails/SbomDependencyGraph.vue";
 import SbomDependencyHealth from "./SbomDetails/SbomDependencyHealth.vue";
 import SbomDetailsHeader from "./SbomDetails/SbomDetailsHeader.vue";
 import SbomDetailsLoader from "./SbomDetails/SbomDetailsLoader.vue";
-import SbomImportPaths from "./SbomDetails/SbomImportPaths.vue";
 import SbomInformation from "./SbomDetails/SbomInformation.vue";
 
 // Import stores
@@ -91,13 +90,6 @@ function getSecurityScoreDescription(dependency: DependencyDetails): string {
   return descriptions[score as keyof typeof descriptions] || "Unknown";
 }
 
-function getVulnerabilityDescription(count: number): string {
-  if (count === 0) return "No known vulnerabilities";
-  if (count === 1) return "Requires attention";
-  if (count <= 5) return "Multiple issues found";
-  return "High vulnerability count";
-}
-
 function getCriticalHighCount(severityDist?: SeverityDist): number {
   if (!severityDist) return 0;
   return (severityDist.critical ?? 0) + (severityDist.high ?? 0);
@@ -134,19 +126,6 @@ function getVersionStatusDescription(dependency: DependencyDetails): string {
     ? dependency.latest_version
     : `v${dependency.latest_version}`;
   return `Latest: ${latestVersion}`;
-}
-
-function getLicenseDescription(license?: string): string {
-  if (!license) return "License information missing";
-  const commonLicenses = [
-    "MIT",
-    "Apache-2.0",
-    "GPL-3.0",
-    "BSD-3-Clause",
-    "ISC",
-  ];
-  if (commonLicenses.includes(license)) return "Common open source license";
-  return "Custom or uncommon license";
 }
 
 function shouldRecommendUpdate(dependency: DependencyDetails): boolean {
@@ -206,6 +185,13 @@ async function getDependency(
   }
 }
 
+const hasVulnerabilities = computed(() => {
+  return (
+    dependency.value.vulnerabilities &&
+    dependency.value.vulnerabilities.length > 0
+  );
+});
+
 void getDependency(props.projectID, props.analysisID);
 </script>
 
@@ -246,140 +232,108 @@ void getDependency(props.projectID, props.analysisID);
 
       <!-- Security Overview Stats -->
       <div class="security-stats-grid">
-        <StatCard
-          label="Security Score"
-          :value="calculateSecurityScore(dependency)"
-          icon="solar:shield-check-bold"
-          :variant="getSecurityScoreVariant(dependency)"
-          :subtitle="getSecurityScoreDescription(dependency)"
-          subtitle-icon="solar:info-circle-linear"
-        />
+        <div class="stat-item" :class="getSecurityScoreVariant(dependency)">
+          <Icon icon="solar:shield-check-bold" class="stat-icon" />
+          <span class="stat-label">Score</span>
+          <span class="stat-value">{{
+            calculateSecurityScore(dependency)
+          }}</span>
+          <span class="stat-subtitle">{{
+            getSecurityScoreDescription(dependency)
+          }}</span>
+        </div>
 
-        <StatCard
-          label="Total Vulnerabilities"
-          :value="dependency.vulnerabilities?.length || 0"
-          icon="solar:bug-bold"
-          :variant="
+        <div class="stat-divider" />
+
+        <div
+          class="stat-item"
+          :class="
             (dependency.vulnerabilities?.length || 0) > 0 ? 'danger' : 'success'
           "
-          :subtitle="
-            getVulnerabilityDescription(dependency.vulnerabilities?.length || 0)
-          "
-          subtitle-icon="solar:shield-warning-linear"
-        />
+        >
+          <Icon icon="solar:bug-bold" class="stat-icon" />
+          <span class="stat-label">Vulnerabilities</span>
+          <span class="stat-value">{{
+            dependency.vulnerabilities?.length || 0
+          }}</span>
+          <span
+            v-if="getCriticalHighCount(dependency.severity_dist) > 0"
+            class="stat-subtitle danger"
+            >{{
+              getCriticalHighCount(dependency.severity_dist)
+            }}
+            critical/high</span
+          >
+        </div>
 
-        <StatCard
-          label="Critical & High"
-          :value="getCriticalHighCount(dependency.severity_dist)"
-          icon="solar:danger-triangle-bold"
-          :variant="
-            getCriticalHighCount(dependency.severity_dist) > 0
-              ? 'danger'
-              : 'success'
-          "
-          :subtitle="`${dependency.severity_dist?.medium || 0} medium, ${dependency.severity_dist?.low || 0} low`"
-          subtitle-icon="solar:shield-check-linear"
-        />
+        <div class="stat-divider" />
 
-        <StatCard
-          label="Version Status"
-          :value="getVersionStatus(dependency)"
-          icon="solar:refresh-bold"
-          :variant="getVersionStatusVariant(dependency)"
-          :subtitle="getVersionStatusDescription(dependency)"
-          subtitle-icon="solar:calendar-linear"
-        />
+        <div class="stat-item" :class="getVersionStatusVariant(dependency)">
+          <Icon icon="solar:refresh-bold" class="stat-icon" />
+          <span class="stat-label">Version</span>
+          <span class="stat-value">{{ getVersionStatus(dependency) }}</span>
+          <span class="stat-subtitle">{{
+            getVersionStatusDescription(dependency)
+          }}</span>
+        </div>
 
-        <StatCard
-          label="License"
-          :value="dependency.license ?? 'Unlicensed'"
-          icon="solar:document-text-bold"
-          :variant="dependency.license ? 'success' : 'danger'"
-          :subtitle="getLicenseDescription(dependency.license)"
-          subtitle-icon="solar:check-circle-linear"
-        />
+        <div class="stat-divider" />
 
-        <StatCard
-          label="Package Manager"
-          :value="dependency.package_manager ?? 'Unknown'"
-          icon="solar:box-bold"
-          variant="default"
-          :subtitle="
-            dependency.transitive
-              ? 'Transitive dependency'
-              : 'Direct dependency'
-          "
-          :subtitle-icon="
-            dependency.transitive
-              ? 'solar:hierarchy-2-linear'
-              : 'solar:download-linear'
-          "
+        <div
+          class="stat-item"
+          :class="dependency.license ? 'success' : 'danger'"
+        >
+          <Icon icon="solar:document-text-bold" class="stat-icon" />
+          <span class="stat-label">License</span>
+          <span class="stat-value">{{
+            dependency.license ?? "Unlicensed"
+          }}</span>
+        </div>
+
+        <div class="stat-divider" />
+
+        <div class="stat-item default">
+          <Icon icon="solar:box-bold" class="stat-icon" />
+          <span class="stat-label">Ecosystem</span>
+          <span class="stat-value">{{
+            dependency.transitive ? "Transitive" : "Direct"
+          }}</span>
+        </div>
+      </div>
+
+      <!-- Overview -->
+      <SbomInformation :dependency="dependency" />
+
+      <!-- Dependency Graph -->
+      <div class="section-block">
+        <div class="section-label">
+          <Icon icon="solar:route-bold" class="section-label-icon" />
+          Dependency Graph
+        </div>
+        <SbomDependencyGraph
+          :dependency="dependency"
+          :analysis-i-d="analysisID"
+          :project-i-d="projectID"
         />
       </div>
 
-      <!-- Main Content Grid -->
-      <div class="main-content-grid">
-        <!-- Comprehensive Package Overview Card -->
-        <InfoCard
-          title="Package Overview"
-          description="Complete technical details, metadata, and security analysis"
-          icon="solar:info-circle-bold"
-          variant="default"
-          class="comprehensive-overview-card"
-        >
-          <div class="comprehensive-content">
-            <!-- Package Information Section -->
-            <div class="overview-section">
-              <SbomInformation :dependency="dependency"></SbomInformation>
-            </div>
+      <!-- Security (conditional) -->
+      <div v-if="hasVulnerabilities" class="section-block">
+        <div class="section-label">
+          <Icon icon="solar:bug-bold" class="section-label-icon" />
+          Security ({{ dependency.vulnerabilities.length }})
+        </div>
 
-            <!-- Integrated Health & Security Section -->
-            <div class="overview-section health-section">
-              <div class="health-section-header">
-                <Icon
-                  icon="solar:shield-check-bold"
-                  class="health-header-icon"
-                />
-                <h3 class="health-section-title">
-                  Security & Compliance Status
-                </h3>
-              </div>
-              <SbomDependencyHealth
-                :dependency="dependency"
-              ></SbomDependencyHealth>
-            </div>
-          </div>
-        </InfoCard>
+        <SbomDependencyHealth
+          :dependency="dependency"
+          class="security-health-summary"
+        />
 
-        <!-- Import Paths Card -->
-        <InfoCard
-          title="Import Paths & Usage"
-          description="How this dependency is imported and used in your project"
-          icon="solar:route-bold"
-          variant="default"
-          class="import-paths-card-side"
-        >
-          <SbomImportPaths
-            :dependency="dependency"
-            :analysis-i-d="analysisID"
-            :project-i-d="projectID"
-          ></SbomImportPaths>
-        </InfoCard>
-      </div>
-
-      <!-- Vulnerability Details Section (if vulnerabilities exist) -->
-      <div
-        v-if="
-          dependency.vulnerabilities && dependency.vulnerabilities.length > 0
-        "
-        class="vulnerability-section"
-      >
         <InfoCard
           title="Security Analysis"
           :description="`${dependency.vulnerabilities.length} known vulnerabilities affecting this package`"
           icon="solar:bug-bold"
           variant="danger"
-          class="vulnerability-card"
         >
           <div class="vulnerability-content">
             <!-- Severity Distribution -->
@@ -534,7 +488,6 @@ void getDependency(props.projectID, props.analysisID);
 
 <style scoped lang="scss">
 @use "@/assets/common/details.scss";
-@use "@/assets/common/cvss.scss";
 
 .sbom-details-container {
   width: 100%;
@@ -559,11 +512,8 @@ void getDependency(props.projectID, props.analysisID);
     font-weight: 500;
 
     &:hover {
-      background: var(--color-theme-primary);
-      border-color: var(--color-theme-primary);
-      color: white;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px 0 rgb(29 206 121 / 0.2);
+      background: #f9fafb;
+      border-color: #d1d5db;
     }
   }
 }
@@ -571,7 +521,7 @@ void getDependency(props.projectID, props.analysisID);
 .content-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   width: 100%;
 }
 
@@ -579,361 +529,120 @@ void getDependency(props.projectID, props.analysisID);
   margin-bottom: 0;
 }
 
+/* Compact summary stats bar */
 .security-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-.main-content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  width: 100%;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-
-.vulnerability-section {
-  margin: 2rem 0;
-}
-
-.vulnerability-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.breakdown-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-theme-black);
-  margin-bottom: 1rem;
-}
-
-.severity-breakdown {
-  .severity-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1rem;
-
-    @media (max-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .severity-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: white;
-    transition: all 0.2s ease-in-out;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    &.critical {
-      border-left: 4px solid var(--color-severity-critical);
-      .severity-icon {
-        color: var(--color-severity-critical);
-      }
-    }
-
-    &.high {
-      border-left: 4px solid var(--color-severity-high);
-      .severity-icon {
-        color: var(--color-severity-high);
-      }
-    }
-
-    &.medium {
-      border-left: 4px solid var(--color-severity-medium);
-      .severity-icon {
-        color: var(--color-severity-medium);
-      }
-    }
-
-    &.low {
-      border-left: 4px solid var(--color-severity-low);
-      .severity-icon {
-        color: var(--color-severity-low);
-      }
-    }
-  }
-
-  .severity-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .severity-count {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-theme-black);
-    margin-bottom: 0.25rem;
-  }
-
-  .severity-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-theme-gray);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-}
-
-.vulnerability-list {
-  .vulnerability-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .vulnerability-badge {
-    font-family: "SF Mono", "Monaco", "Consolas", monospace;
-    font-size: 0.8rem;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-  }
-
-  .more-vulnerabilities {
-    font-weight: 500;
-    color: var(--color-theme-gray);
-    background: #f3f4f6;
-    border: 1px solid #d1d5db;
-  }
-}
-
-// Use InfoCard styling from the common components - enhanced for better space usage
-.comprehensive-overview-card,
-.import-paths-card-side {
-  transition: all 0.2s ease-in-out;
-  min-height: 600px;
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(29, 206, 121, 0.15);
-  }
-}
-
-.comprehensive-overview-card {
-  // Spans more width since it contains more content
-  @media (min-width: 1024px) {
-    // Make the overview card wider than the import paths card
-    grid-column: 1 / 2;
-    min-width: 0; // Allow flexbox to work properly
-  }
-}
-
-.import-paths-card-side {
-  @media (min-width: 1024px) {
-    grid-column: 2 / 3;
-    min-width: 0; // Allow flexbox to work properly
-  }
-}
-
-// Overview content styling
-.comprehensive-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  height: 100%;
-}
-
-.overview-section {
-  flex: 1;
-
-  &.health-section {
-    background: linear-gradient(
-      135deg,
-      rgba(29, 206, 121, 0.03) 0%,
-      rgba(29, 206, 121, 0.01) 100%
-    );
-    border: 1px solid rgba(29, 206, 121, 0.15);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-top: 1rem;
-    transition: all 0.2s ease-in-out;
-
-    &:hover {
-      background: linear-gradient(
-        135deg,
-        rgba(29, 206, 121, 0.05) 0%,
-        rgba(29, 206, 121, 0.02) 100%
-      );
-      border-color: rgba(29, 206, 121, 0.25);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(29, 206, 121, 0.1);
-    }
-  }
-}
-
-.health-section-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: white;
+  gap: 0;
+  padding: 0.75rem 1.25rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  border: 1px solid rgba(29, 206, 121, 0.2);
-  box-shadow: 0 2px 4px rgba(29, 206, 121, 0.05);
+  flex-wrap: wrap;
 }
 
-.health-header-icon {
-  font-size: 1.5rem;
-  color: var(--color-theme-primary);
-  background: rgba(29, 206, 121, 0.1);
-  padding: 0.5rem;
-  border-radius: 8px;
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  min-width: 0;
+
+  .stat-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    color: #6b7280;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .stat-value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-theme-black);
+    white-space: nowrap;
+  }
+
+  .stat-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    white-space: nowrap;
+
+    &.danger {
+      color: #dc2626;
+    }
+  }
+
+  &.success .stat-icon {
+    color: var(--color-theme-primary);
+  }
+
+  &.success .stat-value {
+    color: var(--color-theme-primary);
+  }
+
+  &.danger .stat-icon {
+    color: #dc2626;
+  }
+
+  &.danger .stat-value {
+    color: #dc2626;
+  }
+
+  &.primary .stat-icon {
+    color: #f59e0b;
+  }
+
+  &.primary .stat-value {
+    color: #f59e0b;
+  }
 }
 
-.health-section-title {
-  font-size: 1.125rem;
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+/* Section blocks */
+.section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-theme-black);
-  margin: 0;
-  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
 }
 
-.loading-wrapper {
-  background: white;
-  border-radius: 12px;
-  padding: 4rem;
-  border: 1px solid #e5e7eb;
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-  text-align: center;
-  margin: 2rem 0;
+.section-label-icon {
+  font-size: 0.875rem;
 }
 
-/* Enhanced theming for better visual hierarchy and space usage */
-:deep(.card) {
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease-in-out;
-  background: white;
-
-  &:hover {
-    border-color: rgba(29, 206, 121, 0.4);
-    box-shadow: 0 8px 25px rgba(29, 206, 121, 0.15);
-  }
+.security-health-summary {
+  margin-bottom: 0.5rem;
 }
 
-/* Maximize content area within cards */
-:deep(.card-content) {
-  padding: 2rem;
-  height: 100%;
-}
-
-:deep(.card-header) {
-  padding: 1.5rem 2rem 0.5rem 2rem;
-}
-
-/* Ensure all icons use consistent colors */
-:deep(.icon) {
-  color: var(--color-theme-primary);
-}
-
-/* Style any buttons to match theme */
-:deep(.btn-outline) {
-  border-color: var(--color-theme-primary);
-  color: var(--color-theme-primary);
-
-  &:hover {
-    background-color: var(--color-theme-primary);
-    color: white;
-  }
-}
-
-/* Progress bars and indicators */
-:deep(.progress-bar) {
-  background-color: rgba(29, 206, 121, 0.2);
-
-  .progress-fill {
-    background-color: var(--color-theme-primary);
-  }
-}
-
-/* Ensure consistent text hierarchy */
-:deep(.text-primary) {
-  color: var(--color-theme-primary) !important;
-}
-
-:deep(.text-secondary) {
-  color: var(--color-theme-gray) !important;
-}
-
-/* Loading states */
-:deep(.skeleton) {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    rgba(29, 206, 121, 0.1) 37%,
-    #f0f0f0 63%
-  );
-  background-size: 400% 100%;
-  animation: skeleton-loading 1.4s ease-in-out infinite;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.security-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  @media (min-width: 1200px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.vulnerability-section {
-  margin-bottom: 2rem;
-}
-
+/* Vulnerability / Security tab */
 .vulnerability-content {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-}
-
-.security-recommendations {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
 }
 
 .breakdown-title {
@@ -963,12 +672,6 @@ void getDependency(props.projectID, props.analysisID);
   border-radius: 8px;
   background: #f9fafb;
   border: 2px solid transparent;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
 
   &.critical {
     border-color: #dc2626;
@@ -1042,6 +745,12 @@ void getDependency(props.projectID, props.analysisID);
   letter-spacing: 0.05em;
 }
 
+.security-recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .recommendation-list {
   display: flex;
   flex-direction: column;
@@ -1054,13 +763,7 @@ void getDependency(props.projectID, props.analysisID);
   gap: 1rem;
   padding: 1.25rem;
   border-radius: 8px;
-  border: 2px solid transparent;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
+  border: 1px solid transparent;
 
   &.update {
     background: rgba(29, 206, 121, 0.05);
@@ -1134,11 +837,10 @@ void getDependency(props.projectID, props.analysisID);
   color: white;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: background 0.15s ease-in-out;
 
   &:hover {
     background: #b91c1c;
-    transform: translateY(-1px);
   }
 }
 
@@ -1154,85 +856,43 @@ void getDependency(props.projectID, props.analysisID);
   }
 }
 
-/* Enhanced responsive design for maximum space usage */
+.loading-wrapper {
+  background: white;
+  border-radius: 8px;
+  padding: 4rem;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .sbom-details-container {
     padding: 1rem;
   }
 
-  .main-content-grid {
-    gap: 1.5rem;
-  }
-
-  .navigation-section {
-    margin-bottom: 1.5rem;
-  }
-
   .content-wrapper {
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+
+  .security-stats-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stat-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .stat-item {
+    padding: 0.5rem 0;
   }
 }
 
 @media (min-width: 1400px) {
   .sbom-details-container {
-    padding: 3rem 4rem;
+    padding: 2rem 4rem;
   }
-
-  .main-content-grid {
-    gap: 3rem;
-  }
-
-  .content-wrapper {
-    gap: 3rem;
-  }
-}
-
-/* Theme-specific styling to ensure consistency with dashboard */
-:deep(.border-l-theme-primary) {
-  border-left-color: var(--color-theme-primary);
-}
-
-:deep(.text-theme-primary) {
-  color: var(--color-theme-primary);
-}
-
-:deep(.text-theme-black) {
-  color: var(--color-theme-black);
-}
-
-:deep(.text-theme-gray) {
-  color: var(--color-theme-gray);
-}
-
-/* Ensure links use theme colors */
-:deep(a) {
-  color: var(--color-theme-primary);
-  transition: color 0.2s ease-in-out;
-
-  &:hover {
-    color: var(--color-theme-primary-dark);
-  }
-}
-
-/* Button accent colors */
-:deep(.btn-primary) {
-  background-color: var(--color-theme-primary);
-  border-color: var(--color-theme-primary);
-
-  &:hover {
-    background-color: var(--color-theme-primary-dark);
-    border-color: var(--color-theme-primary-dark);
-  }
-}
-
-/* Badge accent colors */
-:deep(.badge-primary) {
-  background-color: var(--color-theme-primary);
-  color: white;
-}
-
-:deep(.badge-secondary) {
-  background-color: var(--color-theme-black);
-  color: white;
 }
 </style>

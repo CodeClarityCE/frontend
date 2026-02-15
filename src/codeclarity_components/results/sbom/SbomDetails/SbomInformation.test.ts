@@ -8,7 +8,7 @@ import SbomInformation from "./SbomInformation.vue";
 vi.mock("@iconify/vue", () => ({
   Icon: {
     name: "Icon",
-    props: ["icon", "class"],
+    props: ["icon", "class", "style"],
     template: '<span class="mock-icon" :class="$props.class">{{ icon }}</span>',
   },
 }));
@@ -23,12 +23,37 @@ vi.mock("@/shadcn/ui/badge", () => ({
   },
 }));
 
+// Mock Collapsible components
+vi.mock("@/shadcn/ui/collapsible", () => ({
+  Collapsible: {
+    name: "Collapsible",
+    props: ["class"],
+    template:
+      '<div class="mock-collapsible" :class="$props.class"><slot :open="false"></slot></div>',
+  },
+  CollapsibleContent: {
+    name: "CollapsibleContent",
+    template: '<div class="mock-collapsible-content"><slot></slot></div>',
+  },
+  CollapsibleTrigger: {
+    name: "CollapsibleTrigger",
+    props: ["class"],
+    template:
+      '<button class="mock-collapsible-trigger" :class="$props.class"><slot></slot></button>',
+  },
+}));
+
+// Mock auth store
+vi.mock("@/stores/auth", () => ({
+  useAuthStore: () => ({
+    getAuthenticated: true,
+  }),
+}));
+
 // Mock date utils
 vi.mock("@/utils/dateUtils", () => ({
   calculateDateDifference: vi.fn((_date1, _date2, _unit) => {
-    // Mock implementation for testing
-    const mockDiff = 200; // Default 200 days difference
-    return mockDiff;
+    return 200; // Default 200 days difference
   }),
   formatRelativeTime: vi.fn((date) => {
     return `${date} ago`;
@@ -82,139 +107,84 @@ describe("SbomInformation.vue", () => {
       expect(wrapper.find(".information-panel").exists()).toBe(true);
     });
 
-    it("should render all three main sections", () => {
+    it("should render both main sections", () => {
       const wrapper = createWrapper();
 
-      const sections = wrapper.findAll(".info-section");
-      expect(sections.length).toBe(3);
+      const cards = wrapper.findAll(".compact-card");
+      expect(cards.length).toBeGreaterThanOrEqual(2);
 
-      expect(wrapper.text()).toContain("Package Source");
-      expect(wrapper.text()).toContain("Version Information");
-      expect(wrapper.text()).toContain("Technical Details");
+      expect(wrapper.text()).toContain("Version & Release");
+      expect(wrapper.text()).toContain("Package Details");
     });
 
-    it("should render section headers with icons", () => {
+    it("should render section labels", () => {
       const wrapper = createWrapper();
 
-      const sectionHeaders = wrapper.findAll(".section-header");
-      expect(sectionHeaders.length).toBe(3);
-
-      expect(wrapper.text()).toContain("solar:box-bold");
-      expect(wrapper.text()).toContain("solar:tag-bold");
-      expect(wrapper.text()).toContain("solar:settings-bold");
+      const labels = wrapper.findAll(".compact-card-label");
+      expect(labels.length).toBeGreaterThanOrEqual(2);
     });
   });
 
-  describe("Package Source Section", () => {
-    it("should render NPM package manager link", () => {
-      const dependency = createMockDependency({ package_manager: "NPM" });
-      const wrapper = createWrapper(dependency);
+  describe("Version & Release Section", () => {
+    it("should display current and latest version columns", () => {
+      const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("Package Source");
-      expect(wrapper.text()).toContain("Compatible tools");
-      expect(wrapper.text()).toContain("akar-icons:npm-fill");
-
-      const npmLink = wrapper.find('a[href*="npmjs.com"]');
-      expect(npmLink.exists()).toBe(true);
-      expect(npmLink.attributes("href")).toBe(
-        "https://www.npmjs.com/package/test-package",
-      );
+      expect(wrapper.text()).toContain("Current");
+      expect(wrapper.text()).toContain("1.2.3");
+      expect(wrapper.text()).toContain("Latest");
+      expect(wrapper.text()).toContain("1.5.0");
     });
 
-    it("should render Yarn package manager link", () => {
-      const dependency = createMockDependency({ package_manager: "YARN" });
-      const wrapper = createWrapper(dependency);
+    it("should display version arrow between columns", () => {
+      const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("Compatible tools");
-      expect(wrapper.text()).toContain("akar-icons:npm-fill");
-
-      // Yarn package manager should still render npm link as primary package source
-      const npmLink = wrapper.find('a[href*="npmjs.com"]');
-      expect(npmLink.exists()).toBe(true);
+      expect(wrapper.find(".version-arrow").exists()).toBe(true);
+      expect(wrapper.text()).toContain("solar:arrow-right-linear");
     });
 
-    it("should render self-managed package type", () => {
-      const dependency = createMockDependency({ package_manager: "SELF" });
-      const wrapper = createWrapper(dependency);
+    it("should display release dates when valid", () => {
+      const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("Package Source");
-      expect(wrapper.text()).toContain("akar-icons:npm-fill");
-    });
-
-    it("should render unknown package manager", () => {
-      const dependency = createMockDependency({ package_manager: "UNKNOWN" });
-      const wrapper = createWrapper(dependency);
-
-      expect(wrapper.text()).toContain("Package Source");
-      expect(wrapper.text()).toContain("akar-icons:npm-fill");
-    });
-
-    it("should display dependency type - direct", () => {
-      const dependency = createMockDependency({ transitive: false });
-      const wrapper = createWrapper(dependency);
-
-      expect(wrapper.text()).toContain("Dependency Type");
-      expect(wrapper.text()).toContain("Direct");
-      expect(wrapper.text()).toContain("Direct dependency in your project");
-      expect(wrapper.text()).toContain("solar:download-linear");
-    });
-
-    it("should display dependency type - transitive", () => {
-      const dependency = createMockDependency({ transitive: true });
-      const wrapper = createWrapper(dependency);
-
-      expect(wrapper.text()).toContain("Transitive");
-      expect(wrapper.text()).toContain(
-        "Indirect dependency through another package",
-      );
-      expect(wrapper.text()).toContain("solar:hierarchy-2-linear");
-    });
-  });
-
-  describe("Version Information Section", () => {
-    it("should display current version information", () => {
-      const dependency = createMockDependency({
-        version: "2.1.0",
-        release_date: "2023-01-15",
-      });
-      const wrapper = createWrapper(dependency);
-
-      expect(wrapper.text()).toContain("Current Version");
-      expect(wrapper.text()).toContain("2.1.0");
-      expect(wrapper.text()).toContain("Released 2023-01-15 ago");
-    });
-
-    it("should display latest version information", () => {
-      const dependency = createMockDependency({
-        latest_version: "3.0.0",
-        lastest_release_date: "2023-06-01",
-      });
-      const wrapper = createWrapper(dependency);
-
-      expect(wrapper.text()).toContain("Latest Version");
-      expect(wrapper.text()).toContain("3.0.0");
-      expect(wrapper.text()).toContain("Released 2023-06-01 ago");
+      const dates = wrapper.findAll(".version-date");
+      expect(dates.length).toBeGreaterThanOrEqual(1);
     });
 
     it("should show outdated version status when version is old", () => {
-      // Mock will return 200 days difference, which is > 182 days (6 months)
+      // Mock returns 200 days difference, which is > 182 days (6 months)
       const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("Version Status");
-      expect(wrapper.text()).toContain("behind the latest release");
+      const statusBar = wrapper.find(".version-status-bar.outdated");
+      expect(statusBar.exists()).toBe(true);
+      expect(wrapper.text()).toContain("behind latest");
       expect(wrapper.text()).toContain("solar:clock-circle-bold");
     });
 
-    it("should show current version status when up to date", async () => {
-      // Mock the date difference to be less than 182 days
-      vi.mocked(vi.fn()).mockReturnValue(100); // 100 days
+    it("should show current version status when up to date", () => {
+      const dependency = createMockDependency({
+        version: "1.5.0",
+        latest_version: "1.5.0",
+      });
+      const wrapper = createWrapper(dependency);
+
+      const statusBar = wrapper.find(".version-status-bar.current");
+      expect(statusBar.exists()).toBe(true);
+      expect(wrapper.text()).toContain("Using the latest version");
+      expect(wrapper.text()).toContain("solar:check-circle-bold");
+    });
+
+    it("should show minor update status when not severely outdated", async () => {
       const { calculateDateDifference } = await import("@/utils/dateUtils");
-      vi.mocked(calculateDateDifference).mockReturnValue(100);
+      vi.mocked(calculateDateDifference).mockReturnValue(100); // 100 days < 182
 
       const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("Using the latest version");
-      expect(wrapper.text()).toContain("solar:check-circle-bold");
+      const statusBar = wrapper.find(".version-status-bar.minor-update");
+      expect(statusBar.exists()).toBe(true);
+      expect(wrapper.text()).toContain("Update available");
+      expect(wrapper.text()).toContain("solar:info-circle-bold");
+
+      // Reset mock
+      vi.mocked(calculateDateDifference).mockReturnValue(200);
     });
 
     it("should handle missing release dates", () => {
@@ -225,19 +195,28 @@ describe("SbomInformation.vue", () => {
       const wrapper = createWrapper(dependency);
 
       // Should not crash and should render version badges
-      const badges = wrapper.findAllComponents({ name: "Badge" });
-      expect(badges.length).toBeGreaterThan(0);
+      expect(wrapper.find(".version-badge").exists()).toBe(true);
+    });
+
+    it("should display custom version information", () => {
+      const dependency = createMockDependency({
+        version: "2.1.0",
+        latest_version: "3.0.0",
+      });
+      const wrapper = createWrapper(dependency);
+
+      expect(wrapper.text()).toContain("2.1.0");
+      expect(wrapper.text()).toContain("3.0.0");
     });
   });
 
-  describe("Technical Details Section", () => {
+  describe("Package Details Section", () => {
     it("should display license information for licensed packages", () => {
       const dependency = createMockDependency({ license: "MIT" });
       const wrapper = createWrapper(dependency);
 
       expect(wrapper.text()).toContain("License");
       expect(wrapper.text()).toContain("MIT");
-      expect(wrapper.text()).toContain("Licensed");
 
       const licenseBadge = wrapper.find(".license-badge.valid");
       expect(licenseBadge.exists()).toBe(true);
@@ -248,11 +227,30 @@ describe("SbomInformation.vue", () => {
       const wrapper = createWrapper(dependency);
 
       expect(wrapper.text()).toContain("Unlicensed");
-      expect(wrapper.text()).toContain("No license information");
       expect(wrapper.text()).toContain("solar:danger-triangle-bold");
+    });
 
-      const licenseBadge = wrapper.find(".license-badge.invalid");
-      expect(licenseBadge.exists()).toBe(true);
+    it("should display release age information", () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.text()).toContain("Release Age");
+      expect(wrapper.find(".age-dot").exists()).toBe(true);
+      expect(wrapper.find(".age-value").exists()).toBe(true);
+    });
+
+    it("should display ecosystem information", () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.text()).toContain("Ecosystem");
+      expect(wrapper.text()).toContain("JavaScript");
+    });
+
+    it("should display ecosystem link when website available", () => {
+      const wrapper = createWrapper();
+
+      const ecosystemLink = wrapper.find(".ecosystem-link");
+      expect(ecosystemLink.exists()).toBe(true);
+      expect(ecosystemLink.attributes("target")).toBe("_blank");
     });
 
     it("should display engine support when available", () => {
@@ -265,7 +263,7 @@ describe("SbomInformation.vue", () => {
       });
       const wrapper = createWrapper(dependency);
 
-      expect(wrapper.text()).toContain("Engine Support");
+      expect(wrapper.text()).toContain("Engines");
       expect(wrapper.text()).toContain("Node");
       expect(wrapper.text()).toContain(">=14.0.0");
       expect(wrapper.text()).toContain("Npm");
@@ -274,19 +272,25 @@ describe("SbomInformation.vue", () => {
       expect(wrapper.text()).toContain(">=1.22.0");
     });
 
-    it("should not display engine support when not available", () => {
+    it("should not display engine badges when engines not available", () => {
       const dependency = createMockDependency({ engines: {} });
       const wrapper = createWrapper(dependency);
 
-      expect(wrapper.text()).not.toContain("Engine Support");
+      expect(wrapper.findAll(".engine-badge").length).toBe(0);
     });
 
-    it("should display package age information", () => {
+    it("should display compatible tools", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("Package Age");
-      // Based on our mock, it should show some age information
-      expect(wrapper.find(".age-info").exists()).toBe(true);
+      expect(wrapper.text()).toContain("Tools");
+      expect(wrapper.findAll(".tool-badge").length).toBeGreaterThan(0);
+    });
+
+    it("should display detail rows", () => {
+      const wrapper = createWrapper();
+
+      const detailRows = wrapper.findAll(".detail-row");
+      expect(detailRows.length).toBeGreaterThanOrEqual(3);
     });
   });
 
@@ -329,30 +333,29 @@ describe("SbomInformation.vue", () => {
   });
 
   describe("Package Age Calculations", () => {
-    it("should calculate and display package age correctly", () => {
-      // Test will use our mocked date difference of 200 days
+    it("should display release age with dot indicator", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.find(".age-info").exists()).toBe(true);
-      expect(wrapper.find(".age-indicator").exists()).toBe(true);
+      expect(wrapper.find(".age-dot").exists()).toBe(true);
+      expect(wrapper.find(".age-value").exists()).toBe(true);
     });
 
     it("should handle packages without release date", () => {
       const dependency = createMockDependency({ release_date: null });
       const wrapper = createWrapper(dependency);
 
-      expect(wrapper.find(".age-info").exists()).toBe(true);
       // Should handle gracefully without crashing
+      expect(wrapper.exists()).toBe(true);
+      expect(wrapper.find(".age-value").exists()).toBe(true);
     });
   });
 
   describe("Version Lag Calculations", () => {
     it("should calculate version lag correctly", () => {
-      // With our mock returning 200 days, should show months behind
       const wrapper = createWrapper();
 
-      // Should show some form of version status
-      expect(wrapper.find(".version-status").exists()).toBe(true);
+      const statusBar = wrapper.find(".version-status-bar");
+      expect(statusBar.exists()).toBe(true);
     });
 
     it("should handle missing version dates", () => {
@@ -362,7 +365,6 @@ describe("SbomInformation.vue", () => {
       });
       const wrapper = createWrapper(dependency);
 
-      // Should not crash
       expect(wrapper.exists()).toBe(true);
     });
   });
@@ -409,7 +411,7 @@ describe("SbomInformation.vue", () => {
       const dependency = createMockDependency();
       const wrapper = createWrapper(dependency);
 
-      expect(wrapper["props"]("dependency")).toEqual(dependency);
+      expect(wrapper.props("dependency")).toEqual(dependency);
     });
 
     it("should require dependency prop", () => {
@@ -418,22 +420,17 @@ describe("SbomInformation.vue", () => {
   });
 
   describe("Responsive Design", () => {
-    it("should have responsive grid layouts", () => {
+    it("should have top grid layout", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.find(".info-grid").exists()).toBe(true);
-      expect(wrapper.find(".version-grid").exists()).toBe(true);
-      expect(wrapper.find(".details-grid").exists()).toBe(true);
+      expect(wrapper.find(".top-grid").exists()).toBe(true);
     });
 
-    it("should render all card components", () => {
+    it("should render all compact card components", () => {
       const wrapper = createWrapper();
 
-      const infoCards = wrapper.findAll(".info-card");
-      const detailCards = wrapper.findAll(".detail-card");
-
-      expect(infoCards.length).toBeGreaterThan(0);
-      expect(detailCards.length).toBeGreaterThan(0);
+      const cards = wrapper.findAll(".compact-card");
+      expect(cards.length).toBeGreaterThan(0);
     });
   });
 
@@ -452,7 +449,6 @@ describe("SbomInformation.vue", () => {
       const wrapper = createWrapper(dependency);
 
       expect(wrapper.exists()).toBe(true);
-      // Should not crash with empty data
     });
 
     it("should handle dependency with special characters", () => {
@@ -462,22 +458,20 @@ describe("SbomInformation.vue", () => {
       });
       const wrapper = createWrapper(dependency);
 
-      // Component doesn't display package name directly in text, but uses it in links
-      const npmLink = wrapper.find('a[href*="@scope/package-name"]');
-      expect(npmLink.exists()).toBe(true);
       expect(wrapper.text()).toContain("Apache-2.0");
     });
 
     it("should handle very old packages", async () => {
-      // Mock very old package (>2 years)
-      vi.mocked(vi.fn()).mockReturnValue(800); // 800 days
       const { calculateDateDifference } = await import("@/utils/dateUtils");
       vi.mocked(calculateDateDifference).mockReturnValue(800);
 
       const wrapper = createWrapper();
 
-      expect(wrapper.find(".age-info").exists()).toBe(true);
-      // Should handle very old packages gracefully
+      expect(wrapper.find(".age-dot").exists()).toBe(true);
+      expect(wrapper.find(".age-value").exists()).toBe(true);
+
+      // Reset mock
+      vi.mocked(calculateDateDifference).mockReturnValue(200);
     });
 
     it("should handle complex engine requirements", () => {
@@ -500,32 +494,23 @@ describe("SbomInformation.vue", () => {
       const wrapper = createWrapper();
 
       expect(wrapper.find(".information-panel").exists()).toBe(true);
-      expect(wrapper.find(".info-section").exists()).toBe(true);
-      expect(wrapper.find(".section-header").exists()).toBe(true);
+      expect(wrapper.find(".compact-card").exists()).toBe(true);
+      expect(wrapper.find(".compact-card-label").exists()).toBe(true);
     });
 
-    it("should apply hover effects to cards", () => {
+    it("should render version comparison section", () => {
       const wrapper = createWrapper();
 
-      const cards = wrapper.findAll(".info-card, .detail-card");
-      expect(cards.length).toBeGreaterThan(0);
-
-      // Check that cards have either info-card or detail-card class
-      cards.forEach((card) => {
-        const hasCorrectClass =
-          card.classes().includes("info-card") ||
-          card.classes().includes("detail-card");
-        expect(hasCorrectClass).toBe(true);
-      });
+      expect(wrapper.find(".version-comparison").exists()).toBe(true);
+      expect(wrapper.findAll(".version-column").length).toBe(2);
     });
 
     it("should apply appropriate styling classes for different states", () => {
       const wrapper = createWrapper();
 
-      // Should have various styled elements
-      expect(wrapper.find(".integration-link").exists()).toBe(true);
       expect(wrapper.find(".version-badge").exists()).toBe(true);
-      expect(wrapper.find(".license-info").exists()).toBe(true);
+      expect(wrapper.find(".version-status-bar").exists()).toBe(true);
+      expect(wrapper.find(".detail-rows").exists()).toBe(true);
     });
   });
 });

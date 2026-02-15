@@ -183,7 +183,7 @@ onMounted(() => {
         :model-value="selectedEcosystemFilter"
         @update:model-value="handleEcosystemFilterChange"
       >
-        <SelectTrigger class="w-[160px]">
+        <SelectTrigger class="w-40">
           <SelectValue placeholder="All Languages" />
         </SelectTrigger>
         <SelectContent>
@@ -230,7 +230,7 @@ onMounted(() => {
           }
         "
       >
-        <SelectTrigger class="w-[180px]">
+        <SelectTrigger class="w-45">
           <SelectValue placeholder="Select a workspace" />
         </SelectTrigger>
         <SelectContent>

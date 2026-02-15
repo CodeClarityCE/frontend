@@ -64,14 +64,6 @@ vi.mock("./VulnDetails/VulnReferences.vue", () => ({
   },
 }));
 
-vi.mock("./VulnDetails/VulnSecurityAnalysis.vue", () => ({
-  default: {
-    name: "VulnSecurityAnalysis",
-    template:
-      '<div data-testid="vuln-security-analysis">VulnSecurityAnalysis</div>',
-  },
-}));
-
 vi.mock("@/base_components/ui/modals/CenteredModal.vue", () => ({
   default: {
     name: "CenteredModal",

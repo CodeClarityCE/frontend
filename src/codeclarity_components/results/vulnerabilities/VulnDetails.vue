@@ -63,12 +63,7 @@ async function getFinding(
 ): Promise<void> {
   const urlParams = new URLSearchParams(window.location.search);
   const finding_id_param = urlParams.get("finding_id");
-  let finding_id = "";
-  if (finding_id_param) {
-    finding_id = finding_id_param;
-  } else {
-    finding_id = props.analysisID;
-  }
+  const finding_id = finding_id_param ?? props.analysisID;
   if (finding_id === "") {
     return;
   }

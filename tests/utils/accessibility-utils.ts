@@ -311,7 +311,7 @@ export async function runFullAccessibilityAudit(
       try {
         await accessibilityTestScenarios[scenario as keyof typeof accessibilityTestScenarios](wrapper);
       } catch (error) {
-        throw new Error(`Accessibility test '${scenario}' failed: ${(error as Error).message}`);
+        throw new Error(`Accessibility test '${scenario}' failed: ${(error as Error).message}`, { cause: error });
       }
     }
   }

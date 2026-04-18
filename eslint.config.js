@@ -4,7 +4,6 @@ import eslintPluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 import security from 'eslint-plugin-security';
-import importPlugin from 'eslint-plugin-import';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import testingLibrary from 'eslint-plugin-testing-library';
 
@@ -75,7 +74,6 @@ export default typescriptEslint.config(
     files: ['**/*.{ts,vue}'],
 
     plugins: {
-      import: importPlugin,
       'simple-import-sort': simpleImportSort,
     },
 
@@ -276,8 +274,7 @@ export default typescriptEslint.config(
       // Import Rules
       // ==========================================
 
-      'import/no-unresolved': 'off', // TypeScript handles this
-      'import/no-duplicates': ['error'],
+      'no-duplicate-imports': ['error'],
 
       // Use simple-import-sort for reliable import ordering
       // Groups: polyfills first, then external packages, then @/ internal imports, then relative imports

@@ -207,7 +207,7 @@ function handleKeyDown(event: KeyboardEvent): void {
     let nodesToDelete: (AnalyzerNode | ConfigNode)[] = [];
 
     if (selectedNodes.value.length > 0) {
-      nodesToDelete = selectedNodes.value;
+      nodesToDelete = selectedNodes.value as (AnalyzerNode | ConfigNode)[];
     }
 
     if (nodesToDelete.length === 0 && vueFlowInstance) {

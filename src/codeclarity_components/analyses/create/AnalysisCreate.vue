@@ -116,9 +116,13 @@ const configuration: Ref<Record<string, Record<string, unknown>>> = ref({});
 const availableLanguages = ["javascript", "php"];
 
 // Schedule data
-const scheduleData = ref({
+const scheduleData = ref<{
+  schedule_type: "once" | "daily" | "weekly";
+  next_scheduled_run: Date | undefined;
+  is_active: boolean;
+}>({
   schedule_type: "once",
-  next_scheduled_run: undefined as Date | undefined,
+  next_scheduled_run: undefined,
   is_active: true,
 });
 

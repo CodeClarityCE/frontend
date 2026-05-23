@@ -4,15 +4,15 @@ import { describe, expect, it } from "vitest";
 import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import {
   type ActiveFilter,
-  type FilterState,
+  FilterState,
   FilterType,
 } from "@/base_components/filters/UtilitiesFilters.vue";
 
 describe("ActiveFilterBar", () => {
   const createMockFilterState = (
     activeFilters: ActiveFilter[] = [],
-  ): FilterState => ({
-    filterConfig: {
+  ): FilterState => {
+    const state = new FilterState({
       severity: {
         name: "Severity",
         type: FilterType.CHECKBOX,
@@ -21,10 +21,11 @@ describe("ActiveFilterBar", () => {
           medium: { title: "Medium", value: false },
         },
       },
-    },
-    activeFilters,
-    categoryCount: 1,
-  });
+    });
+    state.activeFilters = activeFilters;
+    state.categoryCount = 1;
+    return state;
+  };
 
   const mockCheckboxFilter: ActiveFilter = {
     label: "Severity: High",

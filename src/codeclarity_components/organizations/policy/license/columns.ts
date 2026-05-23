@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
+import type { ColumnDef, RowData } from "@tanstack/vue-table";
 import { h } from "vue";
 
 import { Badge } from "@/shadcn/ui/badge";
@@ -10,6 +10,13 @@ import {
   type LicensePolicy,
   LicensePolicyType,
 } from "../license_policy.entity";
+
+declare module "@tanstack/vue-table" {
+  interface TableMeta<TData extends RowData> {
+    onEdit?: (item: TData) => void;
+    onDelete?: (item: TData) => void;
+  }
+}
 
 export const columns: ColumnDef<LicensePolicy>[] = [
   {

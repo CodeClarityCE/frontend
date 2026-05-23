@@ -104,11 +104,13 @@ class MockIntersectionObserver {
   rootMargin = "";
   thresholds = [];
   takeRecords = vi.fn().mockReturnValue([]);
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor(
     _callback: IntersectionObserverCallback,
     _options?: IntersectionObserverInit,
-  ) {}
+  ) {
+    void _callback;
+    void _options;
+  }
 }
 global.IntersectionObserver =
   MockIntersectionObserver as unknown as typeof IntersectionObserver;

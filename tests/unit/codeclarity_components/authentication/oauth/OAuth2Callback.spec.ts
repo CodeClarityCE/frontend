@@ -12,13 +12,17 @@ import router from "@/router";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
-const { mockAuthRepository, mockAuthStore, mockUserStore } = vi.hoisted(() => ({
-  mockAuthRepository: {
-    gitlabAuthFinalize: vi.fn(),
-    githubAuthFinalize: vi.fn(),
-    getAuthenticatedUser: vi.fn(),
-  },
-  mockAuthStore: {
+const { mockAuthRepository, mockAuthStore, mockUserStore } = vi.hoisted(() => {
+  const authStore: {
+    getSocialAuthState: string | undefined;
+    socialAuthState: string | undefined;
+    setToken: ReturnType<typeof vi.fn>;
+    setTokenExpiry: ReturnType<typeof vi.fn>;
+    setRefreshToken: ReturnType<typeof vi.fn>;
+    setRefreshTokenExpiry: ReturnType<typeof vi.fn>;
+    setAuthenticated: ReturnType<typeof vi.fn>;
+    $reset: ReturnType<typeof vi.fn>;
+  } = {
     getSocialAuthState: "test-state",
     socialAuthState: undefined,
     setToken: vi.fn(),
@@ -27,12 +31,20 @@ const { mockAuthRepository, mockAuthStore, mockUserStore } = vi.hoisted(() => ({
     setRefreshTokenExpiry: vi.fn(),
     setAuthenticated: vi.fn(),
     $reset: vi.fn(),
-  },
-  mockUserStore: {
-    setUser: vi.fn(),
-    $reset: vi.fn(),
-  },
-}));
+  };
+  return {
+    mockAuthRepository: {
+      gitlabAuthFinalize: vi.fn(),
+      githubAuthFinalize: vi.fn(),
+      getAuthenticatedUser: vi.fn(),
+    },
+    mockAuthStore: authStore,
+    mockUserStore: {
+      setUser: vi.fn(),
+      $reset: vi.fn(),
+    },
+  };
+});
 
 vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
   AuthRepository: class {

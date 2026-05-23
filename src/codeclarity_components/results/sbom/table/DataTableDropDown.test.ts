@@ -26,7 +26,10 @@ class MockURLSearchParams {
     return this.params.get(key) ?? null;
   }
 }
-global.URLSearchParams = MockURLSearchParams;
+Object.defineProperty(global, "URLSearchParams", {
+  value: MockURLSearchParams,
+  writable: true,
+});
 
 // Mock window.location
 Object.defineProperty(window, "location", {

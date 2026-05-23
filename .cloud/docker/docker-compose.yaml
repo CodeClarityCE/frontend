@@ -12,6 +12,10 @@ services:
     volumes:
       - ../../frontend:/app:rw
       - pnpm-store:/pnpm/store
+      # Per-container pnpm settings (allowBuilds + minimumReleaseAge=0).
+      # Kept OUT of frontend/ root so the host's workspace install isn't tricked
+      # into treating frontend/ as a standalone sub-workspace.
+      - ../../frontend/.cloud/docker/pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
     deploy:
       resources:
         limits:

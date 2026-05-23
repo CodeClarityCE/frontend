@@ -1,0 +1,25 @@
+# This file is bind-mounted into the frontend-dev container at /app/pnpm-workspace.yaml
+# so the container's standalone `pnpm install` reads these settings (allowBuilds
+# verdicts + minimumReleaseAge override) WITHOUT polluting the host's frontend/ root
+# (which would make pnpm treat frontend/ as a sub-workspace and fight the root workspace).
+#
+# Mount declaration lives in frontend/.cloud/docker/docker-compose.yaml:
+#   - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+
+# Override pnpm 11's default 24h gate. Container's standalone install resolves
+# fresh from the registry and may hit packages that haven't aged out yet.
+minimumReleaseAge: 0
+
+# Mirror the root workspace's allowBuilds verdicts so lifecycle scripts
+# (esbuild binary download, @parcel/watcher native build, etc.) run for the right packages.
+allowBuilds:
+  bcrypt: true
+  "@swc/core": true
+  esbuild: true
+  "@parcel/watcher": true
+  unrs-resolver: true
+  msw: true
+  vue-demi: true
+  "@nestjs/core": false
+  "@percy/core": false
+  "@scarf/scarf": false

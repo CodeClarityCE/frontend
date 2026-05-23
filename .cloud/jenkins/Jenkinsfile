@@ -10,6 +10,11 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        // The frontend repo is cloned standalone here (no parent monorepo
+        // pnpm-workspace.yaml). Override pnpm 11's default 1440-min (24h)
+        // gate so freshly-published lockfile entries don't fail the build.
+        // The monorepo dev path already sets this in the root pnpm-workspace.yaml.
+        PNPM_CONFIG_MINIMUM_RELEASE_AGE = '0'
     }
 
     stages {

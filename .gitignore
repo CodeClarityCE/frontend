@@ -12,6 +12,12 @@ lerna-debug.log*
 !.yarn/sdks
 node_modules
 .pnpm-store/*
+# Staged by Jenkins Setup stage (cp from .cloud/docker/pnpm-workspace.yaml).
+# Not tracked because it conflicts with the parent monorepo's workspace install
+# when this submodule is consumed as part of codeclarity-dev.
+pnpm-workspace.yaml
+yarn.lock
+.pnp.*
 .DS_Store
 dist
 dist-ssr

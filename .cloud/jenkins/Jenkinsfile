@@ -33,6 +33,11 @@ pipeline {
                 sh 'git fetch --tags --force origin'
                 sh 'corepack enable && corepack prepare pnpm@11.2.2 --activate'
                 sh 'pnpm config set store-dir "$HOME/.pnpm-store"'
+                // Stage the standalone pnpm config (allowBuilds + minimumReleaseAge=0)
+                // at the repo root so pnpm 11 finds it. Source of truth lives under
+                // .cloud/docker/ so it's not picked up by the parent monorepo when
+                // this submodule is consumed as part of codeclarity-dev.
+                sh 'cp .cloud/docker/pnpm-workspace.yaml pnpm-workspace.yaml'
                 sh 'pnpm install --frozen-lockfile'
             }
         }

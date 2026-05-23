@@ -19,7 +19,7 @@ services:
           memory: 200M
 
   caddy:
-    image: caddy:2.10.2-alpine
+    image: caddy:2.11.3-alpine
     env_file:
       - ../../.cloud/env/.env.dev
     command: [ "caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile", "--watch" ]

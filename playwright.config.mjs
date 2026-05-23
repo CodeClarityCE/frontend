@@ -1,12 +1,12 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright configuration for CodeClarity E2E tests
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './e2e',
-  testMatch: '**/*.spec.mts',
+  testDir: "./e2e",
+  testMatch: "**/*.spec.mts",
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -21,58 +21,55 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   /* Reporter to use */
-  reporter: [
-    ['html', { open: 'never' }],
-    ['list']
-  ],
+  reporter: [["html", { open: "never" }], ["list"]],
 
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
-    baseURL: 'http://localhost:4173',
+    baseURL: "http://localhost:4173",
 
     /* Collect trace when retrying the failed test */
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     /* Screenshot on failure */
-    screenshot: 'only-on-failure',
+    screenshot: "only-on-failure",
 
     /* Video recording */
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
 
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
     },
 
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
     },
 
     /* Test against mobile viewports */
     {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      name: "Mobile Chrome",
+      use: { ...devices["Pixel 5"] },
     },
     {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      name: "Mobile Safari",
+      use: { ...devices["iPhone 12"] },
     },
   ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm preview',
-    url: 'http://localhost:4173',
+    command: "pnpm preview",
+    url: "http://localhost:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
@@ -84,4 +81,4 @@ export default defineConfig({
   expect: {
     timeout: 5 * 1000,
   },
-})
+});

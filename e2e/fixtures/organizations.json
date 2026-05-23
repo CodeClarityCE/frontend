@@ -10,7 +10,7 @@
     {
       "id": "org-001",
       "name": "Acme Corp",
-      "slug": "acme-corp", 
+      "slug": "acme-corp",
       "description": "Technology company",
       "member_count": 25,
       "project_count": 12
@@ -39,7 +39,7 @@
     },
     {
       "id": "user-002",
-      "email": "member@example.com", 
+      "email": "member@example.com",
       "name": "Member User",
       "role": "member",
       "joined_at": "2023-02-15T00:00:00Z"

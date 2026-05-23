@@ -1,114 +1,114 @@
-import { mount } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import CurrentVulns from '@/codeclarity_components/dashboard/charts/CurrentVulns.vue';
+import CurrentVulns from "@/codeclarity_components/dashboard/charts/CurrentVulns.vue";
 
 // Mock external dependencies
-vi.mock('@/utils/api/BaseRepository', () => ({
-  BusinessLogicError: class BusinessLogicError extends Error {}
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BusinessLogicError: class BusinessLogicError extends Error {},
 }));
 
-vi.mock('@/codeclarity_components/dashboard/dashboard.repository', () => ({
+vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
   DashboardRepository: class {
-    getCurrentVulns = vi.fn()
-  }
+    getCurrentVulns = vi.fn();
+  },
 }));
 
-vi.mock('@/stores/auth', () => ({
+vi.mock("@/stores/auth", () => ({
   useAuthStore: vi.fn(() => ({
-    token: 'mock-token'
-  }))
+    token: "mock-token",
+  })),
 }));
 
-vi.mock('@/stores/user', () => ({
+vi.mock("@/stores/user", () => ({
   useUserStore: vi.fn(() => ({
-    defaultOrg: { id: 'org-123' }
-  }))
+    defaultOrg: { id: "org-123" },
+  })),
 }));
 
-vi.mock('pinia', () => ({
-  storeToRefs: vi.fn((store) => store)
+vi.mock("pinia", () => ({
+  storeToRefs: vi.fn((store) => store),
 }));
 
 // Mock UI components
-vi.mock('@iconify/vue', () => ({
+vi.mock("@iconify/vue", () => ({
   Icon: {
-    name: 'Icon',
+    name: "Icon",
     template: '<div data-testid="icon"></div>',
-    props: ['icon']
-  }
+    props: ["icon"],
+  },
 }));
 
-vi.mock('@/shadcn/ui/skeleton', () => ({
+vi.mock("@/shadcn/ui/skeleton", () => ({
   Skeleton: {
-    name: 'Skeleton',
-    template: '<div data-testid="skeleton"></div>'
-  }
+    name: "Skeleton",
+    template: '<div data-testid="skeleton"></div>',
+  },
 }));
 
-vi.mock('@/shadcn/ui/button/Button.vue', () => ({
+vi.mock("@/shadcn/ui/button/Button.vue", () => ({
   default: {
-    name: 'Button',
+    name: "Button",
     template: '<button data-testid="button"><slot /></button>',
-    props: ['variant', 'size']
-  }
+    props: ["variant", "size"],
+  },
 }));
 
-vi.mock('@/shadcn/ui/scroll-area', () => ({
+vi.mock("@/shadcn/ui/scroll-area", () => ({
   ScrollArea: {
-    name: 'ScrollArea',
-    template: '<div data-testid="scroll-area"><slot /></div>'
-  }
+    name: "ScrollArea",
+    template: '<div data-testid="scroll-area"><slot /></div>',
+  },
 }));
 
-describe('CurrentVulns', () => {
+describe("CurrentVulns", () => {
   const defaultProps = {
-    integrationIds: ['test-id-1', 'test-id-2']
+    integrationIds: ["test-id-1", "test-id-2"],
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should render successfully', () => {
+  it("should render successfully", () => {
     const wrapper = mount(CurrentVulns, {
-      props: defaultProps
+      props: defaultProps,
     });
     expect(wrapper.exists()).toBe(true);
   });
 
-  it('should accept integration IDs as props', () => {
+  it("should accept integration IDs as props", () => {
     const wrapper = mount(CurrentVulns, {
-      props: defaultProps
+      props: defaultProps,
     });
-    
-    expect(wrapper.props('integrationIds')).toEqual(['test-id-1', 'test-id-2']);
+
+    expect(wrapper.props("integrationIds")).toEqual(["test-id-1", "test-id-2"]);
   });
 
-  it('should handle empty integration IDs', () => {
+  it("should handle empty integration IDs", () => {
     const wrapper = mount(CurrentVulns, {
-      props: { integrationIds: [] }
+      props: { integrationIds: [] },
     });
-    
+
     expect(wrapper.exists()).toBe(true);
-    expect(wrapper.props('integrationIds')).toEqual([]);
+    expect(wrapper.props("integrationIds")).toEqual([]);
   });
 
-  it('should render loading state initially', () => {
+  it("should render loading state initially", () => {
     const wrapper = mount(CurrentVulns, {
-      props: defaultProps
+      props: defaultProps,
     });
-    
+
     // Should have loading-related elements
     expect(wrapper.html()).toBeTruthy();
   });
 
-  it('should handle props changes', async () => {
+  it("should handle props changes", async () => {
     const wrapper = mount(CurrentVulns, {
-      props: defaultProps
+      props: defaultProps,
     });
-    
-    await wrapper.setProps({ integrationIds: ['new-id'] });
-    expect(wrapper.props('integrationIds')).toEqual(['new-id']);
+
+    await wrapper.setProps({ integrationIds: ["new-id"] });
+    expect(wrapper.props("integrationIds")).toEqual(["new-id"]);
   });
 });

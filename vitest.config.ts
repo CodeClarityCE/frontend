@@ -1,36 +1,36 @@
-import { fileURLToPath } from 'node:url'
-import { mergeConfig, defineConfig, configDefaults } from 'vitest/config'
-import viteConfig from './vite.config'
+import { fileURLToPath } from "node:url";
+import { mergeConfig, defineConfig, configDefaults } from "vitest/config";
+import viteConfig from "./vite.config";
 
 export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      environment: 'jsdom',
-      exclude: [...configDefaults.exclude, 'e2e/*'],
-      root: fileURLToPath(new URL('./', import.meta.url)),
-      setupFiles: ['./tests/setup.ts'],
+      environment: "jsdom",
+      exclude: [...configDefaults.exclude, "e2e/*"],
+      root: fileURLToPath(new URL("./", import.meta.url)),
+      setupFiles: ["./tests/setup.ts"],
       env: {
-        MODE: 'test',
-        NODE_ENV: 'test'
+        MODE: "test",
+        NODE_ENV: "test",
       },
       coverage: {
-        provider: 'v8',
-        reporter: ['text', 'json', 'html'],
+        provider: "v8",
+        reporter: ["text", "json", "html"],
         exclude: [
           ...(configDefaults.coverage?.exclude || []),
-          'tests/**',
-          'e2e/**',
-          'src/**/*.stories.ts',
-          'src/**/*.d.ts',
-          'cypress/**'
+          "tests/**",
+          "e2e/**",
+          "src/**/*.stories.ts",
+          "src/**/*.d.ts",
+          "cypress/**",
         ],
         thresholds: {
           lines: 80,
           functions: 80,
           branches: 80,
-          statements: 80
-        }
+          statements: 80,
+        },
       },
       globals: true,
       isolate: true,
@@ -46,7 +46,7 @@ export default mergeConfig(
       // only the cleanup phase races. We log the unhandled error but
       // don't fail the build on it. Revisit if a genuine test bug ever
       // hides here, OR if Vitest gains a less-strict per-error opt-in.
-      dangerouslyIgnoreUnhandledErrors: true
-    }
-  })
-)
+      dangerouslyIgnoreUnhandledErrors: true,
+    },
+  }),
+);

@@ -1,28 +1,33 @@
-import type { VueWrapper } from '@vue/test-utils';
-import { type AxeResults, type Result, run as axeRun, type RunOptions } from 'axe-core';
+import type { VueWrapper } from "@vue/test-utils";
+import {
+  type AxeResults,
+  type Result,
+  run as axeRun,
+  type RunOptions,
+} from "axe-core";
 
 /**
  * Default axe configuration for CodeClarity accessibility testing
  */
 export const defaultAxeConfig: RunOptions = {
   runOnly: {
-    type: 'tag',
-    values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'best-practice']
-  }
+    type: "tag",
+    values: ["wcag2a", "wcag2aa", "wcag21aa", "best-practice"],
+  },
 };
 
 /**
  * Custom axe configuration for form components
  */
 export const formAxeConfig: RunOptions = {
-  ...defaultAxeConfig
+  ...defaultAxeConfig,
 };
 
 /**
  * Custom axe configuration for modal/dialog components
  */
 export const modalAxeConfig: RunOptions = {
-  ...defaultAxeConfig
+  ...defaultAxeConfig,
 };
 
 /**
@@ -30,16 +35,21 @@ export const modalAxeConfig: RunOptions = {
  */
 export function formatAxeViolations(violations: Result[]): string {
   if (violations.length === 0) {
-    return 'No accessibility violations found';
+    return "No accessibility violations found";
   }
 
-  return violations.map((violation): string => {
-    const nodeInfo = violation.nodes.map((node): string => {
-      const target = Array.isArray(node.target) ? node.target.join(' -> ') : node.target;
-      return `    Target: ${target}\n    HTML: ${node.html}\n    Impact: ${node.impact}`;
-    }).join('\n\n');
+  return violations
+    .map((violation): string => {
+      const nodeInfo = violation.nodes
+        .map((node): string => {
+          const target = Array.isArray(node.target)
+            ? node.target.join(" -> ")
+            : node.target;
+          return `    Target: ${target}\n    HTML: ${node.html}\n    Impact: ${node.impact}`;
+        })
+        .join("\n\n");
 
-    return `
+      return `
 VIOLATION: ${violation.id} (${violation.impact})
 Rule: ${violation.description}
 Help: ${violation.help}
@@ -47,7 +57,8 @@ Help URL: ${violation.helpUrl}
 Affected nodes:
 ${nodeInfo}
 `;
-  }).join(`\n${  '='.repeat(80)  }\n`);
+    })
+    .join(`\n${"=".repeat(80)}\n`);
 }
 
 /**
@@ -56,7 +67,7 @@ ${nodeInfo}
 export async function runAccessibilityTests(
   wrapper: VueWrapper,
   config: RunOptions = defaultAxeConfig,
-  customRules?: Record<string, unknown>
+  customRules?: Record<string, unknown>,
 ): Promise<AxeResults> {
   const element = wrapper.element as HTMLElement;
 
@@ -66,7 +77,10 @@ export async function runAccessibilityTests(
   }
 
   const finalConfig: RunOptions = customRules
-    ? { ...config, rules: { ...config.rules, ...customRules } as RunOptions['rules'] }
+    ? {
+        ...config,
+        rules: { ...config.rules, ...customRules } as RunOptions["rules"],
+      }
     : config;
 
   try {
@@ -74,7 +88,10 @@ export async function runAccessibilityTests(
     return results;
   } finally {
     // Clean up if we added the element
-    if (document.body.contains(element) && element.parentNode === document.body) {
+    if (
+      document.body.contains(element) &&
+      element.parentNode === document.body
+    ) {
       document.body.removeChild(element);
     }
   }
@@ -86,10 +103,10 @@ export async function runAccessibilityTests(
 export async function expectNoAccessibilityViolations(
   wrapper: VueWrapper,
   config: RunOptions = defaultAxeConfig,
-  customRules?: Record<string, unknown>
+  customRules?: Record<string, unknown>,
 ): Promise<void> {
   const results = await runAccessibilityTests(wrapper, config, customRules);
-  
+
   if (results.violations.length > 0) {
     const violationDetails = formatAxeViolations(results.violations);
     throw new Error(`Accessibility violations found:\n${violationDetails}`);
@@ -102,14 +119,16 @@ export async function expectNoAccessibilityViolations(
 export async function expectAccessibilityRule(
   wrapper: VueWrapper,
   ruleId: string,
-  config: RunOptions = defaultAxeConfig
+  config: RunOptions = defaultAxeConfig,
 ): Promise<void> {
   const results = await runAccessibilityTests(wrapper, config);
-  
-  const ruleViolations = results.violations.filter(v => v.id === ruleId);
+
+  const ruleViolations = results.violations.filter((v) => v.id === ruleId);
   if (ruleViolations.length > 0) {
     const violationDetails = formatAxeViolations(ruleViolations);
-    throw new Error(`Accessibility rule '${ruleId}' failed:\n${violationDetails}`);
+    throw new Error(
+      `Accessibility rule '${ruleId}' failed:\n${violationDetails}`,
+    );
   }
 }
 
@@ -118,7 +137,7 @@ export async function expectAccessibilityRule(
  */
 export async function getAccessibilityInsights(
   wrapper: VueWrapper,
-  config: RunOptions = defaultAxeConfig
+  config: RunOptions = defaultAxeConfig,
 ): Promise<{
   violations: Result[];
   passes: Result[];
@@ -133,26 +152,29 @@ export async function getAccessibilityInsights(
   };
 }> {
   const results = await runAccessibilityTests(wrapper, config);
-  
+
   const summary = {
     violationCount: results.violations.length,
     passCount: results.passes.length,
     incompleteCount: results.incomplete.length,
-    totalChecks: results.violations.length + results.passes.length + results.incomplete.length,
-    score: 0
+    totalChecks:
+      results.violations.length +
+      results.passes.length +
+      results.incomplete.length,
+    score: 0,
   };
-  
+
   // Calculate accessibility score
   if (summary.totalChecks > 0) {
     summary.score = Math.round((summary.passCount / summary.totalChecks) * 100);
   }
-  
+
   return {
     violations: results.violations,
     passes: results.passes,
     incomplete: results.incomplete,
     inapplicable: results.inapplicable,
-    summary
+    summary,
   };
 }
 
@@ -169,28 +191,30 @@ export async function testKeyboardNavigation(wrapper: VueWrapper): Promise<{
 
   // Find all focusable elements
   const focusableSelectors = [
-    'a[href]',
-    'area[href]',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    'button:not([disabled])',
-    'iframe',
-    'object',
-    'embed',
-    '[contenteditable]',
-    '[tabindex]:not([tabindex^="-"])'
+    "a[href]",
+    "area[href]",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "button:not([disabled])",
+    "iframe",
+    "object",
+    "embed",
+    "[contenteditable]",
+    '[tabindex]:not([tabindex^="-"])',
   ];
 
   const allElements = Array.from(
-    element.querySelectorAll(focusableSelectors.join(', '))
+    element.querySelectorAll(focusableSelectors.join(", ")),
   );
 
-  const focusableElements: Element[] = allElements.filter((el): el is Element => {
-    // Additional check for visibility
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden';
-  });
+  const focusableElements: Element[] = allElements.filter(
+    (el): el is Element => {
+      // Additional check for visibility
+      const style = window.getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden";
+    },
+  );
 
   // Test tab order
   const tabOrder: Element[] = [];
@@ -212,7 +236,7 @@ export async function testKeyboardNavigation(wrapper: VueWrapper): Promise<{
     focusableElements,
     tabOrder,
     canEscape: true, // Would need actual keyboard event simulation
-    canActivate: true // Would need actual keyboard event simulation
+    canActivate: true, // Would need actual keyboard event simulation
   };
 }
 
@@ -220,7 +244,6 @@ export async function testKeyboardNavigation(wrapper: VueWrapper): Promise<{
  * Predefined test scenarios for common accessibility patterns
  */
 export const accessibilityTestScenarios = {
-  
   /**
    * Test form accessibility
    */
@@ -228,20 +251,22 @@ export const accessibilityTestScenarios = {
     await expectNoAccessibilityViolations(wrapper, formAxeConfig);
 
     // Additional form-specific tests
-    const inputs = wrapper.findAll('input, textarea, select');
+    const inputs = wrapper.findAll("input, textarea, select");
     for (const input of inputs) {
       // Check for labels
       const element = input.element as HTMLInputElement;
       const hasLabel = element.labels && element.labels.length > 0;
-      const hasAriaLabel = element.hasAttribute('aria-label');
-      const hasAriaLabelledBy = element.hasAttribute('aria-labelledby');
+      const hasAriaLabel = element.hasAttribute("aria-label");
+      const hasAriaLabelledBy = element.hasAttribute("aria-labelledby");
 
       if (!hasLabel && !hasAriaLabel && !hasAriaLabelledBy) {
-        throw new Error(`Form field '${element.name ?? element.id}' has no accessible label`);
+        throw new Error(
+          `Form field '${element.name ?? element.id}' has no accessible label`,
+        );
       }
     }
   },
-  
+
   /**
    * Test modal/dialog accessibility
    */
@@ -250,15 +275,21 @@ export const accessibilityTestScenarios = {
 
     // Additional modal-specific tests
     const modal = wrapper.element as Element;
-    if (!modal.hasAttribute('role') || modal.getAttribute('role') !== 'dialog') {
+    if (
+      !modal.hasAttribute("role") ||
+      modal.getAttribute("role") !== "dialog"
+    ) {
       throw new Error('Modal must have role="dialog"');
     }
 
-    if (!modal.hasAttribute('aria-modal') || modal.getAttribute('aria-modal') !== 'true') {
+    if (
+      !modal.hasAttribute("aria-modal") ||
+      modal.getAttribute("aria-modal") !== "true"
+    ) {
       throw new Error('Modal must have aria-modal="true"');
     }
   },
-  
+
   /**
    * Test button accessibility
    */
@@ -267,32 +298,36 @@ export const accessibilityTestScenarios = {
 
     for (const button of buttons) {
       const element = button.element;
-      const hasText = element.textContent && element.textContent.trim().length > 0;
-      const hasAriaLabel = element.hasAttribute('aria-label');
-      const hasAriaLabelledBy = element.hasAttribute('aria-labelledby');
+      const hasText =
+        element.textContent && element.textContent.trim().length > 0;
+      const hasAriaLabel = element.hasAttribute("aria-label");
+      const hasAriaLabelledBy = element.hasAttribute("aria-labelledby");
 
       if (!hasText && !hasAriaLabel && !hasAriaLabelledBy) {
-        throw new Error('Button must have accessible text or aria-label');
+        throw new Error("Button must have accessible text or aria-label");
       }
     }
 
     await expectNoAccessibilityViolations(wrapper);
   },
-  
+
   /**
    * Test navigation accessibility
    */
   navigation: async (wrapper: VueWrapper): Promise<void> => {
-    const nav = wrapper.find('nav');
+    const nav = wrapper.find("nav");
     if (nav.exists()) {
       const element = nav.element;
-      if (!element.hasAttribute('aria-label') && !element.hasAttribute('aria-labelledby')) {
-        throw new Error('Navigation must have aria-label or aria-labelledby');
+      if (
+        !element.hasAttribute("aria-label") &&
+        !element.hasAttribute("aria-labelledby")
+      ) {
+        throw new Error("Navigation must have aria-label or aria-labelledby");
       }
     }
 
     await expectNoAccessibilityViolations(wrapper);
-  }
+  },
 };
 
 /**
@@ -300,25 +335,36 @@ export const accessibilityTestScenarios = {
  */
 export async function runFullAccessibilityAudit(
   wrapper: VueWrapper,
-  scenarios: string[] = ['form', 'modal', 'button', 'navigation']
+  scenarios: string[] = ["form", "modal", "button", "navigation"],
 ): Promise<void> {
   // Run general accessibility tests
   await expectNoAccessibilityViolations(wrapper);
-  
+
   // Run specific scenario tests
   for (const scenario of scenarios) {
-    if (accessibilityTestScenarios[scenario as keyof typeof accessibilityTestScenarios]) {
+    if (
+      accessibilityTestScenarios[
+        scenario as keyof typeof accessibilityTestScenarios
+      ]
+    ) {
       try {
-        await accessibilityTestScenarios[scenario as keyof typeof accessibilityTestScenarios](wrapper);
+        await accessibilityTestScenarios[
+          scenario as keyof typeof accessibilityTestScenarios
+        ](wrapper);
       } catch (error) {
-        throw new Error(`Accessibility test '${scenario}' failed: ${(error as Error).message}`, { cause: error });
+        throw new Error(
+          `Accessibility test '${scenario}' failed: ${(error as Error).message}`,
+          { cause: error },
+        );
       }
     }
   }
-  
+
   // Test keyboard navigation
   const keyboardResults = await testKeyboardNavigation(wrapper);
-  if (keyboardResults.focusableElements.length !== keyboardResults.tabOrder.length) {
-    throw new Error('Keyboard navigation tab order is inconsistent');
+  if (
+    keyboardResults.focusableElements.length !== keyboardResults.tabOrder.length
+  ) {
+    throw new Error("Keyboard navigation tab order is inconsistent");
   }
 }

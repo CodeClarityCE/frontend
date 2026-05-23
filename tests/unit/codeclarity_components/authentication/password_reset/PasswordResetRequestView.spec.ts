@@ -1,123 +1,125 @@
-import { mount } from '@vue/test-utils';
-import { beforeEach,describe, expect, it, vi } from 'vitest';
+import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import PasswordResetRequestView from '@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue';
+import PasswordResetRequestView from "@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue";
 
 const mockStateStore = {
   $reset: vi.fn(),
-  page: '',
-  publicPage: false
+  page: "",
+  publicPage: false,
 };
 
-vi.mock('@/stores/state', () => ({
-  useStateStore: () => mockStateStore
+vi.mock("@/stores/state", () => ({
+  useStateStore: () => mockStateStore,
 }));
 
-describe('PasswordResetRequestView', () => {
+describe("PasswordResetRequestView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockStateStore.page = '';
+    mockStateStore.page = "";
     mockStateStore.publicPage = false;
   });
 
-  describe('Component Structure', () => {
-    it('should render the main container with correct styling', () => {
+  describe("Component Structure", () => {
+    it("should render the main container with correct styling", () => {
       const wrapper = mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
-      const mainElement = wrapper.find('main');
+
+      const mainElement = wrapper.find("main");
       expect(mainElement.exists()).toBe(true);
-      expect(mainElement.classes()).toContain('p-12');
+      expect(mainElement.classes()).toContain("p-12");
     });
 
-    it('should handle async component configuration', () => {
+    it("should handle async component configuration", () => {
       const wrapper = mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
+
       expect(wrapper.exists()).toBe(true);
       expect(wrapper.vm).toBeDefined();
     });
   });
 
-  describe('State Management', () => {
-    it('should reset the state store on component setup', () => {
+  describe("State Management", () => {
+    it("should reset the state store on component setup", () => {
       mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
+
       expect(mockStateStore.$reset).toHaveBeenCalledOnce();
     });
 
     it('should set page to "password-recovery"', () => {
       mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
-      expect(mockStateStore.page).toBe('password-recovery');
+
+      expect(mockStateStore.page).toBe("password-recovery");
     });
 
-    it('should set publicPage to true', () => {
+    it("should set publicPage to true", () => {
       mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
+
       expect(mockStateStore.publicPage).toBe(true);
     });
   });
 
-  describe('Layout', () => {
-    it('should have proper semantic structure', () => {
+  describe("Layout", () => {
+    it("should have proper semantic structure", () => {
       const wrapper = mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
-      const mainElement = wrapper.find('main');
+
+      const mainElement = wrapper.find("main");
       expect(mainElement.exists()).toBe(true);
-      expect(wrapper.html()).toContain('main');
+      expect(wrapper.html()).toContain("main");
     });
 
-    it('should apply consistent padding to main container', () => {
+    it("should apply consistent padding to main container", () => {
       const wrapper = mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
-      const mainElement = wrapper.find('main');
-      expect(mainElement.classes()).toEqual(['p-12']);
+
+      const mainElement = wrapper.find("main");
+      expect(mainElement.classes()).toEqual(["p-12"]);
     });
   });
 
-  describe('Error Handling', () => {
-    it('should render without errors when all dependencies are available', () => {
-      expect(() => mount(PasswordResetRequestView, {
-        global: {
-          stubs: ['PasswordResetRequestForm']
-        }
-      })).not.toThrow();
+  describe("Error Handling", () => {
+    it("should render without errors when all dependencies are available", () => {
+      expect(() =>
+        mount(PasswordResetRequestView, {
+          global: {
+            stubs: ["PasswordResetRequestForm"],
+          },
+        }),
+      ).not.toThrow();
     });
 
-    it('should handle store initialization properly', () => {
+    it("should handle store initialization properly", () => {
       const wrapper = mount(PasswordResetRequestView, {
         global: {
-          stubs: ['PasswordResetRequestForm']
-        }
+          stubs: ["PasswordResetRequestForm"],
+        },
       });
-      
+
       expect(wrapper.vm).toBeDefined();
       expect(mockStateStore.$reset).toHaveBeenCalled();
     });

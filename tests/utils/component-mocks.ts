@@ -2,7 +2,7 @@
  * Shared Vue component mock utilities
  * Use these to ensure consistent mocking patterns across all tests
  */
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 /**
  * Creates a Vue component mock with all necessary Vue 3 internal properties
@@ -21,7 +21,7 @@ export function createVueComponentMock(componentDef: Record<string, unknown>): {
     __isTeleport: false,
     __isKeepAlive: false,
     __isSuspense: false,
-    __isFragment: false
+    __isFragment: false,
   };
 }
 
@@ -37,13 +37,14 @@ export function createSimpleComponentMock(
   name: string,
   template?: string,
   props?: string[],
-  emits?: string[]
+  emits?: string[],
 ): ReturnType<typeof createVueComponentMock> {
   return createVueComponentMock({
     name,
-    template: template ?? `<div data-testid="${name.toLowerCase()}">${name}</div>`,
+    template:
+      template ?? `<div data-testid="${name.toLowerCase()}">${name}</div>`,
     props: props ?? [],
-    emits: emits ?? []
+    emits: emits ?? [],
   });
 }
 
@@ -60,10 +61,13 @@ export const BaseRepositoryMock = {
     }
   },
   ValidationError: class MockValidationError extends Error {
-    constructor(public error_code: string, public details?: unknown) {
+    constructor(
+      public error_code: string,
+      public details?: unknown,
+    ) {
       super();
     }
-  }
+  },
 };
 
 /**
@@ -74,7 +78,7 @@ export const RouterMock = {
   go: vi.fn(),
   back: vi.fn(),
   forward: vi.fn(),
-  replace: vi.fn()
+  replace: vi.fn(),
 };
 
 /**
@@ -82,9 +86,9 @@ export const RouterMock = {
  */
 export function createIconMock(): ReturnType<typeof createVueComponentMock> {
   return createVueComponentMock({
-    name: 'Icon',
-    props: ['icon', 'class', 'width', 'height'],
-    template: '<span :data-icon="icon" :class="class"></span>'
+    name: "Icon",
+    props: ["icon", "class", "width", "height"],
+    template: '<span :data-icon="icon" :class="class"></span>',
   });
 }
 
@@ -93,9 +97,10 @@ export function createIconMock(): ReturnType<typeof createVueComponentMock> {
  */
 export function createButtonMock(): ReturnType<typeof createVueComponentMock> {
   return createVueComponentMock({
-    name: 'Button',
-    props: ['variant', 'type', 'disabled', 'size'],
-    emits: ['click'],
-    template: '<button :type="type" :disabled="disabled" @click="$emit(\'click\')" :data-variant="variant"><slot></slot></button>'
+    name: "Button",
+    props: ["variant", "type", "disabled", "size"],
+    emits: ["click"],
+    template:
+      '<button :type="type" :disabled="disabled" @click="$emit(\'click\')" :data-variant="variant"><slot></slot></button>',
   });
 }

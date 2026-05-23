@@ -1,66 +1,66 @@
-import { createPinia,setActivePinia } from 'pinia'
-import { beforeEach,describe, expect, it } from 'vitest'
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it } from "vitest";
 
 // Mock the state store to avoid import issues
 const mockStateStore = {
-  page: '',
-  menu: '',
+  page: "",
+  menu: "",
   publicPage: false,
   $reset: () => {
-    mockStateStore.page = ''
-    mockStateStore.menu = ''
-    mockStateStore.publicPage = false
-  }
-}
+    mockStateStore.page = "";
+    mockStateStore.menu = "";
+    mockStateStore.publicPage = false;
+  },
+};
 
 // Mock the useStateStore function
-const useStateStore = () => mockStateStore
+const useStateStore = () => mockStateStore;
 
-describe('State Store (Simple)', () => {
-  let stateStore: typeof mockStateStore
+describe("State Store (Simple)", () => {
+  let stateStore: typeof mockStateStore;
 
   beforeEach(() => {
-    setActivePinia(createPinia())
-    stateStore = useStateStore()
-    stateStore.$reset()
-  })
+    setActivePinia(createPinia());
+    stateStore = useStateStore();
+    stateStore.$reset();
+  });
 
-  describe('Initial State', () => {
-    it('should have correct default values', () => {
-      expect(stateStore.page).toBe('')
-      expect(stateStore.menu).toBe('')
-      expect(stateStore.publicPage).toBe(false)
-    })
-  })
+  describe("Initial State", () => {
+    it("should have correct default values", () => {
+      expect(stateStore.page).toBe("");
+      expect(stateStore.menu).toBe("");
+      expect(stateStore.publicPage).toBe(false);
+    });
+  });
 
-  describe('State Management', () => {
-    it('should update page value', () => {
-      stateStore.page = 'dashboard'
-      expect(stateStore.page).toBe('dashboard')
-    })
+  describe("State Management", () => {
+    it("should update page value", () => {
+      stateStore.page = "dashboard";
+      expect(stateStore.page).toBe("dashboard");
+    });
 
-    it('should update menu value', () => {
-      stateStore.menu = 'main-nav'
-      expect(stateStore.menu).toBe('main-nav')
-    })
+    it("should update menu value", () => {
+      stateStore.menu = "main-nav";
+      expect(stateStore.menu).toBe("main-nav");
+    });
 
-    it('should update publicPage value', () => {
-      stateStore.publicPage = true
-      expect(stateStore.publicPage).toBe(true)
-    })
-  })
+    it("should update publicPage value", () => {
+      stateStore.publicPage = true;
+      expect(stateStore.publicPage).toBe(true);
+    });
+  });
 
-  describe('Reset Functionality', () => {
-    it('should reset all values to defaults', () => {
-      stateStore.page = 'projects'
-      stateStore.menu = 'sidebar'
-      stateStore.publicPage = true
+  describe("Reset Functionality", () => {
+    it("should reset all values to defaults", () => {
+      stateStore.page = "projects";
+      stateStore.menu = "sidebar";
+      stateStore.publicPage = true;
 
-      stateStore.$reset()
+      stateStore.$reset();
 
-      expect(stateStore.page).toBe('')
-      expect(stateStore.menu).toBe('')
-      expect(stateStore.publicPage).toBe(false)
-    })
-  })
-})
+      expect(stateStore.page).toBe("");
+      expect(stateStore.menu).toBe("");
+      expect(stateStore.publicPage).toBe(false);
+    });
+  });
+});

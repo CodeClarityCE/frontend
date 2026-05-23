@@ -16,7 +16,7 @@
       "last_analysis": "2023-06-15T10:30:00Z"
     },
     {
-      "id": "proj-002", 
+      "id": "proj-002",
       "name": "Backend API",
       "description": "Node.js REST API",
       "repository_url": "https://github.com/example/backend",

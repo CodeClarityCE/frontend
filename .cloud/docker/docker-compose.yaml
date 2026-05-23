@@ -19,17 +19,26 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 200M
 
   caddy:
     image: caddy:2.11.3-alpine
     env_file:
       - ../../.cloud/env/.env.dev
-    command: [ "caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile", "--watch" ]
+    command:
+      [
+        "caddy",
+        "run",
+        "--config",
+        "/etc/caddy/Caddyfile",
+        "--adapter",
+        "caddyfile",
+        "--watch",
+      ]
     restart: always
     volumes:
       - ../../frontend/.cloud/docker/conf/caddy/Caddyfile:/etc/caddy/Caddyfile:ro

@@ -1,15 +1,15 @@
-import { render, screen } from '@testing-library/vue';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
-import FormSelectLicense from '@/base_components/forms/FormSelectLicense.vue';
-import type { License } from '@/codeclarity_components/results/licenses/License';
+import FormSelectLicense from "@/base_components/forms/FormSelectLicense.vue";
+import type { License } from "@/codeclarity_components/results/licenses/License";
 
 // Mock SearchBar component
-vi.mock('@/base_components/filters/SearchBar.vue', () => ({
+vi.mock("@/base_components/filters/SearchBar.vue", () => ({
   default: {
-    name: 'SearchBar',
-    props: ['searchKey', 'placeholder'],
-    emits: ['update:searchKey'],
+    name: "SearchBar",
+    props: ["searchKey", "placeholder"],
+    emits: ["update:searchKey"],
     template: `
       <input 
         :placeholder="placeholder"
@@ -23,248 +23,268 @@ vi.mock('@/base_components/filters/SearchBar.vue', () => ({
 
 // Create mock license data
 const createMockLicense = (overrides: Partial<License> = {}): License => ({
-  deps_using_license: ['dep1', 'dep2'],
-  description: 'Test license description',
-  id: 'test-id',
-  licenseId: 'test-license-id',
-  license_category: 'permissive',
+  deps_using_license: ["dep1", "dep2"],
+  description: "Test license description",
+  id: "test-id",
+  licenseId: "test-license-id",
+  license_category: "permissive",
   license_compliance_violation: false,
   license_properties: {
-    permissions: ['commercial-use', 'distribution'],
-    conditions: ['include-copyright'],
-    limitations: ['liability'],
-    usage: 'permissive',
+    permissions: ["commercial-use", "distribution"],
+    conditions: ["include-copyright"],
+    limitations: ["liability"],
+    usage: "permissive",
   },
-  name: 'MIT License',
-  references: ['https://opensource.org/licenses/MIT'],
+  name: "MIT License",
+  references: ["https://opensource.org/licenses/MIT"],
   unable_to_infer: false,
-  _key: 'mit-license',
+  _key: "mit-license",
   ...overrides,
 });
 
 const defaultProps = {
-  placeholder: 'Select licenses',
-  name: 'license-select',
+  placeholder: "Select licenses",
+  name: "license-select",
   licenses: [
-    createMockLicense({ name: 'MIT License', _key: 'mit', id: '1' }),
-    createMockLicense({ name: 'Apache License 2.0', _key: 'apache', id: '2' }),
-    createMockLicense({ name: 'GPL v3', _key: 'gpl', id: '3' }),
+    createMockLicense({ name: "MIT License", _key: "mit", id: "1" }),
+    createMockLicense({ name: "Apache License 2.0", _key: "apache", id: "2" }),
+    createMockLicense({ name: "GPL v3", _key: "gpl", id: "3" }),
   ],
   data: new Set<string>(),
 };
 
 const renderComponent = (props = {}) => {
   const finalProps = { ...defaultProps, ...props };
-  
+
   return render(FormSelectLicense, {
     props: finalProps,
     slots: {
-      name: 'License Selection',
+      name: "License Selection",
     },
   });
 };
 
-describe('FormSelectLicense', () => {
-  describe('Component Structure', () => {
-    it('renders with basic structure', () => {
+describe("FormSelectLicense", () => {
+  describe("Component Structure", () => {
+    it("renders with basic structure", () => {
       renderComponent();
-      
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
-      expect(screen.getByTestId('search-input')).toBeInTheDocument();
+
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
+      expect(screen.getByTestId("search-input")).toBeInTheDocument();
     });
 
-    it('renders main container with correct styling', () => {
+    it("renders main container with correct styling", () => {
       const { container } = renderComponent();
-      
-      expect(container.querySelector('.flex.flex-col.gap-2')).toBeInTheDocument();
+
+      expect(
+        container.querySelector(".flex.flex-col.gap-2"),
+      ).toBeInTheDocument();
     });
 
-    it('renders label with correct association', () => {
+    it("renders label with correct association", () => {
       renderComponent();
-      
-      const label = screen.getByText('License Selection').closest('label');
+
+      const label = screen.getByText("License Selection").closest("label");
       expect(label).toBeInTheDocument();
-      expect(label).toHaveAttribute('for', defaultProps.name);
-      expect(label).toHaveClass('text-gray-500', 'mb-1');
+      expect(label).toHaveAttribute("for", defaultProps.name);
+      expect(label).toHaveClass("text-gray-500", "mb-1");
     });
 
-    it('renders search input with correct attributes', () => {
+    it("renders search input with correct attributes", () => {
       renderComponent();
-      
-      const searchInput = screen.getByTestId('search-input');
-      expect(searchInput).toHaveAttribute('placeholder', 'Search for a license');
+
+      const searchInput = screen.getByTestId("search-input");
+      expect(searchInput).toHaveAttribute(
+        "placeholder",
+        "Search for a license",
+      );
     });
 
-    it('renders license container with correct styling', () => {
+    it("renders license container with correct styling", () => {
       const { container } = renderComponent();
-      
-      const licenseContainer = container.querySelector('.border.border-solid.border-gray-400.rounded.shadow-md');
+
+      const licenseContainer = container.querySelector(
+        ".border.border-solid.border-gray-400.rounded.shadow-md",
+      );
       expect(licenseContainer).toBeInTheDocument();
-      expect(licenseContainer).toHaveClass('w-full', 'py-3', 'px-5', 'h-72', 'overflow-y-scroll');
+      expect(licenseContainer).toHaveClass(
+        "w-full",
+        "py-3",
+        "px-5",
+        "h-72",
+        "overflow-y-scroll",
+      );
     });
   });
 
-  describe('Props Handling', () => {
-    it('accepts placeholder prop', () => {
-      const customPlaceholder = 'Choose licenses';
+  describe("Props Handling", () => {
+    it("accepts placeholder prop", () => {
+      const customPlaceholder = "Choose licenses";
       renderComponent({ placeholder: customPlaceholder });
-      
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
+
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
     });
 
-    it('accepts name prop for label association', () => {
-      const customName = 'custom-license-select';
+    it("accepts name prop for label association", () => {
+      const customName = "custom-license-select";
       renderComponent({ name: customName });
-      
-      const label = screen.getByText('License Selection').closest('label');
-      expect(label).toHaveAttribute('for', customName);
+
+      const label = screen.getByText("License Selection").closest("label");
+      expect(label).toHaveAttribute("for", customName);
     });
 
-    it('accepts licenses array prop', () => {
+    it("accepts licenses array prop", () => {
       renderComponent({ licenses: [] });
-      
+
       // Component should still render even with empty licenses
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
-      expect(screen.getByTestId('search-input')).toBeInTheDocument();
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
+      expect(screen.getByTestId("search-input")).toBeInTheDocument();
     });
 
-    it('accepts disabled prop', () => {
+    it("accepts disabled prop", () => {
       renderComponent({ disabled: true });
-      
+
       // Component should render with disabled prop
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
     });
 
-    it('accepts data model prop', () => {
-      const selectedData = new Set(['mit', 'apache']);
+    it("accepts data model prop", () => {
+      const selectedData = new Set(["mit", "apache"]);
       renderComponent({ data: selectedData });
-      
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
+
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
     });
   });
 
-  describe('Slot Support', () => {
-    it('renders slot content for label', () => {
+  describe("Slot Support", () => {
+    it("renders slot content for label", () => {
       renderComponent();
-      
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
+
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
     });
 
-    it('supports custom slot content', () => {
+    it("supports custom slot content", () => {
       render(FormSelectLicense, {
         props: defaultProps,
         slots: {
-          name: 'Custom License Label',
+          name: "Custom License Label",
         },
       });
-      
-      expect(screen.getByText('Custom License Label')).toBeInTheDocument();
+
+      expect(screen.getByText("Custom License Label")).toBeInTheDocument();
     });
   });
 
-  describe('Integration', () => {
-    it('integrates with SearchBar component', () => {
+  describe("Integration", () => {
+    it("integrates with SearchBar component", () => {
       renderComponent();
-      
-      const searchInput = screen.getByTestId('search-input');
+
+      const searchInput = screen.getByTestId("search-input");
       expect(searchInput).toBeInTheDocument();
-      expect(searchInput).toHaveAttribute('placeholder', 'Search for a license');
+      expect(searchInput).toHaveAttribute(
+        "placeholder",
+        "Search for a license",
+      );
     });
 
-    it('provides v-model integration structure', () => {
+    it("provides v-model integration structure", () => {
       renderComponent();
-      
+
       // Verify the component renders and provides the necessary structure
       // for v-model integration (testing the actual v-model binding would
       // require more complex setup)
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
     });
   });
 
-  describe('Accessibility', () => {
-    it('provides accessible label', () => {
+  describe("Accessibility", () => {
+    it("provides accessible label", () => {
       renderComponent();
-      
-      const label = screen.getByText('License Selection').closest('label');
+
+      const label = screen.getByText("License Selection").closest("label");
       expect(label).toBeInTheDocument();
-      expect(label).toHaveAttribute('for', defaultProps.name);
+      expect(label).toHaveAttribute("for", defaultProps.name);
     });
 
-    it('provides accessible search input', () => {
+    it("provides accessible search input", () => {
       renderComponent();
-      
-      const searchInput = screen.getByTestId('search-input');
+
+      const searchInput = screen.getByTestId("search-input");
       expect(searchInput).toBeInTheDocument();
-      expect(searchInput).toHaveAttribute('placeholder');
+      expect(searchInput).toHaveAttribute("placeholder");
     });
 
-    it('provides scrollable license container', () => {
+    it("provides scrollable license container", () => {
       const { container } = renderComponent();
-      
-      const licenseContainer = container.querySelector('.overflow-y-scroll');
+
+      const licenseContainer = container.querySelector(".overflow-y-scroll");
       expect(licenseContainer).toBeInTheDocument();
     });
   });
 
-  describe('Edge Cases', () => {
-    it('handles empty props gracefully', () => {
+  describe("Edge Cases", () => {
+    it("handles empty props gracefully", () => {
       render(FormSelectLicense, {
         props: {
-          placeholder: '',
-          name: '',
+          placeholder: "",
+          name: "",
           licenses: [],
         },
         slots: {
-          name: '',
+          name: "",
         },
       });
-      
-      expect(screen.getByTestId('search-input')).toBeInTheDocument();
+
+      expect(screen.getByTestId("search-input")).toBeInTheDocument();
     });
 
-    it('handles missing slot content', () => {
+    it("handles missing slot content", () => {
       render(FormSelectLicense, {
         props: defaultProps,
         // No slots provided
       });
-      
-      expect(screen.getByTestId('search-input')).toBeInTheDocument();
+
+      expect(screen.getByTestId("search-input")).toBeInTheDocument();
     });
 
-    it('renders consistently', () => {
+    it("renders consistently", () => {
       const { container: container1 } = renderComponent();
       const { container: container2 } = renderComponent();
-      
+
       // Both should have the same basic structure
-      expect(container1.querySelector('.flex.flex-col.gap-2')).toBeInTheDocument();
-      expect(container2.querySelector('.flex.flex-col.gap-2')).toBeInTheDocument();
+      expect(
+        container1.querySelector(".flex.flex-col.gap-2"),
+      ).toBeInTheDocument();
+      expect(
+        container2.querySelector(".flex.flex-col.gap-2"),
+      ).toBeInTheDocument();
     });
   });
 
-  describe('Component Characteristics', () => {
-    it('is a complex form component with search and selection', () => {
+  describe("Component Characteristics", () => {
+    it("is a complex form component with search and selection", () => {
       renderComponent();
-      
+
       // Verify it has the expected complex structure
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
-      expect(screen.getByTestId('search-input')).toBeInTheDocument();
-      
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
+      expect(screen.getByTestId("search-input")).toBeInTheDocument();
+
       const { container } = renderComponent();
-      expect(container.querySelector('.border')).toBeInTheDocument();
+      expect(container.querySelector(".border")).toBeInTheDocument();
     });
 
-    it('maintains component structure with different props', () => {
+    it("maintains component structure with different props", () => {
       const customProps = {
-        placeholder: 'Custom placeholder',
-        name: 'custom-name',
+        placeholder: "Custom placeholder",
+        name: "custom-name",
         licenses: [],
         disabled: true,
       };
-      
+
       renderComponent(customProps);
-      
-      expect(screen.getByText('License Selection')).toBeInTheDocument();
-      expect(screen.getByTestId('search-input')).toBeInTheDocument();
+
+      expect(screen.getByText("License Selection")).toBeInTheDocument();
+      expect(screen.getByTestId("search-input")).toBeInTheDocument();
     });
   });
 });

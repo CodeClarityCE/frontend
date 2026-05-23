@@ -1,15 +1,15 @@
-import { mount } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { type computed,ref } from 'vue';
+import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type computed, ref } from "vue";
 
-import DashboardView from '@/codeclarity_components/dashboard/DashboardView.vue';
+import DashboardView from "@/codeclarity_components/dashboard/DashboardView.vue";
 
 // Mock stores
-vi.mock('@/stores/state', () => ({
+vi.mock("@/stores/state", () => ({
   useStateStore: vi.fn(() => ({
     $reset: vi.fn(),
-    page: ''
-  }))
+    page: "",
+  })),
 }));
 
 interface MockDashboardData {
@@ -29,86 +29,112 @@ interface MockDashboardData {
 }
 
 // Mock composable
-vi.mock('@/codeclarity_components/dashboard/composables/useDashboardData', () => ({
-  useDashboardData: vi.fn((): MockDashboardData => ({
-    isLoading: ref(false),
-    hasError: ref(false),
-    orgData: ref({}) as any,
-    integrations: ref([]) as any,
-    isReady: ref(true) as any,
-    hasData: ref(true) as any,
-    shouldShowEmptyState: ref(false) as any,
-    activeIntegrationIds: ref(['test-id']) as any,
-    loadDashboardData: vi.fn(),
-    hasIntegrations: ref(true) as any,
-    hasProjects: ref(true) as any,
-    refreshData: vi.fn(),
-    defaultOrg: ref({ id: 'org-123' })
-  }))
-}));
+vi.mock(
+  "@/codeclarity_components/dashboard/composables/useDashboardData",
+  () => ({
+    useDashboardData: vi.fn(
+      (): MockDashboardData => ({
+        isLoading: ref(false),
+        hasError: ref(false),
+        orgData: ref({}) as any,
+        integrations: ref([]) as any,
+        isReady: ref(true) as any,
+        hasData: ref(true) as any,
+        shouldShowEmptyState: ref(false) as any,
+        activeIntegrationIds: ref(["test-id"]) as any,
+        loadDashboardData: vi.fn(),
+        hasIntegrations: ref(true) as any,
+        hasProjects: ref(true) as any,
+        refreshData: vi.fn(),
+        defaultOrg: ref({ id: "org-123" }),
+      }),
+    ),
+  }),
+);
 
 // Mock components
-vi.mock('@/base_components', () => ({
+vi.mock("@/base_components", () => ({
   PageHeader: {
-    name: 'PageHeader',
+    name: "PageHeader",
     template: '<div data-testid="page-header"><slot /></div>',
-    props: ['title', 'description', 'isLoading'],
-    emits: ['refresh']
-  }
+    props: ["title", "description", "isLoading"],
+    emits: ["refresh"],
+  },
 }));
 
-vi.mock('@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue', () => ({
-  default: {
-    name: 'DashboardQuickStats',
-    template: '<div data-testid="dashboard-quick-stats">DashboardQuickStats</div>'
-  }
-}));
+vi.mock(
+  "@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue",
+  () => ({
+    default: {
+      name: "DashboardQuickStats",
+      template:
+        '<div data-testid="dashboard-quick-stats">DashboardQuickStats</div>',
+    },
+  }),
+);
 
-vi.mock('@/codeclarity_components/dashboard/sections/DashboardCharts.vue', () => ({
-  default: {
-    name: 'DashboardCharts',
-    template: '<div data-testid="dashboard-charts">DashboardCharts</div>',
-    props: ['integrationIds']
-  }
-}));
+vi.mock(
+  "@/codeclarity_components/dashboard/sections/DashboardCharts.vue",
+  () => ({
+    default: {
+      name: "DashboardCharts",
+      template: '<div data-testid="dashboard-charts">DashboardCharts</div>',
+      props: ["integrationIds"],
+    },
+  }),
+);
 
-vi.mock('@/codeclarity_components/dashboard/layout/DashboardFooter.vue', () => ({
-  default: {
-    name: 'DashboardFooter',
-    template: '<div data-testid="dashboard-footer">DashboardFooter</div>'
-  }
-}));
+vi.mock(
+  "@/codeclarity_components/dashboard/layout/DashboardFooter.vue",
+  () => ({
+    default: {
+      name: "DashboardFooter",
+      template: '<div data-testid="dashboard-footer">DashboardFooter</div>',
+    },
+  }),
+);
 
-vi.mock('@/codeclarity_components/dashboard/layout/DashboardEmptyState.vue', () => ({
-  default: {
-    name: 'DashboardEmptyState',
-    template: '<div data-testid="dashboard-empty-state">DashboardEmptyState</div>',
-    props: ['isError', 'hasIntegrations', 'hasProjects', 'orgId']
-  }
-}));
+vi.mock(
+  "@/codeclarity_components/dashboard/layout/DashboardEmptyState.vue",
+  () => ({
+    default: {
+      name: "DashboardEmptyState",
+      template:
+        '<div data-testid="dashboard-empty-state">DashboardEmptyState</div>',
+      props: ["isError", "hasIntegrations", "hasProjects", "orgId"],
+    },
+  }),
+);
 
-describe('DashboardView', () => {
+describe("DashboardView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should render successfully', () => {
+  it("should render successfully", () => {
     const wrapper = mount(DashboardView);
     expect(wrapper.exists()).toBe(true);
   });
 
-  it('should show main dashboard content when not in empty state', () => {
+  it("should show main dashboard content when not in empty state", () => {
     const wrapper = mount(DashboardView);
-    
+
     expect(wrapper.find('[data-testid="page-header"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="dashboard-quick-stats"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="dashboard-charts"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="dashboard-quick-stats"]').exists()).toBe(
+      true,
+    );
+    expect(wrapper.find('[data-testid="dashboard-charts"]').exists()).toBe(
+      true,
+    );
     // expect(wrapper.find('[data-testid="dashboard-footer"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="dashboard-empty-state"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="dashboard-empty-state"]').exists()).toBe(
+      false,
+    );
   });
 
-  it('should show empty state when shouldShowEmptyState is true', async () => {
-    const { useDashboardData } = await import('@/codeclarity_components/dashboard/composables/useDashboardData');
+  it("should show empty state when shouldShowEmptyState is true", async () => {
+    const { useDashboardData } =
+      await import("@/codeclarity_components/dashboard/composables/useDashboardData");
     vi.mocked(useDashboardData).mockReturnValueOnce({
       isLoading: ref(false),
       hasError: ref(false),
@@ -123,50 +149,61 @@ describe('DashboardView', () => {
       hasProjects: ref(false) as any,
       hasAnalyses: ref(false) as any,
       refreshData: vi.fn(),
-      defaultOrg: ref({ id: 'org-123' } as any)
+      defaultOrg: ref({ id: "org-123" } as any),
     });
 
     const wrapper = mount(DashboardView);
 
-    expect(wrapper.find('[data-testid="dashboard-empty-state"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="dashboard-empty-state"]').exists()).toBe(
+      true,
+    );
     expect(wrapper.find('[data-testid="page-header"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="dashboard-quick-stats"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="dashboard-charts"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="dashboard-footer"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="dashboard-quick-stats"]').exists()).toBe(
+      false,
+    );
+    expect(wrapper.find('[data-testid="dashboard-charts"]').exists()).toBe(
+      false,
+    );
+    expect(wrapper.find('[data-testid="dashboard-footer"]').exists()).toBe(
+      false,
+    );
   });
 
-  it('should set page state correctly', async () => {
-    const { useStateStore } = await import('@/stores/state');
+  it("should set page state correctly", async () => {
+    const { useStateStore } = await import("@/stores/state");
     const mockStore = {
       $reset: vi.fn(),
-      page: '',
+      page: "",
       $patch: vi.fn(),
       $subscribe: vi.fn(),
       $onAction: vi.fn(),
       $state: {},
-      $id: 'state'
+      $id: "state",
     };
     vi.mocked(useStateStore).mockReturnValue(mockStore as any);
 
     mount(DashboardView);
 
     expect(mockStore.$reset).toHaveBeenCalled();
-    expect(mockStore.page).toBe('dashboard');
+    expect(mockStore.page).toBe("dashboard");
   });
 
-  it('should pass integration IDs to charts component', () => {
+  it("should pass integration IDs to charts component", () => {
     const wrapper = mount(DashboardView);
-    
+
     // Check if dashboard-charts element exists
-    expect(wrapper.find('[data-testid="dashboard-charts"]').exists()).toBe(true);
-    
-    const chartsComponent = wrapper.findComponent({ name: 'DashboardCharts' });
+    expect(wrapper.find('[data-testid="dashboard-charts"]').exists()).toBe(
+      true,
+    );
+
+    const chartsComponent = wrapper.findComponent({ name: "DashboardCharts" });
     expect(chartsComponent.exists()).toBe(true);
-    expect(chartsComponent.props('integrationIds')).toEqual(['test-id']);
+    expect(chartsComponent.props("integrationIds")).toEqual(["test-id"]);
   });
 
-  it('should pass correct props to empty state component', async () => {
-    const { useDashboardData } = await import('@/codeclarity_components/dashboard/composables/useDashboardData');
+  it("should pass correct props to empty state component", async () => {
+    const { useDashboardData } =
+      await import("@/codeclarity_components/dashboard/composables/useDashboardData");
     vi.mocked(useDashboardData).mockReturnValueOnce({
       isLoading: ref(false),
       hasError: ref(true),
@@ -181,18 +218,20 @@ describe('DashboardView', () => {
       hasProjects: ref(true) as any,
       hasAnalyses: ref(false) as any,
       refreshData: vi.fn(),
-      defaultOrg: ref({ id: 'org-123' } as any)
+      defaultOrg: ref({ id: "org-123" } as any),
     });
 
     const wrapper = mount(DashboardView);
-    const emptyStateComponent = wrapper.findComponent({ name: 'DashboardEmptyState' });
+    const emptyStateComponent = wrapper.findComponent({
+      name: "DashboardEmptyState",
+    });
 
     expect(emptyStateComponent.exists()).toBe(true);
     expect(emptyStateComponent.props()).toEqual({
       isError: true,
       hasIntegrations: false,
       hasProjects: true,
-      orgId: 'org-123'
+      orgId: "org-123",
     });
   });
 });

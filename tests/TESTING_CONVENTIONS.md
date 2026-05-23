@@ -141,7 +141,7 @@ vi.mock('vue-router', () => ({
 **Excluded:** `*.d.ts`, test files, `*.stories.ts`, config files, third-party code
 
 ```bash
-yarn test:coverage
+pnpm test:coverage
 open coverage/index.html
 ```
 

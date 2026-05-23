@@ -2,7 +2,7 @@
  * @type {import('@stryker-mutator/api/core').PartialStrykerOptions}
  */
 const config = {
-  packageManager: 'yarn',
+  packageManager: 'pnpm',
   reporters: ['html', 'clear-text', 'progress', 'json'],
   testRunner: 'vitest',
   coverageAnalysis: 'off',

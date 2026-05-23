@@ -1,11 +1,9 @@
 {
   "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
+    "**/node_modules": true,
+    "**/.pnpm-store": true
   },
-  "eslint.nodePath": ".yarn/sdks",
   "eslint.useFlatConfig": true,
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true
 }

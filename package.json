@@ -122,5 +122,5 @@
     "vue-tsc": "3.3.1",
     "webpack-bundle-analyzer": "5.3.0"
   },
-  "packageManager": "yarn@4.15.0"
+  "packageManager": "pnpm@11.2.2+sha512.36e6621fad506178936455e70247b8808ef4ec25797a9f437a93281a020484e2607f6a469a22e982987c3dbb8866e3071514ab10a4a1749e06edcd1ec118436f"
 }

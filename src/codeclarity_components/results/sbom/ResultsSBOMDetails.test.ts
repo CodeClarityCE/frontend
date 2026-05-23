@@ -5,7 +5,6 @@ import { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import { Project } from "@/codeclarity_components/projects/project.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
 import ResultsSBOMDetails from "./ResultsSBOMDetails.vue";
 
@@ -129,15 +128,15 @@ describe.skip("ResultsSBOMDetails.vue", () => {
     mockProjectRepository = {
       getProjectById: vi.fn().mockResolvedValue({
         data: mockProject,
-      } as DataResponse<Project>),
+      }),
     };
     mockAnalysisRepository = {
       getAnalysisById: vi.fn().mockResolvedValue({
         data: mockAnalysis,
-      } as DataResponse<Analysis>),
+      }),
       getProjectById: vi.fn().mockResolvedValue({
         data: mockProject,
-      } as DataResponse<Project>),
+      }),
     };
 
     (ProjectRepository as Mock).mockImplementation(() => mockProjectRepository);

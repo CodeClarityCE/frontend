@@ -117,7 +117,7 @@ const availableLanguages = ["javascript", "php"];
 
 // Schedule data
 const scheduleData = ref({
-  schedule_type: "once" as "once" | "daily" | "weekly",
+  schedule_type: "once",
   next_scheduled_run: undefined as Date | undefined,
   is_active: true,
 });
@@ -414,7 +414,7 @@ function applyConfigSilently(values: FormValues, plugin_name: string): void {
   if (values === undefined || Object.keys(values).length === 0) {
     configuration.value[plugin_name] = {};
   } else {
-    configuration.value[plugin_name] = values as Record<string, unknown>;
+    configuration.value[plugin_name] = values;
   }
 
   if (plugin_name === "license-finder") {

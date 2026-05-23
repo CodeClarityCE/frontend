@@ -5,7 +5,7 @@ import ActiveFilterBar from '@/base_components/filters/ActiveFilterBar.vue';
 import { type ActiveFilter,type FilterState, FilterType } from '@/base_components/filters/UtilitiesFilters.vue';
 
 describe('ActiveFilterBar', () => {
-  const createMockFilterState = (activeFilters: ActiveFilter[] = []): FilterState => ({
+  const createMockFilterState = (activeFilters: ActiveFilter[] = []): FilterState => (({
     filterConfig: {
       severity: {
         name: 'Severity',
@@ -18,7 +18,7 @@ describe('ActiveFilterBar', () => {
     },
     activeFilters,
     categoryCount: 1
-  } as unknown as FilterState);
+  }));
 
   const mockCheckboxFilter: ActiveFilter = {
     label: 'Severity: High',

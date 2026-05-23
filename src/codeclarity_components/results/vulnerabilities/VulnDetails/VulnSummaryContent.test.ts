@@ -57,18 +57,18 @@ describe("VulnSummaryContent.vue", () => {
         patched_versions_string: ">= 2.0.0",
         versions: [],
       },
-    } as any;
+    };
     finding.weaknesses = [
       {
         id: "CWE-79",
         name: "Cross-site Scripting (XSS)",
         description: "XSS vulnerability description",
       },
-    ] as any;
+    ];
     finding.owasp_top_10 = {
       name: "A03:2021 – Injection",
       description: "OWASP Top 10 description",
-    } as any;
+    };
     finding.common_consequences = {
       "CWE-79": [
         {
@@ -79,7 +79,7 @@ describe("VulnSummaryContent.vue", () => {
     } as any;
     finding.other = {
       package_manager: "NPM",
-    } as any;
+    };
 
     return Object.assign(finding, overrides);
   };

@@ -59,7 +59,7 @@ class MockResizeObserver {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor(_callback: ResizeObserverCallback) {}
 }
-global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
+global.ResizeObserver = MockResizeObserver;
 
 // Mock process.env for reka-ui
 process.env.NODE_ENV = 'test'
@@ -91,7 +91,7 @@ global.IntersectionObserver = MockIntersectionObserver as unknown as typeof Inte
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation((query: string): MediaQueryList => ({
+  value: vi.fn().mockImplementation((query: string): MediaQueryList => (({
     matches: false,
     media: query,
     onchange: null,
@@ -100,7 +100,7 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
-  } as unknown as MediaQueryList)),
+  }))),
 })
 
 // Mock scrollTo

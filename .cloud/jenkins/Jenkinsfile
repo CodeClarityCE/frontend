@@ -26,7 +26,9 @@ pipeline {
                 }
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force origin'
-                sh 'yarn'
+                sh 'corepack enable && corepack prepare pnpm@11.2.2 --activate'
+                sh 'pnpm config set store-dir "$HOME/.pnpm-store"'
+                sh 'pnpm install --frozen-lockfile'
             }
         }
 
@@ -55,9 +57,9 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'yarn lint'
-                sh 'yarn run vitest run'
-                sh 'yarn run prettier src --check'
+                sh 'pnpm lint'
+                sh 'pnpm exec vitest run'
+                sh 'pnpm exec prettier src --check'
             }
         }
 

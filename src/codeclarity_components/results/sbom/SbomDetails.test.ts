@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import { DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
 import SbomDetails from "./SbomDetails.vue";
 
@@ -173,7 +172,7 @@ describe.skip("SbomDetails.vue", () => {
     mockResultsRepository = {
       getDependency: vi.fn().mockResolvedValue({
         data: mockDependency,
-      } as DataResponse<DependencyDetails>),
+      }),
     };
 
     (ResultsRepository as Mock).mockImplementation(() => mockResultsRepository);

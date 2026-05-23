@@ -11,6 +11,7 @@ lerna-debug.log*
 !.yarn/releases
 !.yarn/sdks
 node_modules
+.pnpm-store/*
 .DS_Store
 dist
 dist-ssr

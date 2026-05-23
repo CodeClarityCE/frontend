@@ -166,9 +166,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
             size: "sm",
             onClick: () => {
               // Emit edit event through table meta
-              const meta = table.options.meta as
-                | { onEdit?: (policy: LicensePolicy) => void }
-                | undefined;
+              const meta = table.options.meta;
               meta?.onEdit?.(policy);
             },
           },
@@ -181,9 +179,7 @@ export const columns: ColumnDef<LicensePolicy>[] = [
             size: "sm",
             onClick: () => {
               // Emit delete event through table meta
-              const meta = table.options.meta as
-                | { onDelete?: (policy: LicensePolicy) => void }
-                | undefined;
+              const meta = table.options.meta;
               meta?.onDelete?.(policy);
             },
           },

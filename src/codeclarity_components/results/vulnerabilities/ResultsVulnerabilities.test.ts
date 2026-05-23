@@ -118,7 +118,7 @@ describe("ResultsVulnerabilities", () => {
       status: "COMPLETED" as any,
       steps: [],
       branch: "main",
-    } as Analysis;
+    };
 
     // Create mock Project
     mockProject = {
@@ -131,7 +131,7 @@ describe("ResultsVulnerabilities", () => {
       url: "https://github.com/test/repo",
       upload_id: "upload-123",
       added_on: new Date(),
-    } as Project;
+    };
 
     // Mock DOM elements
     Object.defineProperty(document, "getElementById", {

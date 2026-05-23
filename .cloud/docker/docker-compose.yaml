@@ -7,8 +7,11 @@ services:
       target: frontend-dev
     image: codeclarityce/frontend-dev:latest
     restart: always
+    environment:
+      - PNPM_STORE_DIR=/pnpm/store
     volumes:
       - ../../frontend:/app:rw
+      - pnpm-store:/pnpm/store
     deploy:
       resources:
         limits:
@@ -40,3 +43,7 @@ services:
       - target: 443
         published: ${HTTP3_PORT:-443}
         protocol: udp
+
+volumes:
+  pnpm-store:
+    external: true

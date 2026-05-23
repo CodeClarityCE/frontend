@@ -10,7 +10,6 @@ import { Analyzer } from "@/codeclarity_components/organizations/analyzers/Analy
 import { Project } from "@/codeclarity_components/projects/project.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
 import { Result } from "../result.entity";
 import { ResultsRepository } from "../results.repository";
@@ -220,7 +219,7 @@ describe.skip("ResultsCodeQL.vue", () => {
     const mockResult = createMockResult([]);
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 
@@ -246,7 +245,7 @@ describe.skip("ResultsCodeQL.vue", () => {
 
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 
@@ -268,7 +267,7 @@ describe.skip("ResultsCodeQL.vue", () => {
 
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 
@@ -297,7 +296,7 @@ describe.skip("ResultsCodeQL.vue", () => {
 
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 
@@ -315,7 +314,7 @@ describe.skip("ResultsCodeQL.vue", () => {
 
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 
@@ -337,7 +336,7 @@ describe.skip("ResultsCodeQL.vue", () => {
 
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: createMockResult([]),
-    } as DataResponse<Result>);
+    });
 
     createWrapper({ analysis: mockAnalysis, project: mockProject });
 
@@ -402,7 +401,7 @@ describe.skip("ResultsCodeQL.vue", () => {
 
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 
@@ -417,7 +416,7 @@ describe.skip("ResultsCodeQL.vue", () => {
     const mockResult = createMockResult([]);
     mockResultsRepository.getResultByType.mockResolvedValue({
       data: mockResult,
-    } as DataResponse<Result>);
+    });
 
     const wrapper = createWrapper();
 

@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
 import { ResultsRepository } from "../results.repository";
 
@@ -276,7 +275,7 @@ describe.skip("VulnDetails.vue", () => {
     const mockVuln = createMockVulnerabilityDetails();
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     createWrapper();
 
@@ -295,7 +294,7 @@ describe.skip("VulnDetails.vue", () => {
     const mockVuln = createMockVulnerabilityDetails();
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
 
@@ -357,7 +356,7 @@ describe.skip("VulnDetails.vue", () => {
     };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
     expect((wrapper.vm as any)["getBaseScore"](mockVuln)).toBe(8.5);
@@ -380,7 +379,7 @@ describe.skip("VulnDetails.vue", () => {
     };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
     expect((wrapper.vm as any)["getBaseScore"](mockVuln)).toBe(6.5);
@@ -402,7 +401,7 @@ describe.skip("VulnDetails.vue", () => {
     };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
     expect((wrapper.vm as any)["getBaseScore"](mockVuln)).toBe(4.5);
@@ -413,7 +412,7 @@ describe.skip("VulnDetails.vue", () => {
     mockVuln.severities = { cvss_31: null, cvss_3: null, cvss_2: null };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
     expect((wrapper.vm as any)["getBaseScore"](mockVuln)).toBeNull();
@@ -671,7 +670,7 @@ describe.skip("VulnDetails.vue", () => {
       description: "Test package",
       keywords: ["test"],
       package_manager_links: [],
-    } as any;
+    };
     expect((wrapper.vm as any)["getVersionStatus"](mockVuln)).toBe("v1.2.3");
 
     mockVuln.dependency_info = undefined;
@@ -682,10 +681,10 @@ describe.skip("VulnDetails.vue", () => {
     const wrapper = createWrapper();
     const mockVuln = createMockVulnerabilityDetails();
 
-    mockVuln.other = { package_manager: "npm" } as any;
+    mockVuln.other = { package_manager: "npm" };
     expect((wrapper.vm as any)["getPackageManager"](mockVuln)).toBe("npm");
 
-    mockVuln.other = { package_manager: "unknown" } as any;
+    mockVuln.other = { package_manager: "unknown" };
     expect((wrapper.vm as any)["getPackageManager"](mockVuln)).toBe("unknown");
   });
 
@@ -698,7 +697,7 @@ describe.skip("VulnDetails.vue", () => {
 
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
 
@@ -751,7 +750,7 @@ describe.skip("VulnDetails.vue", () => {
     const mockVuln = createMockVulnerabilityDetails();
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     createWrapper({ analysisID: "custom-analysis-id" });
 
@@ -789,7 +788,7 @@ describe.skip("VulnDetails.vue", () => {
     };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper = createWrapper();
 
@@ -805,7 +804,7 @@ describe.skip("VulnDetails.vue", () => {
     };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper2 = createWrapper();
 
@@ -824,7 +823,7 @@ describe.skip("VulnDetails.vue", () => {
     };
     mockResultsRepository.getFinding.mockResolvedValue({
       data: mockVuln,
-    } as DataResponse<VulnerabilityDetails>);
+    });
 
     const wrapper3 = createWrapper();
 

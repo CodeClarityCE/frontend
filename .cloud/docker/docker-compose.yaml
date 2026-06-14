@@ -11,6 +11,12 @@ services:
       - PNPM_STORE_DIR=/pnpm/store
     volumes:
       - ../../frontend:/app:rw
+      # Container-managed node_modules. The repo root is a pnpm workspace, so a
+      # host `pnpm install` re-links frontend/node_modules into the repo-root
+      # .pnpm store (../../../node_modules/.pnpm) which doesn't exist inside
+      # /app. This anonymous volume shadows the host node_modules so the
+      # container does its own standalone install with valid local symlinks.
+      - /app/node_modules
       - pnpm-store:/pnpm/store
       # Per-container pnpm settings (allowBuilds + minimumReleaseAge=0).
       # Kept OUT of frontend/ root so the host's workspace install isn't tricked

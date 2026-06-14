@@ -1,9 +1,9 @@
 #syntax=docker/dockerfile:1.4
 
-ARG PNPM_VERSION=11.2.2
+ARG PNPM_VERSION=11.6.0
 
 # Dev image
-FROM node:26.2.0-alpine AS frontend-dev
+FROM node:26.3.0-alpine AS frontend-dev
 WORKDIR /app
 COPY --link . /app/
 RUN npm install -g corepack@latest --force && corepack enable
@@ -14,7 +14,7 @@ RUN corepack prepare pnpm@${PNPM_VERSION} --activate
 ENTRYPOINT ["/bin/sh", "-c" , "pnpm install && pnpm run dev --host"]
 
 # Builder image
-FROM node:26.2.0-alpine AS pnpm_builder
+FROM node:26.3.0-alpine AS pnpm_builder
 WORKDIR /app
 RUN npm install -g corepack@latest --force && corepack enable
 RUN corepack prepare pnpm@${PNPM_VERSION} --activate
@@ -30,7 +30,7 @@ RUN --mount=type=cache,id=pnpm-store-frontend,target=/pnpm/store,sharing=locked 
 RUN pnpm run build-only
 
 # Caddy image
-FROM caddy:2.11.3-alpine AS app_caddy
+FROM caddy:2.11.4-alpine AS app_caddy
 WORKDIR /srv/app
 COPY --link .cloud/docker/conf/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=pnpm_builder --link /app/dist /srv/app/dist/

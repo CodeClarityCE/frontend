@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WithClassAsProps } from "./interface";
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft } from "@lucide/vue";
 import { cn } from "@/shadcn/lib/utils";
 import { Button } from "@/shadcn/ui/button";
 import { useCarousel } from "./useCarousel";

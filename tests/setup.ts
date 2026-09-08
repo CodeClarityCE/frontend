@@ -472,8 +472,8 @@ vi.mock("@vueuse/core", () => ({
   watchDeep: vi.fn(),
 }));
 
-// Mock lucide-vue-next icons
-vi.mock("lucide-vue-next", () => ({
+// Mock @lucide/vue icons
+vi.mock("@lucide/vue", () => ({
   Search: {
     name: "Search",
     template: '<svg data-testid="search-icon"><path/></svg>',

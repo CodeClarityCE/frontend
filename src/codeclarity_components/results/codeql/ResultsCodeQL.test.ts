@@ -90,7 +90,7 @@ vi.mock("@/shadcn/ui/badge", () => ({
   },
 }));
 
-vi.mock("lucide-vue-next", () => ({
+vi.mock("@lucide/vue", () => ({
   Rocket: {
     name: "Rocket",
     template: '<div data-testid="rocket-icon"></div>',

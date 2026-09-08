@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cn } from "@/shadcn/lib/utils";
 import { Button } from "@/shadcn/ui/button";
-import { ChevronLeft } from "lucide-vue-next";
+import { ChevronLeft } from "@lucide/vue";
 import { PaginationPrev, type PaginationPrevProps } from "reka-ui";
 import { computed, type HTMLAttributes } from "vue";
 

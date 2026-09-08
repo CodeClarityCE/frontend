@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { CheckIcon } from "lucide-vue-next";
+import { CheckIcon } from "@lucide/vue";
 import { ref, watch } from "vue";
 
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";

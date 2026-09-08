@@ -30,7 +30,9 @@ import { beforeEach, vi } from "vitest";
 
 import { getPiniaMock, resetPiniaMock } from "./test-utils/setup.js";
 
-import "@testing-library/jest-dom";
+// The /vitest entrypoint augments Vitest's Assertion interface. The generic
+// entrypoint augments Jest's, which Vitest 5 no longer picks up.
+import "@testing-library/jest-dom/vitest";
 
 // Suppress known Zod v4 cleanup errors during test teardown
 // These occur when components using Zod schemas and @formkit/auto-animate are unmounted

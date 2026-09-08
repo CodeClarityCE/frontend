@@ -48,7 +48,7 @@
     "clsx": "2.1.1",
     "d3": "7.9.0",
     "embla-carousel-vue": "8.6.0",
-    "pinia": "3.0.4",
+    "pinia": "4.0.3",
     "reflect-metadata": "0.2.2",
     "reka-ui": "2.10.4",
     "tailwind-merge": "3.6.0",

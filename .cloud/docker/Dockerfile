@@ -1,6 +1,6 @@
 #syntax=docker/dockerfile:1.4
 
-ARG PNPM_VERSION=11.6.0
+ARG PNPM_VERSION=12.3.4
 
 # Dev image
 FROM node:26.8.1-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS frontend-dev

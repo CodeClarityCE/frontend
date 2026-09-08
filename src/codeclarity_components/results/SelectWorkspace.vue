@@ -109,12 +109,7 @@ const ecosystemFilterOptions = computed(() => {
 // Function to handle ecosystem filter changes
 function handleEcosystemFilterChange(
   ecosystemType:
-    | string
-    | number
-    | boolean
-    | bigint
-    | Record<string, unknown>
-    | null,
+    string | number | boolean | bigint | Record<string, unknown> | null,
 ): void {
   const value = typeof ecosystemType === "string" ? ecosystemType : null;
   selectedEcosystemFilter.value = value;

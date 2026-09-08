@@ -16,12 +16,7 @@ interface Props {
   vulnerabilityId: string;
   size?: "sm" | "default" | "lg";
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }
 
 const props = withDefaults(defineProps<Props>(), {

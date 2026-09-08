@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="TData, TValue">
+<script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import {
   type ColumnFiltersState,

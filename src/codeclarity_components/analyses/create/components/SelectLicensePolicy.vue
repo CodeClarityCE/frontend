@@ -16,7 +16,7 @@ const auth = useAuthStore();
 const selected_license_policy = defineModel<string[]>(
   "selected_license_policy",
   {
-    default: [],
+    default: () => [],
   },
 );
 

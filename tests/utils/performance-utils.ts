@@ -326,6 +326,9 @@ export class RerenderCounter {
     this.count = 0;
     // Hook into Vue's update lifecycle
     const vm = this.wrapper.vm;
+    // The hook is only stashed so stop() can put it back on vm.$options;
+    // it is never called detached, so Vue still invokes it with the right `this`.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     this.originalUpdate = vm.$options.updated as
       | (() => void)[]
       | (() => void)

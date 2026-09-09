@@ -8,7 +8,7 @@
 
 # Override pnpm 11's default 24h gate. Container's standalone install resolves
 # fresh from the registry and may hit packages that haven't aged out yet.
-minimumReleaseAge: 0
+minimumReleaseAge: 4320
 
 # Mirror the root workspace's allowBuilds verdicts so lifecycle scripts
 # (esbuild binary download, @parcel/watcher native build, etc.) run for the right packages.

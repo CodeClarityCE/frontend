@@ -1,6 +1,11 @@
 @import url("fonts/lato.css");
 @import url("fonts/roboto.css");
 @import "tailwindcss";
+/* Supplies animate-in / fade-in-0 / zoom-in-95 / slide-in-from-* , which the
+   dialog, dropdown-menu, popover, select and tooltip components already
+   reference. Without it those utilities emit nothing and the overlays have no
+   enter or exit transition. */
+@import "tw-animate-css";
 
 @theme {
   /* Basic colors for Tailwind v4 utilities */

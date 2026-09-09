@@ -72,11 +72,6 @@ vi.mock("@iconify/vue", () => ({
   },
 }));
 
-// Mock tippy directive
-vi.mock("vue-tippy", () => ({
-  default: {},
-}));
-
 // Mock ResultsRepository
 const mockResultsRepository = {
   getPatches: vi.fn().mockResolvedValue({ data: null }),
@@ -219,9 +214,6 @@ describe.skip("PatchingPatches.vue", () => {
       },
       global: {
         plugins: [pinia],
-        directives: {
-          tippy: {},
-        },
       },
     });
   };
@@ -590,9 +582,6 @@ describe.skip("PatchingPatches.vue", () => {
       wrapper = mount(PatchingPatches, {
         global: {
           plugins: [pinia],
-          directives: {
-            tippy: {},
-          },
         },
       });
 

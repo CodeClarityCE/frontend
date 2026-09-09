@@ -269,18 +269,11 @@ void init();
             <div
               class="absolute top-4 right-4 cursor-pointer bg-white border border-[#d3d3d3] text-[#a4a2a2] p-1 rounded"
             >
-              <tippy
-                content="Copied!"
-                :trigger="'click'"
-                :placement="'top'"
-                :animation="'scale'"
-              >
-                <Icon
-                  class="m-2"
-                  icon="ic:round-content-copy"
-                  @click="copyPatchedManfiest()"
-                />
-              </tippy>
+              <Icon
+                class="m-2"
+                icon="ic:round-content-copy"
+                @click="copyPatchedManfiest()"
+              />
             </div>
           </div>
         </div>
@@ -317,14 +310,7 @@ void init();
               @click="copyPatchedManfiest()"
             >
               Copy Patched Manifest
-              <tippy
-                content="Copied!"
-                :trigger="'click'"
-                :placement="'top'"
-                :animation="'scale'"
-              >
-                <Icon class="hover:text-lg" icon="ic:round-content-copy" />
-              </tippy>
+              <Icon class="hover:text-lg" icon="ic:round-content-copy" />
             </div>
           </div>
           <div
@@ -358,23 +344,16 @@ void init();
             <div style="margin-top: 2px">
               rm package-lock.json ; npm install . --prefer-online
             </div>
-            <tippy
-              content="Copied!"
-              :trigger="'click'"
-              :placement="'top'"
-              :animation="'scale'"
-            >
-              <Icon
-                icon="ic:round-content-copy"
-                class="click-scale"
-                style="cursor: pointer"
-                @click="
-                  copyPatchedText(
-                    'rm package-lock.json ; npm install . --prefer-online',
-                  )
-                "
-              />
-            </tippy>
+            <Icon
+              icon="ic:round-content-copy"
+              class="click-scale"
+              style="cursor: pointer"
+              @click="
+                copyPatchedText(
+                  'rm package-lock.json ; npm install . --prefer-online',
+                )
+              "
+            />
           </div>
           <div
             v-if="patchedManifestData.other_info.package_manager === 'YARN'"
@@ -394,21 +373,14 @@ void init();
             <div style="margin-top: 2px">
               rm yarn.lock ; yarn install --prefer-online
             </div>
-            <tippy
-              content="Copied!"
-              :trigger="'click'"
-              :placement="'top'"
-              :animation="'scale'"
-            >
-              <Icon
-                icon="ic:round-content-copy"
-                class="cursor-pointer"
-                style="cursor: pointer"
-                @click="
-                  copyPatchedText('rm yarn.lock ; yarn install --prefer-online')
-                "
-              />
-            </tippy>
+            <Icon
+              icon="ic:round-content-copy"
+              class="cursor-pointer"
+              style="cursor: pointer"
+              @click="
+                copyPatchedText('rm yarn.lock ; yarn install --prefer-online')
+              "
+            />
           </div>
         </div>
       </CardContent>

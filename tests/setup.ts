@@ -54,11 +54,6 @@ config.global.stubs = {
     template:
       '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ icon ?? "mock-icon" }}</span>',
   },
-  tippy: {
-    name: "tippy",
-    props: ["content", "placement", "trigger"],
-    template: '<div class="mock-tippy"><slot /></div>',
-  },
   RouterLink: {
     name: "RouterLink",
     template:

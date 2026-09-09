@@ -25,13 +25,12 @@ const config = {
   },
 
   // Performance settings
-  maxConcurrentTestRunners: 4,
+  concurrency: 4,
   tempDirName: "tmp",
   cleanTempDir: true,
 
   // Mutation operators to enable
   mutator: {
-    plugins: ["@stryker-mutator/javascript-mutator"],
     excludedMutations: [
       "StringLiteral", // Often breaks in Vue templates
       "ArrayDeclaration", // Usually not meaningful in Vue
@@ -61,7 +60,7 @@ const config = {
 
   // HTML reporter options
   htmlReporter: {
-    baseDir: "reports/mutation",
+    fileName: "reports/mutation/index.html",
   },
 
   // JSON reporter for CI integration

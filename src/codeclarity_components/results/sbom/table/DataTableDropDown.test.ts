@@ -80,8 +80,8 @@ vi.mock("@/shadcn/ui/button", () => ({
   },
 }));
 
-// Mock lucide-vue-next
-vi.mock("lucide-vue-next", () => ({
+// Mock @lucide/vue
+vi.mock("@lucide/vue", () => ({
   MoreHorizontal: {
     name: "MoreHorizontal",
     template: '<span data-testid="more-horizontal-icon"></span>',

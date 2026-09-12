@@ -47,10 +47,6 @@ vi.mock("@/shadcn/ui/button", () => ({
   buttonVariants: ({ variant }: any) => `button-${variant}`,
 }));
 
-vi.mock("@/shadcn/ui/toast", () => ({
-  toast: vi.fn(),
-}));
-
 // Mock iconify
 vi.mock("@iconify/vue", () => ({
   Icon: {

@@ -21,7 +21,12 @@ defineProps<{
   lockedCategories?: string[];
 }>();
 
-const filterState = defineModel<FilterState>("filter-state", { default: {} });
+// Placeholder default: every call site binds v-model:filter-state, and
+// FilterState needs a FilterConfig to construct, so there is no meaningful
+// empty value. The cast keeps the previous runtime behaviour.
+const filterState = defineModel<FilterState>("filter-state", {
+  default: () => ({}) as FilterState,
+});
 
 // State
 const options_count = ref<Record<string, number>>({});

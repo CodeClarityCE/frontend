@@ -11,10 +11,10 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
         // The frontend repo is cloned standalone here (no parent monorepo
-        // pnpm-workspace.yaml). Override pnpm 11's default 1440-min (24h)
-        // gate so freshly-published lockfile entries don't fail the build.
+        // pnpm-workspace.yaml). Override pnpm's default 1440-min (24h)
+        // gate. 4320 is 3 days, matching the root pnpm-workspace.yaml.
         // The monorepo dev path already sets this in the root pnpm-workspace.yaml.
-        PNPM_CONFIG_MINIMUM_RELEASE_AGE = '0'
+        PNPM_CONFIG_MINIMUM_RELEASE_AGE = '4320'
     }
 
     stages {
@@ -31,10 +31,10 @@ pipeline {
                 }
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force origin'
-                sh 'corepack enable && corepack prepare pnpm@11.2.2 --activate'
+                sh 'corepack enable && corepack prepare pnpm@12.3.4 --activate'
                 sh 'pnpm config set store-dir "$HOME/.pnpm-store"'
                 // Stage the standalone pnpm config (allowBuilds + minimumReleaseAge=0)
-                // at the repo root so pnpm 11 finds it. Source of truth lives under
+                // at the repo root so pnpm finds it. Source of truth lives under
                 // .cloud/docker/ so it's not picked up by the parent monorepo when
                 // this submodule is consumed as part of codeclarity-dev.
                 sh 'cp .cloud/docker/pnpm-workspace.yaml pnpm-workspace.yaml'

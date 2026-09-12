@@ -236,12 +236,7 @@ const getVersionInfo = (
   isUpgrade: boolean;
   isPrerelease: boolean;
   upgradeType:
-    | "major"
-    | "minor"
-    | "patch"
-    | "prerelease"
-    | "downgrade"
-    | "same";
+    "major" | "minor" | "patch" | "prerelease" | "downgrade" | "same";
 } => {
   const content = notification.content;
   if (!content.current_version || !content.new_version) {

@@ -30,7 +30,9 @@ import { beforeEach, vi } from "vitest";
 
 import { getPiniaMock, resetPiniaMock } from "./test-utils/setup.js";
 
-import "@testing-library/jest-dom";
+// The /vitest entrypoint augments Vitest's Assertion interface. The generic
+// entrypoint augments Jest's, which Vitest 5 no longer picks up.
+import "@testing-library/jest-dom/vitest";
 
 // Suppress known Zod v4 cleanup errors during test teardown
 // These occur when components using Zod schemas and @formkit/auto-animate are unmounted
@@ -51,11 +53,6 @@ config.global.stubs = {
     props: ["icon", "class", "width", "height", "style"],
     template:
       '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ icon ?? "mock-icon" }}</span>',
-  },
-  tippy: {
-    name: "tippy",
-    props: ["content", "placement", "trigger"],
-    template: '<div class="mock-tippy"><slot /></div>',
   },
   RouterLink: {
     name: "RouterLink",
@@ -472,8 +469,8 @@ vi.mock("@vueuse/core", () => ({
   watchDeep: vi.fn(),
 }));
 
-// Mock lucide-vue-next icons
-vi.mock("lucide-vue-next", () => ({
+// Mock @lucide/vue icons
+vi.mock("@lucide/vue", () => ({
   Search: {
     name: "Search",
     template: '<svg data-testid="search-icon"><path/></svg>',

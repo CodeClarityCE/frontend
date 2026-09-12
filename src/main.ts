@@ -16,13 +16,13 @@ import "./assets/main.css";
 // the fresh module graph; the guard keeps a genuinely-down server from
 // causing a reload loop.
 window.addEventListener("vite:preloadError", (event) => {
-    const last = Number(sessionStorage.getItem("chunk-reload-at") ?? 0);
-    if (Date.now() - last < 10_000) {
-        return; // just reloaded and still failing — let the error surface
-    }
-    sessionStorage.setItem("chunk-reload-at", String(Date.now()));
-    event.preventDefault();
-    window.location.reload();
+  const last = Number(sessionStorage.getItem("chunk-reload-at") ?? 0);
+  if (Date.now() - last < 10_000) {
+    return; // just reloaded and still failing — let the error surface
+  }
+  sessionStorage.setItem("chunk-reload-at", String(Date.now()));
+  event.preventDefault();
+  window.location.reload();
 });
 
 const app = createApp(App as Component);

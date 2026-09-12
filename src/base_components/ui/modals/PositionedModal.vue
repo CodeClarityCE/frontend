@@ -5,12 +5,7 @@ const compRef = ref<HTMLElement | null>(null);
 const show_modal = ref<boolean>(false);
 
 type PositionType =
-  | "top"
-  | "middle"
-  | "bottom"
-  | "top-left"
-  | "middle-left"
-  | "bottom-left";
+  "top" | "middle" | "bottom" | "top-left" | "middle-left" | "bottom-left";
 
 interface Props {
   tracker?: string | null;

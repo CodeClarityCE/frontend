@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { AlertCircle } from "@lucide/vue";
 import { watchDeep } from "@vueuse/core";
-import { AlertCircle } from "lucide-vue-next";
 import { Form } from "vee-validate";
 import { type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";

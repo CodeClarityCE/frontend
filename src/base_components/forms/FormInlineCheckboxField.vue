@@ -5,7 +5,7 @@ const props = defineProps<{
   name: string;
 }>();
 
-const value = defineModel<boolean>("value", { default: {} });
+const value = defineModel<boolean>("value", { default: false });
 </script>
 <template>
   <div class="inline-row">

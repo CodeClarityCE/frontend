@@ -22,6 +22,14 @@ import RepoTable, { type RepoTableConfig } from "./components/RepoTable.vue";
 /** How many project imports the bulk import keeps in flight at once. */
 export const IMPORT_CONCURRENCY = 4;
 
+/**
+ * Drop a trailing ".git" from a repository url. Only the suffix: a name such
+ * as "octo.github.io" keeps its ".git".
+ */
+export function stripGitSuffix(url: string): string {
+  return url.replace(/\.git$/, "");
+}
+
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
   forceRefresh: boolean;
   activeFilters: string[];
@@ -103,7 +111,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     await importProject(
       userStore.getDefaultOrg.id,
       authStore.getToken,
-      values.repository.replace(".git", ""),
+      stripGitSuffix(values.repository),
     );
   } catch (err) {
     errorToast(getImportErrorMessage(err));

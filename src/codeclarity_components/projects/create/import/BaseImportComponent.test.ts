@@ -9,6 +9,7 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
 import BaseImportComponent, {
   IMPORT_CONCURRENCY,
+  stripGitSuffix,
 } from "./BaseImportComponent.vue";
 
 const { createProject, successToast, errorToast } = vi.hoisted(() => ({
@@ -240,5 +241,54 @@ describe("BaseImportComponent bulk import", () => {
     pending.forEach((resolve) => resolve());
     await vi.waitFor(() => expect(router.push).toHaveBeenCalledTimes(1));
     expect(createProject).toHaveBeenCalledTimes(10);
+  });
+});
+
+describe("BaseImportComponent manual import", () => {
+  beforeEach(() => {
+    createProject.mockReset();
+    createProject.mockResolvedValue({ id: "project" });
+    vi.mocked(router.push).mockClear();
+  });
+
+  it("imports the typed url without its trailing .git", async () => {
+    const wrapper = mount(BaseImportComponent, {
+      props: {
+        integration: "gh-1",
+        getRepos: vi.fn().mockResolvedValue({ data: [] }),
+      },
+    });
+
+    await wrapper
+      .find('input[placeholder="https://github.com/username/repository"]')
+      .setValue("https://github.com/octo/octo.github.io.git");
+    await wrapper.find("form").trigger("submit");
+
+    await vi.waitFor(() => expect(createProject).toHaveBeenCalledTimes(1));
+    expect(createProject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          integration_id: "gh-1",
+          url: "https://github.com/octo/octo.github.io",
+        },
+      }),
+    );
+  });
+});
+
+describe("stripGitSuffix", () => {
+  it.each([
+    ["https://github.com/octo/legacy.git", "https://github.com/octo/legacy"],
+    ["https://github.com/octo/legacy", "https://github.com/octo/legacy"],
+    [
+      "https://github.com/torvalds/torvalds.github.io",
+      "https://github.com/torvalds/torvalds.github.io",
+    ],
+    [
+      "https://github.com/octo/octo.github.io.git",
+      "https://github.com/octo/octo.github.io",
+    ],
+  ])("turns %s into %s", (url, expected) => {
+    expect(stripGitSuffix(url)).toBe(expected);
   });
 });

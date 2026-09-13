@@ -88,25 +88,28 @@ const headers: TableHeader[] = [
 ];
 
 // Filters
+// Reactive because the Filters popover edits it in place and emits nothing:
+// the watcher on its active filters below is what triggers a refetch.
+const filterState: Ref<FilterState> = ref(
+  createNewFilterState({
+    ImportState: {
+      name: "Import State",
 
-const filterState: FilterState = createNewFilterState({
-  ImportState: {
-    name: "Import State",
-
-    type: FilterType.RADIO,
-    data: {
-      only_non_imported: {
-        title: "Only not already imported repos",
-        value: true,
-      },
-      imported_and_non_imported: {
-        title: "Both",
-        value: false,
+      type: FilterType.RADIO,
+      data: {
+        only_non_imported: {
+          title: "Only not already imported repos",
+          value: true,
+        },
+        imported_and_non_imported: {
+          title: "Both",
+          value: false,
+        },
       },
     },
-  },
-  ...(props.config.extraFilters ?? {}),
-});
+    ...(props.config.extraFilters ?? {}),
+  }),
+);
 
 // Stores
 const authStore = useAuthStore();
@@ -124,7 +127,7 @@ const totalEntries = ref(0);
 const totalPages = ref(0);
 const searchKey = ref("");
 const activeFilters: Ref<string[]> = ref(
-  filterState.activeFilters.map((filter) => filter.option),
+  filterState.value.activeFilters.map((filter) => filter.option),
 );
 const selectedRepos: Ref<Repository[]> = ref([]);
 
@@ -269,8 +272,21 @@ async function setActiveFilters(
   activeFilters.value = newActiveFilters.map(
     (activeFilter: ActiveFilter) => activeFilter.option,
   );
+  // A narrower result may not reach the current page, so start over. The page
+  // watcher fetches when the page changes; only fetch here when it does not.
+  if (page.value !== 0) {
+    page.value = 0;
+    return;
+  }
   await fetchRepos(true);
 }
+
+watch(
+  () => filterState.value.activeFilters,
+  (newActiveFilters) => {
+    void setActiveFilters(newActiveFilters);
+  },
+);
 
 watch([searchKey], async () => {
   debounce(async () => {
@@ -368,13 +384,10 @@ defineExpose({
           class="flex-1"
         />
 
-        <FilterBox
-          :filter-state="filterState"
-          @on-filter-state-change="setActiveFilters($event)"
-        />
+        <FilterBox v-model:filter-state="filterState" />
       </div>
 
-      <ActiveFilterBar :filter-state="filterState"> </ActiveFilterBar>
+      <ActiveFilterBar v-model:filter-state="filterState" />
     </div>
 
     <!--------------------------------------------------------------------------->

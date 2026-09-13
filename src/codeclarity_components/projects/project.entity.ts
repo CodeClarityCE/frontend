@@ -79,4 +79,11 @@ export class Repository {
 
   @IsNotEmpty()
   integration_id!: string;
+
+  /** Only present for repositories listed by the "Popular on GitHub" source. */
+  @IsOptional()
+  stargazers_count?: number;
+
+  @IsOptional()
+  language?: string;
 }

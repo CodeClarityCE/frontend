@@ -42,7 +42,7 @@ import { errorToast, successToast } from "@/utils/toasts";
 
 import Faq from "./components/FaqComponent.vue";
 import ImportErrorTable from "./components/ImportErrorTable.vue";
-import RepoTable from "./components/RepoTable.vue";
+import RepoTable, { type RepoTableConfig } from "./components/RepoTable.vue";
 
 // Repositories
 const projectsRepo: ProjectRepository = new ProjectRepository();
@@ -56,6 +56,8 @@ const props = defineProps<{
   getRepos: (
     options: GetRepositoriesRequestOptions,
   ) => Promise<PaginatedResponse<Repository>>;
+  /** Presentation tweaks forwarded to the repository table. */
+  tableConfig?: RepoTableConfig;
 }>();
 
 // State
@@ -232,6 +234,7 @@ function onSelectedReposChange(repos: Repository[]): void {
             ref="repoTableRef"
             :integration="integration"
             :get-repos="getRepos"
+            :config="tableConfig"
             @on-selected-repos-change="onSelectedReposChange($event)"
           />
         </InfoCard>

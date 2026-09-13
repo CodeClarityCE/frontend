@@ -75,11 +75,17 @@ export interface GetRepositoriesRequestOptions
   activeFilters: string[];
 }
 
+export interface GetPopularRepositoriesRequestOptions extends GetRepositoriesRequestOptions {
+  /** Primary languages to rank (subset of JavaScript, TypeScript, PHP); empty means all. */
+  languages: string[];
+}
+
 export enum GetRepositoriesSortInterface {
   FULLY_QUALIFIED_NAME = "fully_qualified_name",
   DESCRIPTION = "description",
   CREATED = "created_at",
   IMPORTED = "imported",
+  STARS = "stars",
 }
 
 export class IntegrationsRepository extends BaseRepository {
@@ -174,6 +180,39 @@ export class IntegrationsRepository extends BaseRepository {
     );
 
     return res;
+  }
+
+  /**
+   * The "Popular on GitHub" source: most-starred public repositories per
+   * supported language, ranked server-side through the org's GitHub integration.
+   */
+  async getPopularGithubRepositories(
+    options: GetPopularRepositoriesRequestOptions,
+  ): Promise<PaginatedResponse<Repository>> {
+    const RELATIVE_URL = `/org/${options.orgId}/integrations/github/${options.integrationId}/repositories/popular`;
+
+    const response = await this.getRequest<PaginatedResponse<Repository>>({
+      queryParams: {
+        page: options.pagination.page,
+        entries_per_page: options.pagination.entries_per_page,
+        search_key: options.search.searchKey,
+        force_refresh: `${options.forceRefresh}`,
+        active_filters: `[${options.activeFilters.join(",")}]`,
+        languages: options.languages.join(","),
+        sort_key: options.sort.sortKey,
+        sort_direction: options.sort.sortDirection,
+      },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<PaginatedResponse<Repository>>(
+      response,
+      PaginatedResponse<Repository>,
+    );
   }
 
   async getGitlabRepositories(

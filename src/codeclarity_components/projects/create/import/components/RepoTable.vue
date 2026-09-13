@@ -57,8 +57,10 @@ const props = withDefaults(
       options: GetRepositoriesRequestOptions,
     ) => Promise<PaginatedResponse<Repository>>;
     config?: RepoTableConfig;
+    /** Freezes the selection, e.g. while the selected repositories import. */
+    disabled?: boolean;
   }>(),
-  { config: () => ({}) },
+  { config: () => ({}), disabled: false },
 );
 
 // Emits
@@ -464,6 +466,7 @@ defineExpose({
               <input
                 v-model="selectAll"
                 type="checkbox"
+                :disabled="disabled"
                 class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                 @click="toggleSelectAll()"
               />
@@ -507,6 +510,7 @@ defineExpose({
               <Button
                 variant="outline"
                 size="sm"
+                :disabled="disabled"
                 class="text-blue-700 border-blue-300 hover:bg-blue-100"
                 @click="
                   selectedRepos = [];
@@ -549,6 +553,7 @@ defineExpose({
                           .map((x: Repository) => x.id)
                           .includes(repo.id)
                       "
+                      :disabled="disabled"
                       class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                       @click="selectRepo(repo)"
                     />

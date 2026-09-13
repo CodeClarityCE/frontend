@@ -198,4 +198,28 @@ describe("RepoTable", () => {
       expect(lastRequest().activeFilters).toContain("language_php");
     });
   });
+
+  describe("selection", () => {
+    it("freezes the selection controls while disabled", async () => {
+      const wrapper = await mountTable();
+      const checkboxes = () => wrapper.findAll('input[type="checkbox"]');
+
+      // The first checkbox is "Select All", the others are the rows.
+      await checkboxes()[1]!.trigger("click");
+      expect(wrapper.emitted("onSelectedReposChange")).toHaveLength(1);
+
+      await wrapper.setProps({ disabled: true });
+
+      for (const checkbox of checkboxes()) {
+        expect(checkbox.attributes("disabled")).toBeDefined();
+      }
+      const clearSelection = wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Clear Selection");
+      expect(clearSelection!.attributes("disabled")).toBeDefined();
+
+      await checkboxes()[2]!.trigger("click");
+      expect(wrapper.emitted("onSelectedReposChange")).toHaveLength(1);
+    });
+  });
 });

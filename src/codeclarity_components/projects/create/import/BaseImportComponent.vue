@@ -87,6 +87,13 @@ const importProgress: Ref<{ done: number; total: number }> = ref({
   done: 0,
   total: 0,
 });
+// Stays visible for the whole run so the progress bar cannot disappear
+// mid-import, even if the selection changes meanwhile.
+const showImportCard = computed(
+  () =>
+    (importing.value || selectedRepos.value.length > 0) &&
+    Object.keys(reposFailedToImport.value).length === 0,
+);
 const importProgressPercent = computed(() =>
   importProgress.value.total === 0
     ? 0
@@ -289,6 +296,7 @@ function onSelectedReposChange(repos: Repository[]): void {
             :integration="integration"
             :get-repos="getRepos"
             :config="tableConfig"
+            :disabled="importing"
             @on-selected-repos-change="onSelectedReposChange($event)"
           />
         </InfoCard>
@@ -336,12 +344,7 @@ function onSelectedReposChange(repos: Repository[]): void {
       </div>
 
       <!-- Bulk Import Action -->
-      <div
-        v-if="
-          (selectedRepos.length as number) > 0 &&
-          (Object.keys(reposFailedToImport).length as number) === 0
-        "
-      >
+      <div v-if="showImportCard">
         <InfoCard
           title="Ready to Import"
           description="You have selected repositories for import"

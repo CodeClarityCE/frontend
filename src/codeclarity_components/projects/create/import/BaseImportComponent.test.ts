@@ -53,7 +53,7 @@ vi.mock("@/base_components", () => ({
 vi.mock("./components/RepoTable.vue", () => ({
   default: {
     name: "RepoTable",
-    props: ["integration", "getRepos", "config"],
+    props: ["integration", "getRepos", "config", "disabled"],
     emits: ["onSelectedReposChange", "onForceRefresh"],
     setup(_props: unknown, { expose }: { expose: (api: object) => void }) {
       expose({
@@ -191,6 +191,31 @@ describe("BaseImportComponent bulk import", () => {
     expect(wrapper.find('[data-testid="import-progress"]').exists()).toBe(
       false,
     );
+  });
+
+  it("freezes the table and keeps the progress visible for the whole import", async () => {
+    const pending: (() => void)[] = [];
+    createProject.mockImplementation(
+      () =>
+        new Promise<{ id: string }>((resolve) => {
+          pending.push(() => resolve({ id: "project" }));
+        }),
+    );
+    const table = wrapper.findComponent({ name: "RepoTable" });
+    expect(table.props("disabled")).toBe(false);
+
+    await wrapper.find('[data-testid="bulk-import-button"]').trigger("click");
+    await flush();
+    expect(table.props("disabled")).toBe(true);
+
+    table.vm.$emit("onSelectedReposChange", []);
+    await flush();
+    expect(wrapper.find('[data-testid="import-progress"]').exists()).toBe(true);
+
+    createProject.mockResolvedValue({ id: "project" });
+    pending.forEach((resolve) => resolve());
+    await vi.waitFor(() => expect(router.push).toHaveBeenCalledTimes(1));
+    expect(table.props("disabled")).toBe(false);
   });
 
   it("keeps the page open and lists failures when some imports fail", async () => {

@@ -1,26 +1,32 @@
 #syntax=docker/dockerfile:1.4
 
-ARG PNPM_VERSION=12.6.0
+# Toolchain image: pinned Node + corepack + the pnpm version from package.json's
+# packageManager field (the single source of truth for pnpm). Jenkins runs its
+# Setup/Test stages inside this target, so CI uses the same toolchain as the
+# image build instead of whatever the agent host has installed. Corepack must be
+# >= 0.34.5: pnpm >= 11 ships bin/pnpm.mjs and older corepack looks for pnpm.cjs.
+FROM node:26.10.0-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS toolchain
+ENV COREPACK_HOME=/opt/corepack \
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+WORKDIR /app
+RUN npm install -g corepack@0.36.0 --force && corepack enable
+COPY package.json ./
+# World-writable so the unprivileged Jenkins uid can use the cached pnpm.
+RUN corepack install && chmod -R a+rwX /opt/corepack
 
 # Dev image
-FROM node:26.10.0-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS frontend-dev
-WORKDIR /app
+FROM toolchain AS frontend-dev
 COPY --link . /app/
-RUN npm install -g corepack@latest --force && corepack enable
-RUN corepack prepare pnpm@${PNPM_VERSION} --activate
 # Standalone install in /app. /app/pnpm-workspace.yaml (bind-mounted from
-# frontend/.cloud/docker/pnpm-workspace.yaml on host) provides allowBuilds +
-# minimumReleaseAge=0 so this container does not need the repo-root workspace yaml.
+# frontend/.cloud/docker/pnpm-workspace.yaml on host) provides allowBuilds and the
+# minimumReleaseAge gate so this container does not need the repo-root workspace yaml.
 ENTRYPOINT ["/bin/sh", "-c" , "pnpm install && pnpm run dev --host"]
 
 # Builder image
-FROM node:26.10.0-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS pnpm_builder
-WORKDIR /app
-RUN npm install -g corepack@latest --force && corepack enable
-RUN corepack prepare pnpm@${PNPM_VERSION} --activate
+FROM toolchain AS pnpm_builder
 ENV PNPM_STORE_DIR=/pnpm/store
 COPY --link . /app/
-# Stage the standalone pnpm config (allowBuilds + minimumReleaseAge=0).
+# Stage the standalone pnpm config (allowBuilds + minimumReleaseAge).
 # Source of truth is .cloud/docker/pnpm-workspace.yaml; this COPY makes the
 # Dockerfile self-sufficient regardless of whether Jenkins pre-staged it.
 COPY .cloud/docker/pnpm-workspace.yaml ./pnpm-workspace.yaml

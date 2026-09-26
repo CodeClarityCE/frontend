@@ -6,9 +6,16 @@
 # Mount declaration lives in frontend/.cloud/docker/docker-compose.yaml:
 #   - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
 
-# Override pnpm 11's default 24h gate. Container's standalone install resolves
-# fresh from the registry and may hit packages that haven't aged out yet.
+# Cooling-off window before a freshly published version may be resolved, in
+# minutes. 4320 is 3 days. Mirrors the root pnpm-workspace.yaml; the root
+# file, this file and api/.cloud/docker/pnpm-workspace.yaml must move together
+# (Jenkins and the image builds stage this file, so it is the only copy they read).
 minimumReleaseAge: 4320
+
+# Disable pnpm's pre-run dependency check. Under CI=true (Jenkins) the implicit
+# re-install it triggers does not honor allowBuilds and fails with
+# ERR_PNPM_IGNORED_BUILDS. Mirrors the root pnpm-workspace.yaml.
+verifyDepsBeforeRun: false
 
 # Mirror the root workspace's allowBuilds verdicts so lifecycle scripts
 # (esbuild binary download, @parcel/watcher native build, etc.) run for the right packages.

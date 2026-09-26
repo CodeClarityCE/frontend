@@ -1,3 +1,29 @@
+// Runs `script` inside the Dockerfile's toolchain target (pinned Node, corepack
+// and the pnpm version from package.json's packageManager) instead of whatever
+// the agent host has installed. Plain `docker build` + `docker run` rather than
+// `agent { dockerfile }`, which needs the Docker Pipeline plugin (up for
+// adoption, deliberately not used). The container runs as the Jenkins uid;
+// HOME and the pnpm store live in the workspace's @tmp sibling, which stays
+// out of the lint, format and docker build contexts.
+def inToolchain(String script) {
+    if (!env.TOOLCHAIN_IMAGE) {
+        env.TOOLCHAIN_IMAGE = sh(
+            script: 'docker build -q -f .cloud/docker/Dockerfile --target toolchain .',
+            returnStdout: true
+        ).trim()
+    }
+    withEnv(["CI_SCRIPT=${script}"]) {
+        sh '''
+            mkdir -p "$WORKSPACE@tmp/ci-home"
+            docker run --rm -u "$(id -u):$(id -g)" \\
+                -v "$WORKSPACE:$WORKSPACE" -v "$WORKSPACE@tmp:$WORKSPACE@tmp" -w "$WORKSPACE" \\
+                -e HOME="$WORKSPACE@tmp/ci-home" -e WORKSPACE -e CI=true \\
+                "$TOOLCHAIN_IMAGE" \\
+                sh -ec "$CI_SCRIPT"
+        '''
+    }
+}
+
 pipeline {
     agent { label 'codeclarity' }
 
@@ -8,19 +34,9 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        // The frontend repo is cloned standalone here (no parent monorepo
-        // pnpm-workspace.yaml). Override pnpm's default 1440-min (24h)
-        // gate. 4320 is 3 days, matching the root pnpm-workspace.yaml.
-        // The monorepo dev path already sets this in the root pnpm-workspace.yaml.
-        PNPM_CONFIG_MINIMUM_RELEASE_AGE = '4320'
-    }
-
     stages {
         stage('Setup') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                 script {
                     def project = readJSON file: 'package.json'
                     env.Version = project.version
@@ -29,16 +45,7 @@ pipeline {
                     env.Tag = "codeclarityce/${Name}:${Version}"
                     echo "Version: ${Version}, Tag: ${Tag}"
                 }
-                sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force origin'
-                sh 'corepack enable && corepack prepare pnpm@12.6.0 --activate'
-                sh 'pnpm config set store-dir "$HOME/.pnpm-store"'
-                // Stage the standalone pnpm config (allowBuilds + minimumReleaseAge=0)
-                // at the repo root so pnpm finds it. Source of truth lives under
-                // .cloud/docker/ so it's not picked up by the parent monorepo when
-                // this submodule is consumed as part of codeclarity-dev.
-                sh 'cp .cloud/docker/pnpm-workspace.yaml pnpm-workspace.yaml'
-                sh 'pnpm install --frozen-lockfile'
             }
         }
 
@@ -48,17 +55,24 @@ pipeline {
             }
             steps {
                 script {
-                    // Get version from main branch
-                    def mainVersion = sh(
-                        script: "git show origin/main:package.json | jq -r '.version'",
+                    // No `|| true`: if main can't be fetched the check must fail,
+                    // not compare against an empty version and pass.
+                    sh 'git fetch --force origin main:refs/remotes/origin/main'
+                    if (sh(script: 'git cat-file -e origin/main:package.json', returnStatus: true) != 0) {
+                        echo 'No package.json on main yet, skipping version check'
+                        return
+                    }
+                    def mainVersion = readJSON(text: sh(script: 'git show origin/main:package.json', returnStdout: true)).version
+                    def highest = sh(
+                        script: "printf '%s\\n%s\\n' '${mainVersion}' '${Version}' | sort -V | tail -n1",
                         returnStdout: true
                     ).trim()
 
                     echo "PR Version: ${Version}"
                     echo "Main Version: ${mainVersion}"
 
-                    if (Version == mainVersion) {
-                        error "Version not bumped! PR version (${Version}) equals main version (${mainVersion}). Please update package.json version."
+                    if (Version == mainVersion || highest != Version) {
+                        error "Version not bumped! PR version (${Version}) must be greater than main version (${mainVersion}). Please update package.json version."
                     }
                     echo "Version check passed: ${mainVersion} -> ${Version}"
                 }
@@ -67,9 +81,17 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'pnpm lint'
-                sh 'pnpm exec vitest run'
-                sh 'pnpm exec prettier src --check'
+                // Stage the standalone pnpm config (allowBuilds, minimumReleaseAge,
+                // verifyDepsBeforeRun) at the repo root so pnpm finds it. Source of
+                // truth lives under .cloud/docker/ so it's not picked up by the
+                // parent monorepo when this submodule is consumed as part of
+                // codeclarity-dev.
+                sh 'cp .cloud/docker/pnpm-workspace.yaml pnpm-workspace.yaml'
+                inToolchain('pnpm install --frozen-lockfile --store-dir "$WORKSPACE@tmp/pnpm-store"')
+                inToolchain('pnpm lint:check')
+                inToolchain('pnpm type-check')
+                inToolchain('pnpm test:unit:run')
+                inToolchain('pnpm exec prettier src --check')
             }
         }
 
@@ -86,24 +108,36 @@ pipeline {
             when {
                 branch 'main'
             }
+            environment {
+                // Bound only here so PR and branch builds never see the token.
+                DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+            }
             steps {
                 script {
+                    // A released version is immutable: never overwrite its image
+                    // (e.g. a direct push to main without a version bump).
+                    if (sh(script: "git tag -l '${VersionTag}' | grep -q .", returnStatus: true) == 0) {
+                        echo "Release ${VersionTag} already exists, skipping image push and release."
+                        return
+                    }
+
+                    sh 'echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin'
+
                     // Reuse existing builder or create new one
                     sh 'docker buildx create --name frontend --use --bootstrap 2>/dev/null || docker buildx use frontend'
 
                     // Build and push first (can be retried without side effects)
                     sh 'docker buildx build -f .cloud/docker/Dockerfile --platform linux/amd64,linux/arm64 --tag codeclarityce/frontend:latest --tag $Tag --push .'
 
-                    // Only create tag and release after successful push
-                    def tagExists = sh(script: "git tag -l '${VersionTag}' | grep -q .", returnStatus: true) == 0
-                    if (!tagExists) {
-                        sh """
-                            gh release create '${VersionTag}' \
-                                --title 'Release ${VersionTag}' \
-                                --generate-notes \
-                                --prerelease=\$(echo '${Version}' | grep -q 'alpha\\|beta' && echo true || echo false)
-                        """
-                    }
+                    // Only create tag and release after successful push. --target
+                    // pins the tag to the commit that was built, not main's tip.
+                    sh """
+                        gh release create '${VersionTag}' \
+                            --target "\$GIT_COMMIT" \
+                            --title 'Release ${VersionTag}' \
+                            --generate-notes \
+                            --prerelease=\$(echo '${Version}' | grep -q 'alpha\\|beta' && echo true || echo false)
+                    """
                 }
             }
         }
@@ -111,7 +145,7 @@ pipeline {
 
     post {
         failure {
-            echo "Build failed for ${Tag}"
+            echo "Build failed for ${env.Tag ?: 'unknown'}"
             sh 'docker buildx rm frontend || true'
         }
     }

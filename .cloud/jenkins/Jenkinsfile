@@ -31,7 +31,7 @@ pipeline {
                 }
                 sh 'git submodule update --init --recursive'
                 sh 'git fetch --tags --force origin'
-                sh 'corepack enable && corepack prepare pnpm@12.3.4 --activate'
+                sh 'corepack enable && corepack prepare pnpm@12.6.0 --activate'
                 sh 'pnpm config set store-dir "$HOME/.pnpm-store"'
                 // Stage the standalone pnpm config (allowBuilds + minimumReleaseAge=0)
                 // at the repo root so pnpm finds it. Source of truth lives under

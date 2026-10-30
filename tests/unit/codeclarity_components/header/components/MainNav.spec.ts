@@ -99,14 +99,15 @@ describe("MainNav", () => {
       });
     });
 
-    it("initially shows Dashboard, Projects, and Tickets links", () => {
+    it("initially shows Dashboard, Projects, Tickets, and Datasets links", () => {
       const links = wrapper.findAllComponents({ name: "RouterLink" });
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(4);
 
       const linkTexts = links.map((link: any) => link.text());
       expect(linkTexts).toContain("Dashboard");
       expect(linkTexts).toContain("Projects");
       expect(linkTexts).toContain("Tickets");
+      expect(linkTexts).toContain("Datasets");
       expect(linkTexts).not.toContain("Results");
       expect(linkTexts).not.toContain("Settings");
     });
@@ -307,7 +308,7 @@ describe("MainNav", () => {
       await wrapper.vm.$nextTick();
 
       const links = wrapper.findAllComponents({ name: "RouterLink" });
-      expect(links).toHaveLength(3); // Dashboard, Projects, and Tickets
+      expect(links).toHaveLength(4); // Dashboard, Projects, Tickets, and Datasets
     });
 
     it("handles unknown page state", async () => {
@@ -316,7 +317,7 @@ describe("MainNav", () => {
       await wrapper.vm.$nextTick();
 
       const links = wrapper.findAllComponents({ name: "RouterLink" });
-      expect(links).toHaveLength(3); // Dashboard, Projects, and Tickets
+      expect(links).toHaveLength(4); // Dashboard, Projects, Tickets, and Datasets
     });
 
     it("renders without store initially", () => {

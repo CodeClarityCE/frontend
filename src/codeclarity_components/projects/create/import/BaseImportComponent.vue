@@ -18,9 +18,9 @@ import { Progress } from "@/shadcn/ui/progress";
 import { runWithConcurrency } from "@/utils/concurrency";
 
 import RepoTable, { type RepoTableConfig } from "./components/RepoTable.vue";
+import { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
 
-/** How many project imports the bulk import keeps in flight at once. */
-export const IMPORT_CONCURRENCY = 4;
+export { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
 
 /**
  * Drop a trailing ".git" from a repository url. Only the suffix: a name such
@@ -49,8 +49,6 @@ import * as z from "zod";
 
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { errorToast, successToast } from "@/utils/toasts";
@@ -148,39 +146,6 @@ async function importProject(
     bearerToken: token,
     handleBusinessErrors: true,
   });
-}
-
-/**
- * Get error message from import error
- */
-function getImportErrorMessage(err: unknown): string {
-  if (!(err instanceof BusinessLogicError)) {
-    return "An error occured during the project import.";
-  }
-
-  if (err.error_code === APIErrors.AlreadyExists) {
-    return "Already imported";
-  }
-
-  if (
-    err.error_code === APIErrors.InternalError ||
-    err.error_code === APIErrors.EntityNotFound
-  ) {
-    return "An error occured during the project import.";
-  }
-
-  if (err.error_code === APIErrors.NotAuthorized) {
-    return "You do not have permission to import this repository";
-  }
-
-  if (
-    err.error_code === APIErrors.FailedToRetrieveReposFromProvider ||
-    err.error_code === APIErrors.IntegrationInvalidToken
-  ) {
-    return "The repository could not be resolved through the integration (rate limit or invalid token).";
-  }
-
-  return "An error occured during the project import.";
 }
 
 /**

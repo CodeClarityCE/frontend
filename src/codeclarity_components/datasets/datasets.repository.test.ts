@@ -22,7 +22,9 @@ describe("DatasetsRepository", () => {
 
   beforeEach(() => {
     repository = new DatasetsRepository() as MockedRepository;
-    repository.buildUrl.mockImplementation((url: string) => `https://api${url}`);
+    repository.buildUrl.mockImplementation(
+      (url: string) => `https://api${url}`,
+    );
   });
 
   it("lists the datasets of an organization page by page", async () => {

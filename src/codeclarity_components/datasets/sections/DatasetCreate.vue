@@ -53,7 +53,9 @@ const submitting = ref(false);
 const submitted = ref(false);
 
 const selectedLanguages = computed(() =>
-  Object.values(DatasetLanguage).filter((language) => languages.value[language]),
+  Object.values(DatasetLanguage).filter(
+    (language) => languages.value[language],
+  ),
 );
 
 interface FormErrors {

@@ -131,9 +131,7 @@ defineExpose({ load });
           class="h-12 w-12 text-gray-400"
         />
       </div>
-      <h3 class="mt-6 text-lg font-semibold text-gray-900">
-        No datasets yet
-      </h3>
+      <h3 class="mt-6 text-lg font-semibold text-gray-900">No datasets yet</h3>
       <p class="mt-2 text-gray-600 max-w-md mx-auto">
         A dataset ranks GitHub repositories by stars and keeps the ones whose
         root commits a package.json and a lockfile.

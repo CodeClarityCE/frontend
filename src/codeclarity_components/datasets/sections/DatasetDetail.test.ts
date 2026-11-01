@@ -253,7 +253,9 @@ describe("DatasetDetail", () => {
 
     await wrapper.find('[data-testid="dataset-delete"]').trigger("click");
     expect(deleteDataset).not.toHaveBeenCalled();
-    await wrapper.find('[data-testid="dataset-delete-confirm"]').trigger("click");
+    await wrapper
+      .find('[data-testid="dataset-delete-confirm"]')
+      .trigger("click");
     await flushPromises();
 
     expect(deleteDataset).toHaveBeenCalledWith(

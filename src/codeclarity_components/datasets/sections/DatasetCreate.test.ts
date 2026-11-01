@@ -83,7 +83,9 @@ const github = {
   added_by: "John",
 };
 
-async function mountForm(integrations: object[] = [github]): Promise<VueWrapper> {
+async function mountForm(
+  integrations: object[] = [github],
+): Promise<VueWrapper> {
   getVCS.mockResolvedValue({ data: integrations });
   const wrapper = mount(DatasetCreate, {
     global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
@@ -114,8 +116,10 @@ describe("DatasetCreate", () => {
       "gh-1",
     ]);
     expect(
-      (wrapper.find('[data-testid="integration-select"]').element as HTMLSelectElement)
-        .value,
+      (
+        wrapper.find('[data-testid="integration-select"]')
+          .element as HTMLSelectElement
+      ).value,
     ).toBe("gh-1");
   });
 

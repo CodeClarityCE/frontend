@@ -121,7 +121,10 @@ async function loadDataset(): Promise<void> {
   if (status === DatasetStatus.BUILDING) {
     clearTimeout(pollTimer);
     pollTimer = setTimeout(() => void loadDataset(), POLL_INTERVAL_MS);
-  } else if (status === DatasetStatus.READY && (wasBuilding || !entries.value.length)) {
+  } else if (
+    status === DatasetStatus.READY &&
+    (wasBuilding || !entries.value.length)
+  ) {
     await loadEntries();
   }
 }
@@ -312,8 +315,8 @@ onUnmounted(() => clearTimeout(pollTimer));
             Top {{ dataset.params.limit }}
             {{ dataset.params.languages.join(" / ") }} repositories with more
             than {{ dataset.params.min_stars }} stars,
-            {{ dataset.params.pages }} search page(s) per language.
-            Created {{ formatDate(dataset.created_on) }}
+            {{ dataset.params.pages }} search page(s) per language. Created
+            {{ formatDate(dataset.created_on) }}
             <template v-if="dataset.created_by_name">
               by {{ dataset.created_by_name }}</template
             >.
@@ -379,7 +382,9 @@ onUnmounted(() => clearTimeout(pollTimer));
         class="bg-white rounded-xl border border-gray-200 p-4 space-y-2"
       >
         <div class="flex justify-between text-sm text-gray-700">
-          <span>{{ importing ? "Importing projects" : "Import finished" }}</span>
+          <span>{{
+            importing ? "Importing projects" : "Import finished"
+          }}</span>
           <span>{{ importProgress.done }} / {{ importProgress.total }}</span>
         </div>
         <Progress :model-value="importProgressPercent" />

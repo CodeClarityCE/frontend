@@ -114,10 +114,16 @@ async function loadIntegrations(): Promise<void> {
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
     });
+    // An expired token is not flagged invalid by the API, but GitHub rejects it
+    const now = Date.now();
     integrations.value = response.data.filter(
       (integration) =>
         integration.integration_provider === IntegrationProvider.GITHUB &&
-        !integration.invalid,
+        !integration.invalid &&
+        !(
+          integration.expiry_date &&
+          new Date(integration.expiry_date).getTime() <= now
+        ),
     );
     const [first] = integrations.value;
     if (integrations.value.length === 1 && first) {
@@ -223,7 +229,7 @@ onMounted(() => void loadIntegrations());
           v-if="!loadingIntegrations && integrations.length === 0"
           class="text-sm text-gray-600"
         >
-          No valid GitHub integration.
+          No valid GitHub integration (an expired token counts as invalid).
           <RouterLink
             :to="{
               name: 'orgs',

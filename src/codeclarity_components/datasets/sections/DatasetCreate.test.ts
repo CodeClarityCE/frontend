@@ -106,6 +106,7 @@ describe("DatasetCreate", () => {
       github,
       { ...github, id: "gh-2", invalid: true },
       { ...github, id: "gl-1", integration_provider: "GITLAB" },
+      { ...github, id: "gh-3", expiry_date: new Date("2026-10-29T16:33:12Z") },
     ]);
 
     const options = wrapper.findAll("option");

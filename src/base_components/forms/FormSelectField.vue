@@ -8,7 +8,7 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 
-const data = defineModel<string[]>("data", { default: {} });
+const data = defineModel<string[]>("data", { default: () => [] });
 </script>
 <template>
   <div>

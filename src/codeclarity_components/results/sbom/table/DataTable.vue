@@ -47,14 +47,14 @@ const pageLimitSelected = defineModel<number>("pageLimitSelected", {
   default: 15,
 });
 const searchKey = defineModel<string>("searchKey", { default: "" });
-const sorting = defineModel<SortingState>("sorting", { default: [] });
+const sorting = defineModel<SortingState>("sorting", { default: () => [] });
 const columnFilters = defineModel<ColumnFiltersState>("columnFilters", {
-  default: [],
+  default: () => [],
 });
 const columnVisibility = defineModel<VisibilityState>("columnVisibility", {
-  default: {},
+  default: () => ({}),
 });
-const data = defineModel<TData[]>("data", { default: [] });
+const data = defineModel<TData[]>("data", { default: () => [] });
 
 const rowSelection = ref({});
 const rowDensity = ref("normal");

@@ -194,12 +194,7 @@ export class PatchedManifestData {
 
 export interface UpgradeInfo {
   [key: string]:
-    | string
-    | UpgradeInfo
-    | boolean
-    | FullPatch
-    | NonePatch
-    | undefined;
+    string | UpgradeInfo | boolean | FullPatch | NonePatch | undefined;
   vulnerable: boolean;
   upgrade_to_installed_ver: boolean;
   upgrade_to: string;

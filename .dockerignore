@@ -1,2 +1,9 @@
 node_modules
 dist
+# Keep VCS data, caches and test output out of the build context.
+.git
+coverage
+.pnpm-store
+.ci-home
+test-results
+playwright-report

@@ -9,6 +9,7 @@ import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
 import {
   type ActiveFilter,
   createNewFilterState,
+  type FilterConfig,
   type FilterState,
   FilterType,
 } from "@/base_components/filters/filterTypes";
@@ -34,19 +35,33 @@ import { formatDate } from "@/utils/dateUtils";
 import { debounce } from "@/utils/searchUtils";
 
 // Types
-export interface GetReposOptions extends GetRepositoriesRequestOptions {
-  forceRefresh: boolean;
-  activeFilters: string[];
+/** Per-source presentation tweaks; every field falls back to the classic list. */
+export interface RepoTableConfig {
+  /** Column to sort by initially (default: created date). */
+  defaultSortKey?: GetRepositoriesSortInterface;
+  /** Rows per page (default 10). */
+  defaultEntriesPerPage?: number;
+  /** Extra filter categories merged into the Filters popover; their active
+   *  option keys travel with the other filters in `activeFilters`. */
+  extraFilters?: FilterConfig;
+  /** Show a Stars column (and the primary language) instead of the created date. */
+  showStars?: boolean;
 }
 </script>
 <script lang="ts" setup>
 // Props
-const props = defineProps<{
-  integration: string;
-  getRepos: (
-    options: GetRepositoriesRequestOptions,
-  ) => Promise<PaginatedResponse<Repository>>;
-}>();
+const props = withDefaults(
+  defineProps<{
+    integration: string;
+    getRepos: (
+      options: GetRepositoriesRequestOptions,
+    ) => Promise<PaginatedResponse<Repository>>;
+    config?: RepoTableConfig;
+    /** Freezes the selection, e.g. while the selected repositories import. */
+    disabled?: boolean;
+  }>(),
+  { config: () => ({}), disabled: false },
+);
 
 // Emits
 const emit = defineEmits<{
@@ -55,7 +70,9 @@ const emit = defineEmits<{
 }>();
 
 // Table headers + sort definition
-const sortKey: Ref<string> = ref(GetRepositoriesSortInterface.CREATED);
+const sortKey: Ref<string> = ref(
+  props.config.defaultSortKey ?? GetRepositoriesSortInterface.CREATED,
+);
 const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
 const selectAll: Ref<boolean> = ref(false);
 
@@ -67,28 +84,34 @@ const headers: TableHeader[] = [
   },
   { label: "Import State", key: GetRepositoriesSortInterface.IMPORTED },
   { label: "Description", key: GetRepositoriesSortInterface.DESCRIPTION },
-  { label: "Created Date", key: GetRepositoriesSortInterface.CREATED },
+  props.config.showStars
+    ? { label: "Stars", key: GetRepositoriesSortInterface.STARS }
+    : { label: "Created Date", key: GetRepositoriesSortInterface.CREATED },
 ];
 
 // Filters
+// Reactive because the Filters popover edits it in place and emits nothing:
+// the watcher on its active filters below is what triggers a refetch.
+const filterState: Ref<FilterState> = ref(
+  createNewFilterState({
+    ImportState: {
+      name: "Import State",
 
-const filterState: FilterState = createNewFilterState({
-  ImportState: {
-    name: "Import State",
-
-    type: FilterType.RADIO,
-    data: {
-      only_non_imported: {
-        title: "Only not already imported repos",
-        value: true,
-      },
-      imported_and_non_imported: {
-        title: "Both",
-        value: false,
+      type: FilterType.RADIO,
+      data: {
+        only_non_imported: {
+          title: "Only not already imported repos",
+          value: true,
+        },
+        imported_and_non_imported: {
+          title: "Both",
+          value: false,
+        },
       },
     },
-  },
-});
+    ...(props.config.extraFilters ?? {}),
+  }),
+);
 
 // Stores
 const authStore = useAuthStore();
@@ -101,11 +124,13 @@ const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 const repos: Ref<Repository[] | undefined> = ref();
 const page = ref(0);
-const entriesPerPage = ref(10);
+const entriesPerPage = ref(props.config.defaultEntriesPerPage ?? 10);
 const totalEntries = ref(0);
 const totalPages = ref(0);
 const searchKey = ref("");
-const activeFilters: Ref<string[]> = ref(["only_non_imported"]);
+const activeFilters: Ref<string[]> = ref(
+  filterState.value.activeFilters.map((filter) => filter.option),
+);
 const selectedRepos: Ref<Repository[]> = ref([]);
 
 // Watchers
@@ -249,8 +274,21 @@ async function setActiveFilters(
   activeFilters.value = newActiveFilters.map(
     (activeFilter: ActiveFilter) => activeFilter.option,
   );
+  // A narrower result may not reach the current page, so start over. The page
+  // watcher fetches when the page changes; only fetch here when it does not.
+  if (page.value !== 0) {
+    page.value = 0;
+    return;
+  }
   await fetchRepos(true);
 }
+
+watch(
+  () => filterState.value.activeFilters,
+  (newActiveFilters) => {
+    void setActiveFilters(newActiveFilters);
+  },
+);
 
 watch([searchKey], async () => {
   debounce(async () => {
@@ -348,13 +386,10 @@ defineExpose({
           class="flex-1"
         />
 
-        <FilterBox
-          :filter-state="filterState"
-          @on-filter-state-change="setActiveFilters($event)"
-        />
+        <FilterBox v-model:filter-state="filterState" />
       </div>
 
-      <ActiveFilterBar :filter-state="filterState"> </ActiveFilterBar>
+      <ActiveFilterBar v-model:filter-state="filterState" />
     </div>
 
     <!--------------------------------------------------------------------------->
@@ -431,6 +466,7 @@ defineExpose({
               <input
                 v-model="selectAll"
                 type="checkbox"
+                :disabled="disabled"
                 class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                 @click="toggleSelectAll()"
               />
@@ -474,6 +510,7 @@ defineExpose({
               <Button
                 variant="outline"
                 size="sm"
+                :disabled="disabled"
                 class="text-blue-700 border-blue-300 hover:bg-blue-100"
                 @click="
                   selectedRepos = [];
@@ -516,6 +553,7 @@ defineExpose({
                           .map((x: Repository) => x.id)
                           .includes(repo.id)
                       "
+                      :disabled="disabled"
                       class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                       @click="selectRepo(repo)"
                     />
@@ -531,7 +569,10 @@ defineExpose({
                           {{ repo.fully_qualified_name }}
                         </div>
                         <div class="text-sm text-gray-500 mt-1">
-                          {{ repo.visibility }}
+                          <span>{{ repo.visibility }}</span>
+                          <span v-if="repo.language">
+                            &middot; {{ repo.language }}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -560,7 +601,18 @@ defineExpose({
                     </div>
                   </td>
                   <td class="p-4">
-                    <div class="text-gray-600 text-sm">
+                    <div
+                      v-if="config.showStars"
+                      class="flex items-center gap-1 text-gray-700 text-sm"
+                      data-testid="repo-stars"
+                    >
+                      <Icon
+                        icon="lucide:star"
+                        class="w-4 h-4 text-yellow-500"
+                      />
+                      {{ (repo.stargazers_count ?? 0).toLocaleString() }}
+                    </div>
+                    <div v-else class="text-gray-600 text-sm">
                       {{ formatDate(repo.created_at, "MMM DD, YYYY") }}
                     </div>
                   </td>

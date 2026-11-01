@@ -1,22 +1,22 @@
 /**
  * Visual Testing Utilities
- * 
+ *
  * Utilities for component-level visual regression testing using Vitest and Playwright
  */
 
 // import { type Page } from '@playwright/test';
-import type { VueWrapper } from '@vue/test-utils';
+import type { VueWrapper } from "@vue/test-utils";
 
 /**
  * Configuration for visual snapshots
  */
 export interface VisualTestConfig {
   threshold?: number;
-  animations?: 'disabled' | 'allow';
+  animations?: "disabled" | "allow";
   clip?: { x: number; y: number; width: number; height: number };
   fullPage?: boolean;
   mask?: string[];
-  mode?: 'light' | 'dark' | 'both';
+  mode?: "light" | "dark" | "both";
   responsive?: boolean;
   delay?: number;
 }
@@ -26,10 +26,10 @@ export interface VisualTestConfig {
  */
 export const defaultVisualConfig: VisualTestConfig = {
   threshold: 0.2, // 20% threshold for pixel differences
-  animations: 'disabled',
+  animations: "disabled",
   fullPage: false,
   responsive: true,
-  delay: 100 // Wait 100ms for animations to settle
+  delay: 100, // Wait 100ms for animations to settle
 };
 
 /**
@@ -39,19 +39,19 @@ export const VISUAL_BREAKPOINTS = {
   mobile: { width: 375, height: 667 },
   tablet: { width: 768, height: 1024 },
   desktop: { width: 1280, height: 720 },
-  wide: { width: 1920, height: 1080 }
+  wide: { width: 1920, height: 1080 },
 } as const;
 
 /**
  * Common viewport sizes for testing
  */
 export const COMMON_VIEWPORTS = [
-  { name: 'iPhone SE', width: 375, height: 667 },
-  { name: 'iPhone 12', width: 390, height: 844 },
-  { name: 'iPad', width: 768, height: 1024 },
-  { name: 'iPad Pro', width: 1024, height: 1366 },
-  { name: 'Desktop', width: 1280, height: 720 },
-  { name: 'Large Desktop', width: 1920, height: 1080 }
+  { name: "iPhone SE", width: 375, height: 667 },
+  { name: "iPhone 12", width: 390, height: 844 },
+  { name: "iPad", width: 768, height: 1024 },
+  { name: "iPad Pro", width: 1024, height: 1366 },
+  { name: "Desktop", width: 1280, height: 720 },
+  { name: "Large Desktop", width: 1920, height: 1080 },
 ] as const;
 
 /**
@@ -61,28 +61,34 @@ export function prepareComponentForVisualTest(wrapper: VueWrapper): void {
   const element = wrapper.element as HTMLElement;
 
   // Hide or replace dynamic content
-  const dynamicElements = Array.from(element.querySelectorAll('[data-dynamic]'));
+  const dynamicElements = Array.from(
+    element.querySelectorAll("[data-dynamic]"),
+  );
   dynamicElements.forEach((el: Element): void => {
-    (el as HTMLElement).style.visibility = 'hidden';
+    (el as HTMLElement).style.visibility = "hidden";
   });
 
   // Replace timestamps with fixed values
-  const timeElements = Array.from(element.querySelectorAll('[data-timestamp]'));
+  const timeElements = Array.from(element.querySelectorAll("[data-timestamp]"));
   timeElements.forEach((el: Element): void => {
-    el.textContent = '2025-01-01 12:00:00';
+    el.textContent = "2025-01-01 12:00:00";
   });
 
   // Hide loading indicators
-  const loadingElements = Array.from(element.querySelectorAll('.loading, .spinner, [data-loading]'));
+  const loadingElements = Array.from(
+    element.querySelectorAll(".loading, .spinner, [data-loading]"),
+  );
   loadingElements.forEach((el: Element): void => {
-    (el as HTMLElement).style.display = 'none';
+    (el as HTMLElement).style.display = "none";
   });
 
   // Stabilize animations
-  const animatedElements = Array.from(element.querySelectorAll('[data-animate]'));
+  const animatedElements = Array.from(
+    element.querySelectorAll("[data-animate]"),
+  );
   animatedElements.forEach((el: Element): void => {
-    (el as HTMLElement).style.animation = 'none';
-    (el as HTMLElement).style.transition = 'none';
+    (el as HTMLElement).style.animation = "none";
+    (el as HTMLElement).style.transition = "none";
   });
 }
 
@@ -90,7 +96,7 @@ export function prepareComponentForVisualTest(wrapper: VueWrapper): void {
  * Apply visual test styles to prevent flaky tests
  */
 export function applyVisualTestStyles(element: HTMLElement): void {
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     /* Disable animations and transitions */
     *, *::before, *::after {
@@ -120,7 +126,7 @@ export function applyVisualTestStyles(element: HTMLElement): void {
       content: "STABLE_CONTENT" !important;
     }
   `;
-  
+
   element.ownerDocument.head.appendChild(style);
 }
 
@@ -129,25 +135,25 @@ export function applyVisualTestStyles(element: HTMLElement): void {
  */
 export const VISUAL_TEST_DATA = {
   user: {
-    name: 'Test User',
-    email: 'test@example.com',
-    avatar: 'https://via.placeholder.com/40x40/007bff/ffffff?text=TU'
+    name: "Test User",
+    email: "test@example.com",
+    avatar: "https://via.placeholder.com/40x40/007bff/ffffff?text=TU",
   },
   vulnerabilities: Array.from({ length: 5 }, (_, i) => ({
     id: `vuln-${i + 1}`,
     title: `Test Vulnerability ${i + 1}`,
-    severity: ['critical', 'high', 'medium', 'low'][i % 4],
+    severity: ["critical", "high", "medium", "low"][i % 4],
     package: `test-package-${i + 1}`,
-    version: '1.0.0',
-    description: 'This is a test vulnerability for visual testing purposes.'
+    version: "1.0.0",
+    description: "This is a test vulnerability for visual testing purposes.",
   })),
   projects: Array.from({ length: 3 }, (_, i) => ({
     id: `project-${i + 1}`,
     name: `Test Project ${i + 1}`,
-    language: ['JavaScript', 'TypeScript', 'Python'][i],
+    language: ["JavaScript", "TypeScript", "Python"][i],
     vulnerabilities: (i + 1) * 5,
-    lastScan: '2025-01-01T12:00:00Z'
-  }))
+    lastScan: "2025-01-01T12:00:00Z",
+  })),
 };
 
 /**
@@ -155,15 +161,15 @@ export const VISUAL_TEST_DATA = {
  */
 export async function waitForVisualStability(
   wrapper: VueWrapper,
-  timeout = 2000
+  timeout = 2000,
 ): Promise<void> {
   const startTime = Date.now();
-  
+
   return new Promise<void>((resolve, reject) => {
     const checkStability = (): void => {
       const element = wrapper.element as HTMLElement;
       const loadingElements = Array.from(
-        element.querySelectorAll('.loading, .spinner, [data-loading="true"]')
+        element.querySelectorAll('.loading, .spinner, [data-loading="true"]'),
       );
 
       if (loadingElements.length === 0) {
@@ -172,7 +178,9 @@ export async function waitForVisualStability(
       }
 
       if (Date.now() - startTime > timeout) {
-        reject(new Error('Component did not become visually stable within timeout'));
+        reject(
+          new Error("Component did not become visually stable within timeout"),
+        );
         return;
       }
 
@@ -192,14 +200,16 @@ export function createResponsiveVisualTest(
   scenarios: {
     name: string;
     setup?: (wrapper: VueWrapper) => void | Promise<void>;
-  }[]
+  }[],
 ): {
-  run: () => Promise<{
-    breakpoint: string;
-    scenario: string;
-    success: boolean;
-    error?: string;
-  }[]>;
+  run: () => Promise<
+    {
+      breakpoint: string;
+      scenario: string;
+      success: boolean;
+      error?: string;
+    }[]
+  >;
 } {
   return {
     run: async () => {
@@ -214,48 +224,49 @@ export function createResponsiveVisualTest(
         for (const scenario of scenarios) {
           try {
             const wrapper = renderComponent();
-            
+
             // Apply breakpoint styles
-            const { width, height } = VISUAL_BREAKPOINTS[breakpoint as keyof typeof VISUAL_BREAKPOINTS];
+            const { width, height } =
+              VISUAL_BREAKPOINTS[breakpoint as keyof typeof VISUAL_BREAKPOINTS];
             const element = wrapper.element as HTMLElement;
             element.style.width = `${width}px`;
             element.style.height = `${height}px`;
-            
+
             // Run scenario setup
             if (scenario.setup) {
               await scenario.setup(wrapper);
             }
-            
+
             // Prepare for visual testing
             prepareComponentForVisualTest(wrapper);
             applyVisualTestStyles(wrapper.element as HTMLElement);
 
             // Wait for stability
             await waitForVisualStability(wrapper);
-            
+
             // In a real implementation, you would take a screenshot here
             // and compare it against a baseline image
-            
+
             results.push({
               breakpoint,
               scenario: scenario.name,
-              success: true
+              success: true,
             });
-            
+
             wrapper.unmount();
           } catch (error) {
             results.push({
               breakpoint,
               scenario: scenario.name,
               success: false,
-              error: error instanceof Error ? error.message : 'Unknown error'
+              error: error instanceof Error ? error.message : "Unknown error",
             });
           }
         }
       }
-      
+
       return results;
-    }
+    },
   };
 }
 
@@ -263,29 +274,29 @@ export function createResponsiveVisualTest(
  * Performance-aware visual testing
  */
 export async function measureVisualRenderTime(
-  renderComponent: () => VueWrapper
+  renderComponent: () => VueWrapper,
 ): Promise<{
   renderTime: number;
   stabilityTime: number;
   totalTime: number;
 }> {
   const startTime = performance.now();
-  
+
   const wrapper = renderComponent();
   const renderTime = performance.now() - startTime;
-  
+
   const stabilityStart = performance.now();
   await waitForVisualStability(wrapper);
   const stabilityTime = performance.now() - stabilityStart;
-  
+
   const totalTime = performance.now() - startTime;
-  
+
   wrapper.unmount();
-  
+
   return {
     renderTime,
     stabilityTime,
-    totalTime
+    totalTime,
   };
 }
 
@@ -319,76 +330,86 @@ export class VisualTestReporter {
       failed: number;
       successRate: number;
     };
-    byComponent: Record<string, {
-      total: number;
-      passed: number;
-      failed: number;
-    }>;
+    byComponent: Record<
+      string,
+      {
+        total: number;
+        passed: number;
+        failed: number;
+      }
+    >;
     failures: VisualTestResult[];
     slowests: VisualTestResult[];
   } {
     const total = this.results.length;
-    const passed = this.results.filter(r => r.passed).length;
+    const passed = this.results.filter((r) => r.passed).length;
     const failed = total - passed;
-    
-    const byComponent = this.results.reduce((acc, result) => {
-      acc[result.component] ??= { total: 0, passed: 0, failed: 0 };
-      const componentStats = acc[result.component]!;
-      componentStats.total++;
-      if (result.passed) {
-        componentStats.passed++;
-      } else {
-        componentStats.failed++;
-      }
-      return acc;
-    }, {} as Record<string, { total: number; passed: number; failed: number }>);
-    
-    const failures = this.results.filter(r => !r.passed);
+
+    const byComponent = this.results.reduce(
+      (acc, result) => {
+        acc[result.component] ??= { total: 0, passed: 0, failed: 0 };
+        const componentStats = acc[result.component]!;
+        componentStats.total++;
+        if (result.passed) {
+          componentStats.passed++;
+        } else {
+          componentStats.failed++;
+        }
+        return acc;
+      },
+      {} as Record<string, { total: number; passed: number; failed: number }>,
+    );
+
+    const failures = this.results.filter((r) => !r.passed);
     const slowests = this.results
-      .filter(r => r.renderTime !== undefined)
+      .filter((r) => r.renderTime !== undefined)
       .sort((a, b) => (b.renderTime ?? 0) - (a.renderTime ?? 0))
       .slice(0, 10);
-    
+
     return {
       summary: {
         total,
         passed,
         failed,
-        successRate: total > 0 ? (passed / total) * 100 : 0
+        successRate: total > 0 ? (passed / total) * 100 : 0,
       },
       byComponent,
       failures,
-      slowests
+      slowests,
     };
   }
 
   printReport(): void {
     const report = this.generateReport();
 
-    console.warn('\n📸 Visual Test Report');
-    console.warn('='.repeat(50));
+    console.warn("\n📸 Visual Test Report");
+    console.warn("=".repeat(50));
     console.warn(`Total Tests: ${report.summary.total}`);
     console.warn(`Passed: ${report.summary.passed}`);
     console.warn(`Failed: ${report.summary.failed}`);
     console.warn(`Success Rate: ${report.summary.successRate.toFixed(1)}%`);
 
     if (report.failures.length > 0) {
-      console.warn('\n❌ Failures:');
+      console.warn("\n❌ Failures:");
       report.failures.forEach((failure: VisualTestResult): void => {
-        console.warn(`  ${failure.component} - ${failure.scenario} (${failure.breakpoint}): ${failure.error}`);
+        console.warn(
+          `  ${failure.component} - ${failure.scenario} (${failure.breakpoint}): ${failure.error}`,
+        );
       });
     }
 
     if (report.slowests.length > 0) {
-      console.warn('\n🐌 Slowest Renders:');
+      console.warn("\n🐌 Slowest Renders:");
       report.slowests.forEach((slow: VisualTestResult): void => {
-        console.warn(`  ${slow.component} - ${slow.scenario}: ${slow.renderTime}ms`);
+        console.warn(
+          `  ${slow.component} - ${slow.scenario}: ${slow.renderTime}ms`,
+        );
       });
     }
 
-    console.warn('\n📊 By Component:');
+    console.warn("\n📊 By Component:");
     Object.entries(report.byComponent).forEach(([component, stats]): void => {
-      const rate = (stats.passed / stats.total * 100).toFixed(1);
+      const rate = ((stats.passed / stats.total) * 100).toFixed(1);
       console.warn(`  ${component}: ${stats.passed}/${stats.total} (${rate}%)`);
     });
   }
@@ -399,38 +420,38 @@ export class VisualTestReporter {
  */
 export const THEME_VARIATIONS = {
   light: {
-    name: 'Light Theme',
-    class: 'theme-light',
+    name: "Light Theme",
+    class: "theme-light",
     css: `
       :root {
         --bg-primary: #ffffff;
         --text-primary: #000000;
         --border-color: #e5e7eb;
       }
-    `
+    `,
   },
   dark: {
-    name: 'Dark Theme',
-    class: 'theme-dark',
+    name: "Dark Theme",
+    class: "theme-dark",
     css: `
       :root {
         --bg-primary: #1f2937;
         --text-primary: #ffffff;
         --border-color: #374151;
       }
-    `
+    `,
   },
   highContrast: {
-    name: 'High Contrast',
-    class: 'theme-high-contrast',
+    name: "High Contrast",
+    class: "theme-high-contrast",
     css: `
       :root {
         --bg-primary: #000000;
         --text-primary: #ffffff;
         --border-color: #ffffff;
       }
-    `
-  }
+    `,
+  },
 } as const;
 
 /**
@@ -438,7 +459,7 @@ export const THEME_VARIATIONS = {
  */
 export function applyTheme(
   element: HTMLElement,
-  theme: keyof typeof THEME_VARIATIONS
+  theme: keyof typeof THEME_VARIATIONS,
 ): void {
   const themeConfig = THEME_VARIATIONS[theme];
 
@@ -446,7 +467,7 @@ export function applyTheme(
   element.classList.add(themeConfig.class);
 
   // Add theme CSS
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = themeConfig.css;
   element.ownerDocument.head.appendChild(style);
 }
@@ -456,15 +477,18 @@ export function applyTheme(
  */
 export const BROWSER_CONFIGS = {
   chrome: {
-    name: 'Chrome',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    name: "Chrome",
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   },
   firefox: {
-    name: 'Firefox',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0'
+    name: "Firefox",
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0",
   },
   safari: {
-    name: 'Safari',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
-  }
+    name: "Safari",
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+  },
 } as const;

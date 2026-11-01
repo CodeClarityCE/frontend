@@ -1,0 +1,35 @@
+# This file is bind-mounted into the frontend-dev container at /app/pnpm-workspace.yaml
+# so the container's standalone `pnpm install` reads these settings (allowBuilds
+# verdicts + minimumReleaseAge override) WITHOUT polluting the host's frontend/ root
+# (which would make pnpm treat frontend/ as a sub-workspace and fight the root workspace).
+#
+# Mount declaration lives in frontend/.cloud/docker/docker-compose.yaml:
+#   - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+
+# Cooling-off window before a freshly published version may be resolved, in
+# minutes. 4320 is 3 days. Mirrors the root pnpm-workspace.yaml; the root
+# file, this file and api/.cloud/docker/pnpm-workspace.yaml must move together
+# (Jenkins and the image builds stage this file, so it is the only copy they read).
+minimumReleaseAge: 4320
+
+# Disable pnpm's pre-run dependency check. Under CI=true (Jenkins) the implicit
+# re-install it triggers does not honor allowBuilds and fails with
+# ERR_PNPM_IGNORED_BUILDS. Mirrors the root pnpm-workspace.yaml.
+verifyDepsBeforeRun: false
+
+# Mirror the root workspace's allowBuilds verdicts so lifecycle scripts
+# (esbuild binary download, @parcel/watcher native build, etc.) run for the right packages.
+allowBuilds:
+  bcrypt: true
+  "@swc/core": true
+  esbuild: true
+  "@parcel/watcher": true
+  unrs-resolver: true
+  msw: true
+  vue-demi: true
+  "@nestjs/core": false
+  "@percy/core": false
+  "@scarf/scarf": false
+  # transitive under the already-blocked @percy/core; its postinstall only
+  # prints version-scheme warnings, so nothing needs it to run
+  protobufjs: false

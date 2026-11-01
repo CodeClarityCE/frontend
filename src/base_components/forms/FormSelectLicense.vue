@@ -16,7 +16,9 @@ const search = ref("");
 const licenseList = ref(new Set<License>());
 const licensesRef = toRef(props, "licenses");
 
-const data = defineModel<Set<string>>("data", { default: new Set<string>() });
+const data = defineModel<Set<string>>("data", {
+  default: () => new Set<string>(),
+});
 
 watch([search, licensesRef], () => {
   updateList();

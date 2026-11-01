@@ -1,6 +1,6 @@
-import { config, type VueWrapper } from '@vue/test-utils'
-import { vi } from 'vitest'
-import type { ComponentPublicInstance, Plugin } from 'vue'
+import { config, type VueWrapper } from "@vue/test-utils";
+import { vi } from "vitest";
+import type { ComponentPublicInstance, Plugin } from "vue";
 
 // Mock Pinia plugin type - use intersection with Plugin to satisfy both requirements
 type MockPinia = Plugin & {
@@ -11,10 +11,10 @@ type MockPinia = Plugin & {
   _e: unknown;
   _s: Map<string, unknown>;
   use: ReturnType<typeof vi.fn>;
-}
+};
 
 // Create a singleton pinia mock instance
-let piniaInstance: MockPinia | null = null
+let piniaInstance: MockPinia | null = null;
 
 export function getPiniaMock(): MockPinia {
   piniaInstance ??= {
@@ -25,8 +25,8 @@ export function getPiniaMock(): MockPinia {
     _e: null,
     _s: new Map(),
     use: vi.fn(),
-  } as MockPinia
-  return piniaInstance
+  } as MockPinia;
+  return piniaInstance;
 }
 
 // Reset pinia instance between tests
@@ -42,79 +42,92 @@ export function resetPiniaMock(): void {
 // Setup global test configuration
 export function setupGlobalTestConfig(): { pinia: MockPinia } {
   // Clear any existing plugins to prevent duplicates
-  config.global.plugins = []
+  config.global.plugins = [];
 
   // Add pinia mock
-  const pinia = getPiniaMock()
-  config.global.plugins.push(pinia as Plugin)
+  const pinia = getPiniaMock();
+  config.global.plugins.push(pinia as Plugin);
 
   // Return the pinia instance for use in tests
-  return { pinia }
+  return { pinia };
 }
 
 // Helper to mount components with proper setup
 export function mountWithSetup<T extends ComponentPublicInstance>(
-  component: Parameters<typeof import('@vue/test-utils').mount>[0],
-  options: Record<string, unknown> = {}
+  component: Parameters<typeof import("@vue/test-utils").mount>[0],
+  options: Record<string, unknown> = {},
 ): {
   wrapper: VueWrapper<T> | null;
   pinia: MockPinia;
   mount(mountOptions?: Record<string, unknown>): Promise<VueWrapper<T>>;
 } {
-  const { pinia } = setupGlobalTestConfig()
+  const { pinia } = setupGlobalTestConfig();
 
   return {
     wrapper: null,
     pinia,
-    async mount(mountOptions: Record<string, unknown> = {}): Promise<VueWrapper<T>> {
+    async mount(
+      mountOptions: Record<string, unknown> = {},
+    ): Promise<VueWrapper<T>> {
       // Merge options
-      const globalOptions = options.global as Record<string, unknown> | undefined
-      const mountGlobalOptions = mountOptions.global as Record<string, unknown> | undefined
+      const globalOptions = options.global as
+        | Record<string, unknown>
+        | undefined;
+      const mountGlobalOptions = mountOptions.global as
+        | Record<string, unknown>
+        | undefined;
       const finalOptions = {
         ...options,
         ...mountOptions,
         global: {
           ...globalOptions,
           ...mountGlobalOptions,
-          plugins: [pinia as Plugin, ...((mountGlobalOptions?.plugins as Plugin[]) ?? [])]
-        }
-      }
+          plugins: [
+            pinia as Plugin,
+            ...((mountGlobalOptions?.plugins as Plugin[]) ?? []),
+          ],
+        },
+      };
 
       // Import mount function
-      const { mount } = await import('@vue/test-utils')
-      this.wrapper = mount(component, finalOptions) as VueWrapper<T>
-      return this.wrapper
-    }
-  }
+      const { mount } = await import("@vue/test-utils");
+      this.wrapper = mount(component, finalOptions) as VueWrapper<T>;
+      return this.wrapper;
+    },
+  };
 }
 
 // Common store mocks
 export const mockStores = {
   user: {
-    getDefaultOrg: { id: 'test-org-id', name: 'Test Org' },
-    getUser: { id: 'test-user-id', email: 'test@example.com', name: 'Test User' },
-    getOrganizations: [{ id: 'test-org-id', name: 'Test Org' }],
+    getDefaultOrg: { id: "test-org-id", name: "Test Org" },
+    getUser: {
+      id: "test-user-id",
+      email: "test@example.com",
+      name: "Test User",
+    },
+    getOrganizations: [{ id: "test-org-id", name: "Test Org" }],
     setUser: vi.fn(),
     setDefaultOrg: vi.fn(),
     setOrganizations: vi.fn(),
     $reset: vi.fn(),
-    $patch: vi.fn()
+    $patch: vi.fn(),
   },
   auth: {
     initialized: true,
-    token: 'test-token',
+    token: "test-token",
     tokenExpiry: new Date(Date.now() + 3600000),
-    refreshToken: 'test-refresh-token',
+    refreshToken: "test-refresh-token",
     refreshTokenExpiry: new Date(Date.now() + 7200000),
     authenticated: true,
-    socialAuthState: 'test-social-state',
-    getToken: 'test-token',
-    getRefreshToken: 'test-refresh-token',
+    socialAuthState: "test-social-state",
+    getToken: "test-token",
+    getRefreshToken: "test-refresh-token",
     getTokenExpiry: new Date(Date.now() + 3600000),
     getRefreshTokenExpiry: new Date(Date.now() + 7200000),
     getAuthenticated: true,
     getInitialized: true,
-    getSocialAuthState: 'test-social-state',
+    getSocialAuthState: "test-social-state",
     setToken: vi.fn(),
     setRefreshToken: vi.fn(),
     setTokenExpiry: vi.fn(),
@@ -123,17 +136,19 @@ export const mockStores = {
     setInitialized: vi.fn(),
     setSocialAuthState: vi.fn(),
     $reset: vi.fn(),
-    $patch: vi.fn()
+    $patch: vi.fn(),
   },
   state: {
     $reset: vi.fn(),
-    page: 'test-page',
+    page: "test-page",
     loading: false,
-    error: null
-  }
-}
+    error: null,
+  },
+};
 
 // Mock store factory
-export function createStoreMock(storeName: keyof typeof mockStores): ReturnType<typeof vi.fn> {
-  return vi.fn(() => mockStores[storeName]) as ReturnType<typeof vi.fn>
+export function createStoreMock(
+  storeName: keyof typeof mockStores,
+): ReturnType<typeof vi.fn> {
+  return vi.fn(() => mockStores[storeName]) as ReturnType<typeof vi.fn>;
 }

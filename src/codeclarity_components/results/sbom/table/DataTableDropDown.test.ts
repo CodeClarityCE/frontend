@@ -26,8 +26,10 @@ class MockURLSearchParams {
     return this.params.get(key) ?? null;
   }
 }
-global.URLSearchParams =
-  MockURLSearchParams as unknown as typeof URLSearchParams;
+Object.defineProperty(global, "URLSearchParams", {
+  value: MockURLSearchParams,
+  writable: true,
+});
 
 // Mock window.location
 Object.defineProperty(window, "location", {
@@ -78,8 +80,8 @@ vi.mock("@/shadcn/ui/button", () => ({
   },
 }));
 
-// Mock lucide-vue-next
-vi.mock("lucide-vue-next", () => ({
+// Mock @lucide/vue
+vi.mock("@lucide/vue", () => ({
   MoreHorizontal: {
     name: "MoreHorizontal",
     template: '<span data-testid="more-horizontal-icon"></span>',

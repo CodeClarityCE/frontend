@@ -4,7 +4,7 @@
   "exclude": ["src/shadcn/ui/command/Command.vue"],
   "compilerOptions": {
     "composite": true,
-    "lib": [],
+    "lib": ["ES2022"],
     "types": ["node", "jsdom", "vitest"]
   }
 }

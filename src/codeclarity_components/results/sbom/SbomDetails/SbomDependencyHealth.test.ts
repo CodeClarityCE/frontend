@@ -61,7 +61,7 @@ describe.skip("SbomDependencyHealth.vue", () => {
       },
       transitive: false,
       ...overrides,
-    } as DependencyDetails;
+    };
   };
 
   const createWrapper = (dependency = createMockDependency()) => {

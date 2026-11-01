@@ -50,6 +50,20 @@ const state = useStateStore();
       ></div>
     </RouterLink>
     <RouterLink
+      :to="{ name: 'datasets', params: {}, query: {} }"
+      class="text-sm font-medium transition-all duration-200 hover:text-gray-900 relative py-2"
+      :class="{
+        'text-gray-900 font-semibold': state.page === 'datasets',
+        'text-gray-600': state.page !== 'datasets',
+      }"
+    >
+      Datasets
+      <div
+        v-if="state.page === 'datasets'"
+        class="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full"
+      ></div>
+    </RouterLink>
+    <RouterLink
       v-if="state.page === 'results'"
       :to="{ name: 'results', params: {}, query: {} }"
       class="text-sm font-medium transition-all duration-200 hover:text-gray-900 relative py-2"

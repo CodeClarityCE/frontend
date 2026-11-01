@@ -20,6 +20,7 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import GithubImportComponent from "./import/GithubImportComponent.vue";
 import GitlabImportComponent from "./import/GitlabImportComponent.vue";
 import LocalUploadComponent from "./import/LocalUploadComponent.vue";
+import PopularGithubImportComponent from "./import/PopularGithubImportComponent.vue";
 import Integrations from "./integrations/IntegrationsComponent.vue";
 import NoIntegration from "./integrations/NoIntegration.vue";
 
@@ -46,6 +47,8 @@ const errorCode: Ref<string | undefined> = ref();
 const loading: Ref<boolean> = ref(true);
 const selectedVCS: Ref<VCS | undefined> = ref();
 const showLocalUpload: Ref<boolean> = ref(false);
+/** True when the selected GitHub VCS serves the "Popular on GitHub" list. */
+const popularGithub: Ref<boolean> = ref(false);
 
 // Data setup
 const vcsIntegrations: Ref<VCS[]> = ref([]);
@@ -86,6 +89,12 @@ async function onIntegrationsRefresh(): Promise<void> {
 
 async function onSelectedVCS(vcs: VCS): Promise<void> {
   selectedVCS.value = vcs;
+  popularGithub.value = false;
+}
+
+function onPopularGithub(vcs: VCS): void {
+  selectedVCS.value = vcs;
+  popularGithub.value = true;
 }
 
 function onLocalUpload(): void {
@@ -95,6 +104,7 @@ function onLocalUpload(): void {
 function goBackToSelection(): void {
   selectedVCS.value = undefined;
   showLocalUpload.value = false;
+  popularGithub.value = false;
 }
 
 void fetchVcsIntegrations();
@@ -206,6 +216,7 @@ void fetchVcsIntegrations();
               :vcs-integrations="vcsIntegrations"
               @on-selected-v-c-s="onSelectedVCS"
               @on-local-upload="onLocalUpload"
+              @on-popular-github="onPopularGithub"
             />
           </InfoCard>
         </div>
@@ -222,9 +233,13 @@ void fetchVcsIntegrations();
         </button>
         <!-- Integration Info -->
         <InfoCard
-          title="Repository Import"
-          description="Browse and select repositories to import for security analysis"
-          icon="solar:folder-bold"
+          :title="popularGithub ? 'Popular on GitHub' : 'Repository Import'"
+          :description="
+            popularGithub
+              ? 'The most-starred public repositories, imported through your GitHub integration'
+              : 'Browse and select repositories to import for security analysis'
+          "
+          :icon="popularGithub ? 'solar:star-bold' : 'solar:folder-bold'"
           variant="primary"
         >
           <div
@@ -232,7 +247,12 @@ void fetchVcsIntegrations();
           >
             <div class="p-2 bg-theme-primary/10 rounded-lg">
               <Icon
-                v-if="
+                v-if="popularGithub"
+                icon="solar:star-bold"
+                class="h-6 w-6 text-theme-black"
+              />
+              <Icon
+                v-else-if="
                   selectedVCS.integration_provider ===
                   IntegrationProvider.GITHUB
                 "
@@ -250,10 +270,18 @@ void fetchVcsIntegrations();
             </div>
             <div class="flex-1">
               <h4 class="font-semibold text-theme-black">
-                {{ selectedVCS.integration_provider }}
+                {{
+                  popularGithub
+                    ? "Popular on GitHub"
+                    : selectedVCS.integration_provider
+                }}
               </h4>
               <p class="text-sm text-theme-gray">
-                Connected and ready to import
+                {{
+                  popularGithub
+                    ? "Top 100 by stars among JavaScript, TypeScript and PHP repositories"
+                    : "Connected and ready to import"
+                }}
               </p>
             </div>
             <div
@@ -265,12 +293,20 @@ void fetchVcsIntegrations();
         </InfoCard>
 
         <!-- Repository Import Component -->
+        <PopularGithubImportComponent
+          v-if="popularGithub"
+          :integration="selectedVCS.id"
+        />
         <GithubImportComponent
-          v-if="selectedVCS.integration_provider === IntegrationProvider.GITHUB"
+          v-else-if="
+            selectedVCS.integration_provider === IntegrationProvider.GITHUB
+          "
           :integration="selectedVCS.id"
         />
         <GitlabImportComponent
-          v-if="selectedVCS.integration_provider === IntegrationProvider.GITLAB"
+          v-else-if="
+            selectedVCS.integration_provider === IntegrationProvider.GITLAB
+          "
           :integration="selectedVCS.id"
         />
       </div>

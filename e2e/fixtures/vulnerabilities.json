@@ -21,7 +21,7 @@
       "fixed_version": "2.3.0"
     },
     {
-      "id": "vuln-002", 
+      "id": "vuln-002",
       "title": "XSS Vulnerability in React",
       "severity": "medium",
       "score": 6.1,

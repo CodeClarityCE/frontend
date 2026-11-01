@@ -14,6 +14,21 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import Input from "@/shadcn/ui/input/Input.vue";
+import { Progress } from "@/shadcn/ui/progress";
+import { runWithConcurrency } from "@/utils/concurrency";
+
+import RepoTable, { type RepoTableConfig } from "./components/RepoTable.vue";
+import { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
+
+export { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
+
+/**
+ * Drop a trailing ".git" from a repository url. Only the suffix: a name such
+ * as "octo.github.io" keeps its ".git".
+ */
+export function stripGitSuffix(url: string): string {
+  return url.replace(/\.git$/, "");
+}
 
 export interface GetReposOptions extends GetRepositoriesRequestOptions {
   forceRefresh: boolean;
@@ -29,20 +44,17 @@ export interface FailedProjectImport {
 import { Icon } from "@iconify/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
-import { type Ref, ref } from "vue";
+import { computed, type Ref, ref } from "vue";
 import * as z from "zod";
 
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import Faq from "./components/FaqComponent.vue";
 import ImportErrorTable from "./components/ImportErrorTable.vue";
-import RepoTable from "./components/RepoTable.vue";
 
 // Repositories
 const projectsRepo: ProjectRepository = new ProjectRepository();
@@ -56,6 +68,8 @@ const props = defineProps<{
   getRepos: (
     options: GetRepositoriesRequestOptions,
   ) => Promise<PaginatedResponse<Repository>>;
+  /** Presentation tweaks forwarded to the repository table. */
+  tableConfig?: RepoTableConfig;
 }>();
 
 // State
@@ -66,6 +80,25 @@ const repoTableRef: Ref<{
 const reposFailedToImportPage: Ref<number> = ref(0);
 const reposFailedToImport: Ref<Record<string, FailedProjectImport>> = ref({});
 const selectedRepos: Ref<Repository[]> = ref([]);
+const importing: Ref<boolean> = ref(false);
+const importProgress: Ref<{ done: number; total: number }> = ref({
+  done: 0,
+  total: 0,
+});
+// Stays visible for the whole run so the progress bar cannot disappear
+// mid-import, even if the selection changes meanwhile.
+const showImportCard = computed(
+  () =>
+    (importing.value || selectedRepos.value.length > 0) &&
+    Object.keys(reposFailedToImport.value).length === 0,
+);
+const importProgressPercent = computed(() =>
+  importProgress.value.total === 0
+    ? 0
+    : Math.round(
+        (importProgress.value.done / importProgress.value.total) * 100,
+      ),
+);
 
 const formSchema = z.object({
   repository: z.string().min(2).max(150),
@@ -79,11 +112,17 @@ const form = useForm<FormValues>({
 const onSubmit = form.handleSubmit(async (values) => {
   if (!userStore.getDefaultOrg) return;
   if (!authStore.getAuthenticated || !authStore.getToken) return;
-  await importProject(
-    userStore.getDefaultOrg.id,
-    authStore.getToken,
-    values.repository.replace(".git", ""),
-  );
+  try {
+    await importProject(
+      userStore.getDefaultOrg.id,
+      authStore.getToken,
+      stripGitSuffix(values.repository),
+    );
+  } catch (err) {
+    errorToast(getImportErrorMessage(err));
+    return;
+  }
+  void router.push({ name: "projects" });
 });
 
 // Methods
@@ -107,69 +146,52 @@ async function importProject(
     bearerToken: token,
     handleBusinessErrors: true,
   });
-
-  void router.push({ name: "projects" });
 }
 
 /**
- * Get error message from import error
- */
-function getImportErrorMessage(err: unknown): string {
-  if (!(err instanceof BusinessLogicError)) {
-    return "An error occured during the project import.";
-  }
-
-  if (err.error_code === APIErrors.AlreadyExists) {
-    return "Already imported";
-  }
-
-  if (
-    err.error_code === APIErrors.InternalError ||
-    err.error_code === APIErrors.EntityNotFound
-  ) {
-    return "An error occured during the project import.";
-  }
-
-  if (err.error_code === APIErrors.NotAuthorized) {
-    return "You do not have permission to import this repository";
-  }
-
-  return "An error occured during the project import.";
-}
-
-/**
- * Import the selected repos in bulk
+ * Import the selected repos in bulk, a few at a time, reporting progress.
+ * Navigates to the project list once when everything succeeded; otherwise
+ * stays on the page so the per-repository failures can be reviewed.
  */
 async function importProjectsBulk(): Promise<void> {
   if (!userStore.getDefaultOrg) return;
   if (!authStore.getAuthenticated || !authStore.getToken) return;
+  if (importing.value) return;
 
+  const orgId = userStore.getDefaultOrg.id;
+  const token = authStore.getToken;
+  const repos = [...selectedRepos.value];
   const _reposFailedToImport: Record<string, FailedProjectImport> = {};
   reposFailedToImport.value = {};
 
-  for (const repo of selectedRepos.value) {
-    try {
-      await importProject(
-        userStore.getDefaultOrg.id,
-        authStore.getToken,
-        repo.url,
-      );
-    } catch (err) {
-      const errorMessage = getImportErrorMessage(err);
-      _reposFailedToImport[repo.id] = {
-        repo: repo,
-        reason: errorMessage,
-      };
-    }
+  importing.value = true;
+  importProgress.value = { done: 0, total: repos.length };
+  try {
+    await runWithConcurrency(repos, IMPORT_CONCURRENCY, async (repo) => {
+      try {
+        await importProject(orgId, token, repo.url);
+      } catch (err) {
+        _reposFailedToImport[repo.id] = {
+          repo: repo,
+          reason: getImportErrorMessage(err),
+        };
+      } finally {
+        importProgress.value = {
+          ...importProgress.value,
+          done: importProgress.value.done + 1,
+        };
+      }
+    });
+  } finally {
+    importing.value = false;
   }
 
   reposFailedToImport.value = { ..._reposFailedToImport };
 
-  const nmbFailedImports = Object.keys(reposFailedToImport.value).length;
-  if (nmbFailedImports !== selectedRepos.value.length) {
-    successToast(
-      `Succesfully imported ${selectedRepos.value.length - nmbFailedImports} repositories`,
-    );
+  const nmbFailedImports = Object.keys(_reposFailedToImport).length;
+  const nmbImported = repos.length - nmbFailedImports;
+  if (nmbImported > 0) {
+    successToast(`Succesfully imported ${nmbImported} repositories`);
   }
   if (nmbFailedImports > 0) {
     void errorToast(`Failed to import ${nmbFailedImports} repositories`);
@@ -179,6 +201,11 @@ async function importProjectsBulk(): Promise<void> {
     repoTableRef.value.clearSelection();
   }
   selectedRepos.value = [];
+
+  if (nmbFailedImports === 0 && nmbImported > 0) {
+    void router.push({ name: "projects" });
+    return;
+  }
 
   void refreshRepos();
 }
@@ -222,6 +249,7 @@ function onSelectedReposChange(repos: Repository[]): void {
               variant="outline"
               size="sm"
               class="border-gray-300 text-gray-700 hover:border-theme-primary hover:text-theme-primary"
+              :disabled="importing"
               @click="forceRefreshRepos()"
             >
               <Icon icon="solar:refresh-bold" class="h-4 w-4 mr-2" />
@@ -232,6 +260,8 @@ function onSelectedReposChange(repos: Repository[]): void {
             ref="repoTableRef"
             :integration="integration"
             :get-repos="getRepos"
+            :config="tableConfig"
+            :disabled="importing"
             @on-selected-repos-change="onSelectedReposChange($event)"
           />
         </InfoCard>
@@ -279,12 +309,7 @@ function onSelectedReposChange(repos: Repository[]): void {
       </div>
 
       <!-- Bulk Import Action -->
-      <div
-        v-if="
-          (selectedRepos.length as number) > 0 &&
-          (Object.keys(reposFailedToImport).length as number) === 0
-        "
-      >
+      <div v-if="showImportCard">
         <InfoCard
           title="Ready to Import"
           description="You have selected repositories for import"
@@ -312,13 +337,30 @@ function onSelectedReposChange(repos: Repository[]): void {
                 Click the button below to start importing the selected
                 repositories for security analysis.
               </p>
+              <div v-if="importing" class="mb-4" data-testid="import-progress">
+                <div class="flex items-center justify-between text-sm mb-2">
+                  <span class="font-medium text-theme-black">
+                    Importing {{ importProgress.done }} /
+                    {{ importProgress.total }}
+                  </span>
+                  <span class="text-theme-gray">
+                    {{ importProgressPercent }}%
+                  </span>
+                </div>
+                <Progress :model-value="importProgressPercent" />
+              </div>
               <Button
                 class="bg-theme-primary hover:bg-theme-primary/90 text-white font-medium"
+                :disabled="importing"
+                data-testid="bulk-import-button"
                 @click="importProjectsBulk()"
               >
                 <Icon icon="solar:download-bold" class="w-4 h-4 mr-2" />
-                Import {{ selectedRepos.length }}
-                {{ selectedRepos.length === 1 ? "Project" : "Projects" }}
+                <template v-if="importing">Importing…</template>
+                <template v-else>
+                  Import {{ selectedRepos.length }}
+                  {{ selectedRepos.length === 1 ? "Project" : "Projects" }}
+                </template>
               </Button>
             </div>
           </div>

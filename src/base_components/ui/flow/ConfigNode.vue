@@ -93,7 +93,7 @@ const localValue = computed({
     const val = props.data.value;
     // Convert boolean to string for select element compatibility
     if (typeof val === "boolean") return String(val);
-    return val as string | number | readonly string[] | null | undefined;
+    return val;
   },
   set: (value: string | number | readonly string[] | null | undefined) => {
     let finalValue: ConfigValue = value as ConfigValue;

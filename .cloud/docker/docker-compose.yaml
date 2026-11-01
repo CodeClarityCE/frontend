@@ -7,22 +7,44 @@ services:
       target: frontend-dev
     image: codeclarityce/frontend-dev:latest
     restart: always
+    environment:
+      - PNPM_STORE_DIR=/pnpm/store
     volumes:
       - ../../frontend:/app:rw
+      # Container-managed node_modules. The repo root is a pnpm workspace, so a
+      # host `pnpm install` re-links frontend/node_modules into the repo-root
+      # .pnpm store (../../../node_modules/.pnpm) which doesn't exist inside
+      # /app. This anonymous volume shadows the host node_modules so the
+      # container does its own standalone install with valid local symlinks.
+      - /app/node_modules
+      - pnpm-store:/pnpm/store
+      # Per-container pnpm settings (allowBuilds + minimumReleaseAge=0).
+      # Kept OUT of frontend/ root so the host's workspace install isn't tricked
+      # into treating frontend/ as a standalone sub-workspace.
+      - ../../frontend/.cloud/docker/pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 200M
 
   caddy:
-    image: caddy:2.10.2-alpine
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
     env_file:
       - ../../.cloud/env/.env.dev
-    command: [ "caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile", "--watch" ]
+    command:
+      [
+        "caddy",
+        "run",
+        "--config",
+        "/etc/caddy/Caddyfile",
+        "--adapter",
+        "caddyfile",
+        "--watch",
+      ]
     restart: always
     volumes:
       - ../../frontend/.cloud/docker/conf/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
@@ -40,3 +62,7 @@ services:
       - target: 443
         published: ${HTTP3_PORT:-443}
         protocol: udp
+
+volumes:
+  pnpm-store:
+    external: true

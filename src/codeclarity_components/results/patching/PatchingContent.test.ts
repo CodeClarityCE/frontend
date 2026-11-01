@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PatchingStats } from "@/codeclarity_components/results/stats.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
 import { ResultsRepository } from "../results.repository";
 
@@ -207,7 +206,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     createWrapper();
 
@@ -259,7 +258,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -278,7 +277,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -295,7 +294,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -317,7 +316,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -358,7 +357,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -383,7 +382,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -400,7 +399,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -417,7 +416,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -438,7 +437,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -457,7 +456,7 @@ describe.skip("PatchingContent.vue", () => {
     const mockStats = createMockPatchingStats();
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -480,7 +479,7 @@ describe.skip("PatchingContent.vue", () => {
 
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 
@@ -497,7 +496,7 @@ describe.skip("PatchingContent.vue", () => {
 
     mockResultsRepository.getPatchesStat.mockResolvedValue({
       data: mockStats,
-    } as DataResponse<PatchingStats>);
+    });
 
     const wrapper = createWrapper();
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Rocket } from "lucide-vue-next";
+import { Rocket } from "@lucide/vue";
 import { type Ref, ref } from "vue";
 
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";

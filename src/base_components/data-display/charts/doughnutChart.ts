@@ -9,11 +9,7 @@ export interface DoughnutChartSlice {
 }
 
 export type VulnerabilityLabel =
-  | "Critical"
-  | "High"
-  | "Medium"
-  | "Low"
-  | "None";
+  "Critical" | "High" | "Medium" | "Low" | "None";
 
 export type DoughnutChartData = DoughnutChartSlice[];
 

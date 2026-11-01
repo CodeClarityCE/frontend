@@ -1,25 +1,25 @@
-import { mount } from '@vue/test-utils';
-import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
-import { nextTick } from 'vue';
+import { mount } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { nextTick } from "vue";
 
-import ConfirmRegistration from '@/codeclarity_components/authentication/email/ConfirmRegistration.vue';
-import router from '@/router';
+import ConfirmRegistration from "@/codeclarity_components/authentication/email/ConfirmRegistration.vue";
+import router from "@/router";
 
 const mockUserRepository = {
-  confirmRegistration: vi.fn()
+  confirmRegistration: vi.fn(),
 };
 
-vi.mock('@/codeclarity_components/authentication/user.repository', () => ({
-  UserRepository: vi.fn(() => mockUserRepository)
+vi.mock("@/codeclarity_components/authentication/user.repository", () => ({
+  UserRepository: vi.fn(() => mockUserRepository),
 }));
 
-vi.mock('@/router', () => ({
+vi.mock("@/router", () => ({
   default: {
-    push: vi.fn()
-  }
+    push: vi.fn(),
+  },
 }));
 
-describe.skip('ConfirmRegistration', () => {
+describe.skip("ConfirmRegistration", () => {
   let originalLocation: Location;
   let mockSetInterval: ReturnType<typeof vi.fn>;
   let mockClearInterval: ReturnType<typeof vi.fn>;
@@ -32,8 +32,8 @@ describe.skip('ConfirmRegistration', () => {
 
     delete (window as any).location;
     (window as any).location = {
-      href: 'https://example.com?token=test-token&userid=test-userid',
-      search: '?token=test-token&userid=test-userid'
+      href: "https://example.com?token=test-token&userid=test-userid",
+      search: "?token=test-token&userid=test-userid",
     };
 
     mockSetInterval = vi.fn((callback: () => void, _delay: number) => {
@@ -43,8 +43,8 @@ describe.skip('ConfirmRegistration', () => {
     });
     mockClearInterval = vi.fn();
 
-    vi.stubGlobal('setInterval', mockSetInterval);
-    vi.stubGlobal('clearInterval', mockClearInterval);
+    vi.stubGlobal("setInterval", mockSetInterval);
+    vi.stubGlobal("clearInterval", mockClearInterval);
   });
 
   afterEach(() => {
@@ -52,286 +52,318 @@ describe.skip('ConfirmRegistration', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Component Structure', () => {
-    it('should render the main container', async () => {
+  describe("Component Structure", () => {
+    it("should render the main container", async () => {
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const container = wrapper.find('.flex.flex-col.justify-center.items-center.my-20');
+
+      const container = wrapper.find(
+        ".flex.flex-col.justify-center.items-center.my-20",
+      );
       expect(container.exists()).toBe(true);
     });
 
-    it('should render the initial loading message', async () => {
+    it("should render the initial loading message", async () => {
       const wrapper = mount(ConfirmRegistration);
-      
-      const heading = wrapper.find('h1');
+
+      const heading = wrapper.find("h1");
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toContain('Confirming registration...');
+      expect(heading.text()).toContain("Confirming registration...");
     });
   });
 
-  describe('Successful Registration Confirmation', () => {
-    it('should call confirmRegistration with correct parameters', async () => {
+  describe("Successful Registration Confirmation", () => {
+    it("should call confirmRegistration with correct parameters", async () => {
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockUserRepository.confirmRegistration).toHaveBeenCalledWith({
-        userId: 'test-userid',
-        bearerToken: '',
+        userId: "test-userid",
+        bearerToken: "",
         data: {
-          token: 'test-token',
-          userIdHash: 'test-userid'
+          token: "test-token",
+          userIdHash: "test-userid",
         },
-        handleBusinessErrors: true
+        handleBusinessErrors: true,
       });
     });
 
-    it('should show success message after confirmation', async () => {
-      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
-        // Don't execute callback immediately for this test
-        return 1;
-      });
-      
+    it("should show success message after confirmation", async () => {
+      mockSetInterval.mockImplementation(
+        (_callback: () => void, _delay: number) => {
+          // Don't execute callback immediately for this test
+          return 1;
+        },
+      );
+
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const heading = wrapper.find('h1');
-      expect(heading.text()).toContain('Registration confirmed. Redirecting to login page in');
+
+      const heading = wrapper.find("h1");
+      expect(heading.text()).toContain(
+        "Registration confirmed. Redirecting to login page in",
+      );
     });
 
-    it('should start countdown timer after successful confirmation', async () => {
+    it("should start countdown timer after successful confirmation", async () => {
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 1000);
     });
 
-    it('should redirect to login page after countdown', async () => {
-      mockSetInterval.mockImplementation((callback: () => void, _delay: number) => {
-        // Simulate timer finishing
-        for (let i = 0; i < 5; i++) {
-          callback();
-        }
-        return 1;
-      });
-      
+    it("should redirect to login page after countdown", async () => {
+      mockSetInterval.mockImplementation(
+        (callback: () => void, _delay: number) => {
+          // Simulate timer finishing
+          for (let i = 0; i < 5; i++) {
+            callback();
+          }
+          return 1;
+        },
+      );
+
       mount(ConfirmRegistration);
       await nextTick();
-      
-      expect(router.push).toHaveBeenCalledWith({ name: 'login' });
+
+      expect(router.push).toHaveBeenCalledWith({ name: "login" });
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle registration confirmation error', async () => {
-      mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Confirmation failed'));
-      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
-        // Don't execute callback immediately for this test
-        return 1;
-      });
-      
+  describe("Error Handling", () => {
+    it("should handle registration confirmation error", async () => {
+      mockUserRepository.confirmRegistration.mockRejectedValue(
+        new Error("Confirmation failed"),
+      );
+      mockSetInterval.mockImplementation(
+        (_callback: () => void, _delay: number) => {
+          // Don't execute callback immediately for this test
+          return 1;
+        },
+      );
+
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const heading = wrapper.find('h1');
-      expect(heading.text()).toContain('Error confirming registration. Redirecting to login page in');
+
+      const heading = wrapper.find("h1");
+      expect(heading.text()).toContain(
+        "Error confirming registration. Redirecting to login page in",
+      );
     });
 
-    it('should start error countdown timer on error', async () => {
-      mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Confirmation failed'));
-      
+    it("should start error countdown timer on error", async () => {
+      mockUserRepository.confirmRegistration.mockRejectedValue(
+        new Error("Confirmation failed"),
+      );
+
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 1000);
     });
 
-    it('should redirect to login page after error countdown', async () => {
-      mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Confirmation failed'));
-      mockSetInterval.mockImplementation((callback: () => void, _delay: number) => {
-        // Simulate timer finishing
-        for (let i = 0; i < 5; i++) {
-          callback();
-        }
-        return 1;
-      });
-      
+    it("should redirect to login page after error countdown", async () => {
+      mockUserRepository.confirmRegistration.mockRejectedValue(
+        new Error("Confirmation failed"),
+      );
+      mockSetInterval.mockImplementation(
+        (callback: () => void, _delay: number) => {
+          // Simulate timer finishing
+          for (let i = 0; i < 5; i++) {
+            callback();
+          }
+          return 1;
+        },
+      );
+
       mount(ConfirmRegistration);
       await nextTick();
-      
-      expect(router.push).toHaveBeenCalledWith({ name: 'login' });
+
+      expect(router.push).toHaveBeenCalledWith({ name: "login" });
     });
 
-    it('should log error to console', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const error = new Error('Confirmation failed');
+    it("should log error to console", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      const error = new Error("Confirmation failed");
       mockUserRepository.confirmRegistration.mockRejectedValue(error);
-      
+
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(error);
-      
+
       consoleSpy.mockRestore();
     });
   });
 
-  describe('URL Parameter Handling', () => {
-    it('should handle missing token parameter', async () => {
+  describe("URL Parameter Handling", () => {
+    it("should handle missing token parameter", async () => {
       (window as any).location = {
-        href: 'https://example.com?userid=test-userid',
-        search: '?userid=test-userid'
+        href: "https://example.com?userid=test-userid",
+        search: "?userid=test-userid",
       };
 
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockUserRepository.confirmRegistration).toHaveBeenCalledWith({
-        userId: 'test-userid',
-        bearerToken: '',
+        userId: "test-userid",
+        bearerToken: "",
         data: {
-          token: '',
-          userIdHash: 'test-userid'
+          token: "",
+          userIdHash: "test-userid",
         },
-        handleBusinessErrors: true
+        handleBusinessErrors: true,
       });
     });
 
-    it('should handle missing userid parameter', async () => {
+    it("should handle missing userid parameter", async () => {
       (window as any).location = {
-        href: 'https://example.com?token=test-token',
-        search: '?token=test-token'
+        href: "https://example.com?token=test-token",
+        search: "?token=test-token",
       };
 
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockUserRepository.confirmRegistration).toHaveBeenCalledWith({
-        userId: '',
-        bearerToken: '',
+        userId: "",
+        bearerToken: "",
         data: {
-          token: 'test-token',
-          userIdHash: ''
+          token: "test-token",
+          userIdHash: "",
         },
-        handleBusinessErrors: true
+        handleBusinessErrors: true,
       });
     });
 
-    it('should handle empty URL parameters', async () => {
+    it("should handle empty URL parameters", async () => {
       (window as any).location = {
-        href: 'https://example.com',
-        search: ''
+        href: "https://example.com",
+        search: "",
       };
 
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockUserRepository.confirmRegistration).toHaveBeenCalledWith({
-        userId: '',
-        bearerToken: '',
+        userId: "",
+        bearerToken: "",
         data: {
-          token: '',
-          userIdHash: ''
+          token: "",
+          userIdHash: "",
         },
-        handleBusinessErrors: true
+        handleBusinessErrors: true,
       });
     });
   });
 
-  describe('Counter Display', () => {
-    it('should show counter in success state', async () => {
-      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
-        // Don't execute callback to keep counter active
-        return 1;
-      });
-      
+  describe("Counter Display", () => {
+    it("should show counter in success state", async () => {
+      mockSetInterval.mockImplementation(
+        (_callback: () => void, _delay: number) => {
+          // Don't execute callback to keep counter active
+          return 1;
+        },
+      );
+
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const heading = wrapper.find('h1');
+
+      const heading = wrapper.find("h1");
       expect(heading.text()).toMatch(/\(\d+\)/);
     });
 
-    it('should show counter in error state', async () => {
-      mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Error'));
-      mockSetInterval.mockImplementation((_callback: () => void, _delay: number) => {
-        // Don't execute callback to keep counter active
-        return 1;
-      });
-      
+    it("should show counter in error state", async () => {
+      mockUserRepository.confirmRegistration.mockRejectedValue(
+        new Error("Error"),
+      );
+      mockSetInterval.mockImplementation(
+        (_callback: () => void, _delay: number) => {
+          // Don't execute callback to keep counter active
+          return 1;
+        },
+      );
+
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const heading = wrapper.find('h1');
+
+      const heading = wrapper.find("h1");
       expect(heading.text()).toMatch(/\(\d+\)/);
     });
 
-    it('should hide counter when countdown reaches zero', async () => {
+    it("should hide counter when countdown reaches zero", async () => {
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
+
       // Verify setInterval was called
       expect(mockSetInterval).toHaveBeenCalled();
-      
+
       // Since the test setup already includes immediate execution logic,
       // we just verify that the component works correctly
       expect(wrapper.exists()).toBe(true);
     });
   });
 
-  describe('Timer Management', () => {
-    it('should clear interval when countdown reaches zero in success state', async () => {
+  describe("Timer Management", () => {
+    it("should clear interval when countdown reaches zero in success state", async () => {
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
+
       // Verify setInterval was called for success case
       expect(mockSetInterval).toHaveBeenCalled();
       expect(wrapper.exists()).toBe(true);
     });
 
-    it('should clear interval when countdown reaches zero in error state', async () => {
-      mockUserRepository.confirmRegistration.mockRejectedValue(new Error('Error'));
-      
+    it("should clear interval when countdown reaches zero in error state", async () => {
+      mockUserRepository.confirmRegistration.mockRejectedValue(
+        new Error("Error"),
+      );
+
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
+
       // Verify setInterval was called for error case
       expect(mockSetInterval).toHaveBeenCalled();
       expect(wrapper.exists()).toBe(true);
     });
   });
 
-  describe('Component Lifecycle', () => {
-    it('should initialize automatically on mount', async () => {
+  describe("Component Lifecycle", () => {
+    it("should initialize automatically on mount", async () => {
       mount(ConfirmRegistration);
       await nextTick();
-      
+
       expect(mockUserRepository.confirmRegistration).toHaveBeenCalled();
     });
 
-    it('should handle component unmounting gracefully', () => {
+    it("should handle component unmounting gracefully", () => {
       const wrapper = mount(ConfirmRegistration);
-      
+
       expect(() => wrapper.unmount()).not.toThrow();
     });
   });
 
-  describe('Accessibility', () => {
-    it('should have proper heading structure', async () => {
+  describe("Accessibility", () => {
+    it("should have proper heading structure", async () => {
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const heading = wrapper.find('h1');
+
+      const heading = wrapper.find("h1");
       expect(heading.exists()).toBe(true);
     });
 
-    it('should provide clear status messages', async () => {
+    it("should provide clear status messages", async () => {
       const wrapper = mount(ConfirmRegistration);
       await nextTick();
-      
-      const heading = wrapper.find('h1');
+
+      const heading = wrapper.find("h1");
       const text = heading.text();
-      expect(text).toMatch(/(Confirming registration|Registration confirmed|Error confirming registration)/);
+      expect(text).toMatch(
+        /(Confirming registration|Registration confirmed|Error confirming registration)/,
+      );
     });
   });
 });

@@ -74,6 +74,14 @@ vi.mock("./import/GitlabImportComponent.vue", () => ({
   },
 }));
 
+vi.mock("./import/PopularGithubImportComponent.vue", () => ({
+  default: {
+    name: "PopularGithubImportComponent",
+    template: '<div data-testid="popular-github-import">Popular Import</div>',
+    props: ["integration"],
+  },
+}));
+
 vi.mock("./integrations/NoIntegration.vue", () => ({
   default: {
     name: "NoIntegration",
@@ -88,7 +96,7 @@ vi.mock("./integrations/IntegrationsComponent.vue", () => ({
     name: "IntegrationsComponent",
     template: '<div data-testid="integrations">Integrations</div>',
     props: ["vcsIntegrations"],
-    emits: ["onSelectedVCS"],
+    emits: ["onSelectedVCS", "onLocalUpload", "onPopularGithub"],
   },
 }));
 

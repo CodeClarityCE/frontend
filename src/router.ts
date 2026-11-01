@@ -10,6 +10,7 @@ import PasswordResetRequestView from "@/codeclarity_components/authentication/pa
 import LoginView from "@/codeclarity_components/authentication/signin/LoginView.vue";
 import SignupView from "@/codeclarity_components/authentication/signup/SignupView.vue";
 import DashboardView from "@/codeclarity_components/dashboard/DashboardView.vue";
+import DatasetsView from "@/codeclarity_components/datasets/DatasetsView.vue";
 import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
@@ -182,6 +183,12 @@ const router = createRouter({
       path: "/tickets/:page?",
       name: "tickets",
       component: TicketsView as Component,
+      props: true,
+    },
+    {
+      path: "/datasets/:page?",
+      name: "datasets",
+      component: DatasetsView as Component,
       props: true,
     },
     {

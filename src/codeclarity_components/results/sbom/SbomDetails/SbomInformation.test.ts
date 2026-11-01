@@ -89,7 +89,7 @@ describe("SbomInformation.vue", () => {
         none: 0,
       },
       ...overrides,
-    } as DependencyDetails;
+    };
   };
 
   const createWrapper = (dependency = createMockDependency()) => {

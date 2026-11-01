@@ -47,7 +47,14 @@
     "error": "Repository access denied. Please check your integration credentials.",
     "error_code": "AUTH_FAILED",
     "steps": [
-      [{ "Name": "js-sbom", "Status": "FAILED", "Duration": 23, "Error": "Repository access denied" }]
+      [
+        {
+          "Name": "js-sbom",
+          "Status": "FAILED",
+          "Duration": 23,
+          "Error": "Repository access denied"
+        }
+      ]
     ]
   },
   "scheduledAnalysis": {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { AlertCircle } from "@lucide/vue";
 import { watchDeep } from "@vueuse/core";
-import { AlertCircle } from "lucide-vue-next";
 import { Form } from "vee-validate";
 import { type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
@@ -116,9 +116,13 @@ const configuration: Ref<Record<string, Record<string, unknown>>> = ref({});
 const availableLanguages = ["javascript", "php"];
 
 // Schedule data
-const scheduleData = ref({
-  schedule_type: "once" as "once" | "daily" | "weekly",
-  next_scheduled_run: undefined as Date | undefined,
+const scheduleData = ref<{
+  schedule_type: "once" | "daily" | "weekly";
+  next_scheduled_run: Date | undefined;
+  is_active: boolean;
+}>({
+  schedule_type: "once",
+  next_scheduled_run: undefined,
   is_active: true,
 });
 
@@ -414,7 +418,7 @@ function applyConfigSilently(values: FormValues, plugin_name: string): void {
   if (values === undefined || Object.keys(values).length === 0) {
     configuration.value[plugin_name] = {};
   } else {
-    configuration.value[plugin_name] = values as Record<string, unknown>;
+    configuration.value[plugin_name] = values;
   }
 
   if (plugin_name === "license-finder") {

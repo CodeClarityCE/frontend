@@ -110,6 +110,61 @@ vi.mock("@/base_components/utilities/ErrorComponent.vue", () => ({
   },
 }));
 
+// Mock the lazily loaded result views.
+//
+// ResultsView declares these with defineAsyncComponent, and the loader's
+// import() fires on first render. Test Utils only swaps in the `stubs` entry
+// once that import has resolved, so without these mocks each mount pulls in the
+// real component graph behind every tab. Those imports keep resolving after the
+// test finishes, and the late ones land after the environment is torn down,
+// which Vitest reports as an unhandled EnvironmentTeardownError.
+//
+// Each mock keeps the component's name so the per-test `stubs` entries still
+// match. The factories are inlined because vi.mock is hoisted above any
+// helper defined in this file.
+vi.mock("./sbom/ResultsSBOM.vue", () => ({
+  default: {
+    name: "ResultsSBOM",
+    template: '<div data-testid="ResultsSBOM"></div>',
+  },
+}));
+vi.mock("./sbom/ResultsSBOMDetails.vue", () => ({
+  default: {
+    name: "ResultsSBOMDetails",
+    template: '<div data-testid="ResultsSBOMDetails"></div>',
+  },
+}));
+vi.mock("./licenses/ResultsLicenses.vue", () => ({
+  default: {
+    name: "ResultsLicenses",
+    template: '<div data-testid="ResultsLicenses"></div>',
+  },
+}));
+vi.mock("./vulnerabilities/ResultsVulnerabilities.vue", () => ({
+  default: {
+    name: "ResultsVulnerabilities",
+    template: '<div data-testid="ResultsVulnerabilities"></div>',
+  },
+}));
+vi.mock("./vulnerabilities/ResultsVulnerabilitiesDetails.vue", () => ({
+  default: {
+    name: "ResultsVulnerabilitiesDetails",
+    template: '<div data-testid="ResultsVulnerabilitiesDetails"></div>',
+  },
+}));
+vi.mock("./patching/ResultsPatching.vue", () => ({
+  default: {
+    name: "ResultsPatching",
+    template: '<div data-testid="ResultsPatching"></div>',
+  },
+}));
+vi.mock("./codeql/ResultsCodeQL.vue", () => ({
+  default: {
+    name: "ResultsCodeQL",
+    template: '<div data-testid="ResultsCodeQL"></div>',
+  },
+}));
+
 // Mock Shadcn tabs components
 vi.mock("@/shadcn/ui/tabs", () => ({
   Tabs: {

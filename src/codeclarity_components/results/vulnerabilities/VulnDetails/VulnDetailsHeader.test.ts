@@ -36,14 +36,14 @@ describe("VulnDetailsHeader.vue", () => {
         patched_versions_string: ">= 2.0.0",
         versions: [],
       },
-    } as any;
+    };
     finding.weaknesses = [
       {
         id: "CWE-79",
         name: "Cross-site Scripting (XSS)",
         description: "Cross-site scripting vulnerability description",
       },
-    ] as any;
+    ];
     finding.dependency_info = {
       name: "test-package",
       version: "1.5.0",
@@ -51,7 +51,7 @@ describe("VulnDetailsHeader.vue", () => {
       description: "",
       keywords: [],
       package_manager_links: [],
-    } as any;
+    };
 
     return Object.assign(finding, overrides);
   };

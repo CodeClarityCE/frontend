@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Lock, Shield, Trash2, User } from "lucide-vue-next";
+import { Lock, Shield, Trash2, User } from "@lucide/vue";
 import {
   type AsyncComponentLoader,
   type Component,

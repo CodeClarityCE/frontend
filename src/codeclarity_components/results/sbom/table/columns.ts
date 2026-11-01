@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/vue";
+import { ArrowUpDown } from "@lucide/vue";
 import type { ColumnDef } from "@tanstack/vue-table";
-import { ArrowUpDown } from "lucide-vue-next";
 import { h } from "vue";
 
 import EcosystemBadge from "@/base_components/ui/EcosystemBadge.vue";

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { AlertTriangle, Info, Lock, Shield, Trash2 } from "lucide-vue-next";
+import { AlertTriangle, Info, Lock, Shield, Trash2 } from "@lucide/vue";
 
 import { InfoCard } from "@/base_components";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";

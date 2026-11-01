@@ -16,6 +16,7 @@ import {
   onMounted,
   onUnmounted,
   ref,
+  shallowRef,
 } from "vue";
 
 import AnalyzerNodeComponent from "@/base_components/ui/flow/AnalyzerNode.vue";
@@ -66,7 +67,7 @@ const nodeTypes = {
 // Context menu for adding nodes
 const showContextMenu = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
-const selectedNodes = ref<(AnalyzerNode | ConfigNode)[]>([]);
+const selectedNodes = shallowRef<(AnalyzerNode | ConfigNode)[]>([]);
 
 // Computed property that dynamically shows available plugins
 const availablePlugins = computed(() => {

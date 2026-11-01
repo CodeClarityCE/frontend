@@ -20,12 +20,7 @@ defineProps<{
   vulnerability: VulnerabilityData;
   size?: "default" | "sm" | "lg" | "icon";
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }>();
 
 const emit = defineEmits<{

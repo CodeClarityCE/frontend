@@ -167,7 +167,7 @@ export function convertToHTML(
       }
     }
 
-    let currentGroup = "";
+    let currentGroup: string;
     if (isDirect && dep.prod) {
       currentGroup = "Direct Production Dependencies (Update package.json)";
     } else if (isDirect && dep.dev) {

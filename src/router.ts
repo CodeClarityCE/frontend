@@ -11,6 +11,7 @@ import LoginView from "@/codeclarity_components/authentication/signin/LoginView.
 import SignupView from "@/codeclarity_components/authentication/signup/SignupView.vue";
 import DashboardView from "@/codeclarity_components/dashboard/DashboardView.vue";
 import DatasetsView from "@/codeclarity_components/datasets/DatasetsView.vue";
+import ExperimentsView from "@/codeclarity_components/experiments/ExperimentsView.vue";
 import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
@@ -189,6 +190,12 @@ const router = createRouter({
       path: "/datasets/:page?",
       name: "datasets",
       component: DatasetsView as Component,
+      props: true,
+    },
+    {
+      path: "/experiments/:page?",
+      name: "experiments",
+      component: ExperimentsView as Component,
       props: true,
     },
     {

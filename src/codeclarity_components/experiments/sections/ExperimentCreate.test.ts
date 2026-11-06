@@ -1,0 +1,295 @@
+import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import router from "@/router";
+
+import ExperimentCreate from "./ExperimentCreate.vue";
+
+const {
+  createExperiment,
+  getDatasets,
+  getAnalyzers,
+  successToast,
+  errorToast,
+  routeQuery,
+} = vi.hoisted(() => {
+  const query: { dataset?: string } = {};
+  return {
+    createExperiment: vi.fn(),
+    getDatasets: vi.fn(),
+    getAnalyzers: vi.fn(),
+    successToast: vi.fn(),
+    errorToast: vi.fn(),
+    routeQuery: query,
+  };
+});
+
+vi.mock("../experiments.repository", () => ({
+  ExperimentsRepository: class {
+    createExperiment = createExperiment;
+  },
+}));
+
+vi.mock("@/codeclarity_components/datasets/datasets.repository", () => ({
+  DatasetsRepository: class {
+    getDatasets = getDatasets;
+  },
+}));
+
+vi.mock(
+  "@/codeclarity_components/organizations/analyzers/AnalyzerRepository",
+  () => ({
+    AnalyzerRepository: class {
+      getAnalyzers = getAnalyzers;
+    },
+  }),
+);
+
+vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
+
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BaseRepository: class {},
+  BusinessLogicError: class BusinessLogicError extends Error {
+    error_code: string;
+    constructor(error_code: string) {
+      super(error_code);
+      this.error_code = error_code;
+    }
+  },
+}));
+
+vi.mock("vue-router", () => ({
+  useRoute: () => ({ query: routeQuery }),
+}));
+
+// @vueuse/core is mocked globally, which breaks the shadcn inputs: plain stand-ins.
+vi.mock("@/shadcn/ui/input", () => ({
+  Input: {
+    props: ["modelValue"],
+    emits: ["update:modelValue"],
+    template:
+      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+  },
+}));
+
+vi.mock("@/shadcn/ui/select", () => ({
+  Select: {
+    props: ["modelValue"],
+    emits: ["update:modelValue"],
+    template:
+      '<select v-bind="$attrs" :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><slot /></select>',
+    inheritAttrs: false,
+  },
+  SelectTrigger: { template: "<span />" },
+  SelectValue: { template: "<span />" },
+  SelectContent: { template: "<slot />" },
+  SelectItem: {
+    props: ["value"],
+    template: '<option :value="value"><slot /></option>',
+  },
+}));
+
+function dataset(id: string, status: string): object {
+  return {
+    id,
+    name: `dataset ${id}`,
+    status,
+    entry_count: 3,
+    params: { limit: 3 },
+  };
+}
+
+function analyzer(id: string, plugins: string[][]): object {
+  return {
+    id,
+    name: `analyzer ${id}`,
+    steps: plugins.map((stage) =>
+      stage.map((name) => ({ name, version: "v1", config: {} })),
+    ),
+  };
+}
+
+const jsAnalyzer = analyzer("an-js", [
+  ["js-sbom"],
+  ["vuln-finder", "license-finder"],
+]);
+
+async function mountForm(): Promise<VueWrapper> {
+  const wrapper = mount(ExperimentCreate, {
+    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+  });
+  await flushPromises();
+  return wrapper;
+}
+
+function optionValues(wrapper: VueWrapper, testId: string): string[] {
+  return wrapper
+    .find(`[data-testid="${testId}"]`)
+    .findAll("option")
+    .map((option) => option.attributes("value") ?? "");
+}
+
+describe("ExperimentCreate", () => {
+  beforeEach(() => {
+    createExperiment.mockReset();
+    getDatasets.mockReset().mockResolvedValue({
+      data: [
+        dataset("ds-1", "READY"),
+        dataset("ds-2", "BUILDING"),
+        dataset("ds-3", "FAILED"),
+        dataset("ds-4", "READY"),
+      ],
+      total_pages: 1,
+    });
+    getAnalyzers.mockReset().mockResolvedValue({
+      data: [
+        jsAnalyzer,
+        analyzer("an-sbom-only", [["js-sbom"]]),
+        analyzer("an-other", [["license-finder"]]),
+      ],
+    });
+    successToast.mockReset();
+    errorToast.mockReset();
+    vi.mocked(router.push).mockClear();
+    delete routeQuery.dataset;
+  });
+
+  it("offers only READY datasets and analyzers that run js-sbom and vuln-finder", async () => {
+    const wrapper = await mountForm();
+
+    expect(optionValues(wrapper, "experiment-dataset")).toEqual([
+      "ds-1",
+      "ds-4",
+    ]);
+    expect(optionValues(wrapper, "experiment-analyzer")).toEqual(["an-js"]);
+    // A single eligible analyzer is preselected
+    expect(
+      (
+        wrapper.find('[data-testid="experiment-analyzer"]')
+          .element as HTMLSelectElement
+      ).value,
+    ).toBe("an-js");
+  });
+
+  it("preselects the dataset it was opened from", async () => {
+    routeQuery.dataset = "ds-4";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ dataset_id: "ds-4" }),
+      }),
+    );
+  });
+
+  it("offers the READY datasets of every page, and preselects one past the first", async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) =>
+      dataset(`ds-p0-${i}`, "BUILDING"),
+    );
+    getDatasets.mockReset().mockImplementation(
+      async ({ pagination }: { pagination: { page: number } }) =>
+        pagination.page === 0
+          ? { data: firstPage, total_pages: 2 }
+          : { data: [dataset("ds-late", "READY")], total_pages: 2 },
+    );
+    routeQuery.dataset = "ds-late";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+
+    expect(optionValues(wrapper, "experiment-dataset")).toEqual(["ds-late"]);
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ dataset_id: "ds-late" }),
+      }),
+    );
+  });
+
+  it("ignores a preselected dataset that is not ready", async () => {
+    routeQuery.dataset = "ds-2";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("Pick a ready dataset");
+  });
+
+  it("shows the validation errors and does not submit an invalid form", async () => {
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-retries"]').setValue("11");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("A name is required");
+    expect(wrapper.text()).toContain("Pick a ready dataset");
+    expect(wrapper.text()).toContain("A whole number between 0 and 10");
+  });
+
+  it("creates the experiment and opens it", async () => {
+    routeQuery.dataset = "ds-1";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+    await wrapper
+      .find('[data-testid="experiment-name"]')
+      .setValue("  top100 head ");
+    await wrapper.find('[data-testid="experiment-retries"]').setValue("1");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgId: "test-org-id",
+        bearerToken: "test-token",
+        data: {
+          name: "top100 head",
+          dataset_id: "ds-1",
+          analyzer_id: "an-js",
+          retries: 1,
+        },
+      }),
+    );
+    expect(router.push).toHaveBeenCalledWith({
+      name: "experiments",
+      params: { page: "detail" },
+      query: { id: "exp-1" },
+    });
+  });
+
+  it.each([
+    ["AlreadyExists", "An experiment with this name already exists"],
+    ["DatasetNotReady", "The dataset is not ready"],
+    [
+      "AnalyzerMissingRequiredPlugins",
+      "The analyzer must run js-sbom and vuln-finder",
+    ],
+    ["NotAuthorized", "Only organization admins can create experiments"],
+  ])("explains a %s rejection", async (code, message) => {
+    const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
+    createExperiment.mockRejectedValue(
+      new (BusinessLogicError as unknown as new (code: string) => Error)(code),
+    );
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(errorToast).toHaveBeenCalledWith(message);
+    expect(router.push).not.toHaveBeenCalled();
+  });
+});

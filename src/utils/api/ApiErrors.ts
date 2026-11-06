@@ -45,6 +45,9 @@ export const APIErrors = {
   CannotRevokeOwnMembership: "CannotRevokeOwnMembership",
   InvitationInvalidOrExpired: "InvitationInvalidOrExpired",
   EntityNotFound: "EntityNotFound",
+  EntityInUse: "EntityInUse",
+  DatasetNotReady: "DatasetNotReady",
+  AnalyzerMissingRequiredPlugins: "AnalyzerMissingRequiredPlugins",
   IntegrationIntegrationTokenMissingPermissions:
     "IntegrationIntegrationTokenMissingPermissions",
   FailedToSendAccountRegistrationVerificationEmail:

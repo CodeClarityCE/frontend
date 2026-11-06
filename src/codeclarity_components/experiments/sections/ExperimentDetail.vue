@@ -1,0 +1,449 @@
+<script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useRoute } from "vue-router";
+
+import { PaginationComponent } from "@/base_components";
+import router from "@/router";
+import { Button } from "@/shadcn/ui/button";
+import { Progress } from "@/shadcn/ui/progress";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { errorToast, successToast } from "@/utils/toasts";
+
+import {
+  ACTIVE_EXPERIMENT_STATUSES,
+  type Experiment,
+  type ExperimentRun,
+  ExperimentRunStatusColors,
+  ExperimentRunStatusLabels,
+  ExperimentStatus,
+  ExperimentStatusColors,
+  ExperimentStatusLabels,
+} from "../experiment.entity";
+import { ExperimentsRepository } from "../experiments.repository";
+
+/** How often the experiment is reloaded while it may still change */
+const POLL_INTERVAL_MS = 10_000;
+const RUNS_PER_PAGE = 100;
+/** Length of the abbreviated commit SHA shown in the coverage table */
+const SHORT_SHA_LENGTH = 7;
+
+const route = useRoute();
+const userStore = useUserStore();
+const auth = useAuthStore();
+const experimentsRepository = new ExperimentsRepository();
+
+const experiment = ref<Experiment | null>(null);
+const runs = ref<ExperimentRun[]>([]);
+const runsPage = ref(0);
+const runsTotalPages = ref(0);
+const notFound = ref(false);
+/** Which destructive action waits for a second click, if any */
+const confirming = ref<"cancel" | "delete" | null>(null);
+const acting = ref(false);
+let pollTimer: ReturnType<typeof setTimeout> | undefined;
+
+const experimentId = computed(() =>
+  typeof route.query.id === "string" ? route.query.id : "",
+);
+
+const isActive = computed(
+  () =>
+    experiment.value !== null &&
+    ACTIVE_EXPERIMENT_STATUSES.includes(experiment.value.status),
+);
+
+/** Runs that reached a terminal state: done, failed or skipped */
+const finishedRuns = computed(() => {
+  const counts = experiment.value?.run_counts;
+  if (!counts) return 0;
+  return counts.done + counts.failed + counts.skipped;
+});
+
+const progressPercent = computed(() => {
+  const total = experiment.value?.run_count ?? 0;
+  return total === 0 ? 0 : Math.round((finishedRuns.value / total) * 100);
+});
+
+async function loadExperiment(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+
+  try {
+    const response = await experimentsRepository.getExperiment({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    experiment.value = response.data;
+    notFound.value = false;
+  } catch (err) {
+    if (
+      err instanceof BusinessLogicError &&
+      err.error_code === APIErrors.EntityNotFound
+    ) {
+      notFound.value = true;
+      return;
+    }
+    errorToast("Failed to load the experiment");
+  }
+
+  await loadRuns();
+
+  if (isActive.value) {
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(() => void loadExperiment(), POLL_INTERVAL_MS);
+  }
+}
+
+async function loadRuns(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  try {
+    const response = await experimentsRepository.getExperimentRuns({
+      orgId,
+      experimentId: experimentId.value,
+      pagination: { page: runsPage.value, entries_per_page: RUNS_PER_PAGE },
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    runs.value = response.data;
+    runsTotalPages.value = response.total_pages;
+  } catch {
+    errorToast("Failed to load the experiment runs");
+  }
+}
+
+function isNotAuthorized(err: unknown): boolean {
+  return (
+    err instanceof BusinessLogicError &&
+    err.error_code === APIErrors.NotAuthorized
+  );
+}
+
+async function cancelExperiment(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || acting.value) return;
+  acting.value = true;
+  try {
+    await experimentsRepository.cancelExperiment({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    successToast("Experiment cancelled");
+  } catch (err) {
+    errorToast(
+      isNotAuthorized(err)
+        ? "Only organization admins can cancel experiments"
+        : "Failed to cancel the experiment",
+    );
+  } finally {
+    acting.value = false;
+    confirming.value = null;
+  }
+  await loadExperiment();
+}
+
+async function deleteExperiment(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || acting.value) return;
+  acting.value = true;
+  try {
+    await experimentsRepository.deleteExperiment({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    successToast("Experiment deleted");
+    void router.push({ name: "experiments" });
+  } catch (err) {
+    errorToast(
+      isNotAuthorized(err)
+        ? "Only organization admins can delete experiments"
+        : "Failed to delete the experiment",
+    );
+  } finally {
+    acting.value = false;
+    confirming.value = null;
+  }
+}
+
+function shortSha(sha: string | null): string {
+  return sha ? sha.slice(0, SHORT_SHA_LENGTH) : "-";
+}
+
+function formatDate(date: Date | null): string {
+  if (!date) return "-";
+  return new Date(date).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function goToRunsPage(page: number): void {
+  runsPage.value = page;
+  void loadRuns();
+}
+
+onMounted(() => void loadExperiment());
+onUnmounted(() => clearTimeout(pollTimer));
+</script>
+
+<template>
+  <div class="space-y-8">
+    <RouterLink
+      :to="{ name: 'experiments' }"
+      class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"
+    >
+      <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+      Experiments
+    </RouterLink>
+
+    <div v-if="notFound" class="text-center py-20">
+      <h3 class="text-lg font-semibold text-gray-900">Experiment not found</h3>
+    </div>
+
+    <template v-else-if="experiment">
+      <div
+        class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
+      >
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900">
+              {{ experiment.name }}
+            </h1>
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold"
+              :class="ExperimentStatusColors[experiment.status]"
+              data-testid="experiment-status"
+            >
+              <Icon
+                v-if="isActive"
+                icon="solar:loading-linear"
+                class="h-3 w-3 animate-spin"
+              />
+              {{ ExperimentStatusLabels[experiment.status] }}
+            </span>
+          </div>
+          <p class="text-gray-600 mt-2">
+            Analyzer
+            <strong>{{ experiment.analyzer_name ?? "(deleted)" }}</strong>
+            over dataset
+            <RouterLink
+              :to="{
+                name: 'datasets',
+                params: { page: 'detail' },
+                query: { id: experiment.dataset_id },
+              }"
+              class="font-medium underline"
+              >{{ experiment.dataset_name }}</RouterLink
+            >, {{ experiment.retries }} retries per failed run. Created
+            {{ formatDate(experiment.created_on) }}
+            <template v-if="experiment.created_by_name">
+              by {{ experiment.created_by_name }}</template
+            >.
+          </p>
+          <p class="text-sm text-gray-500 mt-1">
+            Started {{ formatDate(experiment.started_on) }}, ended
+            {{ formatDate(experiment.ended_on) }}
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <template v-if="confirming === null">
+            <Button
+              v-if="isActive"
+              variant="outline"
+              data-testid="experiment-cancel"
+              @click="confirming = 'cancel'"
+            >
+              Cancel experiment
+            </Button>
+            <Button
+              variant="outline"
+              data-testid="experiment-delete"
+              @click="confirming = 'delete'"
+            >
+              Delete
+            </Button>
+          </template>
+          <template v-else>
+            <Button
+              v-if="confirming === 'cancel'"
+              variant="destructive"
+              :disabled="acting"
+              data-testid="experiment-cancel-confirm"
+              @click="cancelExperiment"
+            >
+              Confirm cancel
+            </Button>
+            <Button
+              v-else
+              variant="destructive"
+              :disabled="acting"
+              data-testid="experiment-delete-confirm"
+              @click="deleteExperiment"
+            >
+              Confirm delete
+            </Button>
+            <Button variant="outline" @click="confirming = null"> Keep </Button>
+          </template>
+        </div>
+      </div>
+
+      <p
+        v-if="confirming === 'cancel'"
+        class="text-sm text-gray-600"
+        data-testid="experiment-cancel-hint"
+      >
+        Analyses already submitted finish and are still counted; runs not
+        submitted yet are skipped.
+      </p>
+      <p
+        v-if="confirming === 'delete'"
+        class="text-sm text-gray-600"
+        data-testid="experiment-delete-hint"
+      >
+        Deletes the experiment and its results. Projects and analyses are kept.
+      </p>
+
+      <div
+        v-if="experiment.status === ExperimentStatus.FAILED"
+        class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-900"
+        data-testid="experiment-error"
+      >
+        The experiment failed: {{ experiment.error ?? "unknown error" }}
+      </div>
+
+      <div
+        class="bg-white rounded-xl border border-gray-200 p-4 space-y-2"
+        data-testid="experiment-progress"
+      >
+        <div class="flex justify-between text-sm text-gray-700">
+          <span>Finished runs</span>
+          <span>{{ finishedRuns }} / {{ experiment.run_count }}</span>
+        </div>
+        <Progress :model-value="progressPercent" />
+        <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-700">
+          <span
+            >Done: <strong>{{ experiment.run_counts.done }}</strong></span
+          >
+          <span
+            >Failed: <strong>{{ experiment.run_counts.failed }}</strong></span
+          >
+          <span
+            >Skipped: <strong>{{ experiment.run_counts.skipped }}</strong></span
+          >
+          <span
+            >Pending: <strong>{{ experiment.run_counts.pending }}</strong></span
+          >
+        </div>
+      </div>
+
+      <!--
+        Results placeholder: headline numbers (stat tiles and tables), the
+        "knowledge changed during experiment" warning and the export buttons
+        (runs.csv, vulnerabilities.csv, results.json) go here once the
+        results and export API exists.
+      -->
+      <section
+        class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
+        data-testid="experiment-results-placeholder"
+      >
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Results</h2>
+        Headline numbers and exports will appear here.
+      </section>
+
+      <div
+        v-if="runs.length > 0"
+        class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+      >
+        <div
+          class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          <div class="col-span-1">Rank</div>
+          <div class="col-span-3">Repository</div>
+          <div class="col-span-2">State</div>
+          <div class="col-span-3">Error</div>
+          <div class="col-span-2">Commit</div>
+          <div class="col-span-1">Analysis</div>
+        </div>
+        <div
+          v-for="run in runs"
+          :key="run.id"
+          class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
+          data-testid="experiment-run"
+        >
+          <div class="lg:col-span-1 text-gray-500">
+            #{{ run.entry.rank + 1 }}
+          </div>
+          <div class="lg:col-span-3">
+            <a
+              :href="run.entry.git_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-medium text-gray-900 hover:underline"
+            >
+              {{ run.entry.full_name }}
+            </a>
+          </div>
+          <div class="lg:col-span-2">
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
+              :class="ExperimentRunStatusColors[run.status]"
+            >
+              {{ ExperimentRunStatusLabels[run.status] }}
+            </span>
+            <span v-if="run.attempts > 1" class="text-xs text-gray-500 ml-1">
+              {{ run.attempts }} attempts
+            </span>
+          </div>
+          <div class="lg:col-span-3 text-gray-700 break-words">
+            {{ run.error ?? "" }}
+          </div>
+          <div
+            class="lg:col-span-2 font-mono text-gray-700"
+            :title="run.commit_hash ?? undefined"
+          >
+            {{ shortSha(run.commit_hash) }}
+            <span v-if="run.branch" class="font-sans text-gray-500">
+              ({{ run.branch }})</span
+            >
+          </div>
+          <div class="lg:col-span-1">
+            <RouterLink
+              v-if="run.analysis_id && run.project_id"
+              :to="{
+                name: 'results',
+                query: {
+                  analysis_id: run.analysis_id,
+                  project_id: run.project_id,
+                },
+              }"
+              class="text-gray-900 underline"
+              data-testid="run-analysis"
+            >
+              Open
+            </RouterLink>
+          </div>
+        </div>
+      </div>
+
+      <PaginationComponent
+        v-if="runsTotalPages > 1"
+        :current-page="runsPage"
+        :total-pages="runsTotalPages"
+        @page-change="goToRunsPage"
+      />
+    </template>
+  </div>
+</template>

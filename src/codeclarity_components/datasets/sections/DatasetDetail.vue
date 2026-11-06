@@ -92,6 +92,21 @@ const canImport = computed(
     dataset.value.integration_id !== null,
 );
 
+/** Only a READY dataset can be the cohort of an experiment */
+const canRunExperiment = computed(
+  () =>
+    dataset.value?.status === DatasetStatus.READY &&
+    dataset.value.entry_count > 0,
+);
+
+function runExperiment(): void {
+  void router.push({
+    name: "experiments",
+    params: { page: "add" },
+    query: { dataset: datasetId.value },
+  });
+}
+
 async function loadDataset(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || !datasetId.value) return;
@@ -323,6 +338,15 @@ onUnmounted(() => clearTimeout(pollTimer));
           </p>
         </div>
         <div class="flex items-center gap-2">
+          <Button
+            v-if="canRunExperiment"
+            :disabled="importing"
+            data-testid="dataset-run-experiment"
+            @click="runExperiment"
+          >
+            <Icon icon="solar:test-tube-linear" class="h-4 w-4 mr-2" />
+            Run experiment
+          </Button>
           <Button
             v-if="canImport"
             :disabled="importing"

@@ -2,6 +2,7 @@ import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { IMPORT_CONCURRENCY } from "@/codeclarity_components/projects/create/import/projectImport";
+import router from "@/router";
 
 import DatasetDetail from "./DatasetDetail.vue";
 
@@ -261,5 +262,31 @@ describe("DatasetDetail", () => {
     expect(deleteDataset).toHaveBeenCalledWith(
       expect.objectContaining({ orgId: "test-org-id", datasetId: "ds-1" }),
     );
+  });
+  it("runs an experiment on a READY dataset, preselecting it", async () => {
+    getDataset.mockResolvedValue({ data: dataset("READY") });
+    vi.mocked(router.push).mockClear();
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    await wrapper
+      .find('[data-testid="dataset-run-experiment"]')
+      .trigger("click");
+
+    expect(router.push).toHaveBeenCalledWith({
+      name: "experiments",
+      params: { page: "add" },
+      query: { dataset: "ds-1" },
+    });
+  });
+
+  it("does not offer an experiment before the dataset is READY", async () => {
+    getDataset.mockResolvedValue({ data: dataset("BUILDING") });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(
+      wrapper.find('[data-testid="dataset-run-experiment"]').exists(),
+    ).toBe(false);
   });
 });

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Lint, then run the tests affected by changes since origin/develop.
+# Enable with: git config core.hooksPath .githooks
+set -e
+cd "$(git rev-parse --show-toplevel)"
+git fetch -q origin develop || echo "pre-push: could not fetch origin/develop, using the local copy"
+node_modules/.bin/eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
+node_modules/.bin/vitest run --changed origin/develop

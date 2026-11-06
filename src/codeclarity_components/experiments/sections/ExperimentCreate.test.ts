@@ -187,6 +187,32 @@ describe("ExperimentCreate", () => {
     );
   });
 
+  it("offers the READY datasets of every page, and preselects one past the first", async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) =>
+      dataset(`ds-p0-${i}`, "BUILDING"),
+    );
+    getDatasets.mockReset().mockImplementation(
+      async ({ pagination }: { pagination: { page: number } }) =>
+        pagination.page === 0
+          ? { data: firstPage, total_pages: 2 }
+          : { data: [dataset("ds-late", "READY")], total_pages: 2 },
+    );
+    routeQuery.dataset = "ds-late";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+
+    expect(optionValues(wrapper, "experiment-dataset")).toEqual(["ds-late"]);
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ dataset_id: "ds-late" }),
+      }),
+    );
+  });
+
   it("ignores a preselected dataset that is not ready", async () => {
     routeQuery.dataset = "ds-2";
     const wrapper = await mountForm();

@@ -101,17 +101,25 @@ function errorFor(field: keyof FormErrors): string | undefined {
   return submitted.value ? errors.value[field] : undefined;
 }
 
+/** Every page: a READY dataset (or the preselected one) may be past the first. */
 async function loadDatasets(orgId: string, token: string): Promise<void> {
   try {
-    const response = await datasetsRepository.getDatasets({
-      orgId,
-      pagination: { page: 0, entries_per_page: DATASETS_PAGE_SIZE },
-      bearerToken: token,
-      handleBusinessErrors: true,
-    });
-    datasets.value = response.data.filter(
-      (dataset) => dataset.status === DatasetStatus.READY,
-    );
+    const ready: Dataset[] = [];
+    for (let page = 0, totalPages = 1; page < totalPages; page++) {
+      const response = await datasetsRepository.getDatasets({
+        orgId,
+        pagination: { page, entries_per_page: DATASETS_PAGE_SIZE },
+        bearerToken: token,
+        handleBusinessErrors: true,
+      });
+      ready.push(
+        ...response.data.filter(
+          (dataset) => dataset.status === DatasetStatus.READY,
+        ),
+      );
+      totalPages = response.total_pages;
+    }
+    datasets.value = ready;
   } catch {
     errorToast("Failed to load the datasets");
   }

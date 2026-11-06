@@ -5,6 +5,7 @@ import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
 import {
   type ExperimentResults,
+  formatExperimentDate,
   SEVERITY_ORDER,
   SweepSubsetLabels,
 } from "../experiment.entity";
@@ -21,17 +22,6 @@ function decimal(value: number | null, digits = 3): string {
 
 function percent(share: number | null): string {
   return share === null ? "-" : `${(share * 100).toFixed(1)}%`;
-}
-
-function formatDate(date: Date | string | null): string {
-  if (!date) return "-";
-  return new Date(date).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 /** Counts most frequent first, with their share of the total */
@@ -368,15 +358,15 @@ const analyzerSteps = computed(() =>
         <dd>{{ provenance.api_version ?? "-" }}</dd>
         <dt class="text-gray-500">Created</dt>
         <dd>
-          {{ formatDate(provenance.created_on) }}
+          {{ formatExperimentDate(provenance.created_on) }}
           <template v-if="provenance.created_by">
             by {{ provenance.created_by }}</template
           >
         </dd>
         <dt class="text-gray-500">Started / ended</dt>
         <dd>
-          {{ formatDate(provenance.started_on) }} /
-          {{ formatDate(provenance.ended_on) }}
+          {{ formatExperimentDate(provenance.started_on) }} /
+          {{ formatExperimentDate(provenance.ended_on) }}
         </dd>
         <dt class="text-gray-500">EPSS rows, start / end</dt>
         <dd>

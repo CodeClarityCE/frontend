@@ -15,7 +15,6 @@ import { saveBlob } from "@/utils/download";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
-  ACTIVE_EXPERIMENT_STATUSES,
   type Experiment,
   EXPERIMENT_EXPORT_FILES,
   type ExperimentExportFile,
@@ -26,6 +25,9 @@ import {
   ExperimentStatus,
   ExperimentStatusColors,
   ExperimentStatusLabels,
+  finishedRunCount,
+  formatExperimentDate,
+  isExperimentActive,
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
@@ -61,17 +63,12 @@ const experimentId = computed(() =>
 );
 
 const isActive = computed(
-  () =>
-    experiment.value !== null &&
-    ACTIVE_EXPERIMENT_STATUSES.includes(experiment.value.status),
+  () => experiment.value !== null && isExperimentActive(experiment.value),
 );
 
-/** Runs that reached a terminal state: done, failed or skipped */
-const finishedRuns = computed(() => {
-  const counts = experiment.value?.run_counts;
-  if (!counts) return 0;
-  return counts.done + counts.failed + counts.skipped;
-});
+const finishedRuns = computed(() =>
+  experiment.value ? finishedRunCount(experiment.value.run_counts) : 0,
+);
 
 const progressPercent = computed(() => {
   const total = experiment.value?.run_count ?? 0;
@@ -238,17 +235,6 @@ function shortSha(sha: string | null): string {
   return sha ? sha.slice(0, SHORT_SHA_LENGTH) : "-";
 }
 
-function formatDate(date: Date | null): string {
-  if (!date) return "-";
-  return new Date(date).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function goToRunsPage(page: number): void {
   runsPage.value = page;
   void loadRuns();
@@ -307,14 +293,14 @@ onUnmounted(() => clearTimeout(pollTimer));
               class="font-medium underline"
               >{{ experiment.dataset_name }}</RouterLink
             >, {{ experiment.retries }} retries per failed run. Created
-            {{ formatDate(experiment.created_on) }}
+            {{ formatExperimentDate(experiment.created_on) }}
             <template v-if="experiment.created_by_name">
               by {{ experiment.created_by_name }}</template
             >.
           </p>
           <p class="text-sm text-gray-500 mt-1">
-            Started {{ formatDate(experiment.started_on) }}, ended
-            {{ formatDate(experiment.ended_on) }}
+            Started {{ formatExperimentDate(experiment.started_on) }}, ended
+            {{ formatExperimentDate(experiment.ended_on) }}
           </p>
         </div>
         <div class="flex items-center gap-2">

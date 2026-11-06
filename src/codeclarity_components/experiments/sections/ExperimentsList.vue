@@ -10,10 +10,12 @@ import { useUserStore } from "@/stores/user";
 import { errorToast } from "@/utils/toasts";
 
 import {
-  ACTIVE_EXPERIMENT_STATUSES,
   type Experiment,
   ExperimentStatusColors,
   ExperimentStatusLabels,
+  finishedRunCount,
+  formatExperimentDate,
+  isExperimentActive,
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
@@ -33,17 +35,8 @@ const totalPages = ref(0);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
 const anyActive = computed(() =>
-  experiments.value.some((experiment) => isActive(experiment)),
+  experiments.value.some((experiment) => isExperimentActive(experiment)),
 );
-
-function isActive(experiment: Experiment): boolean {
-  return ACTIVE_EXPERIMENT_STATUSES.includes(experiment.status);
-}
-
-function finishedRuns(experiment: Experiment): number {
-  const counts = experiment.run_counts;
-  return counts.done + counts.failed + counts.skipped;
-}
 
 async function load(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
@@ -89,15 +82,6 @@ function openExperiment(id: string): void {
     name: "experiments",
     params: { page: "detail" },
     query: { id },
-  });
-}
-
-function formatDate(date: Date | null): string {
-  if (!date) return "-";
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
   });
 }
 
@@ -179,7 +163,7 @@ onUnmounted(() => clearTimeout(pollTimer));
             :class="ExperimentStatusColors[experiment.status]"
           >
             <Icon
-              v-if="isActive(experiment)"
+              v-if="isExperimentActive(experiment)"
               icon="solar:loading-linear"
               class="h-3 w-3 animate-spin"
             />
@@ -190,10 +174,10 @@ onUnmounted(() => clearTimeout(pollTimer));
           {{ experiment.dataset_name }}
         </div>
         <div class="lg:col-span-2 text-sm text-gray-700">
-          {{ finishedRuns(experiment) }} / {{ experiment.run_count }}
+          {{ finishedRunCount(experiment.run_counts) }} / {{ experiment.run_count }}
         </div>
         <div class="lg:col-span-2 text-sm text-gray-700">
-          {{ formatDate(experiment.created_on) }}
+          {{ formatExperimentDate(experiment.created_on, false) }}
         </div>
       </button>
     </div>

@@ -68,6 +68,35 @@ export interface ExperimentRunCounts {
   skipped: number;
 }
 
+/** An experiment that may still change (PENDING or RUNNING). */
+export function isExperimentActive(experiment: { status: ExperimentStatus }): boolean {
+  return ACTIVE_EXPERIMENT_STATUSES.includes(experiment.status);
+}
+
+/** Runs that reached a terminal state: done, failed or skipped */
+export function finishedRunCount(counts: ExperimentRunCounts): number {
+  return counts.done + counts.failed + counts.skipped;
+}
+
+/** "-" when unset; the day, with the time unless `withTime` is false. */
+export function formatExperimentDate(
+  date: Date | string | null,
+  withTime = true,
+): string {
+  if (!date) return "-";
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  };
+  if (!withTime) return new Date(date).toLocaleDateString("en-US", options);
+  return new Date(date).toLocaleString("en-US", {
+    ...options,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export interface AnalyzerStepSnapshot {
   name: string;
   version: string;

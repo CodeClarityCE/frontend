@@ -33,6 +33,7 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
+import { saveBlob } from "@/utils/download";
 import {
   getGradeSubtitle,
   getScoreBorderColor,
@@ -293,15 +294,7 @@ async function handleExportReport(
     }
 
     // Create and trigger download
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    saveBlob(new Blob([content], { type: mimeType }), filename);
 
     // Reset export state
     const exportMenu3 = exportMenuRef.value as {

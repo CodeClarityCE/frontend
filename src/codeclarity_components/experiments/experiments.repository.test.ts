@@ -19,9 +19,12 @@ type MockedRepository = ExperimentsRepository & {
 
 describe("ExperimentsRepository", () => {
   let repository: MockedRepository;
+  const getBlobRequest = vi.fn();
 
   beforeEach(() => {
     repository = new ExperimentsRepository() as MockedRepository;
+    // Not part of the global BaseRepository mock
+    Object.assign(repository, { getBlobRequest });
     repository.buildUrl.mockImplementation(
       (url: string) => `https://api${url}`,
     );
@@ -136,4 +139,43 @@ describe("ExperimentsRepository", () => {
       }),
     );
   });
+  it("gets the dataset-level results of an experiment", async () => {
+    repository.getRequest.mockResolvedValue({ data: { coverage: {} } });
+
+    const response = await repository.getExperimentResults({
+      orgId: "org-1",
+      experimentId: "exp-1",
+      bearerToken: "token",
+    });
+
+    expect(response.data).toEqual({ coverage: {} });
+    expect(repository.getRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api/org/org-1/experiments/exp-1/results",
+      }),
+    );
+  });
+
+  it.each(["runs.csv", "vulnerabilities.csv", "results.json"] as const)(
+    "downloads the %s export as an authenticated blob",
+    async (file) => {
+      const blob = new Blob(["x"]);
+      getBlobRequest.mockResolvedValue(blob);
+
+      const response = await repository.downloadExperimentExport({
+        orgId: "org-1",
+        experimentId: "exp-1",
+        file,
+        bearerToken: "token",
+      });
+
+      expect(response).toBe(blob);
+      expect(getBlobRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: `https://api/org/org-1/experiments/exp-1/export/${file}`,
+          bearerToken: "token",
+        }),
+      );
+    },
+  );
 });

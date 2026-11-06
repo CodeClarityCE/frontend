@@ -190,3 +190,126 @@ export interface CreateExperimentRequest {
   analyzer_id: string;
   retries?: number;
 }
+
+/* Dataset-level results, computed by the API from the done runs */
+
+export const SEVERITY_ORDER = [
+  "CRITICAL",
+  "HIGH",
+  "MEDIUM",
+  "LOW",
+  "NONE",
+] as const;
+
+export type SeverityCounts = Record<(typeof SEVERITY_ORDER)[number], number>;
+
+export type SweepSubset = "all" | "match_correct_only" | "non_withdrawn";
+
+export const SweepSubsetLabels: Record<SweepSubset, string> = {
+  all: "All instances",
+  match_correct_only: "Correct matches only",
+  non_withdrawn: "Not withdrawn",
+};
+
+export interface HeadlineScalars {
+  n_projects: number;
+  n_affected: number;
+  affected_share: number | null;
+  instances: number;
+  distinct_vuln_packages: number;
+  load_median: number | null;
+  load_mean: number | null;
+  load_max: number | null;
+  high_critical_share: number | null;
+  top10_pkg_share: number | null;
+  top10_proj_share: number | null;
+  gini_pkg: number | null;
+  gini_proj: number | null;
+  pkgs_clear_50: number;
+  pkgs_clear_80: number;
+  pkgs_clear_90: number;
+}
+
+export interface Headline extends HeadlineScalars {
+  sev_counts: SeverityCounts;
+  /** [package, projects affected], most widespread first */
+  top_packages: [string, number][];
+  high_critical_share_of_classed: number | null;
+}
+
+export interface SweepRow extends HeadlineScalars {
+  subset: SweepSubset;
+}
+
+export interface EpssBlock {
+  nonnull_share: number | null;
+  median: number | null;
+  p90: number | null;
+  over_10pct: number;
+  over_50pct: number;
+  missing_non_cve: number;
+  missing_cve: number;
+}
+
+export interface RqcBlock {
+  spearman_rho: number | null;
+  p: number | null;
+  n: number;
+  excluded_zero_dep_projects: number;
+}
+
+export interface RqdRow {
+  package_manager: string;
+  projects: number;
+  med_deps: number;
+  med_vulns: number;
+}
+
+export interface CoverageBlock {
+  runs: number;
+  attempted: number;
+  done: number;
+  failed: number;
+  skipped: number;
+  pending: number;
+  failure_reasons: Record<string, number>;
+  skip_reasons: Record<string, number>;
+}
+
+export interface KnowledgeSnapshot {
+  knowledge_sources: Record<string, string | null>;
+  epss_rows: number;
+}
+
+export interface ProvenanceBlock {
+  api_version: string | null;
+  analyzer_steps: AnalyzerStepSnapshot[][] | null;
+  knowledge_start: KnowledgeSnapshot | null;
+  knowledge_end: KnowledgeSnapshot | null;
+  /** Knowledge sources differ between the start and end snapshots */
+  knowledge_changed: boolean;
+  created_by: string | null;
+  created_on: Date | string;
+  started_on: Date | string | null;
+  ended_on: Date | string | null;
+}
+
+export interface ExperimentResults {
+  coverage: CoverageBlock;
+  headline: Headline;
+  sweep: SweepRow[];
+  epss: EpssBlock;
+  match_flags: Record<string, number>;
+  winning_source_head: Record<string, number>;
+  rqc: RqcBlock;
+  rqd: RqdRow[];
+  provenance: ProvenanceBlock;
+}
+
+export const EXPERIMENT_EXPORT_FILES = [
+  "runs.csv",
+  "vulnerabilities.csv",
+  "results.json",
+] as const;
+
+export type ExperimentExportFile = (typeof EXPERIMENT_EXPORT_FILES)[number];

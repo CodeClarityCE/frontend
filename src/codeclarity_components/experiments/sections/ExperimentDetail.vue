@@ -11,11 +11,15 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { saveBlob } from "@/utils/download";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
   ACTIVE_EXPERIMENT_STATUSES,
   type Experiment,
+  EXPERIMENT_EXPORT_FILES,
+  type ExperimentExportFile,
+  type ExperimentResults as ExperimentResultsData,
   type ExperimentRun,
   ExperimentRunStatusColors,
   ExperimentRunStatusLabels,
@@ -24,6 +28,8 @@ import {
   ExperimentStatusLabels,
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
+
+import ExperimentResults from "./ExperimentResults.vue";
 
 /** How often the experiment is reloaded while it may still change */
 const POLL_INTERVAL_MS = 10_000;
@@ -44,6 +50,10 @@ const notFound = ref(false);
 /** Which destructive action waits for a second click, if any */
 const confirming = ref<"cancel" | "delete" | null>(null);
 const acting = ref(false);
+const results = ref<ExperimentResultsData | null>(null);
+/** A failing results request is reported once, not on every poll */
+const resultsErrorShown = ref(false);
+const exporting = ref<ExperimentExportFile | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
 const experimentId = computed(() =>
@@ -92,11 +102,60 @@ async function loadExperiment(): Promise<void> {
     errorToast("Failed to load the experiment");
   }
 
-  await loadRuns();
+  await Promise.all([loadRuns(), loadResults()]);
 
   if (isActive.value) {
     clearTimeout(pollTimer);
     pollTimer = setTimeout(() => void loadExperiment(), POLL_INTERVAL_MS);
+  }
+}
+
+/** Results are aggregated from done runs: there is nothing before the first. */
+async function loadResults(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if ((experiment.value?.run_counts.done ?? 0) === 0) return;
+  try {
+    const response = await experimentsRepository.getExperimentResults({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    results.value = response.data;
+    resultsErrorShown.value = false;
+  } catch {
+    if (!resultsErrorShown.value) {
+      errorToast("Failed to load the experiment results");
+      resultsErrorShown.value = true;
+    }
+  }
+}
+
+function exportFilename(file: ExperimentExportFile): string {
+  const name = (experiment.value?.name ?? "experiment")
+    .trim()
+    .replace(/[^A-Za-z0-9._-]+/g, "-");
+  return `${name}-${file}`;
+}
+
+async function downloadExport(file: ExperimentExportFile): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || exporting.value) return;
+  exporting.value = file;
+  try {
+    const blob = await experimentsRepository.downloadExperimentExport({
+      orgId,
+      experimentId: experimentId.value,
+      file,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    saveBlob(blob, exportFilename(file));
+  } catch {
+    errorToast(`Failed to export ${file}`);
+  } finally {
+    exporting.value = null;
   }
 }
 
@@ -349,18 +408,42 @@ onUnmounted(() => clearTimeout(pollTimer));
         </div>
       </div>
 
-      <!--
-        Results placeholder: headline numbers (stat tiles and tables), the
-        "knowledge changed during experiment" warning and the export buttons
-        (runs.csv, vulnerabilities.csv, results.json) go here once the
-        results and export API exists.
-      -->
-      <section
-        class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
-        data-testid="experiment-results-placeholder"
-      >
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">Results</h2>
-        Headline numbers and exports will appear here.
+      <section class="space-y-4" data-testid="experiment-results">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+        >
+          <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
+          <div class="flex flex-wrap gap-2">
+            <Button
+              v-for="file in EXPERIMENT_EXPORT_FILES"
+              :key="file"
+              variant="outline"
+              size="sm"
+              :disabled="exporting !== null"
+              :data-testid="`export-${file}`"
+              @click="downloadExport(file)"
+            >
+              <Icon
+                :icon="
+                  exporting === file
+                    ? 'solar:loading-linear'
+                    : 'solar:download-linear'
+                "
+                class="h-4 w-4 mr-1"
+                :class="{ 'animate-spin': exporting === file }"
+              />
+              {{ file }}
+            </Button>
+          </div>
+        </div>
+        <ExperimentResults v-if="results" :results="results" />
+        <p
+          v-else-if="experiment.run_counts.done === 0"
+          class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
+          data-testid="experiment-results-empty"
+        >
+          Results appear once the first run is done.
+        </p>
       </section>
 
       <div

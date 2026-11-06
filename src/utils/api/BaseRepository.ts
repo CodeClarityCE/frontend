@@ -127,6 +127,49 @@ export class BaseRepository {
   }
 
   /**
+   * Get Request for a file: same as getRequest, but resolves to the response
+   * body as a Blob (exports, downloads that need the bearer token).
+   * Error responses go through the usual error handling.
+   *
+   * @param {GetRequestOptions} options Get request options
+   */
+  protected async getBlobRequest(options: GetRequestOptions): Promise<Blob> {
+    const url = new URL(options.url);
+    this.attachSearchParams(url.searchParams, options.queryParams);
+
+    const headers = new Headers();
+    if (options.bearerToken) {
+      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+    }
+    if (options.headers) {
+      for (const header of options.headers) {
+        headers.append(header[0], header[1]);
+      }
+    }
+
+    const response = await fetch(url.toString(), { method: "GET", headers });
+    if (response.ok) return await response.blob();
+
+    let responseBody: unknown;
+    try {
+      responseBody = await response.json();
+    } catch {
+      responseBody = undefined;
+    }
+    this.errorHandler({
+      request: {
+        status: response.status,
+        statusText: response.statusText,
+        responseBody,
+      },
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      defaultBusinessLogicErrorHandlerTextPrefix:
+        options.defaultBusinessLogicErrorHandlerTextPrefix,
+    });
+  }
+
+  /**
    * Post Request.
    *
    * @param {GetRequestOptions} options Get request options

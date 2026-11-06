@@ -15,6 +15,8 @@ import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 import {
   type CreateExperimentRequest,
   Experiment,
+  type ExperimentExportFile,
+  type ExperimentResults,
   ExperimentRun,
 } from "./experiment.entity";
 
@@ -32,6 +34,17 @@ export interface GetExperimentRunsRequestOptions
   extends AuthRepoMethodGetRequestOptions, PaginatedRepoMethodRequestOptions {
   orgId: string;
   experimentId: string;
+}
+
+export interface GetExperimentResultsRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  experimentId: string;
+}
+
+export interface DownloadExperimentExportRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  experimentId: string;
+  file: ExperimentExportFile;
 }
 
 export interface CreateExperimentRequestOptions extends AuthRepoMethodPostRequestOptions<CreateExperimentRequest> {
@@ -184,5 +197,40 @@ export class ExperimentsRepository extends BaseRepository {
     });
 
     return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
+
+  async getExperimentResults(
+    options: GetExperimentResultsRequestOptions,
+  ): Promise<DataResponse<ExperimentResults>> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/results`;
+
+    const response = await this.getRequest<DataResponse<ExperimentResults>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    // Plain aggregates: no class to unmarshal the payload into
+    return Entity.unMarshal<DataResponse<ExperimentResults>>(
+      response,
+      DataResponse<ExperimentResults>,
+    );
+  }
+
+  /** One export file, fetched with the bearer token so it can be saved. */
+  async downloadExperimentExport(
+    options: DownloadExperimentExportRequestOptions,
+  ): Promise<Blob> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/export/${options.file}`;
+
+    return await this.getBlobRequest({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
   }
 }

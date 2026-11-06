@@ -10,6 +10,9 @@ const {
   getExperimentRuns,
   cancelExperiment,
   deleteExperiment,
+  getExperimentResults,
+  downloadExperimentExport,
+  saveBlob,
   successToast,
   errorToast,
 } = vi.hoisted(() => ({
@@ -17,6 +20,9 @@ const {
   getExperimentRuns: vi.fn(),
   cancelExperiment: vi.fn(),
   deleteExperiment: vi.fn(),
+  getExperimentResults: vi.fn(),
+  downloadExperimentExport: vi.fn(),
+  saveBlob: vi.fn(),
   successToast: vi.fn(),
   errorToast: vi.fn(),
 }));
@@ -27,8 +33,12 @@ vi.mock("../experiments.repository", () => ({
     getExperimentRuns = getExperimentRuns;
     cancelExperiment = cancelExperiment;
     deleteExperiment = deleteExperiment;
+    getExperimentResults = getExperimentResults;
+    downloadExperimentExport = downloadExperimentExport;
   },
 }));
+
+vi.mock("@/utils/download", () => ({ saveBlob }));
 
 vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
 
@@ -104,6 +114,90 @@ function run(rank: number, overrides: object = {}): object {
   };
 }
 
+function scalars(nAffected: number): object {
+  return {
+    n_projects: 98,
+    n_affected: nAffected,
+    affected_share: nAffected / 98,
+    instances: 16304,
+    distinct_vuln_packages: 412,
+    load_median: 42,
+    load_mean: 166.37,
+    load_max: 2104,
+    high_critical_share: 0.4321,
+    top10_pkg_share: 0.31,
+    top10_proj_share: 0.62,
+    gini_pkg: 0.8331,
+    gini_proj: 0.7012,
+    pkgs_clear_50: 10,
+    pkgs_clear_80: 35,
+    pkgs_clear_90: 61,
+  };
+}
+
+function results(overrides: object = {}): object {
+  return {
+    coverage: {
+      runs: 100,
+      attempted: 100,
+      done: 98,
+      failed: 1,
+      skipped: 1,
+      pending: 0,
+      failure_reasons: { "missing result: vuln-finder": 1 },
+      skip_reasons: { "repository not found": 1 },
+    },
+    headline: {
+      ...scalars(87),
+      sev_counts: {
+        CRITICAL: 900,
+        HIGH: 6100,
+        MEDIUM: 7000,
+        LOW: 2000,
+        NONE: 304,
+      },
+      top_packages: [
+        ["semver", 61],
+        ["minimist", 44],
+      ],
+      high_critical_share_of_classed: 0.44,
+    },
+    sweep: [
+      { subset: "all", ...scalars(87) },
+      { subset: "match_correct_only", ...scalars(80) },
+      { subset: "non_withdrawn", ...scalars(86) },
+    ],
+    epss: {
+      nonnull_share: 0.91,
+      median: 0.0012,
+      p90: 0.034,
+      over_10pct: 120,
+      over_50pct: 30,
+      missing_non_cve: 1200,
+      missing_cve: 267,
+    },
+    match_flags: { MATCH_CORRECT: 15000, MATCH_INCORRECT: 1304 },
+    winning_source_head: { NVD: 9000, OSV: 7304 },
+    rqc: { spearman_rho: 0.015, p: 0.88, n: 98, excluded_zero_dep_projects: 0 },
+    rqd: [
+      { package_manager: "yarn", projects: 50, med_deps: 1200, med_vulns: 30 },
+      { package_manager: "npm", projects: 48, med_deps: 900, med_vulns: 22 },
+    ],
+    provenance: {
+      api_version: "v1.2.3",
+      analyzer_steps: [[{ name: "js-sbom", version: "v0.9.1" }]],
+      knowledge_start: null,
+      knowledge_end: null,
+      knowledge_changed: false,
+      created_by: "John Doe",
+      created_on: "2026-11-01T10:00:00Z",
+      started_on: "2026-11-01T10:01:00Z",
+      ended_on: null,
+    },
+    ...overrides,
+  };
+}
+
 function mountDetail(): VueWrapper {
   return mount(ExperimentDetail, {
     global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
@@ -119,6 +213,9 @@ describe("ExperimentDetail", () => {
       .mockResolvedValue({ data: [run(0), run(1)], total_pages: 1 });
     cancelExperiment.mockReset();
     deleteExperiment.mockReset();
+    getExperimentResults.mockReset().mockResolvedValue({ data: results() });
+    downloadExperimentExport.mockReset();
+    saveBlob.mockReset();
     successToast.mockReset();
     errorToast.mockReset();
     vi.mocked(router.push).mockClear();
@@ -347,5 +444,143 @@ describe("ExperimentDetail", () => {
       "Only organization admins can delete experiments",
     );
     expect(router.push).not.toHaveBeenCalled();
+  });
+  it("does not load results before any run is done", async () => {
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(getExperimentResults).not.toHaveBeenCalled();
+    expect(
+      wrapper.find('[data-testid="experiment-results-empty"]').exists(),
+    ).toBe(true);
+  });
+
+  it("loads the results once a run is done and refreshes them with the poll", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("RUNNING", {
+        run_counts: { pending: 3, done: 1, failed: 0, skipped: 0 },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(getExperimentResults).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "test-org-id", experimentId: "exp-1" }),
+    );
+    const headline = wrapper.find('[data-testid="experiment-headline"]');
+    expect(headline.text()).toContain("87 / 98");
+    expect(headline.text()).toContain("16,304");
+    expect(headline.text()).toContain("0.833");
+    expect(headline.text()).toContain("10 / 35 / 61");
+    expect(
+      wrapper.find('[data-testid="experiment-top-packages"]').text(),
+    ).toContain("semver");
+    expect(wrapper.find('[data-testid="experiment-rqc"]').text()).toContain(
+      "0.015",
+    );
+    expect(
+      wrapper.find('[data-testid="experiment-coverage"]').text(),
+    ).toContain("missing result: vuln-finder");
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await flushPromises();
+    expect(getExperimentResults).toHaveBeenCalledTimes(2);
+  });
+
+  it("toasts a results failure once, not on every poll", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("RUNNING", {
+        run_counts: { pending: 3, done: 1, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockRejectedValue(new Error("boom"));
+    mountDetail();
+    await flushPromises();
+    await vi.advanceTimersByTimeAsync(20_000);
+    await flushPromises();
+
+    expect(getExperimentResults).toHaveBeenCalledTimes(3);
+    expect(errorToast).toHaveBeenCalledTimes(1);
+    expect(errorToast).toHaveBeenCalledWith(
+      "Failed to load the experiment results",
+    );
+  });
+
+  it("warns when the knowledge changed during the experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        provenance: {
+          ...(results() as { provenance: object }).provenance,
+          knowledge_changed: true,
+        },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(
+      wrapper.find('[data-testid="experiment-knowledge-changed"]').exists(),
+    ).toBe(true);
+    expect(
+      wrapper.find('[data-testid="experiment-provenance"]').text(),
+    ).toContain("js-sbom v0.9.1");
+  });
+
+  it("does not warn when the knowledge stayed the same", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(
+      wrapper.find('[data-testid="experiment-knowledge-changed"]').exists(),
+    ).toBe(false);
+  });
+
+  it.each([
+    ["runs.csv", "top4-head-runs.csv"],
+    ["vulnerabilities.csv", "top4-head-vulnerabilities.csv"],
+    ["results.json", "top4-head-results.json"],
+  ])("downloads %s with the bearer token and saves it", async (file, name) => {
+    const blob = new Blob(["x"]);
+    getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+    downloadExperimentExport.mockResolvedValue(blob);
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    await wrapper.find(`[data-testid="export-${file}"]`).trigger("click");
+    await flushPromises();
+
+    expect(downloadExperimentExport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgId: "test-org-id",
+        experimentId: "exp-1",
+        file,
+        bearerToken: "test-token",
+      }),
+    );
+    expect(saveBlob).toHaveBeenCalledWith(blob, name);
+  });
+
+  it("says when an export fails", async () => {
+    getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+    downloadExperimentExport.mockRejectedValue(new Error("boom"));
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="export-runs.csv"]').trigger("click");
+    await flushPromises();
+
+    expect(saveBlob).not.toHaveBeenCalled();
+    expect(errorToast).toHaveBeenCalledWith("Failed to export runs.csv");
   });
 });

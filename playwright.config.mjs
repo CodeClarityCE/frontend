@@ -1,5 +1,19 @@
 import { defineConfig, devices } from "@playwright/test";
 
+/*
+ * Running against the live dev stack instead of a local preview server:
+ * - E2E_BASE_URL (e.g. https://localhost): target that URL and skip webServer.
+ *   The dev stack uses a self-signed cert, so HTTPS errors are ignored then.
+ * - E2E_HOST_RESOLVER_RULES (e.g. "MAP localhost 172.17.0.1"): Chromium host
+ *   mapping, for a sandbox where the stack is published on the Docker gateway
+ *   but Caddy only answers for the "localhost" server name.
+ * - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: use a system Chromium instead of a
+ *   Playwright-downloaded one.
+ */
+const liveBaseURL = process.env.E2E_BASE_URL;
+const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
+const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+
 /**
  * Playwright configuration for CodeClarity E2E tests
  * @see https://playwright.dev/docs/test-configuration
@@ -26,7 +40,8 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
-    baseURL: "http://localhost:4173",
+    baseURL: liveBaseURL ?? "http://localhost:4173",
+    ignoreHTTPSErrors: !!liveBaseURL,
 
     /* Collect trace when retrying the failed test */
     trace: "on-first-retry",
@@ -42,7 +57,15 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          ...(chromiumPath ? { executablePath: chromiumPath } : {}),
+          args: hostResolverRules
+            ? [`--host-resolver-rules=${hostResolverRules}`]
+            : [],
+        },
+      },
     },
 
     {
@@ -67,12 +90,14 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: "pnpm preview",
-    url: "http://localhost:4173",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: liveBaseURL
+    ? undefined
+    : {
+        command: "pnpm preview",
+        url: "http://localhost:4173",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      },
 
   /* Global timeout for each test */
   timeout: 30 * 1000,

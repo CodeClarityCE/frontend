@@ -24,7 +24,7 @@
     "test:visual": "percy exec -- playwright test --project=chromium",
     "test:size": "size-limit",
     "test:all": "run-s test:unit:run test:e2e test:size",
-    "test:quick": "vitest run --reporter=basic",
+    "test:quick": "vitest run --changed origin/develop",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",

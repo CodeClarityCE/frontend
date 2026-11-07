@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import router from "@/router";
 
+import type { GridCoverageRow } from "../experiment.entity";
+
 import ExperimentDetail from "./ExperimentDetail.vue";
 
 const {
@@ -162,6 +164,7 @@ function results(overrides: object = {}): object {
         failed: 1,
         skipped: 1,
         pending: 0,
+        mixed_knowledge: false,
       },
     ],
     headline: {
@@ -524,6 +527,7 @@ describe("ExperimentDetail", () => {
             failed: 0,
             skipped: 0,
             pending: 0,
+            mixed_knowledge: false,
           },
           {
             grid_date: "2026-10-01",
@@ -533,6 +537,7 @@ describe("ExperimentDetail", () => {
             failed: 1,
             skipped: 0,
             pending: 0,
+            mixed_knowledge: false,
           },
           {
             grid_date: null,
@@ -542,6 +547,7 @@ describe("ExperimentDetail", () => {
             failed: 0,
             skipped: 0,
             pending: 2,
+            mixed_knowledge: false,
           },
         ],
       }),
@@ -559,6 +565,80 @@ describe("ExperimentDetail", () => {
       ["2026-10-01", "1", "0", "1", "0", "0"],
       ["HEAD", "0", "0", "0", "0", "2"],
     ]);
+  });
+
+  it("flags the grid dates analysed with mixed knowledge next to their coverage", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 2,
+        grid_dates: ["2026-09-01", "2026-10-01"],
+        run_counts: { pending: 0, done: 6, failed: 0, skipped: 0 },
+      }),
+    });
+    const row = (
+      grid_date: string | null,
+      mixed_knowledge: boolean,
+    ): GridCoverageRow => ({
+      grid_date,
+      runs: 2,
+      done: 2,
+      empty: 0,
+      failed: 0,
+      skipped: 0,
+      pending: 0,
+      mixed_knowledge,
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        grid_coverage: [
+          row("2026-09-01", false),
+          row("2026-10-01", true),
+          row(null, false),
+        ],
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const rows = wrapper.findAll('[data-testid="grid-coverage-row"]');
+    expect(
+      rows.map((r) => r.find('[data-testid="grid-mixed-knowledge"]').exists()),
+    ).toEqual([false, true, false]);
+    expect(
+      wrapper.find('[data-testid="grid-mixed-knowledge-note"]').exists(),
+    ).toBe(true);
+  });
+
+  it("shows no mixed-knowledge note when every grid date used one knowledge", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-10-01"],
+        run_counts: { pending: 0, done: 2, failed: 0, skipped: 0 },
+      }),
+    });
+    const row = (grid_date: string | null): GridCoverageRow => ({
+      grid_date,
+      runs: 1,
+      done: 1,
+      empty: 0,
+      failed: 0,
+      skipped: 0,
+      pending: 0,
+      mixed_knowledge: false,
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({ grid_coverage: [row("2026-10-01"), row(null)] }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="grid-mixed-knowledge"]').exists()).toBe(
+      false,
+    );
+    expect(
+      wrapper.find('[data-testid="grid-mixed-knowledge-note"]').exists(),
+    ).toBe(false);
   });
 
   it("labels the existing blocks as HEAD and shows no grid coverage for a HEAD-only experiment", async () => {

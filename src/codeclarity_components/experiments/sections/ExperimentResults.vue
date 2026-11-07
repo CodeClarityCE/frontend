@@ -49,6 +49,9 @@ const gridCoverage = computed(() => {
   const rows = props.results.grid_coverage ?? [];
   return rows.some((row) => row.grid_date !== null) ? rows : [];
 });
+const anyMixedKnowledge = computed(() =>
+  gridCoverage.value.some((row) => row.mixed_knowledge),
+);
 
 /** Over-time blocks need a grid and an API that computes them. */
 const fixLag = computed(() =>
@@ -99,6 +102,14 @@ const analyzerSteps = computed(() =>
       <p class="text-sm text-gray-500 mb-2">
         Empty runs are done but had no lockfile yet at that date.
       </p>
+      <p
+        v-if="anyMixedKnowledge"
+        class="text-sm text-yellow-800 mb-2"
+        data-testid="grid-mixed-knowledge-note"
+      >
+        Dates marked mixed knowledge had runs matched against different
+        vulnerability data: the knowledge was updated while they ran.
+      </p>
       <table class="w-full text-sm" data-testid="experiment-grid-coverage">
         <thead class="text-left text-gray-500">
           <tr>
@@ -116,7 +127,15 @@ const analyzerSteps = computed(() =>
             :key="row.grid_date ?? 'HEAD'"
             data-testid="grid-coverage-row"
           >
-            <td class="font-mono">{{ row.grid_date ?? "HEAD" }}</td>
+            <td class="font-mono">
+              {{ row.grid_date ?? "HEAD" }}
+              <span
+                v-if="row.mixed_knowledge"
+                class="ml-2 font-sans text-xs rounded bg-yellow-100 text-yellow-900 px-1.5 py-0.5"
+                data-testid="grid-mixed-knowledge"
+                >mixed knowledge</span
+              >
+            </td>
             <td class="text-right">{{ count(row.done) }}</td>
             <td class="text-right">{{ count(row.empty) }}</td>
             <td class="text-right">{{ count(row.failed) }}</td>

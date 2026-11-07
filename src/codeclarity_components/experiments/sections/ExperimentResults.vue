@@ -12,6 +12,7 @@ import {
 
 import ExperimentFixLag from "./ExperimentFixLag.vue";
 import ExperimentLoad from "./ExperimentLoad.vue";
+import ExperimentResidence from "./ExperimentResidence.vue";
 
 const props = defineProps<{ results: ExperimentResults }>();
 
@@ -61,6 +62,10 @@ const fixLag = computed(() =>
 
 const loadOverTime = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.load_over_time ?? null) : null,
+);
+
+const residence = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.residence ?? null) : null,
 );
 
 const severityRows = computed(() => {
@@ -426,6 +431,8 @@ const analyzerSteps = computed(() =>
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
     />
+
+    <ExperimentResidence v-if="residence" :residence="residence" />
 
     <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
 

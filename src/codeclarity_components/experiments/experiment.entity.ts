@@ -462,6 +462,42 @@ export interface LoadRow {
   undated: number;
 }
 
+/** A distribution of day counts */
+export interface DaysSummary {
+  n: number;
+  median: number | null;
+  p25: number | null;
+  p75: number | null;
+  min: number | null;
+  max: number | null;
+}
+
+/** One severity class of a days distribution */
+export interface DaysGroup extends DaysSummary {
+  key: string;
+}
+
+export interface ResidencePoint {
+  severity: keyof SeverityCounts;
+  residence_days: number;
+  precision: DatingPrecision;
+}
+
+/** Introduction to disclosure; introductions after it are counted apart */
+export interface ResidenceBlock {
+  introductions: number;
+  snapshot_precision_share: number | null;
+  present_at_first_observation: number;
+  /** Introductions whose advisory has no publication date */
+  undated: number;
+  overall: DaysSummary;
+  by_severity: DaysGroup[];
+  points: ResidencePoint[];
+  /** Days from publication to introduction */
+  after_disclosure: DaysSummary;
+  after_disclosure_by_severity: DaysGroup[];
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -478,6 +514,7 @@ export interface ExperimentResults {
   fix_lag?: FixLagBlock;
   /** Per grid date, HEAD last; absent from results of older APIs */
   load_over_time?: LoadRow[];
+  residence?: ResidenceBlock;
   provenance: ProvenanceBlock;
 }
 

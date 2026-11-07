@@ -27,8 +27,8 @@ const props = defineProps<{
   describe: (row: LagChartRow, lag: number) => string;
   /** Unit word in row summaries, e.g. "fixes" */
   unit: string;
-  /** Name of the below-zero count, e.g. "before disclosure" */
-  belowZero: string;
+  /** Name of the below-zero count, e.g. "before disclosure"; omit to hide it */
+  belowZero?: string;
 }>();
 
 const height = computed(
@@ -57,7 +57,8 @@ function jitter(index: number): number {
 
 function summaryText(row: LagChartRow): string {
   const { n, median, before_disclosure } = row.summary;
-  return `${row.label}: ${n} ${props.unit}, median ${formatNumber(median)} days, ${before_disclosure} ${props.belowZero}`;
+  const text = `${row.label}: ${n} ${props.unit}, median ${formatNumber(median)} days`;
+  return props.belowZero ? `${text}, ${before_disclosure ?? 0} ${props.belowZero}` : text;
 }
 
 const hover = ref<{ x: number; y: number; text: string } | null>(null);
@@ -217,7 +218,7 @@ function hide(): void {
             <th class="font-medium text-right">Median days</th>
             <th class="font-medium text-right">25th pct.</th>
             <th class="font-medium text-right">75th pct.</th>
-            <th class="font-medium text-right">{{ belowZero }}</th>
+            <th v-if="belowZero" class="font-medium text-right">{{ belowZero }}</th>
           </tr>
         </thead>
         <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
@@ -227,7 +228,7 @@ function hide(): void {
             <td class="text-right">{{ formatNumber(row.summary.median) }}</td>
             <td class="text-right">{{ formatNumber(row.summary.p25) }}</td>
             <td class="text-right">{{ formatNumber(row.summary.p75) }}</td>
-            <td class="text-right">{{ row.summary.before_disclosure }}</td>
+            <td v-if="belowZero" class="text-right">{{ row.summary.before_disclosure ?? 0 }}</td>
           </tr>
         </tbody>
       </table>

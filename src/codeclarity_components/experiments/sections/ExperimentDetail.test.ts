@@ -774,6 +774,40 @@ describe("ExperimentDetail", () => {
     expect(wrapper.find('[data-testid="experiment-fix-lag"]').exists()).toBe(false);
   });
 
+  it("renders the pre-disclosure residence block outside the HEAD blocks", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { grid_count: 1, grid_dates: ["2026-09-01"], run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    const none = { n: 0, median: null, p25: null, p75: null, min: null, max: null };
+    getExperimentResults.mockResolvedValue({
+      data: {
+        ...gridResults(),
+        residence: {
+          introductions: 2,
+          snapshot_precision_share: 0.5,
+          present_at_first_observation: 4,
+          undated: 0,
+          overall: { n: 1, median: 88, p25: 88, p75: 88, min: 88, max: 88 },
+          by_severity: [{ key: "CRITICAL", n: 1, median: 88, p25: 88, p75: 88, min: 88, max: 88 }],
+          points: [{ severity: "CRITICAL", residence_days: 88, precision: "snapshot" }],
+          after_disclosure: { ...none, n: 1, median: 99 },
+          after_disclosure_by_severity: [{ key: "HIGH", ...none, n: 1, median: 99 }],
+        },
+      },
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="experiment-residence"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper.find('[data-testid="experiment-head-results"] [data-testid="experiment-residence"]').exists(),
+    ).toBe(false);
+    expect(block.text()).toContain("50.0% dated only to a snapshot interval");
+    expect(block.findAll('[data-testid="lag-dot"]')).toHaveLength(1);
+    expect(block.findAll('[data-testid="residence-after-row"]')).toHaveLength(1);
+  });
+
   it("toasts a results failure once, not on every poll", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("RUNNING", {

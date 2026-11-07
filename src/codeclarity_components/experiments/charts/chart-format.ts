@@ -5,7 +5,8 @@ import type { LagSummary } from "../experiment.entity";
 export interface LagChartRow {
   key: string;
   label: string;
-  summary: LagSummary;
+  /** The below-zero count is left out when a chart has none */
+  summary: Omit<LagSummary, "before_disclosure"> & { before_disclosure?: number };
   lags: number[];
 }
 

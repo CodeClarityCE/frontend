@@ -447,6 +447,42 @@ export interface ExposuresBlock {
   introduction_precision: Record<DatingPrecision, number>;
 }
 
+/** A distribution of day counts */
+export interface DaysSummary {
+  n: number;
+  median: number | null;
+  p25: number | null;
+  p75: number | null;
+  min: number | null;
+  max: number | null;
+}
+
+/** One severity class of a days distribution */
+export interface DaysGroup extends DaysSummary {
+  key: string;
+}
+
+export interface ResidencePoint {
+  severity: keyof SeverityCounts;
+  residence_days: number;
+  precision: DatingPrecision;
+}
+
+/** Introduction to disclosure; introductions after it are counted apart */
+export interface ResidenceBlock {
+  introductions: number;
+  snapshot_precision_share: number | null;
+  present_at_first_observation: number;
+  /** Introductions whose advisory has no publication date */
+  undated: number;
+  overall: DaysSummary;
+  by_severity: DaysGroup[];
+  points: ResidencePoint[];
+  /** Days from publication to introduction */
+  after_disclosure: DaysSummary;
+  after_disclosure_by_severity: DaysGroup[];
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -461,6 +497,7 @@ export interface ExperimentResults {
   /** Exposures over the whole grid; absent from results of older APIs */
   exposures?: ExposuresBlock;
   fix_lag?: FixLagBlock;
+  residence?: ResidenceBlock;
   provenance: ProvenanceBlock;
 }
 

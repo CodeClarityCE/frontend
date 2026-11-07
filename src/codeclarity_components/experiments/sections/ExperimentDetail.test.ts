@@ -74,6 +74,9 @@ function experiment(status: string, overrides: object = {}): object {
     name: "top4 head",
     status,
     retries: 2,
+    grid_interval: "month",
+    grid_count: 0,
+    grid_dates: [],
     error: null,
     dataset_id: "ds-1",
     dataset_name: "top4",
@@ -99,6 +102,9 @@ function run(rank: number, overrides: object = {}): object {
     branch: null,
     commit_hash: null,
     committed_at: null,
+    grid_index: 0,
+    grid_date: null,
+    shared_from_run_id: null,
     submitted_on: null,
     ended_on: null,
     analysis_id: null,
@@ -147,6 +153,17 @@ function results(overrides: object = {}): object {
       failure_reasons: { "missing result: vuln-finder": 1 },
       skip_reasons: { "repository not found": 1 },
     },
+    grid_coverage: [
+      {
+        grid_date: null,
+        runs: 100,
+        done: 98,
+        empty: 0,
+        failed: 1,
+        skipped: 1,
+        pending: 0,
+      },
+    ],
     headline: {
       ...scalars(87),
       sev_counts: {
@@ -486,6 +503,90 @@ describe("ExperimentDetail", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     await flushPromises();
     expect(getExperimentResults).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows coverage per grid date, counting no lockfile yet as empty, HEAD last", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("RUNNING", {
+        grid_count: 2,
+        grid_dates: ["2026-09-01", "2026-10-01"],
+        run_counts: { pending: 2, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        grid_coverage: [
+          {
+            grid_date: "2026-09-01",
+            runs: 2,
+            done: 0,
+            empty: 2,
+            failed: 0,
+            skipped: 0,
+            pending: 0,
+          },
+          {
+            grid_date: "2026-10-01",
+            runs: 2,
+            done: 1,
+            empty: 0,
+            failed: 1,
+            skipped: 0,
+            pending: 0,
+          },
+          {
+            grid_date: null,
+            runs: 2,
+            done: 0,
+            empty: 0,
+            failed: 0,
+            skipped: 0,
+            pending: 2,
+          },
+        ],
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const rows = wrapper
+      .find('[data-testid="experiment-grid-coverage"]')
+      .findAll('[data-testid="grid-coverage-row"]');
+    expect(
+      rows.map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["2026-09-01", "0", "2", "0", "0", "0"],
+      ["2026-10-01", "1", "0", "1", "0", "0"],
+      ["HEAD", "0", "0", "0", "0", "2"],
+    ]);
+  });
+
+  it("labels the existing blocks as HEAD and shows no grid coverage for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(
+      wrapper.find('[data-testid="experiment-grid-coverage"]').exists(),
+    ).toBe(false);
+    const head = wrapper.find('[data-testid="experiment-head-results"]');
+    expect(head.find("h3").text()).toContain("HEAD");
+    for (const block of [
+      "experiment-headline",
+      "experiment-coverage",
+      "experiment-severity",
+      "experiment-sweep",
+      "experiment-rqd",
+    ]) {
+      expect(head.find(`[data-testid="${block}"]`).exists()).toBe(true);
+    }
+    expect(head.find('[data-testid="experiment-provenance"]').exists()).toBe(
+      false,
+    );
   });
 
   it("toasts a results failure once, not on every poll", async () => {

@@ -171,6 +171,41 @@ describe("ExperimentCreate", () => {
     ).toBe("an-js");
   });
 
+  it("defaults the grid to monthly x 24 and estimates entries x grid dates plus HEAD", async () => {
+    const wrapper = await mountForm();
+
+    expect(
+      (wrapper.find('[data-testid="experiment-grid-interval"]').element as HTMLSelectElement).value,
+    ).toBe("month");
+    expect(
+      (wrapper.find('[data-testid="experiment-grid-count"]').element as HTMLInputElement).value,
+    ).toBe("24");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').exists()).toBe(false);
+
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("75 analyses");
+
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("2");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("9 analyses");
+
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("0");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("3 analyses");
+  });
+
+  it("rejects a grid count outside 0 to 120", async () => {
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("121");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("A whole number between 0 and 120");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').exists()).toBe(false);
+  });
+
   it("preselects the dataset it was opened from", async () => {
     routeQuery.dataset = "ds-4";
     createExperiment.mockResolvedValue({ id: "exp-1" });
@@ -246,6 +281,10 @@ describe("ExperimentCreate", () => {
       .find('[data-testid="experiment-name"]')
       .setValue("  top100 head ");
     await wrapper.find('[data-testid="experiment-retries"]').setValue("1");
+    await wrapper
+      .find('[data-testid="experiment-grid-interval"]')
+      .setValue("week");
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("12");
 
     await wrapper.find("form").trigger("submit");
     await flushPromises();
@@ -259,6 +298,8 @@ describe("ExperimentCreate", () => {
           dataset_id: "ds-1",
           analyzer_id: "an-js",
           retries: 1,
+          grid_interval: "week",
+          grid_count: 12,
         },
       }),
     );

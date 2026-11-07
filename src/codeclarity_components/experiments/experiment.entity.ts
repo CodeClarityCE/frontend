@@ -447,6 +447,22 @@ export interface ExposuresBlock {
   introduction_precision: Record<DatingPrecision, number>;
 }
 
+/** Events by how fix probes ended; not_probed while they have not */
+export interface ProbeOutcomeCounts {
+  found: number;
+  ambiguous: number;
+  not_found: number;
+  not_probed: number;
+}
+
+/** How fix probes dated the fixes and introductions */
+export interface ProbesBlock {
+  fixes: ProbeOutcomeCounts;
+  introductions: ProbeOutcomeCounts;
+  /** Not-found events per reason, most frequent first */
+  not_found_reasons: Record<string, number>;
+}
+
 /** Instance load of one grid date in the hindsight and as-of views */
 export interface LoadRow {
   /** YYYY-MM-DD, null for HEAD */
@@ -574,6 +590,7 @@ export interface ExperimentResults {
   /** Exposures over the whole grid; absent from results of older APIs */
   exposures?: ExposuresBlock;
   fix_lag?: FixLagBlock;
+  probes?: ProbesBlock;
   /** Per grid date, HEAD last; absent from results of older APIs */
   load_over_time?: LoadRow[];
   residence?: ResidenceBlock;

@@ -857,6 +857,30 @@ describe("ExperimentDetail", () => {
     ]);
   });
 
+  it("shows fix probe outcomes and precision shares outside the HEAD blocks", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { grid_count: 1, grid_dates: ["2026-09-01"], run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: {
+        ...gridResults(),
+        probes: {
+          fixes: { found: 0, ambiguous: 0, not_found: 3, not_probed: 0 },
+          introductions: { found: 0, ambiguous: 0, not_found: 1, not_probed: 0 },
+          not_found_reasons: { "no lockfile-touching commit in the interval": 4 },
+        },
+      },
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="experiment-probes"]');
+    expect(block.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="experiment-head-results"] [data-testid="experiment-probes"]').exists()).toBe(false);
+    expect(block.findAll('[data-testid="probe-outcome-row"]')[0]!.text()).toContain("100.0%");
+    expect(block.text()).toContain("no lockfile-touching commit in the interval: 4");
+  });
+
   it("shows a dot's fix lag on hover", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("COMPLETED", { grid_count: 1, grid_dates: ["2026-09-01"], run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),

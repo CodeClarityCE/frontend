@@ -882,6 +882,99 @@ describe("ExperimentDetail", () => {
     expect(wrapper.find('[data-testid="experiment-survival"]').exists()).toBe(false);
   });
 
+  function loadResults(): object {
+    return {
+      ...gridResults(),
+      load_over_time: [
+        { grid_date: "2026-07-01", as_of_date: "2026-07-01", projects: 2, hindsight: 4, as_of: 1, undated: 0 },
+        { grid_date: "2026-08-01", as_of_date: "2026-08-01", projects: 0, hindsight: null, as_of: null, undated: 0 },
+        { grid_date: "2026-09-01", as_of_date: "2026-09-01", projects: 2, hindsight: 5, as_of: 3, undated: 1 },
+        { grid_date: null, as_of_date: "2026-10-02", projects: 2, hindsight: 6, as_of: 6, undated: 1 },
+      ],
+    };
+  }
+
+  async function mountLoad(): Promise<VueWrapper> {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 3,
+        grid_dates: ["2026-07-01", "2026-08-01", "2026-09-01"],
+        run_counts: { pending: 0, done: 6, failed: 2, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: loadResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+    return wrapper;
+  }
+
+  it("charts load over time in the hindsight and as-of views on one chart, outside the HEAD blocks", async () => {
+    const wrapper = await mountLoad();
+
+    const block = wrapper.find('[data-testid="experiment-load"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper.find('[data-testid="experiment-head-results"] [data-testid="experiment-load"]').exists(),
+    ).toBe(false);
+    expect(block.findAll('[data-testid="load-legend-item"]').map((item) => item.text())).toEqual([
+      "Hindsight",
+      "As-of",
+    ]);
+    const series = block.findAll('[data-testid="load-series"]');
+    expect(series.map((s) => s.attributes("data-key"))).toEqual(["hindsight", "as_of"]);
+    // The grid date without a done snapshot is a gap: three points per series
+    expect(series.map((s) => s.findAll('[data-testid="load-point"]').length)).toEqual([3, 3]);
+    expect(block.findAll('[data-testid="load-column"]').map((c) => c.attributes("aria-label"))).toEqual([
+      "2026-07-01: hindsight 4, as-of 1, 2 projects",
+      "2026-08-01: no done snapshot",
+      "2026-09-01: hindsight 5, as-of 3, 2 projects",
+      "HEAD: hindsight 6, as-of 6, 2 projects",
+    ]);
+  });
+
+  it("lists every grid date's load in the table view", async () => {
+    const wrapper = await mountLoad();
+
+    const rows = wrapper
+      .find('[data-testid="experiment-load"]')
+      .findAll('[data-testid="load-table-row"]')
+      .map((row) => row.findAll("td").map((cell) => cell.text()));
+    expect(rows).toEqual([
+      ["2026-07-01", "2", "4", "1", "0"],
+      ["2026-08-01", "0", "-", "-", "0"],
+      ["2026-09-01", "2", "5", "3", "1"],
+      ["HEAD (as of 2026-10-02)", "2", "6", "6", "1"],
+    ]);
+  });
+
+  it("shows both views' load for a grid date on hover", async () => {
+    const wrapper = await mountLoad();
+
+    const block = wrapper.find('[data-testid="experiment-load"]');
+    await block.findAll('[data-testid="load-column"]')[2]!.trigger("pointerenter");
+
+    expect(block.find('[data-testid="load-tooltip"]').text()).toBe(
+      "2026-09-01: hindsight 5, as-of 3, 2 projects",
+    );
+  });
+
+  it("shows no load block for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        load_over_time: [
+          { grid_date: null, as_of_date: null, projects: 98, hindsight: 10, as_of: 10, undated: 0 },
+        ],
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="experiment-load"]').exists()).toBe(false);
+  });
+
   it("renders the pre-disclosure residence block outside the HEAD blocks", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("COMPLETED", { grid_count: 1, grid_dates: ["2026-09-01"], run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),

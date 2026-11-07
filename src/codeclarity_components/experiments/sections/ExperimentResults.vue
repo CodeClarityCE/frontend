@@ -11,6 +11,7 @@ import {
 } from "../experiment.entity";
 
 import ExperimentFixLag from "./ExperimentFixLag.vue";
+import ExperimentLoad from "./ExperimentLoad.vue";
 import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
 
@@ -61,6 +62,10 @@ const fixLag = computed(() =>
 );
 const survival = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.exposure_survival ?? null) : null,
+);
+
+const loadOverTime = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.load_over_time ?? null) : null,
 );
 
 const residence = computed(() =>
@@ -433,6 +438,8 @@ const analyzerSteps = computed(() =>
 
     <ExperimentResidence v-if="residence" :residence="residence" />
     <ExperimentSurvival v-if="survival" :survival="survival" />
+
+    <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
 
     <div
       class="bg-white rounded-xl border border-gray-200 p-4"

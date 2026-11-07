@@ -11,6 +11,7 @@ import {
 } from "../experiment.entity";
 
 import ExperimentFixLag from "./ExperimentFixLag.vue";
+import ExperimentSurvival from "./ExperimentSurvival.vue";
 
 const props = defineProps<{ results: ExperimentResults }>();
 
@@ -56,6 +57,9 @@ const anyMixedKnowledge = computed(() =>
 /** Over-time blocks need a grid and an API that computes them. */
 const fixLag = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.fix_lag ?? null) : null,
+);
+const survival = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.exposure_survival ?? null) : null,
 );
 
 const severityRows = computed(() => {
@@ -421,6 +425,8 @@ const analyzerSteps = computed(() =>
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
     />
+
+    <ExperimentSurvival v-if="survival" :survival="survival" />
 
     <div
       class="bg-white rounded-xl border border-gray-200 p-4"

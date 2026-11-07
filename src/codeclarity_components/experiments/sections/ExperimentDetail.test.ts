@@ -589,6 +589,111 @@ describe("ExperimentDetail", () => {
     );
   });
 
+  function lag(n: number, median: number, before = 0): object {
+    return { n, median, p25: median - 10, p75: median + 10, min: median - 20, max: median + 20, before_disclosure: before };
+  }
+
+  function gridResults(): object {
+    return results({
+      grid_coverage: [
+        { grid_date: "2026-09-01", runs: 2, done: 2, empty: 0, failed: 0, skipped: 0, pending: 0 },
+        { grid_date: null, runs: 2, done: 2, empty: 0, failed: 0, skipped: 0, pending: 0 },
+      ],
+      exposures: {
+        exposures: 5,
+        open: 2,
+        fixed: 3,
+        introductions: 1,
+        present_at_first_observation: 4,
+        fix_precision: { commit: 0, snapshot: 3 },
+        introduction_precision: { commit: 0, snapshot: 1 },
+      },
+      fix_lag: {
+        fixes: 3,
+        snapshot_precision_share: 1,
+        overall: lag(3, 46, 1),
+        by_severity: [
+          { key: "HIGH", ...lag(2, 80) },
+          { key: "LOW", ...lag(1, -13, 1) },
+        ],
+        by_kind: [
+          { key: "upgraded", ...lag(2, 16.5, 1) },
+          { key: "removed_direct", ...lag(1, 114) },
+        ],
+        points: [
+          { severity: "HIGH", kind: "upgraded", lag_days: 46, precision: "snapshot" },
+          { severity: "HIGH", kind: "removed_direct", lag_days: 114, precision: "snapshot" },
+          { severity: "LOW", kind: "upgraded", lag_days: -13, precision: "snapshot" },
+        ],
+      },
+    });
+  }
+
+  it("charts fix lag by severity and by fix kind outside the HEAD blocks, with a table view", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: gridResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="experiment-fix-lag"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper.find('[data-testid="experiment-head-results"] [data-testid="experiment-fix-lag"]').exists(),
+    ).toBe(false);
+    expect(block.text()).toContain("3 fixes");
+    expect(block.text()).toContain("1 before disclosure");
+    expect(block.text()).toContain("100.0% dated only to a snapshot interval");
+
+    const bySeverity = block.find('[data-testid="fix-lag-by-severity"]');
+    const rows = bySeverity.findAll('[data-testid="lag-row"]');
+    expect(rows.map((row) => row.attributes("data-key"))).toEqual(["HIGH", "LOW"]);
+    expect(rows.map((row) => row.findAll('[data-testid="lag-dot"]').length)).toEqual([2, 1]);
+    expect(bySeverity.find('[data-testid="lag-zero"]').exists()).toBe(true);
+    expect(rows[0]!.attributes("aria-label")).toBe("High: 2 fixes, median 80 days, 0 before disclosure");
+
+    const byKind = block.find('[data-testid="fix-lag-by-kind"]');
+    expect(byKind.findAll('[data-testid="lag-row"]').map((row) => row.text())).toEqual([
+      expect.stringContaining("Upgraded"),
+      expect.stringContaining("Removed directly"),
+    ]);
+    expect(
+      byKind.findAll('[data-testid="lag-table-row"]').map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["Upgraded", "2", "16.5", "6.5", "26.5", "1"],
+      ["Removed directly", "1", "114", "104", "124", "0"],
+    ]);
+  });
+
+  it("shows a dot's fix lag on hover", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { grid_count: 1, grid_dates: ["2026-09-01"], run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    getExperimentResults.mockResolvedValue({ data: gridResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const chart = wrapper.find('[data-testid="fix-lag-by-severity"]');
+    await chart.findAll('[data-testid="lag-hit"]')[2]!.trigger("pointerenter");
+
+    expect(chart.find('[data-testid="lag-tooltip"]').text()).toBe("Low: fixed 13 days before disclosure");
+  });
+
+  it("shows no fix lag block for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="experiment-fix-lag"]').exists()).toBe(false);
+  });
+
   it("toasts a results failure once, not on every poll", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("RUNNING", {
@@ -650,6 +755,8 @@ describe("ExperimentDetail", () => {
   it.each([
     ["runs.csv", "top4-head-runs.csv"],
     ["vulnerabilities.csv", "top4-head-vulnerabilities.csv"],
+    ["exposures.csv", "top4-head-exposures.csv"],
+    ["fixes.csv", "top4-head-fixes.csv"],
     ["results.json", "top4-head-results.json"],
   ])("downloads %s with the bearer token and saves it", async (file, name) => {
     const blob = new Blob(["x"]);

@@ -447,6 +447,41 @@ export interface ExposuresBlock {
   introduction_precision: Record<DatingPrecision, number>;
 }
 
+/** Instance concentration at one grid date */
+export interface PackagesToClearRow {
+  /** YYYY-MM-DD, null for HEAD */
+  grid_date: string | null;
+  projects: number;
+  instances: number;
+  distinct_packages: number;
+  /** Null when no snapshot at this date is done */
+  pkgs_clear_50: number | null;
+  pkgs_clear_80: number | null;
+}
+
+export interface FixKindCounts {
+  fixes: number;
+  upgraded: number;
+  removed_direct: number;
+  removed_transitive: number;
+  unknown: number;
+  /** Over fixes of known kind; unknown ones are left out */
+  removed_transitive_share: number | null;
+  snapshot_precision_share: number | null;
+}
+
+/** Fixes in the grid interval (from, to]; to is null for HEAD */
+export interface FixKindRow extends FixKindCounts {
+  interval_from: string | null;
+  interval_to: string | null;
+}
+
+export interface UpstreamLeverageBlock {
+  packages_to_clear: PackagesToClearRow[];
+  fix_kinds: FixKindRow[];
+  overall: FixKindCounts;
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -461,6 +496,7 @@ export interface ExperimentResults {
   /** Exposures over the whole grid; absent from results of older APIs */
   exposures?: ExposuresBlock;
   fix_lag?: FixLagBlock;
+  upstream_leverage?: UpstreamLeverageBlock;
   provenance: ProvenanceBlock;
 }
 

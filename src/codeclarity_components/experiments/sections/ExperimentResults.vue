@@ -11,6 +11,7 @@ import {
 } from "../experiment.entity";
 
 import ExperimentFixLag from "./ExperimentFixLag.vue";
+import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
 
 const props = defineProps<{ results: ExperimentResults }>();
 
@@ -56,6 +57,9 @@ const anyMixedKnowledge = computed(() =>
 /** Over-time blocks need a grid and an API that computes them. */
 const fixLag = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.fix_lag ?? null) : null,
+);
+const upstreamLeverage = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.upstream_leverage ?? null) : null,
 );
 
 const severityRows = computed(() => {
@@ -420,6 +424,11 @@ const analyzerSteps = computed(() =>
       v-if="fixLag"
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
+    />
+
+    <ExperimentUpstreamLeverage
+      v-if="upstreamLeverage"
+      :leverage="upstreamLeverage"
     />
 
     <div

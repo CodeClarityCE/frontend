@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -21,6 +22,24 @@ export enum ExperimentRunStatus {
   FAILED = "failed",
   SKIPPED = "skipped",
 }
+
+/** Step between an experiment's grid dates */
+export enum GridInterval {
+  DAY = "day",
+  WEEK = "week",
+  MONTH = "month",
+}
+
+export const GridIntervalLabels: Record<GridInterval, string> = {
+  [GridInterval.DAY]: "Daily",
+  [GridInterval.WEEK]: "Weekly",
+  [GridInterval.MONTH]: "Monthly",
+};
+
+/** Grid defaults and bounds, as in the API */
+export const DEFAULT_GRID_INTERVAL = GridInterval.MONTH;
+export const DEFAULT_GRID_COUNT = 24;
+export const MAX_GRID_COUNT = 120;
 
 /** Plugins an analyzer must contain to be used by an experiment */
 export const EXPERIMENT_REQUIRED_PLUGINS = ["js-sbom", "vuln-finder"];
@@ -115,6 +134,17 @@ export class Experiment {
   @IsInt()
   retries!: number;
 
+  @IsEnum(GridInterval)
+  grid_interval!: GridInterval;
+
+  /** Grid dates before HEAD; 0 is HEAD only */
+  @IsInt()
+  grid_count!: number;
+
+  /** Calendar days of the grid (YYYY-MM-DD), oldest first, HEAD excluded */
+  @IsArray()
+  grid_dates!: string[];
+
   @IsOptional()
   @IsString()
   error!: string | null;
@@ -193,6 +223,19 @@ export class ExperimentRun {
   @Type(() => Date)
   committed_at!: Date | null;
 
+  @IsInt()
+  grid_index!: number;
+
+  /** Null for HEAD */
+  @IsOptional()
+  @Type(() => Date)
+  grid_date!: Date | null;
+
+  /** The run whose analysis this snapshot shares (same pinned commit) */
+  @IsOptional()
+  @IsString()
+  shared_from_run_id!: string | null;
+
   @IsOptional()
   @Type(() => Date)
   submitted_on!: Date | null;
@@ -218,6 +261,8 @@ export interface CreateExperimentRequest {
   dataset_id: string;
   analyzer_id: string;
   retries?: number;
+  grid_interval?: GridInterval;
+  grid_count?: number;
 }
 
 /* Dataset-level results, computed by the API from the done runs */
@@ -305,6 +350,20 @@ export interface CoverageBlock {
   skip_reasons: Record<string, number>;
 }
 
+/** Run states of one snapshot of the grid */
+export interface GridCoverageRow {
+  /** YYYY-MM-DD, null for HEAD */
+  grid_date: string | null;
+  runs: number;
+  /** Done with rows */
+  done: number;
+  /** Done but empty: no lockfile yet at that date */
+  empty: number;
+  failed: number;
+  skipped: number;
+  pending: number;
+}
+
 export interface KnowledgeSnapshot {
   knowledge_sources: Record<string, string | null>;
   epss_rows: number;
@@ -325,6 +384,8 @@ export interface ProvenanceBlock {
 
 export interface ExperimentResults {
   coverage: CoverageBlock;
+  /** Coverage per grid date, oldest first, HEAD last */
+  grid_coverage: GridCoverageRow[];
   headline: Headline;
   sweep: SweepRow[];
   epss: EpssBlock;

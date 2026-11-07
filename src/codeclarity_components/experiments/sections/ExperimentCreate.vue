@@ -27,7 +27,14 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
 
-import { EXPERIMENT_REQUIRED_PLUGINS } from "../experiment.entity";
+import {
+  DEFAULT_GRID_COUNT,
+  DEFAULT_GRID_INTERVAL,
+  EXPERIMENT_REQUIRED_PLUGINS,
+  GridInterval,
+  GridIntervalLabels,
+  MAX_GRID_COUNT,
+} from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
 /** Bounds enforced by the API (CreateExperimentBody) */
@@ -49,6 +56,8 @@ const datasetId = ref(
 );
 const analyzerId = ref("");
 const retries = ref<number | string>(2);
+const gridInterval = ref<GridInterval>(DEFAULT_GRID_INTERVAL);
+const gridCount = ref<number | string>(DEFAULT_GRID_COUNT);
 
 const datasets = ref<Dataset[]>([]);
 const analyzers = ref<Analyzer[]>([]);
@@ -61,6 +70,13 @@ interface FormErrors {
   dataset?: string;
   analyzer?: string;
   retries?: string;
+  gridCount?: string;
+}
+
+/** A whole number within [0, max], or null. */
+function boundedInt(value: number | string, max: number): number | null {
+  const n = Number(value);
+  return value !== "" && Number.isInteger(n) && n >= 0 && n <= max ? n : null;
 }
 
 /** An analyzer is eligible when some stage runs each required plugin. */
@@ -82,16 +98,21 @@ const errors = computed(() => {
   if (!analyzers.value.some((analyzer) => analyzer.id === analyzerId.value)) {
     result.analyzer = "Pick an analyzer";
   }
-  const retriesNumber = Number(retries.value);
-  if (
-    retries.value === "" ||
-    !Number.isInteger(retriesNumber) ||
-    retriesNumber < 0 ||
-    retriesNumber > MAX_RETRIES
-  ) {
+  if (boundedInt(retries.value, MAX_RETRIES) === null) {
     result.retries = `A whole number between 0 and ${MAX_RETRIES}`;
   }
+  if (boundedInt(gridCount.value, MAX_GRID_COUNT) === null) {
+    result.gridCount = `A whole number between 0 and ${MAX_GRID_COUNT}`;
+  }
   return result;
+});
+
+/** Analyses the grid costs: one per entry per grid date, HEAD included. */
+const estimate = computed<number | null>(() => {
+  const dataset = datasets.value.find((d) => d.id === datasetId.value);
+  const count = boundedInt(gridCount.value, MAX_GRID_COUNT);
+  if (!dataset || count === null) return null;
+  return dataset.entry_count * (count + 1);
 });
 
 const isValid = computed(() => Object.keys(errors.value).length === 0);
@@ -188,6 +209,8 @@ async function submit(): Promise<void> {
         dataset_id: datasetId.value,
         analyzer_id: analyzerId.value,
         retries: Number(retries.value),
+        grid_interval: gridInterval.value,
+        grid_count: Number(gridCount.value),
       },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
@@ -222,8 +245,8 @@ onMounted(() => void load());
         New experiment
       </h1>
       <p class="text-gray-600 mt-2 text-lg">
-        Run one analyzer over every repository of a dataset, each at its current
-        default branch HEAD, pinned to a commit when submitted.
+        Run one analyzer over every repository of a dataset at each date of a
+        snapshot grid and at HEAD, each pinned to a default branch commit.
       </p>
     </div>
 
@@ -326,6 +349,60 @@ onMounted(() => void load());
           {{ errorFor("retries") }}
         </p>
       </div>
+
+      <div class="space-y-2">
+        <Label>Snapshot grid</Label>
+        <div class="flex flex-wrap gap-4">
+          <div class="space-y-1 w-40">
+            <Select
+              v-model="gridInterval"
+              data-testid="experiment-grid-interval"
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="interval in Object.values(GridInterval)"
+                  :key="interval"
+                  :value="interval"
+                >
+                  {{ GridIntervalLabels[interval] }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="space-y-1 w-40">
+            <Input
+              id="experiment-grid-count"
+              v-model="gridCount"
+              type="number"
+              min="0"
+              :max="MAX_GRID_COUNT"
+              aria-label="Grid dates before HEAD"
+              data-testid="experiment-grid-count"
+            />
+          </div>
+        </div>
+        <p class="text-xs text-gray-500">
+          Grid dates before HEAD, stepped back from today. 0 analyses HEAD only.
+          The grid is frozen once the experiment is created.
+        </p>
+        <p v-if="errorFor('gridCount')" class="text-sm text-red-600">
+          {{ errorFor("gridCount") }}
+        </p>
+      </div>
+
+      <p
+        v-if="estimate !== null"
+        class="text-sm text-gray-700"
+        data-testid="experiment-estimate"
+      >
+        Estimated {{ estimate.toLocaleString() }} analyses ({{
+          Number(gridCount) + 1
+        }}
+        grid dates including HEAD).
+      </p>
 
       <div class="flex justify-end">
         <Button

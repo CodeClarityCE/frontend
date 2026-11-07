@@ -384,6 +384,69 @@ export interface ProvenanceBlock {
   ended_on: Date | string | null;
 }
 
+export const SeverityLabels: Record<keyof SeverityCounts, string> = {
+  CRITICAL: "Critical",
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
+  NONE: "No severity",
+};
+
+export type FixKind = "upgraded" | "removed_direct" | "removed_transitive";
+
+/** Fix kinds, plus "unknown" when the state after a fix is not known */
+export const FixKindLabels: Record<FixKind | "unknown", string> = {
+  upgraded: "Upgraded",
+  removed_direct: "Removed directly",
+  removed_transitive: "Removed transitively",
+  unknown: "Unknown",
+};
+
+export type DatingPrecision = "commit" | "snapshot";
+
+/** A lag distribution in days */
+export interface LagSummary {
+  n: number;
+  median: number | null;
+  p25: number | null;
+  p75: number | null;
+  min: number | null;
+  max: number | null;
+  /** Lags below zero: fixed before the advisory was published */
+  before_disclosure: number;
+}
+
+/** One group of a lag block: a severity class or a fix kind */
+export interface LagGroup extends LagSummary {
+  key: string;
+}
+
+export interface FixLagPoint {
+  severity: keyof SeverityCounts;
+  kind: FixKind | null;
+  lag_days: number;
+  precision: DatingPrecision;
+}
+
+export interface FixLagBlock {
+  fixes: number;
+  snapshot_precision_share: number | null;
+  overall: LagSummary;
+  by_severity: LagGroup[];
+  by_kind: LagGroup[];
+  points: FixLagPoint[];
+}
+
+export interface ExposuresBlock {
+  exposures: number;
+  open: number;
+  fixed: number;
+  introductions: number;
+  present_at_first_observation: number;
+  fix_precision: Record<DatingPrecision, number>;
+  introduction_precision: Record<DatingPrecision, number>;
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -395,12 +458,17 @@ export interface ExperimentResults {
   winning_source_head: Record<string, number>;
   rqc: RqcBlock;
   rqd: RqdRow[];
+  /** Exposures over the whole grid; absent from results of older APIs */
+  exposures?: ExposuresBlock;
+  fix_lag?: FixLagBlock;
   provenance: ProvenanceBlock;
 }
 
 export const EXPERIMENT_EXPORT_FILES = [
   "runs.csv",
   "vulnerabilities.csv",
+  "exposures.csv",
+  "fixes.csv",
   "results.json",
 ] as const;
 

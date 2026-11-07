@@ -10,6 +10,8 @@ import {
   SweepSubsetLabels,
 } from "../experiment.entity";
 
+import ExperimentFixLag from "./ExperimentFixLag.vue";
+
 const props = defineProps<{ results: ExperimentResults }>();
 
 function count(value: number | null): string {
@@ -49,6 +51,11 @@ const gridCoverage = computed(() => {
 });
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),
+);
+
+/** Over-time blocks need a grid and an API that computes them. */
+const fixLag = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.fix_lag ?? null) : null,
 );
 
 const severityRows = computed(() => {
@@ -408,6 +415,12 @@ const analyzerSteps = computed(() =>
         </table>
       </div>
     </section>
+
+    <ExperimentFixLag
+      v-if="fixLag"
+      :fix-lag="fixLag"
+      :exposures="results.exposures ?? null"
+    />
 
     <div
       class="bg-white rounded-xl border border-gray-200 p-4"

@@ -14,6 +14,7 @@ import ExperimentFixLag from "./ExperimentFixLag.vue";
 import ExperimentLoad from "./ExperimentLoad.vue";
 import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
+import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
 
 const props = defineProps<{ results: ExperimentResults }>();
 
@@ -66,6 +67,10 @@ const survival = computed(() =>
 
 const loadOverTime = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.load_over_time ?? null) : null,
+);
+
+const upstreamLeverage = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.upstream_leverage ?? null) : null,
 );
 
 const residence = computed(() =>
@@ -440,6 +445,11 @@ const analyzerSteps = computed(() =>
     <ExperimentSurvival v-if="survival" :survival="survival" />
 
     <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
+
+    <ExperimentUpstreamLeverage
+      v-if="upstreamLeverage"
+      :leverage="upstreamLeverage"
+    />
 
     <div
       class="bg-white rounded-xl border border-gray-200 p-4"

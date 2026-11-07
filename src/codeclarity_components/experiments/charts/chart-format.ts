@@ -10,6 +10,15 @@ export interface LagChartRow {
   lags: number[];
 }
 
+/** One line of a grid line chart; null values leave a gap. */
+export interface GridLineSeries {
+  key: string;
+  label: string;
+  values: (number | null)[];
+  /** A role token from experiment-chart.css, e.g. "var(--viz-series-1)" */
+  color: string;
+}
+
 /** viewBox width; charts scale to their container */
 export const CHART_WIDTH = 640;
 /** Left column for row labels */
@@ -29,4 +38,9 @@ export function formatNumber(value: number | null): string {
 export function formatDays(days: number): string {
   const abs = Math.abs(days);
   return `${formatNumber(abs)} ${abs === 1 ? "day" : "days"}`;
+}
+
+/** A share as a percentage with one decimal. */
+export function formatShare(share: number | null): string {
+  return share === null ? "-" : `${(share * 100).toFixed(1)}%`;
 }

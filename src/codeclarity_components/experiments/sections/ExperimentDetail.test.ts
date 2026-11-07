@@ -1009,6 +1009,140 @@ describe("ExperimentDetail", () => {
     expect(block.findAll('[data-testid="residence-after-row"]')).toHaveLength(1);
   });
 
+  function kinds(fixes: number, upgraded: number, transitive: number, unknown: number, share: number | null): object {
+    return {
+      fixes,
+      upgraded,
+      removed_direct: fixes - upgraded - transitive - unknown,
+      removed_transitive: transitive,
+      unknown,
+      removed_transitive_share: share,
+      snapshot_precision_share: fixes ? 1 : null,
+    };
+  }
+
+  function leverageResults(): object {
+    return results({
+      grid_coverage: [
+        { grid_date: "2026-08-01", runs: 2, done: 2, empty: 0, failed: 0, skipped: 0, pending: 0 },
+        { grid_date: "2026-09-01", runs: 2, done: 0, empty: 0, failed: 2, skipped: 0, pending: 0 },
+        { grid_date: null, runs: 2, done: 2, empty: 0, failed: 0, skipped: 0, pending: 0 },
+      ],
+      upstream_leverage: {
+        packages_to_clear: [
+          { grid_date: "2026-08-01", projects: 2, instances: 10, distinct_packages: 3, pkgs_clear_50: 1, pkgs_clear_80: 2 },
+          { grid_date: "2026-09-01", projects: 0, instances: 0, distinct_packages: 0, pkgs_clear_50: null, pkgs_clear_80: null },
+          { grid_date: null, projects: 2, instances: 4, distinct_packages: 4, pkgs_clear_50: 2, pkgs_clear_80: 4 },
+        ],
+        fix_kinds: [
+          { interval_from: "2026-08-01", interval_to: "2026-09-01", ...kinds(0, 0, 0, 0, null) },
+          { interval_from: "2026-09-01", interval_to: null, ...kinds(3, 1, 1, 1, 0.5) },
+        ],
+        overall: kinds(3, 1, 1, 1, 0.5),
+      },
+    });
+  }
+
+  async function mountLeverage(): Promise<VueWrapper> {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 2,
+        grid_dates: ["2026-08-01", "2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 2, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: leverageResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+    return wrapper;
+  }
+
+  function tableRows(chart: ReturnType<VueWrapper["find"]>): string[][] {
+    return chart
+      .findAll('[data-testid="line-table-row"]')
+      .map((row) => row.findAll("td").map((cell) => cell.text()));
+  }
+
+  it("charts packages to clear 50% and 80% of instances per grid date outside the HEAD blocks", async () => {
+    const wrapper = await mountLeverage();
+
+    const block = wrapper.find('[data-testid="experiment-upstream-leverage"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper.find('[data-testid="experiment-head-results"] [data-testid="experiment-upstream-leverage"]').exists(),
+    ).toBe(false);
+
+    const chart = block.find('[data-testid="leverage-packages-to-clear"]');
+    expect(chart.findAll('[data-testid="line-legend-item"]').map((item) => item.text())).toEqual([
+      "Clear 50%",
+      "Clear 80%",
+    ]);
+    expect(chart.findAll('[data-testid="line-series"]')).toHaveLength(2);
+    const columns = chart.findAll('[data-testid="line-column"]');
+    expect(columns.map((column) => column.attributes("aria-label"))).toEqual([
+      "2026-08-01: 50% of 10 instances in 1 package, 80% in 2 packages",
+      "2026-09-01: no done snapshot",
+      "HEAD: 50% of 4 instances in 2 packages, 80% in 4 packages",
+    ]);
+    expect(tableRows(chart)).toEqual([
+      ["2026-08-01", "1", "2", "10"],
+      ["2026-09-01", "-", "-", "0"],
+      ["HEAD", "2", "4", "4"],
+    ]);
+  });
+
+  it("shows every series of a grid date on hover", async () => {
+    const wrapper = await mountLeverage();
+
+    const chart = wrapper.find('[data-testid="leverage-packages-to-clear"]');
+    await chart.findAll('[data-testid="line-column"]')[2]!.trigger("pointerenter");
+
+    expect(chart.find('[data-testid="line-crosshair"]').exists()).toBe(true);
+    expect(chart.find('[data-testid="line-tooltip"]').text()).toBe(
+      "HEAD: 50% of 4 instances in 2 packages, 80% in 4 packages",
+    );
+  });
+
+  it("charts the removed_transitive share per grid interval, with unknown fix kinds left out", async () => {
+    const wrapper = await mountLeverage();
+
+    const block = wrapper.find('[data-testid="experiment-upstream-leverage"]');
+    expect(block.text()).toContain("50.0% of 2 fixes of known kind removed transitively");
+    expect(block.text()).toContain("1 of 3 fixes has an unknown kind");
+
+    const chart = block.find('[data-testid="leverage-transitive-share"]');
+    expect(chart.findAll('[data-testid="line-legend-item"]')).toHaveLength(0);
+    expect(chart.findAll('[data-testid="line-column"]').map((column) => column.attributes("aria-label"))).toEqual([
+      "2026-08-01 to 2026-09-01: no fixes",
+      "2026-09-01 to HEAD: 50.0% of 2 fixes of known kind removed transitively, 1 unknown",
+    ]);
+    expect(tableRows(chart)).toEqual([
+      ["2026-09-01", "-", "0", "0"],
+      ["HEAD", "50.0%", "3", "1"],
+    ]);
+  });
+
+  it("shows no upstream leverage block for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        upstream_leverage: {
+          packages_to_clear: [
+            { grid_date: null, projects: 2, instances: 4, distinct_packages: 4, pkgs_clear_50: 2, pkgs_clear_80: 4 },
+          ],
+          fix_kinds: [],
+          overall: kinds(0, 0, 0, 0, null),
+        },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="experiment-upstream-leverage"]').exists()).toBe(false);
+  });
+
   it("toasts a results failure once, not on every poll", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("RUNNING", {

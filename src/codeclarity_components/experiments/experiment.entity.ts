@@ -447,6 +447,21 @@ export interface ExposuresBlock {
   introduction_precision: Record<DatingPrecision, number>;
 }
 
+/** Instance load of one grid date in the hindsight and as-of views */
+export interface LoadRow {
+  /** YYYY-MM-DD, null for HEAD */
+  grid_date: string | null;
+  /** The as-of cutoff: the grid date, or the end date for HEAD (null while running) */
+  as_of_date: string | null;
+  /** Done snapshots, empty ones included */
+  projects: number;
+  /** Null without a done snapshot */
+  hindsight: number | null;
+  as_of: number | null;
+  /** Instances without a readable published date, kept in the as-of view */
+  undated: number;
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -461,6 +476,8 @@ export interface ExperimentResults {
   /** Exposures over the whole grid; absent from results of older APIs */
   exposures?: ExposuresBlock;
   fix_lag?: FixLagBlock;
+  /** Per grid date, HEAD last; absent from results of older APIs */
+  load_over_time?: LoadRow[];
   provenance: ProvenanceBlock;
 }
 

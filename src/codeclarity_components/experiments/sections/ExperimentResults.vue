@@ -11,6 +11,7 @@ import {
 } from "../experiment.entity";
 
 import ExperimentFixLag from "./ExperimentFixLag.vue";
+import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
 
 const props = defineProps<{ results: ExperimentResults }>();
@@ -60,6 +61,10 @@ const fixLag = computed(() =>
 );
 const upstreamLeverage = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.upstream_leverage ?? null) : null,
+);
+
+const residence = computed(() =>
+  gridCoverage.value.length > 0 ? (props.results.residence ?? null) : null,
 );
 
 const severityRows = computed(() => {
@@ -425,6 +430,8 @@ const analyzerSteps = computed(() =>
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
     />
+
+    <ExperimentResidence v-if="residence" :residence="residence" />
 
     <ExperimentUpstreamLeverage
       v-if="upstreamLeverage"

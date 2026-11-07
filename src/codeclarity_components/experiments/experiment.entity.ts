@@ -483,6 +483,33 @@ export interface ResidenceBlock {
   after_disclosure_by_severity: DaysGroup[];
 }
 
+/** One Kaplan-Meier step; survival is 1 before the first */
+export interface KmStep {
+  time: number;
+  survival: number;
+  at_risk: number;
+  events: number;
+  censored: number;
+}
+
+/** A survival curve over every exposure ("all") or one severity class */
+export interface SurvivalGroup {
+  key: string;
+  n: number;
+  fixed: number;
+  censored: number;
+  median_days: number | null;
+  curve: KmStep[];
+}
+
+export interface ExposureSurvivalBlock {
+  /** YYYY-MM-DD open exposures are censored at */
+  censored_at: string;
+  snapshot_precision_share: number | null;
+  overall: SurvivalGroup;
+  by_severity: SurvivalGroup[];
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -498,6 +525,7 @@ export interface ExperimentResults {
   exposures?: ExposuresBlock;
   fix_lag?: FixLagBlock;
   residence?: ResidenceBlock;
+  exposure_survival?: ExposureSurvivalBlock;
   provenance: ProvenanceBlock;
 }
 

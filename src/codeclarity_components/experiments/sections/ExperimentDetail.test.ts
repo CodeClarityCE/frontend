@@ -706,8 +706,115 @@ describe("ExperimentDetail", () => {
           { severity: "LOW", kind: "upgraded", lag_days: -13, precision: "snapshot" },
         ],
       },
+      exposure_survival: {
+        censored_at: "2026-10-01",
+        snapshot_precision_share: 1,
+        overall: {
+          key: "all",
+          n: 4,
+          fixed: 2,
+          censored: 2,
+          median_days: 50,
+          curve: [
+            { time: 24, survival: 0.75, at_risk: 4, events: 1, censored: 0 },
+            { time: 50, survival: 0.5, at_risk: 3, events: 1, censored: 0 },
+            { time: 90, survival: 0.5, at_risk: 2, events: 0, censored: 1 },
+            { time: 104, survival: 0.5, at_risk: 1, events: 0, censored: 1 },
+          ],
+        },
+        by_severity: [
+          {
+            key: "CRITICAL",
+            n: 1,
+            fixed: 1,
+            censored: 0,
+            median_days: 24,
+            curve: [{ time: 24, survival: 0, at_risk: 1, events: 1, censored: 0 }],
+          },
+          {
+            key: "MEDIUM",
+            n: 3,
+            fixed: 1,
+            censored: 2,
+            median_days: null,
+            curve: [
+              { time: 50, survival: 2 / 3, at_risk: 3, events: 1, censored: 0 },
+              { time: 90, survival: 2 / 3, at_risk: 2, events: 0, censored: 1 },
+              { time: 104, survival: 2 / 3, at_risk: 1, events: 0, censored: 1 },
+            ],
+          },
+        ],
+      },
     });
   }
+
+  async function mountGrid(): Promise<ReturnType<typeof mountDetail>> {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: gridResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+    return wrapper;
+  }
+
+  it("charts exposure survival as a step curve outside the HEAD blocks, censoring open exposures", async () => {
+    const wrapper = await mountGrid();
+
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper.find('[data-testid="experiment-head-results"] [data-testid="experiment-survival"]').exists(),
+    ).toBe(false);
+    expect(block.text()).toContain("4 exposures, 2 fixed, 2 still open at HEAD (censored at 2026-10-01)");
+    expect(block.text()).toContain("Median 50 days");
+    expect(block.text()).toContain("100.0% of fixes dated only to a snapshot interval");
+    expect(block.find('[data-testid="survival-curve"]').attributes("d")).toMatch(/^M/);
+    expect(block.findAll('[data-testid="survival-censor"]')).toHaveLength(2);
+    expect(block.find('[data-testid="survival-median"]').exists()).toBe(true);
+    expect(block.find('[data-testid="survival-chart"]').attributes("aria-label")).toBe(
+      "Exposure survival, all severities: 4 exposures, 2 fixed, median 50 days",
+    );
+    expect(
+      block.findAll('[data-testid="survival-table-row"]').map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["All severities", "4", "2", "2", "50"],
+      ["Critical", "1", "1", "0", "24"],
+      ["Medium", "3", "1", "2", "-"],
+    ]);
+  });
+
+  it("switches the survival curve to one severity", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    expect(block.findAll('[data-testid="survival-group"]').map((b) => b.text())).toEqual([
+      "All severities",
+      "Critical",
+      "Medium",
+    ]);
+    await block.findAll('[data-testid="survival-group"]')[2]!.trigger("click");
+
+    expect(block.findAll('[data-testid="survival-censor"]')).toHaveLength(2);
+    expect(block.find('[data-testid="survival-median"]').exists()).toBe(false);
+    expect(block.text()).toContain("Survival stays above 50%: no median yet");
+    expect(block.findAll('[data-testid="survival-group"]')[2]!.attributes("aria-pressed")).toBe("true");
+  });
+
+  it("shows the survival at a step on hover", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    await block.findAll('[data-testid="survival-hit"]')[1]!.trigger("pointerenter");
+
+    expect(block.find('[data-testid="survival-tooltip"]').text()).toBe(
+      "Day 50: 50.0% still exposed, 3 at risk, 1 fixed",
+    );
+  });
 
   it("charts fix lag by severity and by fix kind outside the HEAD blocks, with a table view", async () => {
     getExperiment.mockResolvedValue({
@@ -772,6 +879,7 @@ describe("ExperimentDetail", () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="experiment-fix-lag"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="experiment-survival"]').exists()).toBe(false);
   });
 
   it("renders the pre-disclosure residence block outside the HEAD blocks", async () => {

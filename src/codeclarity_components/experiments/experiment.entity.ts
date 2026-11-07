@@ -362,6 +362,8 @@ export interface GridCoverageRow {
   failed: number;
   skipped: number;
   pending: number;
+  /** Its runs were matched against different knowledge */
+  mixed_knowledge: boolean;
 }
 
 export interface KnowledgeSnapshot {

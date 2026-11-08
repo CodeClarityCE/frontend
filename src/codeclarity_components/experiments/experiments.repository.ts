@@ -104,6 +104,9 @@ export interface DownloadExperimentExportRequestOptions extends AuthRepoMethodGe
   file: ExperimentExportFile;
 }
 
+export type DownloadPublishedPackageRequestOptions =
+  GetPublishedResultsRequestOptions;
+
 export interface CreateExperimentRequestOptions extends AuthRepoMethodPostRequestOptions<CreateExperimentRequest> {
   orgId: string;
 }
@@ -362,6 +365,21 @@ export class ExperimentsRepository extends BaseRepository {
     options: DownloadExperimentExportRequestOptions,
   ): Promise<Blob> {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/export/${options.file}`;
+
+    return await this.getBlobRequest({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+  }
+
+  /** The replication package of one Published results version. */
+  async downloadPublishedPackage(
+    options: DownloadPublishedPackageRequestOptions,
+  ): Promise<Blob> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published/${options.metricVersion}/package.zip`;
 
     return await this.getBlobRequest({
       bearerToken: options.bearerToken,

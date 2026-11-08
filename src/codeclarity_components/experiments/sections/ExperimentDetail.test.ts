@@ -792,10 +792,42 @@ describe("ExperimentDetail", () => {
           censored: 2,
           median_days: 50,
           curve: [
-            { time: 24, survival: 0.75, at_risk: 4, events: 1, censored: 0 },
-            { time: 50, survival: 0.5, at_risk: 3, events: 1, censored: 0 },
-            { time: 90, survival: 0.5, at_risk: 2, events: 0, censored: 1 },
-            { time: 104, survival: 0.5, at_risk: 1, events: 0, censored: 1 },
+            {
+              time: 24,
+              survival: 0.75,
+              lower: 0.25,
+              upper: 0.95,
+              at_risk: 4,
+              events: 1,
+              censored: 0,
+            },
+            {
+              time: 50,
+              survival: 0.5,
+              lower: 0.1,
+              upper: 0.75,
+              at_risk: 3,
+              events: 1,
+              censored: 0,
+            },
+            {
+              time: 90,
+              survival: 0.5,
+              lower: 0.1,
+              upper: 0.75,
+              at_risk: 2,
+              events: 0,
+              censored: 1,
+            },
+            {
+              time: 104,
+              survival: 0.5,
+              lower: 0.1,
+              upper: 0.75,
+              at_risk: 1,
+              events: 0,
+              censored: 1,
+            },
           ],
         },
         by_severity: [
@@ -806,7 +838,15 @@ describe("ExperimentDetail", () => {
             censored: 0,
             median_days: 24,
             curve: [
-              { time: 24, survival: 0, at_risk: 1, events: 1, censored: 0 },
+              {
+                time: 24,
+                survival: 0,
+                lower: 0,
+                upper: 0,
+                at_risk: 1,
+                events: 1,
+                censored: 0,
+              },
             ],
           },
           {
@@ -816,11 +856,29 @@ describe("ExperimentDetail", () => {
             censored: 2,
             median_days: null,
             curve: [
-              { time: 50, survival: 2 / 3, at_risk: 3, events: 1, censored: 0 },
-              { time: 90, survival: 2 / 3, at_risk: 2, events: 0, censored: 1 },
+              {
+                time: 50,
+                survival: 2 / 3,
+                lower: 0.2,
+                upper: 0.9,
+                at_risk: 3,
+                events: 1,
+                censored: 0,
+              },
+              {
+                time: 90,
+                survival: 2 / 3,
+                lower: 0.2,
+                upper: 0.9,
+                at_risk: 2,
+                events: 0,
+                censored: 1,
+              },
               {
                 time: 104,
                 survival: 2 / 3,
+                lower: 0.2,
+                upper: 0.9,
                 at_risk: 1,
                 events: 0,
                 censored: 1,
@@ -884,6 +942,39 @@ describe("ExperimentDetail", () => {
       ["Critical", "1", "1", "0", "24"],
       ["Medium", "3", "1", "2", "-"],
     ]);
+  });
+
+  it("draws the confidence band and tables each step's bounds", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    const band = block.find('[data-testid="survival-band"]').attributes("d")!;
+    // Upper edge out, lower edge back: closes at the start of the curve
+    expect(band).toMatch(/^M44,\d+/);
+    expect(band.endsWith("Z")).toBe(true);
+    // Heights of 95%, 75%, 75%, 75%, then 10%, 10%, 10%, 25%, 100% on a 220px plot
+    expect(
+      [...band.matchAll(/V([\d.]+)/g)].map((m) =>
+        Number(Number(m[1]).toFixed(6)),
+      ),
+    ).toEqual([31, 75, 75, 75, 218, 218, 218, 185, 20]);
+    expect(
+      block
+        .findAll('[data-testid="survival-step-row"]')
+        .map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["24", "75.0%", "25.0%", "95.0%", "4"],
+      ["50", "50.0%", "10.0%", "75.0%", "3"],
+      ["90", "50.0%", "10.0%", "75.0%", "2"],
+      ["104", "50.0%", "10.0%", "75.0%", "1"],
+    ]);
+
+    await block.findAll('[data-testid="survival-group"]')[1]!.trigger("click");
+    expect(
+      block
+        .findAll('[data-testid="survival-step-row"]')
+        .map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([["24", "0.0%", "0.0%", "0.0%", "1"]]);
   });
 
   it("switches the survival curve to one severity", async () => {

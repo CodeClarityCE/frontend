@@ -94,7 +94,8 @@ const caption = computed(() => {
         Share of exposures still unfixed after a number of days, from their
         introduction (or the first grid date they were seen) to the fix
         (Kaplan-Meier). Exposures still open at HEAD are censored, shown as
-        ticks; failed snapshots are gaps, never fixes.
+        ticks; failed snapshots are gaps, never fixes. The shaded band is the
+        95% confidence interval (Greenwood, log-log).
       </p>
     </div>
 
@@ -163,6 +164,31 @@ const caption = computed(() => {
             <td class="text-right">{{ group.fixed }}</td>
             <td class="text-right">{{ group.censored }}</td>
             <td class="text-right">{{ formatNumber(group.median_days) }}</td>
+          </tr>
+        </tbody>
+      </ChartTable>
+
+      <ChartTable label="Show steps with 95% bounds">
+        <thead class="text-left text-gray-500">
+          <tr>
+            <th class="font-medium text-right">Day</th>
+            <th class="font-medium text-right">Still exposed</th>
+            <th class="font-medium text-right">95% lower</th>
+            <th class="font-medium text-right">95% upper</th>
+            <th class="font-medium text-right">At risk</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+          <tr
+            v-for="step in selected.curve"
+            :key="step.time"
+            data-testid="survival-step-row"
+          >
+            <td class="text-right">{{ formatNumber(step.time) }}</td>
+            <td class="text-right">{{ formatShare(step.survival) }}</td>
+            <td class="text-right">{{ formatShare(step.lower) }}</td>
+            <td class="text-right">{{ formatShare(step.upper) }}</td>
+            <td class="text-right">{{ step.at_risk }}</td>
           </tr>
         </tbody>
       </ChartTable>

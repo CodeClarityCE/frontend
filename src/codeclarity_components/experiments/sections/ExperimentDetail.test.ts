@@ -2520,7 +2520,11 @@ describe("ExperimentDetail", () => {
       "exports %s of the version being viewed",
       async (file) => {
         const blob = new Blob(["x"]);
-        getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+        getExperiment.mockResolvedValue({
+          data: experiment("COMPLETED", {
+            run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+          }),
+        });
         getPublishedVersions.mockResolvedValue({ data: [version] });
         getPublishedResults.mockResolvedValue({ data: results() });
         downloadExperimentExport.mockResolvedValue(blob);

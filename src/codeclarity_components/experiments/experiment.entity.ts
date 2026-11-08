@@ -726,6 +726,8 @@ export type ExperimentExportFile = (typeof EXPERIMENT_EXPORT_FILES)[number];
 export interface PublishedVersionStamp {
   metric_version: number;
   published_on: Date | string;
+  /** SHA-256 of the replication package, null for a version without one */
+  package_checksum: string | null;
 }
 
 /** One Published results version of an experiment, without its payload. */

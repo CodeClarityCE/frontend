@@ -3,7 +3,11 @@ import { computed, provide } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
-import { gridCoverageOf, SNAPSHOT_COVERAGE } from "../charts/chart-caption";
+import {
+  gridCoverageOf,
+  RESULT_MARKS,
+  SNAPSHOT_COVERAGE,
+} from "../charts/chart-caption";
 import {
   formatBracketInterval,
   formatInterval,
@@ -27,7 +31,11 @@ import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
 import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
 
-const props = defineProps<{ results: ExperimentResults }>();
+const props = defineProps<{
+  results: ExperimentResults;
+  /** The Published results version shown, null for unpublished results */
+  metricVersion: number | null;
+}>();
 
 function count(value: number | null): string {
   return value === null ? "-" : value.toLocaleString("en-US");
@@ -72,11 +80,32 @@ function withInterval(subtitle: string, interval: string): string {
 const coverage = computed(() => props.results.coverage);
 const provenance = computed(() => props.results.provenance);
 
+/** Each knowledge source with its stamp at the start and end of the run. */
+const knowledgeSources = computed(() => {
+  const start = provenance.value.knowledge_start?.knowledge_sources ?? {};
+  const end = provenance.value.knowledge_end?.knowledge_sources ?? {};
+  return [...new Set([...Object.keys(start), ...Object.keys(end)])]
+    .sort()
+    .map((name) => ({
+      name,
+      start: start[name] ?? "-",
+      end: end[name] ?? "-",
+    }));
+});
+
 /** Shown only for a grid: a HEAD-only experiment has just the HEAD row. */
 const gridCoverage = computed(() =>
   gridCoverageOf(props.results.grid_coverage ?? []),
 );
 provide(SNAPSHOT_COVERAGE, gridCoverage);
+provide(
+  RESULT_MARKS,
+  computed(() =>
+    props.metricVersion === null
+      ? { unpublished: true }
+      : { metricVersion: props.metricVersion },
+  ),
+);
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),
 );
@@ -670,6 +699,19 @@ const analyzerSteps = computed(() =>
         <dd>
           {{ formatExperimentDate(provenance.started_on) }} /
           {{ formatExperimentDate(provenance.ended_on) }}
+        </dd>
+        <dt class="text-gray-500">Knowledge sources, start / end</dt>
+        <dd>
+          <ul v-if="knowledgeSources.length > 0">
+            <li
+              v-for="source in knowledgeSources"
+              :key="source.name"
+              data-testid="experiment-knowledge-source"
+            >
+              {{ source.name }}: {{ source.start }} / {{ source.end }}
+            </li>
+          </ul>
+          <span v-else>-</span>
         </dd>
         <dt class="text-gray-500">EPSS rows, start / end</dt>
         <dd>

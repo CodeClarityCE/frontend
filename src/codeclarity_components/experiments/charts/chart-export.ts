@@ -1,4 +1,4 @@
-import { type FigureCaption, figureMarkText } from "./chart-caption";
+import { type FigureMarks, figureMarkText } from "./chart-caption";
 import chartCss from "./experiment-chart.css?raw";
 
 const FONT_FAMILY = "Helvetica, Arial, sans-serif";
@@ -128,9 +128,6 @@ type FigureStep = (
   source: HTMLElement,
   marks: FigureMarks,
 ) => void;
-
-/** The status a figure states on its face. */
-export type FigureMarks = Pick<FigureCaption, "unpublished" | "metricVersion">;
 
 const LEGEND_FONT = 11;
 const LEGEND_ROW = 16;

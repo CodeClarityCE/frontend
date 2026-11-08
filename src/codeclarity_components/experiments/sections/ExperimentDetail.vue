@@ -61,11 +61,13 @@ const notFound = ref(false);
 const confirming = ref<"cancel" | "delete" | "publish" | null>(null);
 const acting = ref(false);
 const results = ref<ExperimentResultsData | null>(null);
+/** The metric version of the results shown, null for unpublished results */
+const resultsVersion = ref<number | null>(null);
 /** A failing results request is reported once, not on every poll */
 const resultsErrorShown = ref(false);
 /** Published results versions, newest first */
 const publishedVersions = ref<PublishedVersion[]>([]);
-const exporting = ref<ExperimentExportFile | null>(null);
+const exporting = ref<ExperimentExportFile | "package" | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 const activeTab = ref("results");
 const figureCatalog = ref<FigureCatalog | null>(null);
@@ -198,6 +200,7 @@ async function loadResults(): Promise<void> {
         })
       : await experimentsRepository.getExperimentResults(request);
     results.value = response.data;
+    resultsVersion.value = newest?.metric_version ?? null;
     resultsErrorShown.value = false;
   } catch {
     if (!resultsErrorShown.value) {
@@ -207,7 +210,7 @@ async function loadResults(): Promise<void> {
   }
 }
 
-function exportFilename(file: ExperimentExportFile): string {
+function exportFilename(file: string): string {
   const name = (experiment.value?.name ?? "experiment")
     .trim()
     .replace(/[^A-Za-z0-9._-]+/g, "-");
@@ -229,6 +232,26 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
     saveBlob(blob, exportFilename(file));
   } catch {
     errorToast(`Failed to export ${file}`);
+  } finally {
+    exporting.value = null;
+  }
+}
+
+async function downloadPackage(metricVersion: number): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || exporting.value) return;
+  exporting.value = "package";
+  try {
+    const blob = await experimentsRepository.downloadPublishedPackage({
+      orgId,
+      experimentId: experimentId.value,
+      metricVersion,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    saveBlob(blob, exportFilename(`v${metricVersion}-package.zip`));
+  } catch {
+    errorToast("Failed to download the replication package");
   } finally {
     exporting.value = null;
   }
@@ -567,6 +590,13 @@ onUnmounted(() => clearTimeout(pollTimer));
                     by {{ publishedVersions[0].published_by_name }}</template
                   >.
                 </p>
+                <p
+                  v-if="publishedVersions[0]?.package_checksum"
+                  class="text-xs text-gray-500 break-all"
+                  data-testid="experiment-package-checksum"
+                >
+                  Package SHA-256: {{ publishedVersions[0].package_checksum }}
+                </p>
               </div>
               <div class="flex flex-wrap gap-2">
                 <Button
@@ -589,9 +619,32 @@ onUnmounted(() => clearTimeout(pollTimer));
                   />
                   {{ file }}
                 </Button>
+                <Button
+                  v-if="publishedVersions[0]?.package_checksum"
+                  variant="outline"
+                  size="sm"
+                  :disabled="exporting !== null"
+                  data-testid="export-package"
+                  @click="downloadPackage(publishedVersions[0].metric_version)"
+                >
+                  <Icon
+                    :icon="
+                      exporting === 'package'
+                        ? 'solar:loading-linear'
+                        : 'solar:download-linear'
+                    "
+                    class="h-4 w-4 mr-1"
+                    :class="{ 'animate-spin': exporting === 'package' }"
+                  />
+                  Replication package
+                </Button>
               </div>
             </div>
-            <ExperimentResults v-if="results" :results="results" />
+            <ExperimentResults
+              v-if="results"
+              :results="results"
+              :metric-version="resultsVersion"
+            />
             <p
               v-else-if="experiment.run_counts.done === 0"
               class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"

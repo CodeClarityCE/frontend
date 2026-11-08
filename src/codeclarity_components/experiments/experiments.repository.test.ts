@@ -156,6 +156,45 @@ describe("ExperimentsRepository", () => {
     );
   });
 
+  it("publishes an experiment", async () => {
+    repository.postRequest.mockResolvedValue({ data: { metric_version: 1 } });
+
+    await repository.publishExperiment({
+      orgId: "org-1",
+      experimentId: "exp-1",
+      bearerToken: "token",
+    });
+
+    expect(repository.postRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api/org/org-1/experiments/exp-1/publish",
+      }),
+    );
+  });
+
+  it("lists Published results versions and reads one", async () => {
+    repository.getRequest.mockResolvedValue({ data: [] });
+    const request = {
+      orgId: "org-1",
+      experimentId: "exp-1",
+      bearerToken: "token",
+    };
+
+    await repository.getPublishedVersions(request);
+    await repository.getPublishedResults({ ...request, metricVersion: 2 });
+
+    expect(repository.getRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api/org/org-1/experiments/exp-1/published",
+      }),
+    );
+    expect(repository.getRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api/org/org-1/experiments/exp-1/published/2",
+      }),
+    );
+  });
+
   it.each(["runs.csv", "vulnerabilities.csv", "results.json"] as const)(
     "downloads the %s export as an authenticated blob",
     async (file) => {

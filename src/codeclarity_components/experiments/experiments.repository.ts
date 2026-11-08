@@ -20,6 +20,8 @@ import {
   type ExperimentExportFile,
   type ExperimentResults,
   ExperimentRun,
+  type PublishedVersion,
+  type PublishedVersionStamp,
 } from "./experiment.entity";
 import type {
   Figure,
@@ -78,6 +80,20 @@ export interface GetExperimentRunsRequestOptions
 }
 
 export interface GetExperimentResultsRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  experimentId: string;
+}
+
+export interface GetPublishedVersionsRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  experimentId: string;
+}
+
+export interface GetPublishedResultsRequestOptions extends GetPublishedVersionsRequestOptions {
+  metricVersion: number;
+}
+
+export interface PublishExperimentRequestOptions extends AuthRepoMethodEmptyPostRequestOptions {
   orgId: string;
   experimentId: string;
 }
@@ -273,6 +289,68 @@ export class ExperimentsRepository extends BaseRepository {
     });
 
     // Plain aggregates: no class to unmarshal the payload into
+    return Entity.unMarshal<DataResponse<ExperimentResults>>(
+      response,
+      DataResponse<ExperimentResults>,
+    );
+  }
+
+  /** Freezes the results under the current metric version; one-way. */
+  async publishExperiment(
+    options: PublishExperimentRequestOptions,
+  ): Promise<DataResponse<PublishedVersionStamp>> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/publish`;
+
+    const response = await this.postRequest<
+      DataResponse<PublishedVersionStamp>,
+      Record<string, never>
+    >({
+      bearerToken: options.bearerToken,
+      data: {},
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<PublishedVersionStamp>>(
+      response,
+      DataResponse<PublishedVersionStamp>,
+    );
+  }
+
+  async getPublishedVersions(
+    options: GetPublishedVersionsRequestOptions,
+  ): Promise<DataResponse<PublishedVersion[]>> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published`;
+
+    const response = await this.getRequest<DataResponse<PublishedVersion[]>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<PublishedVersion[]>>(
+      response,
+      DataResponse<PublishedVersion[]>,
+    );
+  }
+
+  async getPublishedResults(
+    options: GetPublishedResultsRequestOptions,
+  ): Promise<DataResponse<ExperimentResults>> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published/${options.metricVersion}`;
+
+    const response = await this.getRequest<DataResponse<ExperimentResults>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
     return Entity.unMarshal<DataResponse<ExperimentResults>>(
       response,
       DataResponse<ExperimentResults>,

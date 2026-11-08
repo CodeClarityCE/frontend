@@ -721,3 +721,14 @@ export const EXPERIMENT_EXPORT_FILES = [
 ] as const;
 
 export type ExperimentExportFile = (typeof EXPERIMENT_EXPORT_FILES)[number];
+
+/** What publishing returns: the version stored and when. */
+export interface PublishedVersionStamp {
+  metric_version: number;
+  published_on: Date | string;
+}
+
+/** One Published results version of an experiment, without its payload. */
+export interface PublishedVersion extends PublishedVersionStamp {
+  published_by_name: string | null;
+}

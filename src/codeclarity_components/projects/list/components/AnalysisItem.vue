@@ -7,8 +7,10 @@ import {
   Analysis,
   type AnalysisStage,
   AnalysisStatus,
+  stageSkipReason,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
+import AnalysisFailureReason from "@/codeclarity_components/analyses/AnalysisFailureReason.vue";
 import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
@@ -122,7 +124,9 @@ function getStepsDone(steps: AnalysisStage[][] | undefined): number {
   let count = 0;
   for (const step of steps) {
     count += step.filter(
-      (stage) => stage.Status === AnalysisStatus.SUCCESS,
+      (stage) =>
+        stage.Status === AnalysisStatus.SUCCESS ||
+        stage.Status === AnalysisStatus.SKIPPED,
     ).length;
   }
   return count;
@@ -321,6 +325,19 @@ void getChart(props.projectID, props.analysis.id);
                         <Icon icon="solar:close-circle-bold" class="h-3 w-3" />
                       </div>
 
+                      <div
+                        v-else-if="stage.Status === AnalysisStatus.SKIPPED"
+                        class="flex items-center gap-1 text-slate-500 text-right"
+                      >
+                        <span class="text-xs"
+                          >Skipped: {{ stageSkipReason(stage) }}</span
+                        >
+                        <Icon
+                          icon="solar:minus-circle-bold"
+                          class="h-3 w-3 shrink-0"
+                        />
+                      </div>
+
                       <div v-else class="flex items-center gap-1 text-gray-500">
                         <span class="text-xs">Pending</span>
                         <Icon icon="solar:clock-circle-bold" class="h-3 w-3" />
@@ -461,6 +478,19 @@ void getChart(props.projectID, props.analysis.id);
                           <Icon
                             icon="solar:close-circle-bold"
                             class="h-3 w-3"
+                          />
+                        </div>
+
+                        <div
+                          v-else-if="stage.Status === AnalysisStatus.SKIPPED"
+                          class="flex items-center gap-1 text-slate-500 text-right"
+                        >
+                          <span class="text-xs"
+                            >Skipped: {{ stageSkipReason(stage) }}</span
+                          >
+                          <Icon
+                            icon="solar:minus-circle-bold"
+                            class="h-3 w-3 shrink-0"
                           />
                         </div>
 
@@ -618,6 +648,19 @@ void getChart(props.projectID, props.analysis.id);
                         </div>
 
                         <div
+                          v-else-if="stage.Status === AnalysisStatus.SKIPPED"
+                          class="flex items-center gap-1 text-slate-500 text-right"
+                        >
+                          <span class="text-xs"
+                            >Skipped: {{ stageSkipReason(stage) }}</span
+                          >
+                          <Icon
+                            icon="solar:minus-circle-bold"
+                            class="h-3 w-3 shrink-0"
+                          />
+                        </div>
+
+                        <div
                           v-else
                           class="flex items-center gap-1 text-gray-500"
                         >
@@ -647,6 +690,7 @@ void getChart(props.projectID, props.analysis.id);
               </PopoverContent>
             </Popover>
           </div>
+          <AnalysisFailureReason :analysis="props.analysis" />
           <div class="text-xs text-slate-500">
             {{
               formatDate(props.analysis.created_on, "MMM DD, YYYY [at] h:mm A")

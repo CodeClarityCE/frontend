@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import SbomContent from "./SbomContent.vue";
@@ -68,8 +68,9 @@ vi.mock("@/base_components/data-display/charts/DoughnutChart.vue", () => ({
 vi.mock("@/base_components/ui/cards/StatCard.vue", () => ({
   default: {
     name: "StatCard",
-    template: '<div data-testid="stat-card"><slot></slot></div>',
-    props: ["title", "value", "subtitle", "icon"],
+    template:
+      '<div data-testid="stat-card">{{ label }}: {{ value }} ({{ subtitle }})<slot></slot></div>',
+    props: ["label", "value", "subtitle", "icon"],
   },
 }));
 
@@ -90,6 +91,17 @@ vi.mock("@/shadcn/ui/button", () => ({
   },
 }));
 
+// Render tooltip content inline so its text can be read
+vi.mock("@/shadcn/ui/tooltip", () => {
+  const passthrough = { template: "<div><slot></slot></div>" };
+  return {
+    Tooltip: passthrough,
+    TooltipContent: passthrough,
+    TooltipProvider: passthrough,
+    TooltipTrigger: passthrough,
+  };
+});
+
 // Mock Icon component
 vi.mock("@iconify/vue", () => ({
   Icon: {
@@ -108,11 +120,13 @@ const mockSbomStats = {
   dependency_health: [],
 };
 
+const mockGetSbomStat = vi.fn();
+const mockGetVulnerabilitiesStat = vi.fn();
+
 vi.mock("@/codeclarity_components/results/results.repository", () => ({
   ResultsRepository: class {
-    getSbomStat = vi.fn().mockResolvedValue({
-      data: mockSbomStats,
-    });
+    getSbomStat = mockGetSbomStat;
+    getVulnerabilitiesStat = mockGetVulnerabilitiesStat;
     getSbom = vi.fn().mockResolvedValue({
       data: [],
       pagination: { page: 1, limit: 50, totalPages: 1, totalItems: 0 },
@@ -128,6 +142,134 @@ describe("SbomContent", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetSbomStat.mockResolvedValue({ data: mockSbomStats });
+    mockGetVulnerabilitiesStat.mockResolvedValue({
+      data: { number_of_issues: 0, number_of_vulnerabilities: 0 },
+    });
+  });
+
+  async function mountLoaded(
+    sbomStats: Record<string, unknown> = {},
+  ): Promise<any> {
+    mockGetSbomStat.mockResolvedValue({
+      data: { ...mockSbomStats, ...sbomStats },
+    });
+    wrapper = mount(SbomContent, {
+      props: { projectID: "project-123", analysisID: "analysis-456" },
+    });
+    await flushPromises();
+    return wrapper;
+  }
+
+  function securityCard(): string {
+    const card = wrapper
+      .findAll('[data-testid="stat-card"]')
+      .find((c: any) => c.text().startsWith("Security Issues"));
+    return card.text();
+  }
+
+  it("reads No issues found only when the vulnerability count is zero", async () => {
+    await mountLoaded();
+
+    expect(securityCard()).toContain("Security Issues: 0 (No issues found)");
+  });
+
+  it("does not reassure the user when the vulnerability count is unavailable", async () => {
+    mockGetVulnerabilitiesStat.mockRejectedValue(new Error("no results"));
+
+    await mountLoaded();
+
+    expect(securityCard()).not.toContain("No issues found");
+    expect(securityCard()).toContain("Vulnerability data unavailable");
+  });
+
+  it("does not reassure the user while the vulnerability count loads", () => {
+    mockGetVulnerabilitiesStat.mockReturnValue(new Promise(() => undefined));
+
+    wrapper = mount(SbomContent, {
+      props: { projectID: "project-123", analysisID: "analysis-456" },
+    });
+
+    expect(securityCard()).not.toContain("No issues found");
+  });
+
+  it("keeps deprecated and unlicensed out of Security Issues, under their own labels", async () => {
+    await mountLoaded({
+      number_of_deprecated_dependencies: 5,
+      number_of_unlicensed_dependencies: 3,
+    });
+
+    expect(securityCard()).toContain("Security Issues: 0");
+    expect(
+      wrapper.find('[data-testid="health-factor-deprecated"]').text(),
+    ).toMatch(/Deprecated\s*5/);
+    expect(
+      wrapper.find('[data-testid="health-factor-unlicensed"]').text(),
+    ).toMatch(/Unlicensed\s*3/);
+  });
+
+  it("does not call a project critical when every dependency is merely outdated", async () => {
+    await mountLoaded({
+      number_of_dependencies: 100,
+      number_of_outdated_dependencies: 100,
+      number_of_deprecated_dependencies: 0,
+      number_of_unlicensed_dependencies: 0,
+    });
+
+    expect(wrapper.text()).not.toContain("Critical");
+    expect(wrapper.text()).toContain("Needs attention");
+  });
+
+  it("does not call an empty project critical", async () => {
+    await mountLoaded({
+      number_of_dependencies: 0,
+      number_of_outdated_dependencies: 0,
+      number_of_deprecated_dependencies: 0,
+      number_of_unlicensed_dependencies: 0,
+    });
+
+    expect(wrapper.text()).not.toContain("Critical");
+  });
+
+  it("still calls a project critical when most dependencies are deprecated", async () => {
+    await mountLoaded({
+      number_of_dependencies: 100,
+      number_of_outdated_dependencies: 0,
+      number_of_deprecated_dependencies: 60,
+      number_of_unlicensed_dependencies: 0,
+    });
+
+    expect(wrapper.text()).toContain("Critical");
+  });
+
+  it("explains what the health grade is based on", async () => {
+    await mountLoaded();
+
+    const explanation = wrapper.find('[data-testid="health-explanation"]');
+    expect(explanation.text()).toContain("Deprecated");
+    expect(explanation.text()).toContain("outdated");
+    expect(explanation.text()).toContain("Security Issues");
+  });
+
+  it("counts vulnerabilities as Security Issues, for the selected workspace", async () => {
+    mockGetVulnerabilitiesStat.mockResolvedValue({
+      data: { number_of_issues: 15, number_of_vulnerabilities: 4 },
+    });
+
+    await mountLoaded({
+      number_of_deprecated_dependencies: 0,
+      number_of_unlicensed_dependencies: 0,
+    });
+
+    expect(securityCard()).toContain("Security Issues: 15");
+    expect(securityCard()).toContain("Requires attention");
+    expect(mockGetVulnerabilitiesStat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: "project-123",
+        analysisId: "analysis-456",
+        workspace: ".",
+      }),
+    );
   });
 
   afterEach(() => {
@@ -231,22 +373,6 @@ describe("SbomContent", () => {
     expect(typeof wrapper.vm.healthScore).toBe("number");
     expect(wrapper.vm.healthScore).toBeGreaterThanOrEqual(0);
     expect(wrapper.vm.healthScore).toBeLessThanOrEqual(100);
-  });
-
-  it("has security issues computed property", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    // Security issues is a computed property that should exist
-    expect(typeof wrapper.vm.securityIssues).toBe("number");
-    expect(wrapper.vm.securityIssues).toBeGreaterThanOrEqual(0);
   });
 
   it("handles prop changes gracefully", async () => {

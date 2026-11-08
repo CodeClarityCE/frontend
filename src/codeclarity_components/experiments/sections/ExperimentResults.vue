@@ -452,15 +452,16 @@ const analyzerSteps = computed(() =>
       :exposures="results.exposures ?? null"
     />
 
-    <ExperimentResidence v-if="residence" :residence="residence" />
     <ExperimentSurvival v-if="survival" :survival="survival" />
 
-    <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
+    <ExperimentResidence v-if="residence" :residence="residence" />
 
     <ExperimentUpstreamLeverage
       v-if="upstreamLeverage"
       :leverage="upstreamLeverage"
     />
+
+    <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
 
     <div
       class="bg-white rounded-xl border border-gray-200 p-4"

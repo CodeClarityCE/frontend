@@ -1,5 +1,9 @@
 /** Shared formatting and layout for experiment charts. */
-import type { ConfidenceInterval, LagSummary } from "../experiment.entity";
+import type {
+  BootstrapInterval,
+  ConfidenceInterval,
+  LagSummary,
+} from "../experiment.entity";
 
 import type { ChartData } from "./chart-export";
 
@@ -12,6 +16,8 @@ export interface LagChartRow {
     before_disclosure?: number;
   };
   lags: number[];
+  /** 95% interval of the median, when the results carry one */
+  interval?: BootstrapInterval | null;
 }
 
 /** One line of a grid line chart; null values leave a gap. */
@@ -66,6 +72,14 @@ export function plural(n: number, word: string, many = `${word}s`): string {
 /** A share as a percentage with one decimal. */
 export function formatShare(share: number | null): string {
   return share === null ? "-" : `${(share * 100).toFixed(1)}%`;
+}
+
+/** An interval as "[low, high]", or "-" without one. */
+export function formatBracketInterval(
+  interval: BootstrapInterval | null | undefined,
+  format: (value: number) => string = formatNumber,
+): string {
+  return interval ? `[${format(interval.low)}, ${format(interval.high)}]` : "-";
 }
 
 /** The dots of a lag chart with the summary drawn over them, one row per dot. */

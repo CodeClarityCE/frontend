@@ -1932,6 +1932,126 @@ describe("ExperimentDetail", () => {
     ).toContain("js-sbom v0.9.1");
   });
 
+  describe("bootstrap intervals", () => {
+    const interval = { low: 0.5, high: 0.75 };
+    const concentration = {
+      load_median: { low: 12, high: 30 },
+      gini_pkg: interval,
+      gini_proj: { low: 0.25, high: 0.4 },
+    };
+    const withIntervals = {
+      bootstrap_intervals: {
+        headline: concentration,
+        sweep: {
+          all: concentration,
+          match_correct_only: concentration,
+          non_withdrawn: concentration,
+        },
+        epss_median: { low: 0.001, high: 0.002 },
+        rqd: { npm: { med_deps: { low: 800, high: 1000 }, med_vulns: null } },
+        fix_lag: { overall: null, by_severity: {}, by_kind: {} },
+        residence: {
+          overall: null,
+          by_severity: {},
+          after_disclosure: null,
+          after_disclosure_by_severity: {},
+        },
+      },
+      provenance: {
+        ...(results() as { provenance: object }).provenance,
+        bootstrap: {
+          method: "percentile bootstrap, resampling by project",
+          confidence: 0.95,
+          resamples: 10000,
+          seed: 42,
+        },
+      },
+    };
+
+    async function completed(overrides: object): Promise<VueWrapper> {
+      getExperiment.mockResolvedValue({
+        data: experiment("COMPLETED", {
+          run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+        }),
+      });
+      getExperimentResults.mockResolvedValue({ data: results(overrides) });
+      const wrapper = mountDetail();
+      await flushPromises();
+      return wrapper;
+    }
+
+    it("shows intervals next to the medians and Gini coefficients", async () => {
+      const text = (await completed(withIntervals)).text();
+      expect(text).toContain("95% CI [0.500, 0.750]");
+      expect(text).toContain("95% CI [0.250, 0.400]");
+      expect(text).toContain("median 95% CI [12, 30]");
+      expect(text).toContain("[0.0010, 0.0020]");
+      expect(text).toContain("[800, 1,000]");
+    });
+
+    it("states the bootstrap method and seed in the provenance", async () => {
+      const wrapper = await completed(withIntervals);
+      const provenance = wrapper
+        .find('[data-testid="experiment-provenance"]')
+        .text();
+      expect(provenance).toContain(
+        "percentile bootstrap, resampling by project",
+      );
+      expect(provenance).toContain("10,000 resamples");
+      expect(provenance).toContain("seed 42");
+    });
+
+    it("shows the fix lag median interval per group", async () => {
+      const wrapper = await completed({
+        ...withIntervals,
+        grid_coverage: [
+          { ...(results() as { grid_coverage: object[] }).grid_coverage[0] },
+          {
+            ...(results() as { grid_coverage: object[] }).grid_coverage[0],
+            grid_date: "2026-09-01",
+          },
+        ],
+        fix_lag: {
+          fixes: 1,
+          snapshot_precision_share: 1,
+          overall: { n: 1, median: 50, p25: 50, p75: 50, min: 50, max: 50 },
+          by_severity: [
+            {
+              key: "HIGH",
+              n: 1,
+              median: 50,
+              p25: 50,
+              p75: 50,
+              min: 50,
+              max: 50,
+            },
+          ],
+          by_kind: [],
+          points: [],
+        },
+        bootstrap_intervals: {
+          ...withIntervals.bootstrap_intervals,
+          fix_lag: {
+            overall: null,
+            by_severity: { HIGH: { low: 41, high: 63 } },
+            by_kind: {},
+          },
+        },
+      });
+      expect(
+        wrapper.find('[data-testid="fix-lag-by-severity"]').text(),
+      ).toContain("[41, 63]");
+    });
+
+    it("shows no intervals while there are none", async () => {
+      const wrapper = await completed({ bootstrap_intervals: null });
+      expect(wrapper.text()).not.toContain("median 95% CI");
+      expect(
+        wrapper.find('[data-testid="experiment-provenance"]').text(),
+      ).not.toContain("resamples");
+    });
+  });
+
   it("does not warn when the knowledge stayed the same", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("COMPLETED", {

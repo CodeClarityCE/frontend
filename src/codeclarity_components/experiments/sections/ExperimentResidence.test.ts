@@ -139,4 +139,25 @@ describe("ExperimentResidence", () => {
     ).toBe(false);
     expect(wrapper.text()).toContain("No introductions before disclosure yet.");
   });
+
+  it("shows the median interval in the severity and after-disclosure tables", () => {
+    const wrapper = mount(ExperimentResidence, {
+      props: {
+        residence: residence(),
+        intervals: {
+          overall: null,
+          by_severity: { HIGH: { low: 12, high: 28 } },
+          after_disclosure: null,
+          after_disclosure_by_severity: { HIGH: { low: 3, high: 9 } },
+        },
+      },
+    });
+
+    const cells = wrapper
+      .findAll('[data-testid="lag-table-row"]')
+      .map((row) => row.findAll("td").map((cell) => cell.text()));
+    expect(cells[1]).toContain("[12, 28]");
+    expect(cells[0]).toContain("-");
+    expect(wrapper.text()).toContain("[3, 9]");
+  });
 });

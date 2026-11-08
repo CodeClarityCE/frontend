@@ -56,6 +56,8 @@ const notFound = ref(false);
 const confirming = ref<"cancel" | "delete" | "publish" | null>(null);
 const acting = ref(false);
 const results = ref<ExperimentResultsData | null>(null);
+/** The metric version of the results shown, null for unpublished results */
+const resultsVersion = ref<number | null>(null);
 /** A failing results request is reported once, not on every poll */
 const resultsErrorShown = ref(false);
 /** Published results versions, newest first */
@@ -159,6 +161,7 @@ async function loadResults(): Promise<void> {
         })
       : await experimentsRepository.getExperimentResults(request);
     results.value = response.data;
+    resultsVersion.value = newest?.metric_version ?? null;
     resultsErrorShown.value = false;
   } catch {
     if (!resultsErrorShown.value) {
@@ -549,7 +552,11 @@ onUnmounted(() => clearTimeout(pollTimer));
                 </Button>
               </div>
             </div>
-            <ExperimentResults v-if="results" :results="results" />
+            <ExperimentResults
+              v-if="results"
+              :results="results"
+              :metric-version="resultsVersion"
+            />
             <p
               v-else-if="experiment.run_counts.done === 0"
               class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"

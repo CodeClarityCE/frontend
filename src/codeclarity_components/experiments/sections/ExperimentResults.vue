@@ -3,7 +3,11 @@ import { computed, provide } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
-import { gridCoverageOf, SNAPSHOT_COVERAGE } from "../charts/chart-caption";
+import {
+  gridCoverageOf,
+  RESULT_MARKS,
+  SNAPSHOT_COVERAGE,
+} from "../charts/chart-caption";
 import {
   formatBracketInterval,
   formatInterval,
@@ -26,7 +30,11 @@ import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
 import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
 
-const props = defineProps<{ results: ExperimentResults }>();
+const props = defineProps<{
+  results: ExperimentResults;
+  /** The Published results version shown, null for unpublished results */
+  metricVersion: number | null;
+}>();
 
 function count(value: number | null): string {
   return value === null ? "-" : value.toLocaleString("en-US");
@@ -76,6 +84,14 @@ const gridCoverage = computed(() =>
   gridCoverageOf(props.results.grid_coverage ?? []),
 );
 provide(SNAPSHOT_COVERAGE, gridCoverage);
+provide(
+  RESULT_MARKS,
+  computed(() =>
+    props.metricVersion === null
+      ? { unpublished: true }
+      : { metricVersion: props.metricVersion },
+  ),
+);
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),
 );

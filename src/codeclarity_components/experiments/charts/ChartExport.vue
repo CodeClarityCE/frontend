@@ -7,6 +7,7 @@ import { errorToast } from "@/utils/toasts";
 import {
   captionText,
   type FigureCaption,
+  RESULT_MARKS,
   SNAPSHOT_COVERAGE,
 } from "./chart-caption";
 import {
@@ -33,7 +34,9 @@ const props = defineProps<{
 const content = ref<HTMLElement | null>(null);
 const preset = ref<ExportPreset>("double");
 const coverage = inject(SNAPSHOT_COVERAGE, ref([]));
-const text = computed(() => captionText(props.caption, coverage.value));
+const marks = inject(RESULT_MARKS, ref({}));
+const caption = computed(() => ({ ...marks.value, ...props.caption }));
+const text = computed(() => captionText(caption.value, coverage.value));
 
 const layoutWidth = ref(CHART_WIDTH);
 provide(CHART_LAYOUT_WIDTH, layoutWidth);
@@ -44,7 +47,7 @@ async function assemble(): Promise<StandaloneFigure | null> {
   layoutWidth.value = EXPORT_PRESETS[preset.value].layoutWidth;
   await nextTick();
   try {
-    return standaloneFigure(content.value, preset.value, props.caption);
+    return standaloneFigure(content.value, preset.value, caption.value);
   } finally {
     layoutWidth.value = CHART_WIDTH;
   }

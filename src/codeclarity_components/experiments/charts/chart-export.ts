@@ -20,6 +20,7 @@ const SERIES_DASH: Record<string, string> = {
   "3": "1 5",
   "4": "9 3 1 3",
   "5": "3 3",
+  "6": "1 3 5 3",
 };
 
 function tokensOf(block: RegExp): [string, string][] {
@@ -57,7 +58,20 @@ function dropNonFigureNodes(root: Element): void {
   for (const comment of found) comment.parentNode?.removeChild(comment);
 }
 
+/** Outlines a filled bar, so its pattern shows without colour. */
+function outlineBar(element: Element): void {
+  const series = /^var\(--viz-series-(\d)\)$/.exec(
+    element.getAttribute("fill") ?? "",
+  )?.[1];
+  if (!series || element.hasAttribute("stroke")) return;
+  element.setAttribute("stroke", "var(--viz-text-primary)");
+  element.setAttribute("stroke-width", "1");
+  const dash = SERIES_DASH[series];
+  if (dash) element.setAttribute("stroke-dasharray", dash);
+}
+
 function addSeriesDash(element: Element): void {
+  if (element.localName === "path") outlineBar(element);
   if (element.localName !== "path" && element.localName !== "line") return;
   const series = /^var\(--viz-series-(\d)\)$/.exec(
     element.getAttribute("stroke") ?? "",
@@ -130,13 +144,19 @@ const addLegend: FigureStep = (svg, source) => {
     (item) => ({
       label: item.querySelector("span")?.textContent?.trim() ?? "",
       stroke: item.querySelector("line")?.getAttribute("stroke") ?? "",
+      fill: item.querySelector("rect")?.getAttribute("fill") ?? null,
     }),
   );
   if (entries.length === 0) return;
 
   const box = viewBoxOf(svg);
-  const placed: { label: string; stroke: string; x: number; row: number }[] =
-    [];
+  const placed: {
+    label: string;
+    stroke: string;
+    fill: string | null;
+    x: number;
+    row: number;
+  }[] = [];
   let row = 0;
   let x = 0;
   for (const entry of entries) {
@@ -155,14 +175,19 @@ const addLegend: FigureStep = (svg, source) => {
   for (const item of placed) {
     const y = top + LEGEND_ROW * (item.row + 1) - 4;
     group.append(
-      svgElement("line", {
-        x1: String(box.x + item.x),
-        x2: String(box.x + item.x + SWATCH),
-        y1: String(y - 4),
-        y2: String(y - 4),
-        stroke: item.stroke,
-        "stroke-width": "2",
-      }),
+      item.fill
+        ? svgElement("path", {
+            d: `M${box.x + item.x},${y - 9}h${SWATCH}v10h-${SWATCH}Z`,
+            fill: item.fill,
+          })
+        : svgElement("line", {
+            x1: String(box.x + item.x),
+            x2: String(box.x + item.x + SWATCH),
+            y1: String(y - 4),
+            y2: String(y - 4),
+            stroke: item.stroke,
+            "stroke-width": "2",
+          }),
     );
     const text = svgElement("text", {
       x: String(box.x + item.x + SWATCH + 4),

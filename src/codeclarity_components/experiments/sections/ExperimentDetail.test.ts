@@ -2374,6 +2374,88 @@ describe("ExperimentDetail Figures tab", () => {
       wrapper.unmount();
     });
 
+    describe("a bar Figure", () => {
+      const BAR_METRIC = {
+        id: "severity_mix",
+        label: "Severity mix",
+        chart_forms: [{ id: "bar", label: "Bar", mark: "bar" }],
+        group_by: [],
+        filters: [],
+      };
+
+      function barData(count: number): { data: object } {
+        return {
+          data: {
+            x_title: "Severity",
+            y_title: "Vulnerability instances",
+            labels: ["Critical", "High"],
+            series: Array.from({ length: count }, (_, i) => ({
+              key: `group-${i}`,
+              label: `Group ${i}`,
+              values: [1 + i, 2 + i],
+            })),
+          },
+        };
+      }
+
+      async function exportedBars(
+        count: number,
+        preset: "single" | "double",
+      ): Promise<Document> {
+        getFigureCatalog.mockResolvedValue({ data: { metrics: [BAR_METRIC] } });
+        computeFigureData.mockResolvedValue(barData(count));
+        const wrapper = await openFiguresTab();
+        await wrapper
+          .find('[data-testid="figure-preview"] [data-testid="export-preset"]')
+          .setValue(preset);
+        const { text } = await exportAs(wrapper, "svg");
+        wrapper.unmount();
+        return new DOMParser().parseFromString(text, "image/svg+xml");
+      }
+
+      it.each([
+        ["single", "320"],
+        ["double", "640"],
+      ] as const)("reflows at the %s column preset", async (preset, width) => {
+        const svg = await exportedBars(2, preset);
+        expect(svg.documentElement.getAttribute("viewBox")?.split(" ")[2]).toBe(
+          width,
+        );
+        const rightmost = [...svg.querySelectorAll("line")].map((line) =>
+          Number(line.getAttribute("x2")),
+        );
+        expect(Math.max(...rightmost)).toBeLessThanOrEqual(Number(width));
+      });
+
+      it("redraws its legend in the file", async () => {
+        const svg = await exportedBars(2, "double");
+        const texts = [...svg.querySelectorAll("text")].map(
+          (node) => node.textContent,
+        );
+        expect(texts).toEqual(expect.arrayContaining(["Group 0", "Group 1"]));
+      });
+
+      it("keeps six groups apart by outline and print colour", async () => {
+        const svg = await exportedBars(6, "double");
+        const bars = [...svg.querySelectorAll("path")].filter(
+          (path) => path.getAttribute("stroke") !== null,
+        );
+        const fills = new Set(bars.map((bar) => bar.getAttribute("fill")));
+        const dashes = new Set(
+          bars.map((bar) => bar.getAttribute("stroke-dasharray")),
+        );
+        expect(fills.size).toBe(6);
+        expect(dashes.size).toBe(6);
+        expect(fills).toContain("#56b4e9");
+      });
+
+      it("still exports with more groups than series colours", async () => {
+        const svg = await exportedBars(8, "double");
+        expect(svg.querySelector("parsererror")).toBeNull();
+        expect(saveBlob).toHaveBeenCalled();
+      });
+    });
+
     it("exports a PNG of a saved Figure at 300 dpi", async () => {
       vi.stubGlobal(
         "Image",
@@ -2538,5 +2620,183 @@ describe("ExperimentDetail Figures tab", () => {
       expect.objectContaining({ figureId: "fig-1" }),
     );
     expect(wrapper.find('[data-testid="figure-item"]').exists()).toBe(false);
+  });
+
+  describe("with a catalog of several metrics", () => {
+    const LEVERAGE = {
+      id: "upstream_leverage",
+      label: "Upstream leverage",
+      chart_forms: [
+        {
+          id: "line",
+          label: "Packages to clear",
+          group_by: [],
+          filters: ["date_range"],
+        },
+        { id: "bar", label: "Fixes per interval", mark: "bar" },
+      ],
+      group_by: [{ id: "fix_kind", label: "Fix kind" }],
+      filters: [
+        {
+          id: "dating_precision",
+          label: "Dating precision",
+          options: [{ id: "commit", label: "Dated to a commit" }],
+        },
+        {
+          id: "date_range",
+          label: "Date range",
+          kind: "date_range",
+          options: [],
+        },
+      ],
+    };
+    const STARS = {
+      id: "stars_vs_load",
+      label: "Stars vs load",
+      chart_forms: [{ id: "scatter", label: "Scatter", mark: "point" }],
+      group_by: [],
+      filters: [],
+    };
+
+    beforeEach(() => {
+      getFigureCatalog.mockResolvedValue({
+        data: { metrics: [LEVERAGE, STARS] },
+      });
+    });
+
+    it("offers only the group-bys and filters of the chart form", async () => {
+      const wrapper = await openFiguresTab();
+
+      expect(wrapper.find('[data-testid="figure-group-by"]').exists()).toBe(
+        false,
+      );
+      expect(
+        wrapper.find('[data-testid="figure-filter-dating_precision"]').exists(),
+      ).toBe(false);
+
+      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await flushPromises();
+
+      expect(optionsOf(wrapper, "figure-group-by")).toEqual([
+        "No grouping",
+        "Fix kind",
+      ]);
+      expect(
+        wrapper.find('[data-testid="figure-filter-dating_precision"]').exists(),
+      ).toBe(true);
+    });
+
+    it("drops choices the new chart form does not allow", async () => {
+      const wrapper = await openFiguresTab();
+      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await wrapper
+        .find('[data-testid="figure-group-by"]')
+        .setValue("fix_kind");
+      await wrapper
+        .find('[data-testid="figure-filter-dating_precision"]')
+        .setValue("commit");
+      await flushPromises();
+
+      await wrapper.find('[data-testid="figure-chart-form"]').setValue("line");
+      await flushPromises();
+
+      expect(computeFigureData).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          data: {
+            definition: {
+              metric: "upstream_leverage",
+              chart_form: "line",
+              group_by: null,
+              filters: {},
+            },
+          },
+        }),
+      );
+    });
+
+    it("sends a date range as one filter value", async () => {
+      const wrapper = await openFiguresTab();
+
+      await wrapper
+        .find('[data-testid="figure-date-from-date_range"]')
+        .setValue("2025-01-01");
+      await wrapper
+        .find('[data-testid="figure-date-to-date_range"]')
+        .setValue("2025-06-30");
+      await flushPromises();
+
+      expect(computeFigureData).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          data: {
+            definition: expect.objectContaining({
+              filters: { date_range: "2025-01-01/2025-06-30" },
+            }),
+          },
+        }),
+      );
+    });
+
+    it("does not offer a reversed date range", async () => {
+      const wrapper = await openFiguresTab();
+      await wrapper.find('[data-testid="figure-name"]').setValue("Leverage");
+
+      await wrapper
+        .find('[data-testid="figure-date-from-date_range"]')
+        .setValue("2025-06-30");
+      await wrapper
+        .find('[data-testid="figure-date-to-date_range"]')
+        .setValue("2025-01-01");
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="figure-date-error"]').exists()).toBe(
+        true,
+      );
+      expect(
+        wrapper.find('[data-testid="figure-save"]').attributes("disabled"),
+      ).toBeDefined();
+      for (const [call] of computeFigureData.mock.calls) {
+        expect(call.data.definition.filters).not.toEqual({
+          date_range: "2025-06-30/2025-01-01",
+        });
+      }
+    });
+
+    it("draws a bar form as bars", async () => {
+      computeFigureData.mockResolvedValue({
+        data: {
+          x_title: "Interval ending",
+          y_title: "Fixes",
+          labels: ["2025-03-01", "HEAD"],
+          series: [{ key: "fixes", label: "Fixes", values: [2, 0] }],
+        },
+      });
+      const wrapper = await openFiguresTab();
+
+      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-testid="figure-bar"]')).toHaveLength(2);
+      expect(wrapper.find('[data-testid="line-series"]').exists()).toBe(false);
+    });
+
+    it("draws a scatter as points without a joining line", async () => {
+      computeFigureData.mockResolvedValue({
+        data: {
+          x_title: "Star rank",
+          y_title: "Vulnerability instances",
+          labels: ["#1", "#2"],
+          series: [{ key: "load", label: "Projects", values: [3, 7] }],
+        },
+      });
+      const wrapper = await openFiguresTab();
+
+      await wrapper
+        .find('[data-testid="figure-metric"]')
+        .setValue("stars_vs_load");
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="line-series"]').exists()).toBe(false);
+      expect(wrapper.findAll('[data-testid="line-marker"]')).toHaveLength(2);
+    });
   });
 });

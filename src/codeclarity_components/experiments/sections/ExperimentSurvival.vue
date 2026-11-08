@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 
 import { formatNumber, formatShare } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import ChartTable from "../charts/ChartTable.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
@@ -45,6 +46,32 @@ const medianText = computed(() =>
     ? "Survival stays above 50%: no median yet."
     : `Median ${formatNumber(selected.value.median_days)} days until half are fixed.`,
 );
+
+/** The curve as drawn, including its start at 100% on day 0. */
+const plotted = computed(() => {
+  const { n, curve, median_days: median } = selected.value;
+  return {
+    columns: [
+      "time_days",
+      "survival",
+      "at_risk",
+      "events",
+      "censored",
+      "median_days",
+    ],
+    rows: [
+      [0, 1, n, 0, 0, median],
+      ...curve.map((s) => [
+        s.time,
+        s.survival,
+        s.at_risk,
+        s.events,
+        s.censored,
+        median,
+      ]),
+    ],
+  };
+});
 
 const caption = computed(() => {
   const g = selected.value;
@@ -104,11 +131,16 @@ const caption = computed(() => {
 
       <p class="text-sm text-gray-700">{{ medianText }}</p>
 
-      <SurvivalChart
-        :curve="selected.curve"
-        :median="selected.median_days"
-        :caption="caption"
-      />
+      <ChartExport
+        :name="`exposure-survival-${selected.key.toLowerCase()}`"
+        :data="plotted"
+      >
+        <SurvivalChart
+          :curve="selected.curve"
+          :median="selected.median_days"
+          :caption="caption"
+        />
+      </ChartExport>
 
       <ChartTable>
         <thead class="text-left text-gray-500">

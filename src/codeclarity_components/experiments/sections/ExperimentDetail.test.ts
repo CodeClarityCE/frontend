@@ -918,6 +918,96 @@ describe("ExperimentDetail", () => {
     );
   });
 
+  function savedFile(): { blob: Blob; name: string } {
+    const [blob, name] = saveBlob.mock.calls.at(-1) as [Blob, string];
+    return { blob, name };
+  }
+
+  async function exportedSvg(
+    wrapper: Awaited<ReturnType<typeof mountGrid>>,
+  ): Promise<Element> {
+    await wrapper
+      .find('[data-testid="experiment-survival"] [data-testid="export-svg"]')
+      .trigger("click");
+    const text = await savedFile().blob.text();
+    return new DOMParser().parseFromString(text, "image/svg+xml")
+      .documentElement;
+  }
+
+  it("downloads the survival chart as an SVG that needs no page styling", async () => {
+    const wrapper = await mountGrid();
+
+    const svg = await exportedSvg(wrapper);
+
+    const { blob, name } = savedFile();
+    expect(name).toBe("exposure-survival-all.svg");
+    expect(blob.type).toContain("image/svg+xml");
+    expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+    expect(svg.getAttribute("width")).toBe("640");
+    expect(svg.getAttribute("font-family")).toContain("sans-serif");
+    expect(svg.outerHTML).not.toContain("var(");
+    expect(svg.outerHTML).not.toContain("class=");
+    expect(svg.querySelector('path[fill="none"]')?.getAttribute("stroke")).toBe(
+      "#2a78d6",
+    );
+    expect(svg.firstElementChild?.getAttribute("fill")).toBe("#ffffff");
+  });
+
+  it("leaves tooltips and interactive elements out of the SVG, even while hovering", async () => {
+    const wrapper = await mountGrid();
+    await wrapper
+      .findAll('[data-testid="survival-hit"]')[1]!
+      .trigger("pointerenter");
+
+    const svg = await exportedSvg(wrapper);
+
+    expect(svg.querySelector('rect[fill="transparent"]')).toBeNull();
+    expect(svg.querySelector("circle")).toBeNull();
+    expect(svg.hasAttribute("tabindex")).toBe(false);
+    expect(svg.textContent).not.toContain("still exposed");
+    expect(svg.outerHTML).not.toContain("<!--");
+    // The chart on the page keeps its hover state
+    expect(wrapper.find('[data-testid="survival-tooltip"]').exists()).toBe(
+      true,
+    );
+  });
+
+  it("downloads the plotted survival values as CSV for the selected group", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    await block.find('[data-testid="export-csv"]').trigger("click");
+
+    expect(savedFile().name).toBe("exposure-survival-all.csv");
+    expect(savedFile().blob.type).toContain("text/csv");
+    expect(await savedFile().blob.text()).toBe(
+      [
+        "time_days,survival,at_risk,events,censored,median_days",
+        "0,1,4,0,0,50",
+        "24,0.75,4,1,0,50",
+        "50,0.5,3,1,0,50",
+        "90,0.5,2,0,1,50",
+        "104,0.5,1,0,1,50",
+        "",
+      ].join("\n"),
+    );
+
+    await block.findAll('[data-testid="survival-group"]')[2]!.trigger("click");
+    await block.find('[data-testid="export-csv"]').trigger("click");
+
+    expect(savedFile().name).toBe("exposure-survival-medium.csv");
+    expect(await savedFile().blob.text()).toBe(
+      [
+        "time_days,survival,at_risk,events,censored,median_days",
+        "0,1,3,0,0,",
+        "50,0.6666666666666666,3,1,0,",
+        "90,0.6666666666666666,2,0,1,",
+        "104,0.6666666666666666,1,0,1,",
+        "",
+      ].join("\n"),
+    );
+  });
+
   it("charts fix lag by severity and by fix kind outside the HEAD blocks, with a table view", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("COMPLETED", {

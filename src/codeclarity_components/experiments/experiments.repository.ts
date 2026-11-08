@@ -15,6 +15,7 @@ import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 import {
   type CreateExperimentRequest,
   Experiment,
+  type ExperimentEstimateBasis,
   type ExperimentExportFile,
   type ExperimentResults,
   ExperimentRun,
@@ -22,6 +23,10 @@ import {
 
 export interface GetExperimentsRequestOptions
   extends AuthRepoMethodGetRequestOptions, PaginatedRepoMethodRequestOptions {
+  orgId: string;
+}
+
+export interface GetEstimateBasisRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
 }
 
@@ -88,6 +93,25 @@ export class ExperimentsRepository extends BaseRepository {
       Experiment,
     );
     return paginatedData;
+  }
+
+  /** What the create form estimates an experiment's analyses from. */
+  async getEstimateBasis(
+    options: GetEstimateBasisRequestOptions,
+  ): Promise<DataResponse<ExperimentEstimateBasis>> {
+    const response = await this.getRequest<
+      DataResponse<ExperimentEstimateBasis>
+    >({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(`/org/${options.orgId}/experiments/estimate`),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return Entity.unMarshal<DataResponse<ExperimentEstimateBasis>>(
+      response,
+      DataResponse<ExperimentEstimateBasis>,
+    );
   }
 
   async getExperiment(

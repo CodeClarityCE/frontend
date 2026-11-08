@@ -7,6 +7,7 @@ import ExperimentCreate from "./ExperimentCreate.vue";
 
 const {
   createExperiment,
+  getEstimateBasis,
   getDatasets,
   getAnalyzers,
   successToast,
@@ -16,6 +17,7 @@ const {
   const query: { dataset?: string } = {};
   return {
     createExperiment: vi.fn(),
+    getEstimateBasis: vi.fn(),
     getDatasets: vi.fn(),
     getAnalyzers: vi.fn(),
     successToast: vi.fn(),
@@ -27,6 +29,7 @@ const {
 vi.mock("../experiments.repository", () => ({
   ExperimentsRepository: class {
     createExperiment = createExperiment;
+    getEstimateBasis = getEstimateBasis;
   },
 }));
 
@@ -132,6 +135,9 @@ function optionValues(wrapper: VueWrapper, testId: string): string[] {
 describe("ExperimentCreate", () => {
   beforeEach(() => {
     createExperiment.mockReset();
+    getEstimateBasis
+      .mockReset()
+      .mockResolvedValue({ data: { probes_per_entry_interval: 2 } });
     getDatasets.mockReset().mockResolvedValue({
       data: [
         dataset("ds-1", "READY"),
@@ -171,6 +177,171 @@ describe("ExperimentCreate", () => {
     ).toBe("an-js");
   });
 
+  it("defaults the grid to monthly x 24 and estimates entries x grid dates plus HEAD", async () => {
+    const wrapper = await mountForm();
+
+    expect(
+      (
+        wrapper.find('[data-testid="experiment-grid-interval"]')
+          .element as HTMLSelectElement
+      ).value,
+    ).toBe("month");
+    expect(
+      (
+        wrapper.find('[data-testid="experiment-grid-count"]')
+          .element as HTMLInputElement
+      ).value,
+    ).toBe("24");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').exists()).toBe(
+      false,
+    );
+
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain("75 snapshots");
+
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("2");
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain("9 snapshots");
+
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("0");
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain("3 snapshots");
+  });
+
+  it("estimates fix probes per repository per grid interval as the API says", async () => {
+    getEstimateBasis.mockResolvedValue({
+      data: { probes_per_entry_interval: 3 },
+    });
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+
+    // 3 repositories: 75 snapshots and 3 x 24 x 3 probes
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain(
+      "Estimated 291 analyses: 75 snapshots (25 grid dates including HEAD) and about 216 fix probes",
+    );
+  });
+
+  it("still estimates the snapshots when the probe estimate cannot be loaded", async () => {
+    getEstimateBasis.mockRejectedValue(new Error("offline"));
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain(
+      "Estimated at least 75 analyses: 75 snapshots (25 grid dates including HEAD) and fix probes not estimated",
+    );
+  });
+
+  it("adds about two fix probes per repository per grid interval to the estimate", async () => {
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+
+    // 3 repositories: 75 snapshots and 3 x 24 x 2 probes
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain(
+      "Estimated 219 analyses: 75 snapshots (25 grid dates including HEAD) and about 144 fix probes",
+    );
+
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("0");
+    expect(
+      wrapper.find('[data-testid="experiment-estimate"]').text(),
+    ).toContain(
+      "Estimated 3 analyses: 3 snapshots (1 grid date including HEAD) and no fix probes",
+    );
+  });
+
+  it("has no analysis budget by default and does not send one", async () => {
+    routeQuery.dataset = "ds-1";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+    expect(
+      (
+        wrapper.find('[data-testid="experiment-budget"]')
+          .element as HTMLInputElement
+      ).value,
+    ).toBe("");
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment.mock.calls[0]![0].data).not.toHaveProperty(
+      "analysis_budget",
+    );
+  });
+
+  it("sends the analysis budget and says what it caps", async () => {
+    routeQuery.dataset = "ds-1";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find('[data-testid="experiment-budget"]').setValue("100");
+
+    expect(
+      wrapper.find('[data-testid="experiment-budget-note"]').text(),
+    ).toContain("Fix probes stop once 100 analyses are submitted");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ analysis_budget: 100 }),
+      }),
+    );
+  });
+
+  it("warns when the budget does not cover the snapshots, which still all run", async () => {
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-budget"]').setValue("50");
+
+    expect(
+      wrapper.find('[data-testid="experiment-budget-note"]').text(),
+    ).toContain(
+      "below the 75 snapshots: every snapshot still runs and no fix probe will",
+    );
+  });
+
+  it("rejects a budget that is not a whole number of at least 1", async () => {
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find('[data-testid="experiment-budget"]').setValue("0");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain(
+      "Leave empty for no budget, or a whole number of at least 1",
+    );
+  });
+
+  it("rejects a grid count outside 0 to 120", async () => {
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("121");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("A whole number between 0 and 120");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').exists()).toBe(
+      false,
+    );
+  });
+
   it("preselects the dataset it was opened from", async () => {
     routeQuery.dataset = "ds-4";
     createExperiment.mockResolvedValue({ id: "exp-1" });
@@ -191,12 +362,14 @@ describe("ExperimentCreate", () => {
     const firstPage = Array.from({ length: 100 }, (_, i) =>
       dataset(`ds-p0-${i}`, "BUILDING"),
     );
-    getDatasets.mockReset().mockImplementation(
-      async ({ pagination }: { pagination: { page: number } }) =>
-        pagination.page === 0
-          ? { data: firstPage, total_pages: 2 }
-          : { data: [dataset("ds-late", "READY")], total_pages: 2 },
-    );
+    getDatasets
+      .mockReset()
+      .mockImplementation(
+        async ({ pagination }: { pagination: { page: number } }) =>
+          pagination.page === 0
+            ? { data: firstPage, total_pages: 2 }
+            : { data: [dataset("ds-late", "READY")], total_pages: 2 },
+      );
     routeQuery.dataset = "ds-late";
     createExperiment.mockResolvedValue({ id: "exp-1" });
     const wrapper = await mountForm();
@@ -246,6 +419,10 @@ describe("ExperimentCreate", () => {
       .find('[data-testid="experiment-name"]')
       .setValue("  top100 head ");
     await wrapper.find('[data-testid="experiment-retries"]').setValue("1");
+    await wrapper
+      .find('[data-testid="experiment-grid-interval"]')
+      .setValue("week");
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("12");
 
     await wrapper.find("form").trigger("submit");
     await flushPromises();
@@ -259,6 +436,8 @@ describe("ExperimentCreate", () => {
           dataset_id: "ds-1",
           analyzer_id: "an-js",
           retries: 1,
+          grid_interval: "week",
+          grid_count: 12,
         },
       }),
     );

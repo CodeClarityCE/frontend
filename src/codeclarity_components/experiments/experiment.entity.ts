@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -20,6 +21,33 @@ export enum ExperimentRunStatus {
   DONE = "done",
   FAILED = "failed",
   SKIPPED = "skipped",
+}
+
+/** Step between an experiment's grid dates */
+export enum GridInterval {
+  DAY = "day",
+  WEEK = "week",
+  MONTH = "month",
+}
+
+export const GridIntervalLabels: Record<GridInterval, string> = {
+  [GridInterval.DAY]: "Daily",
+  [GridInterval.WEEK]: "Weekly",
+  [GridInterval.MONTH]: "Monthly",
+};
+
+/** Grid defaults and bounds, as in the API */
+export const DEFAULT_GRID_INTERVAL = GridInterval.MONTH;
+export const DEFAULT_GRID_COUNT = 24;
+export const MAX_GRID_COUNT = 120;
+
+/** Largest analysis budget the API accepts */
+export const MAX_ANALYSIS_BUDGET = 1_000_000;
+
+/** What the API estimates an experiment's analyses from. */
+export interface ExperimentEstimateBasis {
+  /** Fix probes expected per repository per grid interval */
+  probes_per_entry_interval: number;
 }
 
 /** Plugins an analyzer must contain to be used by an experiment */
@@ -69,7 +97,9 @@ export interface ExperimentRunCounts {
 }
 
 /** An experiment that may still change (PENDING or RUNNING). */
-export function isExperimentActive(experiment: { status: ExperimentStatus }): boolean {
+export function isExperimentActive(experiment: {
+  status: ExperimentStatus;
+}): boolean {
   return ACTIVE_EXPERIMENT_STATUSES.includes(experiment.status);
 }
 
@@ -115,6 +145,22 @@ export class Experiment {
   @IsInt()
   retries!: number;
 
+  @IsEnum(GridInterval)
+  grid_interval!: GridInterval;
+
+  /** Grid dates before HEAD; 0 is HEAD only */
+  @IsInt()
+  grid_count!: number;
+
+  /** Calendar days of the grid (YYYY-MM-DD), oldest first, HEAD excluded */
+  @IsArray()
+  grid_dates!: string[];
+
+  /** Most analyses it may submit, null for no budget */
+  @IsOptional()
+  @IsInt()
+  analysis_budget!: number | null;
+
   @IsOptional()
   @IsString()
   error!: string | null;
@@ -157,6 +203,11 @@ export class Experiment {
 
   @IsNotEmpty()
   run_counts!: ExperimentRunCounts;
+
+  /** Snapshots plus the fix probe estimate, absent from older APIs */
+  @IsOptional()
+  @IsInt()
+  estimated_analyses?: number;
 }
 
 export interface ExperimentRunEntry {
@@ -193,6 +244,19 @@ export class ExperimentRun {
   @Type(() => Date)
   committed_at!: Date | null;
 
+  @IsInt()
+  grid_index!: number;
+
+  /** Null for HEAD */
+  @IsOptional()
+  @Type(() => Date)
+  grid_date!: Date | null;
+
+  /** The run whose analysis this snapshot shares (same pinned commit) */
+  @IsOptional()
+  @IsString()
+  shared_from_run_id!: string | null;
+
   @IsOptional()
   @Type(() => Date)
   submitted_on!: Date | null;
@@ -218,6 +282,10 @@ export interface CreateExperimentRequest {
   dataset_id: string;
   analyzer_id: string;
   retries?: number;
+  grid_interval?: GridInterval;
+  grid_count?: number;
+  /** Omitted for no budget */
+  analysis_budget?: number;
 }
 
 /* Dataset-level results, computed by the API from the done runs */
@@ -305,6 +373,22 @@ export interface CoverageBlock {
   skip_reasons: Record<string, number>;
 }
 
+/** Run states of one snapshot of the grid */
+export interface GridCoverageRow {
+  /** YYYY-MM-DD, null for HEAD */
+  grid_date: string | null;
+  runs: number;
+  /** Done with rows */
+  done: number;
+  /** Done but empty: no lockfile yet at that date */
+  empty: number;
+  failed: number;
+  skipped: number;
+  pending: number;
+  /** Its runs were matched against different knowledge */
+  mixed_knowledge: boolean;
+}
+
 export interface KnowledgeSnapshot {
   knowledge_sources: Record<string, string | null>;
   epss_rows: number;
@@ -323,8 +407,211 @@ export interface ProvenanceBlock {
   ended_on: Date | string | null;
 }
 
+export const SeverityLabels: Record<keyof SeverityCounts, string> = {
+  CRITICAL: "Critical",
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
+  NONE: "No severity",
+};
+
+export type FixKind = "upgraded" | "removed_direct" | "removed_transitive";
+
+/** Fix kinds, plus "unknown" when the state after a fix is not known */
+export const FixKindLabels: Record<FixKind | "unknown", string> = {
+  upgraded: "Upgraded",
+  removed_direct: "Removed directly",
+  removed_transitive: "Removed transitively",
+  unknown: "Unknown",
+};
+
+export type DatingPrecision = "commit" | "snapshot";
+
+/** A lag distribution in days */
+export interface LagSummary {
+  n: number;
+  median: number | null;
+  p25: number | null;
+  p75: number | null;
+  min: number | null;
+  max: number | null;
+  /** Lags below zero: fixed before the advisory was published */
+  before_disclosure: number;
+}
+
+/** One group of a lag block: a severity class or a fix kind */
+export interface LagGroup extends LagSummary {
+  key: string;
+}
+
+export interface FixLagPoint {
+  severity: keyof SeverityCounts;
+  kind: FixKind | null;
+  lag_days: number;
+  precision: DatingPrecision;
+}
+
+export interface FixLagBlock {
+  fixes: number;
+  snapshot_precision_share: number | null;
+  overall: LagSummary;
+  by_severity: LagGroup[];
+  by_kind: LagGroup[];
+  points: FixLagPoint[];
+}
+
+export interface ExposuresBlock {
+  exposures: number;
+  open: number;
+  fixed: number;
+  introductions: number;
+  present_at_first_observation: number;
+  fix_precision: Record<DatingPrecision, number>;
+  introduction_precision: Record<DatingPrecision, number>;
+}
+
+/** Events by how fix probes ended; not_probed while they have not */
+export interface ProbeOutcomeCounts {
+  found: number;
+  ambiguous: number;
+  not_found: number;
+  not_probed: number;
+}
+
+/** How fix probes dated the fixes and introductions */
+export interface ProbesBlock {
+  fixes: ProbeOutcomeCounts;
+  introductions: ProbeOutcomeCounts;
+  /** Not-found events per reason, most frequent first */
+  not_found_reasons: Record<string, number>;
+  /** Absent from results of older APIs */
+  budget?: ProbeBudget;
+}
+
+/** The analysis budget, what was submitted against it and whether it is spent */
+export interface ProbeBudget {
+  analysis_budget: number | null;
+  analyses_submitted: number | null;
+  spent: boolean;
+}
+
+/** Instance load of one grid date in the hindsight and as-of views */
+export interface LoadRow {
+  /** YYYY-MM-DD, null for HEAD */
+  grid_date: string | null;
+  /** The as-of cutoff: the grid date, or the end date for HEAD (null while running) */
+  as_of_date: string | null;
+  /** Done snapshots, empty ones included */
+  projects: number;
+  /** Null without a done snapshot */
+  hindsight: number | null;
+  as_of: number | null;
+  /** Instances without a readable published date, kept in the as-of view */
+  undated: number;
+}
+
+/** A distribution of day counts */
+export interface DaysSummary {
+  n: number;
+  median: number | null;
+  p25: number | null;
+  p75: number | null;
+  min: number | null;
+  max: number | null;
+}
+
+/** One severity class of a days distribution */
+export interface DaysGroup extends DaysSummary {
+  key: string;
+}
+
+export interface ResidencePoint {
+  severity: keyof SeverityCounts;
+  residence_days: number;
+  precision: DatingPrecision;
+}
+
+/** Introduction to disclosure; introductions after it are counted apart */
+export interface ResidenceBlock {
+  introductions: number;
+  snapshot_precision_share: number | null;
+  present_at_first_observation: number;
+  /** Introductions whose advisory has no publication date */
+  undated: number;
+  overall: DaysSummary;
+  by_severity: DaysGroup[];
+  points: ResidencePoint[];
+  /** Days from publication to introduction */
+  after_disclosure: DaysSummary;
+  after_disclosure_by_severity: DaysGroup[];
+}
+
+/** One Kaplan-Meier step; survival is 1 before the first */
+export interface KmStep {
+  time: number;
+  survival: number;
+  at_risk: number;
+  events: number;
+  censored: number;
+}
+
+/** A survival curve over every exposure ("all") or one severity class */
+export interface SurvivalGroup {
+  key: string;
+  n: number;
+  fixed: number;
+  censored: number;
+  median_days: number | null;
+  curve: KmStep[];
+}
+
+export interface ExposureSurvivalBlock {
+  /** YYYY-MM-DD open exposures are censored at */
+  censored_at: string;
+  snapshot_precision_share: number | null;
+  overall: SurvivalGroup;
+  by_severity: SurvivalGroup[];
+}
+
+/** Instance concentration at one grid date */
+export interface PackagesToClearRow {
+  /** YYYY-MM-DD, null for HEAD */
+  grid_date: string | null;
+  projects: number;
+  instances: number;
+  distinct_packages: number;
+  /** Null when no snapshot at this date is done */
+  pkgs_clear_50: number | null;
+  pkgs_clear_80: number | null;
+}
+
+export interface FixKindCounts {
+  fixes: number;
+  upgraded: number;
+  removed_direct: number;
+  removed_transitive: number;
+  unknown: number;
+  /** Over fixes of known kind; unknown ones are left out */
+  removed_transitive_share: number | null;
+  snapshot_precision_share: number | null;
+}
+
+/** Fixes in the grid interval (from, to]; to is null for HEAD */
+export interface FixKindRow extends FixKindCounts {
+  interval_from: string | null;
+  interval_to: string | null;
+}
+
+export interface UpstreamLeverageBlock {
+  packages_to_clear: PackagesToClearRow[];
+  fix_kinds: FixKindRow[];
+  overall: FixKindCounts;
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
+  /** Coverage per grid date, oldest first, HEAD last */
+  grid_coverage: GridCoverageRow[];
   headline: Headline;
   sweep: SweepRow[];
   epss: EpssBlock;
@@ -332,12 +619,23 @@ export interface ExperimentResults {
   winning_source_head: Record<string, number>;
   rqc: RqcBlock;
   rqd: RqdRow[];
+  /** Exposures over the whole grid; absent from results of older APIs */
+  exposures?: ExposuresBlock;
+  fix_lag?: FixLagBlock;
+  probes?: ProbesBlock;
+  /** Per grid date, HEAD last; absent from results of older APIs */
+  load_over_time?: LoadRow[];
+  residence?: ResidenceBlock;
+  exposure_survival?: ExposureSurvivalBlock;
+  upstream_leverage?: UpstreamLeverageBlock;
   provenance: ProvenanceBlock;
 }
 
 export const EXPERIMENT_EXPORT_FILES = [
   "runs.csv",
   "vulnerabilities.csv",
+  "exposures.csv",
+  "fixes.csv",
   "results.json",
 ] as const;
 

@@ -27,7 +27,15 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
 
-import { EXPERIMENT_REQUIRED_PLUGINS } from "../experiment.entity";
+import {
+  DEFAULT_GRID_COUNT,
+  DEFAULT_GRID_INTERVAL,
+  EXPERIMENT_REQUIRED_PLUGINS,
+  GridInterval,
+  GridIntervalLabels,
+  MAX_ANALYSIS_BUDGET,
+  MAX_GRID_COUNT,
+} from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
 /** Bounds enforced by the API (CreateExperimentBody) */
@@ -49,8 +57,14 @@ const datasetId = ref(
 );
 const analyzerId = ref("");
 const retries = ref<number | string>(2);
+const gridInterval = ref<GridInterval>(DEFAULT_GRID_INTERVAL);
+const gridCount = ref<number | string>(DEFAULT_GRID_COUNT);
+/** Empty for no budget */
+const budget = ref<number | string>("");
 
 const datasets = ref<Dataset[]>([]);
+/** Fix probes per repository per grid interval, from the API; null if unknown */
+const probesPerEntryInterval = ref<number | null>(null);
 const analyzers = ref<Analyzer[]>([]);
 const loading = ref(true);
 const submitting = ref(false);
@@ -61,6 +75,14 @@ interface FormErrors {
   dataset?: string;
   analyzer?: string;
   retries?: string;
+  gridCount?: string;
+  budget?: string;
+}
+
+/** A whole number within [0, max], or null. */
+function boundedInt(value: number | string, max: number): number | null {
+  const n = Number(value);
+  return value !== "" && Number.isInteger(n) && n >= 0 && n <= max ? n : null;
 }
 
 /** An analyzer is eligible when some stage runs each required plugin. */
@@ -82,16 +104,67 @@ const errors = computed(() => {
   if (!analyzers.value.some((analyzer) => analyzer.id === analyzerId.value)) {
     result.analyzer = "Pick an analyzer";
   }
-  const retriesNumber = Number(retries.value);
-  if (
-    retries.value === "" ||
-    !Number.isInteger(retriesNumber) ||
-    retriesNumber < 0 ||
-    retriesNumber > MAX_RETRIES
-  ) {
+  if (boundedInt(retries.value, MAX_RETRIES) === null) {
     result.retries = `A whole number between 0 and ${MAX_RETRIES}`;
   }
+  if (boundedInt(gridCount.value, MAX_GRID_COUNT) === null) {
+    result.gridCount = `A whole number between 0 and ${MAX_GRID_COUNT}`;
+  }
+  if (budget.value !== "" && budgetValue.value === null) {
+    result.budget =
+      "Leave empty for no budget, or a whole number of at least 1";
+  }
   return result;
+});
+
+/** The budget as a number, null when empty or invalid. */
+const budgetValue = computed<number | null>(() => {
+  if (budget.value === "") return null;
+  const n = boundedInt(budget.value, MAX_ANALYSIS_BUDGET);
+  return n !== null && n >= 1 ? n : null;
+});
+
+interface Estimate {
+  gridDates: number;
+  /** One per entry per grid date, HEAD included */
+  snapshots: number;
+  /** A rough guess: probes depend on how often lockfiles change; null if unknown */
+  probes: number | null;
+  total: number;
+}
+
+const estimate = computed<Estimate | null>(() => {
+  const dataset = datasets.value.find((d) => d.id === datasetId.value);
+  const count = boundedInt(gridCount.value, MAX_GRID_COUNT);
+  if (!dataset || count === null) return null;
+  const snapshots = dataset.entry_count * (count + 1);
+  const perInterval = probesPerEntryInterval.value;
+  const probes =
+    perInterval === null ? null : dataset.entry_count * count * perInterval;
+  return {
+    gridDates: count + 1,
+    snapshots,
+    probes,
+    total: snapshots + (probes ?? 0),
+  };
+});
+
+function probesText(probes: number | null): string {
+  if (probes === null) return "fix probes not estimated";
+  return probes > 0
+    ? `about ${probes.toLocaleString()} fix probes`
+    : "no fix probes";
+}
+
+/** What the budget caps, given the estimate. */
+const budgetNote = computed<string | null>(() => {
+  const cap = budgetValue.value;
+  if (cap === null) return null;
+  const snapshots = estimate.value?.snapshots;
+  if (snapshots !== undefined && cap <= snapshots) {
+    return `The budget is at or below the ${snapshots.toLocaleString()} snapshots: every snapshot still runs and no fix probe will.`;
+  }
+  return `Fix probes stop once ${cap.toLocaleString()} analyses are submitted; snapshots always run.`;
 });
 
 const isValid = computed(() => Object.keys(errors.value).length === 0);
@@ -143,6 +216,20 @@ async function loadAnalyzers(orgId: string, token: string): Promise<void> {
   }
 }
 
+/** Without it the estimate leaves fix probes out. */
+async function loadEstimateBasis(orgId: string, token: string): Promise<void> {
+  try {
+    const response = await experimentsRepository.getEstimateBasis({
+      orgId,
+      bearerToken: token,
+      handleBusinessErrors: true,
+    });
+    probesPerEntryInterval.value = response.data.probes_per_entry_interval;
+  } catch {
+    probesPerEntryInterval.value = null;
+  }
+}
+
 async function load(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken) return;
@@ -150,6 +237,7 @@ async function load(): Promise<void> {
     await Promise.all([
       loadDatasets(orgId, auth.getToken),
       loadAnalyzers(orgId, auth.getToken),
+      loadEstimateBasis(orgId, auth.getToken),
     ]);
   } finally {
     loading.value = false;
@@ -188,6 +276,11 @@ async function submit(): Promise<void> {
         dataset_id: datasetId.value,
         analyzer_id: analyzerId.value,
         retries: Number(retries.value),
+        grid_interval: gridInterval.value,
+        grid_count: Number(gridCount.value),
+        ...(budgetValue.value === null
+          ? {}
+          : { analysis_budget: budgetValue.value }),
       },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
@@ -222,8 +315,8 @@ onMounted(() => void load());
         New experiment
       </h1>
       <p class="text-gray-600 mt-2 text-lg">
-        Run one analyzer over every repository of a dataset, each at its current
-        default branch HEAD, pinned to a commit when submitted.
+        Run one analyzer over every repository of a dataset at each date of a
+        snapshot grid and at HEAD, each pinned to a default branch commit.
       </p>
     </div>
 
@@ -326,6 +419,91 @@ onMounted(() => void load());
           {{ errorFor("retries") }}
         </p>
       </div>
+
+      <div class="space-y-2">
+        <Label>Snapshot grid</Label>
+        <div class="flex flex-wrap gap-4">
+          <div class="space-y-1 w-40">
+            <Select
+              v-model="gridInterval"
+              data-testid="experiment-grid-interval"
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="interval in Object.values(GridInterval)"
+                  :key="interval"
+                  :value="interval"
+                >
+                  {{ GridIntervalLabels[interval] }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="space-y-1 w-40">
+            <Input
+              id="experiment-grid-count"
+              v-model="gridCount"
+              type="number"
+              min="0"
+              :max="MAX_GRID_COUNT"
+              aria-label="Grid dates before HEAD"
+              data-testid="experiment-grid-count"
+            />
+          </div>
+        </div>
+        <p class="text-xs text-gray-500">
+          Grid dates before HEAD, stepped back from today. 0 analyses HEAD only.
+          The grid is frozen once the experiment is created.
+        </p>
+        <p v-if="errorFor('gridCount')" class="text-sm text-red-600">
+          {{ errorFor("gridCount") }}
+        </p>
+      </div>
+
+      <div class="space-y-2 max-w-xs">
+        <Label for="experiment-budget">Analysis budget (optional)</Label>
+        <Input
+          id="experiment-budget"
+          v-model="budget"
+          type="number"
+          min="1"
+          :max="MAX_ANALYSIS_BUDGET"
+          placeholder="No budget"
+          data-testid="experiment-budget"
+        />
+        <p class="text-xs text-gray-500">
+          Caps the analyses the experiment submits, snapshots and fix probes
+          alike. Once spent, no further fix probe runs; snapshots are never cut.
+          Fixes are probed before introductions. Frozen at creation.
+        </p>
+        <p
+          v-if="budgetNote"
+          class="text-xs text-gray-700"
+          data-testid="experiment-budget-note"
+        >
+          {{ budgetNote }}
+        </p>
+        <p v-if="errorFor('budget')" class="text-sm text-red-600">
+          {{ errorFor("budget") }}
+        </p>
+      </div>
+
+      <p
+        v-if="estimate !== null"
+        class="text-sm text-gray-700"
+        data-testid="experiment-estimate"
+      >
+        Estimated {{ estimate.probes === null ? "at least " : ""
+        }}{{ estimate.total.toLocaleString() }} analyses:
+        {{ estimate.snapshots.toLocaleString() }} snapshots ({{
+          estimate.gridDates
+        }}
+        grid {{ estimate.gridDates === 1 ? "date" : "dates" }} including HEAD)
+        and {{ probesText(estimate.probes) }}.
+      </p>
 
       <div class="flex justify-end">
         <Button

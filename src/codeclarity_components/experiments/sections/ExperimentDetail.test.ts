@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import router from "@/router";
 
+import type { GridCoverageRow } from "../experiment.entity";
+
 import ExperimentDetail from "./ExperimentDetail.vue";
 
 const {
@@ -74,6 +76,10 @@ function experiment(status: string, overrides: object = {}): object {
     name: "top4 head",
     status,
     retries: 2,
+    grid_interval: "month",
+    grid_count: 0,
+    grid_dates: [],
+    analysis_budget: null,
     error: null,
     dataset_id: "ds-1",
     dataset_name: "top4",
@@ -99,6 +105,9 @@ function run(rank: number, overrides: object = {}): object {
     branch: null,
     commit_hash: null,
     committed_at: null,
+    grid_index: 0,
+    grid_date: null,
+    shared_from_run_id: null,
     submitted_on: null,
     ended_on: null,
     analysis_id: null,
@@ -147,6 +156,18 @@ function results(overrides: object = {}): object {
       failure_reasons: { "missing result: vuln-finder": 1 },
       skip_reasons: { "repository not found": 1 },
     },
+    grid_coverage: [
+      {
+        grid_date: null,
+        runs: 100,
+        done: 98,
+        empty: 0,
+        failed: 1,
+        skipped: 1,
+        pending: 0,
+        mixed_knowledge: false,
+      },
+    ],
     headline: {
       ...scalars(87),
       sev_counts: {
@@ -337,6 +358,24 @@ describe("ExperimentDetail", () => {
     );
   });
 
+  it("shows the analysis budget it was created with, if any", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("RUNNING", { analysis_budget: 500 }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+    expect(wrapper.find('[data-testid="experiment-budget"]').text()).toBe(
+      "Analysis budget: 500 analyses.",
+    );
+
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
+    const unbudgeted = mountDetail();
+    await flushPromises();
+    expect(unbudgeted.find('[data-testid="experiment-budget"]').exists()).toBe(
+      false,
+    );
+  });
+
   it("says when the experiment does not exist", async () => {
     const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
     const Err = BusinessLogicError as unknown as new (code: string) => Error;
@@ -488,6 +527,1027 @@ describe("ExperimentDetail", () => {
     expect(getExperimentResults).toHaveBeenCalledTimes(2);
   });
 
+  it("names each run's snapshot, its grid date or HEAD", async () => {
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
+    getExperimentRuns.mockResolvedValue({
+      data: [
+        run(0, { grid_index: 0, grid_date: "2026-09-01T00:00:00.000Z" }),
+        run(0, { id: "run-head", grid_index: 1, grid_date: null }),
+      ],
+      total_pages: 1,
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const snapshots = wrapper
+      .findAll('[data-testid="experiment-run-snapshot"]')
+      .map((cell) => cell.text());
+    expect(snapshots).toEqual(["2026-09-01", "HEAD"]);
+  });
+
+  it("shows coverage per grid date, counting no lockfile yet as empty, HEAD last", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("RUNNING", {
+        grid_count: 2,
+        grid_dates: ["2026-09-01", "2026-10-01"],
+        run_counts: { pending: 2, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        grid_coverage: [
+          {
+            grid_date: "2026-09-01",
+            runs: 2,
+            done: 0,
+            empty: 2,
+            failed: 0,
+            skipped: 0,
+            pending: 0,
+            mixed_knowledge: false,
+          },
+          {
+            grid_date: "2026-10-01",
+            runs: 2,
+            done: 1,
+            empty: 0,
+            failed: 1,
+            skipped: 0,
+            pending: 0,
+            mixed_knowledge: false,
+          },
+          {
+            grid_date: null,
+            runs: 2,
+            done: 0,
+            empty: 0,
+            failed: 0,
+            skipped: 0,
+            pending: 2,
+            mixed_knowledge: false,
+          },
+        ],
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const rows = wrapper
+      .find('[data-testid="experiment-grid-coverage"]')
+      .findAll('[data-testid="grid-coverage-row"]');
+    expect(
+      rows.map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["2026-09-01", "0", "2", "0", "0", "0"],
+      ["2026-10-01", "1", "0", "1", "0", "0"],
+      ["HEAD", "0", "0", "0", "0", "2"],
+    ]);
+  });
+
+  it("flags the grid dates analysed with mixed knowledge next to their coverage", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 2,
+        grid_dates: ["2026-09-01", "2026-10-01"],
+        run_counts: { pending: 0, done: 6, failed: 0, skipped: 0 },
+      }),
+    });
+    const row = (
+      grid_date: string | null,
+      mixed_knowledge: boolean,
+    ): GridCoverageRow => ({
+      grid_date,
+      runs: 2,
+      done: 2,
+      empty: 0,
+      failed: 0,
+      skipped: 0,
+      pending: 0,
+      mixed_knowledge,
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        grid_coverage: [
+          row("2026-09-01", false),
+          row("2026-10-01", true),
+          row(null, false),
+        ],
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const rows = wrapper.findAll('[data-testid="grid-coverage-row"]');
+    expect(
+      rows.map((r) => r.find('[data-testid="grid-mixed-knowledge"]').exists()),
+    ).toEqual([false, true, false]);
+    expect(
+      wrapper.find('[data-testid="grid-mixed-knowledge-note"]').exists(),
+    ).toBe(true);
+  });
+
+  it("shows no mixed-knowledge note when every grid date used one knowledge", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-10-01"],
+        run_counts: { pending: 0, done: 2, failed: 0, skipped: 0 },
+      }),
+    });
+    const row = (grid_date: string | null): GridCoverageRow => ({
+      grid_date,
+      runs: 1,
+      done: 1,
+      empty: 0,
+      failed: 0,
+      skipped: 0,
+      pending: 0,
+      mixed_knowledge: false,
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({ grid_coverage: [row("2026-10-01"), row(null)] }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="grid-mixed-knowledge"]').exists()).toBe(
+      false,
+    );
+    expect(
+      wrapper.find('[data-testid="grid-mixed-knowledge-note"]').exists(),
+    ).toBe(false);
+  });
+
+  it("labels the existing blocks as HEAD and shows no grid coverage for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(
+      wrapper.find('[data-testid="experiment-grid-coverage"]').exists(),
+    ).toBe(false);
+    const head = wrapper.find('[data-testid="experiment-head-results"]');
+    expect(head.find("h3").text()).toContain("HEAD");
+    for (const block of [
+      "experiment-headline",
+      "experiment-coverage",
+      "experiment-severity",
+      "experiment-sweep",
+      "experiment-rqd",
+    ]) {
+      expect(head.find(`[data-testid="${block}"]`).exists()).toBe(true);
+    }
+    expect(head.find('[data-testid="experiment-provenance"]').exists()).toBe(
+      false,
+    );
+  });
+
+  function lag(n: number, median: number, before = 0): object {
+    return {
+      n,
+      median,
+      p25: median - 10,
+      p75: median + 10,
+      min: median - 20,
+      max: median + 20,
+      before_disclosure: before,
+    };
+  }
+
+  function gridResults(): object {
+    return results({
+      grid_coverage: [
+        {
+          grid_date: "2026-09-01",
+          runs: 2,
+          done: 2,
+          empty: 0,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+        },
+        {
+          grid_date: null,
+          runs: 2,
+          done: 2,
+          empty: 0,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+        },
+      ],
+      exposures: {
+        exposures: 5,
+        open: 2,
+        fixed: 3,
+        introductions: 1,
+        present_at_first_observation: 4,
+        fix_precision: { commit: 0, snapshot: 3 },
+        introduction_precision: { commit: 0, snapshot: 1 },
+      },
+      fix_lag: {
+        fixes: 3,
+        snapshot_precision_share: 1,
+        overall: lag(3, 46, 1),
+        by_severity: [
+          { key: "HIGH", ...lag(2, 80) },
+          { key: "LOW", ...lag(1, -13, 1) },
+        ],
+        by_kind: [
+          { key: "upgraded", ...lag(2, 16.5, 1) },
+          { key: "removed_direct", ...lag(1, 114) },
+        ],
+        points: [
+          {
+            severity: "HIGH",
+            kind: "upgraded",
+            lag_days: 46,
+            precision: "snapshot",
+          },
+          {
+            severity: "HIGH",
+            kind: "removed_direct",
+            lag_days: 114,
+            precision: "snapshot",
+          },
+          {
+            severity: "LOW",
+            kind: "upgraded",
+            lag_days: -13,
+            precision: "snapshot",
+          },
+        ],
+      },
+      exposure_survival: {
+        censored_at: "2026-10-01",
+        snapshot_precision_share: 1,
+        overall: {
+          key: "all",
+          n: 4,
+          fixed: 2,
+          censored: 2,
+          median_days: 50,
+          curve: [
+            { time: 24, survival: 0.75, at_risk: 4, events: 1, censored: 0 },
+            { time: 50, survival: 0.5, at_risk: 3, events: 1, censored: 0 },
+            { time: 90, survival: 0.5, at_risk: 2, events: 0, censored: 1 },
+            { time: 104, survival: 0.5, at_risk: 1, events: 0, censored: 1 },
+          ],
+        },
+        by_severity: [
+          {
+            key: "CRITICAL",
+            n: 1,
+            fixed: 1,
+            censored: 0,
+            median_days: 24,
+            curve: [
+              { time: 24, survival: 0, at_risk: 1, events: 1, censored: 0 },
+            ],
+          },
+          {
+            key: "MEDIUM",
+            n: 3,
+            fixed: 1,
+            censored: 2,
+            median_days: null,
+            curve: [
+              { time: 50, survival: 2 / 3, at_risk: 3, events: 1, censored: 0 },
+              { time: 90, survival: 2 / 3, at_risk: 2, events: 0, censored: 1 },
+              {
+                time: 104,
+                survival: 2 / 3,
+                at_risk: 1,
+                events: 0,
+                censored: 1,
+              },
+            ],
+          },
+        ],
+      },
+    });
+  }
+
+  async function mountGrid(): Promise<ReturnType<typeof mountDetail>> {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: gridResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+    return wrapper;
+  }
+
+  it("charts exposure survival as a step curve outside the HEAD blocks, censoring open exposures", async () => {
+    const wrapper = await mountGrid();
+
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper
+        .find(
+          '[data-testid="experiment-head-results"] [data-testid="experiment-survival"]',
+        )
+        .exists(),
+    ).toBe(false);
+    expect(block.text()).toContain(
+      "4 exposures, 2 fixed, 2 still open at HEAD (censored at 2026-10-01)",
+    );
+    expect(block.text()).toContain("Median 50 days");
+    expect(block.text()).toContain(
+      "100.0% of fixes dated only to a snapshot interval",
+    );
+    expect(
+      block.find('[data-testid="survival-curve"]').attributes("d"),
+    ).toMatch(/^M/);
+    expect(block.findAll('[data-testid="survival-censor"]')).toHaveLength(2);
+    expect(block.find('[data-testid="survival-median"]').exists()).toBe(true);
+    expect(
+      block.find('[data-testid="survival-chart"]').attributes("aria-label"),
+    ).toBe(
+      "Exposure survival, all severities: 4 exposures, 2 fixed, median 50 days",
+    );
+    expect(
+      block
+        .findAll('[data-testid="survival-table-row"]')
+        .map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["All severities", "4", "2", "2", "50"],
+      ["Critical", "1", "1", "0", "24"],
+      ["Medium", "3", "1", "2", "-"],
+    ]);
+  });
+
+  it("switches the survival curve to one severity", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    expect(
+      block.findAll('[data-testid="survival-group"]').map((b) => b.text()),
+    ).toEqual(["All severities", "Critical", "Medium"]);
+    await block.findAll('[data-testid="survival-group"]')[2]!.trigger("click");
+
+    expect(block.findAll('[data-testid="survival-censor"]')).toHaveLength(2);
+    expect(block.find('[data-testid="survival-median"]').exists()).toBe(false);
+    expect(block.text()).toContain("Survival stays above 50%: no median yet");
+    expect(
+      block
+        .findAll('[data-testid="survival-group"]')[2]!
+        .attributes("aria-pressed"),
+    ).toBe("true");
+  });
+
+  it("shows the survival at a step on hover", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    await block
+      .findAll('[data-testid="survival-hit"]')[1]!
+      .trigger("pointerenter");
+
+    expect(block.find('[data-testid="survival-tooltip"]').text()).toBe(
+      "Day 50: 50.0% still exposed, 3 at risk, 1 fixed",
+    );
+  });
+
+  it("charts fix lag by severity and by fix kind outside the HEAD blocks, with a table view", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: gridResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="experiment-fix-lag"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper
+        .find(
+          '[data-testid="experiment-head-results"] [data-testid="experiment-fix-lag"]',
+        )
+        .exists(),
+    ).toBe(false);
+    expect(block.text()).toContain("3 fixes");
+    expect(block.text()).toContain("1 before disclosure");
+    expect(block.text()).toContain("100.0% dated only to a snapshot interval");
+
+    const bySeverity = block.find('[data-testid="fix-lag-by-severity"]');
+    const rows = bySeverity.findAll('[data-testid="lag-row"]');
+    expect(rows.map((row) => row.attributes("data-key"))).toEqual([
+      "HIGH",
+      "LOW",
+    ]);
+    expect(
+      rows.map((row) => row.findAll('[data-testid="lag-dot"]').length),
+    ).toEqual([2, 1]);
+    expect(bySeverity.find('[data-testid="lag-zero"]').exists()).toBe(true);
+    expect(rows[0]!.attributes("aria-label")).toBe(
+      "High: 2 fixes, median 80 days, 0 before disclosure",
+    );
+
+    const byKind = block.find('[data-testid="fix-lag-by-kind"]');
+    expect(
+      byKind.findAll('[data-testid="lag-row"]').map((row) => row.text()),
+    ).toEqual([
+      expect.stringContaining("Upgraded"),
+      expect.stringContaining("Removed directly"),
+    ]);
+    expect(
+      byKind
+        .findAll('[data-testid="lag-table-row"]')
+        .map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["Upgraded", "2", "16.5", "6.5", "26.5", "1"],
+      ["Removed directly", "1", "114", "104", "124", "0"],
+    ]);
+  });
+
+  it("shows fix probe outcomes and precision shares outside the HEAD blocks", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: {
+        ...gridResults(),
+        probes: {
+          fixes: { found: 0, ambiguous: 0, not_found: 3, not_probed: 0 },
+          introductions: {
+            found: 0,
+            ambiguous: 0,
+            not_found: 1,
+            not_probed: 0,
+          },
+          not_found_reasons: {
+            "no lockfile-touching commit in the interval": 4,
+          },
+        },
+      },
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="experiment-probes"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper
+        .find(
+          '[data-testid="experiment-head-results"] [data-testid="experiment-probes"]',
+        )
+        .exists(),
+    ).toBe(false);
+    expect(
+      block.findAll('[data-testid="probe-outcome-row"]')[0]!.text(),
+    ).toContain("100.0%");
+    expect(block.text()).toContain(
+      "no lockfile-touching commit in the interval: 4",
+    );
+  });
+
+  it("shows a dot's fix lag on hover", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: gridResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const chart = wrapper.find('[data-testid="fix-lag-by-severity"]');
+    await chart.findAll('[data-testid="lag-hit"]')[2]!.trigger("pointerenter");
+
+    expect(chart.find('[data-testid="lag-tooltip"]').text()).toBe(
+      "Low: fixed 13 days before disclosure",
+    );
+  });
+
+  it("shows no fix lag block for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="experiment-fix-lag"]').exists()).toBe(
+      false,
+    );
+    expect(wrapper.find('[data-testid="experiment-survival"]').exists()).toBe(
+      false,
+    );
+  });
+
+  function loadResults(): object {
+    return {
+      ...gridResults(),
+      load_over_time: [
+        {
+          grid_date: "2026-07-01",
+          as_of_date: "2026-07-01",
+          projects: 2,
+          hindsight: 4,
+          as_of: 1,
+          undated: 0,
+        },
+        {
+          grid_date: "2026-08-01",
+          as_of_date: "2026-08-01",
+          projects: 0,
+          hindsight: null,
+          as_of: null,
+          undated: 0,
+        },
+        {
+          grid_date: "2026-09-01",
+          as_of_date: "2026-09-01",
+          projects: 2,
+          hindsight: 5,
+          as_of: 3,
+          undated: 1,
+        },
+        {
+          grid_date: null,
+          as_of_date: "2026-10-02",
+          projects: 2,
+          hindsight: 6,
+          as_of: 6,
+          undated: 1,
+        },
+      ],
+    };
+  }
+
+  async function mountLoad(): Promise<VueWrapper> {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 3,
+        grid_dates: ["2026-07-01", "2026-08-01", "2026-09-01"],
+        run_counts: { pending: 0, done: 6, failed: 2, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: loadResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+    return wrapper;
+  }
+
+  it("charts load over time in the hindsight and as-of views on one chart, outside the HEAD blocks", async () => {
+    const wrapper = await mountLoad();
+
+    const block = wrapper.find('[data-testid="experiment-load"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper
+        .find(
+          '[data-testid="experiment-head-results"] [data-testid="experiment-load"]',
+        )
+        .exists(),
+    ).toBe(false);
+    expect(
+      block
+        .findAll('[data-testid="load-legend-item"]')
+        .map((item) => item.text()),
+    ).toEqual(["Hindsight", "As-of"]);
+    const series = block.findAll('[data-testid="load-series"]');
+    expect(series.map((s) => s.attributes("data-key"))).toEqual([
+      "hindsight",
+      "as_of",
+    ]);
+    // The grid date without a done snapshot is a gap: three points per series
+    expect(
+      series.map((s) => s.findAll('[data-testid="load-point"]').length),
+    ).toEqual([3, 3]);
+    expect(
+      block
+        .findAll('[data-testid="load-column"]')
+        .map((c) => c.attributes("aria-label")),
+    ).toEqual([
+      "2026-07-01: hindsight 4, as-of 1, 2 projects",
+      "2026-08-01: no done snapshot",
+      "2026-09-01: hindsight 5, as-of 3, 2 projects",
+      "HEAD: hindsight 6, as-of 6, 2 projects",
+    ]);
+  });
+
+  it("lists every grid date's load in the table view", async () => {
+    const wrapper = await mountLoad();
+
+    const rows = wrapper
+      .find('[data-testid="experiment-load"]')
+      .findAll('[data-testid="load-table-row"]')
+      .map((row) => row.findAll("td").map((cell) => cell.text()));
+    expect(rows).toEqual([
+      ["2026-07-01", "2", "4", "1", "0"],
+      ["2026-08-01", "0", "-", "-", "0"],
+      ["2026-09-01", "2", "5", "3", "1"],
+      ["HEAD (as of 2026-10-02)", "2", "6", "6", "1"],
+    ]);
+  });
+
+  it("shows both views' load for a grid date on hover", async () => {
+    const wrapper = await mountLoad();
+
+    const block = wrapper.find('[data-testid="experiment-load"]');
+    await block
+      .findAll('[data-testid="load-column"]')[2]!
+      .trigger("pointerenter");
+
+    expect(block.find('[data-testid="load-tooltip"]').text()).toBe(
+      "2026-09-01: hindsight 5, as-of 3, 2 projects",
+    );
+  });
+
+  it("shows no load block for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        load_over_time: [
+          {
+            grid_date: null,
+            as_of_date: null,
+            projects: 98,
+            hindsight: 10,
+            as_of: 10,
+            undated: 0,
+          },
+        ],
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="experiment-load"]').exists()).toBe(
+      false,
+    );
+  });
+
+  it("renders the pre-disclosure residence block outside the HEAD blocks", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    const none = {
+      n: 0,
+      median: null,
+      p25: null,
+      p75: null,
+      min: null,
+      max: null,
+    };
+    getExperimentResults.mockResolvedValue({
+      data: {
+        ...gridResults(),
+        residence: {
+          introductions: 2,
+          snapshot_precision_share: 0.5,
+          present_at_first_observation: 4,
+          undated: 0,
+          overall: { n: 1, median: 88, p25: 88, p75: 88, min: 88, max: 88 },
+          by_severity: [
+            {
+              key: "CRITICAL",
+              n: 1,
+              median: 88,
+              p25: 88,
+              p75: 88,
+              min: 88,
+              max: 88,
+            },
+          ],
+          points: [
+            { severity: "CRITICAL", residence_days: 88, precision: "snapshot" },
+          ],
+          after_disclosure: { ...none, n: 1, median: 99 },
+          after_disclosure_by_severity: [
+            { key: "HIGH", ...none, n: 1, median: 99 },
+          ],
+        },
+      },
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const block = wrapper.find('[data-testid="experiment-residence"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper
+        .find(
+          '[data-testid="experiment-head-results"] [data-testid="experiment-residence"]',
+        )
+        .exists(),
+    ).toBe(false);
+    expect(block.text()).toContain("50.0% dated only to a snapshot interval");
+    expect(block.findAll('[data-testid="lag-dot"]')).toHaveLength(1);
+    expect(block.findAll('[data-testid="residence-after-row"]')).toHaveLength(
+      1,
+    );
+  });
+
+  function kinds(
+    fixes: number,
+    upgraded: number,
+    transitive: number,
+    unknown: number,
+    share: number | null,
+  ): object {
+    return {
+      fixes,
+      upgraded,
+      removed_direct: fixes - upgraded - transitive - unknown,
+      removed_transitive: transitive,
+      unknown,
+      removed_transitive_share: share,
+      snapshot_precision_share: fixes ? 1 : null,
+    };
+  }
+
+  function leverageResults(): object {
+    return results({
+      grid_coverage: [
+        {
+          grid_date: "2026-08-01",
+          runs: 2,
+          done: 2,
+          empty: 0,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+        },
+        {
+          grid_date: "2026-09-01",
+          runs: 2,
+          done: 0,
+          empty: 0,
+          failed: 2,
+          skipped: 0,
+          pending: 0,
+        },
+        {
+          grid_date: null,
+          runs: 2,
+          done: 2,
+          empty: 0,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+        },
+      ],
+      upstream_leverage: {
+        packages_to_clear: [
+          {
+            grid_date: "2026-08-01",
+            projects: 2,
+            instances: 10,
+            distinct_packages: 3,
+            pkgs_clear_50: 1,
+            pkgs_clear_80: 2,
+          },
+          {
+            grid_date: "2026-09-01",
+            projects: 0,
+            instances: 0,
+            distinct_packages: 0,
+            pkgs_clear_50: null,
+            pkgs_clear_80: null,
+          },
+          {
+            grid_date: null,
+            projects: 2,
+            instances: 4,
+            distinct_packages: 4,
+            pkgs_clear_50: 2,
+            pkgs_clear_80: 4,
+          },
+        ],
+        fix_kinds: [
+          {
+            interval_from: "2026-08-01",
+            interval_to: "2026-09-01",
+            ...kinds(0, 0, 0, 0, null),
+          },
+          {
+            interval_from: "2026-09-01",
+            interval_to: null,
+            ...kinds(3, 1, 1, 1, 0.5),
+          },
+        ],
+        overall: kinds(3, 1, 1, 1, 0.5),
+      },
+    });
+  }
+
+  async function mountLeverage(): Promise<VueWrapper> {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 2,
+        grid_dates: ["2026-08-01", "2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 2, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({ data: leverageResults() });
+    const wrapper = mountDetail();
+    await flushPromises();
+    return wrapper;
+  }
+
+  function tableRows(chart: ReturnType<VueWrapper["find"]>): string[][] {
+    return chart
+      .findAll('[data-testid="line-table-row"]')
+      .map((row) => row.findAll("td").map((cell) => cell.text()));
+  }
+
+  it("orders the grid blocks fix lag, probes, survival, residence, upstream leverage, then load", async () => {
+    const none = {
+      n: 0,
+      median: null,
+      p25: null,
+      p75: null,
+      min: null,
+      max: null,
+    };
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        grid_count: 1,
+        grid_dates: ["2026-09-01"],
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: {
+        ...loadResults(),
+        upstream_leverage: (leverageResults() as { upstream_leverage: object })
+          .upstream_leverage,
+        probes: {
+          fixes: { found: 0, ambiguous: 0, not_found: 3, not_probed: 0 },
+          introductions: {
+            found: 0,
+            ambiguous: 0,
+            not_found: 1,
+            not_probed: 0,
+          },
+          not_found_reasons: {},
+        },
+        residence: {
+          introductions: 0,
+          snapshot_precision_share: null,
+          present_at_first_observation: 0,
+          undated: 0,
+          overall: none,
+          by_severity: [],
+          points: [],
+          after_disclosure: none,
+          after_disclosure_by_severity: [],
+        },
+      },
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const blocks = [
+      "experiment-fix-lag",
+      "experiment-probes",
+      "experiment-survival",
+      "experiment-residence",
+      "experiment-upstream-leverage",
+      "experiment-load",
+    ];
+    const order = wrapper
+      .findAll("[data-testid]")
+      .map((el) => el.attributes("data-testid")!)
+      .filter((id) => blocks.includes(id));
+    expect(order).toEqual(blocks);
+  });
+
+  it("charts packages to clear 50% and 80% of instances per grid date outside the HEAD blocks", async () => {
+    const wrapper = await mountLeverage();
+
+    const block = wrapper.find('[data-testid="experiment-upstream-leverage"]');
+    expect(block.exists()).toBe(true);
+    expect(
+      wrapper
+        .find(
+          '[data-testid="experiment-head-results"] [data-testid="experiment-upstream-leverage"]',
+        )
+        .exists(),
+    ).toBe(false);
+
+    const chart = block.find('[data-testid="leverage-packages-to-clear"]');
+    expect(
+      chart
+        .findAll('[data-testid="line-legend-item"]')
+        .map((item) => item.text()),
+    ).toEqual(["Clear 50%", "Clear 80%"]);
+    expect(chart.findAll('[data-testid="line-series"]')).toHaveLength(2);
+    const columns = chart.findAll('[data-testid="line-column"]');
+    expect(columns.map((column) => column.attributes("aria-label"))).toEqual([
+      "2026-08-01: 50% of 10 instances in 1 package, 80% in 2 packages",
+      "2026-09-01: no done snapshot",
+      "HEAD: 50% of 4 instances in 2 packages, 80% in 4 packages",
+    ]);
+    expect(tableRows(chart)).toEqual([
+      ["2026-08-01", "1", "2", "10"],
+      ["2026-09-01", "-", "-", "0"],
+      ["HEAD", "2", "4", "4"],
+    ]);
+  });
+
+  it("shows every series of a grid date on hover", async () => {
+    const wrapper = await mountLeverage();
+
+    const chart = wrapper.find('[data-testid="leverage-packages-to-clear"]');
+    await chart
+      .findAll('[data-testid="line-column"]')[2]!
+      .trigger("pointerenter");
+
+    expect(chart.find('[data-testid="line-crosshair"]').exists()).toBe(true);
+    expect(chart.find('[data-testid="line-tooltip"]').text()).toBe(
+      "HEAD: 50% of 4 instances in 2 packages, 80% in 4 packages",
+    );
+  });
+
+  it("charts the removed_transitive share per grid interval, with unknown fix kinds left out", async () => {
+    const wrapper = await mountLeverage();
+
+    const block = wrapper.find('[data-testid="experiment-upstream-leverage"]');
+    expect(block.text()).toContain(
+      "50.0% of 2 fixes of known kind removed transitively",
+    );
+    expect(block.text()).toContain("1 of 3 fixes has an unknown kind");
+
+    const chart = block.find('[data-testid="leverage-transitive-share"]');
+    expect(chart.findAll('[data-testid="line-legend-item"]')).toHaveLength(0);
+    expect(
+      chart
+        .findAll('[data-testid="line-column"]')
+        .map((column) => column.attributes("aria-label")),
+    ).toEqual([
+      "2026-08-01 to 2026-09-01: no fixes",
+      "2026-09-01 to HEAD: 50.0% of 2 fixes of known kind removed transitively, 1 unknown",
+    ]);
+    expect(tableRows(chart)).toEqual([
+      ["2026-09-01", "-", "0", "0"],
+      ["HEAD", "50.0%", "3", "1"],
+    ]);
+  });
+
+  it("shows no upstream leverage block for a HEAD-only experiment", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        upstream_leverage: {
+          packages_to_clear: [
+            {
+              grid_date: null,
+              projects: 2,
+              instances: 4,
+              distinct_packages: 4,
+              pkgs_clear_50: 2,
+              pkgs_clear_80: 4,
+            },
+          ],
+          fix_kinds: [],
+          overall: kinds(0, 0, 0, 0, null),
+        },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(
+      wrapper.find('[data-testid="experiment-upstream-leverage"]').exists(),
+    ).toBe(false);
+  });
+
   it("toasts a results failure once, not on every poll", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("RUNNING", {
@@ -549,6 +1609,8 @@ describe("ExperimentDetail", () => {
   it.each([
     ["runs.csv", "top4-head-runs.csv"],
     ["vulnerabilities.csv", "top4-head-vulnerabilities.csv"],
+    ["exposures.csv", "top4-head-exposures.csv"],
+    ["fixes.csv", "top4-head-fixes.csv"],
     ["results.json", "top4-head-results.json"],
   ])("downloads %s with the bearer token and saves it", async (file, name) => {
     const blob = new Blob(["x"]);

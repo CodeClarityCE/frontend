@@ -1,0 +1,30 @@
+/*
+ * Chart tokens for experiment results (dataviz skill conventions).
+ * Charts draw with these roles only, never raw colours; dark mode follows
+ * the app's .dark class. Single-series charts use --viz-series-1.
+ */
+.exp-viz {
+  --viz-surface: #ffffff;
+  --viz-text-primary: #0b0b0b;
+  --viz-text-secondary: #52514e;
+  --viz-text-muted: #898781;
+  --viz-grid: #e1e0d9;
+  --viz-baseline: #c3c2b7;
+  --viz-series-1: #2a78d6;
+  --viz-series-1-soft: #b7d3f6;
+  --viz-series-2: #eb6834;
+  --viz-series-3: #1baf7a;
+}
+
+.dark .exp-viz {
+  --viz-surface: #0a0a0a;
+  --viz-text-primary: #f0efec;
+  --viz-text-secondary: #c3c2b7;
+  --viz-text-muted: #898781;
+  --viz-grid: #2c2c2a;
+  --viz-baseline: #383835;
+  --viz-series-1: #3987e5;
+  --viz-series-1-soft: #184f95;
+  --viz-series-2: #d95926;
+  --viz-series-3: #199e70;
+}

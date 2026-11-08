@@ -15,8 +15,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { errorToast, successToast } from "@/utils/toasts";
 
-import { formatNumber, type GridLineSeries } from "../charts/chart-format";
+import {
+  formatNumber,
+  type GridLineSeries,
+  type StepSeries,
+} from "../charts/chart-format";
 import FigureBarChart from "../charts/FigureBarChart.vue";
+import FigureStepChart from "../charts/FigureStepChart.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
 import type {
   Figure,
@@ -33,6 +38,9 @@ const props = defineProps<{ experimentId: string }>();
 
 /** A select's value for "nothing chosen": Select items cannot be empty */
 const NONE = "none";
+
+/** Severities in colour-slot order, so a class keeps its colour */
+const SEVERITY_SLOTS = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"];
 
 const userStore = useUserStore();
 const auth = useAuthStore();
@@ -123,11 +131,32 @@ const canSave = computed(
     !hasReversedRange.value,
 );
 
+/** A severity keeps its colour whichever groups are present. */
+function seriesColor(key: string, index: number): string {
+  const slot = SEVERITY_SLOTS.indexOf(key);
+  return `var(--viz-series-${(slot === -1 ? index : slot) + 1})`;
+}
+
 const chartSeries = computed<GridLineSeries[]>(() =>
   (preview.value?.series ?? []).map((series, index) => ({
     ...series,
-    color: `var(--viz-series-${index + 1})`,
+    color: seriesColor(series.key, index),
   })),
+);
+
+/** Only survival Figures carry a censoring date. */
+const censoredAt = computed(() => preview.value?.censored_at ?? null);
+
+const stepSeries = computed<StepSeries[]>(() =>
+  (preview.value?.series ?? []).map((series, index) => {
+    return {
+      ...series,
+      color: seriesColor(series.key, index),
+      lower: series.lower ?? [],
+      upper: series.upper ?? [],
+      censored: series.censored ?? [],
+    };
+  }),
 );
 
 const yMax = computed(() =>
@@ -331,11 +360,11 @@ onMounted(() => {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem
-                    v-for="form in metric.chart_forms"
-                    :key="form.id"
-                    :value="form.id"
+                    v-for="item in metric.chart_forms"
+                    :key="item.id"
+                    :value="item.id"
                   >
-                    {{ form.label }}
+                    {{ item.label }}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -494,8 +523,20 @@ onMounted(() => {
         <h3 class="font-semibold text-gray-900 mb-2">
           {{ metric?.label }}
         </h3>
+        <template v-if="censoredAt">
+          <FigureStepChart
+            :labels="preview.labels"
+            :series="stepSeries"
+            :caption="`${metric?.label}: ${preview.y_title} by ${preview.x_title}`"
+            :x-title="preview.x_title"
+          />
+          <p class="text-sm text-gray-600 mt-2">
+            {{ preview.y_title }}, with 95% confidence bands. Open exposures are
+            censored at HEAD ({{ censoredAt }}).
+          </p>
+        </template>
         <FigureBarChart
-          v-if="form?.mark === 'bar'"
+          v-else-if="form?.mark === 'bar'"
           :labels="preview.labels"
           :series="chartSeries"
           :y-max="yMax"

@@ -72,7 +72,11 @@ function xOf(index: number): number {
 }
 
 /** A column rounded at its tip and square at the baseline. */
-function barPath(groupIndex: number, seriesIndex: number, value: number) {
+function barPath(
+  groupIndex: number,
+  seriesIndex: number,
+  value: number,
+): string {
   const left =
     groupStart(groupIndex) + seriesIndex * (barWidth.value + BAR_GAP);
   const right = left + barWidth.value;

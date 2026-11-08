@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, provide } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
+import { SNAPSHOT_COVERAGE } from "../charts/chart-caption";
 import {
   formatInterval,
   formatPValue,
@@ -56,6 +57,7 @@ const gridCoverage = computed(() => {
   const rows = props.results.grid_coverage ?? [];
   return rows.some((row) => row.grid_date !== null) ? rows : [];
 });
+provide(SNAPSHOT_COVERAGE, gridCoverage);
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),
 );

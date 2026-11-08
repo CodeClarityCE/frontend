@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
   formatDays,
   formatShare,
+  lagChartData,
   type LagChartRow,
 } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ExposuresBlock,
@@ -73,6 +76,20 @@ const counts = computed(() => {
     : `${fixes}.`;
 });
 
+function figureCaption(description: string): FigureCaption {
+  const { fixes, overall } = props.fixLag;
+  return {
+    description,
+    n: `n = ${overall.n} fixes`,
+    exclusions: excluded(
+      fixes - overall.n,
+      "fix",
+      "fixes",
+      "without a disclosure date",
+    ),
+  };
+}
+
 function describe(row: LagChartRow, lag: number): string {
   if (lag === 0) return `${row.label}: fixed on the day of disclosure`;
   const when = lag < 0 ? "before" : "after";
@@ -109,27 +126,39 @@ function describe(row: LagChartRow, lag: number): string {
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div data-testid="fix-lag-by-severity">
         <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
-        <LagStripChart
-          :rows="bySeverity"
-          :domain="domain"
-          caption="Fix lag in days by severity"
-          zero-label="Disclosure"
-          unit="fixes"
-          below-zero="before disclosure"
-          :describe="describe"
-        />
+        <ChartExport
+          name="fix-lag-by-severity"
+          :data="lagChartData(bySeverity, 'lag_days')"
+          :caption="figureCaption('Fix lag in days by severity')"
+        >
+          <LagStripChart
+            :rows="bySeverity"
+            :domain="domain"
+            caption="Fix lag in days by severity"
+            zero-label="Disclosure"
+            unit="fixes"
+            below-zero="before disclosure"
+            :describe="describe"
+          />
+        </ChartExport>
       </div>
       <div data-testid="fix-lag-by-kind">
         <h4 class="text-sm font-medium text-gray-900 mb-1">By fix kind</h4>
-        <LagStripChart
-          :rows="byKind"
-          :domain="domain"
-          caption="Fix lag in days by fix kind"
-          zero-label="Disclosure"
-          unit="fixes"
-          below-zero="before disclosure"
-          :describe="describe"
-        />
+        <ChartExport
+          name="fix-lag-by-kind"
+          :data="lagChartData(byKind, 'lag_days')"
+          :caption="figureCaption('Fix lag in days by fix kind')"
+        >
+          <LagStripChart
+            :rows="byKind"
+            :domain="domain"
+            caption="Fix lag in days by fix kind"
+            zero-label="Disclosure"
+            unit="fixes"
+            below-zero="before disclosure"
+            :describe="describe"
+          />
+        </ChartExport>
       </div>
     </div>
   </div>

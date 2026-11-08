@@ -1042,6 +1042,11 @@ describe("ExperimentDetail", () => {
       "#2a78d6",
     );
     expect(svg.firstElementChild?.getAttribute("fill")).toBe("#ffffff");
+    const shaded = svg.querySelector('path[fill-opacity="0.18"]');
+    expect(shaded?.getAttribute("fill")).toBe("#2a78d6");
+    expect(shaded?.getAttribute("d")).toBe(
+      wrapper.find('[data-testid="survival-band"]').attributes("d"),
+    );
   });
 
   it("leaves tooltips and interactive elements out of the SVG, even while hovering", async () => {
@@ -1073,12 +1078,12 @@ describe("ExperimentDetail", () => {
     expect(savedFile().blob.type).toContain("text/csv");
     expect(await savedFile().blob.text()).toBe(
       [
-        "time_days,survival,at_risk,events,censored,median_days",
-        "0,1,4,0,0,50",
-        "24,0.75,4,1,0,50",
-        "50,0.5,3,1,0,50",
-        "90,0.5,2,0,1,50",
-        "104,0.5,1,0,1,50",
+        "time_days,survival,lower_95,upper_95,at_risk,events,censored,median_days",
+        "0,1,1,1,4,0,0,50",
+        "24,0.75,0.25,0.95,4,1,0,50",
+        "50,0.5,0.1,0.75,3,1,0,50",
+        "90,0.5,0.1,0.75,2,0,1,50",
+        "104,0.5,0.1,0.75,1,0,1,50",
         "",
       ].join("\n"),
     );
@@ -1089,11 +1094,11 @@ describe("ExperimentDetail", () => {
     expect(savedFile().name).toBe("exposure-survival-medium.csv");
     expect(await savedFile().blob.text()).toBe(
       [
-        "time_days,survival,at_risk,events,censored,median_days",
-        "0,1,3,0,0,",
-        "50,0.6666666666666666,3,1,0,",
-        "90,0.6666666666666666,2,0,1,",
-        "104,0.6666666666666666,1,0,1,",
+        "time_days,survival,lower_95,upper_95,at_risk,events,censored,median_days",
+        "0,1,1,1,3,0,0,",
+        "50,0.6666666666666666,0.2,0.9,3,1,0,",
+        "90,0.6666666666666666,0.2,0.9,2,0,1,",
+        "104,0.6666666666666666,0.2,0.9,1,0,1,",
         "",
       ].join("\n"),
     );

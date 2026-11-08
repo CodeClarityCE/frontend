@@ -54,16 +54,20 @@ const plotted = computed(() => {
     columns: [
       "time_days",
       "survival",
+      "lower_95",
+      "upper_95",
       "at_risk",
       "events",
       "censored",
       "median_days",
     ],
     rows: [
-      [0, 1, n, 0, 0, median],
+      [0, 1, 1, 1, n, 0, 0, median],
       ...curve.map((s) => [
         s.time,
         s.survival,
+        s.lower,
+        s.upper,
         s.at_risk,
         s.events,
         s.censored,

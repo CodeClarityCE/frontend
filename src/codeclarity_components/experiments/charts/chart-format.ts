@@ -1,5 +1,5 @@
 /** Shared formatting and layout for experiment charts. */
-import type { LagSummary } from "../experiment.entity";
+import type { ConfidenceInterval, LagSummary } from "../experiment.entity";
 
 /** One row of a lag strip chart: a group's lags and their summary. */
 export interface LagChartRow {
@@ -52,4 +52,27 @@ export function plural(n: number, word: string, many = `${word}s`): string {
 /** A share as a percentage with one decimal. */
 export function formatShare(share: number | null): string {
   return share === null ? "-" : `${(share * 100).toFixed(1)}%`;
+}
+
+/** An interval as "low to high", a dash when there is none. */
+export function formatInterval(interval: ConfidenceInterval | null): string {
+  return interval === null
+    ? "-"
+    : `${formatShare(interval.low)} to ${formatShare(interval.high)}`;
+}
+
+/** A share followed by its 95% interval, when it has one. */
+export function formatShareWithInterval(
+  share: number | null,
+  interval: ConfidenceInterval | null | undefined,
+): string {
+  return interval
+    ? `${formatShare(share)} (95% CI ${formatInterval(interval)})`
+    : formatShare(share);
+}
+
+/** A p-value for reading: below 0.001 it is not shown as a rounded zero. */
+export function formatPValue(p: number | null): string {
+  if (p === null) return "p = -";
+  return p < 0.001 ? "p < 0.001" : `p = ${p.toFixed(3)}`;
 }

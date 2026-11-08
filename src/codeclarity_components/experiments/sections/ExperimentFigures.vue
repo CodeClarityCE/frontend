@@ -20,13 +20,16 @@ import {
   type GridLineSeries,
   type StepSeries,
 } from "../charts/chart-format";
+import FigureBarChart from "../charts/FigureBarChart.vue";
 import FigureStepChart from "../charts/FigureStepChart.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
 import type {
   Figure,
   FigureCatalog,
+  FigureChartForm,
   FigureData,
   FigureDefinition,
+  FigureFilter,
   FigureMetric,
 } from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
@@ -63,12 +66,55 @@ const metric = computed<FigureMetric | null>(
     catalog.value?.metrics.find((item) => item.id === metricId.value) ?? null,
 );
 
+const form = computed<FigureChartForm | null>(
+  () =>
+    metric.value?.chart_forms.find((item) => item.id === chartForm.value) ??
+    null,
+);
+
+/** Group-bys valid with the chosen chart form */
+const groupOptions = computed(() => {
+  const allowed = form.value?.group_by;
+  const all = metric.value?.group_by ?? [];
+  return allowed ? all.filter((item) => allowed.includes(item.id)) : all;
+});
+
+/** Filters valid with the chosen chart form */
+const filterOptions = computed<FigureFilter[]>(() => {
+  const allowed = form.value?.filters;
+  const all = metric.value?.filters ?? [];
+  return allowed ? all.filter((item) => allowed.includes(item.id)) : all;
+});
+
+function rangeEnd(filterId: string, end: 0 | 1): string {
+  return filterValues.value[filterId]?.split("/")[end] ?? "";
+}
+
+function setRangeEnd(filterId: string, end: 0 | 1, value: string): void {
+  const ends = [rangeEnd(filterId, 0), rangeEnd(filterId, 1)];
+  ends[end] = value;
+  if (ends[0] || ends[1]) filterValues.value[filterId] = ends.join("/");
+  else delete filterValues.value[filterId];
+}
+
+function isReversedRange(filter: FigureFilter): boolean {
+  if (filter.kind !== "date_range") return false;
+  const [from, to] = [rangeEnd(filter.id, 0), rangeEnd(filter.id, 1)];
+  return Boolean(from && to && from > to);
+}
+
+const hasReversedRange = computed(() =>
+  filterOptions.value.some(isReversedRange),
+);
+
 const definition = computed<FigureDefinition | null>(() => {
   if (!metric.value) return null;
   const filters: Record<string, string> = {};
-  for (const filter of metric.value.filters) {
+  for (const filter of filterOptions.value) {
     const value = filterValues.value[filter.id];
-    if (value && value !== NONE) filters[filter.id] = value;
+    if (value && value !== NONE && !isReversedRange(filter)) {
+      filters[filter.id] = value;
+    }
   }
   return {
     metric: metric.value.id,
@@ -79,13 +125,22 @@ const definition = computed<FigureDefinition | null>(() => {
 });
 
 const canSave = computed(
-  () => name.value.trim().length > 0 && definition.value !== null,
+  () =>
+    name.value.trim().length > 0 &&
+    definition.value !== null &&
+    !hasReversedRange.value,
 );
+
+/** A severity keeps its colour whichever groups are present. */
+function seriesColor(key: string, index: number): string {
+  const slot = SEVERITY_SLOTS.indexOf(key);
+  return `var(--viz-series-${(slot === -1 ? index : slot) + 1})`;
+}
 
 const chartSeries = computed<GridLineSeries[]>(() =>
   (preview.value?.series ?? []).map((series, index) => ({
     ...series,
-    color: `var(--viz-series-${index + 1})`,
+    color: seriesColor(series.key, index),
   })),
 );
 
@@ -94,10 +149,9 @@ const censoredAt = computed(() => preview.value?.censored_at ?? null);
 
 const stepSeries = computed<StepSeries[]>(() =>
   (preview.value?.series ?? []).map((series, index) => {
-    const slot = SEVERITY_SLOTS.indexOf(series.key);
     return {
       ...series,
-      color: `var(--viz-series-${(slot === -1 ? index : slot) + 1})`,
+      color: seriesColor(series.key, index),
       lower: series.lower ?? [],
       upper: series.upper ?? [],
       censored: series.censored ?? [],
@@ -116,6 +170,7 @@ const yMax = computed(() =>
 
 function describePoint(index: number): string {
   const values = (preview.value?.series ?? [])
+    .filter((series) => series.values[index] !== null)
     .map((series) => `${series.label} ${formatNumber(series.values[index]!)}`)
     .join(", ");
   return `${preview.value?.labels[index] ?? ""}: ${values}`;
@@ -253,6 +308,18 @@ async function deleteFigure(figureId: string): Promise<void> {
   }
 }
 
+// A choice the new chart form does not allow must not linger
+watch(form, () => {
+  if (!groupOptions.value.some((item) => item.id === groupBy.value)) {
+    groupBy.value = NONE;
+  }
+  for (const id of Object.keys(filterValues.value)) {
+    if (!filterOptions.value.some((item) => item.id === id)) {
+      delete filterValues.value[id];
+    }
+  }
+});
+
 watch(definition, () => void refreshPreview());
 
 onMounted(() => {
@@ -293,24 +360,24 @@ onMounted(() => {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem
-                    v-for="form in metric.chart_forms"
-                    :key="form.id"
-                    :value="form.id"
+                    v-for="item in metric.chart_forms"
+                    :key="item.id"
+                    :value="item.id"
                   >
-                    {{ form.label }}
+                    {{ item.label }}
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div v-if="metric.group_by.length > 0" class="space-y-2">
+            <div v-if="groupOptions.length > 0" class="space-y-2">
               <Label>Group by</Label>
               <Select v-model="groupBy" data-testid="figure-group-by">
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem :value="NONE">No grouping</SelectItem>
                   <SelectItem
-                    v-for="group in metric.group_by"
+                    v-for="group in groupOptions"
                     :key="group.id"
                     :value="group.id"
                   >
@@ -321,12 +388,42 @@ onMounted(() => {
             </div>
 
             <div
-              v-for="filter in metric.filters"
+              v-for="filter in filterOptions"
               :key="filter.id"
               class="space-y-2"
             >
               <Label>{{ filter.label }}</Label>
+              <template v-if="filter.kind === 'date_range'">
+                <div class="flex gap-2">
+                  <Input
+                    type="date"
+                    aria-label="From"
+                    :model-value="rangeEnd(filter.id, 0)"
+                    :data-testid="`figure-date-from-${filter.id}`"
+                    @update:model-value="
+                      setRangeEnd(filter.id, 0, String($event))
+                    "
+                  />
+                  <Input
+                    type="date"
+                    aria-label="To"
+                    :model-value="rangeEnd(filter.id, 1)"
+                    :data-testid="`figure-date-to-${filter.id}`"
+                    @update:model-value="
+                      setRangeEnd(filter.id, 1, String($event))
+                    "
+                  />
+                </div>
+                <p
+                  v-if="isReversedRange(filter)"
+                  class="text-sm text-red-600"
+                  data-testid="figure-date-error"
+                >
+                  The start date must not be after the end date.
+                </p>
+              </template>
               <Select
+                v-else
                 :model-value="filterValues[filter.id] ?? NONE"
                 :data-testid="`figure-filter-${filter.id}`"
                 @update:model-value="filterValues[filter.id] = String($event)"
@@ -438,6 +535,16 @@ onMounted(() => {
             censored at HEAD ({{ censoredAt }}).
           </p>
         </template>
+        <FigureBarChart
+          v-else-if="form?.mark === 'bar'"
+          :labels="preview.labels"
+          :series="chartSeries"
+          :y-max="yMax"
+          :format-y="formatNumber"
+          :describe="describePoint"
+          :caption="`${metric?.label}: ${preview.y_title} per ${preview.x_title}`"
+          :x-title="preview.x_title"
+        />
         <GridLineChart
           v-else
           :labels="preview.labels"
@@ -447,6 +554,7 @@ onMounted(() => {
           :describe="describePoint"
           :caption="`${metric?.label}: ${preview.y_title} per ${preview.x_title}`"
           :x-title="preview.x_title"
+          :points-only="form?.mark === 'point'"
         />
       </template>
       <p v-else class="text-sm text-gray-600">No data to plot yet.</p>

@@ -6,11 +6,21 @@ export interface FigureChoice {
 }
 
 export interface FigureFilter extends FigureChoice {
+  /** A date range instead of a list of options */
+  kind?: "date_range";
   options: FigureChoice[];
 }
 
+export interface FigureChartForm extends FigureChoice {
+  /** How it is drawn; a line when not given */
+  mark?: "line" | "bar" | "point";
+  /** The metric's group-bys and filters valid with this form, all when not given */
+  group_by?: string[];
+  filters?: string[];
+}
+
 export interface FigureMetric extends FigureChoice {
-  chart_forms: FigureChoice[];
+  chart_forms: FigureChartForm[];
   group_by: FigureChoice[];
   filters: FigureFilter[];
 }

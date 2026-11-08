@@ -258,7 +258,7 @@ function results(overrides: object = {}): Results {
 
 function mountResults(overrides: object = {}): VueWrapper {
   return mount(ExperimentResults, {
-    props: { results: results(overrides) } as never,
+    props: { results: results(overrides), metricVersion: null } as never,
   });
 }
 

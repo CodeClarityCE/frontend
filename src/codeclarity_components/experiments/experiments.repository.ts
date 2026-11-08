@@ -5,6 +5,7 @@ import {
   type AuthRepoMethodGetRequestOptions,
   type AuthRepoMethodPatchRequestOptions,
   type AuthRepoMethodPostRequestOptions,
+  type AuthRepoMethodPutRequestOptions,
   BaseRepository,
   type PaginatedRepoMethodRequestOptions,
 } from "../../utils/api/BaseRepository";
@@ -56,6 +57,14 @@ export type UpdateFigureRequestOptions = AuthRepoMethodPatchRequestOptions<{
 }> &
   FigureRequestScope & { figureId: string };
 
+export type MoveFigureRequestOptions = AuthRepoMethodPutRequestOptions<{
+  metric_version: number | null;
+}> &
+  FigureRequestScope & { figureId: string };
+
+export type GetFigureDataRequestOptions = AuthRepoMethodGetRequestOptions &
+  FigureRequestScope & { figureId: string };
+
 export type DeleteFigureRequestOptions =
   AuthRepoMethodEmptyDeleteRequestOptions &
     FigureRequestScope & { figureId: string };
@@ -104,6 +113,9 @@ export interface DownloadExperimentExportRequestOptions extends AuthRepoMethodGe
   experimentId: string;
   file: ExperimentExportFile;
 }
+
+export type DownloadPublishedPackageRequestOptions =
+  GetPublishedResultsRequestOptions;
 
 export interface CreateExperimentRequestOptions extends AuthRepoMethodPostRequestOptions<CreateExperimentRequest> {
   orgId: string;
@@ -392,6 +404,21 @@ export class ExperimentsRepository extends BaseRepository {
     });
   }
 
+  /** The replication package of one Published results version. */
+  async downloadPublishedPackage(
+    options: DownloadPublishedPackageRequestOptions,
+  ): Promise<Blob> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published/${options.metricVersion}/package.zip`;
+
+    return await this.getBlobRequest({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+  }
+
   /** The combinations the Figure composer may offer. */
   async getFigureCatalog(
     options: GetFiguresRequestOptions,
@@ -444,6 +471,38 @@ export class ExperimentsRepository extends BaseRepository {
       response,
       DataResponse<FigureData>,
     );
+  }
+
+  /** A saved Figure's data, stored once it is tied to a version. */
+  async getFigureData(
+    options: GetFigureDataRequestOptions,
+  ): Promise<DataResponse<FigureData>> {
+    const response = await this.getRequest<DataResponse<FigureData>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(
+        this.experimentUrl(options, `figures/${options.figureId}/data`),
+      ),
+      handleBusinessErrors: options.handleBusinessErrors,
+    });
+    return Entity.unMarshal<DataResponse<FigureData>>(
+      response,
+      DataResponse<FigureData>,
+    );
+  }
+
+  /** Ties a Figure to a Published results version, or unties it with null. */
+  async moveFigureToVersion(options: MoveFigureRequestOptions): Promise<void> {
+    await this.putRequest<NoDataResponse, { metric_version: number | null }>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(
+        this.experimentUrl(
+          options,
+          `figures/${options.figureId}/published-version`,
+        ),
+      ),
+      data: options.data,
+      handleBusinessErrors: options.handleBusinessErrors,
+    });
   }
 
   async createFigure(

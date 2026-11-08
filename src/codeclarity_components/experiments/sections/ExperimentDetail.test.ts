@@ -18,12 +18,15 @@ const {
   publishExperiment,
   getCurrentMetricVersion,
   downloadExperimentExport,
+  downloadPublishedPackage,
   getFigureCatalog,
   getFigures,
   computeFigureData,
   createFigure,
   updateFigure,
   deleteFigure,
+  getFigureData,
+  moveFigureToVersion,
   saveBlob,
   successToast,
   errorToast,
@@ -38,12 +41,15 @@ const {
   publishExperiment: vi.fn(),
   getCurrentMetricVersion: vi.fn(),
   downloadExperimentExport: vi.fn(),
+  downloadPublishedPackage: vi.fn(),
   getFigureCatalog: vi.fn(),
   getFigures: vi.fn(),
   computeFigureData: vi.fn(),
   createFigure: vi.fn(),
   updateFigure: vi.fn(),
   deleteFigure: vi.fn(),
+  getFigureData: vi.fn(),
+  moveFigureToVersion: vi.fn(),
   saveBlob: vi.fn(),
   successToast: vi.fn(),
   errorToast: vi.fn(),
@@ -61,12 +67,15 @@ vi.mock("../experiments.repository", () => ({
     publishExperiment = publishExperiment;
     getCurrentMetricVersion = getCurrentMetricVersion;
     downloadExperimentExport = downloadExperimentExport;
+    downloadPublishedPackage = downloadPublishedPackage;
     getFigureCatalog = getFigureCatalog;
     getFigures = getFigures;
     computeFigureData = computeFigureData;
     createFigure = createFigure;
     updateFigure = updateFigure;
     deleteFigure = deleteFigure;
+    getFigureData = getFigureData;
+    moveFigureToVersion = moveFigureToVersion;
   },
 }));
 
@@ -293,11 +302,13 @@ describe("ExperimentDetail", () => {
     getExperimentResults.mockReset().mockResolvedValue({ data: results() });
     getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
     getPublishedResults.mockReset().mockResolvedValue({ data: results() });
+    getFigureCatalog.mockReset().mockResolvedValue({ data: { metrics: [] } });
     publishExperiment.mockReset().mockResolvedValue({ data: {} });
     getCurrentMetricVersion
       .mockReset()
       .mockResolvedValue({ data: { metric_version: 3 } });
     downloadExperimentExport.mockReset();
+    downloadPublishedPackage.mockReset();
     saveBlob.mockReset();
     successToast.mockReset();
     errorToast.mockReset();
@@ -625,7 +636,11 @@ describe("ExperimentDetail", () => {
       };
 
       async function mountPublished(
-        versions: (typeof version | typeof older)[],
+        versions: (
+          | typeof version
+          | typeof older
+          | (typeof older & { package_checksum: string })
+        )[],
       ): Promise<VueWrapper> {
         getExperiment.mockResolvedValue({
           data: experiment("COMPLETED", { run_counts: done }),
@@ -658,12 +673,42 @@ describe("ExperimentDetail", () => {
         expect(find(wrapper, "experiment-published-version").text()).toContain(
           "metric version 2",
         );
+        expect(
+          wrapper
+            .findComponent({ name: "ExperimentResults" })
+            .props("metricVersion"),
+        ).toBe(2);
+      });
+
+      it("shows the checksum and downloads the package of the version picked", async () => {
+        downloadPublishedPackage.mockResolvedValue(new Blob(["zip"]));
+        const wrapper = await mountPublished([
+          { ...version, package_checksum: "aaa" },
+          { ...older, package_checksum: "bbb" },
+        ]);
+
+        await find(wrapper, "experiment-version-select").setValue("2");
+        await flushPromises();
+        expect(find(wrapper, "experiment-package-checksum").text()).toContain(
+          "bbb",
+        );
+
+        await find(wrapper, "export-package").trigger("click");
+        await flushPromises();
+        expect(downloadPublishedPackage).toHaveBeenCalledWith(
+          expect.objectContaining({ metricVersion: 2 }),
+        );
       });
 
       it("keeps the picked version when a slower earlier response arrives", async () => {
         const wrapper = await mountPublished([version, older]);
         const shown = (value: number) => ({
-          data: results({ coverage: { ...results().coverage, runs: value } }),
+          data: results({
+            coverage: {
+              ...(results() as { coverage: object }).coverage,
+              runs: value,
+            },
+          }),
         });
         let finishOld: (value: unknown) => void = () => undefined;
         getPublishedResults.mockImplementationOnce(
@@ -1388,6 +1433,130 @@ describe("ExperimentDetail", () => {
     return new DOMParser().parseFromString(text, "image/svg+xml")
       .documentElement;
   }
+
+  it("marks a result chart as unpublished while no version is published", async () => {
+    const wrapper = await mountGrid();
+
+    const svg = await exportedSvg(wrapper);
+
+    expect(svg.textContent).toContain("Unpublished results, not for citation");
+    expect(svg.textContent).not.toContain("Metric version");
+  });
+
+  describe("when a version is published", () => {
+    const publishedVersion = {
+      metric_version: 3,
+      published_on: "2026-11-07T00:00:00.000Z",
+      published_by_name: "Jane Roe",
+    };
+
+    it("names the version on a result chart instead of marking it unpublished", async () => {
+      getPublishedVersions.mockResolvedValue({ data: [publishedVersion] });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+
+      const svg = await exportedSvg(await mountGrid());
+
+      expect(svg.textContent).toContain("Metric version 3");
+      expect(svg.textContent).not.toContain("Unpublished");
+    });
+
+    it("states the version in the downloaded caption of a result chart", async () => {
+      getPublishedVersions.mockResolvedValue({ data: [publishedVersion] });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+      const wrapper = await mountGrid();
+
+      await wrapper
+        .find(
+          '[data-testid="experiment-survival"] [data-testid="export-caption-file"]',
+        )
+        .trigger("click");
+      await flushPromises();
+
+      const caption = await savedFile().blob.text();
+      expect(caption).toContain("Metric version 3.");
+      expect(caption).not.toContain("Unpublished");
+    });
+
+    it("swaps the mark for the version once the experiment is published", async () => {
+      publishExperiment.mockResolvedValue({ data: publishedVersion });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+      const wrapper = await mountGrid();
+      expect((await exportedSvg(wrapper)).textContent).toContain("Unpublished");
+
+      getPublishedVersions.mockResolvedValue({ data: [publishedVersion] });
+      await wrapper.find('[data-testid="experiment-publish"]').trigger("click");
+      await wrapper
+        .find('[data-testid="experiment-publish-confirm"]')
+        .trigger("click");
+      await flushPromises();
+
+      const svg = await exportedSvg(wrapper);
+      expect(svg.textContent).toContain("Metric version 3");
+      expect(svg.textContent).not.toContain("Unpublished");
+    });
+  });
+
+  describe("PNG of a result chart", () => {
+    let drawnSvg = "";
+
+    beforeEach(() => {
+      drawnSvg = "";
+      vi.stubGlobal(
+        "Image",
+        class {
+          onload: (() => void) | null = null;
+          set src(value: string) {
+            drawnSvg = decodeURIComponent(value);
+            void Promise.resolve().then(() => this.onload?.());
+          }
+        },
+      );
+      vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+        drawImage: vi.fn(),
+      } as never);
+      vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
+        (callback) => callback(new Blob([new Uint8Array(40)])),
+      );
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    async function downloadPng(
+      wrapper: Awaited<ReturnType<typeof mountGrid>>,
+    ): Promise<void> {
+      await wrapper
+        .find('[data-testid="experiment-survival"] [data-testid="export-png"]')
+        .trigger("click");
+      await flushPromises();
+    }
+
+    it("draws the unpublished mark into the image", async () => {
+      await downloadPng(await mountGrid());
+
+      expect(drawnSvg).toContain("Unpublished results, not for citation");
+    });
+
+    it("draws the metric version and no mark for Published results", async () => {
+      getPublishedVersions.mockResolvedValue({
+        data: [
+          {
+            metric_version: 3,
+            published_on: "2026-11-07T00:00:00.000Z",
+            published_by_name: "Jane Roe",
+          },
+        ],
+      });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+
+      await downloadPng(await mountGrid());
+
+      expect(drawnSvg).toContain("Metric version 3");
+      expect(drawnSvg).not.toContain("Unpublished");
+    });
+  });
 
   it("downloads the survival chart as an SVG that needs no page styling", async () => {
     const wrapper = await mountGrid();
@@ -2303,6 +2472,112 @@ describe("ExperimentDetail", () => {
     expect(saveBlob).toHaveBeenCalledWith(blob, name);
   });
 
+  describe("replication package", () => {
+    const version = {
+      metric_version: 3,
+      published_on: "2026-11-07T00:00:00Z",
+      published_by_name: "Jane Roe",
+      package_checksum: "ab12".repeat(16),
+    };
+
+    it("downloads the package of the shown version and states its checksum", async () => {
+      const blob = new Blob(["zip"]);
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      getPublishedVersions.mockResolvedValue({ data: [version] });
+      downloadPublishedPackage.mockResolvedValue(blob);
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(
+        wrapper.find('[data-testid="experiment-package-checksum"]').text(),
+      ).toContain(version.package_checksum);
+      await wrapper.find('[data-testid="export-package"]').trigger("click");
+      await flushPromises();
+
+      expect(downloadPublishedPackage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orgId: "test-org-id",
+          experimentId: "exp-1",
+          metricVersion: 3,
+          bearerToken: "test-token",
+        }),
+      );
+      expect(saveBlob).toHaveBeenCalledWith(blob, "top4-head-v3-package.zip");
+    });
+
+    it("offers no package while nothing is published", async () => {
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="export-package"]').exists()).toBe(
+        false,
+      );
+    });
+
+    it("offers no package for a version stored without one", async () => {
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      getPublishedVersions.mockResolvedValue({
+        data: [{ ...version, package_checksum: null }],
+      });
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="export-package"]').exists()).toBe(
+        false,
+      );
+    });
+
+    it("says when the package download fails", async () => {
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      getPublishedVersions.mockResolvedValue({ data: [version] });
+      downloadPublishedPackage.mockRejectedValue(new Error("boom"));
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="export-package"]').trigger("click");
+      await flushPromises();
+
+      expect(saveBlob).not.toHaveBeenCalled();
+      expect(errorToast).toHaveBeenCalledWith(
+        "Failed to download the replication package",
+      );
+    });
+  });
+
+  it("lists each knowledge source at start and end in the provenance", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        provenance: {
+          ...(results() as { provenance: object }).provenance,
+          knowledge_start: {
+            knowledge_sources: { nvd: "2026-11-01", osv: null },
+            epss_rows: 10,
+          },
+          knowledge_end: {
+            knowledge_sources: { nvd: "2026-11-02", osv: "2026-11-02" },
+            epss_rows: 12,
+          },
+        },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const sources = wrapper
+      .findAll('[data-testid="experiment-knowledge-source"]')
+      .map((item) => item.text());
+    expect(sources).toEqual([
+      "nvd: 2026-11-01 / 2026-11-02",
+      "osv: - / 2026-11-02",
+    ]);
+  });
+
   it("says when an export fails", async () => {
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
     downloadExperimentExport.mockRejectedValue(new Error("boom"));
@@ -2375,6 +2650,10 @@ describe("ExperimentDetail Figures tab", () => {
     createFigure.mockReset().mockResolvedValue({ id: "fig-1" });
     updateFigure.mockReset().mockResolvedValue({});
     deleteFigure.mockReset().mockResolvedValue({});
+    getFigureData.mockReset().mockResolvedValue(figureData("Frozen"));
+    moveFigureToVersion.mockReset().mockResolvedValue({});
+    getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
+    getPublishedResults.mockReset().mockResolvedValue({ data: results() });
     successToast.mockReset();
     errorToast.mockReset();
   });
@@ -2857,6 +3136,207 @@ describe("ExperimentDetail Figures tab", () => {
       await flushPromises();
       const { text } = await exportAs(wrapper, "caption-file");
       expect(text).not.toContain("approximates");
+      wrapper.unmount();
+    });
+  });
+
+  describe("tied to Published results", () => {
+    const VERSIONS = [
+      {
+        metric_version: 2,
+        published_on: "2026-11-02",
+        published_by_name: null,
+      },
+      {
+        metric_version: 1,
+        published_on: "2026-11-01",
+        published_by_name: null,
+      },
+    ];
+
+    function savedFigure(metricVersion: number | null): object {
+      return {
+        id: "fig-1",
+        name: "Load as-of",
+        definition: AS_OF_DEFINITION,
+        created_on: "2026-11-01",
+        metric_version: metricVersion,
+      };
+    }
+
+    async function openFigure(
+      metricVersion: number | null,
+    ): Promise<VueWrapper> {
+      getPublishedVersions.mockResolvedValue({ data: VERSIONS });
+      getPublishedResults.mockResolvedValue({ data: results() });
+      getFigures.mockResolvedValue({ data: [savedFigure(metricVersion)] });
+      const wrapper = await openFiguresTab();
+      await wrapper.find('[data-testid="figure-open"]').trigger("click");
+      await flushPromises();
+      return wrapper;
+    }
+
+    it("plots a tied Figure from its stored data", async () => {
+      const wrapper = await openFigure(1);
+
+      expect(getFigureData).toHaveBeenCalledWith(
+        expect.objectContaining({ figureId: "fig-1" }),
+      );
+      expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
+        "Frozen",
+      );
+      wrapper.unmount();
+    });
+
+    it("exports a tied Figure with its metric version, not as a draft", async () => {
+      const wrapper = await openFigure(1);
+
+      await wrapper
+        .find('[data-testid="figure-preview"] [data-testid="export-svg"]')
+        .trigger("click");
+      await flushPromises();
+      const svg = await (saveBlob.mock.calls.at(-1)![0] as Blob).text();
+
+      expect(svg).toContain("Metric version 1");
+      expect(svg).not.toContain("Unpublished results");
+      wrapper.unmount();
+    });
+
+    it("moves a Figure only when the move is confirmed by the button", async () => {
+      const wrapper = await openFigure(1);
+
+      await wrapper.find('[data-testid="figure-version"]').setValue("2");
+      await flushPromises();
+      expect(moveFigureToVersion).not.toHaveBeenCalled();
+
+      getFigures.mockResolvedValue({ data: [savedFigure(2)] });
+      await wrapper.find('[data-testid="figure-move"]').trigger("click");
+      await flushPromises();
+
+      expect(moveFigureToVersion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          figureId: "fig-1",
+          data: { metric_version: 2 },
+        }),
+      );
+      expect(getFigureData).toHaveBeenCalledTimes(2);
+      wrapper.unmount();
+    });
+
+    it("explains when older metric code cannot compute the version", async () => {
+      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
+      moveFigureToVersion.mockRejectedValue(
+        new (BusinessLogicError as unknown as new (code: string) => Error)(
+          "FigureVersionNotCurrent",
+        ),
+      );
+      const wrapper = await openFigure(null);
+
+      await wrapper.find('[data-testid="figure-version"]').setValue("1");
+      await wrapper.find('[data-testid="figure-move"]').trigger("click");
+      await flushPromises();
+
+      expect(errorToast).toHaveBeenCalledWith(
+        expect.stringContaining("older metric code"),
+      );
+      wrapper.unmount();
+    });
+
+    it("previews changes to a tied Figure as a draft", async () => {
+      const wrapper = await openFigure(1);
+      getFigureData.mockClear();
+      computeFigureData.mockClear();
+
+      await wrapper
+        .find('[data-testid="figure-filter-view"]')
+        .setValue("hindsight");
+      await flushPromises();
+
+      expect(computeFigureData).toHaveBeenCalled();
+      expect(getFigureData).not.toHaveBeenCalled();
+      await wrapper
+        .find('[data-testid="figure-preview"] [data-testid="export-svg"]')
+        .trigger("click");
+      await flushPromises();
+      const svg = await (saveBlob.mock.calls.at(-1)![0] as Blob).text();
+      expect(svg).toContain("Unpublished results");
+      wrapper.unmount();
+    });
+  });
+
+  describe("Open as Figure", () => {
+    const LOAD_RESULTS = results({
+      grid_coverage: [
+        {
+          grid_date: "2025-01-01",
+          done: 4,
+          empty: 0,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+          mixed_knowledge: false,
+        },
+      ],
+      load_over_time: [
+        {
+          grid_date: "2025-01-01",
+          as_of_date: "2025-01-01",
+          projects: 4,
+          hindsight: 3,
+          as_of: 2,
+          undated: 0,
+        },
+      ],
+    });
+
+    async function mountResults(): Promise<VueWrapper> {
+      getExperimentResults.mockResolvedValue({ data: LOAD_RESULTS });
+      const wrapper = mount(ExperimentDetail, {
+        attachTo: document.body,
+        global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+      });
+      await flushPromises();
+      return wrapper;
+    }
+
+    it("appears only on blocks the catalog can represent", async () => {
+      const wrapper = await mountResults();
+
+      expect(
+        wrapper
+          .find(
+            '[data-testid="experiment-load"] [data-testid="open-as-figure"]',
+          )
+          .exists(),
+      ).toBe(true);
+      expect(wrapper.findAll('[data-testid="open-as-figure"]')).toHaveLength(1);
+      wrapper.unmount();
+    });
+
+    it("is not offered without a catalog", async () => {
+      getFigureCatalog.mockRejectedValue(new Error("down"));
+      const wrapper = await mountResults();
+
+      expect(wrapper.find('[data-testid="open-as-figure"]').exists()).toBe(
+        false,
+      );
+      wrapper.unmount();
+    });
+
+    it("opens the composer on the block's definition", async () => {
+      const wrapper = await mountResults();
+
+      await wrapper
+        .find('[data-testid="experiment-load"] [data-testid="open-as-figure"]')
+        .trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="figure-preview"]').exists()).toBe(
+        true,
+      );
+      expect(computeFigureData).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: { definition: NO_FILTER_DEFINITION } }),
+      );
       wrapper.unmount();
     });
   });

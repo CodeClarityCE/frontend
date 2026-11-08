@@ -5,6 +5,7 @@ import type { FigureCaption } from "../charts/chart-caption";
 import { formatNumber, formatShare } from "../charts/chart-format";
 import ChartExport from "../charts/ChartExport.vue";
 import ChartTable from "../charts/ChartTable.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
   type ExposureSurvivalBlock,
@@ -111,6 +112,15 @@ const caption = computed(() => {
         95% confidence interval (Greenwood, log-log).
       </p>
     </div>
+
+    <OpenAsFigure
+      :definition="{
+        metric: 'survival',
+        chart_form: 'step',
+        group_by: 'severity',
+        filters: {},
+      }"
+    />
 
     <p class="text-sm text-gray-700">
       {{ counts }}

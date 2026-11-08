@@ -11,6 +11,7 @@ import {
 } from "../charts/chart-format";
 import ChartExport from "../charts/ChartExport.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import type { FixKindRow, UpstreamLeverageBlock } from "../experiment.entity";
 
 const props = defineProps<{ leverage: UpstreamLeverageBlock }>();
@@ -157,6 +158,14 @@ const unknownNote = computed(() => {
           The fewest packages whose fixes would clear 50% and 80% of the
           instances in done snapshots at each grid date.
         </p>
+        <OpenAsFigure
+          :definition="{
+            metric: 'upstream_leverage',
+            chart_form: 'line',
+            group_by: null,
+            filters: {},
+          }"
+        />
         <ChartExport
           name="packages-to-clear"
           :data="gridLineData('Grid date', clearLabels, clearSeries)"

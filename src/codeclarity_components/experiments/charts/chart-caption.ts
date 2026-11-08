@@ -19,6 +19,13 @@ export interface FigureCaption {
   metricVersion?: number;
 }
 
+/** The status a figure states on its face. */
+export type FigureMarks = Pick<FigureCaption, "unpublished" | "metricVersion">;
+
+/** The status of the results being viewed, provided by the results page. */
+export const RESULT_MARKS: InjectionKey<Ref<FigureMarks>> =
+  Symbol("result-marks");
+
 /** Snapshot states of the grid, provided by the results page. */
 export const SNAPSHOT_COVERAGE: InjectionKey<Ref<GridCoverageRow[]>> =
   Symbol("snapshot-coverage");
@@ -52,9 +59,7 @@ function snapshotExclusions(coverage: GridCoverageRow[]): string[] {
 }
 
 /** The status line of a figure: unpublished, tied to a version, or neither. */
-export function figureMarkText(
-  marks: Pick<FigureCaption, "unpublished" | "metricVersion">,
-): string | null {
+export function figureMarkText(marks: FigureMarks): string | null {
   const parts = [
     ...(marks.unpublished ? ["Unpublished results, not for citation"] : []),
     ...(marks.metricVersion === undefined

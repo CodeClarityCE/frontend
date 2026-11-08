@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { excluded, type FigureCaption } from "../charts/chart-caption";
 import ChartExport from "../charts/ChartExport.vue";
 import LoadOverTimeChart from "../charts/LoadOverTimeChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import type { LoadRow } from "../experiment.entity";
 
 const props = defineProps<{ rows: LoadRow[] }>();
@@ -68,6 +69,14 @@ const figureCaption = computed<FigureCaption>(() => {
         as undated.
       </p>
     </div>
+    <OpenAsFigure
+      :definition="{
+        metric: 'load_over_time',
+        chart_form: 'line',
+        group_by: null,
+        filters: {},
+      }"
+    />
     <ChartExport name="load-over-time" :data="plotted" :caption="figureCaption">
       <LoadOverTimeChart :rows="rows" :caption="TITLE" />
     </ChartExport>

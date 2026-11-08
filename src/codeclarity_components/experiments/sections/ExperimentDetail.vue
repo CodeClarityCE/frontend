@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, onUnmounted, provide, ref } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { PaginationComponent } from "@/base_components";
@@ -15,6 +15,7 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { saveBlob } from "@/utils/download";
 import { errorToast, successToast } from "@/utils/toasts";
 
+import { OPEN_AS_FIGURE } from "../charts/open-as-figure";
 import {
   type Experiment,
   EXPERIMENT_EXPORT_FILES,
@@ -31,6 +32,10 @@ import {
   isExperimentActive,
   type PublishedVersion,
 } from "../experiment.entity";
+import type {
+  FigureCatalog,
+  FigureDefinition,
+} from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 import { SELECTED_PUBLISHED_VERSION } from "../published-version";
 
@@ -57,6 +62,8 @@ const notFound = ref(false);
 const confirming = ref<"cancel" | "delete" | "publish" | null>(null);
 const acting = ref(false);
 const results = ref<ExperimentResultsData | null>(null);
+/** The metric version of the results shown, null for unpublished results */
+const resultsVersion = ref<number | null>(null);
 /** A failing results request is reported once, not on every poll */
 const resultsErrorShown = ref(false);
 /** Published results versions, newest first */
@@ -74,8 +81,25 @@ const selectedVersion = computed<PublishedVersion | null>(
 provide(SELECTED_PUBLISHED_VERSION, selectedVersion);
 /** What a publish would store now; null until the API has answered */
 const currentMetricVersion = ref<number | null>(null);
-const exporting = ref<ExperimentExportFile | null>(null);
+const exporting = ref<ExperimentExportFile | "package" | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
+const activeTab = ref("results");
+const figureCatalog = ref<FigureCatalog | null>(null);
+/** The definition a result block is opening in the composer */
+const figureRequest = ref<FigureDefinition | null>(null);
+
+provide(OPEN_AS_FIGURE, {
+  catalog: figureCatalog,
+  open(definition) {
+    figureRequest.value = definition;
+    activeTab.value = "figures";
+  },
+});
+
+// Coming back to the tab must not reapply an old request
+watch(activeTab, (tab) => {
+  if (tab !== "figures") figureRequest.value = null;
+});
 
 const experimentId = computed(() =>
   typeof route.query.id === "string" ? route.query.id : "",
@@ -138,6 +162,23 @@ async function loadExperiment(): Promise<void> {
   }
 }
 
+/** Result blocks and the composer offer only what the catalog allows. */
+async function loadFigureCatalog(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  try {
+    const response = await experimentsRepository.getFigureCatalog({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    figureCatalog.value = response.data;
+  } catch {
+    errorToast("Failed to load the Figure catalog");
+  }
+}
+
 /** Only a COMPLETED experiment can have Published results. */
 async function loadPublishedVersions(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
@@ -185,6 +226,7 @@ async function loadResults(): Promise<void> {
       return;
     }
     results.value = response.data;
+    resultsVersion.value = requested?.metric_version ?? null;
     resultsErrorShown.value = false;
   } catch {
     if (!resultsErrorShown.value) {
@@ -199,7 +241,7 @@ function pickVersion(event: Event): void {
   void loadResults();
 }
 
-function exportFilename(file: ExperimentExportFile): string {
+function exportFilename(file: string): string {
   const name = (experiment.value?.name ?? "experiment")
     .trim()
     .replace(/[^A-Za-z0-9._-]+/g, "-");
@@ -221,6 +263,26 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
     saveBlob(blob, exportFilename(file));
   } catch {
     errorToast(`Failed to export ${file}`);
+  } finally {
+    exporting.value = null;
+  }
+}
+
+async function downloadPackage(metricVersion: number): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || exporting.value) return;
+  exporting.value = "package";
+  try {
+    const blob = await experimentsRepository.downloadPublishedPackage({
+      orgId,
+      experimentId: experimentId.value,
+      metricVersion,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    saveBlob(blob, exportFilename(`v${metricVersion}-package.zip`));
+  } catch {
+    errorToast("Failed to download the replication package");
   } finally {
     exporting.value = null;
   }
@@ -341,7 +403,10 @@ function goToRunsPage(page: number): void {
   void loadRuns();
 }
 
-onMounted(() => void loadExperiment());
+onMounted(async () => {
+  await loadExperiment();
+  if (!notFound.value) await loadFigureCatalog();
+});
 onUnmounted(() => clearTimeout(pollTimer));
 </script>
 
@@ -528,7 +593,7 @@ onUnmounted(() => clearTimeout(pollTimer));
         </div>
       </div>
 
-      <Tabs default-value="results" class="space-y-6">
+      <Tabs v-model="activeTab" class="space-y-6">
         <TabsList>
           <TabsTrigger value="results" data-testid="experiment-tab-results">
             Results
@@ -577,6 +642,13 @@ onUnmounted(() => clearTimeout(pollTimer));
                     </option>
                   </select>
                 </label>
+                <p
+                  v-if="selectedVersion?.package_checksum"
+                  class="text-xs text-gray-500 break-all"
+                  data-testid="experiment-package-checksum"
+                >
+                  Package SHA-256: {{ selectedVersion.package_checksum }}
+                </p>
               </div>
               <div class="flex flex-wrap gap-2">
                 <Button
@@ -599,9 +671,32 @@ onUnmounted(() => clearTimeout(pollTimer));
                   />
                   {{ file }}
                 </Button>
+                <Button
+                  v-if="selectedVersion?.package_checksum"
+                  variant="outline"
+                  size="sm"
+                  :disabled="exporting !== null"
+                  data-testid="export-package"
+                  @click="downloadPackage(selectedVersion.metric_version)"
+                >
+                  <Icon
+                    :icon="
+                      exporting === 'package'
+                        ? 'solar:loading-linear'
+                        : 'solar:download-linear'
+                    "
+                    class="h-4 w-4 mr-1"
+                    :class="{ 'animate-spin': exporting === 'package' }"
+                  />
+                  Replication package
+                </Button>
               </div>
             </div>
-            <ExperimentResults v-if="results" :results="results" />
+            <ExperimentResults
+              v-if="results"
+              :results="results"
+              :metric-version="resultsVersion"
+            />
             <p
               v-else-if="experiment.run_counts.done === 0"
               class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
@@ -708,6 +803,9 @@ onUnmounted(() => clearTimeout(pollTimer));
           <ExperimentFigures
             :experiment-id="experimentId"
             :grid-coverage="results?.grid_coverage ?? []"
+            :catalog="figureCatalog"
+            :published-versions="publishedVersions"
+            :open-request="figureRequest"
           />
         </TabsContent>
       </Tabs>

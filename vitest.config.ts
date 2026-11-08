@@ -7,6 +7,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: "jsdom",
+      css: { include: [/experiment-chart\.css/] },
       exclude: [...configDefaults.exclude, "e2e/*"],
       root: fileURLToPath(new URL("./", import.meta.url)),
       setupFiles: ["./tests/setup.ts"],

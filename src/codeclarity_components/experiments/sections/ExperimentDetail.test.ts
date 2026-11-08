@@ -750,6 +750,115 @@ describe("ExperimentDetail", () => {
     );
   });
 
+  describe("share intervals and p-values", () => {
+    const ci = (low: number, high: number): object => ({ low, high });
+    const shareIntervals = {
+      headline: {
+        affected_share: ci(0.809, 0.936),
+        high_critical_share: ci(0.425, 0.44),
+        top10_pkg_share: ci(0.303, 0.317),
+        top10_proj_share: ci(0.612, 0.628),
+        high_critical_share_of_classed: ci(0.432, 0.448),
+      },
+      sweep: [
+        {
+          subset: "all",
+          affected_share: ci(0.809, 0.936),
+          high_critical_share: ci(0.425, 0.44),
+          top10_pkg_share: null,
+          top10_proj_share: null,
+        },
+        {
+          subset: "match_correct_only",
+          affected_share: ci(0.722, 0.881),
+          high_critical_share: ci(0.411, 0.451),
+          top10_pkg_share: null,
+          top10_proj_share: null,
+        },
+      ],
+      severity: {
+        CRITICAL: ci(0.052, 0.059),
+        HIGH: ci(0.369, 0.382),
+        MEDIUM: ci(0.422, 0.437),
+        LOW: ci(0.118, 0.128),
+        NONE: null,
+      },
+    };
+
+    async function mountWith(overrides: object): Promise<VueWrapper> {
+      getExperiment.mockResolvedValue({
+        data: experiment("RUNNING", {
+          run_counts: { pending: 3, done: 1, failed: 0, skipped: 0 },
+        }),
+      });
+      getExperimentResults.mockResolvedValue({ data: results(overrides) });
+      const wrapper = mountDetail();
+      await flushPromises();
+      return wrapper;
+    }
+
+    it("shows intervals on the headline shares", async () => {
+      const wrapper = await mountWith({ share_intervals: shareIntervals });
+      const text = wrapper.find('[data-testid="experiment-headline"]').text();
+      expect(text).toContain("88.8% (95% CI 80.9% to 93.6%)");
+      expect(text).toContain("95% CI 42.5% to 44.0%");
+      expect(text).toContain("of classed: 44.0% (95% CI 43.2% to 44.8%)");
+      expect(text).toContain("top 10 packages: 31.0% (95% CI 30.3% to 31.7%)");
+      expect(text).toContain("top 10 projects: 62.0% (95% CI 61.2% to 62.8%)");
+    });
+
+    it("shows an interval per severity, a dash when there is none", async () => {
+      const wrapper = await mountWith({ share_intervals: shareIntervals });
+      const rows = wrapper.findAll(
+        '[data-testid="experiment-severity"] tbody tr',
+      );
+      expect(rows[1]?.text()).toContain("36.9% to 38.2%");
+      expect(rows[4]?.findAll("td")[3]?.text()).toBe("-");
+    });
+
+    it("shows each sweep subset's own intervals", async () => {
+      const wrapper = await mountWith({ share_intervals: shareIntervals });
+      const rows = wrapper.findAll('[data-testid="experiment-sweep"] tbody tr');
+      expect(rows[1]?.text()).toContain("95% CI 72.2% to 88.1%");
+      expect(rows[1]?.text()).toContain("95% CI 41.1% to 45.1%");
+    });
+
+    it("shows plain shares when the results carry no intervals", async () => {
+      const wrapper = await mountWith({});
+      expect(
+        wrapper.find('[data-testid="experiment-headline"]').text(),
+      ).not.toContain("95% CI");
+    });
+
+    it("writes a p-value below 0.001 as p < 0.001", async () => {
+      const wrapper = await mountWith({
+        rqc: {
+          spearman_rho: 0.4,
+          p: 0.00001,
+          n: 98,
+          excluded_zero_dep_projects: 0,
+        },
+      });
+      const text = wrapper.find('[data-testid="experiment-rqc"]').text();
+      expect(text).toContain("p < 0.001");
+      expect(text).not.toContain("0.000");
+    });
+
+    it("keeps three decimals from 0.001 up", async () => {
+      const wrapper = await mountWith({
+        rqc: {
+          spearman_rho: 0.4,
+          p: 0.001,
+          n: 98,
+          excluded_zero_dep_projects: 0,
+        },
+      });
+      expect(wrapper.find('[data-testid="experiment-rqc"]').text()).toContain(
+        "p = 0.001",
+      );
+    });
+  });
+
   function lag(n: number, median: number, before = 0): object {
     return {
       n,
@@ -836,10 +945,42 @@ describe("ExperimentDetail", () => {
           censored: 2,
           median_days: 50,
           curve: [
-            { time: 24, survival: 0.75, at_risk: 4, events: 1, censored: 0 },
-            { time: 50, survival: 0.5, at_risk: 3, events: 1, censored: 0 },
-            { time: 90, survival: 0.5, at_risk: 2, events: 0, censored: 1 },
-            { time: 104, survival: 0.5, at_risk: 1, events: 0, censored: 1 },
+            {
+              time: 24,
+              survival: 0.75,
+              lower: 0.25,
+              upper: 0.95,
+              at_risk: 4,
+              events: 1,
+              censored: 0,
+            },
+            {
+              time: 50,
+              survival: 0.5,
+              lower: 0.1,
+              upper: 0.75,
+              at_risk: 3,
+              events: 1,
+              censored: 0,
+            },
+            {
+              time: 90,
+              survival: 0.5,
+              lower: 0.1,
+              upper: 0.75,
+              at_risk: 2,
+              events: 0,
+              censored: 1,
+            },
+            {
+              time: 104,
+              survival: 0.5,
+              lower: 0.1,
+              upper: 0.75,
+              at_risk: 1,
+              events: 0,
+              censored: 1,
+            },
           ],
         },
         by_severity: [
@@ -850,7 +991,15 @@ describe("ExperimentDetail", () => {
             censored: 0,
             median_days: 24,
             curve: [
-              { time: 24, survival: 0, at_risk: 1, events: 1, censored: 0 },
+              {
+                time: 24,
+                survival: 0,
+                lower: 0,
+                upper: 0,
+                at_risk: 1,
+                events: 1,
+                censored: 0,
+              },
             ],
           },
           {
@@ -860,11 +1009,29 @@ describe("ExperimentDetail", () => {
             censored: 2,
             median_days: null,
             curve: [
-              { time: 50, survival: 2 / 3, at_risk: 3, events: 1, censored: 0 },
-              { time: 90, survival: 2 / 3, at_risk: 2, events: 0, censored: 1 },
+              {
+                time: 50,
+                survival: 2 / 3,
+                lower: 0.2,
+                upper: 0.9,
+                at_risk: 3,
+                events: 1,
+                censored: 0,
+              },
+              {
+                time: 90,
+                survival: 2 / 3,
+                lower: 0.2,
+                upper: 0.9,
+                at_risk: 2,
+                events: 0,
+                censored: 1,
+              },
               {
                 time: 104,
                 survival: 2 / 3,
+                lower: 0.2,
+                upper: 0.9,
                 at_risk: 1,
                 events: 0,
                 censored: 1,
@@ -930,6 +1097,39 @@ describe("ExperimentDetail", () => {
     ]);
   });
 
+  it("draws the confidence band and tables each step's bounds", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    const band = block.find('[data-testid="survival-band"]').attributes("d")!;
+    // Upper edge out, lower edge back: closes at the start of the curve
+    expect(band).toMatch(/^M44,\d+/);
+    expect(band.endsWith("Z")).toBe(true);
+    // Heights of 95%, 75%, 75%, 75%, then 10%, 10%, 10%, 25%, 100% on a 220px plot
+    expect(
+      [...band.matchAll(/V([\d.]+)/g)].map((m) =>
+        Number(Number(m[1]).toFixed(6)),
+      ),
+    ).toEqual([31, 75, 75, 75, 218, 218, 218, 185, 20]);
+    expect(
+      block
+        .findAll('[data-testid="survival-step-row"]')
+        .map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
+      ["24", "75.0%", "25.0%", "95.0%", "4"],
+      ["50", "50.0%", "10.0%", "75.0%", "3"],
+      ["90", "50.0%", "10.0%", "75.0%", "2"],
+      ["104", "50.0%", "10.0%", "75.0%", "1"],
+    ]);
+
+    await block.findAll('[data-testid="survival-group"]')[1]!.trigger("click");
+    expect(
+      block
+        .findAll('[data-testid="survival-step-row"]')
+        .map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([["24", "0.0%", "0.0%", "0.0%", "1"]]);
+  });
+
   it("switches the survival curve to one severity", async () => {
     const wrapper = await mountGrid();
     const block = wrapper.find('[data-testid="experiment-survival"]');
@@ -959,6 +1159,101 @@ describe("ExperimentDetail", () => {
 
     expect(block.find('[data-testid="survival-tooltip"]').text()).toBe(
       "Day 50: 50.0% still exposed, 3 at risk, 1 fixed",
+    );
+  });
+
+  function savedFile(): { blob: Blob; name: string } {
+    const [blob, name] = saveBlob.mock.calls.at(-1) as [Blob, string];
+    return { blob, name };
+  }
+
+  async function exportedSvg(
+    wrapper: Awaited<ReturnType<typeof mountGrid>>,
+  ): Promise<Element> {
+    await wrapper
+      .find('[data-testid="experiment-survival"] [data-testid="export-svg"]')
+      .trigger("click");
+    const text = await savedFile().blob.text();
+    return new DOMParser().parseFromString(text, "image/svg+xml")
+      .documentElement;
+  }
+
+  it("downloads the survival chart as an SVG that needs no page styling", async () => {
+    const wrapper = await mountGrid();
+
+    const svg = await exportedSvg(wrapper);
+
+    const { blob, name } = savedFile();
+    expect(name).toBe("exposure-survival-all.svg");
+    expect(blob.type).toContain("image/svg+xml");
+    expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+    expect(svg.getAttribute("width")).toBe("640");
+    expect(svg.getAttribute("font-family")).toContain("sans-serif");
+    expect(svg.outerHTML).not.toContain("var(");
+    expect(svg.outerHTML).not.toContain("class=");
+    expect(svg.querySelector('path[fill="none"]')?.getAttribute("stroke")).toBe(
+      "#2a78d6",
+    );
+    expect(svg.firstElementChild?.getAttribute("fill")).toBe("#ffffff");
+    const shaded = svg.querySelector('path[fill-opacity="0.18"]');
+    expect(shaded?.getAttribute("fill")).toBe("#2a78d6");
+    expect(shaded?.getAttribute("d")).toBe(
+      wrapper.find('[data-testid="survival-band"]').attributes("d"),
+    );
+  });
+
+  it("leaves tooltips and interactive elements out of the SVG, even while hovering", async () => {
+    const wrapper = await mountGrid();
+    await wrapper
+      .findAll('[data-testid="survival-hit"]')[1]!
+      .trigger("pointerenter");
+
+    const svg = await exportedSvg(wrapper);
+
+    expect(svg.querySelector('rect[fill="transparent"]')).toBeNull();
+    expect(svg.querySelector("circle")).toBeNull();
+    expect(svg.hasAttribute("tabindex")).toBe(false);
+    expect(svg.textContent).not.toContain("still exposed");
+    expect(svg.outerHTML).not.toContain("<!--");
+    // The chart on the page keeps its hover state
+    expect(wrapper.find('[data-testid="survival-tooltip"]').exists()).toBe(
+      true,
+    );
+  });
+
+  it("downloads the plotted survival values as CSV for the selected group", async () => {
+    const wrapper = await mountGrid();
+    const block = wrapper.find('[data-testid="experiment-survival"]');
+
+    await block.find('[data-testid="export-csv"]').trigger("click");
+
+    expect(savedFile().name).toBe("exposure-survival-all.csv");
+    expect(savedFile().blob.type).toContain("text/csv");
+    expect(await savedFile().blob.text()).toBe(
+      [
+        "time_days,survival,lower_95,upper_95,at_risk,events,censored,median_days",
+        "0,1,1,1,4,0,0,50",
+        "24,0.75,0.25,0.95,4,1,0,50",
+        "50,0.5,0.1,0.75,3,1,0,50",
+        "90,0.5,0.1,0.75,2,0,1,50",
+        "104,0.5,0.1,0.75,1,0,1,50",
+        "",
+      ].join("\n"),
+    );
+
+    await block.findAll('[data-testid="survival-group"]')[2]!.trigger("click");
+    await block.find('[data-testid="export-csv"]').trigger("click");
+
+    expect(savedFile().name).toBe("exposure-survival-medium.csv");
+    expect(await savedFile().blob.text()).toBe(
+      [
+        "time_days,survival,lower_95,upper_95,at_risk,events,censored,median_days",
+        "0,1,1,1,3,0,0,",
+        "50,0.6666666666666666,0.2,0.9,3,1,0,",
+        "90,0.6666666666666666,0.2,0.9,2,0,1,",
+        "104,0.6666666666666666,0.2,0.9,1,0,1,",
+        "",
+      ].join("\n"),
     );
   });
 

@@ -53,6 +53,21 @@ const path = computed(() => {
   return d;
 });
 
+/** The confidence band: upper edge out, lower edge back, both stepped. */
+const band = computed(() => {
+  const steps = props.curve;
+  if (steps.length === 0) return "";
+  let d = `M${x.value(0)},${y(1)}`;
+  for (const step of steps) {
+    d += `H${x.value(step.time)}V${y(step.upper)}`;
+  }
+  d += `V${y(steps[steps.length - 1]!.lower)}`;
+  for (let i = steps.length - 1; i >= 0; i--) {
+    d += `H${x.value(steps[i]!.time)}V${y(steps[i - 1]?.lower ?? 1)}`;
+  }
+  return `${d}Z`;
+});
+
 const censors = computed(() => props.curve.filter((step) => step.censored > 0));
 
 /** Hover columns: each covers the days a step's survival holds. */
@@ -173,6 +188,13 @@ function hide(): void {
         </g>
 
         <path
+          data-testid="survival-band"
+          :d="band"
+          fill="var(--viz-series-1)"
+          fill-opacity="0.18"
+          stroke="none"
+        />
+        <path
           data-testid="survival-curve"
           :d="path"
           fill="none"
@@ -195,6 +217,7 @@ function hide(): void {
         />
         <circle
           v-if="hover"
+          data-export-omit
           :cx="hover.x"
           :cy="hover.y"
           r="4"
@@ -208,6 +231,7 @@ function hide(): void {
         v-for="column in columns"
         :key="`hit-${column.step.time}`"
         data-testid="survival-hit"
+        data-export-omit
         :x="column.x"
         :y="TOP_PADDING"
         :width="column.width"

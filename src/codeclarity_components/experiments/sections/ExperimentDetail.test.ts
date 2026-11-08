@@ -1286,6 +1286,130 @@ describe("ExperimentDetail", () => {
       .documentElement;
   }
 
+  it("marks a result chart as unpublished while no version is published", async () => {
+    const wrapper = await mountGrid();
+
+    const svg = await exportedSvg(wrapper);
+
+    expect(svg.textContent).toContain("Unpublished results, not for citation");
+    expect(svg.textContent).not.toContain("Metric version");
+  });
+
+  describe("when a version is published", () => {
+    const publishedVersion = {
+      metric_version: 3,
+      published_on: "2026-11-07T00:00:00.000Z",
+      published_by_name: "Jane Roe",
+    };
+
+    it("names the version on a result chart instead of marking it unpublished", async () => {
+      getPublishedVersions.mockResolvedValue({ data: [publishedVersion] });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+
+      const svg = await exportedSvg(await mountGrid());
+
+      expect(svg.textContent).toContain("Metric version 3");
+      expect(svg.textContent).not.toContain("Unpublished");
+    });
+
+    it("states the version in the downloaded caption of a result chart", async () => {
+      getPublishedVersions.mockResolvedValue({ data: [publishedVersion] });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+      const wrapper = await mountGrid();
+
+      await wrapper
+        .find(
+          '[data-testid="experiment-survival"] [data-testid="export-caption-file"]',
+        )
+        .trigger("click");
+      await flushPromises();
+
+      const caption = await savedFile().blob.text();
+      expect(caption).toContain("Metric version 3.");
+      expect(caption).not.toContain("Unpublished");
+    });
+
+    it("swaps the mark for the version once the experiment is published", async () => {
+      publishExperiment.mockResolvedValue({ data: publishedVersion });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+      const wrapper = await mountGrid();
+      expect((await exportedSvg(wrapper)).textContent).toContain("Unpublished");
+
+      getPublishedVersions.mockResolvedValue({ data: [publishedVersion] });
+      await wrapper.find('[data-testid="experiment-publish"]').trigger("click");
+      await wrapper
+        .find('[data-testid="experiment-publish-confirm"]')
+        .trigger("click");
+      await flushPromises();
+
+      const svg = await exportedSvg(wrapper);
+      expect(svg.textContent).toContain("Metric version 3");
+      expect(svg.textContent).not.toContain("Unpublished");
+    });
+  });
+
+  describe("PNG of a result chart", () => {
+    let drawnSvg = "";
+
+    beforeEach(() => {
+      drawnSvg = "";
+      vi.stubGlobal(
+        "Image",
+        class {
+          onload: (() => void) | null = null;
+          set src(value: string) {
+            drawnSvg = decodeURIComponent(value);
+            void Promise.resolve().then(() => this.onload?.());
+          }
+        },
+      );
+      vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+        drawImage: vi.fn(),
+      } as never);
+      vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
+        (callback) => callback(new Blob([new Uint8Array(40)])),
+      );
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    async function downloadPng(
+      wrapper: Awaited<ReturnType<typeof mountGrid>>,
+    ): Promise<void> {
+      await wrapper
+        .find('[data-testid="experiment-survival"] [data-testid="export-png"]')
+        .trigger("click");
+      await flushPromises();
+    }
+
+    it("draws the unpublished mark into the image", async () => {
+      await downloadPng(await mountGrid());
+
+      expect(drawnSvg).toContain("Unpublished results, not for citation");
+    });
+
+    it("draws the metric version and no mark for Published results", async () => {
+      getPublishedVersions.mockResolvedValue({
+        data: [
+          {
+            metric_version: 3,
+            published_on: "2026-11-07T00:00:00.000Z",
+            published_by_name: "Jane Roe",
+          },
+        ],
+      });
+      getPublishedResults.mockResolvedValue({ data: gridResults() });
+
+      await downloadPng(await mountGrid());
+
+      expect(drawnSvg).toContain("Metric version 3");
+      expect(drawnSvg).not.toContain("Unpublished");
+    });
+  });
+
   it("downloads the survival chart as an SVG that needs no page styling", async () => {
     const wrapper = await mountGrid();
 

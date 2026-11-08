@@ -2049,6 +2049,80 @@ describe("ExperimentDetail Figures tab", () => {
     errorToast.mockReset();
   });
 
+  const SURVIVAL_METRIC = {
+    id: "survival",
+    label: "Survival",
+    chart_forms: [{ id: "step", label: "Step" }],
+    group_by: [{ id: "severity", label: "Severity" }],
+    filters: [],
+  };
+
+  function survivalData(): { data: object } {
+    return {
+      data: {
+        x_title: "Days exposed",
+        y_title: "Share still exposed",
+        labels: ["31", "104"],
+        censored_at: "2025-04-15",
+        series: [
+          {
+            key: "CRITICAL",
+            label: "Critical",
+            values: [0.5, 0.5],
+            lower: [0.1, 0.1],
+            upper: [0.9, 0.9],
+            censored: [0, 1],
+          },
+          {
+            key: "LOW",
+            label: "Low",
+            values: [1, null],
+            lower: [1, null],
+            upper: [1, null],
+            censored: [0, 0],
+          },
+        ],
+      },
+    };
+  }
+
+  it("plots a survival Figure as curves with bands and censoring", async () => {
+    getFigureCatalog.mockResolvedValue({
+      data: { metrics: [...CATALOG.metrics, SURVIVAL_METRIC] },
+    });
+    computeFigureData.mockResolvedValue(survivalData());
+    const wrapper = await openFiguresTab();
+
+    await wrapper.find('[data-testid="figure-metric"]').setValue("survival");
+    await flushPromises();
+
+    expect(computeFigureData).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: {
+          definition: {
+            metric: "survival",
+            chart_form: "step",
+            group_by: null,
+            filters: {},
+          },
+        },
+      }),
+    );
+    const preview = wrapper.find('[data-testid="figure-preview"]');
+    expect(preview.findAll('[data-testid="step-curve"]')).toHaveLength(2);
+    expect(preview.findAll('[data-testid="step-band"]')).toHaveLength(2);
+    expect(preview.findAll('[data-testid="step-censor"]')).toHaveLength(1);
+    expect(preview.text()).toContain("censored at HEAD (2025-04-15)");
+    expect(preview.text()).toContain("Critical");
+    // A severity keeps its colour whichever classes are present
+    const strokes = preview
+      .findAll('[data-testid="step-curve"]')
+      .map((curve) => curve.attributes("stroke"));
+    expect(strokes).toEqual(["var(--viz-series-1)", "var(--viz-series-4)"]);
+    expect(preview.find('[data-testid="line-series"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
   async function openFiguresTab(): Promise<VueWrapper> {
     const wrapper = mount(ExperimentDetail, {
       attachTo: document.body,

@@ -21,7 +21,10 @@ import StatCard from "@/base_components/ui/cards/StatCard.vue";
 import DonutLoader from "@/base_components/ui/loaders/DonutLoader.vue";
 import TextLoader from "@/base_components/ui/loaders/TextLoader.vue";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
-import { SbomStats } from "@/codeclarity_components/results/stats.entity";
+import {
+  type AnalysisStats,
+  SbomStats,
+} from "@/codeclarity_components/results/stats.entity";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent } from "@/shadcn/ui/card";
 import {
@@ -87,6 +90,7 @@ const render: Ref<boolean> = ref(false);
 
 // SBOM data
 const stats: Ref<SbomStats> = ref(new SbomStats());
+const vulnerabilityStats: Ref<AnalysisStats | null> = ref(null);
 const dependencies: Ref<Dependency[]> = ref([]);
 const allDependencies: Ref<Dependency[]> = ref([]); // Store all dependencies for filtering
 const selected_workspace: Ref<string> = ref(".");
@@ -131,7 +135,46 @@ watch(selected_workspace, () => getSbomStats());
 
 // Computed properties - using utility functions for clarity
 const healthScore = computed(() => calculateHealthScore(stats.value));
-const securityIssues = computed(() => calculateSecurityIssues(stats.value));
+const securityIssues = computed(() =>
+  calculateSecurityIssues(vulnerabilityStats.value),
+);
+
+const healthFactors = computed(() => [
+  {
+    label: "Deprecated",
+    count: stats.value.number_of_deprecated_dependencies ?? 0,
+  },
+  {
+    label: "Unlicensed",
+    count: stats.value.number_of_unlicensed_dependencies ?? 0,
+  },
+  {
+    label: "Outdated",
+    count: stats.value.number_of_outdated_dependencies ?? 0,
+  },
+]);
+
+// An unknown count stays neutral so it never reads as a clean result
+const securityCard = computed(() => {
+  if (securityIssues.value === null) {
+    return {
+      variant: "default" as const,
+      subtitle: loading.value ? "Loading..." : "Vulnerability data unavailable",
+      border: "border-l-gray-400",
+    };
+  }
+  return securityIssues.value === 0
+    ? {
+        variant: "success" as const,
+        subtitle: "No issues found",
+        border: "border-l-green-500",
+      }
+    : {
+        variant: "danger" as const,
+        subtitle: "Requires attention",
+        border: "border-l-red-500",
+      };
+});
 
 // Health grade mapping using shared utility
 const healthGrade = computed(() => scoreToGrade(healthScore.value));
@@ -370,6 +413,32 @@ async function fetchDependencies(): Promise<void> {
   }
 }
 
+// Only the latest request may update the card when the workspace changes quickly
+let vulnerabilityStatsRequest = 0;
+async function fetchVulnerabilityStats(): Promise<void> {
+  if (!authStore.getToken || !userStore.getDefaultOrg) return;
+  const request = ++vulnerabilityStatsRequest;
+
+  try {
+    const res = await sbomRepo.getVulnerabilitiesStat({
+      orgId: userStore.getDefaultOrg.id,
+      projectId: props.projectID,
+      analysisId: props.analysisID,
+      workspace: selected_workspace.value,
+      bearerToken: authStore.getToken,
+      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
+      handleBusinessErrors: true,
+    });
+    if (request === vulnerabilityStatsRequest) {
+      vulnerabilityStats.value = res.data;
+    }
+  } catch {
+    if (request === vulnerabilityStatsRequest) {
+      vulnerabilityStats.value = null;
+    }
+  }
+}
+
 // Methods
 void getSbomStats();
 async function getSbomStats(refresh = false): Promise<void> {
@@ -396,7 +465,7 @@ async function getSbomStats(refresh = false): Promise<void> {
     stats.value = res.data;
 
     // Also fetch dependencies to calculate accurate counts
-    await fetchDependencies();
+    await Promise.all([fetchDependencies(), fetchVulnerabilityStats()]);
 
     render.value = true;
   } catch (_err) {
@@ -600,10 +669,13 @@ function createDepTypeChart(): void {
                           </div>
                         </div>
                         <p
+                          data-testid="health-explanation"
                           class="text-xs text-gray-500 pt-1 border-t border-gray-200"
                         >
-                          Based on outdated, deprecated, and unlicensed
-                          dependencies.
+                          Deprecated and unlicensed dependencies lower the grade
+                          most; outdated ones count for less. Replace or update
+                          them to improve it. Vulnerabilities are counted under
+                          Security Issues.
                         </p>
                       </div>
                     </TooltipContent>
@@ -631,18 +703,12 @@ function createDepTypeChart(): void {
       <!-- Security Issues -->
       <StatCard
         label="Security Issues"
-        :value="securityIssues"
+        :value="securityIssues ?? '-'"
         icon="solar:shield-warning-bold"
-        :variant="securityIssues === 0 ? 'success' : 'danger'"
-        :subtitle="
-          securityIssues === 0 ? 'No issues found' : 'Requires attention'
-        "
+        :variant="securityCard.variant"
+        :subtitle="securityCard.subtitle"
         subtitle-icon="solar:shield-warning-linear"
-        :class="
-          securityIssues === 0
-            ? 'border-l-4 border-l-green-500'
-            : 'border-l-4 border-l-red-500'
-        "
+        :class="`border-l-4 ${securityCard.border}`"
       />
     </div>
     <!-- Main Dashboard Grid -->
@@ -801,6 +867,28 @@ function createDepTypeChart(): void {
             </Button>
 
             <SbomExportMenu ref="exportMenuRef" @export="handleExportReport" />
+          </div>
+        </InfoCard>
+
+        <!-- Counts that feed the health grade -->
+        <InfoCard
+          title="Health Factors"
+          description="Dependency upkeep issues, separate from vulnerabilities"
+          icon="solar:heart-pulse-bold"
+          variant="default"
+        >
+          <div class="space-y-2">
+            <div
+              v-for="factor in healthFactors"
+              :key="factor.label"
+              :data-testid="`health-factor-${factor.label.toLowerCase()}`"
+              class="flex items-center justify-between text-sm"
+            >
+              <span class="font-medium text-gray-900">{{ factor.label }}</span>
+              <span class="font-semibold text-gray-700">{{
+                factor.count
+              }}</span>
+            </div>
           </div>
         </InfoCard>
       </div>

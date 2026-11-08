@@ -34,6 +34,14 @@ const rows = computed(() => {
 
 /** Reasons most frequent first, as the API orders them */
 const reasons = computed(() => Object.entries(props.probes.not_found_reasons));
+
+/** The budget line, null without a budget */
+const budgetLine = computed<string | null>(() => {
+  const budget = props.probes.budget;
+  if (budget?.analysis_budget == null) return null;
+  const used = `Analysis budget: ${(budget.analyses_submitted ?? 0).toLocaleString()} of ${budget.analysis_budget.toLocaleString()} analyses submitted.`;
+  return budget.spent ? `${used} Spent: no further fix probe runs.` : used;
+});
 </script>
 
 <template>
@@ -75,6 +83,9 @@ const reasons = computed(() => Object.entries(props.probes.not_found_reasons));
         </tr>
       </tbody>
     </table>
+    <p v-if="budgetLine" class="text-sm text-gray-700" data-testid="probe-budget">
+      {{ budgetLine }}
+    </p>
     <div v-if="reasons.length > 0" data-testid="probe-reasons">
       <h4 class="text-sm font-medium text-gray-900 mb-1">Why no commit was found</h4>
       <ul class="text-sm text-gray-700 list-disc ml-4">

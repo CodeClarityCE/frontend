@@ -302,6 +302,14 @@ onUnmounted(() => clearTimeout(pollTimer));
             Started {{ formatExperimentDate(experiment.started_on) }}, ended
             {{ formatExperimentDate(experiment.ended_on) }}
           </p>
+          <p
+            v-if="experiment.analysis_budget != null"
+            class="text-sm text-gray-500"
+            data-testid="experiment-budget"
+          >
+            Analysis budget:
+            {{ experiment.analysis_budget.toLocaleString() }} analyses.
+          </p>
         </div>
         <div class="flex items-center gap-2">
           <template v-if="confirming === null">

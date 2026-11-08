@@ -183,13 +183,85 @@ describe("ExperimentCreate", () => {
     expect(wrapper.find('[data-testid="experiment-estimate"]').exists()).toBe(false);
 
     await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
-    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("75 analyses");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("75 snapshots");
 
     await wrapper.find('[data-testid="experiment-grid-count"]').setValue("2");
-    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("9 analyses");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("9 snapshots");
 
     await wrapper.find('[data-testid="experiment-grid-count"]').setValue("0");
-    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("3 analyses");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("3 snapshots");
+  });
+
+  it("adds about two fix probes per repository per grid interval to the estimate", async () => {
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+
+    // 3 repositories: 75 snapshots and 3 x 24 x 2 probes
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain(
+      "Estimated 219 analyses: 75 snapshots (25 grid dates including HEAD) and about 144 fix probes",
+    );
+
+    await wrapper.find('[data-testid="experiment-grid-count"]').setValue("0");
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain(
+      "Estimated 3 analyses: 3 snapshots (1 grid date including HEAD) and no fix probes",
+    );
+  });
+
+  it("has no analysis budget by default and does not send one", async () => {
+    routeQuery.dataset = "ds-1";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+    expect(
+      (wrapper.find('[data-testid="experiment-budget"]').element as HTMLInputElement).value,
+    ).toBe("");
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment.mock.calls[0]![0].data).not.toHaveProperty("analysis_budget");
+  });
+
+  it("sends the analysis budget and says what it caps", async () => {
+    routeQuery.dataset = "ds-1";
+    createExperiment.mockResolvedValue({ id: "exp-1" });
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find('[data-testid="experiment-budget"]').setValue("100");
+
+    expect(wrapper.find('[data-testid="experiment-budget-note"]').text()).toContain(
+      "Fix probes stop once 100 analyses are submitted",
+    );
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ analysis_budget: 100 }) }),
+    );
+  });
+
+  it("warns when the budget does not cover the snapshots, which still all run", async () => {
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-budget"]').setValue("50");
+
+    expect(wrapper.find('[data-testid="experiment-budget-note"]').text()).toContain(
+      "below the 75 snapshots: every snapshot still runs and no fix probe will",
+    );
+  });
+
+  it("rejects a budget that is not a whole number of at least 1", async () => {
+    routeQuery.dataset = "ds-1";
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-name"]').setValue("top100");
+    await wrapper.find('[data-testid="experiment-budget"]').setValue("0");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
+    expect(createExperiment).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("Leave empty for no budget, or a whole number of at least 1");
   });
 
   it("rejects a grid count outside 0 to 120", async () => {

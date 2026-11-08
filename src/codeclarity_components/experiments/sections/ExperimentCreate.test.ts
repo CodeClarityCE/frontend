@@ -7,6 +7,7 @@ import ExperimentCreate from "./ExperimentCreate.vue";
 
 const {
   createExperiment,
+  getEstimateBasis,
   getDatasets,
   getAnalyzers,
   successToast,
@@ -16,6 +17,7 @@ const {
   const query: { dataset?: string } = {};
   return {
     createExperiment: vi.fn(),
+    getEstimateBasis: vi.fn(),
     getDatasets: vi.fn(),
     getAnalyzers: vi.fn(),
     successToast: vi.fn(),
@@ -27,6 +29,7 @@ const {
 vi.mock("../experiments.repository", () => ({
   ExperimentsRepository: class {
     createExperiment = createExperiment;
+    getEstimateBasis = getEstimateBasis;
   },
 }));
 
@@ -132,6 +135,7 @@ function optionValues(wrapper: VueWrapper, testId: string): string[] {
 describe("ExperimentCreate", () => {
   beforeEach(() => {
     createExperiment.mockReset();
+    getEstimateBasis.mockReset().mockResolvedValue({ data: { probes_per_entry_interval: 2 } });
     getDatasets.mockReset().mockResolvedValue({
       data: [
         dataset("ds-1", "READY"),
@@ -190,6 +194,27 @@ describe("ExperimentCreate", () => {
 
     await wrapper.find('[data-testid="experiment-grid-count"]').setValue("0");
     expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain("3 snapshots");
+  });
+
+  it("estimates fix probes per repository per grid interval as the API says", async () => {
+    getEstimateBasis.mockResolvedValue({ data: { probes_per_entry_interval: 3 } });
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+
+    // 3 repositories: 75 snapshots and 3 x 24 x 3 probes
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain(
+      "Estimated 291 analyses: 75 snapshots (25 grid dates including HEAD) and about 216 fix probes",
+    );
+  });
+
+  it("still estimates the snapshots when the probe estimate cannot be loaded", async () => {
+    getEstimateBasis.mockRejectedValue(new Error("offline"));
+    const wrapper = await mountForm();
+    await wrapper.find('[data-testid="experiment-dataset"]').setValue("ds-1");
+
+    expect(wrapper.find('[data-testid="experiment-estimate"]').text()).toContain(
+      "Estimated at least 75 analyses: 75 snapshots (25 grid dates including HEAD) and fix probes not estimated",
+    );
   });
 
   it("adds about two fix probes per repository per grid interval to the estimate", async () => {

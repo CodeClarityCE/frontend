@@ -44,12 +44,11 @@ export const MAX_GRID_COUNT = 120;
 /** Largest analysis budget the API accepts */
 export const MAX_ANALYSIS_BUDGET = 1_000_000;
 
-/**
- * Fix probes estimated per repository per grid interval. From the archived
- * top100 study: halving over its fix windows took 6715 probes for 100 repos
- * x 40 intervals (about 1.7), rounded up to cover introductions.
- */
-export const PROBES_PER_ENTRY_INTERVAL = 2;
+/** What the API estimates an experiment's analyses from. */
+export interface ExperimentEstimateBasis {
+  /** Fix probes expected per repository per grid interval */
+  probes_per_entry_interval: number;
+}
 
 /** Plugins an analyzer must contain to be used by an experiment */
 export const EXPERIMENT_REQUIRED_PLUGINS = ["js-sbom", "vuln-finder"];
@@ -202,6 +201,11 @@ export class Experiment {
 
   @IsNotEmpty()
   run_counts!: ExperimentRunCounts;
+
+  /** Snapshots plus the fix probe estimate, absent from older APIs */
+  @IsOptional()
+  @IsInt()
+  estimated_analyses?: number;
 }
 
 export interface ExperimentRunEntry {

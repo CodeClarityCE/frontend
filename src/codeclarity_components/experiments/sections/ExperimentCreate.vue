@@ -35,7 +35,6 @@ import {
   GridIntervalLabels,
   MAX_ANALYSIS_BUDGET,
   MAX_GRID_COUNT,
-  PROBES_PER_ENTRY_INTERVAL,
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
@@ -64,6 +63,8 @@ const gridCount = ref<number | string>(DEFAULT_GRID_COUNT);
 const budget = ref<number | string>("");
 
 const datasets = ref<Dataset[]>([]);
+/** Fix probes per repository per grid interval, from the API; null if unknown */
+const probesPerEntryInterval = ref<number | null>(null);
 const analyzers = ref<Analyzer[]>([]);
 const loading = ref(true);
 const submitting = ref(false);
@@ -126,8 +127,8 @@ interface Estimate {
   gridDates: number;
   /** One per entry per grid date, HEAD included */
   snapshots: number;
-  /** A rough guess: probes depend on how often lockfiles change */
-  probes: number;
+  /** A rough guess: probes depend on how often lockfiles change; null if unknown */
+  probes: number | null;
   total: number;
 }
 
@@ -136,9 +137,15 @@ const estimate = computed<Estimate | null>(() => {
   const count = boundedInt(gridCount.value, MAX_GRID_COUNT);
   if (!dataset || count === null) return null;
   const snapshots = dataset.entry_count * (count + 1);
-  const probes = dataset.entry_count * count * PROBES_PER_ENTRY_INTERVAL;
-  return { gridDates: count + 1, snapshots, probes, total: snapshots + probes };
+  const perInterval = probesPerEntryInterval.value;
+  const probes = perInterval === null ? null : dataset.entry_count * count * perInterval;
+  return { gridDates: count + 1, snapshots, probes, total: snapshots + (probes ?? 0) };
 });
+
+function probesText(probes: number | null): string {
+  if (probes === null) return "fix probes not estimated";
+  return probes > 0 ? `about ${probes.toLocaleString()} fix probes` : "no fix probes";
+}
 
 /** What the budget caps, given the estimate. */
 const budgetNote = computed<string | null>(() => {
@@ -200,6 +207,20 @@ async function loadAnalyzers(orgId: string, token: string): Promise<void> {
   }
 }
 
+/** Without it the estimate leaves fix probes out. */
+async function loadEstimateBasis(orgId: string, token: string): Promise<void> {
+  try {
+    const response = await experimentsRepository.getEstimateBasis({
+      orgId,
+      bearerToken: token,
+      handleBusinessErrors: true,
+    });
+    probesPerEntryInterval.value = response.data.probes_per_entry_interval;
+  } catch {
+    probesPerEntryInterval.value = null;
+  }
+}
+
 async function load(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken) return;
@@ -207,6 +228,7 @@ async function load(): Promise<void> {
     await Promise.all([
       loadDatasets(orgId, auth.getToken),
       loadAnalyzers(orgId, auth.getToken),
+      loadEstimateBasis(orgId, auth.getToken),
     ]);
   } finally {
     loading.value = false;
@@ -465,17 +487,13 @@ onMounted(() => void load());
         class="text-sm text-gray-700"
         data-testid="experiment-estimate"
       >
-        Estimated {{ estimate.total.toLocaleString() }} analyses:
+        Estimated {{ estimate.probes === null ? "at least " : ""
+        }}{{ estimate.total.toLocaleString() }} analyses:
         {{ estimate.snapshots.toLocaleString() }} snapshots ({{
           estimate.gridDates
         }}
         grid {{ estimate.gridDates === 1 ? "date" : "dates" }} including HEAD)
-        and
-        {{
-          estimate.probes > 0
-            ? `about ${estimate.probes.toLocaleString()} fix probes`
-            : "no fix probes"
-        }}.
+        and {{ probesText(estimate.probes) }}.
       </p>
 
       <div class="flex justify-end">

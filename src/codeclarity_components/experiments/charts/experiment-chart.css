@@ -26,6 +26,9 @@
   --viz-series-1: #0072b2;
   --viz-series-2: #e69f00;
   --viz-series-3: #000000;
+  --viz-series-4: #cc79a7;
+  --viz-series-5: #009e73;
+  --viz-series-6: #56b4e9;
 }
 
 .dark .exp-viz {

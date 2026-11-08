@@ -1,3 +1,4 @@
+import { type FigureCaption, figureMarkText } from "./chart-caption";
 import chartCss from "./experiment-chart.css?raw";
 
 const FONT_FAMILY = "Helvetica, Arial, sans-serif";
@@ -14,7 +15,13 @@ export const EXPORT_PRESETS = {
 export type ExportPreset = keyof typeof EXPORT_PRESETS;
 
 /** Line patterns by series token, so series differ without colour. */
-const SERIES_DASH: Record<string, string> = { "2": "7 5", "3": "1 5" };
+const SERIES_DASH: Record<string, string> = {
+  "2": "7 5",
+  "3": "1 5",
+  "4": "9 3 1 3",
+  "5": "3 3",
+  "6": "1 3 5 3",
+};
 
 function tokensOf(block: RegExp): [string, string][] {
   const body = block.exec(chartCss)?.[1] ?? "";
@@ -51,7 +58,20 @@ function dropNonFigureNodes(root: Element): void {
   for (const comment of found) comment.parentNode?.removeChild(comment);
 }
 
+/** Outlines a filled bar, so its pattern shows without colour. */
+function outlineBar(element: Element): void {
+  const series = /^var\(--viz-series-(\d)\)$/.exec(
+    element.getAttribute("fill") ?? "",
+  )?.[1];
+  if (!series || element.hasAttribute("stroke")) return;
+  element.setAttribute("stroke", "var(--viz-text-primary)");
+  element.setAttribute("stroke-width", "1");
+  const dash = SERIES_DASH[series];
+  if (dash) element.setAttribute("stroke-dasharray", dash);
+}
+
 function addSeriesDash(element: Element): void {
+  if (element.localName === "path") outlineBar(element);
   if (element.localName !== "path" && element.localName !== "line") return;
   const series = /^var\(--viz-series-(\d)\)$/.exec(
     element.getAttribute("stroke") ?? "",
@@ -103,7 +123,14 @@ function svgElement(name: string, attributes: Record<string, string>): Element {
 }
 
 /** One step that adds to the figure while it is assembled. */
-type FigureStep = (svg: SVGSVGElement, source: HTMLElement) => void;
+type FigureStep = (
+  svg: SVGSVGElement,
+  source: HTMLElement,
+  marks: FigureMarks,
+) => void;
+
+/** The status a figure states on its face. */
+export type FigureMarks = Pick<FigureCaption, "unpublished" | "metricVersion">;
 
 const LEGEND_FONT = 11;
 const LEGEND_ROW = 16;
@@ -117,13 +144,19 @@ const addLegend: FigureStep = (svg, source) => {
     (item) => ({
       label: item.querySelector("span")?.textContent?.trim() ?? "",
       stroke: item.querySelector("line")?.getAttribute("stroke") ?? "",
+      fill: item.querySelector("rect")?.getAttribute("fill") ?? null,
     }),
   );
   if (entries.length === 0) return;
 
   const box = viewBoxOf(svg);
-  const placed: { label: string; stroke: string; x: number; row: number }[] =
-    [];
+  const placed: {
+    label: string;
+    stroke: string;
+    fill: string | null;
+    x: number;
+    row: number;
+  }[] = [];
   let row = 0;
   let x = 0;
   for (const entry of entries) {
@@ -142,14 +175,19 @@ const addLegend: FigureStep = (svg, source) => {
   for (const item of placed) {
     const y = top + LEGEND_ROW * (item.row + 1) - 4;
     group.append(
-      svgElement("line", {
-        x1: String(box.x + item.x),
-        x2: String(box.x + item.x + SWATCH),
-        y1: String(y - 4),
-        y2: String(y - 4),
-        stroke: item.stroke,
-        "stroke-width": "2",
-      }),
+      item.fill
+        ? svgElement("path", {
+            d: `M${box.x + item.x},${y - 9}h${SWATCH}v10h-${SWATCH}Z`,
+            fill: item.fill,
+          })
+        : svgElement("line", {
+            x1: String(box.x + item.x),
+            x2: String(box.x + item.x + SWATCH),
+            y1: String(y - 4),
+            y2: String(y - 4),
+            stroke: item.stroke,
+            "stroke-width": "2",
+          }),
     );
     const text = svgElement("text", {
       x: String(box.x + item.x + SWATCH + 4),
@@ -161,6 +199,25 @@ const addLegend: FigureStep = (svg, source) => {
     group.append(text);
   }
   svg.append(group);
+  setViewBox(svg, { ...box, y: top, height: box.height + height });
+};
+
+/** States above the plot whether the figure is a draft or which version. */
+const addMark: FigureStep = (svg, _source, marks) => {
+  const mark = figureMarkText(marks);
+  if (!mark) return;
+  const box = viewBoxOf(svg);
+  const height = LEGEND_ROW + 4;
+  const top = box.y - height;
+  const text = svgElement("text", {
+    x: String(box.x),
+    y: String(top + LEGEND_ROW - 4),
+    "font-size": String(LEGEND_FONT),
+    "font-weight": "700",
+    fill: "var(--viz-text-secondary)",
+  });
+  text.textContent = mark;
+  svg.append(text);
   setViewBox(svg, { ...box, y: top, height: box.height + height });
 };
 
@@ -178,7 +235,7 @@ const addBackground: FigureStep = (svg) => {
   );
 };
 
-const FIGURE_STEPS: FigureStep[] = [addLegend, addBackground];
+const FIGURE_STEPS: FigureStep[] = [addLegend, addMark, addBackground];
 
 /** An assembled figure, ready to save as SVG or to rasterise. */
 export interface StandaloneFigure {
@@ -191,6 +248,7 @@ export interface StandaloneFigure {
 export function standaloneFigure(
   source: HTMLElement,
   preset: ExportPreset,
+  marks: FigureMarks = {},
 ): StandaloneFigure | null {
   const chart = [...source.querySelectorAll("svg")].find(
     (candidate) => !candidate.closest("[data-export-legend]"),
@@ -199,7 +257,7 @@ export function standaloneFigure(
 
   const svg = chart.cloneNode(true) as SVGSVGElement;
   dropNonFigureNodes(svg);
-  for (const step of FIGURE_STEPS) step(svg, source);
+  for (const step of FIGURE_STEPS) step(svg, source, marks);
   cleanElement(svg, printTokens());
 
   const { inches } = EXPORT_PRESETS[preset];

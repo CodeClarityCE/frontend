@@ -63,4 +63,6 @@ export interface FigureData {
   series: FigureSeries[];
   /** YYYY-MM-DD open exposures are censored at, on survival Figures */
   censored_at?: string;
+  /** Sample and exclusions after the Figure's filters */
+  caption?: { n: string; exclusions: string[] };
 }

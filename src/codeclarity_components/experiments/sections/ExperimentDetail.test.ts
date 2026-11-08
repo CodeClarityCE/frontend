@@ -2427,6 +2427,333 @@ describe("ExperimentDetail Figures tab", () => {
     );
   });
 
+  describe("exporting a Figure", () => {
+    const CAPTIONED = {
+      data: {
+        ...figureData("As-of").data,
+        caption: {
+          n: "n = 3 projects with a done snapshot per grid date",
+          exclusions: ["1 grid date without a done snapshot"],
+        },
+      },
+    };
+
+    const SAVED = {
+      id: "fig-1",
+      name: "Load, as-of view",
+      definition: AS_OF_DEFINITION,
+      created_on: "2026-11-01T10:00:00Z",
+    };
+
+    async function openSavedFigure(): Promise<VueWrapper> {
+      getFigures.mockResolvedValue({ data: [SAVED] });
+      computeFigureData.mockResolvedValue(CAPTIONED);
+      const wrapper = await openFiguresTab();
+      await wrapper.find('[data-testid="figure-open"]').trigger("click");
+      await flushPromises();
+      return wrapper;
+    }
+
+    function lastSaved(): { blob: Blob; name: string } {
+      const [blob, name] = saveBlob.mock.calls.at(-1) as [Blob, string];
+      return { blob, name };
+    }
+
+    async function exportAs(
+      wrapper: VueWrapper,
+      format: string,
+    ): Promise<{ text: string; name: string }> {
+      await wrapper
+        .find(`[data-testid="figure-preview"] [data-testid="export-${format}"]`)
+        .trigger("click");
+      await flushPromises();
+      const { blob, name } = lastSaved();
+      return { text: await blob.text(), name };
+    }
+
+    beforeEach(() => {
+      saveBlob.mockReset();
+    });
+
+    it("saves the plotted values as CSV under the Figure's name", async () => {
+      const wrapper = await openSavedFigure();
+      const { text, name } = await exportAs(wrapper, "csv");
+      expect(name).toBe("load-as-of-view.csv");
+      expect(text).toBe("Grid date,As-of\n2025-01-01,3\nHEAD,5\n");
+      wrapper.unmount();
+    });
+
+    it("adds band and censored columns for a survival Figure", async () => {
+      getFigureCatalog.mockResolvedValue({
+        data: { metrics: [SURVIVAL_METRIC] },
+      });
+      computeFigureData.mockResolvedValue(survivalData());
+      const wrapper = await openFiguresTab();
+      const { text } = await exportAs(wrapper, "csv");
+      expect(text.split("\n").slice(0, 3)).toEqual([
+        "Days exposed,Critical,Critical lower 95,Critical upper 95,Critical censored,Low,Low lower 95,Low upper 95,Low censored",
+        "31,0.5,0.1,0.9,0,1,1,1,0",
+        "104,0.5,0.1,0.9,1,,,,0",
+      ]);
+      wrapper.unmount();
+    });
+
+    it("keeps negative day labels numeric in the CSV", async () => {
+      getFigureCatalog.mockResolvedValue({
+        data: { metrics: [SURVIVAL_METRIC] },
+      });
+      const data = survivalData().data as { labels: string[] };
+      data.labels = ["-13", "104"];
+      computeFigureData.mockResolvedValue({ data });
+      const wrapper = await openFiguresTab();
+      const { text } = await exportAs(wrapper, "csv");
+      expect(text.split("\n")[1]!.startsWith("-13,")).toBe(true);
+      wrapper.unmount();
+    });
+
+    it("captions the filters, sample and exclusions the Figure was drawn with", async () => {
+      getExperimentResults.mockResolvedValue({
+        data: results({
+          grid_coverage: [
+            {
+              grid_date: "2025-01-01",
+              runs: 4,
+              done: 2,
+              empty: 0,
+              failed: 2,
+              skipped: 0,
+              pending: 0,
+              mixed_knowledge: false,
+            },
+          ],
+        }),
+      });
+      const wrapper = await openSavedFigure();
+      const { text, name } = await exportAs(wrapper, "caption-file");
+      expect(name).toBe("load-as-of-view-caption.txt");
+      expect(text).toContain("Load over time");
+      expect(text).toContain("View: As-of");
+      expect(text).toContain(
+        "n = 3 projects with a done snapshot per grid date.",
+      );
+      expect(text).toContain(
+        "Excluded: 1 grid date without a done snapshot; 2 snapshots failed.",
+      );
+      wrapper.unmount();
+    });
+
+    it("marks every exported Figure as unpublished until it is tied to a version", async () => {
+      const wrapper = await openSavedFigure();
+      const { text: svg } = await exportAs(wrapper, "svg");
+      expect(svg).toContain("Unpublished results");
+      expect(svg).not.toContain("Metric version");
+      const { text: caption } = await exportAs(wrapper, "caption-file");
+      expect(caption).toContain("Unpublished results, not for citation.");
+      wrapper.unmount();
+    });
+
+    it("lays a step Figure out at the single column width", async () => {
+      getFigureCatalog.mockResolvedValue({
+        data: { metrics: [SURVIVAL_METRIC] },
+      });
+      computeFigureData.mockResolvedValue(survivalData());
+      const wrapper = await openFiguresTab();
+      await wrapper
+        .find('[data-testid="figure-preview"] [data-testid="export-preset"]')
+        .setValue("single");
+      const { text } = await exportAs(wrapper, "svg");
+      const svg = new DOMParser().parseFromString(
+        text,
+        "image/svg+xml",
+      ).documentElement;
+      expect(svg.getAttribute("width")).toBe("3.5in");
+      expect(svg.getAttribute("viewBox")?.split(" ")[2]).toBe("320");
+      // The HTML legend is redrawn inside the file
+      expect(text).toContain(">Critical<");
+      expect(text).toContain(">Low<");
+      wrapper.unmount();
+    });
+
+    it("gives every severity its own line pattern for grayscale print", async () => {
+      getFigureCatalog.mockResolvedValue({
+        data: { metrics: [SURVIVAL_METRIC] },
+      });
+      const data = survivalData().data as {
+        series: { key: string; label: string }[];
+      };
+      const [critical] = data.series as [{ key: string; label: string }];
+      data.series = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"].map(
+        (key) => ({ ...critical, key, label: key }),
+      );
+      computeFigureData.mockResolvedValue({ data });
+      const wrapper = await openFiguresTab();
+      const { text } = await exportAs(wrapper, "svg");
+      const svg = new DOMParser().parseFromString(text, "image/svg+xml");
+      const patterns = [...svg.querySelectorAll("path[fill='none']")].map(
+        (path) => path.getAttribute("stroke-dasharray"),
+      );
+      expect(new Set(patterns).size).toBe(5);
+      expect(text).not.toContain("var(--");
+      wrapper.unmount();
+    });
+
+    describe("a bar Figure", () => {
+      const BAR_METRIC = {
+        id: "severity_mix",
+        label: "Severity mix",
+        chart_forms: [{ id: "bar", label: "Bar", mark: "bar" }],
+        group_by: [],
+        filters: [],
+      };
+
+      function barData(count: number): { data: object } {
+        return {
+          data: {
+            x_title: "Severity",
+            y_title: "Vulnerability instances",
+            labels: ["Critical", "High"],
+            series: Array.from({ length: count }, (_, i) => ({
+              key: `group-${i}`,
+              label: `Group ${i}`,
+              values: [1 + i, 2 + i],
+            })),
+          },
+        };
+      }
+
+      async function exportedBars(
+        count: number,
+        preset: "single" | "double",
+      ): Promise<Document> {
+        getFigureCatalog.mockResolvedValue({ data: { metrics: [BAR_METRIC] } });
+        computeFigureData.mockResolvedValue(barData(count));
+        const wrapper = await openFiguresTab();
+        await wrapper
+          .find('[data-testid="figure-preview"] [data-testid="export-preset"]')
+          .setValue(preset);
+        const { text } = await exportAs(wrapper, "svg");
+        wrapper.unmount();
+        return new DOMParser().parseFromString(text, "image/svg+xml");
+      }
+
+      it.each([
+        ["single", "320"],
+        ["double", "640"],
+      ] as const)("reflows at the %s column preset", async (preset, width) => {
+        const svg = await exportedBars(2, preset);
+        expect(svg.documentElement.getAttribute("viewBox")?.split(" ")[2]).toBe(
+          width,
+        );
+        const rightmost = [...svg.querySelectorAll("line")].map((line) =>
+          Number(line.getAttribute("x2")),
+        );
+        expect(Math.max(...rightmost)).toBeLessThanOrEqual(Number(width));
+      });
+
+      it("redraws its legend in the file", async () => {
+        const svg = await exportedBars(2, "double");
+        const texts = [...svg.querySelectorAll("text")].map(
+          (node) => node.textContent,
+        );
+        expect(texts).toEqual(expect.arrayContaining(["Group 0", "Group 1"]));
+      });
+
+      it("keeps six groups apart by outline and print colour", async () => {
+        const svg = await exportedBars(6, "double");
+        const bars = [...svg.querySelectorAll("path")].filter(
+          (path) => path.getAttribute("stroke") !== null,
+        );
+        const fills = new Set(bars.map((bar) => bar.getAttribute("fill")));
+        const dashes = new Set(
+          bars.map((bar) => bar.getAttribute("stroke-dasharray")),
+        );
+        expect(fills.size).toBe(6);
+        expect(dashes.size).toBe(6);
+        expect(fills).toContain("#56b4e9");
+      });
+
+      it("still exports with more groups than series colours", async () => {
+        const svg = await exportedBars(8, "double");
+        expect(svg.querySelector("parsererror")).toBeNull();
+        expect(saveBlob).toHaveBeenCalled();
+      });
+    });
+
+    it("exports a PNG of a saved Figure at 300 dpi", async () => {
+      vi.stubGlobal(
+        "Image",
+        class {
+          onload?: () => void;
+          set src(_: string) {
+            this.onload?.();
+          }
+        },
+      );
+      const context = vi
+        .spyOn(HTMLCanvasElement.prototype, "getContext")
+        .mockReturnValue({ drawImage: () => undefined } as never);
+      const encode = vi
+        .spyOn(HTMLCanvasElement.prototype, "toBlob")
+        .mockImplementation((callback) =>
+          callback(new Blob([new Uint8Array(40)], { type: "image/png" })),
+        );
+      const wrapper = await openSavedFigure();
+      await wrapper
+        .find('[data-testid="figure-preview"] [data-testid="export-png"]')
+        .trigger("click");
+      await flushPromises();
+      await vi.waitFor(() => expect(saveBlob).toHaveBeenCalled());
+      const { blob, name } = lastSaved();
+      expect(name).toBe("load-as-of-view.png");
+      expect(blob.type).toBe("image/png");
+      wrapper.unmount();
+      context.mockRestore();
+      encode.mockRestore();
+      vi.unstubAllGlobals();
+    });
+
+    it("states the as-of approximation when as-of values are drawn", async () => {
+      const wrapper = await openSavedFigure();
+      const { text } = await exportAs(wrapper, "caption-file");
+      expect(text).toContain("The as-of view approximates");
+      wrapper.unmount();
+    });
+
+    it("states the approximation when an unfiltered Figure draws both views", async () => {
+      computeFigureData.mockResolvedValue(figureData("Both"));
+      const wrapper = await openFiguresTab();
+      const { text } = await exportAs(wrapper, "caption-file");
+      expect(text).toContain("The as-of view approximates");
+      wrapper.unmount();
+    });
+
+    it("leaves the approximation out of a hindsight Figure", async () => {
+      getFigures.mockResolvedValue({
+        data: [
+          {
+            ...SAVED,
+            definition: {
+              ...AS_OF_DEFINITION,
+              filters: { view: "hindsight" },
+            },
+          },
+        ],
+      });
+      computeFigureData.mockResolvedValue({
+        data: {
+          ...figureData("Hindsight").data,
+          series: [{ key: "hindsight", label: "Hindsight", values: [3, 5] }],
+        },
+      });
+      const wrapper = await openFiguresTab();
+      await wrapper.find('[data-testid="figure-open"]').trigger("click");
+      await flushPromises();
+      const { text } = await exportAs(wrapper, "caption-file");
+      expect(text).not.toContain("approximates");
+      wrapper.unmount();
+    });
+  });
+
   it("names and saves a Figure, then lists it", async () => {
     const wrapper = await openFiguresTab();
     await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");

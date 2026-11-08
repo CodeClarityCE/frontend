@@ -17,6 +17,7 @@ const {
   getPublishedResults,
   publishExperiment,
   downloadExperimentExport,
+  downloadPublishedPackage,
   getFigureCatalog,
   getFigures,
   computeFigureData,
@@ -36,6 +37,7 @@ const {
   getPublishedResults: vi.fn(),
   publishExperiment: vi.fn(),
   downloadExperimentExport: vi.fn(),
+  downloadPublishedPackage: vi.fn(),
   getFigureCatalog: vi.fn(),
   getFigures: vi.fn(),
   computeFigureData: vi.fn(),
@@ -58,6 +60,7 @@ vi.mock("../experiments.repository", () => ({
     getPublishedResults = getPublishedResults;
     publishExperiment = publishExperiment;
     downloadExperimentExport = downloadExperimentExport;
+    downloadPublishedPackage = downloadPublishedPackage;
     getFigureCatalog = getFigureCatalog;
     getFigures = getFigures;
     computeFigureData = computeFigureData;
@@ -292,6 +295,7 @@ describe("ExperimentDetail", () => {
     getPublishedResults.mockReset().mockResolvedValue({ data: results() });
     publishExperiment.mockReset().mockResolvedValue({ data: {} });
     downloadExperimentExport.mockReset();
+    downloadPublishedPackage.mockReset();
     saveBlob.mockReset();
     successToast.mockReset();
     errorToast.mockReset();
@@ -2194,6 +2198,112 @@ describe("ExperimentDetail", () => {
       }),
     );
     expect(saveBlob).toHaveBeenCalledWith(blob, name);
+  });
+
+  describe("replication package", () => {
+    const version = {
+      metric_version: 3,
+      published_on: "2026-11-07T00:00:00Z",
+      published_by_name: "Jane Roe",
+      package_checksum: "ab12".repeat(16),
+    };
+
+    it("downloads the package of the shown version and states its checksum", async () => {
+      const blob = new Blob(["zip"]);
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      getPublishedVersions.mockResolvedValue({ data: [version] });
+      downloadPublishedPackage.mockResolvedValue(blob);
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(
+        wrapper.find('[data-testid="experiment-package-checksum"]').text(),
+      ).toContain(version.package_checksum);
+      await wrapper.find('[data-testid="export-package"]').trigger("click");
+      await flushPromises();
+
+      expect(downloadPublishedPackage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orgId: "test-org-id",
+          experimentId: "exp-1",
+          metricVersion: 3,
+          bearerToken: "test-token",
+        }),
+      );
+      expect(saveBlob).toHaveBeenCalledWith(blob, "top4-head-v3-package.zip");
+    });
+
+    it("offers no package while nothing is published", async () => {
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="export-package"]').exists()).toBe(
+        false,
+      );
+    });
+
+    it("offers no package for a version stored without one", async () => {
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      getPublishedVersions.mockResolvedValue({
+        data: [{ ...version, package_checksum: null }],
+      });
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="export-package"]').exists()).toBe(
+        false,
+      );
+    });
+
+    it("says when the package download fails", async () => {
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      getPublishedVersions.mockResolvedValue({ data: [version] });
+      downloadPublishedPackage.mockRejectedValue(new Error("boom"));
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="export-package"]').trigger("click");
+      await flushPromises();
+
+      expect(saveBlob).not.toHaveBeenCalled();
+      expect(errorToast).toHaveBeenCalledWith(
+        "Failed to download the replication package",
+      );
+    });
+  });
+
+  it("lists each knowledge source at start and end in the provenance", async () => {
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: results({
+        provenance: {
+          ...(results() as { provenance: object }).provenance,
+          knowledge_start: {
+            knowledge_sources: { nvd: "2026-11-01", osv: null },
+            epss_rows: 10,
+          },
+          knowledge_end: {
+            knowledge_sources: { nvd: "2026-11-02", osv: "2026-11-02" },
+            epss_rows: 12,
+          },
+        },
+      }),
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const sources = wrapper
+      .findAll('[data-testid="experiment-knowledge-source"]')
+      .map((item) => item.text());
+    expect(sources).toEqual([
+      "nvd: 2026-11-01 / 2026-11-02",
+      "osv: - / 2026-11-02",
+    ]);
   });
 
   it("says when an export fails", async () => {

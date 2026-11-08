@@ -6,8 +6,10 @@ import {
   type Analysis,
   AnalysisStatus,
   type AnalysisStatus as AnalysisStatusType,
+  stageSkipReason,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
+import AnalysisFailureReason from "@/codeclarity_components/analyses/AnalysisFailureReason.vue";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -213,7 +215,11 @@ function getAnalysisProgress(analysis: Analysis): number {
 
   const completedSteps = Object.values(analysis.steps)
     .flat()
-    .filter((step) => step.Status === AnalysisStatus.SUCCESS).length;
+    .filter(
+      (step) =>
+        step.Status === AnalysisStatus.SUCCESS ||
+        step.Status === AnalysisStatus.SKIPPED,
+    ).length;
 
   return Math.round((completedSteps / totalSteps) * 100);
 }
@@ -422,6 +428,11 @@ function showOneTimeHistory(): void {
               </div>
             </div>
 
+            <AnalysisFailureReason
+              :analysis="latestAnalyses.scheduled"
+              class="mb-2"
+            />
+
             <!-- Bottom row: Timing information -->
             <div class="flex items-start justify-between text-xs">
               <!-- Left side: Created time with relative time below -->
@@ -526,12 +537,14 @@ function showOneTimeHistory(): void {
                         :icon="
                           stage.Status === AnalysisStatus.SUCCESS
                             ? 'solar:check-circle-bold'
-                            : stage.Status === AnalysisStatus.FAILED ||
-                                stage.Status === AnalysisStatus.FAILURE
-                              ? 'solar:close-circle-bold'
-                              : stage.Status === AnalysisStatus.STARTED
-                                ? 'solar:refresh-bold'
-                                : 'solar:clock-circle-bold'
+                            : stage.Status === AnalysisStatus.SKIPPED
+                              ? 'solar:minus-circle-bold'
+                              : stage.Status === AnalysisStatus.FAILED ||
+                                  stage.Status === AnalysisStatus.FAILURE
+                                ? 'solar:close-circle-bold'
+                                : stage.Status === AnalysisStatus.STARTED
+                                  ? 'solar:refresh-bold'
+                                  : 'solar:clock-circle-bold'
                         "
                         class="w-3.5 h-3.5"
                         :class="{
@@ -544,12 +557,19 @@ function showOneTimeHistory(): void {
                             stage.Status === AnalysisStatus.STARTED,
                           'text-gray-400':
                             !stage.Status ||
-                            stage.Status === AnalysisStatus.REQUESTED,
+                            stage.Status === AnalysisStatus.REQUESTED ||
+                            stage.Status === AnalysisStatus.SKIPPED,
                         }"
                       />
                       <span class="text-gray-700">{{
                         stage.Name ?? "Unknown Step"
                       }}</span>
+                      <span
+                        v-if="stage.Status === AnalysisStatus.SKIPPED"
+                        class="text-gray-500"
+                      >
+                        Skipped: {{ stageSkipReason(stage) }}
+                      </span>
                     </div>
                     <span
                       v-if="stage.Started_on && stage.Ended_on"
@@ -710,6 +730,11 @@ function showOneTimeHistory(): void {
               </div>
             </div>
 
+            <AnalysisFailureReason
+              :analysis="latestAnalyses.oneTime"
+              class="mb-2"
+            />
+
             <!-- Bottom row: Timing information -->
             <div class="flex items-start justify-between text-xs">
               <!-- Left side: Created time with relative time below -->
@@ -775,12 +800,14 @@ function showOneTimeHistory(): void {
                         :icon="
                           stage.Status === AnalysisStatus.SUCCESS
                             ? 'solar:check-circle-bold'
-                            : stage.Status === AnalysisStatus.FAILED ||
-                                stage.Status === AnalysisStatus.FAILURE
-                              ? 'solar:close-circle-bold'
-                              : stage.Status === AnalysisStatus.STARTED
-                                ? 'solar:refresh-bold'
-                                : 'solar:clock-circle-bold'
+                            : stage.Status === AnalysisStatus.SKIPPED
+                              ? 'solar:minus-circle-bold'
+                              : stage.Status === AnalysisStatus.FAILED ||
+                                  stage.Status === AnalysisStatus.FAILURE
+                                ? 'solar:close-circle-bold'
+                                : stage.Status === AnalysisStatus.STARTED
+                                  ? 'solar:refresh-bold'
+                                  : 'solar:clock-circle-bold'
                         "
                         class="w-3.5 h-3.5"
                         :class="{
@@ -793,12 +820,19 @@ function showOneTimeHistory(): void {
                             stage.Status === AnalysisStatus.STARTED,
                           'text-gray-400':
                             !stage.Status ||
-                            stage.Status === AnalysisStatus.REQUESTED,
+                            stage.Status === AnalysisStatus.REQUESTED ||
+                            stage.Status === AnalysisStatus.SKIPPED,
                         }"
                       />
                       <span class="text-gray-700">{{
                         stage.Name ?? "Unknown Step"
                       }}</span>
+                      <span
+                        v-if="stage.Status === AnalysisStatus.SKIPPED"
+                        class="text-gray-500"
+                      >
+                        Skipped: {{ stageSkipReason(stage) }}
+                      </span>
                     </div>
                     <span
                       v-if="stage.Started_on && stage.Ended_on"
@@ -935,6 +969,7 @@ function showOneTimeHistory(): void {
                   {{ formatDate(analysis.created_on, "MMM DD, HH:mm") }} •
                   {{ formatDistanceToNow(new Date(analysis.created_on)) }} ago
                 </div>
+                <AnalysisFailureReason :analysis="analysis" />
               </div>
             </div>
             <div class="flex items-center gap-1">
@@ -1005,6 +1040,7 @@ function showOneTimeHistory(): void {
                   {{ formatDate(analysis.created_on, "MMM DD, HH:mm") }} •
                   {{ formatDistanceToNow(new Date(analysis.created_on)) }} ago
                 </div>
+                <AnalysisFailureReason :analysis="analysis" />
               </div>
             </div>
             <div class="flex items-center gap-1">

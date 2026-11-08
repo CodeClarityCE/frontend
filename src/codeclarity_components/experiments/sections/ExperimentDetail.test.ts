@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import router from "@/router";
 
-import type { GridCoverageRow } from "../experiment.entity";
+import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 
 import ExperimentDetail from "./ExperimentDetail.vue";
 
@@ -563,6 +563,7 @@ describe("ExperimentDetail", () => {
       metric_version: 3,
       published_on: "2026-11-07T00:00:00.000Z",
       published_by_name: "Jane Roe",
+      package_checksum: null,
     };
     const find = (wrapper: VueWrapper, id: string) =>
       wrapper.find(`[data-testid="${id}"]`);
@@ -633,14 +634,11 @@ describe("ExperimentDetail", () => {
         metric_version: 2,
         published_on: "2026-10-01T00:00:00.000Z",
         published_by_name: null,
+        package_checksum: null,
       };
 
       async function mountPublished(
-        versions: (
-          | typeof version
-          | typeof older
-          | (typeof older & { package_checksum: string })
-        )[],
+        versions: PublishedVersion[],
       ): Promise<VueWrapper> {
         getExperiment.mockResolvedValue({
           data: experiment("COMPLETED", { run_counts: done }),

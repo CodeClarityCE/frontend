@@ -174,7 +174,8 @@ onUnmounted(() => clearTimeout(pollTimer));
           {{ experiment.dataset_name }}
         </div>
         <div class="lg:col-span-2 text-sm text-gray-700">
-          {{ finishedRunCount(experiment.run_counts) }} / {{ experiment.run_count }}
+          {{ finishedRunCount(experiment.run_counts) }} /
+          {{ experiment.run_count }}
         </div>
         <div class="lg:col-span-2 text-sm text-gray-700">
           {{ formatExperimentDate(experiment.created_on, false) }}

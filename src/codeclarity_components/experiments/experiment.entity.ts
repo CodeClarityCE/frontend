@@ -97,7 +97,9 @@ export interface ExperimentRunCounts {
 }
 
 /** An experiment that may still change (PENDING or RUNNING). */
-export function isExperimentActive(experiment: { status: ExperimentStatus }): boolean {
+export function isExperimentActive(experiment: {
+  status: ExperimentStatus;
+}): boolean {
   return ACTIVE_EXPERIMENT_STATUSES.includes(experiment.status);
 }
 

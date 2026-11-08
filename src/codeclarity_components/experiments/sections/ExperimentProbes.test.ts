@@ -29,7 +29,9 @@ describe("ExperimentProbes", () => {
     const wrapper = mount(ExperimentProbes, { props: { probes, exposures } });
 
     const rows = wrapper.findAll('[data-testid="probe-outcome-row"]');
-    expect(rows.map((row) => row.findAll("td").map((cell) => cell.text()))).toEqual([
+    expect(
+      rows.map((row) => row.findAll("td").map((cell) => cell.text())),
+    ).toEqual([
       ["Fixes", "6", "1", "2", "1", "60.0%", "40.0%"],
       ["Introductions", "3", "0", "1", "0", "75.0%", "25.0%"],
     ]);
@@ -38,7 +40,11 @@ describe("ExperimentProbes", () => {
   it("lists why probes found no commit, most frequent first", () => {
     const wrapper = mount(ExperimentProbes, { props: { probes, exposures } });
 
-    expect(wrapper.findAll('[data-testid="probe-reason"]').map((item) => item.text())).toEqual([
+    expect(
+      wrapper
+        .findAll('[data-testid="probe-reason"]')
+        .map((item) => item.text()),
+    ).toEqual([
       "no lockfile-touching commit in the interval: 2",
       "probe of d4e1234 failed: clone failed: 1",
     ]);
@@ -47,7 +53,14 @@ describe("ExperimentProbes", () => {
   it("shows the analysis budget and how much of it was submitted", () => {
     const wrapper = mount(ExperimentProbes, {
       props: {
-        probes: { ...probes, budget: { analysis_budget: 150, analyses_submitted: 150, spent: true } },
+        probes: {
+          ...probes,
+          budget: {
+            analysis_budget: 150,
+            analyses_submitted: 150,
+            spent: true,
+          },
+        },
         exposures,
       },
     });
@@ -60,7 +73,14 @@ describe("ExperimentProbes", () => {
   it("shows no budget line for an experiment without one", () => {
     const wrapper = mount(ExperimentProbes, {
       props: {
-        probes: { ...probes, budget: { analysis_budget: null, analyses_submitted: null, spent: false } },
+        probes: {
+          ...probes,
+          budget: {
+            analysis_budget: null,
+            analyses_submitted: null,
+            spent: false,
+          },
+        },
         exposures,
       },
     });
@@ -71,12 +91,26 @@ describe("ExperimentProbes", () => {
   it("shows a dash for the precision share without events", () => {
     const wrapper = mount(ExperimentProbes, {
       props: {
-        probes: { ...probes, introductions: { found: 0, ambiguous: 0, not_found: 0, not_probed: 0 }, not_found_reasons: {} },
-        exposures: { ...exposures, introduction_precision: { commit: 0, snapshot: 0 } },
+        probes: {
+          ...probes,
+          introductions: {
+            found: 0,
+            ambiguous: 0,
+            not_found: 0,
+            not_probed: 0,
+          },
+          not_found_reasons: {},
+        },
+        exposures: {
+          ...exposures,
+          introduction_precision: { commit: 0, snapshot: 0 },
+        },
       },
     });
 
-    const cells = wrapper.findAll('[data-testid="probe-outcome-row"]')[1]!.findAll("td");
+    const cells = wrapper
+      .findAll('[data-testid="probe-outcome-row"]')[1]!
+      .findAll("td");
     expect(cells.map((cell) => cell.text()).slice(5)).toEqual(["-", "-"]);
     expect(wrapper.find('[data-testid="probe-reasons"]').exists()).toBe(false);
   });

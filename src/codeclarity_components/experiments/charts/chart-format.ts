@@ -6,7 +6,9 @@ export interface LagChartRow {
   key: string;
   label: string;
   /** The below-zero count is left out when a chart has none */
-  summary: Omit<LagSummary, "before_disclosure"> & { before_disclosure?: number };
+  summary: Omit<LagSummary, "before_disclosure"> & {
+    before_disclosure?: number;
+  };
   lags: number[];
 }
 
@@ -31,7 +33,9 @@ export const RIGHT_PADDING = 16;
 /** Whole numbers as is, others with one decimal. */
 export function formatNumber(value: number | null): string {
   if (value === null) return "-";
-  return Number.isInteger(value) ? value.toLocaleString("en-US") : value.toFixed(1);
+  return Number.isInteger(value)
+    ? value.toLocaleString("en-US")
+    : value.toFixed(1);
 }
 
 /** "1 day" or "N days". */

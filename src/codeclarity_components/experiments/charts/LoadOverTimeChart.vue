@@ -4,7 +4,14 @@ import { computed, ref } from "vue";
 
 import type { LoadRow } from "../experiment.entity";
 
-import { AXIS_HEIGHT, CHART_WIDTH, formatNumber, plural, RIGHT_PADDING, TOP_PADDING } from "./chart-format";
+import {
+  AXIS_HEIGHT,
+  CHART_WIDTH,
+  formatNumber,
+  plural,
+  RIGHT_PADDING,
+  TOP_PADDING,
+} from "./chart-format";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
@@ -40,7 +47,10 @@ const plotBottom = HEIGHT - AXIS_HEIGHT;
 
 const y = computed(() => {
   const max = Math.max(1, ...props.rows.map((row) => row.hindsight ?? 0));
-  return scaleLinear().domain([0, max]).nice(4).range([plotBottom, TOP_PADDING]);
+  return scaleLinear()
+    .domain([0, max])
+    .nice(4)
+    .range([plotBottom, TOP_PADDING]);
 });
 
 const yTicks = computed(() => y.value.ticks(4).filter(Number.isInteger));
@@ -75,7 +85,8 @@ function pointsOf(key: SeriesKey): { index: number; value: number }[] {
     if (value === null) return [];
     const isolated =
       (index === 0 || valueOf(props.rows[index - 1]!, key) === null) &&
-      (index === props.rows.length - 1 || valueOf(props.rows[index + 1]!, key) === null);
+      (index === props.rows.length - 1 ||
+        valueOf(props.rows[index + 1]!, key) === null);
     return all || isolated ? [{ index, value }] : [];
   });
 }
@@ -88,7 +99,8 @@ function labelOf(row: LoadRow): string {
 }
 
 function describe(row: LoadRow): string {
-  if (row.hindsight === null || row.as_of === null) return `${labelOf(row)}: no done snapshot`;
+  if (row.hindsight === null || row.as_of === null)
+    return `${labelOf(row)}: no done snapshot`;
   const projects = plural(row.projects, "project");
   return `${labelOf(row)}: hindsight ${formatNumber(row.hindsight)}, as-of ${formatNumber(row.as_of)}, ${projects}`;
 }
@@ -119,140 +131,160 @@ const tooltipY = computed(() => {
         data-testid="load-legend-item"
         class="flex items-center gap-1"
       >
-        <svg width="16" height="8"><line x1="1" x2="15" y1="4" y2="4" :stroke="series.color" stroke-width="2" stroke-linecap="round" /></svg>
+        <svg width="16" height="8">
+          <line
+            x1="1"
+            x2="15"
+            y1="4"
+            y2="4"
+            :stroke="series.color"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
         <span>{{ series.label }}</span>
       </li>
     </ul>
 
     <div class="relative">
-    <svg
-      :viewBox="`0 0 ${CHART_WIDTH} ${HEIGHT}`"
-      class="w-full h-auto"
-      role="group"
-      :aria-label="caption"
-    >
-      <g aria-hidden="true">
-        <g v-for="tick in yTicks" :key="`y-${tick}`">
-          <line
-            :x1="Y_LABEL_WIDTH"
-            :x2="CHART_WIDTH - RIGHT_PADDING"
-            :y1="y(tick)"
-            :y2="y(tick)"
-            :stroke="tick === 0 ? 'var(--viz-baseline)' : 'var(--viz-grid)'"
-            stroke-width="1"
-          />
+      <svg
+        :viewBox="`0 0 ${CHART_WIDTH} ${HEIGHT}`"
+        class="w-full h-auto"
+        role="group"
+        :aria-label="caption"
+      >
+        <g aria-hidden="true">
+          <g v-for="tick in yTicks" :key="`y-${tick}`">
+            <line
+              :x1="Y_LABEL_WIDTH"
+              :x2="CHART_WIDTH - RIGHT_PADDING"
+              :y1="y(tick)"
+              :y2="y(tick)"
+              :stroke="tick === 0 ? 'var(--viz-baseline)' : 'var(--viz-grid)'"
+              stroke-width="1"
+            />
+            <text
+              :x="Y_LABEL_WIDTH - 6"
+              :y="y(tick) + 4"
+              text-anchor="end"
+              font-size="11"
+              fill="var(--viz-text-muted)"
+              style="font-variant-numeric: tabular-nums"
+            >
+              {{ formatNumber(tick) }}
+            </text>
+          </g>
           <text
-            :x="Y_LABEL_WIDTH - 6"
-            :y="y(tick) + 4"
-            text-anchor="end"
+            v-for="key in xLabels"
+            :key="`x-${key}`"
+            :x="x(key)"
+            :y="plotBottom + 16"
+            text-anchor="middle"
             font-size="11"
             fill="var(--viz-text-muted)"
-            style="font-variant-numeric: tabular-nums"
           >
-            {{ formatNumber(tick) }}
+            {{ key }}
           </text>
+          <line
+            v-if="hover !== null"
+            data-testid="load-crosshair"
+            :x1="xOf(hover)"
+            :x2="xOf(hover)"
+            :y1="TOP_PADDING"
+            :y2="plotBottom"
+            stroke="var(--viz-baseline)"
+            stroke-width="1"
+          />
         </g>
-        <text
-          v-for="key in xLabels"
-          :key="`x-${key}`"
-          :x="x(key)"
-          :y="plotBottom + 16"
-          text-anchor="middle"
-          font-size="11"
-          fill="var(--viz-text-muted)"
+
+        <g
+          v-for="series in SERIES"
+          :key="series.key"
+          data-testid="load-series"
+          :data-key="series.key"
+          aria-hidden="true"
         >
-          {{ key }}
-        </text>
-        <line
-          v-if="hover !== null"
-          data-testid="load-crosshair"
-          :x1="xOf(hover)"
-          :x2="xOf(hover)"
-          :y1="TOP_PADDING"
-          :y2="plotBottom"
-          stroke="var(--viz-baseline)"
-          stroke-width="1"
-        />
-      </g>
+          <path
+            :d="pathOf(series.key)"
+            fill="none"
+            :stroke="series.color"
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+          <circle
+            v-for="point in pointsOf(series.key)"
+            :key="`p-${point.index}`"
+            data-testid="load-point"
+            :cx="xOf(point.index)"
+            :cy="y(point.value)"
+            r="4"
+            :fill="series.color"
+            stroke="var(--viz-surface)"
+            stroke-width="2"
+          />
+        </g>
 
-      <g
-        v-for="series in SERIES"
-        :key="series.key"
-        data-testid="load-series"
-        :data-key="series.key"
-        aria-hidden="true"
+        <!-- One column per grid date: the hover and focus target -->
+        <rect
+          v-for="(row, index) in rows"
+          :key="`col-${labelOf(row)}`"
+          data-testid="load-column"
+          :x="xOf(index) - columnWidth / 2"
+          :y="TOP_PADDING"
+          :width="columnWidth"
+          :height="plotBottom - TOP_PADDING"
+          fill="transparent"
+          tabindex="0"
+          role="img"
+          :aria-label="describe(row)"
+          class="outline-none"
+          @pointerenter="hover = index"
+          @pointerleave="hover = null"
+          @focus="hover = index"
+          @blur="hover = null"
+        />
+      </svg>
+
+      <ChartTooltip
+        v-if="hover !== null"
+        data-testid="load-tooltip"
+        :x="xOf(hover)"
+        :y="tooltipY"
+        :height="HEIGHT"
+        :shift="tooltipShift"
+        >{{ describe(rows[hover]!) }}</ChartTooltip
       >
-        <path
-          :d="pathOf(series.key)"
-          fill="none"
-          :stroke="series.color"
-          stroke-width="2"
-          stroke-linejoin="round"
-          stroke-linecap="round"
-        />
-        <circle
-          v-for="point in pointsOf(series.key)"
-          :key="`p-${point.index}`"
-          data-testid="load-point"
-          :cx="xOf(point.index)"
-          :cy="y(point.value)"
-          r="4"
-          :fill="series.color"
-          stroke="var(--viz-surface)"
-          stroke-width="2"
-        />
-      </g>
-
-      <!-- One column per grid date: the hover and focus target -->
-      <rect
-        v-for="(row, index) in rows"
-        :key="`col-${labelOf(row)}`"
-        data-testid="load-column"
-        :x="xOf(index) - columnWidth / 2"
-        :y="TOP_PADDING"
-        :width="columnWidth"
-        :height="plotBottom - TOP_PADDING"
-        fill="transparent"
-        tabindex="0"
-        role="img"
-        :aria-label="describe(row)"
-        class="outline-none"
-        @pointerenter="hover = index"
-        @pointerleave="hover = null"
-        @focus="hover = index"
-        @blur="hover = null"
-      />
-    </svg>
-
-    <ChartTooltip
-      v-if="hover !== null"
-      data-testid="load-tooltip"
-      :x="xOf(hover)"
-      :y="tooltipY"
-      :height="HEIGHT"
-      :shift="tooltipShift"
-    >{{ describe(rows[hover]!) }}</ChartTooltip>
     </div>
 
     <ChartTable>
-        <thead class="text-left text-gray-500">
-          <tr>
-            <th class="font-medium">Grid date</th>
-            <th class="font-medium text-right">Projects</th>
-            <th class="font-medium text-right">Hindsight</th>
-            <th class="font-medium text-right">As-of</th>
-            <th class="font-medium text-right">Undated</th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
-          <tr v-for="row in rows" :key="labelOf(row)" data-testid="load-table-row">
-            <td>{{ row.grid_date ?? (row.as_of_date ? `HEAD (as of ${row.as_of_date})` : "HEAD") }}</td>
-            <td class="text-right">{{ row.projects }}</td>
-            <td class="text-right">{{ formatNumber(row.hindsight) }}</td>
-            <td class="text-right">{{ formatNumber(row.as_of) }}</td>
-            <td class="text-right">{{ row.undated }}</td>
-          </tr>
-        </tbody>
+      <thead class="text-left text-gray-500">
+        <tr>
+          <th class="font-medium">Grid date</th>
+          <th class="font-medium text-right">Projects</th>
+          <th class="font-medium text-right">Hindsight</th>
+          <th class="font-medium text-right">As-of</th>
+          <th class="font-medium text-right">Undated</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+        <tr
+          v-for="row in rows"
+          :key="labelOf(row)"
+          data-testid="load-table-row"
+        >
+          <td>
+            {{
+              row.grid_date ??
+              (row.as_of_date ? `HEAD (as of ${row.as_of_date})` : "HEAD")
+            }}
+          </td>
+          <td class="text-right">{{ row.projects }}</td>
+          <td class="text-right">{{ formatNumber(row.hindsight) }}</td>
+          <td class="text-right">{{ formatNumber(row.as_of) }}</td>
+          <td class="text-right">{{ row.undated }}</td>
+        </tr>
+      </tbody>
     </ChartTable>
   </div>
 </template>

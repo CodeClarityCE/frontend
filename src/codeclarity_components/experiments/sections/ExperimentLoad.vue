@@ -15,8 +15,8 @@ defineProps<{ rows: LoadRow[] }>();
       <p class="text-sm text-gray-500">
         Vulnerability instances per grid date, summed over the projects with a
         done snapshot. Hindsight counts every advisory known today; as-of drops
-        advisories published after the grid date (HEAD uses the experiment's
-        end date). Where the lines meet, the two views agree. Instances whose
+        advisories published after the grid date (HEAD uses the experiment's end
+        date). Where the lines meet, the two views agree. Instances whose
         advisory has no readable publication date stay in both and are counted
         as undated.
       </p>

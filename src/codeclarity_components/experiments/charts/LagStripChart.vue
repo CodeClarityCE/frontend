@@ -60,7 +60,9 @@ function jitter(index: number): number {
 function summaryText(row: LagChartRow): string {
   const { n, median, before_disclosure } = row.summary;
   const text = `${row.label}: ${n} ${props.unit}, median ${formatNumber(median)} days`;
-  return props.belowZero ? `${text}, ${before_disclosure ?? 0} ${props.belowZero}` : text;
+  return props.belowZero
+    ? `${text}, ${before_disclosure ?? 0} ${props.belowZero}`
+    : text;
 }
 
 const hover = ref<{ x: number; y: number; text: string } | null>(null);
@@ -194,7 +196,9 @@ function hide(): void {
           :cy="rowY(index) + jitter(i)"
           r="8"
           fill="transparent"
-          @pointerenter="show(x(lag), rowY(index) + jitter(i), describe(row, lag))"
+          @pointerenter="
+            show(x(lag), rowY(index) + jitter(i), describe(row, lag))
+          "
           @pointerleave="hide"
         />
       </g>
@@ -206,29 +210,34 @@ function hide(): void {
       :x="hover.x"
       :y="hover.y"
       :height="height"
-    >{{ hover.text }}</ChartTooltip>
+      >{{ hover.text }}</ChartTooltip
+    >
 
     <ChartTable>
-        <thead class="text-left text-gray-500">
-          <tr>
-            <th class="font-medium">Group</th>
-            <th class="font-medium text-right">{{ unit }}</th>
-            <th class="font-medium text-right">Median days</th>
-            <th class="font-medium text-right">25th pct.</th>
-            <th class="font-medium text-right">75th pct.</th>
-            <th v-if="belowZero" class="font-medium text-right">{{ belowZero }}</th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
-          <tr v-for="row in rows" :key="row.key" data-testid="lag-table-row">
-            <td>{{ row.label }}</td>
-            <td class="text-right">{{ row.summary.n }}</td>
-            <td class="text-right">{{ formatNumber(row.summary.median) }}</td>
-            <td class="text-right">{{ formatNumber(row.summary.p25) }}</td>
-            <td class="text-right">{{ formatNumber(row.summary.p75) }}</td>
-            <td v-if="belowZero" class="text-right">{{ row.summary.before_disclosure ?? 0 }}</td>
-          </tr>
-        </tbody>
+      <thead class="text-left text-gray-500">
+        <tr>
+          <th class="font-medium">Group</th>
+          <th class="font-medium text-right">{{ unit }}</th>
+          <th class="font-medium text-right">Median days</th>
+          <th class="font-medium text-right">25th pct.</th>
+          <th class="font-medium text-right">75th pct.</th>
+          <th v-if="belowZero" class="font-medium text-right">
+            {{ belowZero }}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+        <tr v-for="row in rows" :key="row.key" data-testid="lag-table-row">
+          <td>{{ row.label }}</td>
+          <td class="text-right">{{ row.summary.n }}</td>
+          <td class="text-right">{{ formatNumber(row.summary.median) }}</td>
+          <td class="text-right">{{ formatNumber(row.summary.p25) }}</td>
+          <td class="text-right">{{ formatNumber(row.summary.p75) }}</td>
+          <td v-if="belowZero" class="text-right">
+            {{ row.summary.before_disclosure ?? 0 }}
+          </td>
+        </tr>
+      </tbody>
     </ChartTable>
   </div>
 </template>

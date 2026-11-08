@@ -9,9 +9,15 @@ import type {
   ProbesBlock,
 } from "../experiment.entity";
 
-const props = defineProps<{ probes: ProbesBlock; exposures: ExposuresBlock | null }>();
+const props = defineProps<{
+  probes: ProbesBlock;
+  exposures: ExposuresBlock | null;
+}>();
 
-function share(precision: Record<DatingPrecision, number> | undefined, key: DatingPrecision): string {
+function share(
+  precision: Record<DatingPrecision, number> | undefined,
+  key: DatingPrecision,
+): string {
   const total = precision ? precision.commit + precision.snapshot : 0;
   return formatShare(precision && total > 0 ? precision[key] / total : null);
 }
@@ -21,7 +27,12 @@ const rows = computed(() => {
     label: string,
     counts: ProbeOutcomeCounts,
     precision: Record<DatingPrecision, number> | undefined,
-  ): { label: string; counts: ProbeOutcomeCounts; commit: string; snapshot: string } => ({
+  ): {
+    label: string;
+    counts: ProbeOutcomeCounts;
+    commit: string;
+    snapshot: string;
+  } => ({
     label,
     counts,
     commit: share(precision, "commit"),
@@ -29,7 +40,11 @@ const rows = computed(() => {
   });
   return [
     row("Fixes", props.probes.fixes, props.exposures?.fix_precision),
-    row("Introductions", props.probes.introductions, props.exposures?.introduction_precision),
+    row(
+      "Introductions",
+      props.probes.introductions,
+      props.exposures?.introduction_precision,
+    ),
   ];
 });
 
@@ -73,7 +88,11 @@ const budgetLine = computed<string | null>(() => {
         </tr>
       </thead>
       <tbody class="text-gray-700">
-        <tr v-for="row in rows" :key="row.label" data-testid="probe-outcome-row">
+        <tr
+          v-for="row in rows"
+          :key="row.label"
+          data-testid="probe-outcome-row"
+        >
           <td>{{ row.label }}</td>
           <td class="text-right">{{ row.counts.found }}</td>
           <td class="text-right">{{ row.counts.ambiguous }}</td>
@@ -84,13 +103,23 @@ const budgetLine = computed<string | null>(() => {
         </tr>
       </tbody>
     </table>
-    <p v-if="budgetLine" class="text-sm text-gray-700" data-testid="probe-budget">
+    <p
+      v-if="budgetLine"
+      class="text-sm text-gray-700"
+      data-testid="probe-budget"
+    >
       {{ budgetLine }}
     </p>
     <div v-if="reasons.length > 0" data-testid="probe-reasons">
-      <h4 class="text-sm font-medium text-gray-900 mb-1">Why no commit was found</h4>
+      <h4 class="text-sm font-medium text-gray-900 mb-1">
+        Why no commit was found
+      </h4>
       <ul class="text-sm text-gray-700 list-disc ml-4">
-        <li v-for="[reason, n] in reasons" :key="reason" data-testid="probe-reason">
+        <li
+          v-for="[reason, n] in reasons"
+          :key="reason"
+          data-testid="probe-reason"
+        >
           {{ reason }}: {{ n }}
         </li>
       </ul>

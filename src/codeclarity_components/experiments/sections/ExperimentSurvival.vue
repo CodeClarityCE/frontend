@@ -18,11 +18,16 @@ function labelOf(group: SurvivalGroup): string {
   return SeverityLabels[group.key as keyof SeverityCounts] ?? group.key;
 }
 
-const groups = computed(() => [props.survival.overall, ...props.survival.by_severity]);
+const groups = computed(() => [
+  props.survival.overall,
+  ...props.survival.by_severity,
+]);
 
 const selectedKey = ref("all");
 const selected = computed(
-  () => groups.value.find((g) => g.key === selectedKey.value) ?? props.survival.overall,
+  () =>
+    groups.value.find((g) => g.key === selectedKey.value) ??
+    props.survival.overall,
 );
 
 const counts = computed(() => {
@@ -43,7 +48,10 @@ const medianText = computed(() =>
 
 const caption = computed(() => {
   const g = selected.value;
-  const median = g.median_days === null ? "no median" : `median ${formatNumber(g.median_days)} days`;
+  const median =
+    g.median_days === null
+      ? "no median"
+      : `median ${formatNumber(g.median_days)} days`;
   return `Exposure survival, ${labelOf(g).toLowerCase()}: ${g.n} exposures, ${g.fixed} fixed, ${median}`;
 });
 </script>
@@ -103,24 +111,28 @@ const caption = computed(() => {
       />
 
       <ChartTable>
-          <thead class="text-left text-gray-500">
-            <tr>
-              <th class="font-medium">Group</th>
-              <th class="font-medium text-right">Exposures</th>
-              <th class="font-medium text-right">Fixed</th>
-              <th class="font-medium text-right">Censored</th>
-              <th class="font-medium text-right">Median days</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
-            <tr v-for="group in groups" :key="group.key" data-testid="survival-table-row">
-              <td>{{ labelOf(group) }}</td>
-              <td class="text-right">{{ group.n }}</td>
-              <td class="text-right">{{ group.fixed }}</td>
-              <td class="text-right">{{ group.censored }}</td>
-              <td class="text-right">{{ formatNumber(group.median_days) }}</td>
-            </tr>
-          </tbody>
+        <thead class="text-left text-gray-500">
+          <tr>
+            <th class="font-medium">Group</th>
+            <th class="font-medium text-right">Exposures</th>
+            <th class="font-medium text-right">Fixed</th>
+            <th class="font-medium text-right">Censored</th>
+            <th class="font-medium text-right">Median days</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+          <tr
+            v-for="group in groups"
+            :key="group.key"
+            data-testid="survival-table-row"
+          >
+            <td>{{ labelOf(group) }}</td>
+            <td class="text-right">{{ group.n }}</td>
+            <td class="text-right">{{ group.fixed }}</td>
+            <td class="text-right">{{ group.censored }}</td>
+            <td class="text-right">{{ formatNumber(group.median_days) }}</td>
+          </tr>
+        </tbody>
       </ChartTable>
     </template>
   </div>

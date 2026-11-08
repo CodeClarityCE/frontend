@@ -111,7 +111,8 @@ const errors = computed(() => {
     result.gridCount = `A whole number between 0 and ${MAX_GRID_COUNT}`;
   }
   if (budget.value !== "" && budgetValue.value === null) {
-    result.budget = "Leave empty for no budget, or a whole number of at least 1";
+    result.budget =
+      "Leave empty for no budget, or a whole number of at least 1";
   }
   return result;
 });
@@ -138,13 +139,21 @@ const estimate = computed<Estimate | null>(() => {
   if (!dataset || count === null) return null;
   const snapshots = dataset.entry_count * (count + 1);
   const perInterval = probesPerEntryInterval.value;
-  const probes = perInterval === null ? null : dataset.entry_count * count * perInterval;
-  return { gridDates: count + 1, snapshots, probes, total: snapshots + (probes ?? 0) };
+  const probes =
+    perInterval === null ? null : dataset.entry_count * count * perInterval;
+  return {
+    gridDates: count + 1,
+    snapshots,
+    probes,
+    total: snapshots + (probes ?? 0),
+  };
 });
 
 function probesText(probes: number | null): string {
   if (probes === null) return "fix probes not estimated";
-  return probes > 0 ? `about ${probes.toLocaleString()} fix probes` : "no fix probes";
+  return probes > 0
+    ? `about ${probes.toLocaleString()} fix probes`
+    : "no fix probes";
 }
 
 /** What the budget caps, given the estimate. */
@@ -467,8 +476,8 @@ onMounted(() => void load());
         />
         <p class="text-xs text-gray-500">
           Caps the analyses the experiment submits, snapshots and fix probes
-          alike. Once spent, no further fix probe runs; snapshots are never
-          cut. Fixes are probed before introductions. Frozen at creation.
+          alike. Once spent, no further fix probe runs; snapshots are never cut.
+          Fixes are probed before introductions. Frozen at creation.
         </p>
         <p
           v-if="budgetNote"

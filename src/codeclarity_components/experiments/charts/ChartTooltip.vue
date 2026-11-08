@@ -23,5 +23,7 @@ withDefaults(
       top: `calc(${(y / height) * 100}% - 8px)`,
       transform: `translate(${shift}, -100%)`,
     }"
-  ><slot /></div>
+  >
+    <slot />
+  </div>
 </template>

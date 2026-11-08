@@ -66,7 +66,10 @@ const columns = computed(() =>
 );
 
 function describe(step: KmStep): string {
-  const parts = [`${formatShare(step.survival)} still exposed`, `${step.at_risk} at risk`];
+  const parts = [
+    `${formatShare(step.survival)} still exposed`,
+    `${step.at_risk} at risk`,
+  ];
   if (step.events) parts.push(`${step.events} fixed`);
   if (step.censored) parts.push(`${step.censored} censored`);
   return `Day ${formatNumber(step.time)}: ${parts.join(", ")}`;
@@ -75,7 +78,11 @@ function describe(step: KmStep): string {
 const hover = ref<{ x: number; y: number; text: string } | null>(null);
 
 function show(step: KmStep): void {
-  hover.value = { x: x.value(step.time), y: y(step.survival), text: describe(step) };
+  hover.value = {
+    x: x.value(step.time),
+    y: y(step.survival),
+    text: describe(step),
+  };
 }
 
 function hide(): void {
@@ -217,6 +224,7 @@ function hide(): void {
       :x="hover.x"
       :y="hover.y"
       :height="height"
-    >{{ hover.text }}</ChartTooltip>
+      >{{ hover.text }}</ChartTooltip
+    >
   </div>
 </template>

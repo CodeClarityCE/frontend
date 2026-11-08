@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { formatDays, formatShare, type LagChartRow } from "../charts/chart-format";
+import {
+  formatDays,
+  formatShare,
+  type LagChartRow,
+} from "../charts/chart-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ExposuresBlock,
@@ -14,7 +18,10 @@ import {
   SeverityLabels,
 } from "../experiment.entity";
 
-const props = defineProps<{ fixLag: FixLagBlock; exposures: ExposuresBlock | null }>();
+const props = defineProps<{
+  fixLag: FixLagBlock;
+  exposures: ExposuresBlock | null;
+}>();
 
 function rowsOf(
   groups: LagGroup[],
@@ -81,9 +88,9 @@ function describe(row: LagChartRow, lag: number): string {
     <div>
       <h3 class="font-semibold text-gray-900">Fix lag</h3>
       <p class="text-sm text-gray-500">
-        Days from an advisory's disclosure to the fix. Below zero, the
-        project fixed it before the advisory was published. Each dot is one
-        fix; the band spans the middle half and the tick marks the median.
+        Days from an advisory's disclosure to the fix. Below zero, the project
+        fixed it before the advisory was published. Each dot is one fix; the
+        band spans the middle half and the tick marks the median.
       </p>
     </div>
 

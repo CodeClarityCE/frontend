@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { formatDays, formatNumber, formatShare, type LagChartRow, plural } from "../charts/chart-format";
+import {
+  formatDays,
+  formatNumber,
+  formatShare,
+  type LagChartRow,
+  plural,
+} from "../charts/chart-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ResidenceBlock,

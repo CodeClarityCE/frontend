@@ -35,13 +35,17 @@ const MAX_X_TICKS = 6;
 const MAX_MARKERS = 36;
 
 /** Two to four series get end labels; one series is named by the title. */
-const labelled = computed(() => props.series.length >= 2 && props.series.length <= 4);
+const labelled = computed(
+  () => props.series.length >= 2 && props.series.length <= 4,
+);
 const RIGHT = computed(() => (labelled.value ? 72 : 16));
 
 const height = TOP_PADDING + PLOT_HEIGHT + AXIS_HEIGHT;
 const baseline = TOP_PADDING + PLOT_HEIGHT;
 
-const step = computed(() => (CHART_WIDTH - LEFT - RIGHT.value) / Math.max(props.labels.length, 1));
+const step = computed(
+  () => (CHART_WIDTH - LEFT - RIGHT.value) / Math.max(props.labels.length, 1),
+);
 
 function xOf(index: number): number {
   return LEFT + step.value * (index + 0.5);
@@ -60,7 +64,9 @@ const yTicks = computed(() => y.value.ticks(4));
 const xTicks = computed(() => {
   const n = props.labels.length;
   const every = Math.max(1, Math.ceil(n / MAX_X_TICKS));
-  const ticks = props.labels.map((_, i) => i).filter((i) => i % every === 0 && n - 1 - i >= every / 2);
+  const ticks = props.labels
+    .map((_, i) => i)
+    .filter((i) => i % every === 0 && n - 1 - i >= every / 2);
   return n ? [...ticks, n - 1] : [];
 });
 
@@ -82,9 +88,19 @@ function markersOf(values: (number | null)[]): { i: number; v: number }[] {
 const endLabels = computed(() => {
   if (!labelled.value) return [];
   const labels = props.series.flatMap((s) => {
-    const last = s.values.reduce<number>((found, v, i) => (v === null ? found : i), -1);
+    const last = s.values.reduce<number>(
+      (found, v, i) => (v === null ? found : i),
+      -1,
+    );
     if (last < 0) return [];
-    return [{ key: s.key, text: s.label, x: xOf(last) + 8, y: y.value(s.values[last]!) }];
+    return [
+      {
+        key: s.key,
+        text: s.label,
+        x: xOf(last) + 8,
+        y: y.value(s.values[last]!),
+      },
+    ];
   });
   labels.sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) {
@@ -103,7 +119,10 @@ function formatCell(value: number | null): string {
 
 <template>
   <div class="exp-viz relative max-w-[640px]">
-    <ul v-if="series.length >= 2" class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1">
+    <ul
+      v-if="series.length >= 2"
+      class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1"
+    >
       <li
         v-for="s in series"
         :key="s.key"
@@ -111,7 +130,15 @@ function formatCell(value: number | null): string {
         class="flex items-center gap-1"
       >
         <svg width="16" height="8" aria-hidden="true">
-          <line x1="0" x2="16" y1="4" y2="4" :stroke="s.color" stroke-width="2" stroke-linecap="round" />
+          <line
+            x1="0"
+            x2="16"
+            y1="4"
+            y2="4"
+            :stroke="s.color"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
         </svg>
         <span>{{ s.label }}</span>
       </li>
@@ -225,23 +252,40 @@ function formatCell(value: number | null): string {
       :x="xOf(active)"
       :y="TOP_PADDING + 8"
       :height="height"
-    >{{ describe(active) }}</ChartTooltip>
+      >{{ describe(active) }}</ChartTooltip
+    >
 
     <ChartTable>
-        <thead class="text-left text-gray-500">
-          <tr>
-            <th class="font-medium">{{ xTitle }}</th>
-            <th v-for="s in series" :key="s.key" class="font-medium text-right">{{ s.label }}</th>
-            <th v-for="c in extraColumns ?? []" :key="c.label" class="font-medium text-right">{{ c.label }}</th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
-          <tr v-for="(label, i) in labels" :key="`row-${label}-${i}`" data-testid="line-table-row">
-            <td>{{ label }}</td>
-            <td v-for="s in series" :key="s.key" class="text-right">{{ formatCell(s.values[i] ?? null) }}</td>
-            <td v-for="c in extraColumns ?? []" :key="c.label" class="text-right">{{ c.values[i] }}</td>
-          </tr>
-        </tbody>
+      <thead class="text-left text-gray-500">
+        <tr>
+          <th class="font-medium">{{ xTitle }}</th>
+          <th v-for="s in series" :key="s.key" class="font-medium text-right">
+            {{ s.label }}
+          </th>
+          <th
+            v-for="c in extraColumns ?? []"
+            :key="c.label"
+            class="font-medium text-right"
+          >
+            {{ c.label }}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+        <tr
+          v-for="(label, i) in labels"
+          :key="`row-${label}-${i}`"
+          data-testid="line-table-row"
+        >
+          <td>{{ label }}</td>
+          <td v-for="s in series" :key="s.key" class="text-right">
+            {{ formatCell(s.values[i] ?? null) }}
+          </td>
+          <td v-for="c in extraColumns ?? []" :key="c.label" class="text-right">
+            {{ c.values[i] }}
+          </td>
+        </tr>
+      </tbody>
     </ChartTable>
   </div>
 </template>

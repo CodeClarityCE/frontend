@@ -60,7 +60,9 @@ const fixLag = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.fix_lag ?? null) : null,
 );
 const survival = computed(() =>
-  gridCoverage.value.length > 0 ? (props.results.exposure_survival ?? null) : null,
+  gridCoverage.value.length > 0
+    ? (props.results.exposure_survival ?? null)
+    : null,
 );
 
 const loadOverTime = computed(() =>
@@ -68,7 +70,9 @@ const loadOverTime = computed(() =>
 );
 
 const upstreamLeverage = computed(() =>
-  gridCoverage.value.length > 0 ? (props.results.upstream_leverage ?? null) : null,
+  gridCoverage.value.length > 0
+    ? (props.results.upstream_leverage ?? null)
+    : null,
 );
 
 const probes = computed(() =>
@@ -423,7 +427,9 @@ const analyzerSteps = computed(() =>
               <td class="text-right">
                 {{ count(row.load_median) }} / {{ decimal(row.load_mean, 1) }}
               </td>
-              <td class="text-right">{{ formatShare(row.high_critical_share) }}</td>
+              <td class="text-right">
+                {{ formatShare(row.high_critical_share) }}
+              </td>
               <td class="text-right">
                 {{ decimal(row.gini_pkg) }} / {{ decimal(row.gini_proj) }}
               </td>

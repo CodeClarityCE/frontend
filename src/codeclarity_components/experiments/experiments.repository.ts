@@ -99,7 +99,9 @@ export class ExperimentsRepository extends BaseRepository {
   async getEstimateBasis(
     options: GetEstimateBasisRequestOptions,
   ): Promise<DataResponse<ExperimentEstimateBasis>> {
-    const response = await this.getRequest<DataResponse<ExperimentEstimateBasis>>({
+    const response = await this.getRequest<
+      DataResponse<ExperimentEstimateBasis>
+    >({
       bearerToken: options.bearerToken,
       url: this.buildUrl(`/org/${options.orgId}/experiments/estimate`),
       handleBusinessErrors: options.handleBusinessErrors,

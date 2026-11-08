@@ -25,6 +25,8 @@ const props = defineProps<{
   xTitle: string;
   /** More table columns after the series, one value per label */
   extraColumns?: { label: string; values: string[] }[];
+  /** Draw every point without a joining line */
+  pointsOnly?: boolean;
 }>();
 
 const LEFT = 44;
@@ -81,6 +83,7 @@ function pathOf(values: (number | null)[]): string {
 
 function markersOf(values: (number | null)[]): { i: number; v: number }[] {
   const points = values.flatMap((v, i) => (v === null ? [] : [{ i, v }]));
+  if (props.pointsOnly) return points;
   return points.length > MAX_MARKERS ? points.slice(-1) : points;
 }
 
@@ -194,6 +197,7 @@ function formatCell(value: number | null): string {
         />
         <g v-for="s in series" :key="s.key">
           <path
+            v-if="!pointsOnly"
             data-testid="line-series"
             :d="pathOf(s.values)"
             fill="none"
@@ -205,6 +209,7 @@ function formatCell(value: number | null): string {
           <circle
             v-for="m in markersOf(s.values)"
             :key="`m-${m.i}`"
+            data-testid="line-marker"
             :cx="xOf(m.i)"
             :cy="y(m.v)"
             r="4"

@@ -14,6 +14,9 @@
   --viz-series-1-soft: #b7d3f6;
   --viz-series-2: #eb6834;
   --viz-series-3: #1baf7a;
+  --viz-series-4: #eda100;
+  --viz-series-5: #e87ba4;
+  --viz-series-6: #008300;
 }
 
 .dark .exp-viz {
@@ -27,4 +30,7 @@
   --viz-series-1-soft: #184f95;
   --viz-series-2: #d95926;
   --viz-series-3: #199e70;
+  --viz-series-4: #c98500;
+  --viz-series-5: #d55181;
+  --viz-series-6: #008300;
 }

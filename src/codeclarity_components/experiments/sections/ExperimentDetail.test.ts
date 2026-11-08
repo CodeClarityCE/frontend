@@ -1173,6 +1173,7 @@ describe("ExperimentDetail", () => {
     await wrapper
       .find('[data-testid="experiment-survival"] [data-testid="export-svg"]')
       .trigger("click");
+    await flushPromises();
     const text = await savedFile().blob.text();
     return new DOMParser().parseFromString(text, "image/svg+xml")
       .documentElement;
@@ -1187,16 +1188,16 @@ describe("ExperimentDetail", () => {
     expect(name).toBe("exposure-survival-all.svg");
     expect(blob.type).toContain("image/svg+xml");
     expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
-    expect(svg.getAttribute("width")).toBe("640");
+    expect(svg.getAttribute("width")).toBe("7in");
     expect(svg.getAttribute("font-family")).toContain("sans-serif");
     expect(svg.outerHTML).not.toContain("var(");
     expect(svg.outerHTML).not.toContain("class=");
     expect(svg.querySelector('path[fill="none"]')?.getAttribute("stroke")).toBe(
-      "#2a78d6",
+      "#0072b2",
     );
     expect(svg.firstElementChild?.getAttribute("fill")).toBe("#ffffff");
     const shaded = svg.querySelector('path[fill-opacity="0.18"]');
-    expect(shaded?.getAttribute("fill")).toBe("#2a78d6");
+    expect(shaded?.getAttribute("fill")).toBe("#0072b2");
     expect(shaded?.getAttribute("d")).toBe(
       wrapper.find('[data-testid="survival-band"]').attributes("d"),
     );

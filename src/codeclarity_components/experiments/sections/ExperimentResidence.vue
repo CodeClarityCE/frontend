@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
   formatDays,
   formatNumber,
   formatShare,
+  lagChartData,
   type LagChartRow,
   plural,
 } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ResidenceBlock,
@@ -58,6 +61,34 @@ const after = computed(() => {
   return `${plural(n, "introduction")} adopted a version already known to be vulnerable, a median ${formatNumber(props.residence.after_disclosure.median)} days after disclosure.`;
 });
 
+const figureCaption = computed<FigureCaption>(() => {
+  const r = props.residence;
+  return {
+    description: "Pre-disclosure residence in days by severity",
+    n: `n = ${r.overall.n} introductions on or before disclosure`,
+    exclusions: [
+      ...excluded(
+        r.after_disclosure.n,
+        "introduction",
+        "introductions",
+        "after disclosure",
+      ),
+      ...excluded(
+        r.undated,
+        "introduction",
+        "introductions",
+        "without a disclosure date",
+      ),
+      ...excluded(
+        r.present_at_first_observation,
+        "exposure",
+        "exposures",
+        "present at the first grid date",
+      ),
+    ],
+  };
+});
+
 function describe(row: LagChartRow, days: number): string {
   if (days === 0) return `${row.label}: introduced on the day of disclosure`;
   return `${row.label}: introduced ${formatDays(days)} before disclosure`;
@@ -92,14 +123,20 @@ function describe(row: LagChartRow, days: number): string {
     </p>
     <div v-else data-testid="residence-by-severity">
       <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
-      <LagStripChart
-        :rows="rows"
-        :domain="domain"
-        caption="Pre-disclosure residence in days by severity"
-        zero-label="Disclosure"
-        unit="introductions"
-        :describe="describe"
-      />
+      <ChartExport
+        name="pre-disclosure-residence-by-severity"
+        :data="lagChartData(rows, 'residence_days')"
+        :caption="figureCaption"
+      >
+        <LagStripChart
+          :rows="rows"
+          :domain="domain"
+          caption="Pre-disclosure residence in days by severity"
+          zero-label="Disclosure"
+          unit="introductions"
+          :describe="describe"
+        />
+      </ChartExport>
     </div>
 
     <div

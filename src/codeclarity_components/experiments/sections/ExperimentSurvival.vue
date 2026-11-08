@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
+import type { FigureCaption } from "../charts/chart-caption";
 import { formatNumber, formatShare } from "../charts/chart-format";
 import ChartExport from "../charts/ChartExport.vue";
 import ChartTable from "../charts/ChartTable.vue";
@@ -77,6 +78,14 @@ const plotted = computed(() => {
   };
 });
 
+const figureCaption = computed<FigureCaption>(() => {
+  const g = selected.value;
+  return {
+    description: `Exposure survival (Kaplan-Meier with 95% Greenwood log-log band), ${labelOf(g).toLowerCase()}`,
+    n: `n = ${g.n} exposures, ${g.fixed} fixed, ${g.censored} censored at ${props.survival.censored_at}`,
+  };
+});
+
 const caption = computed(() => {
   const g = selected.value;
   const median =
@@ -139,6 +148,7 @@ const caption = computed(() => {
       <ChartExport
         :name="`exposure-survival-${selected.key.toLowerCase()}`"
         :data="plotted"
+        :caption="figureCaption"
       >
         <SurvivalChart
           :curve="selected.curve"

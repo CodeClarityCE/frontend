@@ -79,6 +79,7 @@ function experiment(status: string, overrides: object = {}): object {
     grid_interval: "month",
     grid_count: 0,
     grid_dates: [],
+    analysis_budget: null,
     error: null,
     dataset_id: "ds-1",
     dataset_name: "top4",
@@ -355,6 +356,18 @@ describe("ExperimentDetail", () => {
     expect(wrapper.find('[data-testid="experiment-error"]').text()).toContain(
       "GitHub authentication failed",
     );
+  });
+
+  it("shows the analysis budget it was created with, if any", async () => {
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING", { analysis_budget: 500 }) });
+    const wrapper = mountDetail();
+    await flushPromises();
+    expect(wrapper.find('[data-testid="experiment-budget"]').text()).toBe("Analysis budget: 500 analyses.");
+
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
+    const unbudgeted = mountDetail();
+    await flushPromises();
+    expect(unbudgeted.find('[data-testid="experiment-budget"]').exists()).toBe(false);
   });
 
   it("says when the experiment does not exist", async () => {

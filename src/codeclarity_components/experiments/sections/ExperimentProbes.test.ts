@@ -44,6 +44,30 @@ describe("ExperimentProbes", () => {
     ]);
   });
 
+  it("shows the analysis budget and how much of it was submitted", () => {
+    const wrapper = mount(ExperimentProbes, {
+      props: {
+        probes: { ...probes, budget: { analysis_budget: 150, analyses_submitted: 150, spent: true } },
+        exposures,
+      },
+    });
+
+    expect(wrapper.find('[data-testid="probe-budget"]').text()).toBe(
+      "Analysis budget: 150 of 150 analyses submitted. Spent: no further fix probe runs.",
+    );
+  });
+
+  it("shows no budget line for an experiment without one", () => {
+    const wrapper = mount(ExperimentProbes, {
+      props: {
+        probes: { ...probes, budget: { analysis_budget: null, analyses_submitted: null, spent: false } },
+        exposures,
+      },
+    });
+
+    expect(wrapper.find('[data-testid="probe-budget"]').exists()).toBe(false);
+  });
+
   it("shows a dash for the precision share without events", () => {
     const wrapper = mount(ExperimentProbes, {
       props: {

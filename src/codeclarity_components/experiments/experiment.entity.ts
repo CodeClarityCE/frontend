@@ -41,6 +41,16 @@ export const DEFAULT_GRID_INTERVAL = GridInterval.MONTH;
 export const DEFAULT_GRID_COUNT = 24;
 export const MAX_GRID_COUNT = 120;
 
+/** Largest analysis budget the API accepts */
+export const MAX_ANALYSIS_BUDGET = 1_000_000;
+
+/**
+ * Fix probes estimated per repository per grid interval. From the archived
+ * top100 study: halving over its fix windows took 6715 probes for 100 repos
+ * x 40 intervals (about 1.7), rounded up to cover introductions.
+ */
+export const PROBES_PER_ENTRY_INTERVAL = 2;
+
 /** Plugins an analyzer must contain to be used by an experiment */
 export const EXPERIMENT_REQUIRED_PLUGINS = ["js-sbom", "vuln-finder"];
 
@@ -144,6 +154,11 @@ export class Experiment {
   /** Calendar days of the grid (YYYY-MM-DD), oldest first, HEAD excluded */
   @IsArray()
   grid_dates!: string[];
+
+  /** Most analyses it may submit, null for no budget */
+  @IsOptional()
+  @IsInt()
+  analysis_budget!: number | null;
 
   @IsOptional()
   @IsString()
@@ -263,6 +278,8 @@ export interface CreateExperimentRequest {
   retries?: number;
   grid_interval?: GridInterval;
   grid_count?: number;
+  /** Omitted for no budget */
+  analysis_budget?: number;
 }
 
 /* Dataset-level results, computed by the API from the done runs */
@@ -461,6 +478,15 @@ export interface ProbesBlock {
   introductions: ProbeOutcomeCounts;
   /** Not-found events per reason, most frequent first */
   not_found_reasons: Record<string, number>;
+  /** Absent from results of older APIs */
+  budget?: ProbeBudget;
+}
+
+/** The analysis budget, what was submitted against it and whether it is spent */
+export interface ProbeBudget {
+  analysis_budget: number | null;
+  analyses_submitted: number | null;
+  spent: boolean;
 }
 
 /** Instance load of one grid date in the hindsight and as-of views */

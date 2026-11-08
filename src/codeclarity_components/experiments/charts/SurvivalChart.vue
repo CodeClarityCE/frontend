@@ -12,6 +12,7 @@ import {
   RIGHT_PADDING,
   TOP_PADDING,
 } from "./chart-format";
+import ChartTooltip from "./ChartTooltip.vue";
 
 import "./experiment-chart.css";
 
@@ -210,14 +211,12 @@ function hide(): void {
       />
     </svg>
 
-    <div
+    <ChartTooltip
       v-if="hover"
       data-testid="survival-tooltip"
-      class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 shadow-sm whitespace-nowrap dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700"
-      :style="{
-        left: `${(hover.x / CHART_WIDTH) * 100}%`,
-        top: `calc(${(hover.y / height) * 100}% - 8px)`,
-      }"
-    >{{ hover.text }}</div>
+      :x="hover.x"
+      :y="hover.y"
+      :height="height"
+    >{{ hover.text }}</ChartTooltip>
   </div>
 </template>

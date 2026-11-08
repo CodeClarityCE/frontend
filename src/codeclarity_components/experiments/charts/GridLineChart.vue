@@ -3,6 +3,8 @@ import { line, scaleLinear } from "d3";
 import { computed, ref } from "vue";
 
 import { CHART_WIDTH, type GridLineSeries, TOP_PADDING } from "./chart-format";
+import ChartTable from "./ChartTable.vue";
+import ChartTooltip from "./ChartTooltip.vue";
 
 import "./experiment-chart.css";
 
@@ -93,14 +95,6 @@ const endLabels = computed(() => {
 });
 
 const active = ref<number | null>(null);
-
-const tooltipStyle = computed(() => {
-  if (active.value === null) return {};
-  return {
-    left: `${(xOf(active.value) / CHART_WIDTH) * 100}%`,
-    top: `${(TOP_PADDING / height) * 100}%`,
-  };
-});
 
 function formatCell(value: number | null): string {
   return value === null ? "-" : props.formatY(value);
@@ -225,16 +219,15 @@ function formatCell(value: number | null): string {
       />
     </svg>
 
-    <div
+    <ChartTooltip
       v-if="active !== null"
       data-testid="line-tooltip"
-      class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 shadow-sm whitespace-nowrap dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700"
-      :style="tooltipStyle"
-    >{{ describe(active) }}</div>
+      :x="xOf(active)"
+      :y="TOP_PADDING + 8"
+      :height="height"
+    >{{ describe(active) }}</ChartTooltip>
 
-    <details class="mt-2 text-sm">
-      <summary class="cursor-pointer text-gray-500">Show table</summary>
-      <table class="w-full mt-2">
+    <ChartTable>
         <thead class="text-left text-gray-500">
           <tr>
             <th class="font-medium">{{ xTitle }}</th>
@@ -249,7 +242,6 @@ function formatCell(value: number | null): string {
             <td v-for="c in extraColumns ?? []" :key="c.label" class="text-right">{{ c.values[i] }}</td>
           </tr>
         </tbody>
-      </table>
-    </details>
+    </ChartTable>
   </div>
 </template>

@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 
 import { formatNumber, formatShare } from "../charts/chart-format";
+import ChartTable from "../charts/ChartTable.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
   type ExposureSurvivalBlock,
@@ -101,9 +102,7 @@ const caption = computed(() => {
         :caption="caption"
       />
 
-      <details class="text-sm">
-        <summary class="cursor-pointer text-gray-500">Show table</summary>
-        <table class="w-full mt-2">
+      <ChartTable>
           <thead class="text-left text-gray-500">
             <tr>
               <th class="font-medium">Group</th>
@@ -122,8 +121,7 @@ const caption = computed(() => {
               <td class="text-right">{{ formatNumber(group.median_days) }}</td>
             </tr>
           </tbody>
-        </table>
-      </details>
+      </ChartTable>
     </template>
   </div>
 </template>

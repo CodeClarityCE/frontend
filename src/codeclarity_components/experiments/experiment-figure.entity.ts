@@ -39,6 +39,11 @@ export interface FigureSeries {
   key: string;
   label: string;
   values: (number | null)[];
+  /** 95% band around values, on survival Figures */
+  lower?: (number | null)[];
+  upper?: (number | null)[];
+  /** Exposures censored at each point, on survival Figures */
+  censored?: number[];
 }
 
 export interface FigureData {
@@ -46,4 +51,6 @@ export interface FigureData {
   y_title: string;
   labels: string[];
   series: FigureSeries[];
+  /** YYYY-MM-DD open exposures are censored at, on survival Figures */
+  censored_at?: string;
 }

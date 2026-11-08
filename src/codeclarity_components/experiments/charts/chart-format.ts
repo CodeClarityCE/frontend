@@ -21,6 +21,13 @@ export interface GridLineSeries {
   color: string;
 }
 
+/** One Kaplan-Meier curve of a Figure, with its band and censoring. */
+export interface StepSeries extends GridLineSeries {
+  lower: (number | null)[];
+  upper: (number | null)[];
+  censored: number[];
+}
+
 /** viewBox width; charts scale to their container */
 export const CHART_WIDTH = 640;
 /** Left column for row labels */

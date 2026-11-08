@@ -252,15 +252,22 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || exporting.value) return;
   exporting.value = file;
+  const metricVersion = resultsVersion.value;
   try {
     const blob = await experimentsRepository.downloadExperimentExport({
       orgId,
       experimentId: experimentId.value,
       file,
+      ...(metricVersion === null ? {} : { metricVersion }),
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
     });
-    saveBlob(blob, exportFilename(file));
+    saveBlob(
+      blob,
+      exportFilename(
+        metricVersion === null ? file : `v${metricVersion}-${file}`,
+      ),
+    );
   } catch {
     errorToast(`Failed to export ${file}`);
   } finally {

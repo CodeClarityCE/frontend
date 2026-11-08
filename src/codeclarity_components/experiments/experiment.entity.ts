@@ -361,6 +361,17 @@ export interface ShareIntervals {
   };
   sweep: SweepShareIntervals[];
   severity: Record<keyof SeverityCounts, ConfidenceInterval | null>;
+  /** Optional so payloads stored before these shares still render */
+  epss_nonnull?: ConfidenceInterval | null;
+  fix_snapshot_precision?: ConfidenceInterval | null;
+  introduction_snapshot_precision?: ConfidenceInterval | null;
+  removed_transitive?: RemovedTransitiveIntervals;
+}
+
+/** The removed_transitive share's intervals; by_interval follows fix_kinds. */
+export interface RemovedTransitiveIntervals {
+  overall: ConfidenceInterval | null;
+  by_interval: (ConfidenceInterval | null)[];
 }
 
 export interface EpssBlock {

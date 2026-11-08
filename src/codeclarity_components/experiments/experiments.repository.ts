@@ -112,6 +112,8 @@ export interface DownloadExperimentExportRequestOptions extends AuthRepoMethodGe
   orgId: string;
   experimentId: string;
   file: ExperimentExportFile;
+  /** A Published results version; left out for what the page computes */
+  metricVersion?: number;
 }
 
 export type DownloadPublishedPackageRequestOptions =
@@ -393,7 +395,11 @@ export class ExperimentsRepository extends BaseRepository {
   async downloadExperimentExport(
     options: DownloadExperimentExportRequestOptions,
   ): Promise<Blob> {
-    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/export/${options.file}`;
+    const version =
+      options.metricVersion === undefined
+        ? ""
+        : `?metric_version=${options.metricVersion}`;
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/export/${options.file}${version}`;
 
     return await this.getBlobRequest({
       bearerToken: options.bearerToken,

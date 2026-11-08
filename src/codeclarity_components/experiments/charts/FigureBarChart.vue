@@ -114,6 +114,22 @@ const bars = computed(() =>
   ),
 );
 
+/** 95% interval of each bar, drawn over its centre. */
+const errorBars = computed(() =>
+  props.series.flatMap((series, seriesIndex) =>
+    series.values.flatMap((_, groupIndex) => {
+      const low = series.lower?.[groupIndex] ?? null;
+      const high = series.upper?.[groupIndex] ?? null;
+      if (low === null || high === null) return [];
+      const x =
+        groupStart(groupIndex) +
+        seriesIndex * (barWidth.value + BAR_GAP) +
+        barWidth.value / 2;
+      return [{ key: `err-${series.key}-${groupIndex}`, x, low, high }];
+    }),
+  ),
+);
+
 const active = ref<number | null>(null);
 
 function formatCell(value: number | null): string {
@@ -186,6 +202,27 @@ function formatCell(value: number | null): string {
           :d="bar.d"
           :fill="bar.color"
         />
+        <g
+          v-for="bar in errorBars"
+          :key="bar.key"
+          data-testid="figure-error-bar"
+          stroke="var(--viz-text-secondary)"
+          stroke-width="1"
+        >
+          <line :x1="bar.x" :x2="bar.x" :y1="y(bar.low)" :y2="y(bar.high)" />
+          <line
+            :x1="bar.x - 3"
+            :x2="bar.x + 3"
+            :y1="y(bar.low)"
+            :y2="y(bar.low)"
+          />
+          <line
+            :x1="bar.x - 3"
+            :x2="bar.x + 3"
+            :y1="y(bar.high)"
+            :y2="y(bar.high)"
+          />
+        </g>
       </g>
 
       <!-- One hit target per group, the full plot height -->

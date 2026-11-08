@@ -1076,6 +1076,19 @@ describe("ExperimentDetail", () => {
       expect(rows[1]?.text()).toContain("95% CI 41.1% to 45.1%");
     });
 
+    it("shows the EPSS score share's interval", async () => {
+      const wrapper = await mountWith({
+        epss: { ...(results() as { epss: object }).epss, nonnull_share: 0.91 },
+        share_intervals: {
+          ...shareIntervals,
+          epss_nonnull: { low: 0.88, high: 0.93 },
+        },
+      });
+      expect(wrapper.find('[data-testid="experiment-epss"]').text()).toContain(
+        "91.0% (95% CI 88.0% to 93.0%)",
+      );
+    });
+
     it("shows plain shares when the results carry no intervals", async () => {
       const wrapper = await mountWith({});
       expect(
@@ -2503,6 +2516,27 @@ describe("ExperimentDetail", () => {
       expect(saveBlob).toHaveBeenCalledWith(blob, "top4-head-v3-package.zip");
     });
 
+    it.each(["results.json", "runs.csv"] as const)(
+      "exports %s of the version being viewed",
+      async (file) => {
+        const blob = new Blob(["x"]);
+        getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+        getPublishedVersions.mockResolvedValue({ data: [version] });
+        getPublishedResults.mockResolvedValue({ data: results() });
+        downloadExperimentExport.mockResolvedValue(blob);
+        const wrapper = mountDetail();
+        await flushPromises();
+
+        await wrapper.find(`[data-testid="export-${file}"]`).trigger("click");
+        await flushPromises();
+
+        expect(downloadExperimentExport).toHaveBeenCalledWith(
+          expect.objectContaining({ file, metricVersion: 3 }),
+        );
+        expect(saveBlob).toHaveBeenCalledWith(blob, `top4-head-v3-${file}`);
+      },
+    );
+
     it("offers no package while nothing is published", async () => {
       getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
       const wrapper = mountDetail();
@@ -3174,6 +3208,34 @@ describe("ExperimentDetail Figures tab", () => {
       return wrapper;
     }
 
+    it("recognises a tied Figure whose definition came back in jsonb key order", async () => {
+      getFigures.mockResolvedValue({
+        data: [
+          {
+            ...savedFigure(1),
+            // jsonb returns keys shortest first, then bytewise
+            definition: {
+              metric: AS_OF_DEFINITION.metric,
+              filters: AS_OF_DEFINITION.filters,
+              group_by: AS_OF_DEFINITION.group_by,
+              chart_form: AS_OF_DEFINITION.chart_form,
+            },
+          },
+        ],
+      });
+      getPublishedVersions.mockResolvedValue({ data: VERSIONS });
+      getPublishedResults.mockResolvedValue({ data: results() });
+      const wrapper = await openFiguresTab();
+      computeFigureData.mockClear();
+
+      await wrapper.find('[data-testid="figure-open"]').trigger("click");
+      await flushPromises();
+
+      expect(getFigureData).toHaveBeenCalled();
+      expect(computeFigureData).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
     it("plots a tied Figure from its stored data", async () => {
       const wrapper = await openFigure(1);
 
@@ -3585,6 +3647,36 @@ describe("ExperimentDetail Figures tab", () => {
 
       expect(wrapper.findAll('[data-testid="figure-bar"]')).toHaveLength(2);
       expect(wrapper.find('[data-testid="line-series"]').exists()).toBe(false);
+    });
+
+    it("draws bars with 95% Wilson error bars on a Figure that carries them", async () => {
+      computeFigureData.mockResolvedValue({
+        data: {
+          x_title: "Severity",
+          y_title: "Vulnerability instances",
+          labels: ["High", "Low"],
+          series: [
+            {
+              key: "instances",
+              label: "Instances",
+              values: [2, 1],
+              lower: [0.6, 0.1],
+              upper: [2.8, 1.7],
+            },
+          ],
+        },
+      });
+      const wrapper = await openFiguresTab();
+
+      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-testid="figure-error-bar"]')).toHaveLength(
+        2,
+      );
+      expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
+        "95% Wilson",
+      );
     });
 
     it("draws a scatter as points without a joining line", async () => {

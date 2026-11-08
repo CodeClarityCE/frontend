@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
   formatNumber,
   formatShare,
+  gridLineData,
   type GridLineSeries,
   plural,
 } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
 import type { FixKindRow, UpstreamLeverageBlock } from "../experiment.entity";
 
@@ -90,6 +93,31 @@ function describeShare(index: number): string {
 
 const overall = computed(() => props.leverage.overall);
 
+const clearCaption = computed<FigureCaption>(() => {
+  const last = clear.value.at(-1);
+  return {
+    description:
+      "Packages needed to clear 50% and 80% of instances per grid date",
+    n: `n = ${last?.instances ?? 0} instances in ${last?.projects ?? 0} projects at ${last?.grid_date ?? HEAD}`,
+    exclusions: excluded(
+      clear.value.filter((r) => r.pkgs_clear_50 === null).length,
+      "grid date",
+      "grid dates",
+      "without a done snapshot",
+    ),
+  };
+});
+
+const shareCaption = computed<FigureCaption>(() => {
+  const { fixes, unknown } = overall.value;
+  return {
+    description:
+      "Share of fixes of known kind removed transitively, per grid interval",
+    n: `n = ${fixes - unknown} fixes of known kind`,
+    exclusions: excluded(unknown, "fix", "fixes", "of unknown kind"),
+  };
+});
+
 const summary = computed(() => {
   const o = overall.value;
   if (o.fixes === 0) return "No fixes yet.";
@@ -129,16 +157,22 @@ const unknownNote = computed(() => {
           The fewest packages whose fixes would clear 50% and 80% of the
           instances in done snapshots at each grid date.
         </p>
-        <GridLineChart
-          :labels="clearLabels"
-          :series="clearSeries"
-          :y-max="clearMax"
-          :format-y="formatNumber"
-          :describe="describeClear"
-          :extra-columns="clearColumns"
-          caption="Packages needed to clear 50% and 80% of instances per grid date"
-          x-title="Grid date"
-        />
+        <ChartExport
+          name="packages-to-clear"
+          :data="gridLineData('Grid date', clearLabels, clearSeries)"
+          :caption="clearCaption"
+        >
+          <GridLineChart
+            :labels="clearLabels"
+            :series="clearSeries"
+            :y-max="clearMax"
+            :format-y="formatNumber"
+            :describe="describeClear"
+            :extra-columns="clearColumns"
+            caption="Packages needed to clear 50% and 80% of instances per grid date"
+            x-title="Grid date"
+          />
+        </ChartExport>
       </div>
       <div data-testid="leverage-transitive-share">
         <h4 class="text-sm font-medium text-gray-900 mb-1">
@@ -151,18 +185,24 @@ const unknownNote = computed(() => {
         <p v-if="intervals.length === 0" class="text-sm text-gray-500">
           No grid intervals yet.
         </p>
-        <GridLineChart
+        <ChartExport
           v-else
-          :labels="shareLabels"
-          :series="shareSeries"
-          :y-max="1"
-          :format-y="formatShare"
-          :format-tick="(share: number) => `${Math.round(share * 100)}%`"
-          :describe="describeShare"
-          :extra-columns="shareColumns"
-          caption="Share of fixes of known kind removed transitively, per grid interval"
-          x-title="Interval ending"
-        />
+          name="fixes-removed-transitively"
+          :data="gridLineData('Interval ending', shareLabels, shareSeries)"
+          :caption="shareCaption"
+        >
+          <GridLineChart
+            :labels="shareLabels"
+            :series="shareSeries"
+            :y-max="1"
+            :format-y="formatShare"
+            :format-tick="(share: number) => `${Math.round(share * 100)}%`"
+            :describe="describeShare"
+            :extra-columns="shareColumns"
+            caption="Share of fixes of known kind removed transitively, per grid interval"
+            x-title="Interval ending"
+          />
+        </ChartExport>
         <p
           v-if="overall.snapshot_precision_share !== null"
           class="text-xs text-gray-500 mt-1"

@@ -7,6 +7,7 @@ import { PaginationComponent } from "@/base_components";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
 import { Progress } from "@/shadcn/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -31,6 +32,7 @@ import {
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
+import ExperimentFigures from "./ExperimentFigures.vue";
 import ExperimentResults from "./ExperimentResults.vue";
 
 /** How often the experiment is reloaded while it may still change */
@@ -407,132 +409,152 @@ onUnmounted(() => clearTimeout(pollTimer));
         </div>
       </div>
 
-      <section class="space-y-4" data-testid="experiment-results">
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-        >
-          <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
-          <div class="flex flex-wrap gap-2">
-            <Button
-              v-for="file in EXPERIMENT_EXPORT_FILES"
-              :key="file"
-              variant="outline"
-              size="sm"
-              :disabled="exporting !== null"
-              :data-testid="`export-${file}`"
-              @click="downloadExport(file)"
-            >
-              <Icon
-                :icon="
-                  exporting === file
-                    ? 'solar:loading-linear'
-                    : 'solar:download-linear'
-                "
-                class="h-4 w-4 mr-1"
-                :class="{ 'animate-spin': exporting === file }"
-              />
-              {{ file }}
-            </Button>
-          </div>
-        </div>
-        <ExperimentResults v-if="results" :results="results" />
-        <p
-          v-else-if="experiment.run_counts.done === 0"
-          class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
-          data-testid="experiment-results-empty"
-        >
-          Results appear once the first run is done.
-        </p>
-      </section>
+      <Tabs default-value="results" class="space-y-6">
+        <TabsList>
+          <TabsTrigger value="results" data-testid="experiment-tab-results">
+            Results
+          </TabsTrigger>
+          <TabsTrigger value="figures" data-testid="experiment-tab-figures">
+            Figures
+          </TabsTrigger>
+        </TabsList>
 
-      <div
-        v-if="runs.length > 0"
-        class="bg-white rounded-xl border border-gray-200 overflow-hidden"
-      >
-        <div
-          class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
-        >
-          <div class="col-span-1">Rank</div>
-          <div class="col-span-3">Repository</div>
-          <div class="col-span-1">Snapshot</div>
-          <div class="col-span-2">State</div>
-          <div class="col-span-2">Error</div>
-          <div class="col-span-2">Commit</div>
-          <div class="col-span-1">Analysis</div>
-        </div>
-        <div
-          v-for="run in runs"
-          :key="run.id"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
-          data-testid="experiment-run"
-        >
-          <div class="lg:col-span-1 text-gray-500">
-            #{{ run.entry.rank + 1 }}
-          </div>
-          <div class="lg:col-span-3">
-            <a
-              :href="run.entry.git_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="font-medium text-gray-900 hover:underline"
+        <TabsContent value="results" class="space-y-8">
+          <section class="space-y-4" data-testid="experiment-results">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
             >
-              {{ run.entry.full_name }}
-            </a>
-          </div>
-          <div
-            class="lg:col-span-1 text-gray-700 whitespace-nowrap"
-            data-testid="experiment-run-snapshot"
-          >
-            {{ snapshotLabel(run.grid_date) }}
-          </div>
-          <div class="lg:col-span-2">
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
-              :class="ExperimentRunStatusColors[run.status]"
+              <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
+              <div class="flex flex-wrap gap-2">
+                <Button
+                  v-for="file in EXPERIMENT_EXPORT_FILES"
+                  :key="file"
+                  variant="outline"
+                  size="sm"
+                  :disabled="exporting !== null"
+                  :data-testid="`export-${file}`"
+                  @click="downloadExport(file)"
+                >
+                  <Icon
+                    :icon="
+                      exporting === file
+                        ? 'solar:loading-linear'
+                        : 'solar:download-linear'
+                    "
+                    class="h-4 w-4 mr-1"
+                    :class="{ 'animate-spin': exporting === file }"
+                  />
+                  {{ file }}
+                </Button>
+              </div>
+            </div>
+            <ExperimentResults v-if="results" :results="results" />
+            <p
+              v-else-if="experiment.run_counts.done === 0"
+              class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
+              data-testid="experiment-results-empty"
             >
-              {{ ExperimentRunStatusLabels[run.status] }}
-            </span>
-            <span v-if="run.attempts > 1" class="text-xs text-gray-500 ml-1">
-              {{ run.attempts }} attempts
-            </span>
-          </div>
-          <div class="lg:col-span-2 text-gray-700 break-words">
-            {{ run.error ?? "" }}
-          </div>
-          <div
-            class="lg:col-span-2 font-mono text-gray-700"
-            :title="run.commit_hash ?? undefined"
-          >
-            {{ shortSha(run.commit_hash) }}
-            <span v-if="run.branch" class="font-sans text-gray-500">
-              ({{ run.branch }})</span
-            >
-          </div>
-          <div class="lg:col-span-1">
-            <RouterLink
-              v-if="run.analysis_id && run.project_id"
-              :to="{
-                name: 'results',
-                query: {
-                  analysis_id: run.analysis_id,
-                  project_id: run.project_id,
-                },
-              }"
-              class="text-gray-900 underline"
-              data-testid="run-analysis"
-            >
-              Open
-            </RouterLink>
-          </div>
-        </div>
-      </div>
+              Results appear once the first run is done.
+            </p>
+          </section>
 
-      <PaginationComponent
-        v-if="runsTotalPages > 1"
-        :current-page="runsPage"
-        :total-pages="runsTotalPages"
-        @page-change="goToRunsPage"
-      />
+          <div
+            v-if="runs.length > 0"
+            class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+          >
+            <div
+              class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              <div class="col-span-1">Rank</div>
+              <div class="col-span-3">Repository</div>
+              <div class="col-span-1">Snapshot</div>
+              <div class="col-span-2">State</div>
+              <div class="col-span-2">Error</div>
+              <div class="col-span-2">Commit</div>
+              <div class="col-span-1">Analysis</div>
+            </div>
+            <div
+              v-for="run in runs"
+              :key="run.id"
+              class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
+              data-testid="experiment-run"
+            >
+              <div class="lg:col-span-1 text-gray-500">
+                #{{ run.entry.rank + 1 }}
+              </div>
+              <div class="lg:col-span-3">
+                <a
+                  :href="run.entry.git_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-medium text-gray-900 hover:underline"
+                >
+                  {{ run.entry.full_name }}
+                </a>
+              </div>
+              <div
+                class="lg:col-span-1 text-gray-700 whitespace-nowrap"
+                data-testid="experiment-run-snapshot"
+              >
+                {{ snapshotLabel(run.grid_date) }}
+              </div>
+              <div class="lg:col-span-2">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
+                  :class="ExperimentRunStatusColors[run.status]"
+                >
+                  {{ ExperimentRunStatusLabels[run.status] }}
+                </span>
+                <span
+                  v-if="run.attempts > 1"
+                  class="text-xs text-gray-500 ml-1"
+                >
+                  {{ run.attempts }} attempts
+                </span>
+              </div>
+              <div class="lg:col-span-2 text-gray-700 break-words">
+                {{ run.error ?? "" }}
+              </div>
+              <div
+                class="lg:col-span-2 font-mono text-gray-700"
+                :title="run.commit_hash ?? undefined"
+              >
+                {{ shortSha(run.commit_hash) }}
+                <span v-if="run.branch" class="font-sans text-gray-500">
+                  ({{ run.branch }})</span
+                >
+              </div>
+              <div class="lg:col-span-1">
+                <RouterLink
+                  v-if="run.analysis_id && run.project_id"
+                  :to="{
+                    name: 'results',
+                    query: {
+                      analysis_id: run.analysis_id,
+                      project_id: run.project_id,
+                    },
+                  }"
+                  class="text-gray-900 underline"
+                  data-testid="run-analysis"
+                >
+                  Open
+                </RouterLink>
+              </div>
+            </div>
+          </div>
+
+          <PaginationComponent
+            v-if="runsTotalPages > 1"
+            :current-page="runsPage"
+            :total-pages="runsTotalPages"
+            @page-change="goToRunsPage"
+          />
+        </TabsContent>
+
+        <TabsContent value="figures">
+          <ExperimentFigures :experiment-id="experimentId" />
+        </TabsContent>
+      </Tabs>
     </template>
   </div>
 </template>

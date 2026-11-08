@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, provide } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
-import { formatInterval, formatShare } from "../charts/chart-format";
+import { SNAPSHOT_COVERAGE } from "../charts/chart-caption";
+import {
+  formatBracketInterval,
+  formatInterval,
+  formatPValue,
+  formatShare,
+  formatShareWithInterval,
+} from "../charts/chart-format";
 import {
   type BootstrapInterval,
   type ExperimentResults,
@@ -44,14 +51,14 @@ function tally(
 }
 
 const headline = computed(() => props.results.headline);
-const intervals = computed(() => props.results.intervals ?? null);
+const bootstrap = computed(() => props.results.bootstrap_intervals ?? null);
 
 /** Interval text for a stat card, empty without one. */
 function cardInterval(
   interval: BootstrapInterval | null | undefined,
   format: (value: number) => string,
 ): string {
-  return interval ? `95% CI ${formatInterval(interval, format)}` : "";
+  return interval ? `95% CI ${formatBracketInterval(interval, format)}` : "";
 }
 
 const fixedThree = (value: number): string => value.toFixed(3);
@@ -69,6 +76,7 @@ const gridCoverage = computed(() => {
   const rows = props.results.grid_coverage ?? [];
   return rows.some((row) => row.grid_date !== null) ? rows : [];
 });
+provide(SNAPSHOT_COVERAGE, gridCoverage);
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),
 );
@@ -101,6 +109,32 @@ const residence = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.residence ?? null) : null,
 );
 
+const headlineIntervals = computed(
+  () => props.results.share_intervals?.headline ?? null,
+);
+
+const highCriticalSubtitle = computed(() => {
+  const interval = headlineIntervals.value?.high_critical_share;
+  const ofClassed = formatShareWithInterval(
+    headline.value.high_critical_share_of_classed,
+    headlineIntervals.value?.high_critical_share_of_classed,
+  );
+  return interval
+    ? `95% CI ${formatInterval(interval)}; of classed: ${ofClassed}`
+    : `of classed: ${ofClassed}`;
+});
+
+/** The sweep rows with their intervals, none when the API sent none. */
+const sweepRows = computed(() =>
+  props.results.sweep.map((row) => ({
+    row,
+    intervals:
+      props.results.share_intervals?.sweep.find(
+        (entry) => entry.subset === row.subset,
+      ) ?? null,
+  })),
+);
+
 const severityRows = computed(() => {
   const counts = headline.value.sev_counts;
   const total = SEVERITY_ORDER.reduce((sum, sev) => sum + counts[sev], 0);
@@ -108,6 +142,7 @@ const severityRows = computed(() => {
     severity,
     count: counts[severity],
     share: total === 0 ? null : counts[severity] / total,
+    interval: props.results.share_intervals?.severity[severity] ?? null,
   }));
 });
 
@@ -205,7 +240,12 @@ const analyzerSteps = computed(() =>
           label="Affected projects"
           :value="`${headline.n_affected} / ${headline.n_projects}`"
           icon="solar:shield-warning-linear"
-          :subtitle="formatShare(headline.affected_share)"
+          :subtitle="
+            formatShareWithInterval(
+              headline.affected_share,
+              headlineIntervals?.affected_share,
+            )
+          "
         />
         <StatCard
           label="Vulnerability instances"
@@ -225,8 +265,8 @@ const analyzerSteps = computed(() =>
           :subtitle="
             withInterval(
               'median / mean / max instances',
-              intervals?.headline.load_median
-                ? `median ${cardInterval(intervals.headline.load_median, whole)}`
+              bootstrap?.headline.load_median
+                ? `median ${cardInterval(bootstrap.headline.load_median, whole)}`
                 : '',
             )
           "
@@ -237,8 +277,8 @@ const analyzerSteps = computed(() =>
           icon="solar:pie-chart-2-linear"
           :subtitle="
             withInterval(
-              `top 10 packages: ${formatShare(headline.top10_pkg_share)}`,
-              cardInterval(intervals?.headline.gini_pkg, fixedThree),
+              `top 10 packages: ${formatShareWithInterval(headline.top10_pkg_share, headlineIntervals?.top10_pkg_share)}`,
+              cardInterval(bootstrap?.headline.gini_pkg, fixedThree),
             )
           "
         />
@@ -248,8 +288,8 @@ const analyzerSteps = computed(() =>
           icon="solar:pie-chart-2-linear"
           :subtitle="
             withInterval(
-              `top 10 projects: ${formatShare(headline.top10_proj_share)}`,
-              cardInterval(intervals?.headline.gini_proj, fixedThree),
+              `top 10 projects: ${formatShareWithInterval(headline.top10_proj_share, headlineIntervals?.top10_proj_share)}`,
+              cardInterval(bootstrap?.headline.gini_proj, fixedThree),
             )
           "
         />
@@ -263,7 +303,7 @@ const analyzerSteps = computed(() =>
           label="High + critical"
           :value="formatShare(headline.high_critical_share)"
           icon="solar:danger-triangle-linear"
-          :subtitle="`of classed: ${formatShare(headline.high_critical_share_of_classed)}`"
+          :subtitle="highCriticalSubtitle"
         />
       </div>
 
@@ -304,6 +344,7 @@ const analyzerSteps = computed(() =>
                 <th class="font-medium">Severity</th>
                 <th class="font-medium text-right">Instances</th>
                 <th class="font-medium text-right">Share</th>
+                <th class="font-medium text-right">95% CI</th>
               </tr>
             </thead>
             <tbody class="text-gray-700">
@@ -311,6 +352,7 @@ const analyzerSteps = computed(() =>
                 <td>{{ row.severity }}</td>
                 <td class="text-right">{{ count(row.count) }}</td>
                 <td class="text-right">{{ formatShare(row.share) }}</td>
+                <td class="text-right">{{ formatInterval(row.interval) }}</td>
               </tr>
             </tbody>
           </table>
@@ -349,8 +391,8 @@ const analyzerSteps = computed(() =>
             <dt class="text-gray-500">Median / p90</dt>
             <dd class="text-right">
               {{ decimal(results.epss.median, 4) }}
-              <span v-if="intervals?.epss_median" class="text-gray-500">
-                {{ formatInterval(intervals.epss_median, fixedFour) }}
+              <span v-if="bootstrap?.epss_median" class="text-gray-500">
+                {{ formatBracketInterval(bootstrap.epss_median, fixedFour) }}
               </span>
               / {{ decimal(results.epss.p90, 4) }}
             </dd>
@@ -401,7 +443,7 @@ const analyzerSteps = computed(() =>
           <p class="text-sm text-gray-700">
             Spearman rho between star rank and vulnerability load:
             <strong>{{ decimal(results.rqc.spearman_rho) }}</strong> (two-sided
-            p = {{ decimal(results.rqc.p) }}, n = {{ results.rqc.n }}).
+            {{ formatPValue(results.rqc.p) }}, n = {{ results.rqc.n }}).
           </p>
           <p
             v-if="results.rqc.excluded_zero_dep_projects > 0"
@@ -430,12 +472,12 @@ const analyzerSteps = computed(() =>
                 <td class="text-right">
                   {{ count(row.med_deps) }}
                   <span
-                    v-if="intervals?.rqd[row.package_manager]?.med_deps"
+                    v-if="bootstrap?.rqd[row.package_manager]?.med_deps"
                     class="text-gray-500"
                   >
                     {{
-                      formatInterval(
-                        intervals.rqd[row.package_manager]?.med_deps,
+                      formatBracketInterval(
+                        bootstrap.rqd[row.package_manager]?.med_deps,
                         whole,
                       )
                     }}
@@ -444,12 +486,12 @@ const analyzerSteps = computed(() =>
                 <td class="text-right">
                   {{ count(row.med_vulns) }}
                   <span
-                    v-if="intervals?.rqd[row.package_manager]?.med_vulns"
+                    v-if="bootstrap?.rqd[row.package_manager]?.med_vulns"
                     class="text-gray-500"
                   >
                     {{
-                      formatInterval(
-                        intervals.rqd[row.package_manager]?.med_vulns,
+                      formatBracketInterval(
+                        bootstrap.rqd[row.package_manager]?.med_vulns,
                         whole,
                       )
                     }}
@@ -479,10 +521,16 @@ const analyzerSteps = computed(() =>
             </tr>
           </thead>
           <tbody class="text-gray-700">
-            <tr v-for="row in results.sweep" :key="row.subset">
+            <tr v-for="{ row, intervals } in sweepRows" :key="row.subset">
               <td>{{ SweepSubsetLabels[row.subset] ?? row.subset }}</td>
               <td class="text-right">
                 {{ row.n_affected }} / {{ row.n_projects }}
+                <div
+                  v-if="intervals?.affected_share"
+                  class="text-xs text-gray-500"
+                >
+                  95% CI {{ formatInterval(intervals.affected_share) }}
+                </div>
               </td>
               <td class="text-right">{{ count(row.instances) }}</td>
               <td class="text-right">
@@ -491,12 +539,12 @@ const analyzerSteps = computed(() =>
               <td class="text-right">
                 {{ count(row.load_median) }}
                 <span
-                  v-if="intervals?.sweep[row.subset]?.load_median"
+                  v-if="bootstrap?.sweep[row.subset]?.load_median"
                   class="text-gray-500"
                 >
                   {{
-                    formatInterval(
-                      intervals.sweep[row.subset].load_median,
+                    formatBracketInterval(
+                      bootstrap.sweep[row.subset].load_median,
                       whole,
                     )
                   }}
@@ -505,28 +553,34 @@ const analyzerSteps = computed(() =>
               </td>
               <td class="text-right">
                 {{ formatShare(row.high_critical_share) }}
+                <div
+                  v-if="intervals?.high_critical_share"
+                  class="text-xs text-gray-500"
+                >
+                  95% CI {{ formatInterval(intervals.high_critical_share) }}
+                </div>
               </td>
               <td class="text-right">
                 {{ decimal(row.gini_pkg) }}
                 <span
-                  v-if="intervals?.sweep[row.subset]?.gini_pkg"
+                  v-if="bootstrap?.sweep[row.subset]?.gini_pkg"
                   class="text-gray-500"
                 >
                   {{
-                    formatInterval(
-                      intervals.sweep[row.subset].gini_pkg,
+                    formatBracketInterval(
+                      bootstrap.sweep[row.subset].gini_pkg,
                       fixedThree,
                     )
                   }}
                 </span>
                 / {{ decimal(row.gini_proj) }}
                 <span
-                  v-if="intervals?.sweep[row.subset]?.gini_proj"
+                  v-if="bootstrap?.sweep[row.subset]?.gini_proj"
                   class="text-gray-500"
                 >
                   {{
-                    formatInterval(
-                      intervals.sweep[row.subset].gini_proj,
+                    formatBracketInterval(
+                      bootstrap.sweep[row.subset].gini_proj,
                       fixedThree,
                     )
                   }}
@@ -546,7 +600,7 @@ const analyzerSteps = computed(() =>
       v-if="fixLag"
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
-      :intervals="intervals?.fix_lag ?? null"
+      :intervals="bootstrap?.fix_lag ?? null"
     />
 
     <ExperimentProbes
@@ -560,7 +614,7 @@ const analyzerSteps = computed(() =>
     <ExperimentResidence
       v-if="residence"
       :residence="residence"
-      :intervals="intervals?.residence ?? null"
+      :intervals="bootstrap?.residence ?? null"
     />
 
     <ExperimentUpstreamLeverage

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
+import type { FigureCaption } from "../charts/chart-caption";
 import { formatNumber, formatShare } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import ChartTable from "../charts/ChartTable.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
@@ -46,6 +48,44 @@ const medianText = computed(() =>
     : `Median ${formatNumber(selected.value.median_days)} days until half are fixed.`,
 );
 
+/** The curve as drawn, including its start at 100% on day 0. */
+const plotted = computed(() => {
+  const { n, curve, median_days: median } = selected.value;
+  return {
+    columns: [
+      "time_days",
+      "survival",
+      "lower_95",
+      "upper_95",
+      "at_risk",
+      "events",
+      "censored",
+      "median_days",
+    ],
+    rows: [
+      [0, 1, 1, 1, n, 0, 0, median],
+      ...curve.map((s) => [
+        s.time,
+        s.survival,
+        s.lower,
+        s.upper,
+        s.at_risk,
+        s.events,
+        s.censored,
+        median,
+      ]),
+    ],
+  };
+});
+
+const figureCaption = computed<FigureCaption>(() => {
+  const g = selected.value;
+  return {
+    description: `Exposure survival (Kaplan-Meier with 95% Greenwood log-log band), ${labelOf(g).toLowerCase()}`,
+    n: `n = ${g.n} exposures, ${g.fixed} fixed, ${g.censored} censored at ${props.survival.censored_at}`,
+  };
+});
+
 const caption = computed(() => {
   const g = selected.value;
   const median =
@@ -67,7 +107,8 @@ const caption = computed(() => {
         Share of exposures still unfixed after a number of days, from their
         introduction (or the first grid date they were seen) to the fix
         (Kaplan-Meier). Exposures still open at HEAD are censored, shown as
-        ticks; failed snapshots are gaps, never fixes.
+        ticks; failed snapshots are gaps, never fixes. The shaded band is the
+        95% confidence interval (Greenwood, log-log).
       </p>
     </div>
 
@@ -104,11 +145,17 @@ const caption = computed(() => {
 
       <p class="text-sm text-gray-700">{{ medianText }}</p>
 
-      <SurvivalChart
-        :curve="selected.curve"
-        :median="selected.median_days"
-        :caption="caption"
-      />
+      <ChartExport
+        :name="`exposure-survival-${selected.key.toLowerCase()}`"
+        :data="plotted"
+        :caption="figureCaption"
+      >
+        <SurvivalChart
+          :curve="selected.curve"
+          :median="selected.median_days"
+          :caption="caption"
+        />
+      </ChartExport>
 
       <ChartTable>
         <thead class="text-left text-gray-500">
@@ -131,6 +178,31 @@ const caption = computed(() => {
             <td class="text-right">{{ group.fixed }}</td>
             <td class="text-right">{{ group.censored }}</td>
             <td class="text-right">{{ formatNumber(group.median_days) }}</td>
+          </tr>
+        </tbody>
+      </ChartTable>
+
+      <ChartTable label="Show steps with 95% bounds">
+        <thead class="text-left text-gray-500">
+          <tr>
+            <th class="font-medium text-right">Day</th>
+            <th class="font-medium text-right">Still exposed</th>
+            <th class="font-medium text-right">95% lower</th>
+            <th class="font-medium text-right">95% upper</th>
+            <th class="font-medium text-right">At risk</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+          <tr
+            v-for="step in selected.curve"
+            :key="step.time"
+            data-testid="survival-step-row"
+          >
+            <td class="text-right">{{ formatNumber(step.time) }}</td>
+            <td class="text-right">{{ formatShare(step.survival) }}</td>
+            <td class="text-right">{{ formatShare(step.lower) }}</td>
+            <td class="text-right">{{ formatShare(step.upper) }}</td>
+            <td class="text-right">{{ step.at_risk }}</td>
           </tr>
         </tbody>
       </ChartTable>

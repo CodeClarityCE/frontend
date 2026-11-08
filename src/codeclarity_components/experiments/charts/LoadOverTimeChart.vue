@@ -6,12 +6,13 @@ import type { LoadRow } from "../experiment.entity";
 
 import {
   AXIS_HEIGHT,
-  CHART_WIDTH,
   formatNumber,
   plural,
   RIGHT_PADDING,
   TOP_PADDING,
+  xTickCount,
 } from "./chart-format";
+import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
@@ -22,6 +23,8 @@ const props = defineProps<{
   /** What the chart shows, for screen readers */
   caption: string;
 }>();
+
+const chartWidth = useChartWidth();
 
 const HEIGHT = 240;
 const Y_LABEL_WIDTH = 44;
@@ -39,7 +42,7 @@ const keys = computed(() => props.rows.map((row) => row.grid_date ?? "HEAD"));
 const x = computed(() =>
   scalePoint<string>()
     .domain(keys.value)
-    .range([Y_LABEL_WIDTH + 8, CHART_WIDTH - RIGHT_PADDING])
+    .range([Y_LABEL_WIDTH + 8, chartWidth.value - RIGHT_PADDING])
     .padding(0.5),
 );
 
@@ -57,8 +60,11 @@ const yTicks = computed(() => y.value.ticks(4).filter(Number.isInteger));
 
 /** Thin the date labels so they never collide; HEAD is always labelled. */
 const xLabels = computed(() => {
-  const every = Math.max(1, Math.ceil(keys.value.length / 6));
-  return keys.value.filter((key, i) => key === "HEAD" || i % every === 0);
+  const n = keys.value.length;
+  const every = Math.max(1, Math.ceil(n / xTickCount(chartWidth.value)));
+  return keys.value.filter(
+    (key, i) => key === "HEAD" || (i % every === 0 && n - 1 - i >= every / 2),
+  );
 });
 
 function xOf(index: number): number {
@@ -110,7 +116,7 @@ const hover = ref<number | null>(null);
 /** Anchor the tooltip so it stays inside the chart near either edge. */
 const tooltipShift = computed(() => {
   if (hover.value === null) return "-50%";
-  const share = xOf(hover.value) / CHART_WIDTH;
+  const share = xOf(hover.value) / chartWidth.value;
   if (share < 0.25) return "-10%";
   return share > 0.75 ? "-90%" : "-50%";
 });
@@ -124,7 +130,11 @@ const tooltipY = computed(() => {
 
 <template>
   <div class="exp-viz max-w-[640px]">
-    <ul class="flex gap-4 text-xs text-gray-700 mb-1" aria-hidden="true">
+    <ul
+      data-export-legend
+      class="flex gap-4 text-xs text-gray-700 mb-1"
+      aria-hidden="true"
+    >
       <li
         v-for="series in SERIES"
         :key="series.key"
@@ -148,7 +158,7 @@ const tooltipY = computed(() => {
 
     <div class="relative">
       <svg
-        :viewBox="`0 0 ${CHART_WIDTH} ${HEIGHT}`"
+        :viewBox="`0 0 ${chartWidth} ${HEIGHT}`"
         class="w-full h-auto"
         role="group"
         :aria-label="caption"
@@ -157,7 +167,7 @@ const tooltipY = computed(() => {
           <g v-for="tick in yTicks" :key="`y-${tick}`">
             <line
               :x1="Y_LABEL_WIDTH"
-              :x2="CHART_WIDTH - RIGHT_PADDING"
+              :x2="chartWidth - RIGHT_PADDING"
               :y1="y(tick)"
               :y2="y(tick)"
               :stroke="tick === 0 ? 'var(--viz-baseline)' : 'var(--viz-grid)'"
@@ -188,6 +198,7 @@ const tooltipY = computed(() => {
           <line
             v-if="hover !== null"
             data-testid="load-crosshair"
+            data-export-omit
             :x1="xOf(hover)"
             :x2="xOf(hover)"
             :y1="TOP_PADDING"
@@ -230,6 +241,7 @@ const tooltipY = computed(() => {
           v-for="(row, index) in rows"
           :key="`col-${labelOf(row)}`"
           data-testid="load-column"
+          data-export-omit
           :x="xOf(index) - columnWidth / 2"
           :y="TOP_PADDING"
           :width="columnWidth"

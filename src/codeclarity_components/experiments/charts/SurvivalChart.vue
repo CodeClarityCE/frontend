@@ -8,9 +8,11 @@ import {
   AXIS_HEIGHT,
   CHART_WIDTH,
   formatNumber,
+  formatShare,
   RIGHT_PADDING,
   TOP_PADDING,
 } from "./chart-format";
+import ChartTooltip from "./ChartTooltip.vue";
 
 import "./experiment-chart.css";
 
@@ -63,12 +65,8 @@ const columns = computed(() =>
   }),
 );
 
-function percent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
-}
-
 function describe(step: KmStep): string {
-  const parts = [`${percent(step.survival)} still exposed`, `${step.at_risk} at risk`];
+  const parts = [`${formatShare(step.survival)} still exposed`, `${step.at_risk} at risk`];
   if (step.events) parts.push(`${step.events} fixed`);
   if (step.censored) parts.push(`${step.censored} censored`);
   return `Day ${formatNumber(step.time)}: ${parts.join(", ")}`;
@@ -213,14 +211,12 @@ function hide(): void {
       />
     </svg>
 
-    <div
+    <ChartTooltip
       v-if="hover"
       data-testid="survival-tooltip"
-      class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 shadow-sm whitespace-nowrap dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700"
-      :style="{
-        left: `${(hover.x / CHART_WIDTH) * 100}%`,
-        top: `calc(${(hover.y / height) * 100}% - 8px)`,
-      }"
-    >{{ hover.text }}</div>
+      :x="hover.x"
+      :y="hover.y"
+      :height="height"
+    >{{ hover.text }}</ChartTooltip>
   </div>
 </template>

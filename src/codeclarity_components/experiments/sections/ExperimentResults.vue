@@ -3,6 +3,7 @@ import { computed } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
+import { formatShare } from "../charts/chart-format";
 import {
   type ExperimentResults,
   formatExperimentDate,
@@ -25,10 +26,6 @@ function count(value: number | null): string {
 
 function decimal(value: number | null, digits = 3): string {
   return value === null ? "-" : value.toFixed(digits);
-}
-
-function percent(share: number | null): string {
-  return share === null ? "-" : `${(share * 100).toFixed(1)}%`;
 }
 
 /** Counts most frequent first, with their share of the total */
@@ -186,7 +183,7 @@ const analyzerSteps = computed(() =>
           label="Affected projects"
           :value="`${headline.n_affected} / ${headline.n_projects}`"
           icon="solar:shield-warning-linear"
-          :subtitle="percent(headline.affected_share)"
+          :subtitle="formatShare(headline.affected_share)"
         />
         <StatCard
           label="Vulnerability instances"
@@ -209,13 +206,13 @@ const analyzerSteps = computed(() =>
           label="Gini by package"
           :value="decimal(headline.gini_pkg)"
           icon="solar:pie-chart-2-linear"
-          :subtitle="`top 10 packages: ${percent(headline.top10_pkg_share)}`"
+          :subtitle="`top 10 packages: ${formatShare(headline.top10_pkg_share)}`"
         />
         <StatCard
           label="Gini by project"
           :value="decimal(headline.gini_proj)"
           icon="solar:pie-chart-2-linear"
-          :subtitle="`top 10 projects: ${percent(headline.top10_proj_share)}`"
+          :subtitle="`top 10 projects: ${formatShare(headline.top10_proj_share)}`"
         />
         <StatCard
           label="Packages to clear"
@@ -225,9 +222,9 @@ const analyzerSteps = computed(() =>
         />
         <StatCard
           label="High + critical"
-          :value="percent(headline.high_critical_share)"
+          :value="formatShare(headline.high_critical_share)"
           icon="solar:danger-triangle-linear"
-          :subtitle="`of classed: ${percent(headline.high_critical_share_of_classed)}`"
+          :subtitle="`of classed: ${formatShare(headline.high_critical_share_of_classed)}`"
         />
       </div>
 
@@ -274,7 +271,7 @@ const analyzerSteps = computed(() =>
               <tr v-for="row in severityRows" :key="row.severity">
                 <td>{{ row.severity }}</td>
                 <td class="text-right">{{ count(row.count) }}</td>
-                <td class="text-right">{{ percent(row.share) }}</td>
+                <td class="text-right">{{ formatShare(row.share) }}</td>
               </tr>
             </tbody>
           </table>
@@ -308,7 +305,7 @@ const analyzerSteps = computed(() =>
           >
             <dt class="text-gray-500">Instances with a score</dt>
             <dd class="text-right">
-              {{ percent(results.epss.nonnull_share) }}
+              {{ formatShare(results.epss.nonnull_share) }}
             </dd>
             <dt class="text-gray-500">Median / p90</dt>
             <dd class="text-right">
@@ -335,7 +332,7 @@ const analyzerSteps = computed(() =>
               <tr v-for="row in matchFlags" :key="row.key">
                 <td class="font-mono">{{ row.key }}</td>
                 <td class="text-right">{{ count(row.count) }}</td>
-                <td class="text-right">{{ percent(row.share) }}</td>
+                <td class="text-right">{{ formatShare(row.share) }}</td>
               </tr>
             </tbody>
           </table>
@@ -348,7 +345,7 @@ const analyzerSteps = computed(() =>
               <tr v-for="row in winningSources" :key="row.key">
                 <td>{{ row.key }}</td>
                 <td class="text-right">{{ count(row.count) }}</td>
-                <td class="text-right">{{ percent(row.share) }}</td>
+                <td class="text-right">{{ formatShare(row.share) }}</td>
               </tr>
             </tbody>
           </table>
@@ -426,7 +423,7 @@ const analyzerSteps = computed(() =>
               <td class="text-right">
                 {{ count(row.load_median) }} / {{ decimal(row.load_mean, 1) }}
               </td>
-              <td class="text-right">{{ percent(row.high_critical_share) }}</td>
+              <td class="text-right">{{ formatShare(row.high_critical_share) }}</td>
               <td class="text-right">
                 {{ decimal(row.gini_pkg) }} / {{ decimal(row.gini_proj) }}
               </td>
@@ -452,15 +449,16 @@ const analyzerSteps = computed(() =>
       :exposures="results.exposures ?? null"
     />
 
-    <ExperimentResidence v-if="residence" :residence="residence" />
     <ExperimentSurvival v-if="survival" :survival="survival" />
 
-    <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
+    <ExperimentResidence v-if="residence" :residence="residence" />
 
     <ExperimentUpstreamLeverage
       v-if="upstreamLeverage"
       :leverage="upstreamLeverage"
     />
+
+    <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
 
     <div
       class="bg-white rounded-xl border border-gray-200 p-4"

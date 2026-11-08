@@ -1100,6 +1100,51 @@ describe("ExperimentDetail", () => {
       .map((row) => row.findAll("td").map((cell) => cell.text()));
   }
 
+  it("orders the grid blocks fix lag, probes, survival, residence, upstream leverage, then load", async () => {
+    const none = { n: 0, median: null, p25: null, p75: null, min: null, max: null };
+    getExperiment.mockResolvedValue({
+      data: experiment("COMPLETED", { grid_count: 1, grid_dates: ["2026-09-01"], run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 } }),
+    });
+    getExperimentResults.mockResolvedValue({
+      data: {
+        ...loadResults(),
+        upstream_leverage: (leverageResults() as { upstream_leverage: object }).upstream_leverage,
+        probes: {
+          fixes: { found: 0, ambiguous: 0, not_found: 3, not_probed: 0 },
+          introductions: { found: 0, ambiguous: 0, not_found: 1, not_probed: 0 },
+          not_found_reasons: {},
+        },
+        residence: {
+          introductions: 0,
+          snapshot_precision_share: null,
+          present_at_first_observation: 0,
+          undated: 0,
+          overall: none,
+          by_severity: [],
+          points: [],
+          after_disclosure: none,
+          after_disclosure_by_severity: [],
+        },
+      },
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const blocks = [
+      "experiment-fix-lag",
+      "experiment-probes",
+      "experiment-survival",
+      "experiment-residence",
+      "experiment-upstream-leverage",
+      "experiment-load",
+    ];
+    const order = wrapper
+      .findAll("[data-testid]")
+      .map((el) => el.attributes("data-testid")!)
+      .filter((id) => blocks.includes(id));
+    expect(order).toEqual(blocks);
+  });
+
   it("charts packages to clear 50% and 80% of instances per grid date outside the HEAD blocks", async () => {
     const wrapper = await mountLeverage();
 

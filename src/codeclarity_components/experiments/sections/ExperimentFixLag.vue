@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { formatDays, type LagChartRow } from "../charts/chart-format";
+import { formatDays, formatShare, type LagChartRow } from "../charts/chart-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ExposuresBlock,
@@ -55,7 +55,7 @@ const domain = computed<[number, number]>(() => {
 
 const snapshotShare = computed(() => {
   const share = props.fixLag.snapshot_precision_share;
-  return share === null ? null : `${(share * 100).toFixed(1)}%`;
+  return share === null ? null : formatShare(share);
 });
 
 const counts = computed(() => {

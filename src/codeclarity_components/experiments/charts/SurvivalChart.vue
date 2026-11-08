@@ -195,6 +195,7 @@ function hide(): void {
         />
         <circle
           v-if="hover"
+          data-export-omit
           :cx="hover.x"
           :cy="hover.y"
           r="4"
@@ -208,6 +209,7 @@ function hide(): void {
         v-for="column in columns"
         :key="`hit-${column.step.time}`"
         data-testid="survival-hit"
+        data-export-omit
         :x="column.x"
         :y="TOP_PADDING"
         :width="column.width"

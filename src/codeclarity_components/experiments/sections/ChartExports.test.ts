@@ -341,7 +341,7 @@ describe("experiment chart export", () => {
     const wrapper = mountResults();
     const csv = await savedCsv(wrapper, "experiment-survival");
     expect(csv.split("\n")[0]).toBe(
-      "time_days,survival,lower,upper,at_risk,events,censored,median_days",
+      "time_days,survival,lower_95,upper_95,at_risk,events,censored,median_days",
     );
     expect(csv.split("\n")[1]).toBe("0,1,1,1,4,0,0,50");
     expect(csv.split("\n")[2]).toBe("24,0.75,0.65,0.85,4,1,0,50");

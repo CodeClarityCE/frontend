@@ -338,6 +338,31 @@ export interface SweepRow extends HeadlineScalars {
   subset: SweepSubset;
 }
 
+export interface ConfidenceInterval {
+  low: number;
+  high: number;
+}
+
+export interface ScalarShareIntervals {
+  affected_share: ConfidenceInterval | null;
+  high_critical_share: ConfidenceInterval | null;
+  top10_pkg_share: ConfidenceInterval | null;
+  top10_proj_share: ConfidenceInterval | null;
+}
+
+export interface SweepShareIntervals extends ScalarShareIntervals {
+  subset: SweepSubset;
+}
+
+/** 95% Wilson intervals of the headline, sweep and severity shares. */
+export interface ShareIntervals {
+  headline: ScalarShareIntervals & {
+    high_critical_share_of_classed: ConfidenceInterval | null;
+  };
+  sweep: SweepShareIntervals[];
+  severity: Record<keyof SeverityCounts, ConfidenceInterval | null>;
+}
+
 export interface EpssBlock {
   nonnull_share: number | null;
   median: number | null;
@@ -617,6 +642,8 @@ export interface ExperimentResults {
   grid_coverage: GridCoverageRow[];
   headline: Headline;
   sweep: SweepRow[];
+  /** Absent from results of older APIs */
+  share_intervals?: ShareIntervals;
   epss: EpssBlock;
   match_flags: Record<string, number>;
   winning_source_head: Record<string, number>;

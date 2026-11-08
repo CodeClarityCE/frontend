@@ -55,8 +55,8 @@ const plotted = computed(() => {
     columns: [
       "time_days",
       "survival",
-      "lower",
-      "upper",
+      "lower_95",
+      "upper_95",
       "at_risk",
       "events",
       "censored",

@@ -16,6 +16,7 @@
   --viz-series-3: #1baf7a;
   --viz-series-4: #eda100;
   --viz-series-5: #e87ba4;
+  --viz-series-6: #008300;
 }
 
 /* Colours of exported figures: series stay apart in grayscale and for
@@ -40,4 +41,5 @@
   --viz-series-3: #199e70;
   --viz-series-4: #c98500;
   --viz-series-5: #d55181;
+  --viz-series-6: #008300;
 }

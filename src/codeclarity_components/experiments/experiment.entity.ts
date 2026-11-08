@@ -550,6 +550,9 @@ export interface ResidenceBlock {
 export interface KmStep {
   time: number;
   survival: number;
+  /** 95% confidence band around survival */
+  lower: number;
+  upper: number;
   at_risk: number;
   events: number;
   censored: number;

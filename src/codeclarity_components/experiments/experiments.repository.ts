@@ -15,6 +15,7 @@ import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 
 import {
   type CreateExperimentRequest,
+  type CurrentMetricVersion,
   Experiment,
   type ExperimentEstimateBasis,
   type ExperimentExportFile,
@@ -335,6 +336,25 @@ export class ExperimentsRepository extends BaseRepository {
     return Entity.unMarshal<DataResponse<PublishedVersion[]>>(
       response,
       DataResponse<PublishedVersion[]>,
+    );
+  }
+
+  async getCurrentMetricVersion(
+    options: GetPublishedVersionsRequestOptions,
+  ): Promise<DataResponse<CurrentMetricVersion>> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/metric-version`;
+
+    const response = await this.getRequest<DataResponse<CurrentMetricVersion>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<CurrentMetricVersion>>(
+      response,
+      DataResponse<CurrentMetricVersion>,
     );
   }
 

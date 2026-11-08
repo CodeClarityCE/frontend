@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { PaginationComponent } from "@/base_components";
@@ -32,6 +32,7 @@ import {
   type PublishedVersion,
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
+import { SELECTED_PUBLISHED_VERSION } from "../published-version";
 
 import ExperimentFigures from "./ExperimentFigures.vue";
 import ExperimentResults from "./ExperimentResults.vue";
@@ -60,6 +61,19 @@ const results = ref<ExperimentResultsData | null>(null);
 const resultsErrorShown = ref(false);
 /** Published results versions, newest first */
 const publishedVersions = ref<PublishedVersion[]>([]);
+/** The version a reader picked; null follows the newest */
+const pickedMetricVersion = ref<number | null>(null);
+const selectedVersion = computed<PublishedVersion | null>(
+  () =>
+    publishedVersions.value.find(
+      (version) => version.metric_version === pickedMetricVersion.value,
+    ) ??
+    publishedVersions.value[0] ??
+    null,
+);
+provide(SELECTED_PUBLISHED_VERSION, selectedVersion);
+/** What a publish would store now; null until the API has answered */
+const currentMetricVersion = ref<number | null>(null);
 const exporting = ref<ExperimentExportFile | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -76,7 +90,10 @@ const isPublished = computed(() => publishedVersions.value.length > 0);
 const canPublish = computed(
   () =>
     experiment.value?.status === ExperimentStatus.COMPLETED &&
-    !isPublished.value,
+    currentMetricVersion.value !== null &&
+    !publishedVersions.value.some(
+      (version) => version.metric_version === currentMetricVersion.value,
+    ),
 );
 
 const finishedRuns = computed(() =>
@@ -127,13 +144,18 @@ async function loadPublishedVersions(): Promise<void> {
   if (!orgId || !auth.getToken || !experimentId.value) return;
   if (experiment.value?.status !== ExperimentStatus.COMPLETED) return;
   try {
-    const response = await experimentsRepository.getPublishedVersions({
+    const request = {
       orgId,
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
-    });
-    publishedVersions.value = response.data;
+    };
+    const [versions, current] = await Promise.all([
+      experimentsRepository.getPublishedVersions(request),
+      experimentsRepository.getCurrentMetricVersion(request),
+    ]);
+    publishedVersions.value = versions.data;
+    currentMetricVersion.value = current.data.metric_version;
   } catch {
     errorToast("Failed to load the Published results versions");
   }
@@ -144,6 +166,7 @@ async function loadResults(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || !experimentId.value) return;
   if ((experiment.value?.run_counts.done ?? 0) === 0) return;
+  const requested = selectedVersion.value;
   try {
     const request = {
       orgId,
@@ -151,13 +174,16 @@ async function loadResults(): Promise<void> {
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
     };
-    const newest = publishedVersions.value[0];
-    const response = newest
+    const response = requested
       ? await experimentsRepository.getPublishedResults({
           ...request,
-          metricVersion: newest.metric_version,
+          metricVersion: requested.metric_version,
         })
       : await experimentsRepository.getExperimentResults(request);
+    // A newer pick is already on its way; this answer is out of date
+    if (requested?.metric_version !== selectedVersion.value?.metric_version) {
+      return;
+    }
     results.value = response.data;
     resultsErrorShown.value = false;
   } catch {
@@ -166,6 +192,11 @@ async function loadResults(): Promise<void> {
       resultsErrorShown.value = true;
     }
   }
+}
+
+function pickVersion(event: Event): void {
+  pickedMetricVersion.value = Number((event.target as HTMLSelectElement).value);
+  void loadResults();
 }
 
 function exportFilename(file: ExperimentExportFile): string {
@@ -256,6 +287,7 @@ async function publishExperiment(): Promise<void> {
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
     });
+    pickedMetricVersion.value = null;
     successToast("Experiment published");
   } catch (err) {
     errorToast(
@@ -514,17 +546,37 @@ onUnmounted(() => clearTimeout(pollTimer));
               <div>
                 <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
                 <p
-                  v-if="publishedVersions[0]"
+                  v-if="selectedVersion"
                   class="text-sm text-gray-600"
                   data-testid="experiment-published-version"
                 >
                   Published results, metric version
-                  {{ publishedVersions[0].metric_version }}, published
-                  {{ formatExperimentDate(publishedVersions[0].published_on) }}
-                  <template v-if="publishedVersions[0].published_by_name">
-                    by {{ publishedVersions[0].published_by_name }}</template
+                  {{ selectedVersion.metric_version }}, published
+                  {{ formatExperimentDate(selectedVersion.published_on) }}
+                  <template v-if="selectedVersion.published_by_name">
+                    by {{ selectedVersion.published_by_name }}</template
                   >.
                 </p>
+                <label
+                  v-if="selectedVersion"
+                  class="mt-2 flex items-center gap-2 text-sm text-gray-600"
+                >
+                  Version
+                  <select
+                    class="border border-gray-300 rounded-md bg-white px-2 py-1 text-sm text-gray-900"
+                    data-testid="experiment-version-select"
+                    :value="selectedVersion.metric_version"
+                    @change="pickVersion"
+                  >
+                    <option
+                      v-for="version in publishedVersions"
+                      :key="version.metric_version"
+                      :value="version.metric_version"
+                    >
+                      Metric version {{ version.metric_version }}
+                    </option>
+                  </select>
+                </label>
               </div>
               <div class="flex flex-wrap gap-2">
                 <Button

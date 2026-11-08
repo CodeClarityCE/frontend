@@ -182,6 +182,7 @@ describe("ExperimentsRepository", () => {
 
     await repository.getPublishedVersions(request);
     await repository.getPublishedResults({ ...request, metricVersion: 2 });
+    await repository.getCurrentMetricVersion(request);
 
     expect(repository.getRequest).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -191,6 +192,11 @@ describe("ExperimentsRepository", () => {
     expect(repository.getRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         url: "https://api/org/org-1/experiments/exp-1/published/2",
+      }),
+    );
+    expect(repository.getRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api/org/org-1/experiments/exp-1/metric-version",
       }),
     );
   });

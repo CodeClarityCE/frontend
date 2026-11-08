@@ -728,6 +728,11 @@ export interface PublishedVersionStamp {
   published_on: Date | string;
 }
 
+/** The metric version a publish would store now. */
+export interface CurrentMetricVersion {
+  metric_version: number;
+}
+
 /** One Published results version of an experiment, without its payload. */
 export interface PublishedVersion extends PublishedVersionStamp {
   published_by_name: string | null;

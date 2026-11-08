@@ -4,12 +4,13 @@ import { computed, ref } from "vue";
 
 import {
   AXIS_HEIGHT,
-  CHART_WIDTH,
   formatNumber,
   formatShare,
   type StepSeries,
   TOP_PADDING,
+  xTickCount,
 } from "./chart-format";
+import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
@@ -24,6 +25,8 @@ const props = defineProps<{
   xTitle: string;
 }>();
 
+const chartWidth = useChartWidth();
+
 const LEFT = 44;
 const PLOT_HEIGHT = 220;
 const yTicks = [0, 0.25, 0.5, 0.75, 1];
@@ -35,7 +38,7 @@ const bottom = TOP_PADDING + PLOT_HEIGHT;
 const labelled = computed(
   () => props.series.length >= 2 && props.series.length <= 4,
 );
-const right = computed(() => CHART_WIDTH - (labelled.value ? 72 : 16));
+const right = computed(() => chartWidth.value - (labelled.value ? 72 : 16));
 
 const times = computed(() => props.labels.map(Number));
 
@@ -45,12 +48,12 @@ const x = computed(() =>
       Math.min(0, times.value[0] ?? 0),
       Math.max(1, times.value.at(-1) ?? 1),
     ])
-    .nice(6)
+    .nice(xTickCount(chartWidth.value))
     .range([LEFT, right.value]),
 );
 const y = scaleLinear().domain([0, 1]).range([bottom, TOP_PADDING]);
 
-const xTicks = computed(() => x.value.ticks(6));
+const xTicks = computed(() => x.value.ticks(xTickCount(chartWidth.value)));
 const start = computed(() => x.value.domain()[0]!);
 
 /** Indexes of the points a curve reaches; it stops at its last step. */
@@ -150,6 +153,7 @@ function show(index: number): void {
   <div class="exp-viz relative max-w-[640px]">
     <ul
       v-if="series.length >= 2"
+      data-export-legend
       class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1"
     >
       <li v-for="s in series" :key="s.key" class="flex items-center gap-1">
@@ -168,7 +172,7 @@ function show(index: number): void {
     </ul>
 
     <svg
-      :viewBox="`0 0 ${CHART_WIDTH} ${height}`"
+      :viewBox="`0 0 ${chartWidth} ${height}`"
       class="w-full h-auto"
       tabindex="0"
       role="img"

@@ -1,3 +1,4 @@
+import { type FigureCaption, figureMarkText } from "./chart-caption";
 import chartCss from "./experiment-chart.css?raw";
 
 const FONT_FAMILY = "Helvetica, Arial, sans-serif";
@@ -14,7 +15,12 @@ export const EXPORT_PRESETS = {
 export type ExportPreset = keyof typeof EXPORT_PRESETS;
 
 /** Line patterns by series token, so series differ without colour. */
-const SERIES_DASH: Record<string, string> = { "2": "7 5", "3": "1 5" };
+const SERIES_DASH: Record<string, string> = {
+  "2": "7 5",
+  "3": "1 5",
+  "4": "9 3 1 3",
+  "5": "3 3",
+};
 
 function tokensOf(block: RegExp): [string, string][] {
   const body = block.exec(chartCss)?.[1] ?? "";
@@ -103,7 +109,14 @@ function svgElement(name: string, attributes: Record<string, string>): Element {
 }
 
 /** One step that adds to the figure while it is assembled. */
-type FigureStep = (svg: SVGSVGElement, source: HTMLElement) => void;
+type FigureStep = (
+  svg: SVGSVGElement,
+  source: HTMLElement,
+  marks: FigureMarks,
+) => void;
+
+/** The status a figure states on its face. */
+export type FigureMarks = Pick<FigureCaption, "unpublished" | "metricVersion">;
 
 const LEGEND_FONT = 11;
 const LEGEND_ROW = 16;
@@ -164,6 +177,25 @@ const addLegend: FigureStep = (svg, source) => {
   setViewBox(svg, { ...box, y: top, height: box.height + height });
 };
 
+/** States above the plot whether the figure is a draft or which version. */
+const addMark: FigureStep = (svg, _source, marks) => {
+  const mark = figureMarkText(marks);
+  if (!mark) return;
+  const box = viewBoxOf(svg);
+  const height = LEGEND_ROW + 4;
+  const top = box.y - height;
+  const text = svgElement("text", {
+    x: String(box.x),
+    y: String(top + LEGEND_ROW - 4),
+    "font-size": String(LEGEND_FONT),
+    "font-weight": "700",
+    fill: "var(--viz-text-secondary)",
+  });
+  text.textContent = mark;
+  svg.append(text);
+  setViewBox(svg, { ...box, y: top, height: box.height + height });
+};
+
 /** Keeps the figure readable in dark viewers. */
 const addBackground: FigureStep = (svg) => {
   const { x, y, width, height } = viewBoxOf(svg);
@@ -178,7 +210,7 @@ const addBackground: FigureStep = (svg) => {
   );
 };
 
-const FIGURE_STEPS: FigureStep[] = [addLegend, addBackground];
+const FIGURE_STEPS: FigureStep[] = [addLegend, addMark, addBackground];
 
 /** An assembled figure, ready to save as SVG or to rasterise. */
 export interface StandaloneFigure {
@@ -191,6 +223,7 @@ export interface StandaloneFigure {
 export function standaloneFigure(
   source: HTMLElement,
   preset: ExportPreset,
+  marks: FigureMarks = {},
 ): StandaloneFigure | null {
   const chart = [...source.querySelectorAll("svg")].find(
     (candidate) => !candidate.closest("[data-export-legend]"),
@@ -199,7 +232,7 @@ export function standaloneFigure(
 
   const svg = chart.cloneNode(true) as SVGSVGElement;
   dropNonFigureNodes(svg);
-  for (const step of FIGURE_STEPS) step(svg, source);
+  for (const step of FIGURE_STEPS) step(svg, source, marks);
   cleanElement(svg, printTokens());
 
   const { inches } = EXPORT_PRESETS[preset];

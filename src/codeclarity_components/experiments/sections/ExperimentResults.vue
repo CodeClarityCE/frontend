@@ -3,7 +3,7 @@ import { computed, provide } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
-import { SNAPSHOT_COVERAGE } from "../charts/chart-caption";
+import { gridCoverageOf, SNAPSHOT_COVERAGE } from "../charts/chart-caption";
 import {
   formatInterval,
   formatPValue,
@@ -53,10 +53,9 @@ const coverage = computed(() => props.results.coverage);
 const provenance = computed(() => props.results.provenance);
 
 /** Shown only for a grid: a HEAD-only experiment has just the HEAD row. */
-const gridCoverage = computed(() => {
-  const rows = props.results.grid_coverage ?? [];
-  return rows.some((row) => row.grid_date !== null) ? rows : [];
-});
+const gridCoverage = computed(() =>
+  gridCoverageOf(props.results.grid_coverage ?? []),
+);
 provide(SNAPSHOT_COVERAGE, gridCoverage);
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, provide, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -16,12 +16,20 @@ import { useUserStore } from "@/stores/user";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
+  type FigureCaption,
+  gridCoverageOf,
+  SNAPSHOT_COVERAGE,
+} from "../charts/chart-caption";
+import type { ChartData, CsvValue } from "../charts/chart-export";
+import {
   formatNumber,
   type GridLineSeries,
   type StepSeries,
 } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import FigureStepChart from "../charts/FigureStepChart.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
+import type { GridCoverageRow } from "../experiment.entity";
 import type {
   Figure,
   FigureCatalog,
@@ -31,7 +39,15 @@ import type {
 } from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
-const props = defineProps<{ experimentId: string }>();
+const props = defineProps<{
+  experimentId: string;
+  gridCoverage: GridCoverageRow[];
+}>();
+
+provide(
+  SNAPSHOT_COVERAGE,
+  computed(() => gridCoverageOf(props.gridCoverage)),
+);
 
 /** A select's value for "nothing chosen": Select items cannot be empty */
 const NONE = "none";
@@ -113,6 +129,82 @@ const yMax = computed(() =>
     ),
   ),
 );
+
+/** Day labels stay numbers, so a negative one is not quoted as a formula. */
+function axisValue(label: string): CsvValue {
+  const value = Number(label);
+  return label.trim() !== "" && Number.isFinite(value) ? value : label;
+}
+
+/** Each drawn series as columns, with whichever extras it carries. */
+const plotted = computed<ChartData>(() => {
+  const data = preview.value;
+  if (!data) return { columns: [], rows: [] };
+  const columns = data.series.map((series) => [
+    { name: series.label, values: series.values },
+    ...(series.lower
+      ? [{ name: `${series.label} lower 95`, values: series.lower }]
+      : []),
+    ...(series.upper
+      ? [{ name: `${series.label} upper 95`, values: series.upper }]
+      : []),
+    ...(series.censored
+      ? [{ name: `${series.label} censored`, values: series.censored }]
+      : []),
+  ]);
+  const flat = columns.flat();
+  return {
+    columns: [data.x_title, ...flat.map((column) => column.name)],
+    rows: data.labels.map((label, i) => [
+      axisValue(label),
+      ...flat.map((column) => column.values[i] ?? null),
+    ]),
+  };
+});
+
+/** "View: As-of" for each applied filter, in catalog order. */
+const filterPhrases = computed(() =>
+  (metric.value?.filters ?? []).flatMap((filter) => {
+    const value = definition.value?.filters[filter.id];
+    if (!value) return [];
+    const option = filter.options?.find((item) => item.id === value);
+    return [`${filter.label}: ${option?.label ?? value}`];
+  }),
+);
+
+const groupLabel = computed(
+  () =>
+    metric.value?.group_by.find((item) => item.id === groupBy.value)?.label ??
+    null,
+);
+
+const exportName = computed(() => {
+  const slug = name.value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return slug || (metric.value?.id ?? "figure");
+});
+
+const figureCaption = computed<FigureCaption>(() => {
+  const data = preview.value;
+  const description = [
+    `${metric.value?.label ?? "Figure"}: ${data?.y_title ?? ""} by ${data?.x_title ?? ""}`,
+    ...(groupLabel.value ? [`grouped by ${groupLabel.value}`] : []),
+    ...filterPhrases.value,
+  ].join(", ");
+  return {
+    description,
+    n: data?.caption?.n ?? "Sample size not reported",
+    exclusions: data?.caption?.exclusions ?? [],
+    asOf:
+      definition.value?.filters.view === "as_of" ||
+      (data?.series ?? []).some((series) => series.key === "as_of"),
+    // A Figure cannot be tied to Published results yet
+    unpublished: true,
+  };
+});
 
 function describePoint(index: number): string {
   const values = (preview.value?.series ?? [])
@@ -426,28 +518,33 @@ onMounted(() => {
         <h3 class="font-semibold text-gray-900 mb-2">
           {{ metric?.label }}
         </h3>
-        <template v-if="censoredAt">
+        <ChartExport
+          :name="exportName"
+          :data="plotted"
+          :caption="figureCaption"
+        >
           <FigureStepChart
+            v-if="censoredAt"
             :labels="preview.labels"
             :series="stepSeries"
             :caption="`${metric?.label}: ${preview.y_title} by ${preview.x_title}`"
             :x-title="preview.x_title"
           />
-          <p class="text-sm text-gray-600 mt-2">
-            {{ preview.y_title }}, with 95% confidence bands. Open exposures are
-            censored at HEAD ({{ censoredAt }}).
-          </p>
-        </template>
-        <GridLineChart
-          v-else
-          :labels="preview.labels"
-          :series="chartSeries"
-          :y-max="yMax"
-          :format-y="formatNumber"
-          :describe="describePoint"
-          :caption="`${metric?.label}: ${preview.y_title} per ${preview.x_title}`"
-          :x-title="preview.x_title"
-        />
+          <GridLineChart
+            v-else
+            :labels="preview.labels"
+            :series="chartSeries"
+            :y-max="yMax"
+            :format-y="formatNumber"
+            :describe="describePoint"
+            :caption="`${metric?.label}: ${preview.y_title} per ${preview.x_title}`"
+            :x-title="preview.x_title"
+          />
+        </ChartExport>
+        <p v-if="censoredAt" class="text-sm text-gray-600 mt-2">
+          {{ preview.y_title }}, with 95% confidence bands. Open exposures are
+          censored at HEAD ({{ censoredAt }}).
+        </p>
       </template>
       <p v-else class="text-sm text-gray-600">No data to plot yet.</p>
     </div>

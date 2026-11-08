@@ -44,7 +44,7 @@ async function assemble(): Promise<StandaloneFigure | null> {
   layoutWidth.value = EXPORT_PRESETS[preset.value].layoutWidth;
   await nextTick();
   try {
-    return standaloneFigure(content.value, preset.value);
+    return standaloneFigure(content.value, preset.value, props.caption);
   } finally {
     layoutWidth.value = CHART_WIDTH;
   }

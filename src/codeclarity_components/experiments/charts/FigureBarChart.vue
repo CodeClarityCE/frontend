@@ -2,7 +2,8 @@
 import { scaleLinear } from "d3";
 import { computed, ref } from "vue";
 
-import { CHART_WIDTH, type GridLineSeries, TOP_PADDING } from "./chart-format";
+import { type GridLineSeries, TOP_PADDING, xTickCount } from "./chart-format";
+import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
@@ -23,11 +24,12 @@ const props = defineProps<{
   xTitle: string;
 }>();
 
+const chartWidth = useChartWidth();
+
 const LEFT = 44;
 const RIGHT = 16;
 const PLOT_HEIGHT = 160;
 const AXIS_HEIGHT = 28;
-const MAX_X_TICKS = 8;
 const MAX_BAR_WIDTH = 24;
 /** The surface gap between neighbouring bars */
 const BAR_GAP = 2;
@@ -37,7 +39,7 @@ const height = TOP_PADDING + PLOT_HEIGHT + AXIS_HEIGHT;
 const baseline = TOP_PADDING + PLOT_HEIGHT;
 
 const step = computed(
-  () => (CHART_WIDTH - LEFT - RIGHT) / Math.max(props.labels.length, 1),
+  () => (chartWidth.value - LEFT - RIGHT) / Math.max(props.labels.length, 1),
 );
 
 const barWidth = computed(() => {
@@ -55,9 +57,12 @@ const y = computed(() =>
 
 const yTicks = computed(() => y.value.ticks(4));
 
-/** About eight evenly spaced labels. */
+/** Evenly spaced labels, as many as the width fits. */
 const xTicks = computed(() => {
-  const every = Math.max(1, Math.ceil(props.labels.length / MAX_X_TICKS));
+  const every = Math.max(
+    1,
+    Math.ceil(props.labels.length / xTickCount(chartWidth.value)),
+  );
   return props.labels.map((_, i) => i).filter((i) => i % every === 0);
 });
 
@@ -120,6 +125,7 @@ function formatCell(value: number | null): string {
   <div class="exp-viz relative max-w-[640px]">
     <ul
       v-if="series.length >= 2"
+      data-export-legend
       class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1"
     >
       <li
@@ -136,7 +142,7 @@ function formatCell(value: number | null): string {
     </ul>
 
     <svg
-      :viewBox="`0 0 ${CHART_WIDTH} ${height}`"
+      :viewBox="`0 0 ${chartWidth} ${height}`"
       class="w-full h-auto"
       role="group"
       :aria-label="caption"
@@ -145,7 +151,7 @@ function formatCell(value: number | null): string {
         <g v-for="tick in yTicks" :key="`y-${tick}`">
           <line
             :x1="LEFT"
-            :x2="CHART_WIDTH - RIGHT"
+            :x2="chartWidth - RIGHT"
             :y1="y(tick)"
             :y2="y(tick)"
             :stroke="tick === 0 ? 'var(--viz-baseline)' : 'var(--viz-grid)'"

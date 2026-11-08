@@ -287,6 +287,66 @@ const EVERY_CHART = [
   "leverage-transitive-share",
 ];
 
+describe("export step marking", () => {
+  const CAPTION = { description: "A chart", n: "n = 1" };
+
+  function mountExport(extra: object): VueWrapper {
+    return mount(ChartExport, {
+      props: {
+        name: "figure",
+        data: { columns: ["x"], rows: [[1]] },
+        caption: { ...CAPTION, ...extra },
+      },
+      slots: {
+        default: () =>
+          h("svg", { viewBox: "0 0 640 200" }, [h("text", {}, "plot")]),
+      },
+    });
+  }
+
+  async function exported(
+    wrapper: VueWrapper,
+    button: "svg" | "caption-file",
+  ): Promise<string> {
+    await click(wrapper, `[data-testid="export-${button}"]`);
+    return lastSaved().blob.text();
+  }
+
+  beforeEach(() => {
+    saveBlob.mockReset();
+  });
+
+  it("names the metric version of a tied figure in the image and caption", async () => {
+    const wrapper = mountExport({ metricVersion: 3 });
+    const svg = await exported(wrapper, "svg");
+    expect(svg).toContain("Metric version 3");
+    expect(svg).not.toContain("Unpublished");
+    expect(await exported(wrapper, "caption-file")).toContain(
+      "Metric version 3.",
+    );
+  });
+
+  it("makes room above the plot for the mark", async () => {
+    const svg = await exported(mountExport({ unpublished: true }), "svg");
+    const root = new DOMParser().parseFromString(
+      svg,
+      "image/svg+xml",
+    ).documentElement;
+    const [y, height] = [1, 3].map((i) =>
+      Number(root.getAttribute("viewBox")?.split(" ")[i]),
+    );
+    expect(y).toBeLessThan(0);
+    expect(height).toBeGreaterThan(200);
+    expect(svg).toContain("Unpublished results, not for citation");
+  });
+
+  it("adds no mark when the caption asks for none", async () => {
+    const svg = await exported(mountExport({}), "svg");
+    expect(svg).not.toContain("Unpublished");
+    expect(svg).not.toContain("Metric version");
+  });
+});
+
 describe("experiment chart export", () => {
   beforeEach(() => {
     saveBlob.mockReset();

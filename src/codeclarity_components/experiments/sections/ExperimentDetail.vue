@@ -552,7 +552,10 @@ onUnmounted(() => clearTimeout(pollTimer));
         </TabsContent>
 
         <TabsContent value="figures">
-          <ExperimentFigures :experiment-id="experimentId" />
+          <ExperimentFigures
+            :experiment-id="experimentId"
+            :grid-coverage="results?.grid_coverage ?? []"
+          />
         </TabsContent>
       </Tabs>
     </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { formatDays, formatNumber, type LagChartRow } from "../charts/chart-format";
+import { formatDays, formatNumber, formatShare, type LagChartRow, plural } from "../charts/chart-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ResidenceBlock,
@@ -34,12 +34,8 @@ const domain = computed<[number, number]>(() => [
 
 const snapshotShare = computed(() => {
   const share = props.residence.snapshot_precision_share;
-  return share === null ? null : `${(share * 100).toFixed(1)}%`;
+  return share === null ? null : formatShare(share);
 });
-
-function plural(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? "" : "s"}`;
-}
 
 const counts = computed(() => {
   const r = props.residence;

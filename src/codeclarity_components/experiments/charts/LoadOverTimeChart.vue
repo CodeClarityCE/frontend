@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 
 import type { LoadRow } from "../experiment.entity";
 
-import { AXIS_HEIGHT, CHART_WIDTH, formatNumber, RIGHT_PADDING, TOP_PADDING } from "./chart-format";
+import { AXIS_HEIGHT, CHART_WIDTH, formatNumber, plural, RIGHT_PADDING, TOP_PADDING } from "./chart-format";
 
 import "./experiment-chart.css";
 
@@ -87,7 +87,7 @@ function labelOf(row: LoadRow): string {
 
 function describe(row: LoadRow): string {
   if (row.hindsight === null || row.as_of === null) return `${labelOf(row)}: no done snapshot`;
-  const projects = `${row.projects} ${row.projects === 1 ? "project" : "projects"}`;
+  const projects = plural(row.projects, "project");
   return `${labelOf(row)}: hindsight ${formatNumber(row.hindsight)}, as-of ${formatNumber(row.as_of)}, ${projects}`;
 }
 

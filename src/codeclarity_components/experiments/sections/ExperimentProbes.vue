@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { formatShare } from "../charts/chart-format";
 import type {
   DatingPrecision,
   ExposuresBlock,
@@ -12,7 +13,7 @@ const props = defineProps<{ probes: ProbesBlock; exposures: ExposuresBlock | nul
 
 function share(precision: Record<DatingPrecision, number> | undefined, key: DatingPrecision): string {
   const total = precision ? precision.commit + precision.snapshot : 0;
-  return precision && total > 0 ? `${((precision[key] / total) * 100).toFixed(1)}%` : "-";
+  return formatShare(precision && total > 0 ? precision[key] / total : null);
 }
 
 const rows = computed(() => {

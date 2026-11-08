@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { formatNumber, formatShare, type GridLineSeries } from "../charts/chart-format";
+import { formatNumber, formatShare, type GridLineSeries, plural } from "../charts/chart-format";
 import GridLineChart from "../charts/GridLineChart.vue";
 import type { FixKindRow, UpstreamLeverageBlock } from "../experiment.entity";
 
 const props = defineProps<{ leverage: UpstreamLeverageBlock }>();
 
 const HEAD = "HEAD";
-
-function plural(n: number, word: string, many = `${word}s`): string {
-  return `${formatNumber(n)} ${n === 1 ? word : many}`;
-}
 
 const clear = computed(() => props.leverage.packages_to_clear);
 const clearLabels = computed(() => clear.value.map((row) => row.grid_date ?? HEAD));

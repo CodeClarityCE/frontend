@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
-import { formatNumber } from "../charts/chart-format";
+import { formatNumber, formatShare } from "../charts/chart-format";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
   type ExposureSurvivalBlock,
@@ -31,7 +31,7 @@ const counts = computed(() => {
 
 const snapshotShare = computed(() => {
   const share = props.survival.snapshot_precision_share;
-  return share === null ? null : `${(share * 100).toFixed(1)}%`;
+  return share === null ? null : formatShare(share);
 });
 
 const medianText = computed(() =>

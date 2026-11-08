@@ -40,6 +40,11 @@ export function formatDays(days: number): string {
   return `${formatNumber(abs)} ${abs === 1 ? "day" : "days"}`;
 }
 
+/** "1 fix" or "N fixes": the count with its word. */
+export function plural(n: number, word: string, many = `${word}s`): string {
+  return `${formatNumber(n)} ${n === 1 ? word : many}`;
+}
+
 /** A share as a percentage with one decimal. */
 export function formatShare(share: number | null): string {
   return share === null ? "-" : `${(share * 100).toFixed(1)}%`;

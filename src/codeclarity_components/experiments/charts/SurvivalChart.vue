@@ -8,6 +8,7 @@ import {
   AXIS_HEIGHT,
   CHART_WIDTH,
   formatNumber,
+  formatShare,
   RIGHT_PADDING,
   TOP_PADDING,
 } from "./chart-format";
@@ -63,12 +64,8 @@ const columns = computed(() =>
   }),
 );
 
-function percent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
-}
-
 function describe(step: KmStep): string {
-  const parts = [`${percent(step.survival)} still exposed`, `${step.at_risk} at risk`];
+  const parts = [`${formatShare(step.survival)} still exposed`, `${step.at_risk} at risk`];
   if (step.events) parts.push(`${step.events} fixed`);
   if (step.censored) parts.push(`${step.censored} censored`);
   return `Day ${formatNumber(step.time)}: ${parts.join(", ")}`;

@@ -20,7 +20,7 @@ The SBOM (Software Bill of Materials) component provides a comprehensive view of
 Core SBOM data processing utilities:
 
 - `calculateHealthScore()` - Health score from deprecated, unlicensed and (at a lower weight) outdated dependencies
-- `calculateSecurityIssues()` - Vulnerability count from the vulnerability stats, or null when unknown
+- `calculateSecurityIssues()` - Vulnerability instance count from the vulnerability stats, or null when unknown
 - `getDirectDependenciesNeedingUpdates()` - Filter actionable dependencies
 - `convertToPackageUpdates()` - Transform data for the modal
 

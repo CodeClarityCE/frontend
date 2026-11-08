@@ -62,13 +62,13 @@ export function calculateHealthScore(stats: SbomStats): number {
 }
 
 /**
- * Count security issues from the vulnerability stats.
+ * Count Security Issues as Vulnerability instances from the vulnerability stats.
  * Returns null when the count is unknown, which must not read as zero.
  */
 export function calculateSecurityIssues(
-  stats: Pick<AnalysisStats, "number_of_vulnerabilities"> | null,
+  stats: Pick<AnalysisStats, "number_of_issues"> | null,
 ): number | null {
-  return stats?.number_of_vulnerabilities ?? null;
+  return stats?.number_of_issues ?? null;
 }
 
 /**

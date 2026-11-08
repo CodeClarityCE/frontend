@@ -144,7 +144,7 @@ describe("SbomContent", () => {
     vi.clearAllMocks();
     mockGetSbomStat.mockResolvedValue({ data: mockSbomStats });
     mockGetVulnerabilitiesStat.mockResolvedValue({
-      data: { number_of_vulnerabilities: 0 },
+      data: { number_of_issues: 0, number_of_vulnerabilities: 0 },
     });
   });
 
@@ -253,7 +253,7 @@ describe("SbomContent", () => {
 
   it("counts vulnerabilities as Security Issues, for the selected workspace", async () => {
     mockGetVulnerabilitiesStat.mockResolvedValue({
-      data: { number_of_vulnerabilities: 15 },
+      data: { number_of_issues: 15, number_of_vulnerabilities: 4 },
     });
 
     await mountLoaded({

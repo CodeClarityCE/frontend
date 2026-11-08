@@ -3,6 +3,7 @@ import { computed } from "vue";
 
 import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
+  formatBracketInterval,
   formatDays,
   formatNumber,
   formatShare,
@@ -14,11 +15,15 @@ import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
 import {
   type ResidenceBlock,
+  type ResultIntervals,
   type SeverityCounts,
   SeverityLabels,
 } from "../experiment.entity";
 
-const props = defineProps<{ residence: ResidenceBlock }>();
+const props = defineProps<{
+  residence: ResidenceBlock;
+  intervals?: ResultIntervals["residence"] | null;
+}>();
 
 function severityLabel(key: string): string {
   return SeverityLabels[key as keyof SeverityCounts] ?? key;
@@ -32,6 +37,7 @@ const rows = computed<LagChartRow[]>(() =>
     lags: props.residence.points
       .filter((point) => point.severity === group.key)
       .map((point) => point.residence_days),
+    interval: props.intervals?.by_severity[group.key] ?? null,
   })),
 );
 
@@ -152,6 +158,7 @@ function describe(row: LagChartRow, days: number): string {
             <th class="font-medium">Severity</th>
             <th class="font-medium text-right">Introductions</th>
             <th class="font-medium text-right">Median days after disclosure</th>
+            <th v-if="intervals" class="font-medium text-right">95% CI</th>
           </tr>
         </thead>
         <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
@@ -163,6 +170,13 @@ function describe(row: LagChartRow, days: number): string {
             <td>{{ severityLabel(group.key) }}</td>
             <td class="text-right">{{ group.n }}</td>
             <td class="text-right">{{ formatNumber(group.median) }}</td>
+            <td v-if="intervals" class="text-right">
+              {{
+                formatBracketInterval(
+                  intervals.after_disclosure_by_severity[group.key],
+                )
+              }}
+            </td>
           </tr>
         </tbody>
       </table>

@@ -521,6 +521,24 @@ describe("ExperimentDetail", () => {
     expect(getExperimentResults).toHaveBeenCalledTimes(2);
   });
 
+  it("names each run's snapshot, its grid date or HEAD", async () => {
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
+    getExperimentRuns.mockResolvedValue({
+      data: [
+        run(0, { grid_index: 0, grid_date: "2026-09-01T00:00:00.000Z" }),
+        run(0, { id: "run-head", grid_index: 1, grid_date: null }),
+      ],
+      total_pages: 1,
+    });
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const snapshots = wrapper
+      .findAll('[data-testid="experiment-run-snapshot"]')
+      .map((cell) => cell.text());
+    expect(snapshots).toEqual(["2026-09-01", "HEAD"]);
+  });
+
   it("shows coverage per grid date, counting no lockfile yet as empty, HEAD last", async () => {
     getExperiment.mockResolvedValue({
       data: experiment("RUNNING", {

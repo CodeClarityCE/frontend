@@ -231,6 +231,11 @@ async function deleteExperiment(): Promise<void> {
   }
 }
 
+// A run's snapshot: its grid day, or HEAD
+function snapshotLabel(gridDate: Date | string | null): string {
+  return gridDate ? new Date(gridDate).toISOString().slice(0, 10) : "HEAD";
+}
+
 function shortSha(sha: string | null): string {
   return sha ? sha.slice(0, SHORT_SHA_LENGTH) : "-";
 }
@@ -449,8 +454,9 @@ onUnmounted(() => clearTimeout(pollTimer));
         >
           <div class="col-span-1">Rank</div>
           <div class="col-span-3">Repository</div>
+          <div class="col-span-1">Snapshot</div>
           <div class="col-span-2">State</div>
-          <div class="col-span-3">Error</div>
+          <div class="col-span-2">Error</div>
           <div class="col-span-2">Commit</div>
           <div class="col-span-1">Analysis</div>
         </div>
@@ -473,6 +479,12 @@ onUnmounted(() => clearTimeout(pollTimer));
               {{ run.entry.full_name }}
             </a>
           </div>
+          <div
+            class="lg:col-span-1 text-gray-700 whitespace-nowrap"
+            data-testid="experiment-run-snapshot"
+          >
+            {{ snapshotLabel(run.grid_date) }}
+          </div>
           <div class="lg:col-span-2">
             <span
               class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
@@ -484,7 +496,7 @@ onUnmounted(() => clearTimeout(pollTimer));
               {{ run.attempts }} attempts
             </span>
           </div>
-          <div class="lg:col-span-3 text-gray-700 break-words">
+          <div class="lg:col-span-2 text-gray-700 break-words">
             {{ run.error ?? "" }}
           </div>
           <div

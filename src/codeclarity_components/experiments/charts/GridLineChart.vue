@@ -102,7 +102,7 @@ function formatCell(value: number | null): string {
 </script>
 
 <template>
-  <div class="exp-viz relative">
+  <div class="exp-viz relative max-w-[640px]">
     <ul v-if="series.length >= 2" class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1">
       <li
         v-for="s in series"

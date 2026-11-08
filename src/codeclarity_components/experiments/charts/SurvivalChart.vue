@@ -84,7 +84,7 @@ function hide(): void {
 </script>
 
 <template>
-  <div class="exp-viz relative">
+  <div class="exp-viz relative max-w-[640px]">
     <svg
       :viewBox="`0 0 ${CHART_WIDTH} ${height}`"
       class="w-full h-auto"

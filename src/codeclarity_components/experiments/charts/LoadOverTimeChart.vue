@@ -111,7 +111,7 @@ const tooltipY = computed(() => {
 </script>
 
 <template>
-  <div class="exp-viz">
+  <div class="exp-viz max-w-[640px]">
     <ul class="flex gap-4 text-xs text-gray-700 mb-1" aria-hidden="true">
       <li
         v-for="series in SERIES"

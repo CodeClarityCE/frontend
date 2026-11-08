@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import router from "@/router";
 
-import type { GridCoverageRow } from "../experiment.entity";
+import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 
 import ExperimentDetail from "./ExperimentDetail.vue";
 
@@ -16,6 +16,7 @@ const {
   getPublishedVersions,
   getPublishedResults,
   publishExperiment,
+  getCurrentMetricVersion,
   downloadExperimentExport,
   downloadPublishedPackage,
   getFigureCatalog,
@@ -38,6 +39,7 @@ const {
   getPublishedVersions: vi.fn(),
   getPublishedResults: vi.fn(),
   publishExperiment: vi.fn(),
+  getCurrentMetricVersion: vi.fn(),
   downloadExperimentExport: vi.fn(),
   downloadPublishedPackage: vi.fn(),
   getFigureCatalog: vi.fn(),
@@ -63,6 +65,7 @@ vi.mock("../experiments.repository", () => ({
     getPublishedVersions = getPublishedVersions;
     getPublishedResults = getPublishedResults;
     publishExperiment = publishExperiment;
+    getCurrentMetricVersion = getCurrentMetricVersion;
     downloadExperimentExport = downloadExperimentExport;
     downloadPublishedPackage = downloadPublishedPackage;
     getFigureCatalog = getFigureCatalog;
@@ -301,6 +304,9 @@ describe("ExperimentDetail", () => {
     getPublishedResults.mockReset().mockResolvedValue({ data: results() });
     getFigureCatalog.mockReset().mockResolvedValue({ data: { metrics: [] } });
     publishExperiment.mockReset().mockResolvedValue({ data: {} });
+    getCurrentMetricVersion
+      .mockReset()
+      .mockResolvedValue({ data: { metric_version: 3 } });
     downloadExperimentExport.mockReset();
     downloadPublishedPackage.mockReset();
     saveBlob.mockReset();
@@ -557,6 +563,7 @@ describe("ExperimentDetail", () => {
       metric_version: 3,
       published_on: "2026-11-07T00:00:00.000Z",
       published_by_name: "Jane Roe",
+      package_checksum: null,
     };
     const find = (wrapper: VueWrapper, id: string) =>
       wrapper.find(`[data-testid="${id}"]`);
@@ -620,6 +627,138 @@ describe("ExperimentDetail", () => {
       );
       expect(find(wrapper, "experiment-publish").exists()).toBe(false);
       expect(find(wrapper, "experiment-delete").exists()).toBe(false);
+    });
+
+    describe("several versions", () => {
+      const older = {
+        metric_version: 2,
+        published_on: "2026-10-01T00:00:00.000Z",
+        published_by_name: null,
+        package_checksum: null,
+      };
+
+      async function mountPublished(
+        versions: PublishedVersion[],
+      ): Promise<VueWrapper> {
+        getExperiment.mockResolvedValue({
+          data: experiment("COMPLETED", { run_counts: done }),
+        });
+        getPublishedVersions.mockResolvedValue({ data: versions });
+        const wrapper = mountDetail();
+        await flushPromises();
+        return wrapper;
+      }
+
+      it("lists every version, newest selected, and shows the one picked", async () => {
+        const wrapper = await mountPublished([version, older]);
+        const select = find(wrapper, "experiment-version-select");
+
+        expect(select.findAll("option").map((o) => o.text())).toEqual([
+          "Metric version 3",
+          "Metric version 2",
+        ]);
+        expect(getPublishedResults).toHaveBeenCalledTimes(1);
+        expect(getPublishedResults).toHaveBeenLastCalledWith(
+          expect.objectContaining({ metricVersion: 3 }),
+        );
+
+        await select.setValue("2");
+        await flushPromises();
+
+        expect(getPublishedResults).toHaveBeenLastCalledWith(
+          expect.objectContaining({ metricVersion: 2 }),
+        );
+        expect(find(wrapper, "experiment-published-version").text()).toContain(
+          "metric version 2",
+        );
+        expect(
+          wrapper
+            .findComponent({ name: "ExperimentResults" })
+            .props("metricVersion"),
+        ).toBe(2);
+      });
+
+      it("shows the checksum and downloads the package of the version picked", async () => {
+        downloadPublishedPackage.mockResolvedValue(new Blob(["zip"]));
+        const wrapper = await mountPublished([
+          { ...version, package_checksum: "aaa" },
+          { ...older, package_checksum: "bbb" },
+        ]);
+
+        await find(wrapper, "experiment-version-select").setValue("2");
+        await flushPromises();
+        expect(find(wrapper, "experiment-package-checksum").text()).toContain(
+          "bbb",
+        );
+
+        await find(wrapper, "export-package").trigger("click");
+        await flushPromises();
+        expect(downloadPublishedPackage).toHaveBeenCalledWith(
+          expect.objectContaining({ metricVersion: 2 }),
+        );
+      });
+
+      it("keeps the picked version when a slower earlier response arrives", async () => {
+        const wrapper = await mountPublished([version, older]);
+        const shown = (value: number) => ({
+          data: results({
+            coverage: {
+              ...(results() as { coverage: object }).coverage,
+              runs: value,
+            },
+          }),
+        });
+        let finishOld: (value: unknown) => void = () => undefined;
+        getPublishedResults.mockImplementationOnce(
+          () => new Promise((resolve) => (finishOld = resolve)),
+        );
+        const select = find(wrapper, "experiment-version-select");
+
+        await select.setValue("2");
+        getPublishedResults.mockResolvedValueOnce(shown(33));
+        await select.setValue("3");
+        await flushPromises();
+        finishOld(shown(22));
+        await flushPromises();
+
+        expect(
+          wrapper.findComponent({ name: "ExperimentResults" }).props("results"),
+        ).toMatchObject({ coverage: { runs: 33 } });
+      });
+
+      it("offers Publish again once the metric version moved past the stored ones", async () => {
+        getCurrentMetricVersion.mockResolvedValue({
+          data: { metric_version: 4 },
+        });
+        const wrapper = await mountPublished([version, older]);
+
+        await find(wrapper, "experiment-publish").trigger("click");
+        expect(find(wrapper, "experiment-publish-hint").text()).toContain(
+          "one-way",
+        );
+        expect(find(wrapper, "experiment-delete").exists()).toBe(false);
+      });
+
+      it("selects the new version after publishing it", async () => {
+        getCurrentMetricVersion.mockResolvedValue({
+          data: { metric_version: 4 },
+        });
+        const wrapper = await mountPublished([version, older]);
+        await find(wrapper, "experiment-version-select").setValue("2");
+        await flushPromises();
+
+        getPublishedVersions.mockResolvedValue({
+          data: [{ ...version, metric_version: 4 }, version, older],
+        });
+        await find(wrapper, "experiment-publish").trigger("click");
+        await find(wrapper, "experiment-publish-confirm").trigger("click");
+        await flushPromises();
+
+        expect(find(wrapper, "experiment-published-version").text()).toContain(
+          "metric version 4",
+        );
+        expect(find(wrapper, "experiment-publish").exists()).toBe(false);
+      });
     });
 
     it("explains that only admins can publish", async () => {

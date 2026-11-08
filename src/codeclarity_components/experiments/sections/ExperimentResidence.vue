@@ -6,7 +6,7 @@ import {
   formatBracketInterval,
   formatDays,
   formatNumber,
-  formatShare,
+  formatShareWithInterval,
   lagChartData,
   type LagChartRow,
   plural,
@@ -15,6 +15,7 @@ import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
+  type ConfidenceInterval,
   type ResidenceBlock,
   type ResultIntervals,
   type SeverityCounts,
@@ -24,6 +25,7 @@ import {
 const props = defineProps<{
   residence: ResidenceBlock;
   intervals?: ResultIntervals["residence"] | null;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
 }>();
 
 function severityLabel(key: string): string {
@@ -50,7 +52,9 @@ const domain = computed<[number, number]>(() => [
 
 const snapshotShare = computed(() => {
   const share = props.residence.snapshot_precision_share;
-  return share === null ? null : formatShare(share);
+  return share === null
+    ? null
+    : formatShareWithInterval(share, props.snapshotInterval);
 });
 
 const counts = computed(() => {

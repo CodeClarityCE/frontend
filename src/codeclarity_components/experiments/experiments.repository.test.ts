@@ -201,6 +201,24 @@ describe("ExperimentsRepository", () => {
     );
   });
 
+  it("asks for one Published results version when given", async () => {
+    getBlobRequest.mockResolvedValue(new Blob(["x"]));
+
+    await repository.downloadExperimentExport({
+      orgId: "org-1",
+      experimentId: "exp-1",
+      file: "results.json",
+      metricVersion: 2,
+      bearerToken: "token",
+    });
+
+    expect(getBlobRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api/org/org-1/experiments/exp-1/export/results.json?metric_version=2",
+      }),
+    );
+  });
+
   it.each(["runs.csv", "vulnerabilities.csv", "results.json"] as const)(
     "downloads the %s export as an authenticated blob",
     async (file) => {

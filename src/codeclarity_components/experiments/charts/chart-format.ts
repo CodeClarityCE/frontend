@@ -27,6 +27,9 @@ export interface GridLineSeries {
   values: (number | null)[];
   /** A role token from experiment-chart.css, e.g. "var(--viz-series-1)" */
   color: string;
+  /** 95% interval around values, drawn as error bars or listed in the CSV */
+  lower?: (number | null)[];
+  upper?: (number | null)[];
 }
 
 /** One Kaplan-Meier curve of a Figure, with its band and censoring. */
@@ -116,10 +119,19 @@ export function gridLineData(
   series: GridLineSeries[],
 ): ChartData {
   return {
-    columns: [xTitle, ...series.map((s) => s.label)],
+    columns: [
+      xTitle,
+      ...series.flatMap((s) => [
+        s.label,
+        ...(s.lower ? [`${s.label} lower 95`, `${s.label} upper 95`] : []),
+      ]),
+    ],
     rows: labels.map((label, i) => [
       label,
-      ...series.map((s) => s.values[i] ?? null),
+      ...series.flatMap((s) => [
+        s.values[i] ?? null,
+        ...(s.lower ? [s.lower[i] ?? null, s.upper?.[i] ?? null] : []),
+      ]),
     ]),
   };
 }

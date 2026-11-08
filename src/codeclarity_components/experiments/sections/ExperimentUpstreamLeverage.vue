@@ -3,8 +3,10 @@ import { computed } from "vue";
 
 import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
+  formatInterval,
   formatNumber,
   formatShare,
+  formatShareWithInterval,
   gridLineData,
   type GridLineSeries,
   plural,
@@ -12,11 +14,24 @@ import {
 import ChartExport from "../charts/ChartExport.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
-import type { FixKindRow, UpstreamLeverageBlock } from "../experiment.entity";
+import type {
+  ConfidenceInterval,
+  FixKindRow,
+  RemovedTransitiveIntervals,
+  UpstreamLeverageBlock,
+} from "../experiment.entity";
 
-const props = defineProps<{ leverage: UpstreamLeverageBlock }>();
+const props = defineProps<{
+  leverage: UpstreamLeverageBlock;
+  shareIntervals?: RemovedTransitiveIntervals | undefined;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
+}>();
 
 const HEAD = "HEAD";
+const CLEAR_TITLE =
+  "Packages needed to clear 50% and 80% of instances per grid date";
+const SHARE_TITLE =
+  "Share of fixes of known kind removed transitively, per grid interval";
 
 const clear = computed(() => props.leverage.packages_to_clear);
 const clearLabels = computed(() =>
@@ -59,12 +74,23 @@ const intervals = computed(() => props.leverage.fix_kinds);
 const shareLabels = computed(() =>
   intervals.value.map((row) => row.interval_to ?? HEAD),
 );
+/** Interval columns for the CSV, when the API sent intervals. */
+const shareBounds = computed(() => {
+  const byInterval = props.shareIntervals?.by_interval;
+  if (!byInterval) return null;
+  return {
+    lower: intervals.value.map((_, i) => byInterval[i]?.low ?? null),
+    upper: intervals.value.map((_, i) => byInterval[i]?.high ?? null),
+  };
+});
+
 const shareSeries = computed<GridLineSeries[]>(() => [
   {
     key: "share",
     label: "Removed transitively",
     values: intervals.value.map((r) => r.removed_transitive_share),
     color: "var(--viz-series-1)",
+    ...(shareBounds.value ?? {}),
   },
 ]);
 const shareColumns = computed(() => [
@@ -73,13 +99,24 @@ const shareColumns = computed(() => [
     label: "Unknown kind",
     values: intervals.value.map((r) => formatNumber(r.unknown)),
   },
+  ...(props.shareIntervals
+    ? [
+        {
+          label: "95% CI",
+          values: intervals.value.map((_, i) =>
+            formatInterval(props.shareIntervals!.by_interval[i] ?? null),
+          ),
+        },
+      ]
+    : []),
 ]);
 
 function knownShare(
   counts: FixKindRow | UpstreamLeverageBlock["overall"],
+  interval: ConfidenceInterval | null | undefined,
 ): string {
   const known = counts.fixes - counts.unknown;
-  return `${formatShare(counts.removed_transitive_share)} of ${plural(known, "fix", "fixes")} of known kind removed transitively`;
+  return `${formatShareWithInterval(counts.removed_transitive_share, interval)} of ${plural(known, "fix", "fixes")} of known kind removed transitively`;
 }
 
 function describeShare(index: number): string {
@@ -89,7 +126,7 @@ function describeShare(index: number): string {
   if (row.removed_transitive_share === null)
     return `${label}: ${plural(row.fixes, "fix", "fixes")}, all of unknown kind`;
   const unknown = row.unknown ? `, ${formatNumber(row.unknown)} unknown` : "";
-  return `${label}: ${knownShare(row)}${unknown}`;
+  return `${label}: ${knownShare(row, props.shareIntervals?.by_interval[index])}${unknown}`;
 }
 
 const overall = computed(() => props.leverage.overall);
@@ -97,8 +134,7 @@ const overall = computed(() => props.leverage.overall);
 const clearCaption = computed<FigureCaption>(() => {
   const last = clear.value.at(-1);
   return {
-    description:
-      "Packages needed to clear 50% and 80% of instances per grid date",
+    description: CLEAR_TITLE,
     n: `n = ${last?.instances ?? 0} instances in ${last?.projects ?? 0} projects at ${last?.grid_date ?? HEAD}`,
     exclusions: excluded(
       clear.value.filter((r) => r.pkgs_clear_50 === null).length,
@@ -112,8 +148,7 @@ const clearCaption = computed<FigureCaption>(() => {
 const shareCaption = computed<FigureCaption>(() => {
   const { fixes, unknown } = overall.value;
   return {
-    description:
-      "Share of fixes of known kind removed transitively, per grid interval",
+    description: SHARE_TITLE,
     n: `n = ${fixes - unknown} fixes of known kind`,
     exclusions: excluded(unknown, "fix", "fixes", "of unknown kind"),
   };
@@ -124,7 +159,7 @@ const summary = computed(() => {
   if (o.fixes === 0) return "No fixes yet.";
   if (o.removed_transitive_share === null)
     return `${plural(o.fixes, "fix", "fixes")}, all of unknown kind.`;
-  return `${knownShare(o)}.`;
+  return `${knownShare(o, props.shareIntervals?.overall)}.`;
 });
 
 const unknownNote = computed(() => {
@@ -178,7 +213,7 @@ const unknownNote = computed(() => {
             :format-y="formatNumber"
             :describe="describeClear"
             :extra-columns="clearColumns"
-            caption="Packages needed to clear 50% and 80% of instances per grid date"
+            :caption="CLEAR_TITLE"
             x-title="Grid date"
           />
         </ChartExport>
@@ -208,7 +243,7 @@ const unknownNote = computed(() => {
             :format-tick="(share: number) => `${Math.round(share * 100)}%`"
             :describe="describeShare"
             :extra-columns="shareColumns"
-            caption="Share of fixes of known kind removed transitively, per grid interval"
+            :caption="SHARE_TITLE"
             x-title="Interval ending"
           />
         </ChartExport>
@@ -216,9 +251,14 @@ const unknownNote = computed(() => {
           v-if="overall.snapshot_precision_share !== null"
           class="text-xs text-gray-500 mt-1"
         >
-          {{ formatShare(overall.snapshot_precision_share) }} of fixes dated
-          only to a snapshot interval. A fix counts in the interval ending at
-          the later snapshot it was seen fixed in.
+          {{
+            formatShareWithInterval(
+              overall.snapshot_precision_share,
+              snapshotInterval,
+            )
+          }}
+          of fixes dated only to a snapshot interval. A fix counts in the
+          interval ending at the later snapshot it was seen fixed in.
         </p>
       </div>
     </div>

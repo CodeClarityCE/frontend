@@ -2,19 +2,27 @@
 import { computed, ref } from "vue";
 
 import type { FigureCaption } from "../charts/chart-caption";
-import { formatNumber, formatShare } from "../charts/chart-format";
+import {
+  formatNumber,
+  formatShare,
+  formatShareWithInterval,
+} from "../charts/chart-format";
 import ChartExport from "../charts/ChartExport.vue";
 import ChartTable from "../charts/ChartTable.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
+  type ConfidenceInterval,
   type ExposureSurvivalBlock,
   type SeverityCounts,
   SeverityLabels,
   type SurvivalGroup,
 } from "../experiment.entity";
 
-const props = defineProps<{ survival: ExposureSurvivalBlock }>();
+const props = defineProps<{
+  survival: ExposureSurvivalBlock;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
+}>();
 
 function labelOf(group: SurvivalGroup): string {
   if (group.key === "all") return "All severities";
@@ -40,7 +48,9 @@ const counts = computed(() => {
 
 const snapshotShare = computed(() => {
   const share = props.survival.snapshot_precision_share;
-  return share === null ? null : formatShare(share);
+  return share === null
+    ? null
+    : formatShareWithInterval(share, props.snapshotInterval);
 });
 
 const medianText = computed(() =>

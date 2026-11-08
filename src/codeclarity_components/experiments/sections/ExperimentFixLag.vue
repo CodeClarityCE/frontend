@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
   formatDays,
-  formatShare,
+  formatShareWithInterval,
   lagChartData,
   type LagChartRow,
 } from "../charts/chart-format";
@@ -12,6 +12,7 @@ import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
+  type ConfidenceInterval,
   type ExposuresBlock,
   type FixKind,
   FixKindLabels,
@@ -27,7 +28,11 @@ const props = defineProps<{
   fixLag: FixLagBlock;
   exposures: ExposuresBlock | null;
   intervals?: ResultIntervals["fix_lag"] | null;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
 }>();
+
+const SEVERITY_TITLE = "Fix lag in days by severity";
+const KIND_TITLE = "Fix lag in days by fix kind";
 
 function rowsOf(
   groups: LagGroup[],
@@ -72,7 +77,9 @@ const domain = computed<[number, number]>(() => {
 
 const snapshotShare = computed(() => {
   const share = props.fixLag.snapshot_precision_share;
-  return share === null ? null : formatShare(share);
+  return share === null
+    ? null
+    : formatShareWithInterval(share, props.snapshotInterval);
 });
 
 const counts = computed(() => {
@@ -144,12 +151,12 @@ function describe(row: LagChartRow, lag: number): string {
         <ChartExport
           name="fix-lag-by-severity"
           :data="lagChartData(bySeverity, 'lag_days')"
-          :caption="figureCaption('Fix lag in days by severity')"
+          :caption="figureCaption(SEVERITY_TITLE)"
         >
           <LagStripChart
             :rows="bySeverity"
             :domain="domain"
-            caption="Fix lag in days by severity"
+            :caption="SEVERITY_TITLE"
             zero-label="Disclosure"
             unit="fixes"
             below-zero="before disclosure"
@@ -162,12 +169,12 @@ function describe(row: LagChartRow, lag: number): string {
         <ChartExport
           name="fix-lag-by-kind"
           :data="lagChartData(byKind, 'lag_days')"
-          :caption="figureCaption('Fix lag in days by fix kind')"
+          :caption="figureCaption(KIND_TITLE)"
         >
           <LagStripChart
             :rows="byKind"
             :domain="domain"
-            caption="Fix lag in days by fix kind"
+            :caption="KIND_TITLE"
             zero-label="Disclosure"
             unit="fixes"
             below-zero="before disclosure"

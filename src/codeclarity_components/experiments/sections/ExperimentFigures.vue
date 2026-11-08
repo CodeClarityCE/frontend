@@ -33,14 +33,15 @@ import FigureBarChart from "../charts/FigureBarChart.vue";
 import FigureStepChart from "../charts/FigureStepChart.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
 import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
-import type {
-  Figure,
-  FigureCatalog,
-  FigureChartForm,
-  FigureData,
-  FigureDefinition,
-  FigureFilter,
-  FigureMetric,
+import {
+  definitionKey,
+  type Figure,
+  type FigureCatalog,
+  type FigureChartForm,
+  type FigureData,
+  type FigureDefinition,
+  type FigureFilter,
+  type FigureMetric,
 } from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
@@ -130,6 +131,13 @@ function isReversedRange(filter: FigureFilter): boolean {
   return Boolean(from && to && from > to);
 }
 
+/** Bars with a 95% band carry error bars, which the note below explains. */
+const hasErrorBars = computed(
+  () =>
+    form.value?.mark === "bar" &&
+    (preview.value?.series ?? []).some((series) => series.upper),
+);
+
 const hasReversedRange = computed(() =>
   filterOptions.value.some(isReversedRange),
 );
@@ -158,8 +166,8 @@ const savedFigure = computed(
 /** Null once the definition differs from what the version stores. */
 const tiedVersion = computed<number | null>(() => {
   const saved = savedFigure.value;
-  if (saved?.metric_version == null) return null;
-  return JSON.stringify(saved.definition) === JSON.stringify(definition.value)
+  if (saved?.metric_version == null || !definition.value) return null;
+  return definitionKey(saved.definition) === definitionKey(definition.value)
     ? saved.metric_version
     : null;
 });
@@ -203,7 +211,9 @@ const yMax = computed(() =>
   Math.max(
     1,
     ...(preview.value?.series ?? []).flatMap((series) =>
-      series.values.filter((value) => value !== null),
+      [...series.values, ...(series.upper ?? [])].filter(
+        (value) => value !== null,
+      ),
     ),
   ),
 );
@@ -766,6 +776,10 @@ onMounted(() => void loadFigures());
         <p v-if="censoredAt" class="text-sm text-gray-600 mt-2">
           {{ preview.y_title }}, with 95% confidence bands. Open exposures are
           censored at HEAD ({{ censoredAt }}).
+        </p>
+        <p v-if="hasErrorBars" class="text-sm text-gray-600 mt-2">
+          Error bars show the 95% Wilson interval of each share, in the axis's
+          units.
         </p>
       </template>
       <p v-else class="text-sm text-gray-600">No data to plot yet.</p>

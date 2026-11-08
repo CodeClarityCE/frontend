@@ -423,7 +423,12 @@ const analyzerSteps = computed(() =>
           >
             <dt class="text-gray-500">Instances with a score</dt>
             <dd class="text-right">
-              {{ formatShare(results.epss.nonnull_share) }}
+              {{
+                formatShareWithInterval(
+                  results.epss.nonnull_share,
+                  results.share_intervals?.epss_nonnull,
+                )
+              }}
             </dd>
             <dt class="text-gray-500">Median / p90</dt>
             <dd class="text-right">
@@ -646,6 +651,7 @@ const analyzerSteps = computed(() =>
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
       :intervals="bootstrap?.fix_lag ?? null"
+      :snapshot-interval="results.share_intervals?.fix_snapshot_precision"
     />
 
     <ExperimentProbes
@@ -654,17 +660,26 @@ const analyzerSteps = computed(() =>
       :exposures="results.exposures ?? null"
     />
 
-    <ExperimentSurvival v-if="survival" :survival="survival" />
+    <ExperimentSurvival
+      v-if="survival"
+      :survival="survival"
+      :snapshot-interval="results.share_intervals?.fix_snapshot_precision"
+    />
 
     <ExperimentResidence
       v-if="residence"
       :residence="residence"
       :intervals="bootstrap?.residence ?? null"
+      :snapshot-interval="
+        results.share_intervals?.introduction_snapshot_precision
+      "
     />
 
     <ExperimentUpstreamLeverage
       v-if="upstreamLeverage"
       :leverage="upstreamLeverage"
+      :share-intervals="results.share_intervals?.removed_transitive"
+      :snapshot-interval="results.share_intervals?.fix_snapshot_precision"
     />
 
     <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />

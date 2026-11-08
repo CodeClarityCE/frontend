@@ -394,7 +394,56 @@ export interface KnowledgeSnapshot {
   epss_rows: number;
 }
 
+/** A 95% percentile bootstrap interval. */
+export interface BootstrapInterval {
+  low: number;
+  high: number;
+}
+
+export interface ConcentrationIntervals {
+  load_median: BootstrapInterval | null;
+  gini_pkg: BootstrapInterval | null;
+  gini_proj: BootstrapInterval | null;
+}
+
+type GroupIntervals = Record<string, BootstrapInterval | null>;
+
+/** Bootstrap intervals of the medians and Gini coefficients. */
+export interface ResultIntervals {
+  headline: ConcentrationIntervals;
+  sweep: Record<SweepSubset, ConcentrationIntervals>;
+  epss_median: BootstrapInterval | null;
+  /** Per package manager */
+  rqd: Record<
+    string,
+    {
+      med_deps: BootstrapInterval | null;
+      med_vulns: BootstrapInterval | null;
+    }
+  >;
+  fix_lag: {
+    overall: BootstrapInterval | null;
+    by_severity: GroupIntervals;
+    by_kind: GroupIntervals;
+  };
+  residence: {
+    overall: BootstrapInterval | null;
+    by_severity: GroupIntervals;
+    after_disclosure: BootstrapInterval | null;
+    after_disclosure_by_severity: GroupIntervals;
+  };
+}
+
+export interface BootstrapProvenance {
+  method: string;
+  confidence: number;
+  resamples: number;
+  seed: number;
+}
+
 export interface ProvenanceBlock {
+  /** How the bootstrap intervals are computed; absent from older APIs */
+  bootstrap?: BootstrapProvenance;
   api_version: string | null;
   analyzer_steps: AnalyzerStepSnapshot[][] | null;
   knowledge_start: KnowledgeSnapshot | null;
@@ -628,6 +677,8 @@ export interface ExperimentResults {
   residence?: ResidenceBlock;
   exposure_survival?: ExposureSurvivalBlock;
   upstream_leverage?: UpstreamLeverageBlock;
+  /** Null while the experiment has not ended */
+  intervals?: ResultIntervals | null;
   provenance: ProvenanceBlock;
 }
 

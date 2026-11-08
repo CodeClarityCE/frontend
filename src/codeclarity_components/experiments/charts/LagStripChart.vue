@@ -5,6 +5,7 @@ import { computed, ref } from "vue";
 import {
   AXIS_HEIGHT,
   CHART_WIDTH,
+  formatInterval,
   formatNumber,
   LABEL_WIDTH,
   type LagChartRow,
@@ -32,6 +33,8 @@ const props = defineProps<{
   /** Name of the below-zero count, e.g. "before disclosure"; omit to hide it */
   belowZero?: string;
 }>();
+
+const hasIntervals = computed(() => props.rows.some((row) => row.interval));
 
 const height = computed(
   () => TOP_PADDING + props.rows.length * ROW_HEIGHT + AXIS_HEIGHT,
@@ -219,6 +222,7 @@ function hide(): void {
           <th class="font-medium">Group</th>
           <th class="font-medium text-right">{{ unit }}</th>
           <th class="font-medium text-right">Median days</th>
+          <th v-if="hasIntervals" class="font-medium text-right">95% CI</th>
           <th class="font-medium text-right">25th pct.</th>
           <th class="font-medium text-right">75th pct.</th>
           <th v-if="belowZero" class="font-medium text-right">
@@ -231,6 +235,9 @@ function hide(): void {
           <td>{{ row.label }}</td>
           <td class="text-right">{{ row.summary.n }}</td>
           <td class="text-right">{{ formatNumber(row.summary.median) }}</td>
+          <td v-if="hasIntervals" class="text-right">
+            {{ formatInterval(row.interval) }}
+          </td>
           <td class="text-right">{{ formatNumber(row.summary.p25) }}</td>
           <td class="text-right">{{ formatNumber(row.summary.p75) }}</td>
           <td v-if="belowZero" class="text-right">

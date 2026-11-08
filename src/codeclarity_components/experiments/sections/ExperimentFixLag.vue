@@ -14,6 +14,7 @@ import {
   type FixLagBlock,
   type FixLagPoint,
   type LagGroup,
+  type ResultIntervals,
   type SeverityCounts,
   SeverityLabels,
 } from "../experiment.entity";
@@ -21,12 +22,14 @@ import {
 const props = defineProps<{
   fixLag: FixLagBlock;
   exposures: ExposuresBlock | null;
+  intervals?: ResultIntervals["fix_lag"] | null;
 }>();
 
 function rowsOf(
   groups: LagGroup[],
   label: (key: string) => string,
   matches: (point: FixLagPoint, key: string) => boolean,
+  intervals?: Record<string, LagChartRow["interval"]>,
 ): LagChartRow[] {
   return groups.map((group) => ({
     key: group.key,
@@ -35,6 +38,7 @@ function rowsOf(
     lags: props.fixLag.points
       .filter((point) => matches(point, group.key))
       .map((point) => point.lag_days),
+    interval: intervals?.[group.key] ?? null,
   }));
 }
 
@@ -43,6 +47,7 @@ const bySeverity = computed(() =>
     props.fixLag.by_severity,
     (key) => SeverityLabels[key as keyof SeverityCounts] ?? key,
     (point, key) => point.severity === key,
+    props.intervals?.by_severity,
   ),
 );
 
@@ -51,6 +56,7 @@ const byKind = computed(() =>
     props.fixLag.by_kind,
     (key) => FixKindLabels[key as FixKind | "unknown"] ?? key,
     (point, key) => (point.kind ?? "unknown") === key,
+    props.intervals?.by_kind,
   ),
 );
 

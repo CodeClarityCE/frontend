@@ -14,6 +14,12 @@ const {
   deleteExperiment,
   getExperimentResults,
   downloadExperimentExport,
+  getFigureCatalog,
+  getFigures,
+  computeFigureData,
+  createFigure,
+  updateFigure,
+  deleteFigure,
   saveBlob,
   successToast,
   errorToast,
@@ -24,6 +30,12 @@ const {
   deleteExperiment: vi.fn(),
   getExperimentResults: vi.fn(),
   downloadExperimentExport: vi.fn(),
+  getFigureCatalog: vi.fn(),
+  getFigures: vi.fn(),
+  computeFigureData: vi.fn(),
+  createFigure: vi.fn(),
+  updateFigure: vi.fn(),
+  deleteFigure: vi.fn(),
   saveBlob: vi.fn(),
   successToast: vi.fn(),
   errorToast: vi.fn(),
@@ -37,6 +49,12 @@ vi.mock("../experiments.repository", () => ({
     deleteExperiment = deleteExperiment;
     getExperimentResults = getExperimentResults;
     downloadExperimentExport = downloadExperimentExport;
+    getFigureCatalog = getFigureCatalog;
+    getFigures = getFigures;
+    computeFigureData = computeFigureData;
+    createFigure = createFigure;
+    updateFigure = updateFigure;
+    deleteFigure = deleteFigure;
   },
 }));
 
@@ -67,6 +85,32 @@ vi.mock("@/shadcn/ui/progress", () => ({
   Progress: {
     props: ["modelValue"],
     template: '<div data-testid="progress" :data-value="modelValue" />',
+  },
+}));
+
+vi.mock("@/shadcn/ui/input", () => ({
+  Input: {
+    props: ["modelValue"],
+    emits: ["update:modelValue"],
+    template:
+      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+  },
+}));
+
+vi.mock("@/shadcn/ui/select", () => ({
+  Select: {
+    props: ["modelValue"],
+    emits: ["update:modelValue"],
+    template:
+      '<select v-bind="$attrs" :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><slot /></select>',
+    inheritAttrs: false,
+  },
+  SelectTrigger: { template: "<span />" },
+  SelectValue: { template: "<span />" },
+  SelectContent: { template: "<slot />" },
+  SelectItem: {
+    props: ["value"],
+    template: '<option :value="value"><slot /></option>',
   },
 }));
 
@@ -1644,5 +1688,240 @@ describe("ExperimentDetail", () => {
 
     expect(saveBlob).not.toHaveBeenCalled();
     expect(errorToast).toHaveBeenCalledWith("Failed to export runs.csv");
+  });
+});
+
+describe("ExperimentDetail Figures tab", () => {
+  const CATALOG = {
+    metrics: [
+      {
+        id: "load_over_time",
+        label: "Load over time",
+        chart_forms: [{ id: "line", label: "Line" }],
+        group_by: [],
+        filters: [
+          {
+            id: "view",
+            label: "View",
+            options: [
+              { id: "hindsight", label: "Hindsight" },
+              { id: "as_of", label: "As-of" },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  function figureData(label: string): { data: object } {
+    return {
+      data: {
+        x_title: "Grid date",
+        y_title: "Vulnerability instances",
+        labels: ["2025-01-01", "HEAD"],
+        series: [{ key: "as_of", label, values: [3, 5] }],
+      },
+    };
+  }
+
+  const AS_OF_DEFINITION = {
+    metric: "load_over_time",
+    chart_form: "line",
+    group_by: null,
+    filters: { view: "as_of" },
+  };
+
+  const NO_FILTER_DEFINITION = { ...AS_OF_DEFINITION, filters: {} };
+
+  beforeEach(() => {
+    getExperiment.mockReset().mockResolvedValue({
+      data: experiment("COMPLETED", {
+        run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
+      }),
+    });
+    getExperimentRuns
+      .mockReset()
+      .mockResolvedValue({ data: [], total_pages: 0 });
+    getExperimentResults.mockReset().mockResolvedValue({ data: results() });
+    getFigureCatalog.mockReset().mockResolvedValue({ data: CATALOG });
+    getFigures.mockReset().mockResolvedValue({ data: [] });
+    computeFigureData.mockReset().mockResolvedValue(figureData("Both"));
+    createFigure.mockReset().mockResolvedValue({ id: "fig-1" });
+    updateFigure.mockReset().mockResolvedValue({});
+    deleteFigure.mockReset().mockResolvedValue({});
+    successToast.mockReset();
+    errorToast.mockReset();
+  });
+
+  async function openFiguresTab(): Promise<VueWrapper> {
+    const wrapper = mount(ExperimentDetail, {
+      attachTo: document.body,
+      global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    });
+    await flushPromises();
+    await wrapper
+      .find('[data-testid="experiment-tab-figures"]')
+      .trigger("mousedown", { button: 0 });
+    await flushPromises();
+    return wrapper;
+  }
+
+  function optionsOf(wrapper: VueWrapper, testid: string): string[] {
+    return wrapper
+      .find(`[data-testid="${testid}"]`)
+      .findAll("option")
+      .map((option) => option.text());
+  }
+
+  it("offers the options of the API catalog", async () => {
+    const wrapper = await openFiguresTab();
+
+    expect(optionsOf(wrapper, "figure-metric")).toEqual(["Load over time"]);
+    expect(optionsOf(wrapper, "figure-chart-form")).toEqual(["Line"]);
+    expect(optionsOf(wrapper, "figure-filter-view")).toEqual([
+      "No filter",
+      "Hindsight",
+      "As-of",
+    ]);
+    // The catalog offers no grouping for this metric
+    expect(wrapper.find('[data-testid="figure-group-by"]').exists()).toBe(
+      false,
+    );
+  });
+
+  it("previews live as the definition changes", async () => {
+    const wrapper = await openFiguresTab();
+    expect(computeFigureData).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        orgId: expect.any(String),
+        experimentId: "exp-1",
+        data: { definition: NO_FILTER_DEFINITION },
+      }),
+    );
+
+    computeFigureData.mockResolvedValue(figureData("As-of only"));
+    await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");
+    await flushPromises();
+
+    expect(computeFigureData).toHaveBeenLastCalledWith(
+      expect.objectContaining({ data: { definition: AS_OF_DEFINITION } }),
+    );
+    expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
+      "As-of only",
+    );
+  });
+
+  it("shows only the latest preview when an earlier one answers late", async () => {
+    const wrapper = await openFiguresTab();
+    let answerSlow: (value: unknown) => void = () => undefined;
+    computeFigureData.mockReturnValueOnce(
+      new Promise((resolve) => {
+        answerSlow = resolve;
+      }),
+    );
+    await wrapper
+      .find('[data-testid="figure-filter-view"]')
+      .setValue("hindsight");
+    computeFigureData.mockResolvedValueOnce(figureData("Latest"));
+    await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");
+    await flushPromises();
+
+    answerSlow(figureData("Stale"));
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
+      "Latest",
+    );
+  });
+
+  it("names and saves a Figure, then lists it", async () => {
+    const wrapper = await openFiguresTab();
+    await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");
+    await wrapper.find('[data-testid="figure-name"]').setValue("Load as-of");
+    getFigures.mockResolvedValue({
+      data: [{ id: "fig-1", name: "Load as-of", definition: AS_OF_DEFINITION }],
+    });
+
+    await wrapper.find('[data-testid="figure-save"]').trigger("click");
+    await flushPromises();
+
+    expect(createFigure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { name: "Load as-of", definition: AS_OF_DEFINITION },
+      }),
+    );
+    expect(wrapper.find('[data-testid="figure-item"]').text()).toContain(
+      "Load as-of",
+    );
+  });
+
+  it("does not save a Figure without a name", async () => {
+    const wrapper = await openFiguresTab();
+
+    expect(
+      wrapper.find('[data-testid="figure-save"]').attributes("disabled"),
+    ).toBeDefined();
+  });
+
+  it("reopens a saved Figure with its definition and data", async () => {
+    getFigures.mockResolvedValue({
+      data: [{ id: "fig-1", name: "Load as-of", definition: AS_OF_DEFINITION }],
+    });
+    const wrapper = await openFiguresTab();
+    computeFigureData.mockClear();
+
+    await wrapper.find('[data-testid="figure-open"]').trigger("click");
+    await flushPromises();
+
+    expect(computeFigureData).toHaveBeenLastCalledWith(
+      expect.objectContaining({ data: { definition: AS_OF_DEFINITION } }),
+    );
+    const view = wrapper.find('[data-testid="figure-filter-view"]')
+      .element as HTMLSelectElement;
+    expect(view.value).toBe("as_of");
+    const name = wrapper.find('[data-testid="figure-name"]')
+      .element as HTMLInputElement;
+    expect(name.value).toBe("Load as-of");
+  });
+
+  it("renames an open Figure instead of creating another", async () => {
+    getFigures.mockResolvedValue({
+      data: [{ id: "fig-1", name: "Load as-of", definition: AS_OF_DEFINITION }],
+    });
+    const wrapper = await openFiguresTab();
+    await wrapper.find('[data-testid="figure-open"]').trigger("click");
+    await flushPromises();
+
+    await wrapper.find('[data-testid="figure-name"]').setValue("Renamed");
+    await wrapper.find('[data-testid="figure-save"]').trigger("click");
+    await flushPromises();
+
+    expect(createFigure).not.toHaveBeenCalled();
+    expect(updateFigure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        figureId: "fig-1",
+        data: { name: "Renamed", definition: AS_OF_DEFINITION },
+      }),
+    );
+  });
+
+  it("deletes a Figure after confirmation", async () => {
+    getFigures.mockResolvedValue({
+      data: [{ id: "fig-1", name: "Load as-of", definition: AS_OF_DEFINITION }],
+    });
+    const wrapper = await openFiguresTab();
+
+    await wrapper.find('[data-testid="figure-delete"]').trigger("click");
+    expect(deleteFigure).not.toHaveBeenCalled();
+    getFigures.mockResolvedValue({ data: [] });
+    await wrapper
+      .find('[data-testid="figure-delete-confirm"]')
+      .trigger("click");
+    await flushPromises();
+
+    expect(deleteFigure).toHaveBeenCalledWith(
+      expect.objectContaining({ figureId: "fig-1" }),
+    );
+    expect(wrapper.find('[data-testid="figure-item"]').exists()).toBe(false);
   });
 });

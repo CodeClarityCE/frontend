@@ -1,0 +1,49 @@
+/** Figure types as the API serves them; the catalog itself lives on the API. */
+
+export interface FigureChoice {
+  id: string;
+  label: string;
+}
+
+export interface FigureFilter extends FigureChoice {
+  options: FigureChoice[];
+}
+
+export interface FigureMetric extends FigureChoice {
+  chart_forms: FigureChoice[];
+  group_by: FigureChoice[];
+  filters: FigureFilter[];
+}
+
+export interface FigureCatalog {
+  metrics: FigureMetric[];
+}
+
+export interface FigureDefinition {
+  metric: string;
+  chart_form: string;
+  group_by: string | null;
+  /** Filter id to chosen option id; a filter left out is not applied */
+  filters: Record<string, string>;
+}
+
+export interface Figure {
+  id: string;
+  name: string;
+  definition: FigureDefinition;
+  created_on: string;
+}
+
+/** One line of a Figure; a null value leaves a gap. */
+export interface FigureSeries {
+  key: string;
+  label: string;
+  values: (number | null)[];
+}
+
+export interface FigureData {
+  x_title: string;
+  y_title: string;
+  labels: string[];
+  series: FigureSeries[];
+}

@@ -3,6 +3,7 @@ import {
   type AuthRepoMethodEmptyDeleteRequestOptions,
   type AuthRepoMethodEmptyPostRequestOptions,
   type AuthRepoMethodGetRequestOptions,
+  type AuthRepoMethodPatchRequestOptions,
   type AuthRepoMethodPostRequestOptions,
   BaseRepository,
   type PaginatedRepoMethodRequestOptions,
@@ -20,6 +21,41 @@ import {
   type ExperimentResults,
   ExperimentRun,
 } from "./experiment.entity";
+import type {
+  Figure,
+  FigureCatalog,
+  FigureData,
+  FigureDefinition,
+} from "./experiment-figure.entity";
+
+export interface FigureRequestScope {
+  orgId: string;
+  experimentId: string;
+}
+
+export type GetFiguresRequestOptions = AuthRepoMethodGetRequestOptions &
+  FigureRequestScope;
+
+export type ComputeFigureDataRequestOptions = AuthRepoMethodPostRequestOptions<{
+  definition: FigureDefinition;
+}> &
+  FigureRequestScope;
+
+export type CreateFigureRequestOptions = AuthRepoMethodPostRequestOptions<{
+  name: string;
+  definition: FigureDefinition;
+}> &
+  FigureRequestScope;
+
+export type UpdateFigureRequestOptions = AuthRepoMethodPatchRequestOptions<{
+  name?: string;
+  definition?: FigureDefinition;
+}> &
+  FigureRequestScope & { figureId: string };
+
+export type DeleteFigureRequestOptions =
+  AuthRepoMethodEmptyDeleteRequestOptions &
+    FigureRequestScope & { figureId: string };
 
 export interface GetExperimentsRequestOptions
   extends AuthRepoMethodGetRequestOptions, PaginatedRepoMethodRequestOptions {
@@ -256,5 +292,118 @@ export class ExperimentsRepository extends BaseRepository {
       handleHTTPErrors: options.handleHTTPErrors,
       handleOtherErrors: options.handleOtherErrors,
     });
+  }
+
+  /** The combinations the Figure composer may offer. */
+  async getFigureCatalog(
+    options: GetFiguresRequestOptions,
+  ): Promise<DataResponse<FigureCatalog>> {
+    const response = await this.getRequest<DataResponse<FigureCatalog>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(this.experimentUrl(options, "figure-catalog")),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return Entity.unMarshal<DataResponse<FigureCatalog>>(
+      response,
+      DataResponse<FigureCatalog>,
+    );
+  }
+
+  async getFigures(
+    options: GetFiguresRequestOptions,
+  ): Promise<DataResponse<Figure[]>> {
+    const response = await this.getRequest<DataResponse<Figure[]>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(this.experimentUrl(options, "figures")),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return Entity.unMarshal<DataResponse<Figure[]>>(
+      response,
+      DataResponse<Figure[]>,
+    );
+  }
+
+  /** The plotted values of a definition, for previews and reopened Figures. */
+  async computeFigureData(
+    options: ComputeFigureDataRequestOptions,
+  ): Promise<DataResponse<FigureData>> {
+    const response = await this.postRequest<
+      DataResponse<FigureData>,
+      { definition: FigureDefinition }
+    >({
+      bearerToken: options.bearerToken,
+      data: options.data,
+      url: this.buildUrl(this.experimentUrl(options, "figure-data")),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return Entity.unMarshal<DataResponse<FigureData>>(
+      response,
+      DataResponse<FigureData>,
+    );
+  }
+
+  async createFigure(
+    options: CreateFigureRequestOptions,
+  ): Promise<CreatedResponse> {
+    const response = await this.postRequest<
+      CreatedResponse,
+      { name: string; definition: FigureDefinition }
+    >({
+      bearerToken: options.bearerToken,
+      data: options.data,
+      url: this.buildUrl(this.experimentUrl(options, "figures")),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return Entity.unMarshal<CreatedResponse>(response, CreatedResponse);
+  }
+
+  async updateFigure(
+    options: UpdateFigureRequestOptions,
+  ): Promise<NoDataResponse> {
+    const response = await this.patchRequest<
+      NoDataResponse,
+      { name?: string; definition?: FigureDefinition }
+    >({
+      bearerToken: options.bearerToken,
+      data: options.data,
+      url: this.buildUrl(
+        this.experimentUrl(options, `figures/${options.figureId}`),
+      ),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
+
+  async deleteFigure(
+    options: DeleteFigureRequestOptions,
+  ): Promise<NoDataResponse> {
+    const response = await this.deleteRequest<
+      NoDataResponse,
+      Record<string, never>
+    >({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(
+        this.experimentUrl(options, `figures/${options.figureId}`),
+      ),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+      data: {},
+    });
+    return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
+
+  private experimentUrl(scope: FigureRequestScope, path: string): string {
+    return `/org/${scope.orgId}/experiments/${scope.experimentId}/${path}`;
   }
 }

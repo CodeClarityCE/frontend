@@ -55,6 +55,7 @@ export const APIErrors = {
   FailedToSendPasswordResetEmail: "FailedToSendPasswordResetEmail",
   FailedToSendOrganizationInviteEmail: "FailedToSendOrganizationInviteEmail",
   InternalError: "InternalError",
+  FigureVersionNotCurrent: "FigureVersionNotCurrent",
 } as const;
 
 export type APIErrorType = (typeof APIErrors)[keyof typeof APIErrors];

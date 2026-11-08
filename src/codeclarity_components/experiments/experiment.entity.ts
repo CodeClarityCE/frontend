@@ -338,6 +338,42 @@ export interface SweepRow extends HeadlineScalars {
   subset: SweepSubset;
 }
 
+export interface ConfidenceInterval {
+  low: number;
+  high: number;
+}
+
+export interface ScalarShareIntervals {
+  affected_share: ConfidenceInterval | null;
+  high_critical_share: ConfidenceInterval | null;
+  top10_pkg_share: ConfidenceInterval | null;
+  top10_proj_share: ConfidenceInterval | null;
+}
+
+export interface SweepShareIntervals extends ScalarShareIntervals {
+  subset: SweepSubset;
+}
+
+/** 95% Wilson intervals of the headline, sweep and severity shares. */
+export interface ShareIntervals {
+  headline: ScalarShareIntervals & {
+    high_critical_share_of_classed: ConfidenceInterval | null;
+  };
+  sweep: SweepShareIntervals[];
+  severity: Record<keyof SeverityCounts, ConfidenceInterval | null>;
+  /** Optional so payloads stored before these shares still render */
+  epss_nonnull?: ConfidenceInterval | null;
+  fix_snapshot_precision?: ConfidenceInterval | null;
+  introduction_snapshot_precision?: ConfidenceInterval | null;
+  removed_transitive?: RemovedTransitiveIntervals;
+}
+
+/** The removed_transitive share's intervals; by_interval follows fix_kinds. */
+export interface RemovedTransitiveIntervals {
+  overall: ConfidenceInterval | null;
+  by_interval: (ConfidenceInterval | null)[];
+}
+
 export interface EpssBlock {
   nonnull_share: number | null;
   median: number | null;
@@ -394,7 +430,56 @@ export interface KnowledgeSnapshot {
   epss_rows: number;
 }
 
+/** A 95% percentile bootstrap interval. */
+export interface BootstrapInterval {
+  low: number;
+  high: number;
+}
+
+export interface ConcentrationIntervals {
+  load_median: BootstrapInterval | null;
+  gini_pkg: BootstrapInterval | null;
+  gini_proj: BootstrapInterval | null;
+}
+
+type GroupIntervals = Record<string, BootstrapInterval | null>;
+
+/** Bootstrap intervals of the medians and Gini coefficients. */
+export interface ResultIntervals {
+  headline: ConcentrationIntervals;
+  sweep: Record<SweepSubset, ConcentrationIntervals>;
+  epss_median: BootstrapInterval | null;
+  /** Per package manager */
+  rqd: Record<
+    string,
+    {
+      med_deps: BootstrapInterval | null;
+      med_vulns: BootstrapInterval | null;
+    }
+  >;
+  fix_lag: {
+    overall: BootstrapInterval | null;
+    by_severity: GroupIntervals;
+    by_kind: GroupIntervals;
+  };
+  residence: {
+    overall: BootstrapInterval | null;
+    by_severity: GroupIntervals;
+    after_disclosure: BootstrapInterval | null;
+    after_disclosure_by_severity: GroupIntervals;
+  };
+}
+
+export interface BootstrapProvenance {
+  method: string;
+  confidence: number;
+  resamples: number;
+  seed: number;
+}
+
 export interface ProvenanceBlock {
+  /** How the bootstrap intervals are computed; absent from older APIs */
+  bootstrap?: BootstrapProvenance;
   api_version: string | null;
   analyzer_steps: AnalyzerStepSnapshot[][] | null;
   knowledge_start: KnowledgeSnapshot | null;
@@ -550,6 +635,9 @@ export interface ResidenceBlock {
 export interface KmStep {
   time: number;
   survival: number;
+  /** 95% confidence band around survival */
+  lower: number;
+  upper: number;
   at_risk: number;
   events: number;
   censored: number;
@@ -614,6 +702,8 @@ export interface ExperimentResults {
   grid_coverage: GridCoverageRow[];
   headline: Headline;
   sweep: SweepRow[];
+  /** Absent from results of older APIs */
+  share_intervals?: ShareIntervals;
   epss: EpssBlock;
   match_flags: Record<string, number>;
   winning_source_head: Record<string, number>;
@@ -628,6 +718,8 @@ export interface ExperimentResults {
   residence?: ResidenceBlock;
   exposure_survival?: ExposureSurvivalBlock;
   upstream_leverage?: UpstreamLeverageBlock;
+  /** Null while the experiment has not ended */
+  bootstrap_intervals?: ResultIntervals | null;
   provenance: ProvenanceBlock;
 }
 
@@ -640,3 +732,21 @@ export const EXPERIMENT_EXPORT_FILES = [
 ] as const;
 
 export type ExperimentExportFile = (typeof EXPERIMENT_EXPORT_FILES)[number];
+
+/** What publishing returns: the version stored and when. */
+export interface PublishedVersionStamp {
+  metric_version: number;
+  published_on: Date | string;
+  /** SHA-256 of the replication package, null for a version without one */
+  package_checksum: string | null;
+}
+
+/** The metric version a publish would store now. */
+export interface CurrentMetricVersion {
+  metric_version: number;
+}
+
+/** One Published results version of an experiment, without its payload. */
+export interface PublishedVersion extends PublishedVersionStamp {
+  published_by_name: string | null;
+}

@@ -2,7 +2,8 @@
 import { line, scaleLinear } from "d3";
 import { computed, ref } from "vue";
 
-import { CHART_WIDTH, type GridLineSeries, TOP_PADDING } from "./chart-format";
+import { type GridLineSeries, TOP_PADDING, xTickCount } from "./chart-format";
+import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
@@ -25,12 +26,15 @@ const props = defineProps<{
   xTitle: string;
   /** More table columns after the series, one value per label */
   extraColumns?: { label: string; values: string[] }[];
+  /** Draw every point without a joining line */
+  pointsOnly?: boolean;
 }>();
+
+const chartWidth = useChartWidth();
 
 const LEFT = 44;
 const PLOT_HEIGHT = 160;
 const AXIS_HEIGHT = 28;
-const MAX_X_TICKS = 6;
 /** Past this many points only the last one gets a marker */
 const MAX_MARKERS = 36;
 
@@ -44,7 +48,8 @@ const height = TOP_PADDING + PLOT_HEIGHT + AXIS_HEIGHT;
 const baseline = TOP_PADDING + PLOT_HEIGHT;
 
 const step = computed(
-  () => (CHART_WIDTH - LEFT - RIGHT.value) / Math.max(props.labels.length, 1),
+  () =>
+    (chartWidth.value - LEFT - RIGHT.value) / Math.max(props.labels.length, 1),
 );
 
 function xOf(index: number): number {
@@ -63,7 +68,7 @@ const yTicks = computed(() => y.value.ticks(4));
 /** About six evenly spaced labels, always including the last. */
 const xTicks = computed(() => {
   const n = props.labels.length;
-  const every = Math.max(1, Math.ceil(n / MAX_X_TICKS));
+  const every = Math.max(1, Math.ceil(n / xTickCount(chartWidth.value)));
   const ticks = props.labels
     .map((_, i) => i)
     .filter((i) => i % every === 0 && n - 1 - i >= every / 2);
@@ -81,6 +86,7 @@ function pathOf(values: (number | null)[]): string {
 
 function markersOf(values: (number | null)[]): { i: number; v: number }[] {
   const points = values.flatMap((v, i) => (v === null ? [] : [{ i, v }]));
+  if (props.pointsOnly) return points;
   return points.length > MAX_MARKERS ? points.slice(-1) : points;
 }
 
@@ -121,6 +127,7 @@ function formatCell(value: number | null): string {
   <div class="exp-viz relative max-w-[640px]">
     <ul
       v-if="series.length >= 2"
+      data-export-legend
       class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1"
     >
       <li
@@ -145,7 +152,7 @@ function formatCell(value: number | null): string {
     </ul>
 
     <svg
-      :viewBox="`0 0 ${CHART_WIDTH} ${height}`"
+      :viewBox="`0 0 ${chartWidth} ${height}`"
       class="w-full h-auto"
       role="group"
       :aria-label="caption"
@@ -154,7 +161,7 @@ function formatCell(value: number | null): string {
         <g v-for="tick in yTicks" :key="`y-${tick}`">
           <line
             :x1="LEFT"
-            :x2="CHART_WIDTH - RIGHT"
+            :x2="chartWidth - RIGHT"
             :y1="y(tick)"
             :y2="y(tick)"
             :stroke="tick === 0 ? 'var(--viz-baseline)' : 'var(--viz-grid)'"
@@ -185,6 +192,7 @@ function formatCell(value: number | null): string {
         <line
           v-if="active !== null"
           data-testid="line-crosshair"
+          data-export-omit
           :x1="xOf(active)"
           :x2="xOf(active)"
           :y1="TOP_PADDING"
@@ -194,6 +202,7 @@ function formatCell(value: number | null): string {
         />
         <g v-for="s in series" :key="s.key">
           <path
+            v-if="!pointsOnly"
             data-testid="line-series"
             :d="pathOf(s.values)"
             fill="none"
@@ -205,6 +214,7 @@ function formatCell(value: number | null): string {
           <circle
             v-for="m in markersOf(s.values)"
             :key="`m-${m.i}`"
+            data-testid="line-marker"
             :cx="xOf(m.i)"
             :cy="y(m.v)"
             r="4"
@@ -230,6 +240,7 @@ function formatCell(value: number | null): string {
         v-for="(label, i) in labels"
         :key="`hit-${label}-${i}`"
         data-testid="line-column"
+        data-export-omit
         :x="xOf(i) - step / 2"
         :y="TOP_PADDING"
         :width="step"

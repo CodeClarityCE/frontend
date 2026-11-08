@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, provide } from "vue";
 
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
 
-import { formatShare } from "../charts/chart-format";
 import {
+  gridCoverageOf,
+  RESULT_MARKS,
+  SNAPSHOT_COVERAGE,
+} from "../charts/chart-caption";
+import {
+  formatBracketInterval,
+  formatInterval,
+  formatPValue,
+  formatShare,
+  formatShareWithInterval,
+} from "../charts/chart-format";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
+import {
+  type BootstrapInterval,
   type ExperimentResults,
   formatExperimentDate,
   SEVERITY_ORDER,
@@ -18,7 +31,11 @@ import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
 import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
 
-const props = defineProps<{ results: ExperimentResults }>();
+const props = defineProps<{
+  results: ExperimentResults;
+  /** The Published results version shown, null for unpublished results */
+  metricVersion: number | null;
+}>();
 
 function count(value: number | null): string {
   return value === null ? "-" : value.toLocaleString("en-US");
@@ -43,14 +60,52 @@ function tally(
 }
 
 const headline = computed(() => props.results.headline);
+const bootstrap = computed(() => props.results.bootstrap_intervals ?? null);
+
+/** Interval text for a stat card, empty without one. */
+function cardInterval(
+  interval: BootstrapInterval | null | undefined,
+  format: (value: number) => string,
+): string {
+  return interval ? `95% CI ${formatBracketInterval(interval, format)}` : "";
+}
+
+const fixedThree = (value: number): string => value.toFixed(3);
+const fixedFour = (value: number): string => value.toFixed(4);
+const whole = (value: number): string => value.toLocaleString("en-US");
+
+function withInterval(subtitle: string, interval: string): string {
+  return interval ? `${subtitle}; ${interval}` : subtitle;
+}
 const coverage = computed(() => props.results.coverage);
 const provenance = computed(() => props.results.provenance);
 
-/** Shown only for a grid: a HEAD-only experiment has just the HEAD row. */
-const gridCoverage = computed(() => {
-  const rows = props.results.grid_coverage ?? [];
-  return rows.some((row) => row.grid_date !== null) ? rows : [];
+/** Each knowledge source with its stamp at the start and end of the run. */
+const knowledgeSources = computed(() => {
+  const start = provenance.value.knowledge_start?.knowledge_sources ?? {};
+  const end = provenance.value.knowledge_end?.knowledge_sources ?? {};
+  return [...new Set([...Object.keys(start), ...Object.keys(end)])]
+    .sort()
+    .map((name) => ({
+      name,
+      start: start[name] ?? "-",
+      end: end[name] ?? "-",
+    }));
 });
+
+/** Shown only for a grid: a HEAD-only experiment has just the HEAD row. */
+const gridCoverage = computed(() =>
+  gridCoverageOf(props.results.grid_coverage ?? []),
+);
+provide(SNAPSHOT_COVERAGE, gridCoverage);
+provide(
+  RESULT_MARKS,
+  computed(() =>
+    props.metricVersion === null
+      ? { unpublished: true }
+      : { metricVersion: props.metricVersion },
+  ),
+);
 const anyMixedKnowledge = computed(() =>
   gridCoverage.value.some((row) => row.mixed_knowledge),
 );
@@ -83,6 +138,32 @@ const residence = computed(() =>
   gridCoverage.value.length > 0 ? (props.results.residence ?? null) : null,
 );
 
+const headlineIntervals = computed(
+  () => props.results.share_intervals?.headline ?? null,
+);
+
+const highCriticalSubtitle = computed(() => {
+  const interval = headlineIntervals.value?.high_critical_share;
+  const ofClassed = formatShareWithInterval(
+    headline.value.high_critical_share_of_classed,
+    headlineIntervals.value?.high_critical_share_of_classed,
+  );
+  return interval
+    ? `95% CI ${formatInterval(interval)}; of classed: ${ofClassed}`
+    : `of classed: ${ofClassed}`;
+});
+
+/** The sweep rows with their intervals, none when the API sent none. */
+const sweepRows = computed(() =>
+  props.results.sweep.map((row) => ({
+    row,
+    intervals:
+      props.results.share_intervals?.sweep.find(
+        (entry) => entry.subset === row.subset,
+      ) ?? null,
+  })),
+);
+
 const severityRows = computed(() => {
   const counts = headline.value.sev_counts;
   const total = SEVERITY_ORDER.reduce((sum, sev) => sum + counts[sev], 0);
@@ -90,6 +171,7 @@ const severityRows = computed(() => {
     severity,
     count: counts[severity],
     share: total === 0 ? null : counts[severity] / total,
+    interval: props.results.share_intervals?.severity[severity] ?? null,
   }));
 });
 
@@ -187,7 +269,12 @@ const analyzerSteps = computed(() =>
           label="Affected projects"
           :value="`${headline.n_affected} / ${headline.n_projects}`"
           icon="solar:shield-warning-linear"
-          :subtitle="formatShare(headline.affected_share)"
+          :subtitle="
+            formatShareWithInterval(
+              headline.affected_share,
+              headlineIntervals?.affected_share,
+            )
+          "
         />
         <StatCard
           label="Vulnerability instances"
@@ -204,19 +291,36 @@ const analyzerSteps = computed(() =>
           label="Load per project"
           :value="`${count(headline.load_median)} / ${decimal(headline.load_mean, 1)} / ${count(headline.load_max)}`"
           icon="solar:chart-square-linear"
-          subtitle="median / mean / max instances"
+          :subtitle="
+            withInterval(
+              'median / mean / max instances',
+              bootstrap?.headline.load_median
+                ? `median ${cardInterval(bootstrap.headline.load_median, whole)}`
+                : '',
+            )
+          "
         />
         <StatCard
           label="Gini by package"
           :value="decimal(headline.gini_pkg)"
           icon="solar:pie-chart-2-linear"
-          :subtitle="`top 10 packages: ${formatShare(headline.top10_pkg_share)}`"
+          :subtitle="
+            withInterval(
+              `top 10 packages: ${formatShareWithInterval(headline.top10_pkg_share, headlineIntervals?.top10_pkg_share)}`,
+              cardInterval(bootstrap?.headline.gini_pkg, fixedThree),
+            )
+          "
         />
         <StatCard
           label="Gini by project"
           :value="decimal(headline.gini_proj)"
           icon="solar:pie-chart-2-linear"
-          :subtitle="`top 10 projects: ${formatShare(headline.top10_proj_share)}`"
+          :subtitle="
+            withInterval(
+              `top 10 projects: ${formatShareWithInterval(headline.top10_proj_share, headlineIntervals?.top10_proj_share)}`,
+              cardInterval(bootstrap?.headline.gini_proj, fixedThree),
+            )
+          "
         />
         <StatCard
           label="Packages to clear"
@@ -228,7 +332,7 @@ const analyzerSteps = computed(() =>
           label="High + critical"
           :value="formatShare(headline.high_critical_share)"
           icon="solar:danger-triangle-linear"
-          :subtitle="`of classed: ${formatShare(headline.high_critical_share_of_classed)}`"
+          :subtitle="highCriticalSubtitle"
         />
       </div>
 
@@ -263,12 +367,21 @@ const analyzerSteps = computed(() =>
 
         <div class="bg-white rounded-xl border border-gray-200 p-4">
           <h3 class="font-semibold text-gray-900 mb-2">Severity mix</h3>
+          <OpenAsFigure
+            :definition="{
+              metric: 'severity_mix',
+              chart_form: 'bar',
+              group_by: null,
+              filters: {},
+            }"
+          />
           <table class="w-full text-sm" data-testid="experiment-severity">
             <thead class="text-left text-gray-500">
               <tr>
                 <th class="font-medium">Severity</th>
                 <th class="font-medium text-right">Instances</th>
                 <th class="font-medium text-right">Share</th>
+                <th class="font-medium text-right">95% CI</th>
               </tr>
             </thead>
             <tbody class="text-gray-700">
@@ -276,6 +389,7 @@ const analyzerSteps = computed(() =>
                 <td>{{ row.severity }}</td>
                 <td class="text-right">{{ count(row.count) }}</td>
                 <td class="text-right">{{ formatShare(row.share) }}</td>
+                <td class="text-right">{{ formatInterval(row.interval) }}</td>
               </tr>
             </tbody>
           </table>
@@ -309,12 +423,20 @@ const analyzerSteps = computed(() =>
           >
             <dt class="text-gray-500">Instances with a score</dt>
             <dd class="text-right">
-              {{ formatShare(results.epss.nonnull_share) }}
+              {{
+                formatShareWithInterval(
+                  results.epss.nonnull_share,
+                  results.share_intervals?.epss_nonnull,
+                )
+              }}
             </dd>
             <dt class="text-gray-500">Median / p90</dt>
             <dd class="text-right">
-              {{ decimal(results.epss.median, 4) }} /
-              {{ decimal(results.epss.p90, 4) }}
+              {{ decimal(results.epss.median, 4) }}
+              <span v-if="bootstrap?.epss_median" class="text-gray-500">
+                {{ formatBracketInterval(bootstrap.epss_median, fixedFour) }}
+              </span>
+              / {{ decimal(results.epss.p90, 4) }}
             </dd>
             <dt class="text-gray-500">Above 10% / 50%</dt>
             <dd class="text-right">
@@ -360,10 +482,18 @@ const analyzerSteps = computed(() =>
           data-testid="experiment-rqc"
         >
           <h3 class="font-semibold text-gray-900 mb-2">Stars vs load</h3>
+          <OpenAsFigure
+            :definition="{
+              metric: 'stars_vs_load',
+              chart_form: 'scatter',
+              group_by: null,
+              filters: {},
+            }"
+          />
           <p class="text-sm text-gray-700">
             Spearman rho between star rank and vulnerability load:
             <strong>{{ decimal(results.rqc.spearman_rho) }}</strong> (two-sided
-            p = {{ decimal(results.rqc.p) }}, n = {{ results.rqc.n }}).
+            {{ formatPValue(results.rqc.p) }}, n = {{ results.rqc.n }}).
           </p>
           <p
             v-if="results.rqc.excluded_zero_dep_projects > 0"
@@ -389,8 +519,34 @@ const analyzerSteps = computed(() =>
               <tr v-for="row in results.rqd" :key="row.package_manager">
                 <td>{{ row.package_manager }}</td>
                 <td class="text-right">{{ row.projects }}</td>
-                <td class="text-right">{{ count(row.med_deps) }}</td>
-                <td class="text-right">{{ count(row.med_vulns) }}</td>
+                <td class="text-right">
+                  {{ count(row.med_deps) }}
+                  <span
+                    v-if="bootstrap?.rqd[row.package_manager]?.med_deps"
+                    class="text-gray-500"
+                  >
+                    {{
+                      formatBracketInterval(
+                        bootstrap.rqd[row.package_manager]?.med_deps,
+                        whole,
+                      )
+                    }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  {{ count(row.med_vulns) }}
+                  <span
+                    v-if="bootstrap?.rqd[row.package_manager]?.med_vulns"
+                    class="text-gray-500"
+                  >
+                    {{
+                      formatBracketInterval(
+                        bootstrap.rqd[row.package_manager]?.med_vulns,
+                        whole,
+                      )
+                    }}
+                  </span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -415,23 +571,70 @@ const analyzerSteps = computed(() =>
             </tr>
           </thead>
           <tbody class="text-gray-700">
-            <tr v-for="row in results.sweep" :key="row.subset">
+            <tr v-for="{ row, intervals } in sweepRows" :key="row.subset">
               <td>{{ SweepSubsetLabels[row.subset] ?? row.subset }}</td>
               <td class="text-right">
                 {{ row.n_affected }} / {{ row.n_projects }}
+                <div
+                  v-if="intervals?.affected_share"
+                  class="text-xs text-gray-500"
+                >
+                  95% CI {{ formatInterval(intervals.affected_share) }}
+                </div>
               </td>
               <td class="text-right">{{ count(row.instances) }}</td>
               <td class="text-right">
                 {{ count(row.distinct_vuln_packages) }}
               </td>
               <td class="text-right">
-                {{ count(row.load_median) }} / {{ decimal(row.load_mean, 1) }}
+                {{ count(row.load_median) }}
+                <span
+                  v-if="bootstrap?.sweep[row.subset]?.load_median"
+                  class="text-gray-500"
+                >
+                  {{
+                    formatBracketInterval(
+                      bootstrap.sweep[row.subset].load_median,
+                      whole,
+                    )
+                  }}
+                </span>
+                / {{ decimal(row.load_mean, 1) }}
               </td>
               <td class="text-right">
                 {{ formatShare(row.high_critical_share) }}
+                <div
+                  v-if="intervals?.high_critical_share"
+                  class="text-xs text-gray-500"
+                >
+                  95% CI {{ formatInterval(intervals.high_critical_share) }}
+                </div>
               </td>
               <td class="text-right">
-                {{ decimal(row.gini_pkg) }} / {{ decimal(row.gini_proj) }}
+                {{ decimal(row.gini_pkg) }}
+                <span
+                  v-if="bootstrap?.sweep[row.subset]?.gini_pkg"
+                  class="text-gray-500"
+                >
+                  {{
+                    formatBracketInterval(
+                      bootstrap.sweep[row.subset].gini_pkg,
+                      fixedThree,
+                    )
+                  }}
+                </span>
+                / {{ decimal(row.gini_proj) }}
+                <span
+                  v-if="bootstrap?.sweep[row.subset]?.gini_proj"
+                  class="text-gray-500"
+                >
+                  {{
+                    formatBracketInterval(
+                      bootstrap.sweep[row.subset].gini_proj,
+                      fixedThree,
+                    )
+                  }}
+                </span>
               </td>
               <td class="text-right">
                 {{ row.pkgs_clear_50 }} / {{ row.pkgs_clear_80 }} /
@@ -447,6 +650,8 @@ const analyzerSteps = computed(() =>
       v-if="fixLag"
       :fix-lag="fixLag"
       :exposures="results.exposures ?? null"
+      :intervals="bootstrap?.fix_lag ?? null"
+      :snapshot-interval="results.share_intervals?.fix_snapshot_precision"
     />
 
     <ExperimentProbes
@@ -455,13 +660,26 @@ const analyzerSteps = computed(() =>
       :exposures="results.exposures ?? null"
     />
 
-    <ExperimentSurvival v-if="survival" :survival="survival" />
+    <ExperimentSurvival
+      v-if="survival"
+      :survival="survival"
+      :snapshot-interval="results.share_intervals?.fix_snapshot_precision"
+    />
 
-    <ExperimentResidence v-if="residence" :residence="residence" />
+    <ExperimentResidence
+      v-if="residence"
+      :residence="residence"
+      :intervals="bootstrap?.residence ?? null"
+      :snapshot-interval="
+        results.share_intervals?.introduction_snapshot_precision
+      "
+    />
 
     <ExperimentUpstreamLeverage
       v-if="upstreamLeverage"
       :leverage="upstreamLeverage"
+      :share-intervals="results.share_intervals?.removed_transitive"
+      :snapshot-interval="results.share_intervals?.fix_snapshot_precision"
     />
 
     <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
@@ -497,11 +715,33 @@ const analyzerSteps = computed(() =>
           {{ formatExperimentDate(provenance.started_on) }} /
           {{ formatExperimentDate(provenance.ended_on) }}
         </dd>
+        <dt class="text-gray-500">Knowledge sources, start / end</dt>
+        <dd>
+          <ul v-if="knowledgeSources.length > 0">
+            <li
+              v-for="source in knowledgeSources"
+              :key="source.name"
+              data-testid="experiment-knowledge-source"
+            >
+              {{ source.name }}: {{ source.start }} / {{ source.end }}
+            </li>
+          </ul>
+          <span v-else>-</span>
+        </dd>
         <dt class="text-gray-500">EPSS rows, start / end</dt>
         <dd>
           {{ count(provenance.knowledge_start?.epss_rows ?? null) }} /
           {{ count(provenance.knowledge_end?.epss_rows ?? null) }}
         </dd>
+        <template v-if="provenance.bootstrap">
+          <dt class="text-gray-500">Intervals</dt>
+          <dd>
+            {{ provenance.bootstrap.confidence * 100 }}%
+            {{ provenance.bootstrap.method }},
+            {{ count(provenance.bootstrap.resamples) }} resamples, seed
+            {{ provenance.bootstrap.seed }}
+          </dd>
+        </template>
       </dl>
     </div>
   </div>

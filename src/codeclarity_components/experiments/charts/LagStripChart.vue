@@ -4,14 +4,16 @@ import { computed, ref } from "vue";
 
 import {
   AXIS_HEIGHT,
-  CHART_WIDTH,
+  formatBracketInterval,
   formatNumber,
   LABEL_WIDTH,
   type LagChartRow,
   RIGHT_PADDING,
   ROW_HEIGHT,
   TOP_PADDING,
+  xTickCount,
 } from "./chart-format";
+import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
@@ -33,6 +35,9 @@ const props = defineProps<{
   belowZero?: string;
 }>();
 
+const hasIntervals = computed(() => props.rows.some((row) => row.interval));
+const chartWidth = useChartWidth();
+
 const height = computed(
   () => TOP_PADDING + props.rows.length * ROW_HEIGHT + AXIS_HEIGHT,
 );
@@ -40,11 +45,11 @@ const height = computed(
 const x = computed(() =>
   scaleLinear()
     .domain(props.domain)
-    .nice(6)
-    .range([LABEL_WIDTH + 8, CHART_WIDTH - RIGHT_PADDING]),
+    .nice(xTickCount(chartWidth.value))
+    .range([LABEL_WIDTH + 8, chartWidth.value - RIGHT_PADDING]),
 );
 
-const ticks = computed(() => x.value.ticks(6));
+const ticks = computed(() => x.value.ticks(xTickCount(chartWidth.value)));
 
 const zeroX = computed(() => x.value(0));
 
@@ -79,7 +84,7 @@ function hide(): void {
 <template>
   <div class="exp-viz relative max-w-[640px]">
     <svg
-      :viewBox="`0 0 ${CHART_WIDTH} ${height}`"
+      :viewBox="`0 0 ${chartWidth} ${height}`"
       class="w-full h-auto"
       role="group"
       :aria-label="caption"
@@ -192,6 +197,7 @@ function hide(): void {
           v-for="(lag, i) in row.lags"
           :key="`hit-${i}`"
           data-testid="lag-hit"
+          data-export-omit
           :cx="x(lag)"
           :cy="rowY(index) + jitter(i)"
           r="8"
@@ -219,6 +225,7 @@ function hide(): void {
           <th class="font-medium">Group</th>
           <th class="font-medium text-right">{{ unit }}</th>
           <th class="font-medium text-right">Median days</th>
+          <th v-if="hasIntervals" class="font-medium text-right">95% CI</th>
           <th class="font-medium text-right">25th pct.</th>
           <th class="font-medium text-right">75th pct.</th>
           <th v-if="belowZero" class="font-medium text-right">
@@ -231,6 +238,9 @@ function hide(): void {
           <td>{{ row.label }}</td>
           <td class="text-right">{{ row.summary.n }}</td>
           <td class="text-right">{{ formatNumber(row.summary.median) }}</td>
+          <td v-if="hasIntervals" class="text-right">
+            {{ formatBracketInterval(row.interval) }}
+          </td>
           <td class="text-right">{{ formatNumber(row.summary.p25) }}</td>
           <td class="text-right">{{ formatNumber(row.summary.p75) }}</td>
           <td v-if="belowZero" class="text-right">

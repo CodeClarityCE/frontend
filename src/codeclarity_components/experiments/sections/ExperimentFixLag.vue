@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
   formatDays,
-  formatShare,
+  formatShareWithInterval,
+  lagChartData,
   type LagChartRow,
 } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
+  type ConfidenceInterval,
   type ExposuresBlock,
   type FixKind,
   FixKindLabels,
   type FixLagBlock,
   type FixLagPoint,
   type LagGroup,
+  type ResultIntervals,
   type SeverityCounts,
   SeverityLabels,
 } from "../experiment.entity";
@@ -21,12 +27,18 @@ import {
 const props = defineProps<{
   fixLag: FixLagBlock;
   exposures: ExposuresBlock | null;
+  intervals?: ResultIntervals["fix_lag"] | null;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
 }>();
+
+const SEVERITY_TITLE = "Fix lag in days by severity";
+const KIND_TITLE = "Fix lag in days by fix kind";
 
 function rowsOf(
   groups: LagGroup[],
   label: (key: string) => string,
   matches: (point: FixLagPoint, key: string) => boolean,
+  intervals?: Record<string, LagChartRow["interval"]>,
 ): LagChartRow[] {
   return groups.map((group) => ({
     key: group.key,
@@ -35,6 +47,7 @@ function rowsOf(
     lags: props.fixLag.points
       .filter((point) => matches(point, group.key))
       .map((point) => point.lag_days),
+    interval: intervals?.[group.key] ?? null,
   }));
 }
 
@@ -43,6 +56,7 @@ const bySeverity = computed(() =>
     props.fixLag.by_severity,
     (key) => SeverityLabels[key as keyof SeverityCounts] ?? key,
     (point, key) => point.severity === key,
+    props.intervals?.by_severity,
   ),
 );
 
@@ -51,6 +65,7 @@ const byKind = computed(() =>
     props.fixLag.by_kind,
     (key) => FixKindLabels[key as FixKind | "unknown"] ?? key,
     (point, key) => (point.kind ?? "unknown") === key,
+    props.intervals?.by_kind,
   ),
 );
 
@@ -62,7 +77,9 @@ const domain = computed<[number, number]>(() => {
 
 const snapshotShare = computed(() => {
   const share = props.fixLag.snapshot_precision_share;
-  return share === null ? null : formatShare(share);
+  return share === null
+    ? null
+    : formatShareWithInterval(share, props.snapshotInterval);
 });
 
 const counts = computed(() => {
@@ -72,6 +89,20 @@ const counts = computed(() => {
     ? `${fixes}, over ${exposures.exposures} exposures (${exposures.open} still open at HEAD).`
     : `${fixes}.`;
 });
+
+function figureCaption(description: string): FigureCaption {
+  const { fixes, overall } = props.fixLag;
+  return {
+    description,
+    n: `n = ${overall.n} fixes`,
+    exclusions: excluded(
+      fixes - overall.n,
+      "fix",
+      "fixes",
+      "without a disclosure date",
+    ),
+  };
+}
 
 function describe(row: LagChartRow, lag: number): string {
   if (lag === 0) return `${row.label}: fixed on the day of disclosure`;
@@ -109,27 +140,47 @@ function describe(row: LagChartRow, lag: number): string {
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div data-testid="fix-lag-by-severity">
         <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
-        <LagStripChart
-          :rows="bySeverity"
-          :domain="domain"
-          caption="Fix lag in days by severity"
-          zero-label="Disclosure"
-          unit="fixes"
-          below-zero="before disclosure"
-          :describe="describe"
+        <OpenAsFigure
+          :definition="{
+            metric: 'fix_lag',
+            chart_form: 'step',
+            group_by: 'severity',
+            filters: {},
+          }"
         />
+        <ChartExport
+          name="fix-lag-by-severity"
+          :data="lagChartData(bySeverity, 'lag_days')"
+          :caption="figureCaption(SEVERITY_TITLE)"
+        >
+          <LagStripChart
+            :rows="bySeverity"
+            :domain="domain"
+            :caption="SEVERITY_TITLE"
+            zero-label="Disclosure"
+            unit="fixes"
+            below-zero="before disclosure"
+            :describe="describe"
+          />
+        </ChartExport>
       </div>
       <div data-testid="fix-lag-by-kind">
         <h4 class="text-sm font-medium text-gray-900 mb-1">By fix kind</h4>
-        <LagStripChart
-          :rows="byKind"
-          :domain="domain"
-          caption="Fix lag in days by fix kind"
-          zero-label="Disclosure"
-          unit="fixes"
-          below-zero="before disclosure"
-          :describe="describe"
-        />
+        <ChartExport
+          name="fix-lag-by-kind"
+          :data="lagChartData(byKind, 'lag_days')"
+          :caption="figureCaption(KIND_TITLE)"
+        >
+          <LagStripChart
+            :rows="byKind"
+            :domain="domain"
+            :caption="KIND_TITLE"
+            zero-label="Disclosure"
+            unit="fixes"
+            below-zero="before disclosure"
+            :describe="describe"
+          />
+        </ChartExport>
       </div>
     </div>
   </div>

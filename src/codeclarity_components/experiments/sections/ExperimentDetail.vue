@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { PaginationComponent } from "@/base_components";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
 import { Progress } from "@/shadcn/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -14,6 +15,7 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { saveBlob } from "@/utils/download";
 import { errorToast, successToast } from "@/utils/toasts";
 
+import { OPEN_AS_FIGURE } from "../charts/open-as-figure";
 import {
   type Experiment,
   EXPERIMENT_EXPORT_FILES,
@@ -28,9 +30,16 @@ import {
   finishedRunCount,
   formatExperimentDate,
   isExperimentActive,
+  type PublishedVersion,
 } from "../experiment.entity";
+import type {
+  FigureCatalog,
+  FigureDefinition,
+} from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
+import { SELECTED_PUBLISHED_VERSION } from "../published-version";
 
+import ExperimentFigures from "./ExperimentFigures.vue";
 import ExperimentResults from "./ExperimentResults.vue";
 
 /** How often the experiment is reloaded while it may still change */
@@ -50,13 +59,47 @@ const runsPage = ref(0);
 const runsTotalPages = ref(0);
 const notFound = ref(false);
 /** Which destructive action waits for a second click, if any */
-const confirming = ref<"cancel" | "delete" | null>(null);
+const confirming = ref<"cancel" | "delete" | "publish" | null>(null);
 const acting = ref(false);
 const results = ref<ExperimentResultsData | null>(null);
+/** The metric version of the results shown, null for unpublished results */
+const resultsVersion = ref<number | null>(null);
 /** A failing results request is reported once, not on every poll */
 const resultsErrorShown = ref(false);
-const exporting = ref<ExperimentExportFile | null>(null);
+/** Published results versions, newest first */
+const publishedVersions = ref<PublishedVersion[]>([]);
+/** The version a reader picked; null follows the newest */
+const pickedMetricVersion = ref<number | null>(null);
+const selectedVersion = computed<PublishedVersion | null>(
+  () =>
+    publishedVersions.value.find(
+      (version) => version.metric_version === pickedMetricVersion.value,
+    ) ??
+    publishedVersions.value[0] ??
+    null,
+);
+provide(SELECTED_PUBLISHED_VERSION, selectedVersion);
+/** What a publish would store now; null until the API has answered */
+const currentMetricVersion = ref<number | null>(null);
+const exporting = ref<ExperimentExportFile | "package" | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
+const activeTab = ref("results");
+const figureCatalog = ref<FigureCatalog | null>(null);
+/** The definition a result block is opening in the composer */
+const figureRequest = ref<FigureDefinition | null>(null);
+
+provide(OPEN_AS_FIGURE, {
+  catalog: figureCatalog,
+  open(definition) {
+    figureRequest.value = definition;
+    activeTab.value = "figures";
+  },
+});
+
+// Coming back to the tab must not reapply an old request
+watch(activeTab, (tab) => {
+  if (tab !== "figures") figureRequest.value = null;
+});
 
 const experimentId = computed(() =>
   typeof route.query.id === "string" ? route.query.id : "",
@@ -64,6 +107,17 @@ const experimentId = computed(() =>
 
 const isActive = computed(
   () => experiment.value !== null && isExperimentActive(experiment.value),
+);
+
+const isPublished = computed(() => publishedVersions.value.length > 0);
+
+const canPublish = computed(
+  () =>
+    experiment.value?.status === ExperimentStatus.COMPLETED &&
+    currentMetricVersion.value !== null &&
+    !publishedVersions.value.some(
+      (version) => version.metric_version === currentMetricVersion.value,
+    ),
 );
 
 const finishedRuns = computed(() =>
@@ -99,6 +153,7 @@ async function loadExperiment(): Promise<void> {
     errorToast("Failed to load the experiment");
   }
 
+  await loadPublishedVersions();
   await Promise.all([loadRuns(), loadResults()]);
 
   if (isActive.value) {
@@ -107,19 +162,71 @@ async function loadExperiment(): Promise<void> {
   }
 }
 
-/** Results are aggregated from done runs: there is nothing before the first. */
-async function loadResults(): Promise<void> {
+/** Result blocks and the composer offer only what the catalog allows. */
+async function loadFigureCatalog(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || !experimentId.value) return;
-  if ((experiment.value?.run_counts.done ?? 0) === 0) return;
   try {
-    const response = await experimentsRepository.getExperimentResults({
+    const response = await experimentsRepository.getFigureCatalog({
       orgId,
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
     });
+    figureCatalog.value = response.data;
+  } catch {
+    errorToast("Failed to load the Figure catalog");
+  }
+}
+
+/** Only a COMPLETED experiment can have Published results. */
+async function loadPublishedVersions(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (experiment.value?.status !== ExperimentStatus.COMPLETED) return;
+  try {
+    const request = {
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    };
+    const [versions, current] = await Promise.all([
+      experimentsRepository.getPublishedVersions(request),
+      experimentsRepository.getCurrentMetricVersion(request),
+    ]);
+    publishedVersions.value = versions.data;
+    currentMetricVersion.value = current.data.metric_version;
+  } catch {
+    errorToast("Failed to load the Published results versions");
+  }
+}
+
+/** Results are aggregated from done runs: there is nothing before the first. */
+async function loadResults(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if ((experiment.value?.run_counts.done ?? 0) === 0) return;
+  const requested = selectedVersion.value;
+  try {
+    const request = {
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    };
+    const response = requested
+      ? await experimentsRepository.getPublishedResults({
+          ...request,
+          metricVersion: requested.metric_version,
+        })
+      : await experimentsRepository.getExperimentResults(request);
+    // A newer pick is already on its way; this answer is out of date
+    if (requested?.metric_version !== selectedVersion.value?.metric_version) {
+      return;
+    }
     results.value = response.data;
+    resultsVersion.value = requested?.metric_version ?? null;
     resultsErrorShown.value = false;
   } catch {
     if (!resultsErrorShown.value) {
@@ -129,7 +236,12 @@ async function loadResults(): Promise<void> {
   }
 }
 
-function exportFilename(file: ExperimentExportFile): string {
+function pickVersion(event: Event): void {
+  pickedMetricVersion.value = Number((event.target as HTMLSelectElement).value);
+  void loadResults();
+}
+
+function exportFilename(file: string): string {
   const name = (experiment.value?.name ?? "experiment")
     .trim()
     .replace(/[^A-Za-z0-9._-]+/g, "-");
@@ -140,17 +252,44 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || exporting.value) return;
   exporting.value = file;
+  const metricVersion = resultsVersion.value;
   try {
     const blob = await experimentsRepository.downloadExperimentExport({
       orgId,
       experimentId: experimentId.value,
       file,
+      ...(metricVersion === null ? {} : { metricVersion }),
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
     });
-    saveBlob(blob, exportFilename(file));
+    saveBlob(
+      blob,
+      exportFilename(
+        metricVersion === null ? file : `v${metricVersion}-${file}`,
+      ),
+    );
   } catch {
     errorToast(`Failed to export ${file}`);
+  } finally {
+    exporting.value = null;
+  }
+}
+
+async function downloadPackage(metricVersion: number): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || exporting.value) return;
+  exporting.value = "package";
+  try {
+    const blob = await experimentsRepository.downloadPublishedPackage({
+      orgId,
+      experimentId: experimentId.value,
+      metricVersion,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    saveBlob(blob, exportFilename(`v${metricVersion}-package.zip`));
+  } catch {
+    errorToast("Failed to download the replication package");
   } finally {
     exporting.value = null;
   }
@@ -206,6 +345,32 @@ async function cancelExperiment(): Promise<void> {
   await loadExperiment();
 }
 
+async function publishExperiment(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || acting.value) return;
+  acting.value = true;
+  try {
+    await experimentsRepository.publishExperiment({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    pickedMetricVersion.value = null;
+    successToast("Experiment published");
+  } catch (err) {
+    errorToast(
+      isNotAuthorized(err)
+        ? "Only organization admins can publish experiments"
+        : "Failed to publish the experiment",
+    );
+  } finally {
+    acting.value = false;
+    confirming.value = null;
+  }
+  await loadExperiment();
+}
+
 async function deleteExperiment(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || acting.value) return;
@@ -245,7 +410,10 @@ function goToRunsPage(page: number): void {
   void loadRuns();
 }
 
-onMounted(() => void loadExperiment());
+onMounted(async () => {
+  await loadExperiment();
+  if (!notFound.value) await loadFigureCatalog();
+});
 onUnmounted(() => clearTimeout(pollTimer));
 </script>
 
@@ -327,6 +495,14 @@ onUnmounted(() => clearTimeout(pollTimer));
               Cancel experiment
             </Button>
             <Button
+              v-if="canPublish"
+              data-testid="experiment-publish"
+              @click="confirming = 'publish'"
+            >
+              Publish
+            </Button>
+            <Button
+              v-if="!isPublished"
               variant="outline"
               data-testid="experiment-delete"
               @click="confirming = 'delete'"
@@ -343,6 +519,14 @@ onUnmounted(() => clearTimeout(pollTimer));
               @click="cancelExperiment"
             >
               Confirm cancel
+            </Button>
+            <Button
+              v-else-if="confirming === 'publish'"
+              :disabled="acting"
+              data-testid="experiment-publish-confirm"
+              @click="publishExperiment"
+            >
+              Confirm publish
             </Button>
             <Button
               v-else
@@ -365,6 +549,15 @@ onUnmounted(() => clearTimeout(pollTimer));
       >
         Analyses already submitted finish and are still counted; runs not
         submitted yet are skipped.
+      </p>
+      <p
+        v-if="confirming === 'publish'"
+        class="text-sm text-gray-600"
+        data-testid="experiment-publish-hint"
+      >
+        Publishing is one-way: these results are frozen under the current metric
+        version so they can be cited. It cannot be undone, and a published
+        experiment cannot be deleted.
       </p>
       <p
         v-if="confirming === 'delete'"
@@ -407,132 +600,222 @@ onUnmounted(() => clearTimeout(pollTimer));
         </div>
       </div>
 
-      <section class="space-y-4" data-testid="experiment-results">
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-        >
-          <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
-          <div class="flex flex-wrap gap-2">
-            <Button
-              v-for="file in EXPERIMENT_EXPORT_FILES"
-              :key="file"
-              variant="outline"
-              size="sm"
-              :disabled="exporting !== null"
-              :data-testid="`export-${file}`"
-              @click="downloadExport(file)"
-            >
-              <Icon
-                :icon="
-                  exporting === file
-                    ? 'solar:loading-linear'
-                    : 'solar:download-linear'
-                "
-                class="h-4 w-4 mr-1"
-                :class="{ 'animate-spin': exporting === file }"
-              />
-              {{ file }}
-            </Button>
-          </div>
-        </div>
-        <ExperimentResults v-if="results" :results="results" />
-        <p
-          v-else-if="experiment.run_counts.done === 0"
-          class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
-          data-testid="experiment-results-empty"
-        >
-          Results appear once the first run is done.
-        </p>
-      </section>
+      <Tabs v-model="activeTab" class="space-y-6">
+        <TabsList>
+          <TabsTrigger value="results" data-testid="experiment-tab-results">
+            Results
+          </TabsTrigger>
+          <TabsTrigger value="figures" data-testid="experiment-tab-figures">
+            Figures
+          </TabsTrigger>
+        </TabsList>
 
-      <div
-        v-if="runs.length > 0"
-        class="bg-white rounded-xl border border-gray-200 overflow-hidden"
-      >
-        <div
-          class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
-        >
-          <div class="col-span-1">Rank</div>
-          <div class="col-span-3">Repository</div>
-          <div class="col-span-1">Snapshot</div>
-          <div class="col-span-2">State</div>
-          <div class="col-span-2">Error</div>
-          <div class="col-span-2">Commit</div>
-          <div class="col-span-1">Analysis</div>
-        </div>
-        <div
-          v-for="run in runs"
-          :key="run.id"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
-          data-testid="experiment-run"
-        >
-          <div class="lg:col-span-1 text-gray-500">
-            #{{ run.entry.rank + 1 }}
-          </div>
-          <div class="lg:col-span-3">
-            <a
-              :href="run.entry.git_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="font-medium text-gray-900 hover:underline"
+        <TabsContent value="results" class="space-y-8">
+          <section class="space-y-4" data-testid="experiment-results">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
             >
-              {{ run.entry.full_name }}
-            </a>
-          </div>
-          <div
-            class="lg:col-span-1 text-gray-700 whitespace-nowrap"
-            data-testid="experiment-run-snapshot"
-          >
-            {{ snapshotLabel(run.grid_date) }}
-          </div>
-          <div class="lg:col-span-2">
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
-              :class="ExperimentRunStatusColors[run.status]"
+              <div>
+                <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
+                <p
+                  v-if="selectedVersion"
+                  class="text-sm text-gray-600"
+                  data-testid="experiment-published-version"
+                >
+                  Published results, metric version
+                  {{ selectedVersion.metric_version }}, published
+                  {{ formatExperimentDate(selectedVersion.published_on) }}
+                  <template v-if="selectedVersion.published_by_name">
+                    by {{ selectedVersion.published_by_name }}</template
+                  >.
+                </p>
+                <label
+                  v-if="selectedVersion"
+                  class="mt-2 flex items-center gap-2 text-sm text-gray-600"
+                >
+                  Version
+                  <select
+                    class="border border-gray-300 rounded-md bg-white px-2 py-1 text-sm text-gray-900"
+                    data-testid="experiment-version-select"
+                    :value="selectedVersion.metric_version"
+                    @change="pickVersion"
+                  >
+                    <option
+                      v-for="version in publishedVersions"
+                      :key="version.metric_version"
+                      :value="version.metric_version"
+                    >
+                      Metric version {{ version.metric_version }}
+                    </option>
+                  </select>
+                </label>
+                <p
+                  v-if="selectedVersion?.package_checksum"
+                  class="text-xs text-gray-500 break-all"
+                  data-testid="experiment-package-checksum"
+                >
+                  Package SHA-256: {{ selectedVersion.package_checksum }}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <Button
+                  v-for="file in EXPERIMENT_EXPORT_FILES"
+                  :key="file"
+                  variant="outline"
+                  size="sm"
+                  :disabled="exporting !== null"
+                  :data-testid="`export-${file}`"
+                  @click="downloadExport(file)"
+                >
+                  <Icon
+                    :icon="
+                      exporting === file
+                        ? 'solar:loading-linear'
+                        : 'solar:download-linear'
+                    "
+                    class="h-4 w-4 mr-1"
+                    :class="{ 'animate-spin': exporting === file }"
+                  />
+                  {{ file }}
+                </Button>
+                <Button
+                  v-if="selectedVersion?.package_checksum"
+                  variant="outline"
+                  size="sm"
+                  :disabled="exporting !== null"
+                  data-testid="export-package"
+                  @click="downloadPackage(selectedVersion.metric_version)"
+                >
+                  <Icon
+                    :icon="
+                      exporting === 'package'
+                        ? 'solar:loading-linear'
+                        : 'solar:download-linear'
+                    "
+                    class="h-4 w-4 mr-1"
+                    :class="{ 'animate-spin': exporting === 'package' }"
+                  />
+                  Replication package
+                </Button>
+              </div>
+            </div>
+            <ExperimentResults
+              v-if="results"
+              :results="results"
+              :metric-version="resultsVersion"
+            />
+            <p
+              v-else-if="experiment.run_counts.done === 0"
+              class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
+              data-testid="experiment-results-empty"
             >
-              {{ ExperimentRunStatusLabels[run.status] }}
-            </span>
-            <span v-if="run.attempts > 1" class="text-xs text-gray-500 ml-1">
-              {{ run.attempts }} attempts
-            </span>
-          </div>
-          <div class="lg:col-span-2 text-gray-700 break-words">
-            {{ run.error ?? "" }}
-          </div>
-          <div
-            class="lg:col-span-2 font-mono text-gray-700"
-            :title="run.commit_hash ?? undefined"
-          >
-            {{ shortSha(run.commit_hash) }}
-            <span v-if="run.branch" class="font-sans text-gray-500">
-              ({{ run.branch }})</span
-            >
-          </div>
-          <div class="lg:col-span-1">
-            <RouterLink
-              v-if="run.analysis_id && run.project_id"
-              :to="{
-                name: 'results',
-                query: {
-                  analysis_id: run.analysis_id,
-                  project_id: run.project_id,
-                },
-              }"
-              class="text-gray-900 underline"
-              data-testid="run-analysis"
-            >
-              Open
-            </RouterLink>
-          </div>
-        </div>
-      </div>
+              Results appear once the first run is done.
+            </p>
+          </section>
 
-      <PaginationComponent
-        v-if="runsTotalPages > 1"
-        :current-page="runsPage"
-        :total-pages="runsTotalPages"
-        @page-change="goToRunsPage"
-      />
+          <div
+            v-if="runs.length > 0"
+            class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+          >
+            <div
+              class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              <div class="col-span-1">Rank</div>
+              <div class="col-span-3">Repository</div>
+              <div class="col-span-1">Snapshot</div>
+              <div class="col-span-2">State</div>
+              <div class="col-span-2">Error</div>
+              <div class="col-span-2">Commit</div>
+              <div class="col-span-1">Analysis</div>
+            </div>
+            <div
+              v-for="run in runs"
+              :key="run.id"
+              class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
+              data-testid="experiment-run"
+            >
+              <div class="lg:col-span-1 text-gray-500">
+                #{{ run.entry.rank + 1 }}
+              </div>
+              <div class="lg:col-span-3">
+                <a
+                  :href="run.entry.git_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-medium text-gray-900 hover:underline"
+                >
+                  {{ run.entry.full_name }}
+                </a>
+              </div>
+              <div
+                class="lg:col-span-1 text-gray-700 whitespace-nowrap"
+                data-testid="experiment-run-snapshot"
+              >
+                {{ snapshotLabel(run.grid_date) }}
+              </div>
+              <div class="lg:col-span-2">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
+                  :class="ExperimentRunStatusColors[run.status]"
+                >
+                  {{ ExperimentRunStatusLabels[run.status] }}
+                </span>
+                <span
+                  v-if="run.attempts > 1"
+                  class="text-xs text-gray-500 ml-1"
+                >
+                  {{ run.attempts }} attempts
+                </span>
+              </div>
+              <div class="lg:col-span-2 text-gray-700 break-words">
+                {{ run.error ?? "" }}
+              </div>
+              <div
+                class="lg:col-span-2 font-mono text-gray-700"
+                :title="run.commit_hash ?? undefined"
+              >
+                {{ shortSha(run.commit_hash) }}
+                <span v-if="run.branch" class="font-sans text-gray-500">
+                  ({{ run.branch }})</span
+                >
+              </div>
+              <div class="lg:col-span-1">
+                <RouterLink
+                  v-if="run.analysis_id && run.project_id"
+                  :to="{
+                    name: 'results',
+                    query: {
+                      analysis_id: run.analysis_id,
+                      project_id: run.project_id,
+                    },
+                  }"
+                  class="text-gray-900 underline"
+                  data-testid="run-analysis"
+                >
+                  Open
+                </RouterLink>
+              </div>
+            </div>
+          </div>
+
+          <PaginationComponent
+            v-if="runsTotalPages > 1"
+            :current-page="runsPage"
+            :total-pages="runsTotalPages"
+            @page-change="goToRunsPage"
+          />
+        </TabsContent>
+
+        <TabsContent value="figures">
+          <ExperimentFigures
+            :experiment-id="experimentId"
+            :grid-coverage="results?.grid_coverage ?? []"
+            :catalog="figureCatalog"
+            :published-versions="publishedVersions"
+            :open-request="figureRequest"
+          />
+        </TabsContent>
+      </Tabs>
     </template>
   </div>
 </template>

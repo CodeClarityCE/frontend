@@ -1,21 +1,32 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { excluded, type FigureCaption } from "../charts/chart-caption";
 import {
+  formatBracketInterval,
   formatDays,
   formatNumber,
-  formatShare,
+  formatShareWithInterval,
+  lagChartData,
   type LagChartRow,
   plural,
 } from "../charts/chart-format";
+import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
+  type ConfidenceInterval,
   type ResidenceBlock,
+  type ResultIntervals,
   type SeverityCounts,
   SeverityLabels,
 } from "../experiment.entity";
 
-const props = defineProps<{ residence: ResidenceBlock }>();
+const props = defineProps<{
+  residence: ResidenceBlock;
+  intervals?: ResultIntervals["residence"] | null;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
+}>();
 
 function severityLabel(key: string): string {
   return SeverityLabels[key as keyof SeverityCounts] ?? key;
@@ -29,6 +40,7 @@ const rows = computed<LagChartRow[]>(() =>
     lags: props.residence.points
       .filter((point) => point.severity === group.key)
       .map((point) => point.residence_days),
+    interval: props.intervals?.by_severity[group.key] ?? null,
   })),
 );
 
@@ -40,7 +52,9 @@ const domain = computed<[number, number]>(() => [
 
 const snapshotShare = computed(() => {
   const share = props.residence.snapshot_precision_share;
-  return share === null ? null : formatShare(share);
+  return share === null
+    ? null
+    : formatShareWithInterval(share, props.snapshotInterval);
 });
 
 const counts = computed(() => {
@@ -56,6 +70,34 @@ const counts = computed(() => {
 const after = computed(() => {
   const n = props.residence.after_disclosure.n;
   return `${plural(n, "introduction")} adopted a version already known to be vulnerable, a median ${formatNumber(props.residence.after_disclosure.median)} days after disclosure.`;
+});
+
+const figureCaption = computed<FigureCaption>(() => {
+  const r = props.residence;
+  return {
+    description: "Pre-disclosure residence in days by severity",
+    n: `n = ${r.overall.n} introductions on or before disclosure`,
+    exclusions: [
+      ...excluded(
+        r.after_disclosure.n,
+        "introduction",
+        "introductions",
+        "after disclosure",
+      ),
+      ...excluded(
+        r.undated,
+        "introduction",
+        "introductions",
+        "without a disclosure date",
+      ),
+      ...excluded(
+        r.present_at_first_observation,
+        "exposure",
+        "exposures",
+        "present at the first grid date",
+      ),
+    ],
+  };
 });
 
 function describe(row: LagChartRow, days: number): string {
@@ -92,14 +134,28 @@ function describe(row: LagChartRow, days: number): string {
     </p>
     <div v-else data-testid="residence-by-severity">
       <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
-      <LagStripChart
-        :rows="rows"
-        :domain="domain"
-        caption="Pre-disclosure residence in days by severity"
-        zero-label="Disclosure"
-        unit="introductions"
-        :describe="describe"
+      <OpenAsFigure
+        :definition="{
+          metric: 'residence',
+          chart_form: 'quartiles',
+          group_by: 'severity',
+          filters: {},
+        }"
       />
+      <ChartExport
+        name="pre-disclosure-residence-by-severity"
+        :data="lagChartData(rows, 'residence_days')"
+        :caption="figureCaption"
+      >
+        <LagStripChart
+          :rows="rows"
+          :domain="domain"
+          caption="Pre-disclosure residence in days by severity"
+          zero-label="Disclosure"
+          unit="introductions"
+          :describe="describe"
+        />
+      </ChartExport>
     </div>
 
     <div
@@ -115,6 +171,7 @@ function describe(row: LagChartRow, days: number): string {
             <th class="font-medium">Severity</th>
             <th class="font-medium text-right">Introductions</th>
             <th class="font-medium text-right">Median days after disclosure</th>
+            <th v-if="intervals" class="font-medium text-right">95% CI</th>
           </tr>
         </thead>
         <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
@@ -126,6 +183,13 @@ function describe(row: LagChartRow, days: number): string {
             <td>{{ severityLabel(group.key) }}</td>
             <td class="text-right">{{ group.n }}</td>
             <td class="text-right">{{ formatNumber(group.median) }}</td>
+            <td v-if="intervals" class="text-right">
+              {{
+                formatBracketInterval(
+                  intervals.after_disclosure_by_severity[group.key],
+                )
+              }}
+            </td>
           </tr>
         </tbody>
       </table>

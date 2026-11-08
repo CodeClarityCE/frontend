@@ -13,6 +13,9 @@ const {
   cancelExperiment,
   deleteExperiment,
   getExperimentResults,
+  getPublishedVersions,
+  getPublishedResults,
+  publishExperiment,
   downloadExperimentExport,
   getFigureCatalog,
   getFigures,
@@ -29,6 +32,9 @@ const {
   cancelExperiment: vi.fn(),
   deleteExperiment: vi.fn(),
   getExperimentResults: vi.fn(),
+  getPublishedVersions: vi.fn(),
+  getPublishedResults: vi.fn(),
+  publishExperiment: vi.fn(),
   downloadExperimentExport: vi.fn(),
   getFigureCatalog: vi.fn(),
   getFigures: vi.fn(),
@@ -48,6 +54,9 @@ vi.mock("../experiments.repository", () => ({
     cancelExperiment = cancelExperiment;
     deleteExperiment = deleteExperiment;
     getExperimentResults = getExperimentResults;
+    getPublishedVersions = getPublishedVersions;
+    getPublishedResults = getPublishedResults;
+    publishExperiment = publishExperiment;
     downloadExperimentExport = downloadExperimentExport;
     getFigureCatalog = getFigureCatalog;
     getFigures = getFigures;
@@ -279,6 +288,9 @@ describe("ExperimentDetail", () => {
     cancelExperiment.mockReset();
     deleteExperiment.mockReset();
     getExperimentResults.mockReset().mockResolvedValue({ data: results() });
+    getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
+    getPublishedResults.mockReset().mockResolvedValue({ data: results() });
+    publishExperiment.mockReset().mockResolvedValue({ data: {} });
     downloadExperimentExport.mockReset();
     saveBlob.mockReset();
     successToast.mockReset();
@@ -528,6 +540,97 @@ describe("ExperimentDetail", () => {
     );
     expect(router.push).not.toHaveBeenCalled();
   });
+  describe("Published results", () => {
+    const done = { pending: 0, done: 2, failed: 0, skipped: 0 };
+    const version = {
+      metric_version: 3,
+      published_on: "2026-11-07T00:00:00.000Z",
+      published_by_name: "Jane Roe",
+    };
+    const find = (wrapper: VueWrapper, id: string) =>
+      wrapper.find(`[data-testid="${id}"]`);
+
+    it("publishes only after a confirmation stating it is one-way, then shows the version", async () => {
+      getExperiment.mockResolvedValue({
+        data: experiment("COMPLETED", { run_counts: done }),
+      });
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      await find(wrapper, "experiment-publish").trigger("click");
+      expect(publishExperiment).not.toHaveBeenCalled();
+      expect(find(wrapper, "experiment-publish-hint").text()).toContain(
+        "one-way",
+      );
+
+      getPublishedVersions.mockResolvedValue({ data: [version] });
+      await find(wrapper, "experiment-publish-confirm").trigger("click");
+      await flushPromises();
+
+      expect(publishExperiment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orgId: "test-org-id",
+          experimentId: "exp-1",
+        }),
+      );
+      expect(find(wrapper, "experiment-published-version").text()).toContain(
+        "metric version 3",
+      );
+    });
+
+    it.each(["RUNNING", "CANCELLED", "FAILED"])(
+      "offers no publishing on a %s experiment",
+      async (status) => {
+        getExperiment.mockResolvedValue({
+          data: experiment(status, { run_counts: done }),
+        });
+        const wrapper = mountDetail();
+        await flushPromises();
+
+        expect(find(wrapper, "experiment-publish").exists()).toBe(false);
+        expect(getPublishedVersions).not.toHaveBeenCalled();
+      },
+    );
+
+    it("shows the stored version instead of computing, and offers no delete or second publish", async () => {
+      getExperiment.mockResolvedValue({
+        data: experiment("COMPLETED", { run_counts: done }),
+      });
+      getPublishedVersions.mockResolvedValue({ data: [version] });
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(getPublishedResults).toHaveBeenCalledWith(
+        expect.objectContaining({ metricVersion: 3 }),
+      );
+      expect(getExperimentResults).not.toHaveBeenCalled();
+      expect(find(wrapper, "experiment-published-version").text()).toContain(
+        "Jane Roe",
+      );
+      expect(find(wrapper, "experiment-publish").exists()).toBe(false);
+      expect(find(wrapper, "experiment-delete").exists()).toBe(false);
+    });
+
+    it("explains that only admins can publish", async () => {
+      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
+      const Err = BusinessLogicError as unknown as new (code: string) => Error;
+      getExperiment.mockResolvedValue({
+        data: experiment("COMPLETED", { run_counts: done }),
+      });
+      publishExperiment.mockRejectedValue(new Err("NotAuthorized"));
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      await find(wrapper, "experiment-publish").trigger("click");
+      await find(wrapper, "experiment-publish-confirm").trigger("click");
+      await flushPromises();
+
+      expect(errorToast).toHaveBeenCalledWith(
+        "Only organization admins can publish experiments",
+      );
+    });
+  });
+
   it("does not load results before any run is done", async () => {
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
     const wrapper = mountDetail();

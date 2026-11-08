@@ -29,6 +29,7 @@ import {
   finishedRunCount,
   formatExperimentDate,
   isExperimentActive,
+  type PublishedVersion,
 } from "../experiment.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
@@ -52,11 +53,13 @@ const runsPage = ref(0);
 const runsTotalPages = ref(0);
 const notFound = ref(false);
 /** Which destructive action waits for a second click, if any */
-const confirming = ref<"cancel" | "delete" | null>(null);
+const confirming = ref<"cancel" | "delete" | "publish" | null>(null);
 const acting = ref(false);
 const results = ref<ExperimentResultsData | null>(null);
 /** A failing results request is reported once, not on every poll */
 const resultsErrorShown = ref(false);
+/** Published results versions, newest first */
+const publishedVersions = ref<PublishedVersion[]>([]);
 const exporting = ref<ExperimentExportFile | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -66,6 +69,14 @@ const experimentId = computed(() =>
 
 const isActive = computed(
   () => experiment.value !== null && isExperimentActive(experiment.value),
+);
+
+const isPublished = computed(() => publishedVersions.value.length > 0);
+
+const canPublish = computed(
+  () =>
+    experiment.value?.status === ExperimentStatus.COMPLETED &&
+    !isPublished.value,
 );
 
 const finishedRuns = computed(() =>
@@ -101,11 +112,30 @@ async function loadExperiment(): Promise<void> {
     errorToast("Failed to load the experiment");
   }
 
+  await loadPublishedVersions();
   await Promise.all([loadRuns(), loadResults()]);
 
   if (isActive.value) {
     clearTimeout(pollTimer);
     pollTimer = setTimeout(() => void loadExperiment(), POLL_INTERVAL_MS);
+  }
+}
+
+/** Only a COMPLETED experiment can have Published results. */
+async function loadPublishedVersions(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (experiment.value?.status !== ExperimentStatus.COMPLETED) return;
+  try {
+    const response = await experimentsRepository.getPublishedVersions({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    publishedVersions.value = response.data;
+  } catch {
+    errorToast("Failed to load the Published results versions");
   }
 }
 
@@ -115,12 +145,19 @@ async function loadResults(): Promise<void> {
   if (!orgId || !auth.getToken || !experimentId.value) return;
   if ((experiment.value?.run_counts.done ?? 0) === 0) return;
   try {
-    const response = await experimentsRepository.getExperimentResults({
+    const request = {
       orgId,
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
-    });
+    };
+    const newest = publishedVersions.value[0];
+    const response = newest
+      ? await experimentsRepository.getPublishedResults({
+          ...request,
+          metricVersion: newest.metric_version,
+        })
+      : await experimentsRepository.getExperimentResults(request);
     results.value = response.data;
     resultsErrorShown.value = false;
   } catch {
@@ -200,6 +237,31 @@ async function cancelExperiment(): Promise<void> {
       isNotAuthorized(err)
         ? "Only organization admins can cancel experiments"
         : "Failed to cancel the experiment",
+    );
+  } finally {
+    acting.value = false;
+    confirming.value = null;
+  }
+  await loadExperiment();
+}
+
+async function publishExperiment(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || acting.value) return;
+  acting.value = true;
+  try {
+    await experimentsRepository.publishExperiment({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    successToast("Experiment published");
+  } catch (err) {
+    errorToast(
+      isNotAuthorized(err)
+        ? "Only organization admins can publish experiments"
+        : "Failed to publish the experiment",
     );
   } finally {
     acting.value = false;
@@ -329,6 +391,14 @@ onUnmounted(() => clearTimeout(pollTimer));
               Cancel experiment
             </Button>
             <Button
+              v-if="canPublish"
+              data-testid="experiment-publish"
+              @click="confirming = 'publish'"
+            >
+              Publish
+            </Button>
+            <Button
+              v-if="!isPublished"
               variant="outline"
               data-testid="experiment-delete"
               @click="confirming = 'delete'"
@@ -345,6 +415,14 @@ onUnmounted(() => clearTimeout(pollTimer));
               @click="cancelExperiment"
             >
               Confirm cancel
+            </Button>
+            <Button
+              v-else-if="confirming === 'publish'"
+              :disabled="acting"
+              data-testid="experiment-publish-confirm"
+              @click="publishExperiment"
+            >
+              Confirm publish
             </Button>
             <Button
               v-else
@@ -367,6 +445,15 @@ onUnmounted(() => clearTimeout(pollTimer));
       >
         Analyses already submitted finish and are still counted; runs not
         submitted yet are skipped.
+      </p>
+      <p
+        v-if="confirming === 'publish'"
+        class="text-sm text-gray-600"
+        data-testid="experiment-publish-hint"
+      >
+        Publishing is one-way: these results are frozen under the current metric
+        version so they can be cited. It cannot be undone, and a published
+        experiment cannot be deleted.
       </p>
       <p
         v-if="confirming === 'delete'"
@@ -424,7 +511,21 @@ onUnmounted(() => clearTimeout(pollTimer));
             <div
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
             >
-              <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
+              <div>
+                <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
+                <p
+                  v-if="publishedVersions[0]"
+                  class="text-sm text-gray-600"
+                  data-testid="experiment-published-version"
+                >
+                  Published results, metric version
+                  {{ publishedVersions[0].metric_version }}, published
+                  {{ formatExperimentDate(publishedVersions[0].published_on) }}
+                  <template v-if="publishedVersions[0].published_by_name">
+                    by {{ publishedVersions[0].published_by_name }}</template
+                  >.
+                </p>
+              </div>
               <div class="flex flex-wrap gap-2">
                 <Button
                   v-for="file in EXPERIMENT_EXPORT_FILES"

@@ -6,12 +6,13 @@ import type { KmStep } from "../experiment.entity";
 
 import {
   AXIS_HEIGHT,
-  CHART_WIDTH,
   formatNumber,
   formatShare,
   RIGHT_PADDING,
   TOP_PADDING,
+  xTickCount,
 } from "./chart-format";
+import { useChartWidth } from "./chart-layout";
 import ChartTooltip from "./ChartTooltip.vue";
 
 import "./experiment-chart.css";
@@ -22,6 +23,8 @@ const props = defineProps<{
   /** What the chart shows, for screen readers */
   caption: string;
 }>();
+
+const chartWidth = useChartWidth();
 
 const PLOT_HEIGHT = 220;
 const LEFT = 44;
@@ -36,12 +39,12 @@ const maxTime = computed(() =>
 const x = computed(() =>
   scaleLinear()
     .domain([0, maxTime.value])
-    .nice(6)
-    .range([LEFT, CHART_WIDTH - RIGHT_PADDING]),
+    .nice(xTickCount(chartWidth.value))
+    .range([LEFT, chartWidth.value - RIGHT_PADDING]),
 );
 const y = scaleLinear().domain([0, 1]).range([bottom, TOP_PADDING]);
 
-const xTicks = computed(() => x.value.ticks(6));
+const xTicks = computed(() => x.value.ticks(xTickCount(chartWidth.value)));
 const yTicks = [0, 0.25, 0.5, 0.75, 1];
 
 /** Flat until each step's time, then straight down to its survival. */
@@ -68,6 +71,11 @@ const band = computed(() => {
   return `${d}Z`;
 });
 
+/** A median in the right half labels to its left, staying inside the plot. */
+const medianOnRight = computed(
+  () => props.median !== null && x.value(props.median) > chartWidth.value / 2,
+);
+
 const censors = computed(() => props.curve.filter((step) => step.censored > 0));
 
 /** Hover columns: each covers the days a step's survival holds. */
@@ -75,7 +83,7 @@ const columns = computed(() =>
   props.curve.map((step, i) => {
     const start = x.value(step.time);
     const next = props.curve[i + 1];
-    const end = next ? x.value(next.time) : CHART_WIDTH - RIGHT_PADDING;
+    const end = next ? x.value(next.time) : chartWidth.value - RIGHT_PADDING;
     return { step, x: start - 4, width: Math.max(end - start, 8) };
   }),
 );
@@ -108,7 +116,7 @@ function hide(): void {
 <template>
   <div class="exp-viz relative max-w-[640px]">
     <svg
-      :viewBox="`0 0 ${CHART_WIDTH} ${height}`"
+      :viewBox="`0 0 ${chartWidth} ${height}`"
       class="w-full h-auto"
       data-testid="survival-chart"
       tabindex="0"
@@ -119,7 +127,7 @@ function hide(): void {
         <g v-for="tick in yTicks" :key="`y-${tick}`">
           <line
             :x1="LEFT"
-            :x2="CHART_WIDTH - RIGHT_PADDING"
+            :x2="chartWidth - RIGHT_PADDING"
             :y1="y(tick)"
             :y2="y(tick)"
             :stroke="tick === 0 ? 'var(--viz-baseline)' : 'var(--viz-grid)'"
@@ -149,7 +157,7 @@ function hide(): void {
           {{ formatNumber(tick) }}
         </text>
         <text
-          :x="CHART_WIDTH - RIGHT_PADDING"
+          :x="chartWidth - RIGHT_PADDING"
           :y="bottom + 34"
           text-anchor="end"
           font-size="11"
@@ -178,8 +186,9 @@ function hide(): void {
             stroke-dasharray="3 3"
           />
           <text
-            :x="x(median) + 6"
+            :x="medianOnRight ? x(median) - 6 : x(median) + 6"
             :y="y(0.5) - 6"
+            :text-anchor="medianOnRight ? 'end' : 'start'"
             font-size="11"
             fill="var(--viz-text-secondary)"
           >

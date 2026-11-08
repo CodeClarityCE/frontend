@@ -13,6 +13,7 @@ import {
 } from "../charts/chart-format";
 import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
   type ResidenceBlock,
   type ResultIntervals,
@@ -129,6 +130,14 @@ function describe(row: LagChartRow, days: number): string {
     </p>
     <div v-else data-testid="residence-by-severity">
       <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
+      <OpenAsFigure
+        :definition="{
+          metric: 'residence',
+          chart_form: 'quartiles',
+          group_by: 'severity',
+          filters: {},
+        }"
+      />
       <ChartExport
         name="pre-disclosure-residence-by-severity"
         :data="lagChartData(rows, 'residence_days')"

@@ -15,6 +15,7 @@ import {
   formatShare,
   formatShareWithInterval,
 } from "../charts/chart-format";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
   type BootstrapInterval,
   type ExperimentResults,
@@ -366,6 +367,14 @@ const analyzerSteps = computed(() =>
 
         <div class="bg-white rounded-xl border border-gray-200 p-4">
           <h3 class="font-semibold text-gray-900 mb-2">Severity mix</h3>
+          <OpenAsFigure
+            :definition="{
+              metric: 'severity_mix',
+              chart_form: 'bar',
+              group_by: null,
+              filters: {},
+            }"
+          />
           <table class="w-full text-sm" data-testid="experiment-severity">
             <thead class="text-left text-gray-500">
               <tr>
@@ -468,6 +477,14 @@ const analyzerSteps = computed(() =>
           data-testid="experiment-rqc"
         >
           <h3 class="font-semibold text-gray-900 mb-2">Stars vs load</h3>
+          <OpenAsFigure
+            :definition="{
+              metric: 'stars_vs_load',
+              chart_form: 'scatter',
+              group_by: null,
+              filters: {},
+            }"
+          />
           <p class="text-sm text-gray-700">
             Spearman rho between star rank and vulnerability load:
             <strong>{{ decimal(results.rqc.spearman_rho) }}</strong> (two-sided

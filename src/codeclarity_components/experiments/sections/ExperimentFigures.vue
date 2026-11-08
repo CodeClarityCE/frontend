@@ -13,6 +13,8 @@ import {
 } from "@/shadcn/ui/select";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
@@ -30,7 +32,7 @@ import ChartExport from "../charts/ChartExport.vue";
 import FigureBarChart from "../charts/FigureBarChart.vue";
 import FigureStepChart from "../charts/FigureStepChart.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
-import type { GridCoverageRow } from "../experiment.entity";
+import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 import type {
   Figure,
   FigureCatalog,
@@ -45,6 +47,10 @@ import { ExperimentsRepository } from "../experiments.repository";
 const props = defineProps<{
   experimentId: string;
   gridCoverage: GridCoverageRow[];
+  catalog: FigureCatalog | null;
+  publishedVersions: PublishedVersion[];
+  /** A definition a result block asked to open */
+  openRequest: FigureDefinition | null;
 }>();
 
 provide(
@@ -65,7 +71,6 @@ const userStore = useUserStore();
 const auth = useAuthStore();
 const experimentsRepository = new ExperimentsRepository();
 
-const catalog = ref<FigureCatalog | null>(null);
 const figures = ref<Figure[]>([]);
 const preview = ref<FigureData | null>(null);
 const metricId = ref("");
@@ -77,12 +82,15 @@ const name = ref("");
 const openFigureId = ref<string | null>(null);
 const confirmingDelete = ref<string | null>(null);
 const saving = ref(false);
+/** The version the selector shows; moving needs the button */
+const chosenVersion = ref(NONE);
+const moving = ref(false);
 /** Only the newest preview request may fill the chart */
 let previewRequest = 0;
 
 const metric = computed<FigureMetric | null>(
   () =>
-    catalog.value?.metrics.find((item) => item.id === metricId.value) ?? null,
+    props.catalog?.metrics.find((item) => item.id === metricId.value) ?? null,
 );
 
 const form = computed<FigureChartForm | null>(
@@ -141,6 +149,19 @@ const definition = computed<FigureDefinition | null>(() => {
     group_by: groupBy.value === NONE ? null : groupBy.value,
     filters,
   };
+});
+
+const savedFigure = computed(
+  () => figures.value.find((item) => item.id === openFigureId.value) ?? null,
+);
+
+/** Null once the definition differs from what the version stores. */
+const tiedVersion = computed<number | null>(() => {
+  const saved = savedFigure.value;
+  if (saved?.metric_version == null) return null;
+  return JSON.stringify(saved.definition) === JSON.stringify(definition.value)
+    ? saved.metric_version
+    : null;
 });
 
 const canSave = computed(
@@ -258,8 +279,8 @@ const figureCaption = computed<FigureCaption>(() => {
     asOf:
       definition.value?.filters.view === "as_of" ||
       (data?.series ?? []).some((series) => series.key === "as_of"),
-    // A Figure cannot be tied to Published results yet
-    unpublished: true,
+    unpublished: tiedVersion.value === null,
+    ...(tiedVersion.value === null ? {} : { metricVersion: tiedVersion.value }),
   };
 });
 
@@ -279,7 +300,7 @@ function requestContext(): { orgId: string; bearerToken: string } | null {
 
 function selectMetric(id: string): void {
   metricId.value = id;
-  const selected = catalog.value?.metrics.find((item) => item.id === id);
+  const selected = props.catalog?.metrics.find((item) => item.id === id);
   chartForm.value = selected?.chart_forms[0]?.id ?? "";
   groupBy.value = NONE;
   filterValues.value = {};
@@ -288,16 +309,31 @@ function selectMetric(id: string): void {
 function startNew(): void {
   openFigureId.value = null;
   name.value = "";
-  selectMetric(catalog.value?.metrics[0]?.id ?? "");
+  chosenVersion.value = NONE;
+  selectMetric(props.catalog?.metrics[0]?.id ?? "");
+}
+
+function applyDefinition(figureDefinition: FigureDefinition): void {
+  metricId.value = figureDefinition.metric;
+  chartForm.value = figureDefinition.chart_form;
+  groupBy.value = figureDefinition.group_by ?? NONE;
+  filterValues.value = { ...figureDefinition.filters };
 }
 
 function openFigure(figure: Figure): void {
   openFigureId.value = figure.id;
   name.value = figure.name;
-  metricId.value = figure.definition.metric;
-  chartForm.value = figure.definition.chart_form;
-  groupBy.value = figure.definition.group_by ?? NONE;
-  filterValues.value = { ...figure.definition.filters };
+  chosenVersion.value =
+    figure.metric_version == null ? NONE : String(figure.metric_version);
+  applyDefinition(figure.definition);
+}
+
+/** A result block's definition, as a new unsaved Figure. */
+function startFromBlock(figureDefinition: FigureDefinition): void {
+  openFigureId.value = null;
+  name.value = "";
+  chosenVersion.value = NONE;
+  applyDefinition(figureDefinition);
 }
 
 async function refreshPreview(): Promise<void> {
@@ -305,12 +341,21 @@ async function refreshPreview(): Promise<void> {
   if (!context || !definition.value) return;
   const request = ++previewRequest;
   try {
-    const response = await experimentsRepository.computeFigureData({
+    const scope = {
       ...context,
       experimentId: props.experimentId,
-      data: { definition: definition.value },
       handleBusinessErrors: true,
-    });
+    };
+    const response =
+      tiedVersion.value !== null && openFigureId.value
+        ? await experimentsRepository.getFigureData({
+            ...scope,
+            figureId: openFigureId.value,
+          })
+        : await experimentsRepository.computeFigureData({
+            ...scope,
+            data: { definition: definition.value },
+          });
     if (request === previewRequest) preview.value = response.data;
   } catch {
     if (request === previewRequest) {
@@ -335,19 +380,38 @@ async function loadFigures(): Promise<void> {
   }
 }
 
-async function loadCatalog(): Promise<void> {
+function versionErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof BusinessLogicError &&
+    err.error_code === APIErrors.FigureVersionNotCurrent
+    ? "This version came from older metric code, so this Figure cannot be computed for it"
+    : fallback;
+}
+
+/** The only way a Figure changes version: the explicit Move button. */
+async function moveToChosenVersion(): Promise<void> {
   const context = requestContext();
-  if (!context) return;
+  if (!context || !openFigureId.value || moving.value) return;
+  moving.value = true;
+  const version =
+    chosenVersion.value === NONE ? null : Number(chosenVersion.value);
   try {
-    const response = await experimentsRepository.getFigureCatalog({
+    await experimentsRepository.moveFigureToVersion({
       ...context,
       experimentId: props.experimentId,
+      figureId: openFigureId.value,
+      data: { metric_version: version },
       handleBusinessErrors: true,
     });
-    catalog.value = response.data;
-    startNew();
-  } catch {
-    errorToast("Failed to load the Figure catalog");
+    successToast(
+      version === null
+        ? "Figure returned to a draft"
+        : `Figure moved to version ${version}`,
+    );
+    await loadFigures();
+  } catch (err) {
+    errorToast(versionErrorMessage(err, "Failed to move the Figure"));
+  } finally {
+    moving.value = false;
   }
 }
 
@@ -376,8 +440,8 @@ async function saveFigure(): Promise<void> {
     }
     successToast("Figure saved");
     await loadFigures();
-  } catch {
-    errorToast("Failed to save the Figure");
+  } catch (err) {
+    errorToast(versionErrorMessage(err, "Failed to save the Figure"));
   } finally {
     saving.value = false;
   }
@@ -415,12 +479,20 @@ watch(form, () => {
   }
 });
 
-watch(definition, () => void refreshPreview());
+watch([definition, tiedVersion], () => void refreshPreview());
 
-onMounted(() => {
-  void loadCatalog();
-  void loadFigures();
-});
+// Runs last so the preview watcher sees the first definition
+watch(
+  () => [props.catalog, props.openRequest] as const,
+  ([catalog, request]) => {
+    if (!catalog) return;
+    if (request) startFromBlock(request);
+    else startNew();
+  },
+  { immediate: true },
+);
+
+onMounted(() => void loadFigures());
 </script>
 
 <template>
@@ -548,6 +620,38 @@ onMounted(() => {
             />
           </div>
 
+          <div
+            v-if="openFigureId && publishedVersions.length > 0"
+            class="space-y-2"
+          >
+            <Label>Published results version</Label>
+            <Select v-model="chosenVersion" data-testid="figure-version">
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem :value="NONE">Draft, not tied</SelectItem>
+                <SelectItem
+                  v-for="version in publishedVersions"
+                  :key="version.metric_version"
+                  :value="String(version.metric_version)"
+                >
+                  Version {{ version.metric_version }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              :disabled="moving"
+              data-testid="figure-move"
+              @click="moveToChosenVersion"
+            >
+              Move Figure to this version
+            </Button>
+            <p class="text-xs text-gray-500">
+              A tied Figure keeps its numbers until you move it.
+            </p>
+          </div>
+
           <div class="flex gap-2">
             <Button
               :disabled="!canSave || saving"
@@ -577,6 +681,13 @@ onMounted(() => {
         >
           <span class="text-sm font-medium text-gray-900 truncate">
             {{ figure.name }}
+            <span
+              v-if="figure.metric_version != null"
+              class="text-xs font-normal text-gray-500"
+              data-testid="figure-tied"
+            >
+              (version {{ figure.metric_version }})
+            </span>
           </span>
           <span class="flex gap-1 shrink-0">
             <Button

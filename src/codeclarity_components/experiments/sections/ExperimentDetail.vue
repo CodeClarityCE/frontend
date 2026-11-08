@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { PaginationComponent } from "@/base_components";
@@ -15,6 +15,7 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { saveBlob } from "@/utils/download";
 import { errorToast, successToast } from "@/utils/toasts";
 
+import { OPEN_AS_FIGURE } from "../charts/open-as-figure";
 import {
   type Experiment,
   EXPERIMENT_EXPORT_FILES,
@@ -31,6 +32,10 @@ import {
   isExperimentActive,
   type PublishedVersion,
 } from "../experiment.entity";
+import type {
+  FigureCatalog,
+  FigureDefinition,
+} from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
 import ExperimentFigures from "./ExperimentFigures.vue";
@@ -62,6 +67,23 @@ const resultsErrorShown = ref(false);
 const publishedVersions = ref<PublishedVersion[]>([]);
 const exporting = ref<ExperimentExportFile | null>(null);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
+const activeTab = ref("results");
+const figureCatalog = ref<FigureCatalog | null>(null);
+/** The definition a result block is opening in the composer */
+const figureRequest = ref<FigureDefinition | null>(null);
+
+provide(OPEN_AS_FIGURE, {
+  catalog: figureCatalog,
+  open(definition) {
+    figureRequest.value = definition;
+    activeTab.value = "figures";
+  },
+});
+
+// Coming back to the tab must not reapply an old request
+watch(activeTab, (tab) => {
+  if (tab !== "figures") figureRequest.value = null;
+});
 
 const experimentId = computed(() =>
   typeof route.query.id === "string" ? route.query.id : "",
@@ -118,6 +140,23 @@ async function loadExperiment(): Promise<void> {
   if (isActive.value) {
     clearTimeout(pollTimer);
     pollTimer = setTimeout(() => void loadExperiment(), POLL_INTERVAL_MS);
+  }
+}
+
+/** Result blocks and the composer offer only what the catalog allows. */
+async function loadFigureCatalog(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !auth.getToken || !experimentId.value) return;
+  try {
+    const response = await experimentsRepository.getFigureCatalog({
+      orgId,
+      experimentId: experimentId.value,
+      bearerToken: auth.getToken,
+      handleBusinessErrors: true,
+    });
+    figureCatalog.value = response.data;
+  } catch {
+    errorToast("Failed to load the Figure catalog");
   }
 }
 
@@ -309,7 +348,10 @@ function goToRunsPage(page: number): void {
   void loadRuns();
 }
 
-onMounted(() => void loadExperiment());
+onMounted(async () => {
+  await loadExperiment();
+  if (!notFound.value) await loadFigureCatalog();
+});
 onUnmounted(() => clearTimeout(pollTimer));
 </script>
 
@@ -496,7 +538,7 @@ onUnmounted(() => clearTimeout(pollTimer));
         </div>
       </div>
 
-      <Tabs default-value="results" class="space-y-6">
+      <Tabs v-model="activeTab" class="space-y-6">
         <TabsList>
           <TabsTrigger value="results" data-testid="experiment-tab-results">
             Results
@@ -656,6 +698,9 @@ onUnmounted(() => clearTimeout(pollTimer));
           <ExperimentFigures
             :experiment-id="experimentId"
             :grid-coverage="results?.grid_coverage ?? []"
+            :catalog="figureCatalog"
+            :published-versions="publishedVersions"
+            :open-request="figureRequest"
           />
         </TabsContent>
       </Tabs>

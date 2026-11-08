@@ -42,6 +42,8 @@ export interface Figure {
   name: string;
   definition: FigureDefinition;
   created_on: string;
+  /** The Published results version it is tied to; null while a draft */
+  metric_version: number | null;
 }
 
 /** One line of a Figure; a null value leaves a gap. */

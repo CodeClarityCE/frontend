@@ -23,6 +23,8 @@ const {
   createFigure,
   updateFigure,
   deleteFigure,
+  getFigureData,
+  moveFigureToVersion,
   saveBlob,
   successToast,
   errorToast,
@@ -42,6 +44,8 @@ const {
   createFigure: vi.fn(),
   updateFigure: vi.fn(),
   deleteFigure: vi.fn(),
+  getFigureData: vi.fn(),
+  moveFigureToVersion: vi.fn(),
   saveBlob: vi.fn(),
   successToast: vi.fn(),
   errorToast: vi.fn(),
@@ -64,6 +68,8 @@ vi.mock("../experiments.repository", () => ({
     createFigure = createFigure;
     updateFigure = updateFigure;
     deleteFigure = deleteFigure;
+    getFigureData = getFigureData;
+    moveFigureToVersion = moveFigureToVersion;
   },
 }));
 
@@ -290,6 +296,7 @@ describe("ExperimentDetail", () => {
     getExperimentResults.mockReset().mockResolvedValue({ data: results() });
     getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
     getPublishedResults.mockReset().mockResolvedValue({ data: results() });
+    getFigureCatalog.mockReset().mockResolvedValue({ data: { metrics: [] } });
     publishExperiment.mockReset().mockResolvedValue({ data: {} });
     downloadExperimentExport.mockReset();
     saveBlob.mockReset();
@@ -2268,6 +2275,10 @@ describe("ExperimentDetail Figures tab", () => {
     createFigure.mockReset().mockResolvedValue({ id: "fig-1" });
     updateFigure.mockReset().mockResolvedValue({});
     deleteFigure.mockReset().mockResolvedValue({});
+    getFigureData.mockReset().mockResolvedValue(figureData("Frozen"));
+    moveFigureToVersion.mockReset().mockResolvedValue({});
+    getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
+    getPublishedResults.mockReset().mockResolvedValue({ data: results() });
     successToast.mockReset();
     errorToast.mockReset();
   });
@@ -2750,6 +2761,207 @@ describe("ExperimentDetail Figures tab", () => {
       await flushPromises();
       const { text } = await exportAs(wrapper, "caption-file");
       expect(text).not.toContain("approximates");
+      wrapper.unmount();
+    });
+  });
+
+  describe("tied to Published results", () => {
+    const VERSIONS = [
+      {
+        metric_version: 2,
+        published_on: "2026-11-02",
+        published_by_name: null,
+      },
+      {
+        metric_version: 1,
+        published_on: "2026-11-01",
+        published_by_name: null,
+      },
+    ];
+
+    function savedFigure(metricVersion: number | null): object {
+      return {
+        id: "fig-1",
+        name: "Load as-of",
+        definition: AS_OF_DEFINITION,
+        created_on: "2026-11-01",
+        metric_version: metricVersion,
+      };
+    }
+
+    async function openFigure(
+      metricVersion: number | null,
+    ): Promise<VueWrapper> {
+      getPublishedVersions.mockResolvedValue({ data: VERSIONS });
+      getPublishedResults.mockResolvedValue({ data: results() });
+      getFigures.mockResolvedValue({ data: [savedFigure(metricVersion)] });
+      const wrapper = await openFiguresTab();
+      await wrapper.find('[data-testid="figure-open"]').trigger("click");
+      await flushPromises();
+      return wrapper;
+    }
+
+    it("plots a tied Figure from its stored data", async () => {
+      const wrapper = await openFigure(1);
+
+      expect(getFigureData).toHaveBeenCalledWith(
+        expect.objectContaining({ figureId: "fig-1" }),
+      );
+      expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
+        "Frozen",
+      );
+      wrapper.unmount();
+    });
+
+    it("exports a tied Figure with its metric version, not as a draft", async () => {
+      const wrapper = await openFigure(1);
+
+      await wrapper
+        .find('[data-testid="figure-preview"] [data-testid="export-svg"]')
+        .trigger("click");
+      await flushPromises();
+      const svg = await (saveBlob.mock.calls.at(-1)![0] as Blob).text();
+
+      expect(svg).toContain("Metric version 1");
+      expect(svg).not.toContain("Unpublished results");
+      wrapper.unmount();
+    });
+
+    it("moves a Figure only when the move is confirmed by the button", async () => {
+      const wrapper = await openFigure(1);
+
+      await wrapper.find('[data-testid="figure-version"]').setValue("2");
+      await flushPromises();
+      expect(moveFigureToVersion).not.toHaveBeenCalled();
+
+      getFigures.mockResolvedValue({ data: [savedFigure(2)] });
+      await wrapper.find('[data-testid="figure-move"]').trigger("click");
+      await flushPromises();
+
+      expect(moveFigureToVersion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          figureId: "fig-1",
+          data: { metric_version: 2 },
+        }),
+      );
+      expect(getFigureData).toHaveBeenCalledTimes(2);
+      wrapper.unmount();
+    });
+
+    it("explains when older metric code cannot compute the version", async () => {
+      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
+      moveFigureToVersion.mockRejectedValue(
+        new (BusinessLogicError as unknown as new (code: string) => Error)(
+          "FigureVersionNotCurrent",
+        ),
+      );
+      const wrapper = await openFigure(null);
+
+      await wrapper.find('[data-testid="figure-version"]').setValue("1");
+      await wrapper.find('[data-testid="figure-move"]').trigger("click");
+      await flushPromises();
+
+      expect(errorToast).toHaveBeenCalledWith(
+        expect.stringContaining("older metric code"),
+      );
+      wrapper.unmount();
+    });
+
+    it("previews changes to a tied Figure as a draft", async () => {
+      const wrapper = await openFigure(1);
+      getFigureData.mockClear();
+      computeFigureData.mockClear();
+
+      await wrapper
+        .find('[data-testid="figure-filter-view"]')
+        .setValue("hindsight");
+      await flushPromises();
+
+      expect(computeFigureData).toHaveBeenCalled();
+      expect(getFigureData).not.toHaveBeenCalled();
+      await wrapper
+        .find('[data-testid="figure-preview"] [data-testid="export-svg"]')
+        .trigger("click");
+      await flushPromises();
+      const svg = await (saveBlob.mock.calls.at(-1)![0] as Blob).text();
+      expect(svg).toContain("Unpublished results");
+      wrapper.unmount();
+    });
+  });
+
+  describe("Open as Figure", () => {
+    const LOAD_RESULTS = results({
+      grid_coverage: [
+        {
+          grid_date: "2025-01-01",
+          done: 4,
+          empty: 0,
+          failed: 0,
+          skipped: 0,
+          pending: 0,
+          mixed_knowledge: false,
+        },
+      ],
+      load_over_time: [
+        {
+          grid_date: "2025-01-01",
+          as_of_date: "2025-01-01",
+          projects: 4,
+          hindsight: 3,
+          as_of: 2,
+          undated: 0,
+        },
+      ],
+    });
+
+    async function mountResults(): Promise<VueWrapper> {
+      getExperimentResults.mockResolvedValue({ data: LOAD_RESULTS });
+      const wrapper = mount(ExperimentDetail, {
+        attachTo: document.body,
+        global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+      });
+      await flushPromises();
+      return wrapper;
+    }
+
+    it("appears only on blocks the catalog can represent", async () => {
+      const wrapper = await mountResults();
+
+      expect(
+        wrapper
+          .find(
+            '[data-testid="experiment-load"] [data-testid="open-as-figure"]',
+          )
+          .exists(),
+      ).toBe(true);
+      expect(wrapper.findAll('[data-testid="open-as-figure"]')).toHaveLength(1);
+      wrapper.unmount();
+    });
+
+    it("is not offered without a catalog", async () => {
+      getFigureCatalog.mockRejectedValue(new Error("down"));
+      const wrapper = await mountResults();
+
+      expect(wrapper.find('[data-testid="open-as-figure"]').exists()).toBe(
+        false,
+      );
+      wrapper.unmount();
+    });
+
+    it("opens the composer on the block's definition", async () => {
+      const wrapper = await mountResults();
+
+      await wrapper
+        .find('[data-testid="experiment-load"] [data-testid="open-as-figure"]')
+        .trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="figure-preview"]').exists()).toBe(
+        true,
+      );
+      expect(computeFigureData).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: { definition: NO_FILTER_DEFINITION } }),
+      );
       wrapper.unmount();
     });
   });

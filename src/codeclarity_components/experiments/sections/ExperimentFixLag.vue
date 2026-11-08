@@ -10,6 +10,7 @@ import {
 } from "../charts/chart-format";
 import ChartExport from "../charts/ChartExport.vue";
 import LagStripChart from "../charts/LagStripChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
   type ExposuresBlock,
   type FixKind,
@@ -132,6 +133,14 @@ function describe(row: LagChartRow, lag: number): string {
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div data-testid="fix-lag-by-severity">
         <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
+        <OpenAsFigure
+          :definition="{
+            metric: 'fix_lag',
+            chart_form: 'step',
+            group_by: 'severity',
+            filters: {},
+          }"
+        />
         <ChartExport
           name="fix-lag-by-severity"
           :data="lagChartData(bySeverity, 'lag_days')"

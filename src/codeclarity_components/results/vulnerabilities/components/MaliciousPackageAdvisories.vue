@@ -10,6 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Badge } from "@/shadcn/ui/badge";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
 
 const props = defineProps<{
@@ -21,6 +23,13 @@ const props = defineProps<{
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const advisories = ref<MaliciousPackageAdvisory[]>([]);
+const checkFailed = ref(false);
+
+// The API answers these when an analysis simply has no result to read.
+const NO_RESULT_ERRORS: string[] = [
+  APIErrors.PluginResultNotAvailable,
+  APIErrors.UnknownWorkspace,
+];
 
 // Counts requests so a slow answer for an earlier selection is dropped.
 let latestRequest = 0;
@@ -35,10 +44,11 @@ function isWebUrl(reference: string): boolean {
   }
 }
 
-// The section is an addition to the page, so a failed lookup must not affect the rest.
+// The section is an addition to the page, so a failed lookup only shows its own notice.
 async function loadAdvisories(): Promise<void> {
   const request = ++latestRequest;
   advisories.value = [];
+  checkFailed.value = false;
 
   const org = userStore.getDefaultOrg;
   const token = authStore.getToken;
@@ -60,7 +70,15 @@ async function loadAdvisories(): Promise<void> {
     if (request === latestRequest) advisories.value = response.data;
   } catch (error) {
     console.warn("Could not load malicious package advisories", error);
+    if (request === latestRequest) checkFailed.value = !isNoResult(error);
   }
+}
+
+function isNoResult(error: unknown): boolean {
+  return (
+    error instanceof BusinessLogicError &&
+    NO_RESULT_ERRORS.includes(error.error_code)
+  );
 }
 
 watch(
@@ -71,8 +89,15 @@ watch(
 </script>
 
 <template>
+  <Alert v-if="checkFailed" data-testid="malicious-package-check-failed">
+    <Icon icon="solar:danger-triangle-bold" class="h-5 w-5" />
+    <AlertTitle>Could not check for malicious packages</AlertTitle>
+    <AlertDescription>
+      This does not mean none were found. Reload the page to try again.
+    </AlertDescription>
+  </Alert>
   <Alert
-    v-if="advisories.length > 0"
+    v-else-if="advisories.length > 0"
     variant="destructive"
     data-testid="malicious-package-advisories"
     class="border-2"

@@ -50,3 +50,34 @@ describe("ResultsRepository.getMaliciousPackageAdvisories", () => {
     expect(response.data).toEqual([advisory]);
   });
 });
+
+describe("ResultsRepository.getFinding", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps a vulnerability ID with slashes in one path segment", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    );
+
+    await new ResultsRepository().getFinding({
+      orgId: "org-1",
+      projectId: "project-1",
+      analysisId: "analysis-1",
+      vulnerability_id: "FRIENDSOFPHP-symfony/http-foundation/2019-11-13-1",
+      workspace: ".",
+      bearerToken: "token",
+      handleBusinessErrors: true,
+    });
+
+    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string;
+    expect(new URL(url, "http://localhost").pathname).toMatch(
+      /\/vulnerabilities\/vulnerability\/FRIENDSOFPHP-symfony%2Fhttp-foundation%2F2019-11-13-1$/,
+    );
+  });
+});

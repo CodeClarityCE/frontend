@@ -1,7 +1,12 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
 import MaliciousPackageAdvisories from "./MaliciousPackageAdvisories.vue";
+
+vi.unmock("@/utils/api/BaseRepository");
 
 const getAdvisories = vi.hoisted(() => vi.fn());
 vi.mock("@/codeclarity_components/results/results.repository", () => ({
@@ -69,10 +74,41 @@ describe("MaliciousPackageAdvisories", () => {
     expect(wrapper.text()).toBe("");
   });
 
-  it("renders nothing and stays quiet when the lookup fails", async () => {
-    getAdvisories.mockRejectedValue(new Error("PluginResultNotAvailable"));
+  it.each([APIErrors.PluginResultNotAvailable, APIErrors.UnknownWorkspace])(
+    "renders nothing when the analysis has no result yet (%s)",
+    async (code) => {
+      getAdvisories.mockRejectedValue(
+        new BusinessLogicError(code, "no result"),
+      );
+
+      const wrapper = mountAdvisories();
+      await flushPromises();
+
+      expect(wrapper.text()).toBe("");
+    },
+  );
+
+  it.each([
+    ["network failure", new Error("Failed to fetch")],
+    [
+      "plugin failure",
+      new BusinessLogicError(APIErrors.PluginFailed, "failed"),
+    ],
+  ])("shows that the check could not run on a %s", async (_name, error) => {
+    getAdvisories.mockRejectedValue(error);
 
     const wrapper = mountAdvisories();
+    await flushPromises();
+
+    expect(wrapper.text()).toMatch(/could not check for malicious packages/i);
+  });
+
+  it("clears the failure when a later selection loads", async () => {
+    getAdvisories.mockRejectedValueOnce(new Error("Failed to fetch"));
+
+    const wrapper = mountAdvisories();
+    await flushPromises();
+    await wrapper.setProps({ workspace: "other" });
     await flushPromises();
 
     expect(wrapper.text()).toBe("");

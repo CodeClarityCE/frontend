@@ -19,6 +19,7 @@ const {
   getCurrentMetricVersion,
   downloadExperimentExport,
   downloadPublishedPackage,
+  getLoadProgress,
   getFigureCatalog,
   getFigures,
   computeFigureData,
@@ -42,6 +43,7 @@ const {
   getCurrentMetricVersion: vi.fn(),
   downloadExperimentExport: vi.fn(),
   downloadPublishedPackage: vi.fn(),
+  getLoadProgress: vi.fn(),
   getFigureCatalog: vi.fn(),
   getFigures: vi.fn(),
   computeFigureData: vi.fn(),
@@ -68,6 +70,7 @@ vi.mock("../experiments.repository", () => ({
     getCurrentMetricVersion = getCurrentMetricVersion;
     downloadExperimentExport = downloadExperimentExport;
     downloadPublishedPackage = downloadPublishedPackage;
+    getLoadProgress = getLoadProgress;
     getFigureCatalog = getFigureCatalog;
     getFigures = getFigures;
     computeFigureData = computeFigureData;
@@ -790,6 +793,54 @@ describe("ExperimentDetail", () => {
     expect(
       wrapper.find('[data-testid="experiment-results-empty"]').exists(),
     ).toBe(true);
+  });
+
+  describe("while the results load", () => {
+    const LOADING = '[data-testid="experiment-results-loading"]';
+
+    beforeEach(() => {
+      getLoadProgress
+        .mockReset()
+        .mockResolvedValue({ data: { done: 2, total: 4 } });
+      getExperiment.mockResolvedValue({
+        data: experiment("COMPLETED", {
+          run_counts: { pending: 0, done: 1, failed: 0, skipped: 0 },
+        }),
+      });
+    });
+
+    it("shows a loading state until they arrive", async () => {
+      let answer: (value: unknown) => void = () => undefined;
+      getExperimentResults.mockReturnValue(
+        new Promise((resolve) => {
+          answer = resolve;
+        }),
+      );
+      const wrapper = mountDetail();
+      await flushPromises();
+      expect(wrapper.find(LOADING).text()).toContain("2 of 4");
+      expect(
+        wrapper
+          .find(`${LOADING} [data-testid="progress"]`)
+          .attributes("data-value"),
+      ).toBe("50");
+
+      answer({ data: results() });
+      await flushPromises();
+
+      expect(wrapper.find(LOADING).exists()).toBe(false);
+      expect(wrapper.find('[data-testid="experiment-headline"]').exists()).toBe(
+        true,
+      );
+    });
+
+    it("stops loading when the request fails", async () => {
+      getExperimentResults.mockRejectedValue(new Error("boom"));
+      const wrapper = mountDetail();
+      await flushPromises();
+
+      expect(wrapper.find(LOADING).exists()).toBe(false);
+    });
   });
 
   it("loads the results once a run is done and refreshes them with the poll", async () => {

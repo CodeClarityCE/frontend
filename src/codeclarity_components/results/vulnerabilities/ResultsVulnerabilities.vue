@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
 import KnowledgeStatusNotice from "./components/KnowledgeStatusNotice.vue";
+import MaliciousPackageAdvisories from "./components/MaliciousPackageAdvisories.vue";
 import VulnContent from "./VulnContent.vue";
 import List from "./VulnList.vue";
 import Table from "./VulnTable.vue";
@@ -164,6 +165,12 @@ watch(active_tab, async (newTab, oldTab) => {
     </template>
 
     <KnowledgeStatusNotice />
+
+    <MaliciousPackageAdvisories
+      :analysis-i-d="analysis.id"
+      :project-i-d="project.id"
+      :workspace="selected_workspace"
+    />
 
     <VulnContent
       v-model:selected_workspace="selected_workspace"

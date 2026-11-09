@@ -742,6 +742,12 @@ export interface PublishedVersionStamp {
 }
 
 /** The metric version a publish would store now. */
+/** Stored rows read so far; zero total when no read is under way. */
+export interface LoadProgress {
+  done: number;
+  total: number;
+}
+
 export interface CurrentMetricVersion {
   metric_version: number;
 }

@@ -40,6 +40,7 @@ import { ExperimentsRepository } from "../experiments.repository";
 import { SELECTED_PUBLISHED_VERSION } from "../published-version";
 
 import ExperimentFigures from "./ExperimentFigures.vue";
+import ExperimentLoadProgress from "./ExperimentLoadProgress.vue";
 import ExperimentResults from "./ExperimentResults.vue";
 
 /** How often the experiment is reloaded while it may still change */
@@ -711,6 +712,11 @@ onUnmounted(() => clearTimeout(pollTimer));
             >
               Results appear once the first run is done.
             </p>
+            <ExperimentLoadProgress
+              v-else-if="!resultsErrorShown"
+              :experiment-id="experimentId"
+              data-testid="experiment-results-loading"
+            />
           </section>
 
           <div

@@ -45,6 +45,8 @@ import {
 } from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
 
+import ExperimentLoadProgress from "./ExperimentLoadProgress.vue";
+
 const props = defineProps<{
   experimentId: string;
   gridCoverage: GridCoverageRow[];
@@ -88,6 +90,7 @@ const chosenVersion = ref(NONE);
 const moving = ref(false);
 /** Only the newest preview request may fill the chart */
 let previewRequest = 0;
+const previewLoading = ref(false);
 
 const metric = computed<FigureMetric | null>(
   () =>
@@ -350,6 +353,7 @@ async function refreshPreview(): Promise<void> {
   const context = requestContext();
   if (!context || !definition.value) return;
   const request = ++previewRequest;
+  previewLoading.value = true;
   try {
     const scope = {
       ...context,
@@ -372,6 +376,8 @@ async function refreshPreview(): Promise<void> {
       preview.value = null;
       errorToast("Failed to compute the Figure");
     }
+  } finally {
+    if (request === previewRequest) previewLoading.value = false;
   }
 }
 
@@ -782,6 +788,11 @@ onMounted(() => void loadFigures());
           units.
         </p>
       </template>
+      <ExperimentLoadProgress
+        v-else-if="previewLoading"
+        :experiment-id="experimentId"
+        data-testid="figure-preview-loading"
+      />
       <p v-else class="text-sm text-gray-600">No data to plot yet.</p>
     </div>
   </div>

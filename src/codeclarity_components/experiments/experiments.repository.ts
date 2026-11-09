@@ -22,6 +22,7 @@ import {
   type ExperimentExportFile,
   type ExperimentResults,
   ExperimentRun,
+  type LoadProgress,
   type PublishedVersion,
   type PublishedVersionStamp,
 } from "./experiment.entity";
@@ -350,6 +351,25 @@ export class ExperimentsRepository extends BaseRepository {
     return Entity.unMarshal<DataResponse<PublishedVersion[]>>(
       response,
       DataResponse<PublishedVersion[]>,
+    );
+  }
+
+  async getLoadProgress(
+    options: GetPublishedVersionsRequestOptions,
+  ): Promise<DataResponse<LoadProgress>> {
+    const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/results/progress`;
+
+    const response = await this.getRequest<DataResponse<LoadProgress>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<LoadProgress>>(
+      response,
+      DataResponse<LoadProgress>,
     );
   }
 

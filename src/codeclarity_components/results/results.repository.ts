@@ -81,6 +81,26 @@ export interface GetResultByTypeRequestOptions extends AuthRepoMethodGetRequestO
   runIndex?: number | null;
 }
 
+export interface MaliciousPackageAdvisory {
+  AdvisoryId: string;
+  AffectedDependency: string;
+  AffectedVersion: string;
+  DirectDependency: boolean;
+  Summary?: string;
+  Details?: string;
+  Published?: string;
+  Modified?: string;
+  Aliases?: string[];
+  References?: string[];
+}
+
+export interface GetMaliciousPackageAdvisoriesRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  workspace: string;
+}
+
 export class ResultsRepository extends BaseRepository {
   async getSbomStat(
     options: GetSbomStatsRequestOptions,
@@ -304,6 +324,21 @@ export class ResultsRepository extends BaseRepository {
       response,
       DataResponse<AnalysisStats>,
     );
+  }
+
+  async getMaliciousPackageAdvisories(
+    options: GetMaliciousPackageAdvisoriesRequestOptions,
+  ): Promise<DataResponse<MaliciousPackageAdvisory[]>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/malicious-packages`;
+
+    return this.getRequest<DataResponse<MaliciousPackageAdvisory[]>>({
+      queryParams: { workspace: options.workspace },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
   }
 
   async getVulnerabilities(

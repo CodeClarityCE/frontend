@@ -55,6 +55,14 @@ vi.mock("./components/KnowledgeStatusNotice.vue", () => ({
   },
 }));
 
+vi.mock("./components/MaliciousPackageAdvisories.vue", () => ({
+  default: {
+    name: "MaliciousPackageAdvisories",
+    template: '<div data-testid="malicious-package-advisories"></div>',
+    props: ["analysisID", "projectID", "workspace"],
+  },
+}));
+
 // Mock Shadcn components
 vi.mock("@/shadcn/ui/tabs", () => ({
   Tabs: {
@@ -197,6 +205,27 @@ describe("ResultsVulnerabilities", () => {
     expect(
       wrapper.find('[data-testid="knowledge-status-notice"]').exists(),
     ).toBe(true);
+  });
+
+  it("shows malicious package advisories for the selected workspace", () => {
+    wrapper = mount(ResultsVulnerabilities, {
+      props: {
+        analysis: mockAnalysis,
+        project: mockProject,
+      },
+      global: {
+        plugins: [],
+      },
+    });
+
+    const section = wrapper.findComponent({
+      name: "MaliciousPackageAdvisories",
+    });
+    expect(section.props()).toEqual({
+      analysisID: "analysis-123",
+      projectID: "project-123",
+      workspace: ".",
+    });
   });
 
   it("renders VulnContent component", () => {

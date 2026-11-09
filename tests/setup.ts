@@ -274,6 +274,7 @@ vi.mock("@/codeclarity_components/results/results.repository", () => ({
     "getSbom",
     "getDependency",
     "getVulnerabilities",
+    "getMaliciousPackageAdvisories",
     "getVulnerability",
     "getFinding",
     "getLicenses",

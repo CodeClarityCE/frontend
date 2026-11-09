@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
+import KnowledgeStatusNotice from "./components/KnowledgeStatusNotice.vue";
 import VulnContent from "./VulnContent.vue";
 import List from "./VulnList.vue";
 import Table from "./VulnTable.vue";
@@ -161,6 +162,8 @@ watch(active_tab, async (newTab, oldTab) => {
         </Alert>
       </div>
     </template>
+
+    <KnowledgeStatusNotice />
 
     <VulnContent
       v-model:selected_workspace="selected_workspace"

@@ -164,7 +164,10 @@ watch(active_tab, async (newTab, oldTab) => {
       </div>
     </template>
 
-    <KnowledgeStatusNotice />
+    <KnowledgeStatusNotice
+      :analysis-i-d="analysis.id"
+      :project-i-d="project.id"
+    />
 
     <MaliciousPackageAdvisories
       :analysis-i-d="analysis.id"

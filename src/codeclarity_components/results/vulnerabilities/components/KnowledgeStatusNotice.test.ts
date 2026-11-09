@@ -10,6 +10,9 @@ const toast = vi.hoisted(() => ({ error: vi.fn() }));
 vi.mock("vue-toast-notification", () => ({ useToast: () => toast }));
 const auth = vi.hoisted(() => ({ getAuthenticated: true, getToken: "token" }));
 vi.mock("@/stores/auth", () => ({ useAuthStore: () => auth }));
+vi.mock("@/stores/user", () => ({
+  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
+}));
 
 const healthy = {
   status: "healthy",
@@ -45,14 +48,57 @@ function statusBody(overrides: Record<string, object> = {}): object {
   };
 }
 
-function respondWith(body: object, status = 200): void {
-  vi.mocked(fetch).mockResolvedValue(
-    new Response(JSON.stringify(body), { status }),
-  );
+const SNAPSHOT_URL =
+  "/org/org-1/projects/project-1/analysis/analysis-1/vulnerabilities/knowledge-snapshot";
+
+// Answers the current status request, and the snapshot request with no snapshot unless given.
+function respondWith(
+  body: object,
+  status = 200,
+  snapshot: { body: object; status?: number } = { body: { data: null } },
+): void {
+  vi.mocked(fetch).mockImplementation((input) => {
+    const url = input instanceof Request ? input.url : input.toString();
+    let answer: { body: object; status?: number } = { body: {}, status: 404 };
+    if (url.includes(SNAPSHOT_URL)) answer = snapshot;
+    else if (url.includes("/knowledge/status")) answer = { body, status };
+    return Promise.resolve(
+      new Response(JSON.stringify(answer.body), {
+        status: answer.status ?? 200,
+      }),
+    );
+  });
+}
+
+// Builds a snapshot of all seven sources, healthy unless overridden.
+function snapshotBody(
+  overrides: Record<string, object> = {},
+  extra: object = {},
+): { body: object } {
+  return {
+    body: {
+      data: {
+        taken_at: "2026-10-01T12:00:00Z",
+        ...extra,
+        sources: SOURCES.map((source) => ({
+          source,
+          status: "healthy",
+          comparable: true,
+          watermark: "2026-10-01T06:00:00Z",
+          row_count: 100,
+          last_outcome: "success",
+          stale_after_hours: 24,
+          ...overrides[source],
+        })),
+      },
+    },
+  };
 }
 
 async function mountNotice(): Promise<ReturnType<typeof mount>> {
-  const wrapper = mount(KnowledgeStatusNotice);
+  const wrapper = mount(KnowledgeStatusNotice, {
+    props: { analysisID: "analysis-1", projectID: "project-1" },
+  });
   await flushPromises();
   return wrapper;
 }
@@ -191,5 +237,92 @@ describe("KnowledgeStatusNotice", () => {
     );
 
     expect((await mountNotice()).text()).not.toMatch(/in progress|running/i);
+  });
+
+  it("shows the sources as they were when the analysis ran", async () => {
+    respondWith(
+      statusBody({ osv: { status: "stale" } }),
+      200,
+      snapshotBody({
+        nvd: {
+          status: "stale",
+          comparable: false,
+          watermark: "2026-09-20T00:00:00Z",
+        },
+      }),
+    );
+
+    const text = (await mountNotice()).text();
+
+    expect(text).toContain("NVD");
+    expect(text).not.toContain("OSV");
+    expect(text).toMatch(/when this analysis ran/i);
+    expect(text).not.toMatch(/current status/i);
+  });
+
+  it("falls back to current status when the snapshot cannot be read", async () => {
+    respondWith(statusBody({ osv: { status: "stale" } }), 200, {
+      body: {},
+      status: 500,
+    });
+
+    const wrapper = await mountNotice();
+
+    expect(wrapper.text()).toContain("OSV");
+    expect(wrapper.text()).toMatch(/current status/i);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("uses current status when the snapshot could not read any source", async () => {
+    const unknown = {
+      status: "unknown",
+      comparable: false,
+      watermark: null,
+      last_outcome: null,
+      row_count: 0,
+    };
+    respondWith(
+      statusBody({ osv: { status: "stale" } }),
+      200,
+      snapshotBody(
+        Object.fromEntries(SOURCES.map((source) => [source, unknown])),
+      ),
+    );
+
+    const text = (await mountNotice()).text();
+
+    expect(text).toContain("OSV");
+    expect(text).not.toContain("NVD");
+    expect(text).toMatch(/current status/i);
+  });
+
+  it("says when a source's state was not recorded for the analysis", async () => {
+    respondWith(
+      statusBody(),
+      200,
+      snapshotBody({
+        nvd: { status: "unknown", last_outcome: null, watermark: null },
+      }),
+    );
+
+    const wrapper = await mountNotice();
+    const items = wrapper.findAll("li").map((li) => li.text());
+
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatch(/^NVD: Status could not be read/);
+    expect(wrapper.text()).not.toContain("new installation");
+  });
+
+  it("names the as-of day of an as-of analysis", async () => {
+    respondWith(
+      statusBody(),
+      200,
+      snapshotBody(
+        { nvd: { status: "stale" } },
+        { knowledge_asof: "2026-06-01" },
+      ),
+    );
+
+    expect((await mountNotice()).text()).toMatch(/as of June 1, 2026/);
   });
 });

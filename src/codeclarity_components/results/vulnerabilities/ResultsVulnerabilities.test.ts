@@ -52,6 +52,7 @@ vi.mock("./components/KnowledgeStatusNotice.vue", () => ({
   default: {
     name: "KnowledgeStatusNotice",
     template: '<div data-testid="knowledge-status-notice"></div>',
+    props: ["analysisID", "projectID"],
   },
 }));
 
@@ -191,7 +192,7 @@ describe("ResultsVulnerabilities", () => {
     expect(wrapper.exists()).toBe(true);
   });
 
-  it("renders the knowledge status notice", () => {
+  it("renders the knowledge status notice for this analysis", () => {
     wrapper = mount(ResultsVulnerabilities, {
       props: {
         analysis: mockAnalysis,
@@ -202,9 +203,12 @@ describe("ResultsVulnerabilities", () => {
       },
     });
 
-    expect(
-      wrapper.find('[data-testid="knowledge-status-notice"]').exists(),
-    ).toBe(true);
+    const notice = wrapper.findComponent({ name: "KnowledgeStatusNotice" });
+    expect(notice.exists()).toBe(true);
+    expect(notice.props()).toEqual({
+      analysisID: "analysis-123",
+      projectID: "project-123",
+    });
   });
 
   it("shows malicious package advisories for the selected workspace", () => {

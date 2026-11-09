@@ -48,6 +48,13 @@ vi.mock("./VulnContent.vue", () => ({
   },
 }));
 
+vi.mock("./components/KnowledgeStatusNotice.vue", () => ({
+  default: {
+    name: "KnowledgeStatusNotice",
+    template: '<div data-testid="knowledge-status-notice"></div>',
+  },
+}));
+
 // Mock Shadcn components
 vi.mock("@/shadcn/ui/tabs", () => ({
   Tabs: {
@@ -174,6 +181,22 @@ describe("ResultsVulnerabilities", () => {
     });
 
     expect(wrapper.exists()).toBe(true);
+  });
+
+  it("renders the knowledge status notice", () => {
+    wrapper = mount(ResultsVulnerabilities, {
+      props: {
+        analysis: mockAnalysis,
+        project: mockProject,
+      },
+      global: {
+        plugins: [],
+      },
+    });
+
+    expect(
+      wrapper.find('[data-testid="knowledge-status-notice"]').exists(),
+    ).toBe(true);
   });
 
   it("renders VulnContent component", () => {

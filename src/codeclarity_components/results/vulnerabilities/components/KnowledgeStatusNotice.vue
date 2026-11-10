@@ -2,11 +2,14 @@
 import { computed, onMounted, ref } from "vue";
 
 import {
+  type KnowledgeSnapshot,
+  type KnowledgeSourceSnapshot,
   type KnowledgeSourceStatus,
   KnowledgeStatusRepository,
 } from "@/codeclarity_components/results/knowledge-status.repository";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { formatDate } from "@/utils/dateUtils";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -19,27 +22,43 @@ const SOURCE_LABELS: Record<string, string> = {
   osv: "OSV",
 };
 
+const props = defineProps<{
+  analysisID: string;
+  projectID: string;
+}>();
+
+// The fields shared by current status and an analysis's snapshot.
+type SourceState = Pick<
+  KnowledgeSourceStatus | KnowledgeSourceSnapshot,
+  "source" | "status" | "watermark" | "last_outcome"
+>;
+
 const authStore = useAuthStore();
-const sources = ref<KnowledgeSourceStatus[]>([]);
+const userStore = useUserStore();
+const sources = ref<SourceState[]>([]);
+const snapshot = ref<KnowledgeSnapshot | null>(null);
 
 const unhealthy = computed(() =>
   sources.value.filter((source) => source.status !== "healthy"),
 );
 
-function hasNeverRun(source: KnowledgeSourceStatus): boolean {
-  return source.last_outcome === null;
+function hasNeverRun(source: SourceState): boolean {
+  return source.status !== "unknown" && source.last_outcome === null;
 }
 
 // A fresh deployment has no recorded runs, which is expected and not a fault.
 const allNeverRun = computed(() => unhealthy.value.every(hasNeverRun));
 
-function dataAsOf(source: KnowledgeSourceStatus): string {
+function dataAsOf(source: SourceState): string {
   return source.watermark === null
     ? ""
     : ` Data is current to ${formatDate(source.watermark, "LL")}.`;
 }
 
-function describe(source: KnowledgeSourceStatus): string {
+function describe(source: SourceState): string {
+  if (source.status === "unknown") {
+    return "Status could not be read when this analysis ran.";
+  }
   if (source.status === "failed") {
     return `Last update failed.${dataAsOf(source)}`;
   }
@@ -49,12 +68,48 @@ function describe(source: KnowledgeSourceStatus): string {
   return `Out of date.${dataAsOf(source)}`;
 }
 
+// The as-of day is a calendar date, so it is read as local midnight.
+const asOfDay = computed(() =>
+  snapshot.value?.knowledge_asof
+    ? formatDate(`${snapshot.value.knowledge_asof}T00:00:00`, "LL")
+    : "",
+);
+
+// Reads the snapshot stored with this analysis, or null when there is none or it cannot be read.
+async function loadSnapshot(token: string): Promise<KnowledgeSnapshot | null> {
+  const org = userStore.getDefaultOrg;
+  if (!org || props.analysisID === "" || props.projectID === "") return null;
+  try {
+    const response = await new KnowledgeStatusRepository().getAnalysisSnapshot({
+      orgId: org.id,
+      projectId: props.projectID,
+      analysisId: props.analysisID,
+      bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
+      handleOtherErrors: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.warn("Could not load the analysis's knowledge snapshot", error);
+    return null;
+  }
+}
+
 // The notice is advisory, so a failed lookup must never affect the page.
 onMounted(async () => {
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  const token = authStore.getToken;
+  if (!authStore.getAuthenticated || !token) return;
   try {
+    const stored = await loadSnapshot(token);
+    // A snapshot that could not read any source says nothing, so current status is shown instead.
+    if (stored?.sources.some((source) => source.status !== "unknown")) {
+      snapshot.value = stored;
+      sources.value = stored.sources;
+      return;
+    }
     const response = await new KnowledgeStatusRepository().getStatus({
-      bearerToken: authStore.getToken,
+      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -82,8 +137,15 @@ onMounted(async () => {
           This is expected on a new installation until the first update
           completes.
         </template>
-        This notice shows the current status of each source, which may differ
-        from when this analysis ran.
+        <template v-if="snapshot">
+          This notice shows the status of each source when this analysis
+          ran<template v-if="asOfDay">, judged as of {{ asOfDay }}</template
+          >.
+        </template>
+        <template v-else>
+          This notice shows the current status of each source, which may differ
+          from when this analysis ran.
+        </template>
       </p>
       <ul class="mt-2 list-disc pl-5">
         <li v-for="source in unhealthy" :key="source.source">

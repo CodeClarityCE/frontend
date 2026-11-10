@@ -388,7 +388,7 @@ export class ResultsRepository extends BaseRepository {
   async getFinding(
     options: GetFindingRequestOptions,
   ): Promise<DataResponse<VulnerabilityDetails>> {
-    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/vulnerability/${options.vulnerability_id}`;
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/vulnerability/${encodeURIComponent(options.vulnerability_id)}`;
 
     const queryParams: Record<string, string | number> = {
       workspace: options.workspace,

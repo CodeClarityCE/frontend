@@ -2,6 +2,8 @@
 import { computed, inject, nextTick, provide, ref } from "vue";
 
 import { saveBlob } from "@/utils/download";
+import { svgToPdf } from "@/utils/svg-pdf";
+import { loadPdfFonts } from "@/utils/svg-pdf/load-fonts";
 import { errorToast } from "@/utils/toasts";
 
 import {
@@ -72,6 +74,20 @@ async function downloadPng(): Promise<void> {
   }
 }
 
+async function downloadPdf(): Promise<void> {
+  const figure = await assemble();
+  if (!figure) return;
+  try {
+    const pdf = await svgToPdf(figure.svg, await loadPdfFonts());
+    saveBlob(
+      new Blob([pdf as BlobPart], { type: "application/pdf" }),
+      `${props.name}.pdf`,
+    );
+  } catch {
+    errorToast("Could not export the chart as PDF");
+  }
+}
+
 function downloadCsv(): void {
   saveBlob(
     new Blob([chartDataCsv(props.data)], { type: "text/csv;charset=utf-8" }),
@@ -129,6 +145,14 @@ const BUTTON = "text-xs text-gray-500 hover:text-gray-900 underline";
         @click="downloadPng"
       >
         Download PNG (300 dpi)
+      </button>
+      <button
+        type="button"
+        data-testid="export-pdf"
+        :class="BUTTON"
+        @click="downloadPdf"
+      >
+        Download PDF
       </button>
       <button
         type="button"

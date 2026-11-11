@@ -84,6 +84,12 @@ vi.mock("../experiments.repository", () => ({
 
 vi.mock("@/utils/download", () => ({ saveBlob }));
 
+// Fonts are fetched in the browser; here they come from disk
+vi.mock("@/utils/svg-pdf/load-fonts", async () => {
+  const { testPdfFonts } = await import("@/utils/svg-pdf/test/fonts");
+  return { loadPdfFonts: () => Promise.resolve(testPdfFonts()) };
+});
+
 vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
 
 vi.mock("@/utils/api/BaseRepository", () => ({
@@ -3149,6 +3155,69 @@ describe("ExperimentDetail Figures tab", () => {
         const svg = await exportedBars(8, "double");
         expect(svg.querySelector("parsererror")).toBeNull();
         expect(saveBlob).toHaveBeenCalled();
+      });
+    });
+
+    describe("as PDF", () => {
+      async function exportedPdf(wrapper: VueWrapper): Promise<string> {
+        errorToast.mockReset();
+        await wrapper
+          .find('[data-testid="figure-preview"] [data-testid="export-pdf"]')
+          .trigger("click");
+        await vi.waitFor(() => expect(saveBlob).toHaveBeenCalled());
+        expect(errorToast).not.toHaveBeenCalled();
+        const { blob, name } = lastSaved();
+        expect(blob.type).toBe("application/pdf");
+        wrapper.unmount();
+        return `${name} ${Buffer.from(await blob.arrayBuffer())
+          .toString("latin1")
+          .slice(0, 8)}`;
+      }
+
+      it("exports a saved line Figure under its name", async () => {
+        expect(await exportedPdf(await openSavedFigure())).toBe(
+          "load-as-of-view.pdf %PDF-1.7",
+        );
+      });
+
+      it("exports a survival Figure with its band", async () => {
+        getFigureCatalog.mockResolvedValue({
+          data: { metrics: [SURVIVAL_METRIC] },
+        });
+        computeFigureData.mockResolvedValue(survivalData());
+        expect(await exportedPdf(await openFiguresTab())).toMatch(
+          /\.pdf %PDF-1\.7$/,
+        );
+      });
+
+      it("exports a bar Figure with its outlined bars", async () => {
+        getFigureCatalog.mockResolvedValue({
+          data: {
+            metrics: [
+              {
+                id: "severity_mix",
+                label: "Severity mix",
+                chart_forms: [{ id: "bar", label: "Bar", mark: "bar" }],
+                group_by: [],
+                filters: [],
+              },
+            ],
+          },
+        });
+        computeFigureData.mockResolvedValue({
+          data: {
+            x_title: "Severity",
+            y_title: "Vulnerability instances",
+            labels: ["Critical", "High"],
+            series: [
+              { key: "a", label: "A", values: [1, 2] },
+              { key: "b", label: "B", values: [3, 4] },
+            ],
+          },
+        });
+        expect(await exportedPdf(await openFiguresTab())).toMatch(
+          /\.pdf %PDF-1\.7$/,
+        );
       });
     });
 

@@ -2,16 +2,26 @@ import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { h } from "vue";
 
+import { testPdfFonts } from "@/utils/svg-pdf/test/fonts";
+
 import ChartExport from "../charts/ChartExport.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
 import type { ExperimentResults as Results } from "../experiment.entity";
 
 import ExperimentResults from "./ExperimentResults.vue";
 
-const { saveBlob } = vi.hoisted(() => ({ saveBlob: vi.fn() }));
+const { saveBlob, errorToast, loadPdfFonts } = vi.hoisted(() => ({
+  saveBlob: vi.fn(),
+  errorToast: vi.fn(),
+  loadPdfFonts: vi.fn(),
+}));
 
 vi.mock("@/utils/download", () => ({ saveBlob }));
-vi.mock("@/utils/toasts", () => ({ errorToast: vi.fn() }));
+vi.mock("@/utils/toasts", () => ({ errorToast }));
+// Fonts are fetched in the browser; here they come from disk
+vi.mock("@/utils/svg-pdf/load-fonts", () => ({ loadPdfFonts }));
+
+const PDF_FONTS = testPdfFonts();
 
 function lag(n: number, median: number, before = 0): object {
   return {
@@ -354,7 +364,7 @@ describe("experiment chart export", () => {
 
   it.each(EVERY_CHART)("offers every export on %s", (block) => {
     const wrapper = mountResults();
-    for (const button of ["svg", "png", "csv", "caption"]) {
+    for (const button of ["svg", "png", "pdf", "csv", "caption"]) {
       expect(
         wrapper
           .find(`[data-testid="${block}"] [data-testid="export-${button}"]`)
@@ -798,6 +808,68 @@ describe("experiment chart export", () => {
       ]);
       expect([...bytes.slice(0, 33)]).toEqual([...PNG.slice(0, 33)]);
       expect([...bytes.slice(54)]).toEqual([...PNG.slice(33)]);
+    });
+  });
+
+  describe("PDF", () => {
+    beforeEach(() => {
+      errorToast.mockReset();
+      loadPdfFonts.mockReset();
+      loadPdfFonts.mockResolvedValue(PDF_FONTS);
+    });
+
+    async function savedPdf(
+      wrapper: VueWrapper,
+      block: string,
+    ): Promise<string> {
+      await click(
+        wrapper,
+        `[data-testid="${block}"] [data-testid="export-pdf"]`,
+      );
+      // Compression runs on a stream, beyond one promise flush
+      await vi.waitFor(() => expect(saveBlob).toHaveBeenCalled());
+      const { blob, name } = lastSaved();
+      expect(name.endsWith(".pdf")).toBe(true);
+      expect(blob.type).toBe("application/pdf");
+      return Buffer.from(await blob.arrayBuffer()).toString("latin1");
+    }
+
+    it.each(EVERY_CHART)("exports %s as a vector PDF", async (block) => {
+      const pdf = await savedPdf(mountResults(), block);
+      expect(errorToast).not.toHaveBeenCalled();
+      expect(pdf.startsWith("%PDF-1.7")).toBe(true);
+      expect(pdf).toContain("/FontFile2");
+      expect(pdf).toContain("/ToUnicode");
+    });
+
+    it.each([
+      ["single", "252"],
+      ["double", "504"],
+    ] as const)(
+      "sizes the page for the %s column width",
+      async (preset, points) => {
+        const wrapper = mountResults();
+        await choosePreset(wrapper, "experiment-survival", preset);
+        const pdf = await savedPdf(wrapper, "experiment-survival");
+        expect(pdf).toMatch(
+          new RegExp(`/MediaBox \\[0 0 ${points} [\\d.]+\\]`),
+        );
+      },
+    );
+
+    it("says so when the PDF cannot be made", async () => {
+      loadPdfFonts.mockRejectedValue(new Error("offline"));
+      const wrapper = mountResults();
+      await click(
+        wrapper,
+        '[data-testid="experiment-load"] [data-testid="export-pdf"]',
+      );
+      await vi.waitFor(() =>
+        expect(errorToast).toHaveBeenCalledWith(
+          "Could not export the chart as PDF",
+        ),
+      );
+      expect(saveBlob).not.toHaveBeenCalled();
     });
   });
 });

@@ -10,10 +10,10 @@ The writer supports only what the experiment charts emit. Anything else throws a
 
 - **Elements:** `svg`, `g`, `text`, `line`, `rect` (`rx` and `ry` allowed), `circle` and `path`. `title` and `desc` are skipped.
 - **Path commands:** `M L H V C S Q T Z`, absolute or relative. Arcs (`A`) are not supported.
-- **Paint:** `fill`, `stroke`, `stroke-width`, `stroke-dasharray`, `stroke-linecap`, `stroke-linejoin`, `fill-opacity` and `stroke-opacity`. `opacity` is allowed on shapes and text, but not on `g`.
+- **Paint:** `fill`, `stroke`, `stroke-width`, `stroke-dasharray`, `stroke-linecap`, `stroke-linejoin`, `fill-opacity` and `stroke-opacity`. `opacity` is allowed on shapes and text, but not on `g` or on a shape that is both filled and stroked.
 - **Colours:** hex, `none` and `transparent`.
-- **Text:** `font-size`, `font-weight` (600 and above, or `bold`, use the bold font) and `text-anchor`.
-- **Not supported:** transforms, gradients, clip paths, images, `tspan` and inline styles other than `font-variant-numeric: tabular-nums`.
+- **Text:** `font-size`, `font-weight` (600 and above, or `bold`, use the bold font) and `text-anchor`. Every character needs a glyph in Liberation Sans (Latin, Greek and Cyrillic scripts); a label with any other character is refused. Kerning is not applied.
+- **Not supported:** nested `svg`, transforms, gradients, clip paths, images, `tspan` and inline styles other than `font-variant-numeric: tabular-nums`.
 
 Text is set in Type0 fonts with a ToUnicode map, so labels stay selectable and searchable. Each used font is embedded whole (no subsetting).
 

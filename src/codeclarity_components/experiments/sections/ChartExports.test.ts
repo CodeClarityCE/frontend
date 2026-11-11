@@ -1,8 +1,8 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { h } from "vue";
+
+import { testPdfFonts } from "@/utils/svg-pdf/test/fonts";
 
 import ChartExport from "../charts/ChartExport.vue";
 import GridLineChart from "../charts/GridLineChart.vue";
@@ -21,16 +21,7 @@ vi.mock("@/utils/toasts", () => ({ errorToast }));
 // Fonts are fetched in the browser; here they come from disk
 vi.mock("@/utils/svg-pdf/load-fonts", () => ({ loadPdfFonts }));
 
-function fontFile(name: string): Uint8Array {
-  return new Uint8Array(
-    readFileSync(join(process.cwd(), "src/utils/svg-pdf/fonts", name)),
-  );
-}
-
-const PDF_FONTS = {
-  regular: fontFile("LiberationSans-Regular.ttf"),
-  bold: fontFile("LiberationSans-Bold.ttf"),
-};
+const PDF_FONTS = testPdfFonts();
 
 function lag(n: number, median: number, before = 0): object {
   return {

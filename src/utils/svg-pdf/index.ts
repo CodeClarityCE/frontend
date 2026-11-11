@@ -1,7 +1,7 @@
 import { FontSet } from "./font-set";
 import { num } from "./format";
 import { PdfFile } from "./pdf-file";
-import { type RenderContext, renderElement } from "./render";
+import { type Opacity, type RenderContext, renderElement } from "./render";
 import { parseTrueType } from "./truetype";
 
 /** TrueType files for normal and bold text. */
@@ -29,12 +29,11 @@ function viewBoxOf(root: Element): [number, number, number, number] {
   return box as [number, number, number, number];
 }
 
-function opacityResources(opacities: Map<string, string>): string {
+function opacityResources(opacities: Map<string, Opacity>): string {
   if (opacities.size === 0) return "";
-  const states = [...opacities].map(([key, name]) => {
-    const [fill, stroke] = key.split(" ");
-    return `/${name} << /ca ${fill} /CA ${stroke} >>`;
-  });
+  const states = [...opacities.values()].map(
+    ({ name, fill, stroke }) => `/${name} << /ca ${fill} /CA ${stroke} >>`,
+  );
   return `/ExtGState << ${states.join(" ")} >>`;
 }
 
@@ -56,7 +55,7 @@ export async function svgToPdf(
   const context: RenderContext = {
     regular: parseTrueType(fonts.regular),
     bold: parseTrueType(fonts.bold),
-    fonts: new FontSet(),
+    fontSet: new FontSet(),
     opacities: new Map(),
   };
   // Maps viewBox units onto the page, with y pointing down as in SVG
@@ -70,7 +69,7 @@ export async function svgToPdf(
   const pages = file.reserve();
   const content = await file.addStream(ops.join("\n"));
   const resources = [
-    await context.fonts.embed(file),
+    await context.fontSet.embed(file),
     opacityResources(context.opacities),
   ].filter(Boolean);
   const page = file.add(

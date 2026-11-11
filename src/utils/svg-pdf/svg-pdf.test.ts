@@ -1,20 +1,10 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 
-import { type PdfFonts, svgToPdf } from "./index";
+import { svgToPdf } from "./index";
+import { testPdfFonts } from "./test/fonts";
 
-function font(name: string): Uint8Array {
-  return new Uint8Array(
-    readFileSync(join(process.cwd(), "src/utils/svg-pdf/fonts", name)),
-  );
-}
-
-const FONTS: PdfFonts = {
-  regular: font("LiberationSans-Regular.ttf"),
-  bold: font("LiberationSans-Bold.ttf"),
-};
+const FONTS = testPdfFonts();
 
 interface PdfObject {
   dict: string;
@@ -170,6 +160,25 @@ describe("svgToPdf", () => {
       expect(ops).toMatch(/h f Q/);
     });
 
+    it("starts a new subpath where a closed one began", async () => {
+      expect(
+        await drawn('<path d="M5 5l5 0Zl0 5" fill="none" stroke="#000"/>'),
+      ).toContain("5 5 m 10 5 l h 5 5 m 5 10 l S");
+    });
+
+    it("reads exponents in either case", async () => {
+      expect(
+        await drawn('<path d="M1E1 0L2e1 0" fill="none" stroke="#000"/>'),
+      ).toContain("10 0 m 20 0 l S");
+    });
+
+    it("strokes solid when every dash is zero, as SVG does", async () => {
+      const ops = await drawn(
+        '<line x2="5" stroke="#000" stroke-dasharray="0 0"/>',
+      );
+      expect(ops).toContain("q 0 0 0 RG 1 w 0 0 m 5 0 l S Q");
+    });
+
     it("draws relative and absolute path commands as absolute points", async () => {
       expect(
         await drawn(
@@ -240,6 +249,12 @@ describe("svgToPdf", () => {
       ['<g transform="scale(2)"/>', "transform"],
       ['<rect width="1" height="1" fill="url(#g)"/>', "url(#g)"],
       ['<path d="M0 0A5 5 0 0 1 9 9"/>', "path command A"],
+      ['<text x="0" y="0">漢</text>', "no glyph for 漢"],
+      ['<svg viewBox="0 0 1 1"/>', "nested <svg>"],
+      [
+        '<rect width="1" height="1" fill="#000" stroke="#000" opacity="0.5"/>',
+        "opacity on a filled and stroked shape",
+      ],
       ['<text x="0" y="0" style="font-style: italic">a</text>', "style"],
     ])("refuses %s instead of drawing it wrongly", async (body, named) => {
       await expect(svgToPdf(svg(body), FONTS)).rejects.toThrow(named);

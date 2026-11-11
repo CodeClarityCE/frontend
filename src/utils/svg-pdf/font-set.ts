@@ -5,17 +5,10 @@ function hex4(value: number): string {
   return value.toString(16).toUpperCase().padStart(4, "0");
 }
 
-/** A code point as UTF-16 hex, with a surrogate pair above the BMP. */
-function utf16Hex(codePoint: number): string {
-  if (codePoint <= 0xffff) return hex4(codePoint);
-  const offset = codePoint - 0x10000;
-  return hex4(0xd800 + (offset >> 10)) + hex4(0xdc00 + (offset & 0x3ff));
-}
-
 /** Maps glyph ids back to text, so viewers can copy and search labels. */
 function toUnicodeCmap(glyphs: Map<number, number>): string {
   const entries = [...glyphs].map(
-    ([glyph, code]) => `<${hex4(glyph)}> <${utf16Hex(code)}>`,
+    ([glyph, code]) => `<${hex4(glyph)}> <${hex4(code)}>`,
   );
   const blocks: string[] = [];
   for (let i = 0; i < entries.length; i += 100) {
@@ -66,8 +59,8 @@ export class FontSet {
     for (const char of text) {
       const code = char.codePointAt(0)!;
       const glyph = font.glyphOf(code);
-      if (glyph !== 0 && !entry.glyphs.has(glyph))
-        entry.glyphs.set(glyph, code);
+      if (glyph === 0) throw new Error(`The font has no glyph for ${char}`);
+      if (!entry.glyphs.has(glyph)) entry.glyphs.set(glyph, code);
       hex += hex4(glyph);
       advance += font.advanceOf(glyph);
     }

@@ -1,7 +1,7 @@
-import { num } from "./format";
+import { point } from "./format";
 
 const TOKEN =
-  /([MLHVCSQTZmlhvcsqtz])|([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)|([^\s,])/g;
+  /([MLHVCSQTZmlhvcsqtz])|([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)|([^\s,])/gi;
 
 /** How many numbers each command takes per repetition. */
 const ARITY: Record<string, number> = {
@@ -30,7 +30,6 @@ function tokenize(d: string): (string | number)[] {
 export function pathOps(d: string): string {
   const tokens = tokenize(d);
   const ops: string[] = [];
-  const point = (x: number, y: number): string => `${num(x)} ${num(y)}`;
   let x = 0;
   let y = 0;
   let startX = 0;
@@ -39,6 +38,8 @@ export function pathOps(d: string): string {
   let controlX = 0;
   let controlY = 0;
   let previous = "";
+  // After Z, the next drawing command starts from the subpath's start
+  let closed = false;
   let i = 0;
 
   while (i < tokens.length) {
@@ -68,6 +69,10 @@ export function pathOps(d: string): string {
       const smooth = previous === "C" || previous === "S";
       const smoothQuad = previous === "Q" || previous === "T";
       let kind = upper;
+      if (closed && upper !== "M" && upper !== "Z") {
+        ops.push(`${point(startX, startY)} m`);
+      }
+      closed = false;
 
       if (upper === "M" && first) {
         x = args[0]! + dx;
@@ -121,6 +126,7 @@ export function pathOps(d: string): string {
         ops.push("h");
         x = startX;
         y = startY;
+        closed = true;
       }
       previous = kind;
       first = false;

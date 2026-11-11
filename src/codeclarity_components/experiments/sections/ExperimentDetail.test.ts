@@ -1,6 +1,4 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import router from "@/router";
@@ -87,18 +85,10 @@ vi.mock("../experiments.repository", () => ({
 vi.mock("@/utils/download", () => ({ saveBlob }));
 
 // Fonts are fetched in the browser; here they come from disk
-vi.mock("@/utils/svg-pdf/load-fonts", () => ({
-  loadPdfFonts: () => {
-    const font = (name: string): Uint8Array =>
-      new Uint8Array(
-        readFileSync(join(process.cwd(), "src/utils/svg-pdf/fonts", name)),
-      );
-    return Promise.resolve({
-      regular: font("LiberationSans-Regular.ttf"),
-      bold: font("LiberationSans-Bold.ttf"),
-    });
-  },
-}));
+vi.mock("@/utils/svg-pdf/load-fonts", async () => {
+  const { testPdfFonts } = await import("@/utils/svg-pdf/test/fonts");
+  return { loadPdfFonts: () => Promise.resolve(testPdfFonts()) };
+});
 
 vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
 

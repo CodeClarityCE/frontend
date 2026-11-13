@@ -373,7 +373,28 @@ export default typescriptEslint.config(
           allowlist: designSystemAllowlist,
           logoIconSets: ["simple-icons", "devicon"],
           // Add { name, path } here when a home-grown component is replaced.
-          removedComponents: [],
+          removedComponents: [
+            {
+              name: "HeaderComponent",
+              path: "src/codeclarity_components/header/HeaderComponent.vue",
+            },
+            {
+              name: "MainNav",
+              path: "src/codeclarity_components/header/components/MainNav.vue",
+            },
+            {
+              name: "SearchHeader",
+              path: "src/codeclarity_components/header/components/SearchHeader.vue",
+            },
+            {
+              name: "TeamSwitcher",
+              path: "src/codeclarity_components/header/components/TeamSwitcher.vue",
+            },
+            {
+              name: "UserNav",
+              path: "src/codeclarity_components/header/components/UserNav.vue",
+            },
+          ],
         },
       ],
     },

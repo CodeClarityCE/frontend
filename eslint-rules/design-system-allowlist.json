@@ -151,20 +151,6 @@
     "palette",
     "icon"
   ],
-  "src/codeclarity_components/header/HeaderComponent.vue": ["palette"],
-  "src/codeclarity_components/header/components/MainNav.vue": ["palette"],
-  "src/codeclarity_components/header/components/SearchHeader.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/header/components/TeamSwitcher.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/header/components/UserNav.vue": [
-    "palette",
-    "icon"
-  ],
   "src/codeclarity_components/organizations/OrganizationView.vue": ["palette"],
   "src/codeclarity_components/organizations/analyzers/AnalyzerCreate.vue": [
     "palette",

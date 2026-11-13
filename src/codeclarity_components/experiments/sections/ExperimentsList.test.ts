@@ -1,8 +1,6 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import router from "@/router";
-
 import ExperimentsList from "./ExperimentsList.vue";
 
 const { getExperiments, errorToast } = vi.hoisted(() => ({
@@ -17,10 +15,6 @@ vi.mock("../experiments.repository", () => ({
 }));
 
 vi.mock("@/utils/toasts", () => ({ errorToast }));
-
-vi.mock("@/base_components", () => ({
-  PaginationComponent: { template: "<div />" },
-}));
 
 function experiment(id: string, status: string, done = 0): object {
   return {
@@ -45,7 +39,14 @@ function experiment(id: string, status: string, done = 0): object {
 
 function mountList(): VueWrapper {
   return mount(ExperimentsList, {
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    global: {
+      stubs: {
+        RouterLink: {
+          props: ["to"],
+          template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
+        },
+      },
+    },
   });
 }
 
@@ -54,7 +55,6 @@ describe("ExperimentsList", () => {
     vi.useFakeTimers();
     getExperiments.mockReset();
     errorToast.mockReset();
-    vi.mocked(router.push).mockClear();
   });
 
   afterEach(() => {
@@ -69,7 +69,7 @@ describe("ExperimentsList", () => {
     const wrapper = mountList();
     await flushPromises();
 
-    const row = wrapper.find('[data-testid="experiment-row-exp-1"]');
+    const row = wrapper.find('[data-testid="experiment-row"]');
     expect(row.text()).toContain("experiment exp-1");
     expect(row.text()).toContain("top4");
     expect(row.text()).toContain("Completed");
@@ -92,14 +92,14 @@ describe("ExperimentsList", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     await flushPromises();
 
-    expect(
-      wrapper.find('[data-testid="experiment-row-exp-1"]').text(),
-    ).toContain("Completed");
+    expect(wrapper.find('[data-testid="experiment-row"]').text()).toContain(
+      "Completed",
+    );
     await vi.advanceTimersByTimeAsync(60_000);
     expect(getExperiments).toHaveBeenCalledTimes(2);
   });
 
-  it("opens an experiment", async () => {
+  it("links each experiment to its page", async () => {
     getExperiments.mockResolvedValue({
       data: [experiment("exp-1", "COMPLETED", 4)],
       total_pages: 1,
@@ -107,9 +107,10 @@ describe("ExperimentsList", () => {
     const wrapper = mountList();
     await flushPromises();
 
-    await wrapper.find('[data-testid="experiment-row-exp-1"]').trigger("click");
-
-    expect(router.push).toHaveBeenCalledWith({
+    const link = wrapper
+      .findAll("a")
+      .find((a) => a.text() === "experiment exp-1");
+    expect(JSON.parse(link?.attributes("data-to") ?? "null")).toEqual({
       name: "experiments",
       params: { page: "detail" },
       query: { id: "exp-1" },
@@ -121,6 +122,6 @@ describe("ExperimentsList", () => {
     const wrapper = mountList();
     await flushPromises();
 
-    expect(wrapper.text()).toContain("No experiments yet");
+    expect(wrapper.text()).toContain("No Experiments yet");
   });
 });

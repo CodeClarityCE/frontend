@@ -410,6 +410,10 @@ export default typescriptEslint.config(
               name: "FormTextField",
               path: "src/base_components/forms/FormTextField.vue",
             },
+            {
+              name: "BarChart",
+              path: "src/base_components/data-display/charts/BarChart.vue",
+            },
           ],
         },
       ],

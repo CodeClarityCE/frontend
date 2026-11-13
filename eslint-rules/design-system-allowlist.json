@@ -4,7 +4,6 @@
     "palette"
   ],
   "src/base_components/data-display/bubbles/SeverityBubble.vue": ["palette"],
-  "src/base_components/data-display/charts/BarChart.vue": ["hex"],
   "src/base_components/data-display/charts/GroupedBarChart.vue": ["hex"],
   "src/base_components/data-display/charts/LineChart.vue": ["hex"],
   "src/base_components/data-display/charts/RadarChart.vue": ["hex"],
@@ -91,47 +90,6 @@
     "theme",
     "icon"
   ],
-  "src/codeclarity_components/experiments/experiment.entity.ts": ["palette"],
-  "src/codeclarity_components/experiments/sections/ExperimentCreate.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentDetail.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentFigures.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentFixLag.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentLoad.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentLoadProgress.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentProbes.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentResidence.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentResults.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentSurvival.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentUpstreamLeverage.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentsList.vue": [
-    "palette",
-    "icon"
-  ],
   "src/codeclarity_components/projects/components/ProjectLanguageDetection.vue": [
     "palette",
     "icon"
@@ -216,8 +174,6 @@
     "theme",
     "icon"
   ],
-  "src/codeclarity_components/results/ResultsView.vue": ["palette", "icon"],
-  "src/codeclarity_components/results/SelectWorkspace.vue": ["palette"],
   "src/codeclarity_components/results/components/ResultTimestamp.vue": [
     "palette",
     "icon"
@@ -311,62 +267,6 @@
   "src/codeclarity_components/results/sbom/table/columns.ts": [
     "palette",
     "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/ResultsVulnerabilities.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnContent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails.vue": [
-    "hex",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetailsHeader.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnReferences.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnSummaryContent.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnerabilitySeverities.vue": [
-    "hex",
-    "palette"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnList.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnTable.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/components/AddToPolicyButton.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/components/MaliciousPackageAdvisories.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/graphs/VulnsGraph.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/graphs/components/OwaspTopTen.vue": [
-    "hex"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/graphs/components/VulnerabilitiesInfo.vue": [
-    "hex"
   ],
   "src/codeclarity_components/tickets/TicketsView.vue": [
     "palette",

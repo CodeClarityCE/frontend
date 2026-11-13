@@ -1,466 +1,222 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { defineComponent, h, onMounted } from "vue";
 
-import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
+import router from "@/router";
+import { successToast } from "@/utils/toasts";
 
 import IntegrationsList from "./IntegrationsList.vue";
 
-// Mock router
-vi.mock("@/router", () => ({
-  default: {
-    push: vi.fn(),
-    go: vi.fn(),
-  },
-}));
+const { getVCS, deleteVcs, getTicketing, deleteTicketing, orgInfo } =
+  vi.hoisted(() => ({
+    getVCS: vi.fn(),
+    deleteVcs: vi.fn(),
+    getTicketing: vi.fn(),
+    deleteTicketing: vi.fn(),
+    orgInfo: { current: {} },
+  }));
 
-// Mock auth store
+vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
+
 vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    getAuthenticated: true,
-    getToken: "test-token",
-  })),
+  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
 }));
 
-// Mock BaseRepository to avoid dependency issues
+vi.mock("@/utils/toasts", () => ({
+  successToast: vi.fn(),
+  errorToast: vi.fn(),
+}));
+
+// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
+vi.mock("@/shadcn/ui/input", () => ({
+  Input: defineComponent({
+    props: { modelValue: { type: String, default: "" } },
+    emits: ["update:modelValue"],
+    setup(props, { emit, attrs }) {
+      return () =>
+        h("input", {
+          ...attrs,
+          value: props.modelValue,
+          onInput: (e: Event) =>
+            emit("update:modelValue", (e.target as HTMLInputElement).value),
+        });
+    },
+  }),
+}));
+
 vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class MockBaseRepository {
-    constructor() {}
-  },
-  BusinessLogicError: class MockBusinessLogicError extends Error {
-    constructor(public error_code: string) {
-      super();
-    }
-  },
+  BaseRepository: class {},
+  BusinessLogicError: class BusinessLogicError extends Error {},
 }));
-
-// Mock integrations repository
-const mockIntegrationRepo = {
-  getVCS: vi.fn(),
-  deleteIntegration: vi.fn(),
-};
 
 vi.mock(
   "@/codeclarity_components/organizations/integrations/IntegrationsRepository",
   () => ({
-    IntegrationsRepository: vi
-      .fn()
-      .mockImplementation(() => mockIntegrationRepo),
+    IntegrationsRepository: class {
+      getVCS = getVCS;
+      deleteIntegration = deleteVcs;
+    },
   }),
 );
 
-// Mock child components
+vi.mock("@/codeclarity_components/tickets/tickets.repository", () => ({
+  TicketsRepository: class {
+    getIntegrations = getTicketing;
+    deleteIntegration = deleteTicketing;
+  },
+}));
+
+// The header reports the organisation, as the real one does once loaded.
 vi.mock(
   "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
   () => ({
-    default: {
-      name: "HeaderItem",
-      template: '<div data-testid="header-item"></div>',
-      props: ["orgId"],
+    default: defineComponent({
       emits: ["onOrgInfo"],
-    },
+      setup(_, { emit }) {
+        onMounted(() => emit("onOrgInfo", orgInfo.current));
+        return () => h("div", "Organisation header");
+      },
+    }),
   }),
 );
 
-vi.mock("@/base_components/ui/loaders/BoxLoader.vue", () => ({
-  default: {
-    name: "BoxLoader",
-    template: '<div data-testid="box-loader"></div>',
-    props: ["dimensions"],
-  },
-}));
+vi.mock("vue-router", async () => {
+  const actual =
+    await vi.importActual<typeof import("vue-router")>("vue-router");
+  return {
+    ...actual,
+    RouterLink: defineComponent({
+      props: { to: { type: Object, required: true } },
+      setup(_, { slots, attrs }) {
+        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
+      },
+    }),
+  };
+});
 
-vi.mock("@/base_components/ui/cards/InfoCard.vue", () => ({
-  default: {
-    name: "InfoCard",
-    template:
-      '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
-    props: ["title", "description", "icon", "variant"],
-  },
-}));
-
-vi.mock("@/base_components/ui/cards/StatCard.vue", () => ({
-  default: {
-    name: "StatCard",
-    template: '<div data-testid="stat-card"></div>',
-    props: ["label", "value", "icon", "variant", "subtitle", "subtitleIcon"],
-  },
-}));
-
-vi.mock("@/shadcn/ui/button/Button.vue", () => ({
-  default: {
-    name: "Button",
-    template: '<button data-testid="button"><slot></slot></button>',
-    props: ["variant", "size"],
-  },
-}));
-
-vi.mock("@iconify/vue", () => ({
-  Icon: {
-    name: "Icon",
-    template: '<span data-testid="icon"></span>',
-    props: ["icon"],
-  },
-}));
-
-// Mock date utils
-vi.mock("@/utils/dateUtils", () => ({
-  getDaysUntilExpiry: vi.fn((date) => {
-    const now = new Date();
-    const expiry = new Date(date);
-    return Math.floor(
-      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-    );
-  }),
-}));
-
-// Mock RouterLink
-const MockRouterLink = {
-  name: "RouterLink",
-  template: '<a data-testid="router-link"><slot></slot></a>',
-  props: ["to"],
+const github = {
+  id: "vcs-1",
+  added_on: "2025-01-10T10:00:00Z",
+  added_by: "u-1",
+  service_domain: "github.com",
+  integration_type: "VCS",
+  integration_provider: "GITHUB",
+  invalid: false,
 };
 
-describe.skip("IntegrationsList", () => {
-  let wrapper: any;
+const gitlab = {
+  ...github,
+  id: "vcs-2",
+  service_domain: "gitlab.example.com",
+  integration_provider: "GITLAB",
+  invalid: true,
+};
 
-  const mockVcsIntegrations = [
-    {
-      id: "integration-1",
-      integration_provider: IntegrationProvider.GITHUB,
-      name: "GitHub Integration",
-      invalid: false,
-      expires_on: "2024-12-31",
-    },
-    {
-      id: "integration-2",
-      integration_provider: IntegrationProvider.GITLAB,
-      name: "GitLab Integration",
-      invalid: true,
-      expires_on: "2024-01-15",
-    },
-  ];
+let wrapper: VueWrapper | undefined;
 
+async function render(): Promise<void> {
+  wrapper = mount(IntegrationsList, {
+    props: { orgId: "org-1" },
+    attachTo: document.body,
+  });
+  await flushPromises();
+}
+
+function button(name: string): HTMLElement | undefined {
+  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
+    (el) =>
+      el.getAttribute("aria-label") === name ||
+      el.textContent?.replace(/\s+/g, " ").trim() === name,
+  );
+}
+
+function tile(label: string): string {
+  const item = [...document.querySelectorAll("li")].find((li) =>
+    li.textContent?.includes(label),
+  );
+  return item?.textContent ?? "";
+}
+
+describe("IntegrationsList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockIntegrationRepo.getVCS.mockResolvedValue({
-      data: mockVcsIntegrations,
-    });
-    mockIntegrationRepo.deleteIntegration.mockResolvedValue({});
+    orgInfo.current = { id: "org-1", role: MemberRole.ADMIN };
+    getVCS.mockResolvedValue({ data: [github, gitlab] });
+    getTicketing.mockResolvedValue({ data: [] });
+    deleteVcs.mockResolvedValue({});
   });
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
+    wrapper?.unmount();
+    wrapper = undefined;
+    document.body.innerHTML = "";
   });
 
-  it("renders correctly", () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("lists each connected service with its health", async () => {
+    await render();
 
-    expect(wrapper.find('[data-testid="header-item"]').exists()).toBe(true);
+    const text = document.querySelector("table")?.textContent ?? "";
+    expect(text).toContain("GitHub");
+    expect(text).toContain("github.com");
+    expect(text).toContain("Healthy");
+    expect(text).toContain("GitLab");
+    expect(text).toContain("Invalid");
   });
 
-  it("shows HeaderItem with correct orgId", () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("counts healthy and invalid integrations", async () => {
+    await render();
 
-    const headerItem = wrapper.findComponent({ name: "HeaderItem" });
-    expect(headerItem.exists()).toBe(true);
-    expect(headerItem.props().orgId).toBe("test-org-id");
+    expect(tile("Healthy")).toContain("1");
+    expect(tile("Invalid or expired")).toContain("1");
+    expect(tile("Total")).toContain("2");
   });
 
-  it("shows loading state when loading is true", async () => {
-    // Mock getVCS to delay response so we can test loading state
-    mockIntegrationRepo.getVCS.mockReturnValue(
-      new Promise((resolve) =>
-        setTimeout(() => resolve({ data: mockVcsIntegrations }), 100),
-      ),
+  it("offers to add only the services that are not connected", async () => {
+    await render();
+
+    expect(button("Add ClickUp")).toBeDefined();
+    expect(button("Add GitHub")).toBeUndefined();
+  });
+
+  it("says when the version control integrations fail and retries", async () => {
+    getVCS.mockRejectedValueOnce(new Error("boom"));
+    await render();
+
+    expect(document.body.textContent).toContain(
+      "The version control integrations failed to load.",
     );
 
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+    button("Try again")?.click();
+    await flushPromises();
 
-    // Set org info to trigger the UI to show
-    wrapper.vm.setOrgInfo({ id: "test-org", role: MemberRole.ADMIN });
-    await wrapper.vm.$nextTick();
-
-    // Should show loading state while fetching
-    const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
-    expect(boxLoaders.length).toBeGreaterThan(0);
+    expect(document.querySelector("table")?.textContent).toContain("GitLab");
   });
 
-  it("displays integrations when data is loaded", async () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("deletes an integration after confirmation", async () => {
+    await render();
 
-    // Set org info and wait for async operations to complete
-    wrapper.vm.setOrgInfo({ id: "test-org", role: MemberRole.ADMIN });
-    await wrapper.vm.$nextTick();
+    button("Delete the GitLab integration on gitlab.example.com")?.click();
+    await flushPromises();
 
-    // Wait for the API call to complete
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await wrapper.vm.$nextTick();
+    const confirm = [
+      ...document.querySelectorAll<HTMLElement>('[role="dialog"] button'),
+    ].find((el) => el.textContent?.includes("Delete"));
+    confirm?.click();
+    await flushPromises();
 
-    expect(wrapper.html()).toContain("Integrations");
-  });
-
-  it("shows error state when error is true", async () => {
-    // Mock getVCS to reject with an error
-    mockIntegrationRepo.getVCS.mockRejectedValue(new Error("Network error"));
-
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    // Set org info and wait for async operations
-    wrapper.vm.setOrgInfo({ id: "test-org", role: MemberRole.ADMIN });
-    await wrapper.vm.$nextTick();
-
-    // Wait for the API call to fail
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain(
-      "We encountered an error while processing the request",
+    expect(deleteVcs).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "org-1", integrationId: "vcs-2" }),
     );
+    expect(successToast).toHaveBeenCalledWith("Deleted the GitLab integration");
   });
 
-  it("fetches VCS integrations on mount", async () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("sends members who are not admins away", async () => {
+    orgInfo.current = { id: "org-1", role: MemberRole.USER };
+    await render();
 
-    // Wait for async operations
-    await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(mockIntegrationRepo.getVCS).toHaveBeenCalledWith({
-      orgId: "test-org-id",
-      bearerToken: "test-token",
-      pagination: {
-        page: 0,
-        entries_per_page: 100,
-      },
-      handleBusinessErrors: true,
-    });
-  });
-
-  it("redirects unauthorized users", () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    const orgInfo = {
-      id: "test-org",
-      role: MemberRole.USER,
-    };
-
-    wrapper.vm.setOrgInfo(orgInfo);
-
-    // Verify router.push was called for unauthorized redirect
-  });
-
-  it("allows access for admin users", () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    const orgInfo = {
-      id: "test-org",
-      role: MemberRole.ADMIN,
-    };
-
-    wrapper.vm.setOrgInfo(orgInfo);
-
-    // Admin users should have access without redirect
-    expect(wrapper.vm.orgInfo).toEqual(orgInfo);
-  });
-
-  it("handles delete integration", async () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    await wrapper.vm.deleteIntegration("integration-1");
-
-    expect(mockIntegrationRepo.deleteIntegration).toHaveBeenCalledWith({
-      orgId: "test-org-id",
-      bearerToken: "test-token",
-      integrationId: "integration-1",
-      handleBusinessErrors: true,
-    });
-  });
-
-  it("handles refresh action", async () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    const fetchSpy = vi.spyOn(wrapper.vm, "fetchVcsIntegrations");
-    await wrapper.vm.fetchVcsIntegrations(true);
-
-    expect(fetchSpy).toHaveBeenCalledWith(true);
-  });
-
-  it("shows no integrations state when empty", async () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loading = false;
-    wrapper.vm.error = false;
-    wrapper.vm.vcsIntegrations = [];
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("No integrations configured");
-  });
-
-  it("displays integration statistics", async () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loading = false;
-    wrapper.vm.error = false;
-    wrapper.vm.vcsIntegrations = mockVcsIntegrations;
-
-    await wrapper.vm.$nextTick();
-
-    const statCards = wrapper.findAllComponents({ name: "StatCard" });
-    expect(statCards.length).toBeGreaterThan(0);
-  });
-
-  it("handles business logic errors correctly", async () => {
-    const mockError = new Error("Network error") as any;
-    mockError.error_code = "NETWORK_ERROR";
-    mockIntegrationRepo.getVCS.mockRejectedValue(mockError);
-
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(wrapper.vm.error).toBe(true);
-  });
-
-  it("initializes with correct default values", () => {
-    wrapper = mount(IntegrationsList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    expect(wrapper.vm.vcsIntegrations).toEqual([]);
-    expect(wrapper.vm.loading).toBe(false);
-    expect(wrapper.vm.error).toBe(false);
-    expect(wrapper.vm.errorCode).toBeUndefined();
+    expect(router.push).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "orgs" }),
+    );
   });
 });

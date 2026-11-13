@@ -615,6 +615,10 @@ vi.mock("@lucide/vue", () => ({
     name: "Trash2",
     template: '<svg data-testid="trash-2-icon"><path/></svg>',
   },
+  Pencil: {
+    name: "Pencil",
+    template: '<svg data-testid="pencil-icon"><path/></svg>',
+  },
   ScrollText: {
     name: "ScrollText",
     template: '<svg data-testid="scroll-text-icon"><path/></svg>',

@@ -4,7 +4,6 @@ import user from "./fixtures/user.json" with { type: "json" };
 // Hosts the Iconify runtime falls back to when an icon is not bundled.
 const ICON_API =
   /^https:\/\/api\d*\.(iconify\.design|simplesvg\.com|unisvg\.com)\//;
-const LOGO_SETS = ["simple-icons", "devicon"];
 
 const org = {
   id: "org-123",
@@ -65,7 +64,7 @@ test.describe("Brand and language logos", () => {
       return route.fulfill({ json: emptyPage });
     });
 
-    // Record icon API calls and block them, so a logo only shows if bundled.
+    // Record icon API calls and block them, so an icon only shows if bundled.
     const iconRequests: string[] = [];
     await page.route(ICON_API, (route) => {
       iconRequests.push(route.request().url());
@@ -81,9 +80,7 @@ test.describe("Brand and language logos", () => {
       await expect(card.locator("svg path").first()).toBeVisible();
     }
 
-    const logoRequests = iconRequests.filter((url) =>
-      LOGO_SETS.some((set) => new URL(url).pathname.startsWith(`/${set}`)),
-    );
-    expect(logoRequests).toEqual([]);
+    // General icons are Lucide and logos are bundled, so nothing is fetched.
+    expect(iconRequests).toEqual([]);
   });
 });

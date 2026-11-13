@@ -16,20 +16,6 @@ vi.mock("@/stores/state", () => ({
 
 // Don't mock the UserAuthForm component, handle it in the test config
 
-vi.mock("@/base_components/ui/loaders/LoadingComponent.vue", () => ({
-  default: {
-    name: "LoadingComponent",
-    template: '<div class="loading">Loading...</div>',
-  },
-}));
-
-vi.mock("@/base_components/utilities/ErrorComponent.vue", () => ({
-  default: {
-    name: "ErrorComponent",
-    template: '<div class="error">Error</div>',
-  },
-}));
-
 // Mock shadcn utilities
 describe("LoginView.vue", () => {
   let wrapper: any;

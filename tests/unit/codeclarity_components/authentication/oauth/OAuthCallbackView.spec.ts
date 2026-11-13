@@ -18,26 +18,6 @@ vi.mock("@/stores/state", () => ({
   useStateStore: () => mockStateStore,
 }));
 
-vi.mock("@/base_components/utilities/ErrorComponent.vue", async () => {
-  const { defineComponent } = await import("vue");
-  return {
-    default: defineComponent({
-      name: "ErrorComponent",
-      template: '<div data-testid="error-component">Error Component</div>',
-    }),
-  };
-});
-
-vi.mock("@/base_components/ui/loaders/LoadingComponent.vue", async () => {
-  const { defineComponent } = await import("vue");
-  return {
-    default: defineComponent({
-      name: "LoadingComponent",
-      template: '<div data-testid="loading-component">Loading...</div>',
-    }),
-  };
-});
-
 // Mock the async component import to be synchronous
 vi.mock(
   "@/codeclarity_components/authentication/oauth/OAuth2Callback.vue",

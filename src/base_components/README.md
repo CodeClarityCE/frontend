@@ -1,39 +1,19 @@
 # Base Components Library
 
-This directory contains a well-organized collection of reusable components that can be used across different pages in the application.
+Shared components for every page. Build new screens from these and the shadcn components in `@/shadcn/ui`. Import each one from its own path; there is no barrel.
 
 ## Directory Structure
 
 ```
 base_components/
-├── ui/                     # Basic UI components
-│   ├── loaders/           # Loading components
-│   ├── modals/            # Modal components
-│   └── buttons/           # Button components
-├── charts/                # The shared chart layer (the only chart system)
-├── data-display/          # Data visualization components
-│   └── tables/           # Table components
-├── forms/                 # Form-related components
-├── filters/               # Filter and search components
-├── layout/                # Layout and container components
-├── utilities/             # Utility components
-└── markdown/              # Markdown components
+├── page/        # Page building blocks: heading, stat tile, badges, empty state
+├── data-table/  # The shared DataTable
+├── charts/      # The shared chart layer (the only chart system)
+├── filters/     # filterTypes.ts: filter state for the vulnerability filters
+└── ui/          # EcosystemBadge, InfoMarkdown, flow/ (vue-flow nodes)
 ```
 
 ## Component Categories
-
-### 🎨 UI Components (`ui/`)
-
-#### Loaders (`ui/loaders/`)
-
-- **LoadingComponent**: General loading indicator
-- **DonutLoader**: Donut-style loading animation
-- **TextLoader**: Text placeholder loading
-
-#### Modals (`ui/modals/`)
-
-- **CenteredModal**: Centered modal dialog
-- **PositionedModal**: Positioned modal with custom placement
 
 ### Page building blocks (`page/`, `data-table/`)
 
@@ -71,39 +51,11 @@ The shared chart layer and the only chart system; the older generic charts were 
 
 In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 
-### 📊 Data Display (`data-display/`)
+### Other components (`ui/`)
 
-#### Tables (`data-display/tables/`)
-
-- **SortableTable**: Table with sorting capabilities
-- **SortSelector**: Sort control component
-
-### 📝 Forms (`forms/`)
-
-- **FormSelectField**: Select dropdown field
-- **FormSelectLicense**: License selection field
-- **FormInlineCheckboxField**: Inline checkbox field
-
-### 🔍 Filters (`filters/`)
-
-- **SearchBar**: Search input component
-- **ActiveFilterBar**: Display active filters
-- **UtilitiesFilters**: Filter utility functions
-
-### 📐 Layout (`layout/`)
-
-- **ExpandableBox**: Collapsible content container
-
-### 🛠️ Utilities (`utilities/`)
-
-- **ErrorComponent**: Error display component
-- **PaginationComponent**: Pagination controls
-- **SemverToString**: Semantic version formatter
-- **UtilitiesSort**: Sorting utilities
-
-### 📖 Markdown (`markdown/`)
-
-- **InfoMarkdown**: Markdown content renderer
+- **EcosystemBadge**: an ecosystem's logo and name, from `@/utils/packageEcosystem`
+- **InfoMarkdown**: renders a markdown string, such as a vulnerability description
+- **flow/**: the analyzer and dependency graph nodes for vue-flow
 
 ## Icons
 
@@ -111,80 +63,14 @@ Lucide (`@lucide/vue`) is the only general icon set. Use it for every icon that 
 
 Brand and language logos are the only exception. Use `simple-icons:<name>` (brands) or `devicon:<name>` (languages and tools) with Iconify's `<Icon>`. `vite-plugin-logo-icons.ts` bundles every logo id it finds in `src/`, so they are never fetched at runtime. Write the id as a full string literal, or the plugin cannot find it.
 
-## Usage Examples
+## Removed components
 
-Use the shadcn `Card` (`@/shadcn/ui/card`) for cards and `StatTile` (`@/base_components/page`) for single numbers.
-
-### Using Data Display Components
-
-```vue
-<template>
-  <!-- Table -->
-  <SortableTable :data="tableData" :columns="columns" />
-</template>
-
-<script setup>
-import { SortableTable } from "@/base_components";
-</script>
-```
-
-### Using Form Components
-
-```vue
-<template>
-  <FormSelectField
-    v-model="selectedOption"
-    label="Category"
-    :options="categoryOptions"
-  />
-</template>
-
-<script setup>
-import { FormSelectField } from "@/base_components";
-</script>
-```
-
-## Component Variants
-
-Many components support visual variants:
-
-- **default**: Standard appearance
-- **primary**: Theme primary color
-- **danger**: Red color scheme for errors/critical states
-- **success**: Green color scheme for positive states
-- **warning**: Amber color scheme for warnings
-
-## Import Methods
-
-### Individual Imports
-
-```javascript
-import { SortableTable, SearchBar } from "@/base_components";
-```
-
-### Direct Path Imports
-
-```javascript
-import SortableTable from "@/base_components/data-display/tables/SortableTable.vue";
-```
-
-## Features
-
-- 🎨 **Consistent Design**: All components follow the same design system
-- 📱 **Responsive**: Mobile-first responsive design
-- ♿ **Accessible**: Built with accessibility in mind
-- 🎭 **Themeable**: Support for multiple visual variants
-- 📝 **TypeScript**: Full TypeScript support
-- 🔧 **Flexible**: Extensive customization through props and slots
-- ⚡ **Performance**: Optimized for performance
-- 🧪 **Tested**: Thoroughly tested components
+The old home-grown cards, modals, loaders, form fields, sortable table, pagination, filters and generic charts are deleted. The `local/design-system` lint rule lists them in `removedComponents` (`eslint.config.js`) and flags any import. Use the shadcn component or the shared piece above instead.
 
 ## Contributing
 
-When adding new components:
+When adding a component:
 
-1. Place them in the appropriate category directory
-2. Update the exports in `index.ts`
-3. Update this README with component documentation
-4. Follow the existing naming conventions
-5. Include TypeScript interfaces for props
+1. Put it in the folder for its kind and document it here
+2. Use design tokens and Lucide icons; the lint rule has no allowlist
+3. Test what the user sees and does, not class names

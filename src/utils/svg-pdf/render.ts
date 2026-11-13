@@ -19,7 +19,7 @@ interface Style {
 }
 
 const DEFAULT_STYLE: Style = {
-  fill: "#000000",
+  fill: "black",
   fillOpacity: 1,
   stroke: "none",
   strokeOpacity: 1,
@@ -94,6 +94,8 @@ function numberAttr(element: Element, name: string): number {
 /** A colour as PDF RGB components, or null for no paint. */
 function rgb(color: string): string | null {
   if (color === "none" || color === "transparent") return null;
+  // SVG paints black when no fill is set.
+  if (color === "black") return "0 0 0";
   let hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color)?.[1];
   if (!hex) throw new Error(`Unsupported colour ${color}`);
   if (hex.length === 3) hex = [...hex].map((c) => c + c).join("");

@@ -47,6 +47,27 @@ base_components/
 - **CenteredModal**: Centered modal dialog
 - **PositionedModal**: Positioned modal with custom placement
 
+### Page building blocks (`page/`, `data-table/`)
+
+Shared pieces for migrated pages. Build new screens from these and the shadcn components in `@/shadcn/ui`.
+
+- **PageHeading** (`@/base_components/page`): the page `<h1>`. Default slot is the title; slots `badge` (next to the title), `description` (or the `description` prop) and `actions` (buttons on the right).
+- **BrandEmphasis**: wrap the key word of a title to give it the green mark: `<PageHeading>New <BrandEmphasis>Dataset</BrandEmphasis></PageHeading>`.
+- **StatTile**: one number with a `label`, a `value` and an optional `hint`. It renders an `<li>`, so put tiles in a `<ul aria-label="...">`.
+- **StatusBadge**: a status in words with the shared status colours. Props `tone` (`success`, `warning`, `danger`, `neutral`), `label`, and `busy` for a spinner.
+- **OwlEmptyState**: the owl, a `title`, a `description` (prop or slot) and the next step in the default slot, usually `<Button :as="RouterLink" to="..." arrow>`.
+- **DataTable** (`@/base_components/data-table`): tanstack table on the shadcn `Table`, with sorting, an optional filter box and pagination, all on the rows it is given (load every row first). Props:
+  - `columns` (tanstack `ColumnDef[]`; the `header` string labels the sort button; `enableSorting: false` or `enableGlobalFilter: false` opt a column out), `data`, `caption` (screen reader name);
+  - `filterLabel` shows the filter box, `pageSize` (20), `initialSorting`, `emptyText`, `rowKey`;
+  - `loading` shows a `Skeleton` table in a `status` named "Loading <caption>".
+  - Render a cell with a `#cell-<column id>="{ row, value }"` slot, or with the column's `cell` function.
+
+`Skeleton` (`@/shadcn/ui/skeleton`) is the only loader for new code: shape it like the content it replaces and wrap it in `role="status"` with an `aria-label`.
+
+### Button (`@/shadcn/ui/button`)
+
+The landing page's shape: pill radius and a green shadow on the primary variant. Variants are unchanged (`default`, `destructive` in red, `outline`, `secondary`, `ghost`, `link`). The `arrow` prop adds the sliding arrow; keep it for a page's primary call to action. To make a link look like a button, pass `:as="RouterLink"` and `to`; `arrow` does not work with `as-child`.
+
 ### Charts (`charts/`)
 
 The shared chart layer. New charts are built on it, and the older charts in `data-display/charts/` are rebuilt on it and then deleted.

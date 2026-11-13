@@ -6,6 +6,7 @@ import { type Ref, ref } from "vue";
 import { toast } from "vue-sonner";
 import * as z from "zod";
 
+import BrandEmphasis from "@/base_components/page/BrandEmphasis.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import router from "@/router";
 import Alert from "@/shadcn/ui/alert/Alert.vue";
@@ -30,7 +31,6 @@ import {
 import { filterUndefined } from "@/utils/form/filterUndefined";
 
 import AuthLayout from "../layout/AuthLayout.vue";
-import BrandEmphasis from "../layout/BrandEmphasis.vue";
 import TextLink from "../layout/TextLink.vue";
 
 // Stores

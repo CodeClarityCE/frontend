@@ -41,7 +41,7 @@ const currentName = computed(
   () =>
     userStore.getDefaultOrg?.name ??
     orgs.value.find((org) => org.id === currentId.value)?.name ??
-    "",
+    "No organisation selected",
 );
 
 async function loadOrgs(): Promise<void> {

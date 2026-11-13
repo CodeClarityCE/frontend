@@ -121,18 +121,7 @@ test.describe("Help page", () => {
   test("has no WCAG 2.2 AA violations in the page content", async ({
     page,
   }) => {
-    // The shell around the page is rebuilt by #115; only the page is checked here.
-    await expectNoAxeViolations(page, {
-      known: [
-        { rule: "aria-required-attr", owner: "#115 shell" },
-        { rule: "aria-valid-attr-value", owner: "#115 shell" },
-        { rule: "color-contrast", owner: "#115 shell" },
-        { rule: "image-alt", owner: "#115 shell" },
-        { rule: "link-name", owner: "#115 shell" },
-        { rule: "nested-interactive", owner: "#115 shell" },
-        { rule: "target-size", owner: "#115 shell" },
-      ],
-    });
+    await expectNoAxeViolations(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {

@@ -98,10 +98,6 @@
     "icon"
   ],
   "src/codeclarity_components/experiments/experiment.entity.ts": ["palette"],
-  "src/codeclarity_components/experiments/sections/ExperimentCreate.vue": [
-    "palette",
-    "icon"
-  ],
   "src/codeclarity_components/experiments/sections/ExperimentDetail.vue": [
     "palette",
     "icon"
@@ -133,10 +129,6 @@
   ],
   "src/codeclarity_components/experiments/sections/ExperimentUpstreamLeverage.vue": [
     "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentsList.vue": [
-    "palette",
-    "icon"
   ],
   "src/codeclarity_components/organizations/OrganizationView.vue": ["palette"],
   "src/codeclarity_components/organizations/analyzers/AnalyzerCreate.vue": [

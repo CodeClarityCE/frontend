@@ -18,14 +18,14 @@
 .chart-tool-tip .chart-tool-tip-title {
   font-weight: 700;
   color: rgb(82, 82, 82);
-  font-family: roboto;
+  font-family: var(--font-sans);
 }
 
 .chart-tool-tip .chart-tool-tip-data {
   font-weight: 400;
   color: rgb(79, 79, 79);
   display: flex;
-  font-family: roboto;
+  font-family: var(--font-sans);
   flex-direction: column;
   row-gap: 7px;
 }

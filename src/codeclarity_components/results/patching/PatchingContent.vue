@@ -550,7 +550,7 @@ function createSeverityDistChart(): void {
                     right: -15px;
                     font-weight: 500;
                     color: rgb(70, 70, 70);
-                    font-family: roboto;
+                    font-family: var(--font-sans);
                     transform: rotate(60deg);
                   "
                 >

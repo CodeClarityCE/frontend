@@ -15,7 +15,7 @@
 
 .details-container .header .title {
   font-size: 3.5em;
-  font-family: "lato";
+  font-family: var(--font-sans);
   font-weight: 900;
   word-break: break-all;
 }
@@ -28,7 +28,7 @@
 }
 
 .details-container .summary-content .cwe-box {
-  font-family: lato;
+  font-family: var(--font-sans);
   font-weight: 900;
   text-align: center;
   aspect-ratio: 1 / 1;

@@ -510,7 +510,7 @@ code {
   background: #f3f4f6;
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
-  font-family: "SF Mono", "Monaco", "Consolas", monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   color: var(--color-theme-primary);
   border: 1px solid #e5e7eb;

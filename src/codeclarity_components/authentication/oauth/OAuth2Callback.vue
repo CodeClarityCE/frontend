@@ -188,12 +188,9 @@ onMounted(async () => {
               <div>Whoops</div>
               <div v-if="errorCode" style="font-size: 0.8em">
                 Error code:
-                <span
-                  style="
-                    font-family: &quot;Courier New&quot;, Courier, monospace;
-                  "
-                  >{{ errorCode }}</span
-                >
+                <span style="font-family: var(--font-mono)">{{
+                  errorCode
+                }}</span>
               </div>
             </div>
             <div v-if="errorCode" style="font-size: 1.2em">

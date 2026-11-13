@@ -499,7 +499,7 @@ const getEcosystemUrl = (): string => {
 }
 
 .version-badge {
-  font-family: "SF Mono", "Monaco", "Consolas", monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   font-size: 0.85rem;
   align-self: flex-start;
@@ -698,7 +698,7 @@ const getEcosystemUrl = (): string => {
 
 /* Engine badges */
 .engine-badge {
-  font-family: "SF Mono", "Monaco", "Consolas", monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   gap: 0.25rem;
 }

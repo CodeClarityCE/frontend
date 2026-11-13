@@ -33,7 +33,8 @@ export interface RecentPublishedResult {
   version: PublishedVersion;
 }
 
-function time(date: Date | string | null | undefined): number {
+// Milliseconds since the epoch, or 0 when there is no date.
+function toEpochMs(date: Date | string | null | undefined): number {
   return date ? new Date(date).getTime() : 0;
 }
 
@@ -42,7 +43,7 @@ function newestFirst<T>(items: T[], dateOf: (item: T) => number): T[] {
 }
 
 function finishedOn(experiment: Experiment): number {
-  return time(experiment.ended_on ?? experiment.created_on);
+  return toEpochMs(experiment.ended_on ?? experiment.created_on);
 }
 
 /**
@@ -72,7 +73,7 @@ export function useResearchOverview(): {
 
   const inProgress = computed(() =>
     newestFirst(experiments.value.filter(isExperimentActive), (e) =>
-      time(e.created_on),
+      toEpochMs(e.created_on),
     ),
   );
 
@@ -101,7 +102,7 @@ export function useResearchOverview(): {
       }),
     );
     recentPublished.value = newestFirst(lists.flat(), (item) =>
-      time(item.version.published_on),
+      toEpochMs(item.version.published_on),
     ).slice(0, RECENT_COUNT);
   }
 

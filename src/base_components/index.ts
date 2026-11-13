@@ -24,7 +24,6 @@ export { default as PositionedModal } from "./ui/modals/PositionedModal.vue";
 // Data Display Components
 // -----------------------------------------------------------------------------
 // Charts
-export { default as BarChart } from "./data-display/charts/BarChart.vue";
 export { default as DoughnutChart } from "./data-display/charts/DoughnutChart.vue";
 export { default as LineChart } from "./data-display/charts/LineChart.vue";
 export { default as RadarChart } from "./data-display/charts/RadarChart.vue";
@@ -88,7 +87,6 @@ export {
 } from "./filters/UtilitiesFilters.vue";
 
 // Chart utilities
-export * from "./data-display/charts/barChart";
 export * from "./data-display/charts/colors-waffle";
 export * from "./data-display/charts/doughnutChart";
 export * from "./data-display/charts/radarChart";

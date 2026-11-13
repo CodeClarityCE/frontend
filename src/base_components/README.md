@@ -55,12 +55,14 @@ Shared pieces for migrated pages. Build new screens from these and the shadcn co
 - **BrandEmphasis**: wrap the key word of a title to give it the green mark: `<PageHeading>New <BrandEmphasis>Dataset</BrandEmphasis></PageHeading>`.
 - **StatTile**: one number with a `label`, a `value` and an optional `hint`. It renders an `<li>`, so put tiles in a `<ul aria-label="...">`.
 - **StatusBadge**: a status in words with the shared status colours. Props `tone` (`success`, `warning`, `danger`, `neutral`), `label`, and `busy` for a spinner.
+- **SeverityBadge**: a severity in words ("Critical", "High", ...) on the severity ramp, never brand green. Pass a CVSS `score` (also shown) or a `level`; `severityLevel()` in `@/utils/severity` gives the band of a score.
 - **OwlEmptyState**: the owl, a `title`, a `description` (prop or slot) and the next step in the default slot, usually `<Button :as="RouterLink" to="..." arrow>`.
 - **DataTable** (`@/base_components/data-table`): tanstack table on the shadcn `Table`, with sorting, an optional filter box and pagination, all on the rows it is given (load every row first). Props:
   - `columns` (tanstack `ColumnDef[]`; the `header` string labels the sort button; `enableSorting: false` or `enableGlobalFilter: false` opt a column out), `data`, `caption` (screen reader name);
   - `filterLabel` shows the filter box, `pageSize` (20), `initialSorting`, `emptyText`, `rowKey`;
   - `loading` shows a `Skeleton` table in a `status` named "Loading <caption>".
   - Render a cell with a `#cell-<column id>="{ row, value }"` slot, or with the column's `cell` function.
+  - Server-side mode, for lists too long to load at once: pass `total` (the number of matching rows on the server) and `data` becomes one page. Bind `v-model:page-index`, listen to `@update:sorting` (column ids are the sort keys) and, with `filterLabel`, bind `v-model:filter`; then load the page they describe. Pass `loading` only for the first load, so the table stays in place while later pages load. The vulnerability table is the example.
 
 `Skeleton` (`@/shadcn/ui/skeleton`) is the only loader for new code: shape it like the content it replaces and wrap it in `role="status"` with an `aria-label`.
 
@@ -75,7 +77,7 @@ The shared chart layer. New charts are built on it, and the older charts in `dat
 - **ChartExport**: wraps a chart with its generated caption (which names the chart for screen readers) and SVG, PNG, PDF, CSV and caption downloads
 - **ChartTable**: the data-table fallback behind "Show table"
 - **ChartTooltip**: hover label over a chart
-- **GridLineChart**, **ColumnChart**, **StepChart**: line, grouped column and step charts
+- **GridLineChart**, **ColumnChart**, **StepChart**: line, grouped column and step charts. A ColumnChart series can colour each column with `colors` (for example `var(--viz-severity-high)`)
 - `chart.css`: the colour roles charts draw with (`--viz-series-*`, `--viz-severity-*`, `--viz-status-*`, text, grid), taken from the tokens in `assets/main.css`. Never use raw colours in a chart.
 - `chart-caption.ts`, `chart-export.ts`, `chart-format.ts`, `chart-layout.ts`: captions, export, formatting and layout width
 
@@ -85,7 +87,6 @@ In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 
 #### Charts (`data-display/charts/`, being replaced by `charts/`)
 
-- **BarChart**: Bar chart visualization
 - **DoughnutChart**: Doughnut chart
 - **LineChart**: Line chart
 - **RadarChart**: Radar/spider chart
@@ -174,15 +175,12 @@ import { StatCard, InfoCard } from "@/base_components";
 
 ```vue
 <template>
-  <!-- Chart -->
-  <BarChart :data="chartData" :options="chartOptions" />
-
   <!-- Table -->
   <SortableTable :data="tableData" :columns="columns" />
 </template>
 
 <script setup>
-import { BarChart, SortableTable } from "@/base_components";
+import { SortableTable } from "@/base_components";
 </script>
 ```
 
@@ -223,14 +221,13 @@ Many components support visual variants:
 ### Individual Imports
 
 ```javascript
-import { StatCard, InfoCard, BarChart } from "@/base_components";
+import { StatCard, InfoCard } from "@/base_components";
 ```
 
 ### Direct Path Imports
 
 ```javascript
 import StatCard from "@/base_components/ui/cards/StatCard.vue";
-import BarChart from "@/base_components/data-display/charts/BarChart.vue";
 ```
 
 ## Features

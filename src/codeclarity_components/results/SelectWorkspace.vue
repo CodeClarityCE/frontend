@@ -154,12 +154,8 @@ async function getSbomWorkspaces(): Promise<void> {
     if (res.data.package_manager) {
       void emit("package-manager-loaded", res.data.package_manager);
     }
-  } catch (_err) {
-    console.error(_err);
+  } catch {
     error.value = true;
-    // if (_err instanceof BusinessLogicError) {
-    //     errorCode.value = _err.error_code;
-    // }
   }
 }
 
@@ -173,12 +169,16 @@ onMounted(() => {
   <div class="flex items-center gap-6">
     <!-- Ecosystem filter (only shown when multiple ecosystems are available) -->
     <div v-if="shouldShowEcosystemFilter" class="flex items-center gap-2">
-      <span class="text-sm font-medium text-gray-600">Filter by Language:</span>
+      <span
+        id="ecosystem-filter-label"
+        class="text-sm font-medium text-muted-foreground"
+        >Language</span
+      >
       <Select
         :model-value="selectedEcosystemFilter"
         @update:model-value="handleEcosystemFilterChange"
       >
-        <SelectTrigger class="w-40">
+        <SelectTrigger class="w-40" aria-labelledby="ecosystem-filter-label">
           <SelectValue placeholder="All Languages" />
         </SelectTrigger>
         <SelectContent>
@@ -197,7 +197,11 @@ onMounted(() => {
                   variant="minimal"
                   :show-name="false"
                 />
-                <span v-else class="w-3 h-3 bg-gray-300 rounded-full"></span>
+                <span
+                  v-else
+                  aria-hidden="true"
+                  class="size-3 rounded-full bg-muted"
+                ></span>
                 {{ option.label }}
               </div>
             </SelectItem>
@@ -211,21 +215,26 @@ onMounted(() => {
       v-else-if="ecosystem && !shouldShowEcosystemFilter"
       class="flex items-center gap-2"
     >
-      <span class="text-sm font-medium text-gray-600">Language:</span>
+      <span class="text-sm font-medium text-muted-foreground">Language</span>
       <EcosystemBadge :ecosystem="ecosystem" size="sm" variant="default" />
     </div>
 
     <!-- Workspace selector (only shown when there are multiple workspaces) -->
     <div v-if="shouldShowWorkspaceSelector" class="flex items-center gap-2">
-      <span class="text-sm font-medium text-gray-600">Workspace:</span>
+      <span
+        id="workspace-select-label"
+        class="text-sm font-medium text-muted-foreground"
+        >Workspace</span
+      >
       <Select
+        :model-value="selected_workspace"
         @update:model-value="
           (e: string | number | bigint | Record<string, any> | null) => {
             selected_workspace = e?.toString() ?? '';
           }
         "
       >
-        <SelectTrigger class="w-45">
+        <SelectTrigger class="w-45" aria-labelledby="workspace-select-label">
           <SelectValue placeholder="Select a workspace" />
         </SelectTrigger>
         <SelectContent>
@@ -248,8 +257,10 @@ onMounted(() => {
       v-else-if="workspaces.workspaces && workspaces.workspaces.length === 1"
       class="flex items-center gap-2"
     >
-      <span class="text-sm font-medium text-gray-600">Workspace:</span>
-      <span class="text-sm text-gray-800 bg-gray-100 px-2 py-1 rounded border">
+      <span class="text-sm font-medium text-muted-foreground">Workspace</span>
+      <span
+        class="rounded-control border bg-muted px-2 py-1 text-sm text-foreground"
+      >
         {{
           workspaces.workspaces[0] === "." ? "Root" : workspaces.workspaces[0]
         }}

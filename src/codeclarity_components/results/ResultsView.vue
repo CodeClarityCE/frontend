@@ -1,17 +1,16 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import { History } from "@lucide/vue";
 import {
+  type AsyncComponentLoader,
   type Component,
   defineAsyncComponent,
   onBeforeMount,
   type Ref,
   ref,
-  watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
+import { PageHeading } from "@/base_components/page";
 import {
   Analysis,
   AnalysisStatus,
@@ -25,88 +24,21 @@ import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
 
-const ResultsSBOM = defineAsyncComponent({
-  loader: (() => import("./sbom/ResultsSBOM.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
+function lazy(loader: () => Promise<unknown>): Component {
+  return defineAsyncComponent(loader as AsyncComponentLoader) as Component;
+}
 
-const ResultsSBOMDetails = defineAsyncComponent({
-  loader: (() =>
-    import("./sbom/ResultsSBOMDetails.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
-
-const ResultsLicenses = defineAsyncComponent({
-  loader: (() =>
-    import("./licenses/ResultsLicenses.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
-
-const ResultsVulnerabilities = defineAsyncComponent({
-  loader: (() =>
-    import("./vulnerabilities/ResultsVulnerabilities.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
-
-const ResultsVulnerabilitiesDetails = defineAsyncComponent({
-  loader: (() =>
-    import("./vulnerabilities/ResultsVulnerabilitiesDetails.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
-
-const ResultsPatching = defineAsyncComponent({
-  loader: (() =>
-    import("./patching/ResultsPatching.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
-
-const ResultsCodeQL = defineAsyncComponent({
-  loader: (() =>
-    import("./codeql/ResultsCodeQL.vue")) as () => Promise<Component>,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-});
+const ResultsSBOM = lazy(() => import("./sbom/ResultsSBOM.vue"));
+const ResultsSBOMDetails = lazy(() => import("./sbom/ResultsSBOMDetails.vue"));
+const ResultsLicenses = lazy(() => import("./licenses/ResultsLicenses.vue"));
+const ResultsVulnerabilities = lazy(
+  () => import("./vulnerabilities/ResultsVulnerabilities.vue"),
+);
+const ResultsVulnerabilitiesDetails = lazy(
+  () => import("./vulnerabilities/ResultsVulnerabilitiesDetails.vue"),
+);
+const ResultsPatching = lazy(() => import("./patching/ResultsPatching.vue"));
+const ResultsCodeQL = lazy(() => import("./codeql/ResultsCodeQL.vue"));
 
 const state = useStateStore();
 state.$reset();
@@ -208,17 +140,8 @@ async function getProject(projectID: string): Promise<void> {
       handleBusinessErrors: true,
     });
     project.value = res.data;
-  } catch (_err) {
-    console.error(_err);
-
-    // error.value = true;
-    // if (_err instanceof BusinessLogicError) {
-    //     errorCode.value = _err.error_code;
-    // }
-  } finally {
-    // loading.value = false;
-    // createDepTypeChart();
-    // createDepStatusDistChart();
+  } catch {
+    // The tabs stay empty when the project or analysis cannot be read.
   }
 }
 
@@ -252,17 +175,8 @@ async function getAnalysis(
     }
     default_tab.value = tabName;
     current_tab.value = tabName;
-  } catch (_err) {
-    console.error(_err);
-
-    // error.value = true;
-    // if (_err instanceof BusinessLogicError) {
-    //     errorCode.value = _err.error_code;
-    // }
-  } finally {
-    // loading.value = false;
-    // createDepTypeChart();
-    // createDepStatusDistChart();
+  } catch {
+    // The tabs stay empty when the project or analysis cannot be read.
   }
 }
 
@@ -278,34 +192,27 @@ function handleTabChange(newTab: string): void {
   });
 }
 
-// Watch for route query changes to sync current tab
-watch(
-  () => route.query,
-  () => {
-    // This ensures that when URL changes, we stay in sync
-  },
-  { deep: true },
-);
-
 onBeforeMount(async () => {
   await init();
   loading.value = false;
 });
 </script>
 <template>
-  <div class="flex-1 space-y-4 p-8 pt-6">
-    <div class="flex items-center justify-between space-y-2">
-      <div class="space-y-1">
-        <h2 class="text-3xl font-bold tracking-tight">Results</h2>
-        <div class="flex items-center gap-4 text-sm text-gray-600">
-          <span class="font-medium">{{ project.name }}</span>
-          <span v-if="runIndex !== null" class="flex items-center gap-1">
-            <Icon icon="solar:history-bold" class="w-4 h-4" />
-            Historical Run #{{ runIndex + 1 }}
-          </span>
-        </div>
-      </div>
-    </div>
+  <div class="flex flex-col gap-8 p-8">
+    <PageHeading
+      v-if="props.page !== 'vulnerabilities_details'"
+      :description="project.name"
+    >
+      Results
+      <template v-if="runIndex !== null" #badge>
+        <span
+          class="inline-flex items-center gap-1 rounded-full bg-neutral-subtle px-2.5 py-0.5 text-xs font-semibold text-neutral"
+        >
+          <History aria-hidden="true" class="size-3.5" />
+          Historical run {{ runIndex + 1 }}
+        </span>
+      </template>
+    </PageHeading>
     <ResultsVulnerabilitiesDetails
       v-if="props.page === 'vulnerabilities_details'"
       :run-index="runIndex"
@@ -316,12 +223,12 @@ onBeforeMount(async () => {
     />
     <Tabs
       v-else-if="!loading"
-      v-model:value="current_tab"
+      v-model="current_tab"
       :default-value="default_tab"
-      class="space-y-4"
+      class="flex flex-col gap-6"
       @value-change="handleTabChange"
     >
-      <TabsList>
+      <TabsList aria-label="Results" class="self-start">
         <TabsTrigger v-if="tab['sbom']" value="sbom"> SBOM </TabsTrigger>
         <TabsTrigger v-if="tab['vuln-finder']" value="vuln-finder">
           Vulnerabilities
@@ -341,7 +248,7 @@ onBeforeMount(async () => {
           :run-index="runIndex"
         />
       </TabsContent>
-      <TabsContent value="vuln-finder" class="space-y-4">
+      <TabsContent value="vuln-finder" class="mt-0">
         <ResultsVulnerabilities
           :project="project"
           :analysis="analysis"

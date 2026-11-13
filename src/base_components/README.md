@@ -7,15 +7,12 @@ This directory contains a well-organized collection of reusable components that 
 ```
 base_components/
 ├── ui/                     # Basic UI components
-│   ├── cards/             # Card components
 │   ├── loaders/           # Loading components
 │   ├── modals/            # Modal components
 │   └── buttons/           # Button components
 ├── charts/                # The shared chart layer (the only chart system)
 ├── data-display/          # Data visualization components
-│   ├── charts/           # Chart components
-│   ├── tables/           # Table components
-│   └── bubbles/          # Bubble components
+│   └── tables/           # Table components
 ├── forms/                 # Form-related components
 ├── filters/               # Filter and search components
 ├── layout/                # Layout and container components
@@ -27,15 +24,9 @@ base_components/
 
 ### 🎨 UI Components (`ui/`)
 
-#### Cards (`ui/cards/`)
-
-- **StatCard**: Display statistics with icons and values
-- **InfoCard**: Versatile information display card
-
 #### Loaders (`ui/loaders/`)
 
 - **LoadingComponent**: General loading indicator
-- **BoxLoader**: Box-style loading animation
 - **DonutLoader**: Donut-style loading animation
 - **TextLoader**: Text placeholder loading
 
@@ -69,7 +60,7 @@ The landing page's shape: pill radius and a green shadow on the primary variant.
 
 ### Charts (`charts/`)
 
-The shared chart layer. New charts are built on it, and the older charts in `data-display/charts/` are rebuilt on it and then deleted.
+The shared chart layer and the only chart system; the older generic charts were rebuilt on it and deleted.
 
 - **ChartExport**: wraps a chart with its generated caption (which names the chart for screen readers) and SVG, PNG, PDF, CSV and caption downloads
 - **ChartTable**: the data-table fallback behind "Show table"
@@ -82,21 +73,10 @@ In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 
 ### 📊 Data Display (`data-display/`)
 
-#### Charts (`data-display/charts/`, being replaced by `charts/`)
-
-- **LineChart**: Line chart
-- **RadarChart**: Radar/spider chart
-- **WaffleChart**: Waffle chart visualization
-
 #### Tables (`data-display/tables/`)
 
 - **SortableTable**: Table with sorting capabilities
 - **SortSelector**: Sort control component
-
-#### Bubbles (`data-display/bubbles/`)
-
-- **BubbleComponent**: General bubble component
-- **SeverityBubble**: Severity level bubble
 
 ### 📝 Forms (`forms/`)
 
@@ -133,35 +113,7 @@ Brand and language logos are the only exception. Use `simple-icons:<name>` (bran
 
 ## Usage Examples
 
-### Using Card Components
-
-```vue
-<template>
-  <!-- Statistics Card -->
-  <StatCard
-    label="Critical Issues"
-    :value="14"
-    icon="solar:danger-triangle-bold"
-    subtitle-icon="solar:arrow-up-linear"
-    subtitle="+2 this week"
-    variant="default"
-  />
-
-  <!-- Information Card -->
-  <InfoCard
-    title="Vulnerability Overview"
-    description="Security analysis results"
-    icon="solar:chart-square-bold"
-    variant="primary"
-  >
-    <YourContent />
-  </InfoCard>
-</template>
-
-<script setup>
-import { StatCard, InfoCard } from "@/base_components";
-</script>
-```
+Use the shadcn `Card` (`@/shadcn/ui/card`) for cards and `StatTile` (`@/base_components/page`) for single numbers.
 
 ### Using Data Display Components
 
@@ -207,13 +159,13 @@ Many components support visual variants:
 ### Individual Imports
 
 ```javascript
-import { StatCard, InfoCard } from "@/base_components";
+import { SortableTable, SearchBar } from "@/base_components";
 ```
 
 ### Direct Path Imports
 
 ```javascript
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
+import SortableTable from "@/base_components/data-display/tables/SortableTable.vue";
 ```
 
 ## Features

@@ -683,4 +683,12 @@ vi.mock("@lucide/vue", () => ({
     name: "ShieldPlus",
     template: '<svg data-testid="shield-plus-icon"><path/></svg>',
   },
+  FolderPlus: {
+    name: "FolderPlus",
+    template: '<svg data-testid="folder-plus-icon"><path/></svg>',
+  },
+  Play: {
+    name: "Play",
+    template: '<svg data-testid="play-icon"><path/></svg>',
+  },
 }));

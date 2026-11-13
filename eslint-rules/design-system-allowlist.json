@@ -1,13 +1,4 @@
 {
-  "src/base_components/data-display/bubbles/BubbleComponent.vue": [
-    "hex",
-    "palette"
-  ],
-  "src/base_components/data-display/bubbles/SeverityBubble.vue": ["palette"],
-  "src/base_components/data-display/charts/LineChart.vue": ["hex"],
-  "src/base_components/data-display/charts/RadarChart.vue": ["hex"],
-  "src/base_components/data-display/charts/WaffleChart.vue": ["hex"],
-  "src/base_components/data-display/charts/radarChart.ts": ["hex"],
   "src/base_components/data-display/tables/SortSelector.vue": ["hex", "icon"],
   "src/base_components/data-display/tables/SortableTable.vue": [
     "hex",
@@ -21,45 +12,12 @@
   "src/base_components/forms/FormSelectField.vue": ["palette"],
   "src/base_components/forms/FormSelectLicense.vue": ["palette"],
   "src/base_components/layout/ExpandableBox.vue": ["icon"],
-  "src/base_components/layout/PageHeader.vue": ["palette", "theme", "icon"],
   "src/base_components/ui/EcosystemBadge.vue": ["palette"],
   "src/base_components/ui/InfoMarkdown.vue": ["hex"],
-  "src/base_components/ui/cards/InfoCard.vue": ["palette", "theme"],
-  "src/base_components/ui/cards/StatCard.vue": ["palette", "theme"],
   "src/base_components/ui/loaders/LoadingComponent.vue": ["icon"],
   "src/base_components/ui/modals/CenteredModal.vue": ["palette"],
   "src/base_components/ui/modals/PositionedModal.vue": ["palette"],
   "src/base_components/utilities/UtilitiesSort.vue": ["icon"],
-  "src/codeclarity_components/dashboard/charts/CurrentVulns.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/dashboard/charts/ExposureOverview.vue": ["icon"],
-  "src/codeclarity_components/dashboard/charts/LicenseDist.vue": ["icon"],
-  "src/codeclarity_components/dashboard/charts/TicketsDashboardCard.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/dashboard/charts/VulnerabilityImpact.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/dashboard/composables/useMockData.ts": ["icon"],
-  "src/codeclarity_components/dashboard/layout/DashboardEmptyState.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/dashboard/layout/DashboardFooter.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/dashboard/sections/DashboardCharts.vue": ["icon"],
-  "src/codeclarity_components/dashboard/sections/DashboardQuickStats.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
   "src/utils/gradeUtils.ts": ["hex", "palette"],
   "src/utils/languageDetection.ts": ["hex"],
   "src/utils/owasp.ts": ["palette"],

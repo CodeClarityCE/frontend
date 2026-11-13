@@ -7,7 +7,7 @@ import KnowledgeStatusNotice from "./KnowledgeStatusNotice.vue";
 vi.unmock("@/utils/api/BaseRepository");
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 const toast = vi.hoisted(() => ({ error: vi.fn() }));
-vi.mock("vue-toast-notification", () => ({ useToast: () => toast }));
+vi.mock("vue-sonner", () => ({ toast }));
 const auth = vi.hoisted(() => ({ getAuthenticated: true, getToken: "token" }));
 vi.mock("@/stores/auth", () => ({ useAuthStore: () => auth }));
 vi.mock("@/stores/user", () => ({

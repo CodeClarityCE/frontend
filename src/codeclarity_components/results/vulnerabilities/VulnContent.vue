@@ -1,697 +1,339 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { computed, type Ref, ref, watch } from "vue";
+import { Info } from "@lucide/vue";
+import { computed, ref, watch } from "vue";
 
-import { InfoCard, StatCard } from "@/base_components";
-import TextLoader from "@/base_components/ui/loaders/TextLoader.vue";
+import ColumnChart from "@/base_components/charts/ColumnChart.vue";
+import { StatTile } from "@/base_components/page";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import { AnalysisStats } from "@/codeclarity_components/results/stats.entity";
-import { Card, CardContent } from "@/shadcn/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shadcn/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import {
   getGradeSubtitle,
-  getScoreBorderColor,
   GRADE_DISPLAY_RANGES,
   scoreToGrade,
 } from "@/utils/gradeUtils";
 
 import SelectWorkspace from "../SelectWorkspace.vue";
 
-export interface Props {
-  analysisID?: string;
-  projectID?: string;
-  executedSbomPlugins?: string[];
-}
-const props = withDefaults(defineProps<Props>(), {
-  projectID: "",
-  analysisID: "",
-  executedSbomPlugins: () => [],
-});
+import { owaspCategory } from "./vuln-format";
+
+const props = withDefaults(
+  defineProps<{
+    analysisID?: string;
+    projectID?: string;
+    executedSbomPlugins?: string[];
+  }>(),
+  { projectID: "", analysisID: "", executedSbomPlugins: () => [] },
+);
 
 const emit = defineEmits<{
   "ecosystem-filter-changed": [ecosystem: string | null];
 }>();
 
-// Repositories
-const resultsRepository: ResultsRepository = new ResultsRepository();
-
-// Store setup
+const resultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-// State
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref();
-const loading: Ref<boolean> = ref(true);
 const selected_workspace = defineModel<string>("selected_workspace", {
   default: ".",
 });
-const selectedEcosystemFilter: Ref<string | null> = ref(null);
-const showDetailedAnalysis = ref(false);
+const workspaceError = ref(false);
+const ecosystemFilter = ref<string | null>(null);
+const loading = ref(true);
+const failed = ref(false);
+const stats = ref<AnalysisStats>(new AnalysisStats());
 
-watch(
-  () => props.projectID,
-  () => {
-    void getVulnerabilitiesStats();
-  },
-);
-watch(
-  () => props.analysisID,
-  () => {
-    void getVulnerabilitiesStats();
-  },
-);
+// Counts requests so an answer for an earlier selection is dropped.
+let latestRequest = 0;
 
-const render: Ref<boolean> = ref(false);
-// const error = ref(false);
-const stats: Ref<AnalysisStats> = ref(new AnalysisStats());
-
-// let boxLoaderDimensions = {
-//     width: '100px',
-//     height: '40px'
-// };
-
-void getVulnerabilitiesStats();
-
-// Event handlers
-function handleEcosystemFilterChanged(ecosystemType: string | null): void {
-  /** Handles ecosystem filter changes from SelectWorkspace component */
-  selectedEcosystemFilter.value = ecosystemType;
-  // Emit the change to parent component
-  void emit("ecosystem-filter-changed", ecosystemType);
-  // Refresh stats with the new filter
-  void getVulnerabilitiesStats(true);
-}
-
-// Methods
-async function getVulnerabilitiesStats(refresh = false): Promise<void> {
-  if (!userStore.getDefaultOrg) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
-  error.value = false;
-  errorCode.value = undefined;
-  if (!refresh) loading.value = true;
-
-  if (!authStore.getAuthenticated || !props.analysisID) return;
+async function loadStats(): Promise<void> {
+  const org = userStore.getDefaultOrg;
+  const token = authStore.getToken;
+  if (!org || !authStore.getAuthenticated || !token) return;
   if (props.projectID === "" || props.analysisID === "") return;
-
-  let res: DataResponse<AnalysisStats>;
+  const request = ++latestRequest;
   try {
-    res = await resultsRepository.getVulnerabilitiesStat({
-      orgId: userStore.getDefaultOrg.id,
+    const res = await resultsRepository.getVulnerabilitiesStat({
+      orgId: org.id,
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: selected_workspace.value,
-      bearerToken: authStore.getToken,
-      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
+      bearerToken: token,
+      ecosystem_filter: ecosystemFilter.value ?? undefined,
       handleBusinessErrors: true,
     });
+    if (request !== latestRequest) return;
     stats.value = res.data;
-    render.value = true;
-  } catch (_err) {
-    console.error(_err);
-
-    error.value = true;
-    render.value = false;
+    failed.value = false;
+  } catch {
+    if (request === latestRequest) failed.value = true;
   } finally {
-    loading.value = false;
+    if (request === latestRequest) loading.value = false;
   }
 }
 
-watch(selected_workspace, async () => getVulnerabilitiesStats());
+function onEcosystemFilterChanged(ecosystem: string | null): void {
+  ecosystemFilter.value = ecosystem;
+  emit("ecosystem-filter-changed", ecosystem);
+}
 
-// Computed properties for enhanced vulnerability metrics
-const securityRiskScore = computed(() => {
-  const totalVulns = stats.value.number_of_vulnerabilities ?? 0;
-  const criticalVulns = stats.value.number_of_critical ?? 0;
-  const highVulns = stats.value.number_of_high ?? 0;
-
-  if (totalVulns === 0) return 100;
-
-  const criticalWeight = 10;
-  const highWeight = 5;
-  const weightedIssues =
-    criticalVulns * criticalWeight + highVulns * highWeight;
-  const maxPossibleWeight = totalVulns * criticalWeight;
-
-  const riskPercentage =
-    (weightedIssues / Math.max(maxPossibleWeight, 1)) * 100;
-  return Math.max(0, Math.round(100 - riskPercentage));
-});
-
-// Security grade mapping using shared utility
-const securityGrade = computed(() => scoreToGrade(securityRiskScore.value));
-const securityGradeSubtitle = computed(() =>
-  getGradeSubtitle(securityGrade.value, "security"),
-);
-const securityScoreBorderColor = computed(() =>
-  getScoreBorderColor(securityRiskScore.value),
+watch(
+  [
+    () => props.projectID,
+    () => props.analysisID,
+    selected_workspace,
+    ecosystemFilter,
+  ],
+  () => void loadStats(),
+  { immediate: true },
 );
 
-const criticalAndHighCount = computed(() => {
-  return (
-    (stats.value.number_of_critical ?? 0) + (stats.value.number_of_high ?? 0)
-  );
+// 100 with no critical or high findings, lower as they make up more of the total.
+const securityScore = computed(() => {
+  const total = stats.value.number_of_vulnerabilities ?? 0;
+  if (total === 0) return 100;
+  const weighted =
+    (stats.value.number_of_critical ?? 0) * 10 +
+    (stats.value.number_of_high ?? 0) * 5;
+  return Math.max(0, Math.round(100 - (weighted / (total * 10)) * 100));
 });
+const grade = computed(() => scoreToGrade(securityScore.value));
 
-const severityDistribution = computed(() => {
-  const total = stats.value.number_of_vulnerabilities ?? 1;
-  return {
-    critical: Math.round(((stats.value.number_of_critical ?? 0) / total) * 100),
-    high: Math.round(((stats.value.number_of_high ?? 0) / total) * 100),
-    medium: Math.round(((stats.value.number_of_medium ?? 0) / total) * 100),
-    low: Math.round(((stats.value.number_of_low ?? 0) / total) * 100),
-  };
-});
+function sinceLastScan(diff: number | undefined): string | undefined {
+  if (diff === undefined || diff === null) return undefined;
+  if (diff === 0) return "No change since the last scan";
+  return `${diff > 0 ? "+" : ""}${diff} since the last scan`;
+}
 
-const topOwaspCategories = computed(() => {
-  const categories = [
-    {
-      name: "A01: Broken Access Control",
-      count: stats.value.number_of_owasp_top_10_2021_a1 ?? 0,
-    },
-    {
-      name: "A02: Cryptographic Failures",
-      count: stats.value.number_of_owasp_top_10_2021_a2 ?? 0,
-    },
-    {
-      name: "A03: Injection",
-      count: stats.value.number_of_owasp_top_10_2021_a3 ?? 0,
-    },
-    {
-      name: "A04: Insecure Design",
-      count: stats.value.number_of_owasp_top_10_2021_a4 ?? 0,
-    },
-    {
-      name: "A05: Security Misconfiguration",
-      count: stats.value.number_of_owasp_top_10_2021_a5 ?? 0,
-    },
-  ];
-  return categories
-    .filter((cat) => cat.count > 0)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
-});
+function score(value: number | undefined): string {
+  return (value ?? 0).toFixed(1);
+}
+
+const SEVERITIES = [
+  { label: "Critical", key: "number_of_critical", color: "critical" },
+  { label: "High", key: "number_of_high", color: "high" },
+  { label: "Medium", key: "number_of_medium", color: "medium" },
+  { label: "Low", key: "number_of_low", color: "low" },
+  { label: "None", key: "number_of_none", color: "none" },
+] as const;
+
+const severityCounts = computed(() =>
+  SEVERITIES.map((s) => stats.value[s.key] ?? 0),
+);
+
+const severitySeries = computed(() => [
+  {
+    key: "count",
+    label: "Vulnerabilities",
+    values: severityCounts.value,
+    color: "var(--viz-series-1)",
+    colors: SEVERITIES.map((s) => `var(--viz-severity-${s.color})`),
+  },
+]);
+
+function describeSeverity(index: number): string {
+  const count = severityCounts.value[index] ?? 0;
+  return `${SEVERITIES[index]?.label ?? ""}: ${count} ${count === 1 ? "vulnerability" : "vulnerabilities"}`;
+}
+
+const owaspCounts = computed(() =>
+  (
+    [
+      ["1345", stats.value.number_of_owasp_top_10_2021_a1],
+      ["1346", stats.value.number_of_owasp_top_10_2021_a2],
+      ["1347", stats.value.number_of_owasp_top_10_2021_a3],
+      ["1348", stats.value.number_of_owasp_top_10_2021_a4],
+      ["1349", stats.value.number_of_owasp_top_10_2021_a5],
+      ["1352", stats.value.number_of_owasp_top_10_2021_a6],
+      ["1353", stats.value.number_of_owasp_top_10_2021_a7],
+      ["1354", stats.value.number_of_owasp_top_10_2021_a8],
+      ["1355", stats.value.number_of_owasp_top_10_2021_a9],
+      ["1356", stats.value.number_of_owasp_top_10_2021_a10],
+    ] as [string, number | undefined][]
+  )
+    .map(([id, count]) => ({ category: owaspCategory(id), count: count ?? 0 }))
+    .filter((entry) => entry.count > 0)
+    .sort((a, b) => b.count - a.count),
+);
+
+const impactMeans = computed(() => [
+  { name: "Confidentiality", value: stats.value.mean_confidentiality_impact },
+  { name: "Integrity", value: stats.value.mean_integrity_impact },
+  { name: "Availability", value: stats.value.mean_availability_impact },
+]);
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Workspace Selection -->
-    <SelectWorkspace
-      v-model:error="error"
-      v-model:selected_workspace="selected_workspace"
-      :project-i-d="projectID"
-      :analysis-i-d="analysisID"
-      :executed-sbom-plugins="executedSbomPlugins"
-      @ecosystem-filter-changed="handleEcosystemFilterChanged"
-    />
+  <section aria-labelledby="vuln-summary-heading" class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <h2
+        id="vuln-summary-heading"
+        class="text-xl font-semibold tracking-tight text-foreground-strong"
+      >
+        Summary
+      </h2>
+      <SelectWorkspace
+        v-model:error="workspaceError"
+        v-model:selected_workspace="selected_workspace"
+        :project-i-d="projectID"
+        :analysis-i-d="analysisID"
+        :executed-sbom-plugins="executedSbomPlugins"
+        @ecosystem-filter-changed="onEcosystemFilterChanged"
+      />
+    </div>
 
-    <!-- Key Statistics Grid -->
+    <Alert v-if="failed" variant="destructive">
+      <AlertTitle>Could not load the vulnerability summary</AlertTitle>
+      <AlertDescription>Reload the page to try again.</AlertDescription>
+    </Alert>
+
     <div
-      class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 vuln-stats-grid"
+      v-if="loading"
+      role="status"
+      aria-label="Loading the vulnerability summary"
+      class="grid gap-4 sm:grid-cols-3 xl:grid-cols-6"
     >
-      <!-- Total Vulnerabilities -->
-      <StatCard
-        label="Total Vulnerabilities"
-        :value="stats.number_of_vulnerabilities ?? 0"
-        icon="solar:bug-bold"
-        variant="default"
-        :subtitle="
-          stats.number_of_vulnerabilities_diff !== undefined
-            ? `${stats.number_of_vulnerabilities_diff > 0 ? '+' : ''}${stats.number_of_vulnerabilities_diff} from last scan`
-            : 'Security vulnerabilities found'
-        "
-        :subtitle-icon="
-          stats.number_of_vulnerabilities_diff > 0
-            ? 'solar:arrow-up-linear'
-            : stats.number_of_vulnerabilities_diff < 0
-              ? 'solar:arrow-down-linear'
-              : 'solar:bug-linear'
-        "
-      />
+      <Skeleton v-for="i in 6" :key="i" class="h-24 rounded-card" />
+    </div>
 
-      <!-- Critical & High Count -->
-      <StatCard
-        label="Critical & High"
-        :value="criticalAndHighCount"
-        icon="solar:danger-triangle-bold"
-        variant="danger"
-        subtitle="Immediate attention required"
-        subtitle-icon="solar:shield-warning-linear"
-      />
+    <template v-else-if="!failed">
+      <ul
+        aria-label="Vulnerability numbers"
+        class="grid gap-4 sm:grid-cols-3 xl:grid-cols-6"
+      >
+        <StatTile
+          label="Vulnerabilities"
+          :value="stats.number_of_vulnerabilities ?? 0"
+          :hint="sinceLastScan(stats.number_of_vulnerabilities_diff)"
+        />
+        <StatTile
+          label="Critical and high"
+          :value="(stats.number_of_critical ?? 0) + (stats.number_of_high ?? 0)"
+          hint="Fix these first"
+        />
+        <StatTile
+          label="Vulnerable dependencies"
+          :value="stats.number_of_vulnerable_dependencies ?? 0"
+          :hint="sinceLastScan(stats.number_of_vulnerable_dependencies_diff)"
+        />
+        <StatTile
+          label="Security grade"
+          :value="grade"
+          :hint="getGradeSubtitle(grade, 'security')"
+        />
+        <StatTile
+          label="Mean severity"
+          :value="score(stats.mean_severity)"
+          hint="CVSS, 0 to 10"
+        />
+        <StatTile
+          label="Max severity"
+          :value="score(stats.max_severity)"
+          hint="CVSS, 0 to 10"
+        />
+      </ul>
 
-      <!-- Vulnerable Dependencies -->
-      <StatCard
-        label="Vulnerable Dependencies"
-        :value="stats.number_of_vulnerable_dependencies ?? 0"
-        icon="tabler:package"
-        variant="danger"
-        :subtitle="
-          stats.number_of_vulnerable_dependencies_diff !== undefined
-            ? `${stats.number_of_vulnerable_dependencies_diff > 0 ? '+' : ''}${stats.number_of_vulnerable_dependencies_diff} from last scan`
-            : 'All identified dependencies'
-        "
-        :subtitle-icon="
-          stats.number_of_vulnerable_dependencies_diff > 0
-            ? 'solar:arrow-up-linear'
-            : stats.number_of_vulnerable_dependencies_diff < 0
-              ? 'solar:arrow-down-linear'
-              : 'solar:package-linear'
-        "
-      />
+      <Popover>
+        <PopoverTrigger as-child>
+          <Button variant="ghost" size="sm" class="self-start">
+            <Info aria-hidden="true" class="size-4" />
+            How the security grade is set
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" class="w-80 text-sm">
+          <p class="mb-2">
+            The grade weighs critical and high vulnerabilities against the
+            total.
+          </p>
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
+            <dt class="font-medium">A+ or A</dt>
+            <dd>Excellent, {{ GRADE_DISPLAY_RANGES.excellent }}</dd>
+            <dt class="font-medium">B+ or B</dt>
+            <dd>Good, {{ GRADE_DISPLAY_RANGES.good }}</dd>
+            <dt class="font-medium">C+ or C</dt>
+            <dd>Fair, {{ GRADE_DISPLAY_RANGES.fair }}</dd>
+            <dt class="font-medium">D+ or D</dt>
+            <dd>Poor, {{ GRADE_DISPLAY_RANGES.poor }}</dd>
+          </dl>
+        </PopoverContent>
+      </Popover>
 
-      <!-- Security Score with tooltip -->
-      <TooltipProvider>
-        <Card
-          class="border shadow-sm hover:shadow-md transition-shadow h-full border-l-4"
-          :class="securityScoreBorderColor"
-        >
-          <CardContent class="p-6 h-full flex flex-col">
-            <p
-              class="text-sm font-semibold uppercase tracking-wide text-theme-gray mb-2"
-            >
-              Security Score
-            </p>
-
-            <div class="flex-1 flex items-center">
-              <div class="flex items-center justify-between w-full">
-                <div class="space-y-2">
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <p
-                        class="text-3xl font-bold text-theme-black cursor-help flex items-center gap-2"
-                      >
-                        {{ securityGrade }}
-                        <Icon
-                          icon="solar:info-circle-line-duotone"
-                          class="w-5 h-5 text-gray-400"
-                        />
-                      </p>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="bottom"
-                      class="max-w-xs bg-white text-gray-900 border border-gray-200 shadow-lg p-3"
-                    >
-                      <div class="space-y-2">
-                        <p class="font-semibold text-sm text-gray-900">
-                          Security Grade Scale
-                        </p>
-                        <div class="space-y-1 text-xs">
-                          <div class="flex justify-between gap-4">
-                            <span class="text-green-600 font-medium"
-                              >A+ / A</span
-                            >
-                            <span class="text-gray-500"
-                              >Excellent ({{
-                                GRADE_DISPLAY_RANGES.excellent
-                              }})</span
-                            >
-                          </div>
-                          <div class="flex justify-between gap-4">
-                            <span class="text-blue-600 font-medium"
-                              >B+ / B</span
-                            >
-                            <span class="text-gray-500"
-                              >Good ({{ GRADE_DISPLAY_RANGES.good }})</span
-                            >
-                          </div>
-                          <div class="flex justify-between gap-4">
-                            <span class="text-yellow-600 font-medium"
-                              >C+ / C</span
-                            >
-                            <span class="text-gray-500"
-                              >Fair ({{ GRADE_DISPLAY_RANGES.fair }})</span
-                            >
-                          </div>
-                          <div class="flex justify-between gap-4">
-                            <span class="text-red-600 font-medium">D+ / D</span>
-                            <span class="text-gray-500"
-                              >Poor ({{ GRADE_DISPLAY_RANGES.poor }})</span
-                            >
-                          </div>
-                        </div>
-                        <p
-                          class="text-xs text-gray-500 pt-1 border-t border-gray-200"
-                        >
-                          Based on weighted critical and high severity
-                          vulnerabilities.
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <div class="flex items-center gap-1 text-xs">
-                    <span class="font-medium text-theme-gray">
-                      {{ securityGradeSubtitle }}
-                    </span>
-                  </div>
-                </div>
-
-                <div class="p-3 rounded-full bg-gray-100">
-                  <Icon
-                    icon="solar:shield-check-bold"
-                    class="h-8 w-8 text-gray-600"
-                  />
-                </div>
-              </div>
-            </div>
+      <div class="grid gap-4 lg:grid-cols-2">
+        <Card class="lg:col-span-2">
+          <CardHeader>
+            <CardTitle class="text-base">
+              Vulnerabilities by severity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ColumnChart
+              :labels="SEVERITIES.map((s) => s.label)"
+              :series="severitySeries"
+              :y-max="Math.max(...severityCounts, 1)"
+              :format-y="(v) => String(v)"
+              :describe="describeSeverity"
+              caption="Vulnerabilities by severity"
+              x-title="Severity"
+            />
           </CardContent>
         </Card>
-      </TooltipProvider>
-
-      <!-- Severity Overview -->
-      <InfoCard
-        title="Severity Range"
-        icon="solar:chart-bold"
-        variant="default"
-      >
-        <div v-if="render" class="flex items-center justify-between gap-2">
-          <!-- Mean -->
-          <div class="flex-1 text-center">
-            <p class="text-xs text-gray-500 mb-1">Mean</p>
-            <div class="text-2xl font-bold text-theme-black">
-              {{ stats.mean_severity?.toFixed(2) ?? "0.00" }}
-            </div>
-            <p
-              v-if="stats.mean_severity_diff !== undefined"
-              class="text-xs mt-1"
-              :class="
-                stats.mean_severity_diff > 0
-                  ? 'text-red-500'
-                  : stats.mean_severity_diff < 0
-                    ? 'text-green-500'
-                    : 'text-gray-500'
-              "
-            >
-              {{ stats.mean_severity_diff > 0 ? "+" : ""
-              }}{{ stats.mean_severity_diff?.toFixed(2) }}
+        <Card>
+          <CardHeader>
+            <CardTitle class="text-base">Security impact</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p class="mb-3 text-sm text-muted-foreground">
+              Mean impact across vulnerabilities, 0 to 10.
             </p>
-          </div>
-
-          <!-- Visual separator -->
-          <div class="w-px h-12 bg-gray-200"></div>
-
-          <!-- Max -->
-          <div class="flex-1 text-center">
-            <p class="text-xs text-gray-500 mb-1">Max</p>
-            <div class="text-2xl font-bold text-red-600">
-              {{ stats.max_severity?.toFixed(2) ?? "0.00" }}
-            </div>
-            <p
-              v-if="stats.max_severity_diff !== undefined"
-              class="text-xs mt-1"
-              :class="
-                stats.max_severity_diff > 0
-                  ? 'text-red-500'
-                  : stats.max_severity_diff < 0
-                    ? 'text-green-500'
-                    : 'text-gray-500'
-              "
-            >
-              {{ stats.max_severity_diff > 0 ? "+" : ""
-              }}{{ stats.max_severity_diff?.toFixed(2) }}
-            </p>
-          </div>
-        </div>
-        <div v-else class="flex justify-center items-center h-20">
-          <TextLoader />
-        </div>
-      </InfoCard>
-    </div>
-
-    <!-- Detailed Analysis Toggle -->
-    <button
-      class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-      @click="showDetailedAnalysis = !showDetailedAnalysis"
-    >
-      <Icon
-        :icon="
-          showDetailedAnalysis ? 'tabler:chevron-up' : 'tabler:chevron-down'
-        "
-        class="w-4 h-4"
-      />
-      {{
-        showDetailedAnalysis
-          ? "Hide detailed analysis"
-          : "Show detailed analysis"
-      }}
-    </button>
-
-    <!-- Detailed Analysis Grid -->
-    <div
-      v-if="showDetailedAnalysis"
-      class="grid gap-4 grid-cols-1 lg:grid-cols-3"
-    >
-      <!-- Vulnerability Distribution -->
-      <InfoCard
-        title="Vulnerability Distribution"
-        description="Breakdown by severity"
-        icon="solar:chart-square-bold"
-        variant="primary"
-      >
-        <div v-if="render" class="space-y-3">
-          <!-- Severity breakdown -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-700">Critical</span>
-              <span class="text-sm font-bold text-theme-black">{{
-                stats.number_of_critical ?? 0
-              }}</span>
-            </div>
-            <div class="w-full bg-severity-critical-bg rounded-full h-2">
+            <dl class="flex flex-col gap-2 text-sm">
               <div
-                class="bg-severity-critical h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${severityDistribution.critical}%` }"
-              ></div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-700">High</span>
-              <span class="text-sm font-bold text-theme-black">{{
-                stats.number_of_high ?? 0
-              }}</span>
-            </div>
-            <div class="w-full bg-severity-high-bg rounded-full h-2">
-              <div
-                class="bg-severity-high h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${severityDistribution.high}%` }"
-              ></div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-700">Medium</span>
-              <span class="text-sm font-bold text-theme-black">{{
-                stats.number_of_medium ?? 0
-              }}</span>
-            </div>
-            <div class="w-full bg-severity-medium-bg rounded-full h-2">
-              <div
-                class="bg-severity-medium h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${severityDistribution.medium}%` }"
-              ></div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-700">Low</span>
-              <span class="text-sm font-bold text-theme-black">{{
-                stats.number_of_low ?? 0
-              }}</span>
-            </div>
-            <div class="w-full bg-severity-low-bg rounded-full h-2">
-              <div
-                class="bg-severity-low h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${severityDistribution.low}%` }"
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="space-y-3">
-          <TextLoader v-for="i in 4" :key="i" />
-        </div>
-      </InfoCard>
-
-      <!-- Security Impact Analysis -->
-      <InfoCard
-        title="Security Impact (CIA)"
-        description="Impact assessment"
-        icon="solar:shield-cross-bold"
-        variant="default"
-      >
-        <div v-if="render" class="space-y-3">
-          <!-- Compact Impact Display -->
-          <div class="grid grid-cols-3 gap-3 text-center">
-            <div class="p-3 bg-gray-50 rounded-lg">
-              <Icon
-                icon="solar:eye-closed-bold"
-                class="w-5 h-5 text-theme-primary mx-auto mb-1"
-              />
-              <div class="text-lg font-bold text-theme-black">
-                {{ stats.mean_confidentiality_impact?.toFixed(1) ?? "0.0" }}
-              </div>
-              <p class="text-xs text-gray-500">Confidentiality</p>
-            </div>
-
-            <div class="p-3 bg-gray-50 rounded-lg">
-              <Icon
-                icon="solar:shield-check-bold"
-                class="w-5 h-5 text-theme-primary mx-auto mb-1"
-              />
-              <div class="text-lg font-bold text-theme-black">
-                {{ stats.mean_integrity_impact?.toFixed(1) ?? "0.0" }}
-              </div>
-              <p class="text-xs text-gray-500">Integrity</p>
-            </div>
-
-            <div class="p-3 bg-gray-50 rounded-lg">
-              <Icon
-                icon="solar:server-bold"
-                class="w-5 h-5 text-theme-primary mx-auto mb-1"
-              />
-              <div class="text-lg font-bold text-theme-black">
-                {{ stats.mean_availability_impact?.toFixed(1) ?? "0.0" }}
-              </div>
-              <p class="text-xs text-gray-500">Availability</p>
-            </div>
-          </div>
-
-          <!-- Overall Impact -->
-          <div
-            class="p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20 text-center"
-          >
-            <p class="text-sm font-medium text-theme-black mb-1">
-              Overall Impact
-            </p>
-            <div class="text-2xl font-bold text-theme-primary">
-              {{
-                (
-                  ((stats.mean_confidentiality_impact ?? 0) +
-                    (stats.mean_integrity_impact ?? 0) +
-                    (stats.mean_availability_impact ?? 0)) /
-                  3
-                ).toFixed(1)
-              }}
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Combined risk score</p>
-          </div>
-        </div>
-
-        <div v-else class="space-y-3">
-          <TextLoader v-for="i in 4" :key="i" />
-        </div>
-      </InfoCard>
-
-      <!-- OWASP Top 10 -->
-      <InfoCard
-        title="OWASP Top 10"
-        description="Most common categories"
-        icon="solar:shield-bold"
-        variant="primary"
-      >
-        <div v-if="render">
-          <!-- Summary Stats -->
-          <div
-            class="mb-3 p-3 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium text-theme-black">
-                  Total OWASP Issues
-                </p>
-                <p class="text-xs text-gray-500">
-                  Across {{ topOwaspCategories.length ?? 0 }} categories
-                </p>
-              </div>
-              <div class="text-2xl font-bold text-theme-primary">
-                {{
-                  topOwaspCategories.reduce(
-                    (sum: number, cat: any) => sum + cat.count,
-                    0,
-                  ) || 0
-                }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Categories List -->
-          <div v-if="topOwaspCategories.length > 0" class="space-y-1">
-            <div
-              v-for="(category, index) in topOwaspCategories.slice(0, 5)"
-              :key="index"
-              class="group"
-            >
-              <div
-                class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                v-for="impact in impactMeans"
+                :key="impact.name"
+                class="flex items-center justify-between gap-4 border-b pb-2 last:border-b-0"
               >
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                  <span class="text-xs font-bold text-gray-400">{{
-                    category.name.split(":")[0]
-                  }}</span>
-                  <p class="text-xs text-gray-600 truncate flex-1">
-                    {{ category.name.split(":")[1]?.trim() ?? "" }}
-                  </p>
-                </div>
-                <span
-                  class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full text-xs font-bold bg-theme-primary/10 text-theme-primary"
-                >
-                  {{ category.count }}
-                </span>
+                <dt>{{ impact.name }}</dt>
+                <dd class="font-semibold tabular-nums text-foreground-strong">
+                  {{ score(impact.value) }}
+                </dd>
               </div>
-            </div>
-          </div>
-          <div v-else class="text-center py-2">
-            <Icon
-              icon="solar:shield-check-bold"
-              class="w-6 h-6 text-green-500 mx-auto mb-1"
-            />
-            <p class="text-xs text-gray-500">
-              No OWASP vulnerabilities detected
+            </dl>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle class="text-base">OWASP Top 10</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul
+              v-if="owaspCounts.length > 0"
+              class="flex flex-col gap-2 text-sm"
+            >
+              <li
+                v-for="entry in owaspCounts.slice(0, 5)"
+                :key="entry.category.id"
+                class="flex items-center justify-between gap-4 border-b pb-2 last:border-b-0"
+              >
+                <span>
+                  <span class="font-semibold">{{ entry.category.id }}</span>
+                  {{ entry.category.name }}
+                </span>
+                <span class="font-semibold tabular-nums text-foreground-strong">
+                  {{ entry.count }}
+                </span>
+              </li>
+            </ul>
+            <p v-else class="text-sm text-muted-foreground">
+              No vulnerabilities in an OWASP Top 10 category.
             </p>
-          </div>
-        </div>
-        <div v-else class="space-y-3">
-          <TextLoader v-for="i in 3" :key="i" />
-        </div>
-      </InfoCard>
-    </div>
-  </div>
+          </CardContent>
+        </Card>
+      </div>
+    </template>
+  </section>
 </template>
-
-<style scoped>
-.vuln-stats-grid {
-  align-items: stretch;
-}
-
-/* Make all cards in the stats grid have equal heights */
-.vuln-stats-grid > * {
-  height: 100%;
-}
-
-/* For StatCards: center the main content */
-.vuln-stats-grid :deep(.card:not(:has(.card-header))) {
-  display: flex;
-  align-items: center;
-}
-
-/* For InfoCards: make them fill height and center content vertically */
-.vuln-stats-grid :deep(.card:has(.card-header)) {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.vuln-stats-grid :deep(.card:has(.card-header) .card-content) {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>

@@ -106,7 +106,7 @@ const bars = computed(() =>
         : [
             {
               key: `${series.key}-${groupIndex}`,
-              color: series.color,
+              color: series.colors?.[groupIndex] ?? series.color,
               d: barPath(groupIndex, seriesIndex, value),
             },
           ],

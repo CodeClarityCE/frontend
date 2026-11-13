@@ -2,8 +2,6 @@
 import { scaleLinear } from "d3";
 import { computed, ref } from "vue";
 
-import type { KmStep } from "../experiment.entity";
-
 import {
   AXIS_HEIGHT,
   formatNumber,
@@ -11,11 +9,13 @@ import {
   RIGHT_PADDING,
   TOP_PADDING,
   xTickCount,
-} from "./chart-format";
-import { useChartWidth } from "./chart-layout";
-import ChartTooltip from "./ChartTooltip.vue";
+} from "@/base_components/charts/chart-format";
+import { useChartWidth } from "@/base_components/charts/chart-layout";
+import ChartTooltip from "@/base_components/charts/ChartTooltip.vue";
 
-import "./experiment-chart.css";
+import type { KmStep } from "../experiment.entity";
+
+import "@/base_components/charts/chart.css";
 
 const props = defineProps<{
   curve: KmStep[];
@@ -114,7 +114,7 @@ function hide(): void {
 </script>
 
 <template>
-  <div class="exp-viz relative max-w-[640px]">
+  <div class="chart-viz relative max-w-[640px]">
     <svg
       :viewBox="`0 0 ${chartWidth} ${height}`"
       class="w-full h-auto"

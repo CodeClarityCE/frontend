@@ -200,6 +200,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
 
   /* Radius: cards and buttons follow the landing page, controls stay denser */
   --radius-sm: calc(var(--radius) - 4px);
@@ -277,11 +278,24 @@
     --severity-none: #4b5563;
     --severity-foreground: #ffffff;
 
-    --chart-1: #1dce79;
-    --chart-2: #111111;
-    --chart-3: #0c5230;
-    --chart-4: #5c636a;
-    --chart-5: #a5ebc9;
+    /* Chart series: apart for colour-blind readers, never brand green */
+    --chart-1: #2a78d6;
+    --chart-1-soft: #b7d3f6;
+    --chart-2: #eb6834;
+    --chart-3: #1baf7a;
+    --chart-4: #eda100;
+    --chart-5: #e87ba4;
+    --chart-6: #008300;
+    --chart-grid: #e9ecef;
+    --chart-baseline: #ced4da;
+
+    /* Exported charts use these in both themes: apart in grayscale too */
+    --chart-print-1: #0072b2;
+    --chart-print-2: #e69f00;
+    --chart-print-3: #000000;
+    --chart-print-4: #cc79a7;
+    --chart-print-5: #009e73;
+    --chart-print-6: #56b4e9;
 
     --radius: 0.5rem;
     --radius-card-size: 0.75rem;
@@ -352,11 +366,15 @@
     --severity-none: #4b5563;
     --severity-foreground: #ffffff;
 
-    --chart-1: #1dce79;
-    --chart-2: #f8f9fa;
-    --chart-3: #a5ebc9;
-    --chart-4: #adb5bd;
-    --chart-5: #17a561;
+    --chart-1: #3987e5;
+    --chart-1-soft: #184f95;
+    --chart-2: #d95926;
+    --chart-3: #199e70;
+    --chart-4: #c98500;
+    --chart-5: #d55181;
+    --chart-6: #008300;
+    --chart-grid: #2b2f33;
+    --chart-baseline: #495057;
 
     --shadow-card-value: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-raised-value: 0 8px 24px rgba(0, 0, 0, 0.5);

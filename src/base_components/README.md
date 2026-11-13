@@ -11,6 +11,7 @@ base_components/
 │   ├── loaders/           # Loading components
 │   ├── modals/            # Modal components
 │   └── buttons/           # Button components
+├── charts/                # The shared chart layer (the only chart system)
 ├── data-display/          # Data visualization components
 │   ├── charts/           # Chart components
 │   ├── tables/           # Table components
@@ -46,9 +47,22 @@ base_components/
 - **CenteredModal**: Centered modal dialog
 - **PositionedModal**: Positioned modal with custom placement
 
+### Charts (`charts/`)
+
+The shared chart layer. New charts are built on it, and the older charts in `data-display/charts/` are rebuilt on it and then deleted.
+
+- **ChartExport**: wraps a chart with its generated caption (which names the chart for screen readers) and SVG, PNG, PDF, CSV and caption downloads
+- **ChartTable**: the data-table fallback behind "Show table"
+- **ChartTooltip**: hover label over a chart
+- **GridLineChart**, **ColumnChart**, **StepChart**: line, grouped column and step charts
+- `chart.css`: the colour roles charts draw with (`--viz-series-*`, `--viz-severity-*`, `--viz-status-*`, text, grid), taken from the tokens in `assets/main.css`. Never use raw colours in a chart.
+- `chart-caption.ts`, `chart-export.ts`, `chart-format.ts`, `chart-layout.ts`: captions, export, formatting and layout width
+
+In UI copy only a saved definition is a "Figure"; everything else is a "chart".
+
 ### 📊 Data Display (`data-display/`)
 
-#### Charts (`data-display/charts/`)
+#### Charts (`data-display/charts/`, being replaced by `charts/`)
 
 - **BarChart**: Bar chart visualization
 - **DoughnutChart**: Doughnut chart

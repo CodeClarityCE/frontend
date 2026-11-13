@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
   formatBracketInterval,
   formatDays,
   formatNumber,
   formatShareWithInterval,
-  lagChartData,
-  type LagChartRow,
   plural,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+
+import { excluded } from "../charts/experiment-caption";
+import { lagChartData, type LagChartRow } from "../charts/experiment-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
@@ -72,7 +73,7 @@ const after = computed(() => {
   return `${plural(n, "introduction")} adopted a version already known to be vulnerable, a median ${formatNumber(props.residence.after_disclosure.median)} days after disclosure.`;
 });
 
-const figureCaption = computed<FigureCaption>(() => {
+const figureCaption = computed<ChartCaption>(() => {
   const r = props.residence;
   return {
     description: "Pre-disclosure residence in days by severity",

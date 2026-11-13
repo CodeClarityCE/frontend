@@ -32,23 +32,21 @@ interface MockDashboardData {
 vi.mock(
   "@/codeclarity_components/dashboard/composables/useDashboardData",
   () => ({
-    useDashboardData: vi.fn(
-      (): MockDashboardData => ({
-        isLoading: ref(false),
-        hasError: ref(false),
-        orgData: ref({}) as any,
-        integrations: ref([]) as any,
-        isReady: ref(true) as any,
-        hasData: ref(true) as any,
-        shouldShowEmptyState: ref(false) as any,
-        activeIntegrationIds: ref(["test-id"]) as any,
-        loadDashboardData: vi.fn(),
-        hasIntegrations: ref(true) as any,
-        hasProjects: ref(true) as any,
-        refreshData: vi.fn(),
-        defaultOrg: ref({ id: "org-123" }),
-      }),
-    ),
+    useDashboardData: vi.fn((): MockDashboardData => ({
+      isLoading: ref(false),
+      hasError: ref(false),
+      orgData: ref({}) as any,
+      integrations: ref([]) as any,
+      isReady: ref(true) as any,
+      hasData: ref(true) as any,
+      shouldShowEmptyState: ref(false) as any,
+      activeIntegrationIds: ref(["test-id"]) as any,
+      loadDashboardData: vi.fn(),
+      hasIntegrations: ref(true) as any,
+      hasProjects: ref(true) as any,
+      refreshData: vi.fn(),
+      defaultOrg: ref({ id: "org-123" }),
+    })),
   }),
 );
 

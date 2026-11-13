@@ -571,6 +571,26 @@ vi.mock("@lucide/vue", () => ({
     name: "MoreHorizontal",
     template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
   },
+  Star: {
+    name: "Star",
+    template: '<svg data-testid="star-icon"><path/></svg>',
+  },
+  Upload: {
+    name: "Upload",
+    template: '<svg data-testid="upload-icon"><path/></svg>',
+  },
+  RefreshCw: {
+    name: "RefreshCw",
+    template: '<svg data-testid="refresh-cw-icon"><path/></svg>',
+  },
+  FolderArchive: {
+    name: "FolderArchive",
+    template: '<svg data-testid="folder-archive-icon"><path/></svg>',
+  },
+  Trash2: {
+    name: "Trash2",
+    template: '<svg data-testid="trash-2-icon"><path/></svg>',
+  },
   ScrollText: {
     name: "ScrollText",
     template: '<svg data-testid="scroll-text-icon"><path/></svg>',
@@ -602,6 +622,26 @@ vi.mock("@lucide/vue", () => ({
   History: {
     name: "History",
     template: '<svg data-testid="history-icon"><path/></svg>',
+  },
+  BookOpen: {
+    name: "BookOpen",
+    template: '<svg data-testid="book-open-icon"><path/></svg>',
+  },
+  Mail: {
+    name: "Mail",
+    template: '<svg data-testid="mail-icon"><path/></svg>',
+  },
+  Ticket: {
+    name: "Ticket",
+    template: '<svg data-testid="ticket-icon"><path/></svg>',
+  },
+  Eye: {
+    name: "Eye",
+    template: '<svg data-testid="eye-icon"><path/></svg>',
+  },
+  FileArchive: {
+    name: "FileArchive",
+    template: '<svg data-testid="file-archive-icon"><path/></svg>',
   },
   Globe: {
     name: "Globe",

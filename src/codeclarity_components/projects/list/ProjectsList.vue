@@ -1,351 +1,408 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
-import { onBeforeUnmount, type Ref, ref } from "vue";
+import { Plus, Trash2 } from "@lucide/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { RouterLink } from "vue-router";
 
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-import { AnalysisStatus } from "@/codeclarity_components/analyses/analysis.entity";
-import type { OrganizationMetaData } from "@/codeclarity_components/organizations/organization.entity";
-import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
+import { DataTable } from "@/base_components/data-table";
+import {
+  BrandEmphasis,
+  OwlEmptyState,
+  PageHeading,
+  StatTile,
+  StatusBadge,
+} from "@/base_components/page";
+import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
+import AnalysisFailureReason from "@/codeclarity_components/analyses/AnalysisFailureReason.vue";
+import ProjectLanguageDetection from "@/codeclarity_components/projects/components/ProjectLanguageDetection.vue";
+import ProjectSource from "@/codeclarity_components/projects/components/ProjectSource.vue";
+import type { Project } from "@/codeclarity_components/projects/project.entity";
+import {
+  ProjectRepository,
+  ProjectsSortInterface,
+} from "@/codeclarity_components/projects/project.repository";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
-import Skeleton from "@/shadcn/ui/skeleton/Skeleton.vue";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
-import { useProjectsMainStore } from "@/stores/StateStore";
 import { useUserStore } from "@/stores/user";
+import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
+import { errorToast, successToast } from "@/utils/toasts";
 
-import ProjectsList from "./components/ProjectsList.vue";
+import {
+  analysisStatus,
+  byNewest,
+  formatDateTime,
+  formatDay,
+  isActive,
+  isFinished,
+  isRunning,
+  isScheduled,
+} from "./analysis-status";
+import ProjectAnalysesDialog from "./components/ProjectAnalysesDialog.vue";
 
-// Repositories
-const orgRepo: OrgRepository = new OrgRepository();
+/** How often the list refreshes while an analysis is still running */
+const POLL_INTERVAL_MS = 5000;
+/** The API's largest page; every project is loaded so the table can sort and filter them all */
+const FETCH_PAGE_SIZE = 100;
 
-// Stores
-const viewState = useProjectsMainStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
+const projectRepository = new ProjectRepository();
 
-// globalState.$reset();
-// globalState.page = 'projects';
+const projects = ref<Project[]>([]);
+const loaded = ref(false);
+const hasError = ref(false);
+const analysesOf = ref<Project | null>(null);
+const toDelete = ref<Project | null>(null);
+const deleting = ref(false);
+let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
-viewState.setOrgId(userStore.getUser!.default_org.id);
+const orgId = computed(() => userStore.getDefaultOrg?.id);
+const allAnalyses = computed(() =>
+  projects.value.flatMap((project) => project.analyses ?? []),
+);
+const anyActive = computed(() => allAnalyses.value.some(isActive));
+const lastAnalysis = computed(() => byNewest(allAnalyses.value)[0]);
 
-// State
-const orgMetaDataLoading: Ref<boolean> = ref(false);
-const orgMetaDataError: Ref<boolean> = ref(false);
-const orgMetaDataErrorCode: Ref<string | undefined> = ref();
-const orgMetaData: Ref<OrganizationMetaData | undefined> = ref();
-const { defaultOrg } = storeToRefs(userStore);
+function latest(project: Project): Analysis | undefined {
+  return byNewest(project.analyses)[0];
+}
 
-onBeforeUnmount(() => {
-  viewState.$reset();
-});
+const columns: ColumnDef<Project, unknown>[] = [
+  { id: "name", accessorKey: "name", header: "Project" },
+  { id: "source", accessorKey: "type", header: "Source" },
+  {
+    id: "languages",
+    header: "Languages",
+    enableSorting: false,
+    enableGlobalFilter: false,
+  },
+  {
+    id: "latest",
+    accessorFn: (project) => {
+      const analysis = latest(project);
+      return analysis ? new Date(analysis.created_on).getTime() : 0;
+    },
+    header: "Latest analysis",
+    enableGlobalFilter: false,
+  },
+  {
+    id: "analyses",
+    accessorFn: (project) => project.analyses?.length ?? 0,
+    header: "Analyses",
+    enableGlobalFilter: false,
+  },
+  {
+    id: "added",
+    accessorFn: (project) => new Date(project.added_on).getTime(),
+    header: "Added",
+    enableGlobalFilter: false,
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    enableSorting: false,
+    enableGlobalFilter: false,
+  },
+];
 
-/**
- * Fetches meta data about an org
- * including amongst other things: whether an integration was added, a projects was addded, and anlyses have been started
- */
-async function fetchOrgMetaData(): Promise<void> {
-  if (!defaultOrg?.value) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
+function analysesCount(project: Project): string {
+  const count = project.analyses?.length ?? 0;
+  return `${count} ${count === 1 ? "analysis" : "analyses"}`;
+}
 
-  orgMetaDataError.value = false;
-  orgMetaDataErrorCode.value = undefined;
-  orgMetaDataLoading.value = true;
-
-  try {
-    const resp = await orgRepo.getOrgMetaData({
-      orgId: defaultOrg.value.id,
-      bearerToken: authStore.getToken,
+async function fetchAll(org: string, token: string): Promise<Project[]> {
+  const all: Project[] = [];
+  for (let page = 0; ; page++) {
+    const response = await projectRepository.getProjects({
+      orgId: org,
+      pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
+      search: { searchKey: "" },
+      sort: {
+        sortKey: ProjectsSortInterface.NAME,
+        sortDirection: SortDirection.ASC,
+      },
+      bearerToken: token,
       handleBusinessErrors: true,
     });
-    orgMetaData.value = resp;
-  } catch (err) {
-    orgMetaDataError.value = true;
-    if (err instanceof BusinessLogicError) {
-      orgMetaDataErrorCode.value = err.error_code;
-    }
-  } finally {
-    orgMetaDataLoading.value = false;
+    all.push(...response.data);
+    if (page + 1 >= response.total_pages) return all;
   }
 }
 
-void fetchOrgMetaData();
+async function load(): Promise<void> {
+  if (!orgId.value || !authStore.getToken) return;
 
-// Helper functions for statistics
-function getCompletedAnalysesCount(): number {
-  if (!orgMetaData.value?.projects) return 0;
-  return orgMetaData.value.projects.reduce((count, project) => {
-    if (!project.analyses) return count;
-    return (
-      count +
-      project.analyses.filter(
-        (analysis) =>
-          analysis.status === AnalysisStatus.COMPLETED ||
-          analysis.status === AnalysisStatus.FINISHED,
-      ).length
-    );
-  }, 0);
+  try {
+    projects.value = await fetchAll(orgId.value, authStore.getToken);
+    hasError.value = false;
+    // Keep the open dialog in step with the reloaded project.
+    if (analysesOf.value) {
+      const id = analysesOf.value.id;
+      analysesOf.value = projects.value.find((p) => p.id === id) ?? null;
+    }
+  } catch {
+    hasError.value = true;
+  } finally {
+    loaded.value = true;
+    schedulePoll();
+  }
 }
 
-function getRunningAnalysesCount(): number {
-  if (!orgMetaData.value?.projects) return 0;
-  return orgMetaData.value.projects.reduce((count, project) => {
-    if (!project.analyses) return count;
-    return (
-      count +
-      project.analyses.filter(
-        (analysis) =>
-          analysis.status === AnalysisStatus.STARTED ||
-          analysis.status === AnalysisStatus.REQUESTED ||
-          analysis.status === AnalysisStatus.ONGOING ||
-          analysis.status === AnalysisStatus.UPDATING_DB,
-      ).length
-    );
-  }, 0);
+function schedulePoll(): void {
+  clearTimeout(pollTimer);
+  if (anyActive.value) {
+    pollTimer = setTimeout(() => void load(), POLL_INTERVAL_MS);
+  }
 }
 
-function getLastActivityTime(): string {
-  if (!orgMetaData.value?.projects) return "N/A";
+function resultsLink(project: Project): Record<string, unknown> | undefined {
+  const analysis = latest(project);
+  if (!analysis || !isFinished(analysis)) return undefined;
+  const query: Record<string, string | number> = {
+    analysis_id: analysis.id,
+    project_id: project.id,
+  };
+  if (isScheduled(analysis)) query.run_index = 0;
+  return { name: "results", query };
+}
 
-  let latestDate: Date | null = null;
+async function deleteProject(): Promise<void> {
+  const project = toDelete.value;
+  if (!project || !orgId.value || !authStore.getToken) return;
 
-  orgMetaData.value.projects.forEach((project) => {
-    if (!project.analyses) return;
-    project.analyses.forEach((analysis) => {
-      const createdDate = new Date(analysis.created_on);
-      if (!latestDate || createdDate > latestDate) {
-        latestDate = createdDate;
-      }
+  deleting.value = true;
+  try {
+    await projectRepository.deleteProject({
+      orgId: orgId.value,
+      projectId: project.id,
+      bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
     });
-  });
-
-  if (!latestDate) return "N/A";
-
-  const now = new Date();
-  const diffInHours = Math.floor(
-    (now.getTime() - (latestDate as Date).getTime()) / (1000 * 60 * 60),
-  );
-
-  if (diffInHours < 1) return "Now";
-  if (diffInHours < 24) return `${diffInHours}h`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) return `${diffInDays}d`;
-  return "30d+";
+    successToast(`Deleted ${project.name}`);
+  } catch (err) {
+    if (
+      err instanceof BusinessLogicError &&
+      err.error_code === APIErrors.EntityNotFound
+    ) {
+      successToast(`Deleted ${project.name}`);
+    } else {
+      errorToast(`Failed to delete ${project.name}`);
+    }
+  } finally {
+    deleting.value = false;
+    toDelete.value = null;
+    void load();
+  }
 }
+
+onMounted(() => void load());
+onUnmounted(() => clearTimeout(pollTimer));
 </script>
+
 <template>
-  <div class="space-y-8 relative min-h-screen">
-    <!-- Page Header -->
-    <div class="mb-10">
-      <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4"
+  <PageHeading
+    description="Repositories and uploads you analyse for vulnerabilities, licences and outdated dependencies."
+  >
+    <BrandEmphasis>Projects</BrandEmphasis>
+    <template #actions>
+      <Button
+        :as="RouterLink"
+        :to="{ name: 'projects', params: { page: 'add' } }"
       >
-        <div>
-          <h1 class="text-4xl font-bold tracking-tight text-gray-900">
-            Projects
-          </h1>
-          <p class="text-gray-600 mt-2 text-lg">
-            Manage and monitor your project security analyses
-          </p>
+        <Plus aria-hidden="true" />
+        Add Project
+      </Button>
+    </template>
+  </PageHeading>
+
+  <Alert v-if="hasError" variant="destructive">
+    <AlertDescription class="flex items-center justify-between gap-4">
+      The projects could not be loaded.
+      <Button variant="outline" size="sm" @click="load">Try again</Button>
+    </AlertDescription>
+  </Alert>
+
+  <OwlEmptyState
+    v-else-if="loaded && projects.length === 0"
+    title="No Projects yet"
+    description="Import a repository through a GitHub or GitLab integration, or upload an archive, then run an analysis on it."
+  >
+    <div class="flex flex-wrap justify-center gap-3">
+      <Button
+        :as="RouterLink"
+        :to="{ name: 'projects', params: { page: 'add' } }"
+        arrow
+      >
+        Add a Project
+      </Button>
+      <Button
+        v-if="orgId"
+        :as="RouterLink"
+        :to="{
+          name: 'orgs',
+          params: { orgId, page: 'integrations', action: 'manage' },
+        }"
+        variant="outline"
+      >
+        Connect an integration
+      </Button>
+    </div>
+  </OwlEmptyState>
+
+  <template v-else>
+    <ul
+      v-if="loaded"
+      aria-label="Project overview"
+      class="grid grid-cols-4 gap-4"
+    >
+      <StatTile label="Projects" :value="projects.length" />
+      <StatTile
+        label="Completed analyses"
+        :value="allAnalyses.filter(isFinished).length"
+      />
+      <StatTile
+        label="Running analyses"
+        :value="allAnalyses.filter(isRunning).length"
+      />
+      <StatTile
+        label="Last analysis"
+        :value="lastAnalysis ? formatDay(lastAnalysis.created_on) : 'None yet'"
+      />
+    </ul>
+
+    <DataTable
+      :columns="columns"
+      :data="projects"
+      :loading="!loaded"
+      :row-key="(project: Project) => project.id"
+      caption="Projects"
+      filter-label="Filter projects"
+      empty-text="No projects match."
+      row-testid="project-row"
+    >
+      <template #cell-name="{ row }">
+        <span class="font-semibold text-foreground-strong">{{ row.name }}</span>
+      </template>
+      <template #cell-source="{ row }">
+        <ProjectSource :type="row.type" />
+      </template>
+      <template #cell-languages="{ row }">
+        <ProjectLanguageDetection :project="row" />
+      </template>
+      <template #cell-latest="{ row }">
+        <div v-if="latest(row)" class="flex max-w-64 flex-col gap-1">
+          <StatusBadge
+            :tone="analysisStatus(latest(row)!).tone"
+            :label="analysisStatus(latest(row)!).label"
+            :busy="analysisStatus(latest(row)!).busy"
+            class="w-fit"
+          />
+          <span class="whitespace-nowrap text-xs text-muted-foreground">
+            {{ formatDateTime(latest(row)!.created_on) }}
+          </span>
+          <AnalysisFailureReason :analysis="latest(row)!" />
         </div>
-        <div class="flex items-center gap-3">
-          <div
-            class="flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm"
-          >
-            <Icon
-              icon="solar:calendar-linear"
-              class="h-4 w-4 text-theme-primary"
-            />
-            <span>Last updated: {{ new Date().toLocaleDateString() }}</span>
-          </div>
+        <span v-else class="text-muted-foreground">Not analysed</span>
+      </template>
+      <template #cell-analyses="{ row }">
+        <Button
+          v-if="row.analyses?.length"
+          variant="link"
+          size="sm"
+          class="-ml-3 tabular-nums"
+          :aria-label="`${analysesCount(row)} of ${row.name}`"
+          @click="analysesOf = row"
+        >
+          {{ analysesCount(row) }}
+        </Button>
+        <span v-else class="text-muted-foreground">None</span>
+      </template>
+      <template #cell-added="{ row }">
+        <span class="whitespace-nowrap">{{ formatDay(row.added_on) }}</span>
+      </template>
+      <template #cell-actions="{ row }">
+        <div class="flex items-center gap-1">
           <Button
+            :as="RouterLink"
+            :to="{
+              name: 'analyses',
+              params: { page: 'add' },
+              query: { id: row.id },
+            }"
             variant="outline"
             size="sm"
-            class="hidden sm:flex items-center gap-2 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
-            :disabled="orgMetaDataLoading"
-            @click="fetchOrgMetaData"
+            :aria-label="`New analysis of ${row.name}`"
           >
-            <Icon
-              :icon="
-                orgMetaDataLoading
-                  ? 'solar:loading-linear'
-                  : 'solar:refresh-linear'
-              "
-              class="h-4 w-4"
-              :class="{ 'animate-spin': orgMetaDataLoading }"
-            />
-            {{ orgMetaDataLoading ? "Refreshing..." : "Refresh" }}
+            New analysis
           </Button>
-          <div v-if="orgMetaData">
-            <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-              <Button
-                class="bg-theme-primary hover:bg-theme-primary-dark text-white shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-              >
-                <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
-                Add Project
-              </Button>
-            </RouterLink>
-          </div>
-          <div v-else-if="orgMetaDataLoading">
-            <Skeleton class="h-10 w-32" />
-          </div>
+          <Button
+            v-if="resultsLink(row)"
+            :as="RouterLink"
+            :to="resultsLink(row)"
+            variant="ghost"
+            size="sm"
+            :aria-label="`Results of ${row.name}`"
+          >
+            Results
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            :aria-label="`Delete ${row.name}`"
+            @click="toDelete = row"
+          >
+            <Trash2 aria-hidden="true" />
+          </Button>
         </div>
-      </div>
-    </div>
+      </template>
+    </DataTable>
+  </template>
 
-    <!-- Quick Stats Row -->
-    <div
-      v-if="orgMetaData && orgMetaData.projects.length > 0"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-    >
-      <!-- Total Projects -->
-      <StatCard
-        label="Total Projects"
-        :value="orgMetaData.projects.length"
-        icon="solar:folder-bold"
-        variant="default"
-        subtitle="Active repositories"
-        subtitle-icon="solar:folder-linear"
-      />
+  <ProjectAnalysesDialog
+    v-if="analysesOf"
+    :project="analysesOf"
+    :open="analysesOf !== null"
+    @update:open="(value: boolean) => !value && (analysesOf = null)"
+    @changed="load"
+  />
 
-      <!-- Completed Analyses -->
-      <StatCard
-        label="Completed"
-        :value="getCompletedAnalysesCount()"
-        icon="solar:check-circle-bold"
-        variant="success"
-        subtitle="Finished analyses"
-        subtitle-icon="solar:check-circle-linear"
-      />
-
-      <!-- Running Analyses -->
-      <StatCard
-        label="Running"
-        :value="getRunningAnalysesCount()"
-        icon="solar:refresh-bold"
-        variant="primary"
-        subtitle="In progress"
-        subtitle-icon="solar:refresh-linear"
-      />
-
-      <!-- Last Activity -->
-      <StatCard
-        label="Last Activity"
-        :value="getLastActivityTime()"
-        icon="solar:clock-circle-bold"
-        variant="primary"
-        subtitle="Recent analysis"
-        subtitle-icon="solar:clock-circle-linear"
-      />
-    </div>
-
-    <!-- Loading State for Statistics -->
-    <div
-      v-else-if="orgMetaDataLoading"
-      class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8"
-    >
-      <Skeleton v-for="i in 4" :key="i" class="h-24 w-full" />
-    </div>
-
-    <!-- Empty state or error state -->
-    <div
-      v-if="
-        orgMetaDataLoading ||
-        orgMetaDataError ||
-        (orgMetaData && orgMetaData.projects.length === 0)
-      "
-      class="h-full relative"
-    >
-      <div class="flex flex-col gap-4 h-full">
-        <div class="flex flex-row gap-5">
-          <Skeleton class="h-14 w-10/12" />
-          <Skeleton class="h-14 w-2/12" />
-        </div>
-        <Skeleton v-for="i in 6" :key="i" class="h-[16.6%] w-full min-h-32" />
-      </div>
-      <div
-        class="flex flex-col gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-lg"
-      >
-        <InfoCard
-          v-if="orgMetaDataError"
-          title="Unable to Load Organization Data"
-          description="There was an error fetching your organization's state. Please try refreshing the page."
-          icon="solar:confounded-square-linear"
-          variant="danger"
-        />
-        <InfoCard
-          v-else-if="orgMetaData && orgMetaData.integrations.length === 0"
-          title="Get Started"
-          description="Connect a VCS integration or upload projects directly"
-          icon="solar:folder-add-bold"
-          variant="default"
-        >
-          <template #actions>
-            <div class="flex gap-3">
-              <RouterLink
-                :to="{
-                  name: 'orgs',
-                  params: {
-                    orgId: orgMetaData.id,
-                    page: 'integrations',
-                    action: 'manage',
-                  },
-                }"
-              >
-                <Button variant="outline" class="border-gray-300">
-                  <Icon icon="solar:link-bold" class="h-4 w-4 mr-2" />
-                  Connect VCS
-                </Button>
-              </RouterLink>
-              <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-                <Button
-                  class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-                >
-                  <Icon icon="solar:upload-bold" class="h-4 w-4 mr-2" />
-                  Upload Project
-                </Button>
-              </RouterLink>
-            </div>
-          </template>
-        </InfoCard>
-        <InfoCard
-          v-else-if="orgMetaData && orgMetaData.projects.length === 0"
-          title="No Projects Yet"
-          description="Get started by adding your first project to begin security analysis."
-          icon="solar:sleeping-square-linear"
-          variant="default"
-        >
-          <template #actions>
-            <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-              <Button
-                class="bg-theme-primary hover:bg-theme-primary-dark text-white flex items-center gap-2"
-              >
-                <Icon icon="solar:add-circle-bold" class="h-4 w-4" />
-                Add Project
-              </Button>
-            </RouterLink>
-          </template>
-        </InfoCard>
-      </div>
-    </div>
-
-    <!-- Projects List -->
-    <div v-else class="space-y-6">
-      <ProjectsList />
-
-      <!-- Floating Add Button for mobile -->
-      <RouterLink
-        :to="{ name: 'projects', params: { page: 'add' } }"
-        class="fixed bottom-6 right-6 z-50 md:hidden"
-      >
-        <Button
-          size="lg"
-          class="h-14 w-14 rounded-full bg-theme-primary hover:bg-theme-primary-dark text-white shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          <Icon icon="solar:add-circle-bold" class="h-6 w-6" />
+  <Dialog
+    :open="toDelete !== null"
+    @update:open="(value: boolean) => !value && (toDelete = null)"
+  >
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Delete {{ toDelete?.name }}?</DialogTitle>
+        <DialogDescription>
+          The project, its
+          {{ toDelete?.analyses?.length ?? 0 }}
+          {{ toDelete?.analyses?.length === 1 ? "analysis" : "analyses" }} and
+          every result, SBOM and report are deleted. This cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button variant="outline" :disabled="deleting" @click="toDelete = null">
+          Cancel
         </Button>
-      </RouterLink>
-    </div>
-  </div>
+        <Button
+          variant="destructive"
+          :disabled="deleting"
+          @click="deleteProject"
+        >
+          {{ deleting ? "Deleting" : "Delete project" }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

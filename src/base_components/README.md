@@ -35,7 +35,6 @@ base_components/
 #### Loaders (`ui/loaders/`)
 
 - **LoadingComponent**: General loading indicator
-- **LoadingContainer**: Container with loading overlay
 - **BoxLoader**: Box-style loading animation
 - **DonutLoader**: Donut-style loading animation
 - **TextLoader**: Text placeholder loading

@@ -21,4 +21,10 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    rolldownOptions: {
+      // Keeps module order, so reflect-metadata runs before any chunk with decorated entities.
+      output: { strictExecutionOrder: true },
+    },
+  },
 });

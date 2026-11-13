@@ -330,9 +330,7 @@ export class RerenderCounter {
     // it is never called detached, so Vue still invokes it with the right `this`.
     // eslint-disable-next-line @typescript-eslint/unbound-method
     this.originalUpdate = vm.$options.updated as
-      | (() => void)[]
-      | (() => void)
-      | undefined;
+      (() => void)[] | (() => void) | undefined;
 
     let existingUpdates: (() => void)[];
     if (Array.isArray(this.originalUpdate)) {

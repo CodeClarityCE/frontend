@@ -12,7 +12,6 @@ export { default as StatCard } from "./ui/cards/StatCard.vue";
 export { default as BoxLoader } from "./ui/loaders/BoxLoader.vue";
 export { default as DonutLoader } from "./ui/loaders/DonutLoader.vue";
 export { default as LoadingComponent } from "./ui/loaders/LoadingComponent.vue";
-export { default as LoadingContainer } from "./ui/loaders/LoadingContainer.vue";
 export { default as TextLoader } from "./ui/loaders/TextLoader.vue";
 
 // Modals

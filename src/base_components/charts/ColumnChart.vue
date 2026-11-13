@@ -7,7 +7,7 @@ import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
-import "./experiment-chart.css";
+import "./chart.css";
 
 const props = defineProps<{
   /** One per group of columns along x */
@@ -138,11 +138,11 @@ function formatCell(value: number | null): string {
 </script>
 
 <template>
-  <div class="exp-viz relative max-w-[640px]">
+  <div class="chart-viz relative max-w-[640px]">
     <ul
       v-if="series.length >= 2"
       data-export-legend
-      class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1"
+      class="flex flex-wrap gap-4 text-xs text-muted-foreground mb-1"
     >
       <li
         v-for="s in series"
@@ -256,7 +256,7 @@ function formatCell(value: number | null): string {
     >
 
     <ChartTable>
-      <thead class="text-left text-gray-500">
+      <thead class="text-left text-muted-foreground">
         <tr>
           <th class="font-medium">{{ xTitle }}</th>
           <th v-for="s in series" :key="s.key" class="font-medium text-right">
@@ -264,7 +264,7 @@ function formatCell(value: number | null): string {
           </th>
         </tr>
       </thead>
-      <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+      <tbody class="text-foreground" style="font-variant-numeric: tabular-nums">
         <tr v-for="(label, i) in labels" :key="`row-${label}-${i}`">
           <td>{{ label }}</td>
           <td v-for="s in series" :key="s.key" class="text-right">

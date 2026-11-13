@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
-import type { FigureCaption } from "../charts/chart-caption";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
   formatNumber,
   formatShare,
   formatShareWithInterval,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
-import ChartTable from "../charts/ChartTable.vue";
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+import ChartTable from "@/base_components/charts/ChartTable.vue";
+
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
 import {
@@ -89,7 +90,7 @@ const plotted = computed(() => {
   };
 });
 
-const figureCaption = computed<FigureCaption>(() => {
+const figureCaption = computed<ChartCaption>(() => {
   const g = selected.value;
   return {
     description: `Exposure survival (Kaplan-Meier with 95% Greenwood log-log band), ${labelOf(g).toLowerCase()}`,

@@ -5,7 +5,7 @@ withDefaults(defineProps<{ label?: string }>(), { label: "Show table" });
 <template>
   <!-- The data behind a chart, folded away under "Show table" -->
   <details class="mt-2 text-sm">
-    <summary class="cursor-pointer text-gray-500">{{ label }}</summary>
+    <summary class="cursor-pointer text-muted-foreground">{{ label }}</summary>
     <table class="w-full mt-2">
       <slot />
     </table>

@@ -1,20 +1,23 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
 
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-
 import {
-  gridCoverageOf,
+  PAGE_EXCLUSIONS,
   RESULT_MARKS,
-  SNAPSHOT_COVERAGE,
-} from "../charts/chart-caption";
+} from "@/base_components/charts/chart-caption";
 import {
   formatBracketInterval,
   formatInterval,
   formatPValue,
   formatShare,
   formatShareWithInterval,
-} from "../charts/chart-format";
+} from "@/base_components/charts/chart-format";
+import StatCard from "@/base_components/ui/cards/StatCard.vue";
+
+import {
+  gridCoverageOf,
+  snapshotExclusions,
+} from "../charts/experiment-caption";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
   type BootstrapInterval,
@@ -97,7 +100,10 @@ const knowledgeSources = computed(() => {
 const gridCoverage = computed(() =>
   gridCoverageOf(props.results.grid_coverage ?? []),
 );
-provide(SNAPSHOT_COVERAGE, gridCoverage);
+provide(
+  PAGE_EXCLUSIONS,
+  computed(() => snapshotExclusions(gridCoverage.value)),
+);
 provide(
   RESULT_MARKS,
   computed(() =>

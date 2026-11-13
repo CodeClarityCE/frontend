@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, provide, ref } from "vue";
+import { computed, inject, nextTick, provide, ref, useId } from "vue";
 
 import { saveBlob } from "@/utils/download";
 import { svgToPdf } from "@/utils/svg-pdf";
@@ -8,18 +8,18 @@ import { errorToast } from "@/utils/toasts";
 
 import {
   captionText,
-  type FigureCaption,
+  type ChartCaption,
+  PAGE_EXCLUSIONS,
   RESULT_MARKS,
-  SNAPSHOT_COVERAGE,
 } from "./chart-caption";
 import {
   type ChartData,
   chartDataCsv,
+  chartPng,
   EXPORT_PRESETS,
   type ExportPreset,
-  figurePng,
-  type StandaloneFigure,
-  standaloneFigure,
+  type StandaloneChart,
+  standaloneChart,
 } from "./chart-export";
 import { CHART_WIDTH } from "./chart-format";
 import { CHART_LAYOUT_WIDTH } from "./chart-layout";
@@ -30,55 +30,56 @@ const props = defineProps<{
   /** The values drawn in the chart */
   data: ChartData;
   /** What the generated caption states */
-  caption: FigureCaption;
+  caption: ChartCaption;
 }>();
 
 const content = ref<HTMLElement | null>(null);
+const captionId = useId();
 const preset = ref<ExportPreset>("double");
-const coverage = inject(SNAPSHOT_COVERAGE, ref([]));
+const pageExclusions = inject(PAGE_EXCLUSIONS, ref([]));
 const marks = inject(RESULT_MARKS, ref({}));
 const caption = computed(() => ({ ...marks.value, ...props.caption }));
-const text = computed(() => captionText(caption.value, coverage.value));
+const text = computed(() => captionText(caption.value, pageExclusions.value));
 
 const layoutWidth = ref(CHART_WIDTH);
 provide(CHART_LAYOUT_WIDTH, layoutWidth);
 
 /** Redraws the chart at the preset's width, reads it, and puts it back. */
-async function assemble(): Promise<StandaloneFigure | null> {
+async function assemble(): Promise<StandaloneChart | null> {
   if (!content.value) return null;
   layoutWidth.value = EXPORT_PRESETS[preset.value].layoutWidth;
   await nextTick();
   try {
-    return standaloneFigure(content.value, preset.value, caption.value);
+    return standaloneChart(content.value, preset.value, caption.value);
   } finally {
     layoutWidth.value = CHART_WIDTH;
   }
 }
 
 async function downloadSvg(): Promise<void> {
-  const figure = await assemble();
-  if (!figure) return;
+  const chart = await assemble();
+  if (!chart) return;
   saveBlob(
-    new Blob([figure.svg], { type: "image/svg+xml;charset=utf-8" }),
+    new Blob([chart.svg], { type: "image/svg+xml;charset=utf-8" }),
     `${props.name}.svg`,
   );
 }
 
 async function downloadPng(): Promise<void> {
-  const figure = await assemble();
-  if (!figure) return;
+  const chart = await assemble();
+  if (!chart) return;
   try {
-    saveBlob(await figurePng(figure), `${props.name}.png`);
+    saveBlob(await chartPng(chart), `${props.name}.png`);
   } catch {
     errorToast("Could not export the chart as PNG");
   }
 }
 
 async function downloadPdf(): Promise<void> {
-  const figure = await assemble();
-  if (!figure) return;
+  const chart = await assemble();
+  if (!chart) return;
   try {
-    const pdf = await svgToPdf(figure.svg, await loadPdfFonts());
+    const pdf = await svgToPdf(chart.svg, await loadPdfFonts());
     saveBlob(
       new Blob([pdf as BlobPart], { type: "application/pdf" }),
       `${props.name}.pdf`,
@@ -102,24 +103,32 @@ function downloadCaption(): void {
   );
 }
 
-const BUTTON = "text-xs text-gray-500 hover:text-gray-900 underline";
+const BUTTON =
+  "rounded-sm text-xs text-muted-foreground underline hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 </script>
 
 <template>
   <div>
-    <div ref="content">
-      <slot />
-    </div>
-    <p data-testid="export-caption" class="text-xs text-gray-500 mt-1">
-      {{ text }}
-    </p>
+    <!-- The caption names the chart for screen readers -->
+    <figure :aria-labelledby="captionId">
+      <div ref="content">
+        <slot />
+      </div>
+      <figcaption
+        :id="captionId"
+        data-testid="export-caption"
+        class="text-xs text-muted-foreground mt-1"
+      >
+        {{ text }}
+      </figcaption>
+    </figure>
     <div class="flex flex-wrap items-center gap-2 mt-1">
-      <label class="text-xs text-gray-500">
+      <label class="text-xs text-muted-foreground">
         Width
         <select
           v-model="preset"
           data-testid="export-preset"
-          class="text-xs border border-gray-200 rounded"
+          class="text-xs border border-input rounded-control bg-background text-foreground"
         >
           <option
             v-for="(option, key) in EXPORT_PRESETS"

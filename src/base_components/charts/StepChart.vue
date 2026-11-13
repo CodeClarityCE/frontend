@@ -14,7 +14,7 @@ import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
 
-import "./experiment-chart.css";
+import "./chart.css";
 
 const props = defineProps<{
   /** Days along x, as text, ascending */
@@ -150,11 +150,11 @@ function show(index: number): void {
 </script>
 
 <template>
-  <div class="exp-viz relative max-w-[640px]">
+  <div class="chart-viz relative max-w-[640px]">
     <ul
       v-if="series.length >= 2"
       data-export-legend
-      class="flex flex-wrap gap-4 text-xs text-gray-600 mb-1"
+      class="flex flex-wrap gap-4 text-xs text-muted-foreground mb-1"
     >
       <li v-for="s in series" :key="s.key" class="flex items-center gap-1">
         <svg width="16" height="8" aria-hidden="true">
@@ -294,7 +294,7 @@ function show(index: number): void {
     }}</ChartTooltip>
 
     <ChartTable>
-      <thead class="text-left text-gray-500">
+      <thead class="text-left text-muted-foreground">
         <tr>
           <th class="font-medium">{{ xTitle }}</th>
           <th v-for="s in series" :key="s.key" class="font-medium text-right">

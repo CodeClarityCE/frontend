@@ -1,487 +1,311 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRouter, createWebHistory } from "vue-router";
+import { defineComponent, h, onMounted } from "vue";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
-import { APIErrors } from "@/utils/api/ApiErrors";
+import router from "@/router";
 
 import ManageMembers from "./ManageMembers.vue";
 
-// Mock router
-vi.mock("@/router", () => ({
-  default: {
-    back: vi.fn(),
-    push: vi.fn(),
+const { getOrgMembers, revokeMembership, orgInfo } = vi.hoisted(() => ({
+  getOrgMembers: vi.fn(),
+  revokeMembership: vi.fn(),
+  orgInfo: { current: {} },
+}));
+
+vi.mock("@/router", () => ({ default: { back: vi.fn(), push: vi.fn() } }));
+
+vi.mock("@/stores/auth", () => ({
+  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
+}));
+
+vi.mock("@/stores/user", () => ({
+  useUserStore: () => ({ getUser: { id: "u-me" } }),
+}));
+
+vi.mock("@/utils/toasts", () => ({
+  successToast: vi.fn(),
+  errorToast: vi.fn(),
+}));
+
+// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
+vi.mock("@/shadcn/ui/input", () => ({
+  Input: defineComponent({
+    props: { modelValue: { type: String, default: "" } },
+    emits: ["update:modelValue"],
+    setup(props, { emit, attrs }) {
+      return () =>
+        h("input", {
+          ...attrs,
+          value: props.modelValue,
+          onInput: (e: Event) =>
+            emit("update:modelValue", (e.target as HTMLInputElement).value),
+        });
+    },
+  }),
+}));
+
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BaseRepository: class {},
+  BusinessLogicError: class BusinessLogicError extends Error {
+    error_code: string;
+    constructor(error_code: string) {
+      super(error_code);
+      this.error_code = error_code;
+    }
   },
 }));
-
-// Mock auth store
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    getAuthenticated: true,
-    getToken: "test-token",
-  })),
-}));
-
-// Mock organization repository
-const mockOrgRepo = {
-  getOrgMembers: vi.fn(),
-};
 
 vi.mock(
   "@/codeclarity_components/organizations/organization.repository",
   () => ({
-    OrgRepository: vi.fn().mockImplementation(() => mockOrgRepo),
-  }),
-);
-
-// Mock route
-const mockRoute = {
-  params: {
-    orgId: "test-org-id",
-  },
-};
-
-vi.mock("vue-router", async () => {
-  const actual = await vi.importActual("vue-router");
-  return {
-    ...actual,
-    useRoute: () => mockRoute,
-  };
-});
-
-// Mock child components
-vi.mock(
-  "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
-  () => ({
-    default: {
-      name: "HeaderItem",
-      template: '<div data-testid="header-item"></div>',
-      props: ["orgId"],
-      emits: ["onOrgInfo"],
+    OrgRepository: class {
+      getOrgMembers = getOrgMembers;
+      revokeMembership = revokeMembership;
     },
   }),
 );
 
-vi.mock("@/base_components/ui/loaders/BoxLoader.vue", () => ({
-  default: {
-    name: "BoxLoader",
-    template: '<div data-testid="box-loader"></div>',
-    props: ["dimensions"],
-  },
-}));
+// The header reports the organisation, as the real one does once loaded.
+vi.mock(
+  "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
+  () => ({
+    default: defineComponent({
+      emits: ["onOrgInfo"],
+      setup(_, { emit }) {
+        onMounted(() => emit("onOrgInfo", orgInfo.current));
+        return () => h("div", "Organisation header");
+      },
+    }),
+  }),
+);
 
-vi.mock("@/base_components/filters/SearchBar.vue", () => ({
-  default: {
-    name: "SearchBar",
-    template: '<input data-testid="search-bar" />',
-    props: ["searchKey", "placeholder"],
-    emits: ["update:searchKey"],
-  },
-}));
+vi.mock("vue-router", async () => {
+  const actual =
+    await vi.importActual<typeof import("vue-router")>("vue-router");
+  return {
+    ...actual,
+    useRoute: () => ({ params: { orgId: "org-1" } }),
+    RouterLink: defineComponent({
+      props: { to: { type: Object, required: true } },
+      setup(_, { slots, attrs }) {
+        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
+      },
+    }),
+  };
+});
 
-vi.mock("@/base_components/utilities/PaginationComponent.vue", () => ({
-  default: {
-    name: "Pagination",
-    template:
-      '<div data-testid="pagination"><slot name="content"></slot></div>',
-    props: ["page", "nmbEntriesShowing", "nmbEntriesTotal", "totalPages"],
-    emits: ["update:page", "update:nmbEntriesShowing"],
-  },
-}));
+function member(
+  id: string,
+  first: string,
+  role: MemberRole,
+  extra: object = {},
+): object {
+  return {
+    id,
+    first_name: first,
+    last_name: "Doe",
+    handle: first.toLowerCase(),
+    email: `${first.toLowerCase()}@example.com`,
+    role,
+    joined_on: "2025-01-10T10:00:00Z",
+    ...extra,
+  };
+}
 
-vi.mock("@/base_components/data-display/tables/SortableTable.vue", () => ({
-  default: {
-    name: "SortableTable",
-    template:
-      '<div data-testid="sortable-table"><slot name="data"></slot></div>',
-    props: ["headers", "sortKey", "sortDirection"],
-    emits: ["onSortChange"],
-  },
-}));
+const sample = [
+  member("u-me", "Jane", MemberRole.ADMIN),
+  member("u-2", "Bob", MemberRole.USER),
+  member("u-3", "Olga", MemberRole.OWNER),
+];
 
-vi.mock("./members/MemberItem.vue", () => ({
-  default: {
-    name: "OrgMemberItem",
-    template: '<div data-testid="member-item"></div>',
-    props: ["member", "orgInfo"],
-    emits: ["refetch"],
-  },
-}));
+function page(data: object[], totalPages = 1): object {
+  return { data, total_pages: totalPages };
+}
 
-vi.mock("@/shadcn/ui/button/Button.vue", () => ({
-  default: {
-    name: "Button",
-    template: '<button data-testid="button"><slot></slot></button>',
-    props: ["variant"],
-  },
-}));
+let wrapper: VueWrapper | undefined;
 
-vi.mock("@iconify/vue", () => ({
-  Icon: {
-    name: "Icon",
-    template: '<span data-testid="icon"></span>',
-    props: ["icon"],
-  },
-}));
+async function render(props: object = { orgId: "org-1" }): Promise<VueWrapper> {
+  wrapper = mount(ManageMembers, { props, attachTo: document.body });
+  await flushPromises();
+  return wrapper;
+}
 
-// Mock RouterLink
-const MockRouterLink = {
-  name: "RouterLink",
-  template: '<a data-testid="router-link"><slot></slot></a>',
-  props: ["to"],
-};
+function button(name: string): HTMLElement | undefined {
+  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
+    (el) =>
+      el.getAttribute("aria-label") === name || el.textContent?.trim() === name,
+  );
+}
 
-// Mock debounce utility
-vi.mock("@/utils/searchUtils", () => ({
-  debounce: vi.fn((fn) => fn()),
-}));
-
-describe.skip("ManageMembers", () => {
-  let wrapper: any;
-  let router: any;
-
+describe("ManageMembers", () => {
   beforeEach(() => {
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [
-        { path: "/", component: { template: "<div></div>" } },
-        {
-          path: "/orgs/:orgId/members",
-          name: "orgMembers",
-          component: { template: "<div></div>" },
-        },
-        {
-          path: "/orgs/:orgId/manage/:page?",
-          name: "orgManage",
-          component: { template: "<div></div>" },
-        },
-        {
-          path: "/orgs/:orgId/invite",
-          name: "orgAddInvite",
-          component: { template: "<div></div>" },
-        },
-      ],
-    });
-
-    // Reset mocks
     vi.clearAllMocks();
-    mockOrgRepo.getOrgMembers.mockResolvedValue({
-      data: [
-        {
-          id: "member-1",
-          handle: "testuser",
-          email: "test@example.com",
-          role: MemberRole.USER,
-          joined_on: "2023-01-01",
-        },
-      ],
-      total_entries: 1,
-      total_pages: 1,
-    });
-  });
-
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
-  });
-
-  it("renders correctly", () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    expect(wrapper.find(".org-members-manage-wrapper").exists()).toBe(true);
-  });
-
-  it("shows HeaderItem component with correct orgId", () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    const headerItem = wrapper.findComponent({ name: "HeaderItem" });
-    expect(headerItem.exists()).toBe(true);
-    expect(headerItem.props().orgId).toBe("test-org-id");
-  });
-
-  it("shows loading state when loadingMembers is true", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.loadingMembers = true;
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    await wrapper.vm.$nextTick();
-
-    const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
-    expect(boxLoaders.length).toBe(10);
-  });
-
-  it("displays members list when data is loaded", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loadingMembers = false;
-    wrapper.vm.errorMembers = false;
-    wrapper.vm.orgMembers = [
-      {
-        id: "member-1",
-        handle: "testuser",
-        email: "test@example.com",
-        role: MemberRole.USER,
-      },
-    ];
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.findComponent({ name: "SearchBar" }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: "SortableTable" }).exists()).toBe(
-      true,
-    );
-    expect(wrapper.findComponent({ name: "Pagination" }).exists()).toBe(true);
-  });
-
-  it("shows error state when errorMembers is true", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loadingMembers = false;
-    wrapper.vm.errorMembers = true;
-    wrapper.vm.errorCodeMembers = APIErrors.EntityNotFound;
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain(
-      "We failed to retrieve the organization's members",
-    );
-    expect(wrapper.html()).toContain("This organization does not exist.");
-  });
-
-  it("shows related actions for authorized users", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = {
-      id: "test-org",
+    orgInfo.current = {
+      id: "org-1",
       role: MemberRole.ADMIN,
       personal: false,
     };
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Related Actions");
-    expect(wrapper.html()).toContain("Invite another User");
-    expect(wrapper.html()).toContain("Manage organization invites");
+    getOrgMembers.mockResolvedValue(page(sample));
   });
 
-  it("hides related actions for unauthorized users", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = {
-      id: "test-org",
-      role: MemberRole.USER,
-      personal: false,
-    };
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).not.toContain("Related Actions");
+  afterEach(() => {
+    wrapper?.unmount();
+    wrapper = undefined;
+    document.body.innerHTML = "";
   });
 
-  it("calls fetchOrganizationMembers on mount", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("shows the Members heading", async () => {
+    await render();
 
-    expect(mockOrgRepo.getOrgMembers).toHaveBeenCalled();
+    expect(document.querySelector("h1")?.textContent).toContain("Members");
   });
 
-  it("handles sort changes correctly", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("shows the organisation header above the list", async () => {
+    await render();
 
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loadingMembers = false;
-    wrapper.vm.errorMembers = false;
-
-    await wrapper.vm.$nextTick();
-
-    const sortableTable = wrapper.findComponent({ name: "SortableTable" });
-
-    if (sortableTable.exists()) {
-      await sortableTable.vm.$emit("onSortChange", "email");
-      expect(wrapper.vm.sortKey).toBe("email");
-    }
+    expect(document.body.textContent).toContain("Organisation header");
   });
 
-  it("shows no members message when no data and no search", async () => {
+  it("shows a loading status until the members arrive", async () => {
+    getOrgMembers.mockReturnValue(new Promise(() => {}));
     wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
+      props: { orgId: "org-1" },
+      attachTo: document.body,
     });
+    await flushPromises();
 
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loadingMembers = false;
-    wrapper.vm.errorMembers = false;
-    wrapper.vm.totalEntries = 0;
-    wrapper.vm.search = "";
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("No members");
+    expect(
+      document.querySelector('[role="status"][aria-label="Loading Members"]'),
+    ).not.toBeNull();
   });
 
-  it("shows no search results message when no data with search", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("lists every member with the role in words", async () => {
+    await render();
 
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loadingMembers = false;
-    wrapper.vm.errorMembers = false;
-    wrapper.vm.totalEntries = 0;
-    wrapper.vm.search = "test search";
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("No members match your search");
+    const text = document.querySelector("table")?.textContent ?? "";
+    expect(text).toContain("Jane Doe");
+    expect(text).toContain("(you)");
+    expect(text).toContain("Bob Doe");
+    expect(text).toContain("User");
+    expect(text).toContain("Owner");
   });
 
-  it("redirects unauthorized users to org overview", () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("says the members could not be loaded and offers a retry", async () => {
+    getOrgMembers.mockRejectedValueOnce(new Error("boom"));
+    await render();
 
-    const orgInfo = {
-      id: "test-org",
-      role: MemberRole.USER,
-      personal: false,
-    };
+    expect(document.body.textContent).toContain(
+      "The members could not be loaded.",
+    );
 
-    wrapper.vm.setOrgInfo(orgInfo);
+    button("Try again")?.click();
+    await flushPromises();
 
-    // Verify router.push was called (we can't easily test the exact call due to mocking)
-    // but we know setOrgInfo triggers the redirect for unauthorized users
+    expect(document.querySelector("table")?.textContent).toContain("Bob Doe");
   });
 
-  it("handles pagination changes", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("offers invitations to admins", async () => {
+    await render();
 
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.currentPage = 2;
-
-    await wrapper.vm.$nextTick();
-
-    // Verify fetchOrganizationMembers was called with refresh flag
-    expect(mockOrgRepo.getOrgMembers).toHaveBeenCalled();
+    expect(button("Invite a member")).toBeDefined();
+    expect(button("Open invitations")).toBeDefined();
   });
 
-  it("initializes with correct default values", () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("hides invitations in a personal organisation", async () => {
+    orgInfo.current = { ...orgInfo.current, personal: true };
+    await render();
 
-    expect(wrapper.vm.search).toBe("");
-    expect(wrapper.vm.loadingMembers).toBe(false);
-    expect(wrapper.vm.errorMembers).toBe(false);
-    expect(wrapper.vm.currentPage).toBe(0);
-    expect(wrapper.vm.entriesPerPage).toBe(10);
-    expect(wrapper.vm.sortKey).toBe("role");
+    expect(button("Invite a member")).toBeUndefined();
   });
 
-  it("handles refresh action", async () => {
-    wrapper = mount(ManageMembers, {
-      global: {
-        plugins: [router],
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
+  it("loads the members once it is shown", async () => {
+    await render();
+
+    expect(getOrgMembers).toHaveBeenCalledTimes(1);
+    expect(getOrgMembers).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "org-1", bearerToken: "test-token" }),
+    );
+  });
+
+  it("loads every page of members so sorting covers them all", async () => {
+    getOrgMembers
+      .mockResolvedValueOnce(page(sample.slice(0, 2), 2))
+      .mockResolvedValueOnce(page(sample.slice(2), 2));
+    await render();
+
+    expect(getOrgMembers).toHaveBeenCalledTimes(2);
+    expect(document.querySelector("table")?.textContent).toContain("Olga Doe");
+  });
+
+  it("sorting by Role puts owners first", async () => {
+    await render();
+
+    const header = [...document.querySelectorAll("th")].find((th) =>
+      th.textContent?.includes("Role"),
+    );
+    header?.querySelector("button")?.click();
+    await flushPromises();
+
+    const firstRow = document.querySelector("tbody tr")?.textContent ?? "";
+    expect(firstRow).toContain("Olga Doe");
+  });
+
+  it("filtering narrows the rows and says when nothing matches", async () => {
+    const view = await render();
+
+    await view.find('input[type="search"]').setValue("bob");
+    expect(document.querySelectorAll("tbody tr")).toHaveLength(1);
+
+    await view.find('input[type="search"]').setValue("nobody here");
+    expect(document.querySelector("tbody")?.textContent).toContain(
+      "No members match.",
+    );
+  });
+
+  it("sends users without admin rights back to the organisation overview", async () => {
+    orgInfo.current = { ...orgInfo.current, role: MemberRole.USER };
+    await render();
+
+    expect(router.push).toHaveBeenCalledWith({
+      name: "orgs",
+      params: { action: "manage", page: "main", orgId: "org-1" },
     });
+  });
 
-    const refreshSpy = vi.spyOn(wrapper.vm, "fetchOrganizationMembers");
-    await wrapper.vm.onRefetch();
+  it("goes back when no organisation is given", async () => {
+    await render({ orgId: "" });
 
-    expect(refreshSpy).toHaveBeenCalledWith(true);
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it("offers Remove for lower roles but never for yourself", async () => {
+    await render();
+
+    expect(button("Remove Bob Doe")).toBeDefined();
+    expect(button("Remove Jane Doe")).toBeUndefined();
+    expect(button("Remove Olga Doe")).toBeUndefined();
+  });
+
+  it("removes a member after confirming and reloads the list", async () => {
+    revokeMembership.mockResolvedValue(undefined);
+    await render();
+
+    button("Remove Bob Doe")?.click();
+    await flushPromises();
+    expect(document.body.textContent).toContain(
+      "Remove Bob Doe from the organisation?",
+    );
+
+    getOrgMembers.mockResolvedValue(page([sample[0]!, sample[2]!]));
+    button("Remove member")?.click();
+    await flushPromises();
+
+    expect(revokeMembership).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "org-1", userId: "u-2" }),
+    );
+    expect(document.querySelector("table")?.textContent).not.toContain(
+      "Bob Doe",
+    );
   });
 });

@@ -14,6 +14,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/shadcn/ui/sidebar";
@@ -24,6 +27,9 @@ import {
   navGroups,
   type NavItem,
   orgSettingsItem,
+  type OrgSettingsSubItem,
+  orgSettingsSubItems,
+  orgSettingsSubItemTarget,
 } from "./nav-items";
 import NotificationsDialog from "./NotificationsDialog.vue";
 import OrgSwitcher from "./OrgSwitcher.vue";
@@ -51,6 +57,21 @@ watch(
 function target(item: NavItem): RouteLocationRaw | null {
   if (item.label === "Results") return lastResults.value;
   return item.to(userStore.getDefaultOrg?.id);
+}
+
+// Inside the organisation settings, its pages are listed under the item.
+const orgSubItems = computed(() => {
+  const org = userStore.getDefaultOrg;
+  if (!org || !isActive(orgSettingsItem, route.name)) return [];
+  if (route.params.orgId !== org.id) return [];
+  return orgSettingsSubItems(org);
+});
+
+function isSubActive(item: OrgSettingsSubItem): boolean {
+  const page = typeof route.params.page === "string" ? route.params.page : "";
+  const known = orgSubItems.value.some((sub) => sub.pages.includes(page));
+  // Pages without their own entry belong to the overview.
+  return item.pages.includes(page) || (!known && item.pages.includes("main"));
 }
 
 const groups = navGroups.map((group, index) => ({
@@ -166,13 +187,30 @@ const activeBar =
               <RouterLink
                 :to="orgSettingsItem.to(userStore.getDefaultOrg?.id)!"
                 :aria-current="
-                  isActive(orgSettingsItem, route.name) ? 'page' : undefined
+                  isActive(orgSettingsItem, route.name) &&
+                  orgSubItems.length === 0
+                    ? 'page'
+                    : undefined
                 "
               >
                 <component :is="orgSettingsItem.icon" aria-hidden="true" />
                 <span>{{ orgSettingsItem.label }}</span>
               </RouterLink>
             </SidebarMenuButton>
+            <SidebarMenuSub v-if="orgSubItems.length > 0">
+              <SidebarMenuSubItem v-for="sub in orgSubItems" :key="sub.label">
+                <SidebarMenuSubButton as-child :is-active="isSubActive(sub)">
+                  <RouterLink
+                    :to="
+                      orgSettingsSubItemTarget(sub, userStore.getDefaultOrg!.id)
+                    "
+                    :aria-current="isSubActive(sub) ? 'page' : undefined"
+                  >
+                    <span>{{ sub.label }}</span>
+                  </RouterLink>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            </SidebarMenuSub>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>

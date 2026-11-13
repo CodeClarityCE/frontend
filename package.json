@@ -21,7 +21,6 @@
     "test:accessibility": "vitest run tests/integration/accessibility",
     "test:performance": "vitest run tests/performance",
     "test:integration": "vitest run tests/integration",
-    "test:visual": "percy exec -- playwright test --project=chromium",
     "test:size": "size-limit",
     "test:all": "run-s test:unit:run test:e2e test:size",
     "test:quick": "vitest run --changed origin/develop",
@@ -63,9 +62,6 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@iconify/vue": "5.0.5",
-    "@percy/cli": "1.32.12",
-    "@percy/client": "1.32.12",
-    "@percy/config": "1.32.12",
     "@playwright/test": "1.65.0",
     "@size-limit/preset-app": "14.3.0",
     "@stryker-mutator/core": "10.1.1",

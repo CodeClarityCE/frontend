@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
 
 test.describe("Authentication E2E Tests", () => {
@@ -100,15 +102,15 @@ test.describe("Authentication E2E Tests", () => {
 
       // Focus on email input
       await authPage.emailInput.focus();
-      await expect(authPage.emailInput).toBeFocused();
+      await expectVisibleFocus(authPage.emailInput);
 
       // Tab to password
       await page.keyboard.press("Tab");
-      await expect(authPage.passwordInput).toBeFocused();
+      await expectVisibleFocus(authPage.passwordInput);
 
       // Tab to submit button
       await page.keyboard.press("Tab");
-      await expect(authPage.loginButton).toBeFocused();
+      await expectVisibleFocus(authPage.loginButton);
     });
 
     test("should allow Enter key in password field", async ({ page }) => {
@@ -123,6 +125,26 @@ test.describe("Authentication E2E Tests", () => {
       // Form should respond (either submit or show loading/error)
       // Just verify page didn't crash
       await expect(authPage.emailInput).toBeVisible();
+    });
+  });
+
+  test.describe("Accessibility and visuals", () => {
+    test("has no WCAG 2.2 AA violations", async ({ page }) => {
+      await authPage.goto();
+      await authPage.expectFormVisible();
+      // Pre-existing violations, each removed by the ticket that fixes it.
+      await expectNoAxeViolations(page, {
+        known: [
+          { rule: "color-contrast", owner: "#112 primary button text" },
+          { rule: "image-alt", owner: "#126 login logos" },
+        ],
+      });
+    });
+
+    test("matches the approved screenshots", async ({ page }) => {
+      await authPage.goto();
+      await authPage.expectFormVisible();
+      await expectScreenshots(page, "login");
     });
   });
 

@@ -1,89 +1,79 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ExposureOverview from "@/codeclarity_components/dashboard/charts/ExposureOverview.vue";
 
-// Mock external dependencies
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BusinessLogicError: class BusinessLogicError extends Error {},
+const { getWeeklySeverityInfo } = vi.hoisted(() => ({
+  getWeeklySeverityInfo: vi.fn(),
 }));
 
 vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
   DashboardRepository: class {
-    getExposureOverview = vi.fn();
+    getWeeklySeverityInfo = getWeeklySeverityInfo;
   },
 }));
 
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    token: "mock-token",
-  })),
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => ({
-    defaultOrg: { id: "org-123" },
-  })),
-}));
-
-vi.mock("pinia", () => ({
-  storeToRefs: vi.fn((store) => store),
-}));
-
-// Mock Chart.js
-vi.mock("chart.js", () => ({
-  Chart: vi.fn(),
-  registerables: [],
-}));
-
-// Mock chart components
-vi.mock("@/base_components/data-display/charts/BarChart.vue", () => ({
-  default: {
-    name: "BarChart",
-    template: '<div data-testid="bar-chart"></div>',
-    props: ["data", "options"],
-  },
-}));
+function week(
+  n: number,
+  summed: number,
+  critical: number,
+  low: number,
+): object {
+  return {
+    week_number: { week: n, year: 2026 },
+    summed_severity: summed,
+    nmb_critical: critical,
+    nmb_high: 0,
+    nmb_medium: 0,
+    nmb_low: low,
+    nmb_none: 0,
+  };
+}
 
 describe("ExposureOverview", () => {
-  const defaultProps = {
-    integrationIds: ["test-id-1", "test-id-2"],
-  };
+  beforeEach(() => getWeeklySeverityInfo.mockReset());
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it("charts the summed severity of each week", async () => {
+    getWeeklySeverityInfo.mockResolvedValue({
+      data: [week(43, 98.1, 2, 4), week(44, 0, 0, 0)],
+    });
+    const wrapper = mount(ExposureOverview, { props: { integrationIds: [] } });
+    await flushPromises();
+
+    const chart = wrapper.find(
+      '[aria-label="Summed severity of vulnerabilities by week"]',
+    );
+    expect(
+      chart.findAll('[role="img"]').map((c) => c.attributes("aria-label")),
+    ).toEqual([
+      "Oct 26 - Nov 01, 2026: summed severity 98",
+      "Nov 02 - Nov 08, 2026: summed severity 0",
+    ]);
   });
 
-  it("should render successfully", () => {
-    const wrapper = mount(ExposureOverview, {
-      props: defaultProps,
+  it("lists each week's counts by severity, newest week first", async () => {
+    getWeeklySeverityInfo.mockResolvedValue({
+      data: [week(43, 98.1, 2, 4), week(44, 0, 0, 0)],
     });
-    expect(wrapper.exists()).toBe(true);
+    const wrapper = mount(ExposureOverview, { props: { integrationIds: [] } });
+    await flushPromises();
+
+    const weeks = wrapper
+      .find('[aria-labelledby="dashboard-weekly-exposure"]')
+      .findAll(":scope > li");
+    expect(weeks).toHaveLength(2);
+    expect(weeks[0]!.text()).toContain("Nov 02 - Nov 08, 2026");
+    expect(weeks[0]!.text()).toContain("No vulnerabilities");
+    expect(weeks[1]!.text()).toContain("Oct 26 - Nov 01, 2026");
+    expect(weeks[1]!.text()).toContain("2 Critical");
+    expect(weeks[1]!.text()).toContain("4 Low");
   });
 
-  it("should accept integration IDs as props", () => {
-    const wrapper = mount(ExposureOverview, {
-      props: defaultProps,
-    });
+  it("says when there is no data yet", async () => {
+    getWeeklySeverityInfo.mockResolvedValue({ data: [] });
+    const wrapper = mount(ExposureOverview, { props: { integrationIds: [] } });
+    await flushPromises();
 
-    expect(wrapper.props("integrationIds")).toEqual(["test-id-1", "test-id-2"]);
-  });
-
-  it("should handle empty integration IDs", () => {
-    const wrapper = mount(ExposureOverview, {
-      props: { integrationIds: [] },
-    });
-
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.props("integrationIds")).toEqual([]);
-  });
-
-  it("should handle props changes", async () => {
-    const wrapper = mount(ExposureOverview, {
-      props: defaultProps,
-    });
-
-    await wrapper.setProps({ integrationIds: ["new-id"] });
-    expect(wrapper.props("integrationIds")).toEqual(["new-id"]);
+    expect(wrapper.text()).toContain("No data yet.");
   });
 });

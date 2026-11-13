@@ -375,6 +375,42 @@ export default typescriptEslint.config(
           // Add { name, path } here when a home-grown component is replaced.
           removedComponents: [
             {
+              name: "InfoCard",
+              path: "src/base_components/ui/cards/InfoCard.vue",
+            },
+            {
+              name: "StatCard",
+              path: "src/base_components/ui/cards/StatCard.vue",
+            },
+            {
+              name: "BoxLoader",
+              path: "src/base_components/ui/loaders/BoxLoader.vue",
+            },
+            {
+              name: "PageHeader",
+              path: "src/base_components/layout/PageHeader.vue",
+            },
+            {
+              name: "BubbleComponent",
+              path: "src/base_components/data-display/bubbles/BubbleComponent.vue",
+            },
+            {
+              name: "SeverityBubble",
+              path: "src/base_components/data-display/bubbles/SeverityBubble.vue",
+            },
+            {
+              name: "LineChart",
+              path: "src/base_components/data-display/charts/LineChart.vue",
+            },
+            {
+              name: "RadarChart",
+              path: "src/base_components/data-display/charts/RadarChart.vue",
+            },
+            {
+              name: "WaffleChart",
+              path: "src/base_components/data-display/charts/WaffleChart.vue",
+            },
+            {
               name: "HeaderComponent",
               path: "src/codeclarity_components/header/HeaderComponent.vue",
             },

@@ -1,162 +1,152 @@
-<template>
-  <!-- Empty state when organization needs setup -->
-  <div class="h-full flex items-center justify-center min-h-[60vh]">
-    <!-- Error state -->
-    <Empty v-if="isError" class="border border-red-200 bg-red-50/50">
-      <EmptyHeader>
-        <EmptyMedia variant="icon" class="bg-red-100 text-red-600">
-          <Icon icon="solar:confounded-square-linear" class="size-6" />
-        </EmptyMedia>
-        <EmptyTitle>Unable to load dashboard</EmptyTitle>
-        <EmptyDescription>
-          We couldn't fetch your organization data. Please try again.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent>
-        <Button variant="outline" @click="$emit('retry')">
-          <Icon icon="solar:refresh-bold" class="size-4 mr-2" />
-          Try Again
-        </Button>
-      </EmptyContent>
-    </Empty>
-
-    <!-- No integrations state - only show when there are also no projects or analyses -->
-    <Empty
-      v-else-if="!hasIntegrations && !hasProjects && !hasAnalyses"
-      class="border border-gray-200"
-    >
-      <EmptyHeader>
-        <EmptyMedia
-          variant="icon"
-          class="bg-theme-primary/10 text-theme-primary"
-        >
-          <Icon icon="solar:folder-add-bold" class="size-6" />
-        </EmptyMedia>
-        <EmptyTitle>Get Started</EmptyTitle>
-        <EmptyDescription>
-          Import a project from GitHub/GitLab or upload a local archive to begin
-          security analysis.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent class="flex gap-3">
-        <RouterLink
-          :to="{
-            name: 'orgs',
-            params: { orgId: orgId, page: 'integrations', action: 'manage' },
-          }"
-        >
-          <Button variant="outline" class="border-gray-300">
-            <Icon icon="solar:link-bold" class="size-4 mr-2" />
-            Connect VCS
-          </Button>
-        </RouterLink>
-        <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-          <Button
-            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-          >
-            <Icon icon="solar:upload-bold" class="size-4 mr-2" />
-            Upload Project
-          </Button>
-        </RouterLink>
-      </EmptyContent>
-    </Empty>
-
-    <!-- No projects state -->
-    <Empty v-else-if="!hasProjects" class="border border-gray-200">
-      <EmptyHeader>
-        <EmptyMedia
-          variant="icon"
-          class="bg-theme-primary/10 text-theme-primary"
-        >
-          <Icon icon="solar:folder-add-bold" class="size-6" />
-        </EmptyMedia>
-        <EmptyTitle>Import Your First Project</EmptyTitle>
-        <EmptyDescription>
-          Import a project from your repositories or upload a local archive to
-          start analyzing for vulnerabilities.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent>
-        <RouterLink :to="{ name: 'projects', params: { page: 'add' } }">
-          <Button
-            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-          >
-            <Icon icon="solar:add-circle-bold" class="size-4 mr-2" />
-            Import Project
-          </Button>
-        </RouterLink>
-      </EmptyContent>
-    </Empty>
-
-    <!-- No analyses state -->
-    <Empty v-else-if="!hasAnalyses" class="border border-gray-200">
-      <EmptyHeader>
-        <EmptyMedia
-          variant="icon"
-          class="bg-theme-primary/10 text-theme-primary"
-        >
-          <Icon icon="solar:play-circle-bold" class="size-6" />
-        </EmptyMedia>
-        <EmptyTitle>Run Your First Analysis</EmptyTitle>
-        <EmptyDescription>
-          You have projects ready. Start an analysis to scan for vulnerabilities
-          and get security insights for your code.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent>
-        <RouterLink :to="{ name: 'projects', params: { page: 'list' } }">
-          <Button
-            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-          >
-            <Icon icon="solar:folder-open-bold" class="size-4 mr-2" />
-            Go to Projects
-          </Button>
-        </RouterLink>
-      </EmptyContent>
-    </Empty>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { CircleAlert, FolderPlus, Play } from "@lucide/vue";
+import { RouterLink } from "vue-router";
 
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Button } from "@/shadcn/ui/button";
 import {
   Empty,
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-  EmptyTitle,
 } from "@/shadcn/ui/empty";
 
-/**
- * DashboardEmptyState - Shows when dashboard has no data
- *
- * States (in priority order):
- * - Error: Unable to fetch organization data
- * - No integrations: User needs to connect GitHub/GitLab
- * - No projects: User needs to import a project
- * - No analyses: User needs to run an analysis
- */
+// The project overview's next step: retry, add a project or run an analysis.
+withDefaults(
+  defineProps<{
+    isError?: boolean;
+    hasIntegrations?: boolean;
+    hasProjects?: boolean;
+    hasAnalyses?: boolean;
+    orgId?: string;
+  }>(),
+  {
+    isError: false,
+    hasIntegrations: false,
+    hasProjects: false,
+    hasAnalyses: false,
+    orgId: undefined,
+  },
+);
 
-interface Props {
-  isError?: boolean;
-  hasIntegrations?: boolean;
-  hasProjects?: boolean;
-  hasAnalyses?: boolean;
-  orgId?: string;
-}
-
-withDefaults(defineProps<Props>(), {
-  isError: false,
-  hasIntegrations: false,
-  hasProjects: false,
-  hasAnalyses: false,
-  orgId: undefined,
-});
-
-defineEmits<{
-  retry: [];
-}>();
+defineEmits<{ retry: [] }>();
 </script>
+
+<template>
+  <Empty v-if="isError" class="rounded-card border border-dashed bg-card">
+    <EmptyHeader>
+      <EmptyMedia variant="icon" class="bg-neutral-subtle text-danger">
+        <CircleAlert aria-hidden="true" class="size-6" />
+      </EmptyMedia>
+      <h3 class="text-lg font-medium tracking-tight text-foreground-strong">
+        Unable to load the project overview
+      </h3>
+      <EmptyDescription>
+        We couldn't fetch your organisation's projects. Please try again.
+      </EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent>
+      <Button variant="outline" @click="$emit('retry')">Try again</Button>
+    </EmptyContent>
+  </Empty>
+
+  <Empty
+    v-else-if="!hasIntegrations && !hasProjects && !hasAnalyses"
+    class="rounded-card border border-dashed bg-card"
+  >
+    <EmptyHeader>
+      <EmptyMedia
+        variant="icon"
+        class="bg-brand-subtle text-brand-subtle-foreground"
+      >
+        <FolderPlus aria-hidden="true" class="size-6" />
+      </EmptyMedia>
+      <h3 class="text-lg font-medium tracking-tight text-foreground-strong">
+        Get started
+      </h3>
+      <EmptyDescription>
+        Import a project from GitHub or GitLab, or upload a local archive, to
+        start a security analysis.
+      </EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent class="flex flex-row justify-center gap-3">
+      <Button
+        :as="RouterLink"
+        :to="{
+          name: 'orgs',
+          params: { orgId: orgId, page: 'integrations', action: 'manage' },
+        }"
+        variant="outline"
+      >
+        Connect a VCS
+      </Button>
+      <Button
+        :as="RouterLink"
+        :to="{ name: 'projects', params: { page: 'add' } }"
+        arrow
+      >
+        Upload a project
+      </Button>
+    </EmptyContent>
+  </Empty>
+
+  <Empty
+    v-else-if="!hasProjects"
+    class="rounded-card border border-dashed bg-card"
+  >
+    <EmptyHeader>
+      <EmptyMedia
+        variant="icon"
+        class="bg-brand-subtle text-brand-subtle-foreground"
+      >
+        <FolderPlus aria-hidden="true" class="size-6" />
+      </EmptyMedia>
+      <h3 class="text-lg font-medium tracking-tight text-foreground-strong">
+        Import your first project
+      </h3>
+      <EmptyDescription>
+        Import a project from your repositories or upload a local archive to
+        start analysing it for vulnerabilities.
+      </EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent>
+      <Button
+        :as="RouterLink"
+        :to="{ name: 'projects', params: { page: 'add' } }"
+        arrow
+      >
+        Import a project
+      </Button>
+    </EmptyContent>
+  </Empty>
+
+  <Empty
+    v-else-if="!hasAnalyses"
+    class="rounded-card border border-dashed bg-card"
+  >
+    <EmptyHeader>
+      <EmptyMedia
+        variant="icon"
+        class="bg-brand-subtle text-brand-subtle-foreground"
+      >
+        <Play aria-hidden="true" class="size-6" />
+      </EmptyMedia>
+      <h3 class="text-lg font-medium tracking-tight text-foreground-strong">
+        Run your first analysis
+      </h3>
+      <EmptyDescription>
+        Your projects are ready. Start an analysis to scan them for
+        vulnerabilities.
+      </EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent>
+      <Button
+        :as="RouterLink"
+        :to="{ name: 'projects', params: { page: 'list' } }"
+        arrow
+      >
+        Go to Projects
+      </Button>
+    </EmptyContent>
+  </Empty>
+</template>

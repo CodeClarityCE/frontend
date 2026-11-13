@@ -1,89 +1,35 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LicenseDist from "@/codeclarity_components/dashboard/charts/LicenseDist.vue";
 
-// Mock external dependencies
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BusinessLogicError: class BusinessLogicError extends Error {},
-}));
+const { getLicenseDist } = vi.hoisted(() => ({ getLicenseDist: vi.fn() }));
 
 vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
   DashboardRepository: class {
-    getLicenseDistribution = vi.fn();
-  },
-}));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    token: "mock-token",
-  })),
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => ({
-    defaultOrg: { id: "org-123" },
-  })),
-}));
-
-vi.mock("pinia", () => ({
-  storeToRefs: vi.fn((store) => store),
-}));
-
-// Mock Chart.js
-vi.mock("chart.js", () => ({
-  Chart: vi.fn(),
-  registerables: [],
-}));
-
-// Mock chart components
-vi.mock("@/base_components/data-display/charts/DoughnutChart.vue", () => ({
-  default: {
-    name: "DoughnutChart",
-    template: '<div data-testid="doughnut-chart"></div>',
-    props: ["data", "options"],
+    getLicenseDist = getLicenseDist;
   },
 }));
 
 describe("LicenseDist", () => {
-  const defaultProps = {
-    integrationIds: ["test-id-1", "test-id-2"],
-  };
+  beforeEach(() => getLicenseDist.mockReset());
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it("charts licences from the most used, with counts and shares", async () => {
+    getLicenseDist.mockResolvedValue({ data: { ISC: 1, MIT: 3 } });
+    const wrapper = mount(LicenseDist, { props: { integrationIds: [] } });
+    await flushPromises();
+
+    const chart = wrapper.find('[aria-label="Dependencies by licence"]');
+    expect(
+      chart.findAll('[role="img"]').map((c) => c.attributes("aria-label")),
+    ).toEqual(["MIT: 3 dependencies (75%)", "ISC: 1 dependency (25%)"]);
   });
 
-  it("should render successfully", () => {
-    const wrapper = mount(LicenseDist, {
-      props: defaultProps,
-    });
-    expect(wrapper.exists()).toBe(true);
-  });
+  it("says when no licence is known", async () => {
+    getLicenseDist.mockResolvedValue({ data: {} });
+    const wrapper = mount(LicenseDist, { props: { integrationIds: [] } });
+    await flushPromises();
 
-  it("should accept integration IDs as props", () => {
-    const wrapper = mount(LicenseDist, {
-      props: defaultProps,
-    });
-
-    expect(wrapper.props("integrationIds")).toEqual(["test-id-1", "test-id-2"]);
-  });
-
-  it("should handle empty integration IDs", () => {
-    const wrapper = mount(LicenseDist, {
-      props: { integrationIds: [] },
-    });
-
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.props("integrationIds")).toEqual([]);
-  });
-
-  it("should handle props changes", async () => {
-    const wrapper = mount(LicenseDist, {
-      props: defaultProps,
-    });
-
-    await wrapper.setProps({ integrationIds: ["new-id"] });
-    expect(wrapper.props("integrationIds")).toEqual(["new-id"]);
+    expect(wrapper.text()).toContain("No data yet.");
   });
 });

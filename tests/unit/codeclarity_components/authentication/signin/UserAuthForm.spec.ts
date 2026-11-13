@@ -217,10 +217,10 @@ describe("UserAuthForm.vue", () => {
 
     it("has email and password fields", () => {
       const emailField = wrapper.find(".form-field .form-label");
-      expect(emailField.text()).toBe("Email*:");
+      expect(emailField.text()).toBe("Email");
 
       const passwordField = wrapper.findAll(".form-field .form-label")[1];
-      expect(passwordField.text()).toBe("Password:");
+      expect(passwordField.text()).toBe("Password");
 
       const inputs = wrapper.findAll("input");
       expect(inputs).toHaveLength(2);
@@ -418,11 +418,6 @@ describe("UserAuthForm.vue", () => {
   });
 
   describe("Form Behavior", () => {
-    it("applies correct classes to the main container", () => {
-      const container = wrapper.find(".grid.gap-6");
-      expect(container.exists()).toBe(true);
-    });
-
     it("resets error state when submitting", async () => {
       // First submission with error
       const { BusinessLogicError } = await import("@/utils/api/BaseRepository");

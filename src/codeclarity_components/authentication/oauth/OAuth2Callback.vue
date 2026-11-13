@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { CircleAlert, LoaderCircle } from "@lucide/vue";
 import { onMounted, ref } from "vue";
 
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
@@ -7,11 +8,14 @@ import type { AuthenticatedUser } from "@/codeclarity_components/authentication/
 import type { Token } from "@/codeclarity_components/authentication/token.entity";
 import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
+import AuthLayout from "../layout/AuthLayout.vue";
 
 // Props
 const props = defineProps<{
@@ -29,7 +33,10 @@ const userStore = useUserStore();
 const loading = ref(true);
 const errorNonRecoverable = ref(false);
 const error = ref(false);
-const errorCode = ref();
+const errorCode = ref<string>();
+
+const providerName =
+  props.provider === SocialProvider.GITLAB ? "GitLab" : "GitHub";
 
 // Methods
 async function finalizeAutentication(): Promise<void> {
@@ -156,92 +163,67 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <div
-    class="oauth-status-wrapper flex flex-col items-center justify-center h-screen"
-  >
-    <div
-      class="oauth-status-inner-wrapper -translate-y-3/4 flex flex-col items-center"
-    >
-      <div class="header">
-        <div v-if="props.provider === SocialProvider.GITLAB">
-          <Icon class="icon" icon="devicon:gitlab" />
-        </div>
-        <div v-if="props.provider === SocialProvider.GITHUB">
-          <span style="color: black">
-            <Icon class="icon" icon="simple-icons:github" />
-          </span>
-        </div>
-        <div class="provider">Authentication</div>
-      </div>
-
-      <!-- <div v-if="loading" class="spinner"></div> -->
+  <AuthLayout>
+    <template #icon>
       <Icon
-        v-if="loading"
-        icon="tabler:loader-2"
-        class="h-10 w-10 animate-spin"
+        v-if="props.provider === SocialProvider.GITLAB"
+        icon="devicon:gitlab"
+        role="img"
+        :aria-hidden="false"
+        aria-label="GitLab"
+        class="mb-2 size-12"
       />
+      <Icon
+        v-else
+        icon="simple-icons:github"
+        role="img"
+        :aria-hidden="false"
+        aria-label="GitHub"
+        class="mb-2 size-12 text-foreground-strong"
+      />
+    </template>
+    <template #title>
+      <template v-if="error">{{ providerName }} sign in failed</template>
+      <template v-else>Signing in with {{ providerName }}</template>
+    </template>
 
-      <template v-else-if="error">
-        <div v-if="!errorCode || errorNonRecoverable">
-          <div v-if="errorNonRecoverable" class="flex flex-col gap-y-7">
-            <div style="font-size: 1.5em">
-              <div>Whoops</div>
-              <div v-if="errorCode" style="font-size: 0.8em">
-                Error code:
-                <span style="font-family: var(--font-mono)">{{
-                  errorCode
-                }}</span>
-              </div>
-            </div>
-            <div v-if="errorCode" style="font-size: 1.2em">
-              We encountered some non-recoverable issue during the
-              authentication. Please click on the button below and try again. If
-              this error persists, then please contact the webmaster and provide
-              them with the error code listed above.
-            </div>
-            <div v-else style="font-size: 1.2em">
-              We encountered some non-recoverable issue during the
-              authentication. Please click on the button below and try again. If
-              this error persists, then please contact the webmaster and provide
-              them with the events leading up to this problem.
-            </div>
-            <div>
-              <Button @click="nonRecoverableErrorRedirect()"> Okay </Button>
-            </div>
-          </div>
-        </div>
-
-        <div v-else>
-          <div style="display: flex; flex-direction: column; row-gap: 1rem">
-            <div style="font-size: 1.5em">
-              <div>Error</div>
-            </div>
-
-            <div v-if="errorCode" style="font-size: 1.2em">
-              <div v-if="errorCode === APIErrors.AlreadyExists">
-                A user with that email already exists.
-              </div>
-              <div v-else>
-                An error occured during the processing of the request.
-              </div>
-            </div>
-
-            <div v-else style="font-size: 1.2em">
-              An error occured during the processing of the request.
-            </div>
-
-            <div>
-              <Button @click="nonRecoverableErrorRedirect()">
-                Back to login
-              </Button>
-            </div>
-          </div>
-        </div>
-      </template>
+    <div
+      v-if="loading"
+      role="status"
+      class="flex flex-col items-center gap-2 py-6 text-muted-foreground"
+    >
+      <LoaderCircle
+        aria-hidden="true"
+        class="size-6 animate-spin motion-reduce:animate-none"
+      />
+      Signing you in with {{ providerName }}
     </div>
-  </div>
-</template>
 
-<style scoped lang="scss">
-@use "@/assets/common/oauth.scss";
-</style>
+    <div v-else-if="error" class="flex flex-col gap-6">
+      <Alert variant="destructive">
+        <CircleAlert aria-hidden="true" />
+        <AlertDescription class="flex flex-col gap-2">
+          <p v-if="errorCode === APIErrors.AlreadyExists">
+            A user with that email already exists.
+          </p>
+          <p v-else-if="errorNonRecoverable || !errorCode">
+            We encountered a non-recoverable issue during the authentication.
+            Please try again. If this error persists, contact the webmaster with
+            {{
+              errorCode
+                ? "the error code below"
+                : "the events leading up to this problem"
+            }}.
+          </p>
+          <p v-else>An error occured during the processing of the request.</p>
+          <p v-if="errorCode">
+            Error code: <code class="font-mono">{{ errorCode }}</code>
+          </p>
+        </AlertDescription>
+      </Alert>
+      <Button class="w-full" @click="nonRecoverableErrorRedirect()">
+        Back to sign in
+      </Button>
+    </div>
+  </AuthLayout>
+</template>

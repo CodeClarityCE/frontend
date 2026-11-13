@@ -31,7 +31,9 @@ const mockAuthRepo = {
 };
 
 vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
-  AuthRepository: vi.fn().mockImplementation(() => mockAuthRepo),
+  AuthRepository: vi.fn().mockImplementation(function () {
+    return mockAuthRepo;
+  }),
 }));
 
 // Mock toast

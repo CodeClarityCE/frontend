@@ -6,9 +6,7 @@ import { ResultsRepository } from "./results.repository";
 vi.unmock("@/utils/api/BaseRepository");
 vi.unmock("@/codeclarity_components/results/results.repository");
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("vue-toast-notification", () => ({
-  useToast: () => ({ error: vi.fn() }),
-}));
+vi.mock("vue-sonner", () => ({ toast: { error: vi.fn() } }));
 
 describe("ResultsRepository.getMaliciousPackageAdvisories", () => {
   beforeEach(() => {

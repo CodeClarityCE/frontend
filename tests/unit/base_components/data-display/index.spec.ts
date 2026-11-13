@@ -7,14 +7,7 @@ describe("Data Display Index Exports", () => {
   });
   describe("Component Exports", () => {
     it("exports all chart components", async () => {
-      const chartComponents = [
-        "DoughnutChart",
-        "LineChart",
-        "RadarChart",
-        "TreeChart",
-        "TreeChartLegend",
-        "WaffleChart",
-      ];
+      const chartComponents = ["LineChart", "RadarChart", "WaffleChart"];
 
       for (const componentName of chartComponents) {
         const module = await import(`@/base_components/data-display`);
@@ -49,17 +42,7 @@ describe("Data Display Index Exports", () => {
       const module = await import(`@/base_components/data-display`);
 
       // Check that chart-related types are exported
-      expect((module as any).DoughnutChart).toBeDefined();
-
-      const doughnutModule = await import(
-        `@/base_components/data-display/charts/doughnutChart`
-      );
-      expect(doughnutModule).toBeDefined();
-
-      const groupedBarModule = await import(
-        `@/base_components/data-display/charts/groupedBarChart`
-      );
-      expect(groupedBarModule).toBeDefined();
+      expect((module as any).RadarChart).toBeDefined();
 
       const radarChartModule = await import(
         `@/base_components/data-display/charts/radarChart`
@@ -82,11 +65,11 @@ describe("Data Display Index Exports", () => {
       const exports = Object.keys(module);
 
       // Verify we have a reasonable number of exports
-      expect(exports.length).toBeGreaterThan(10);
+      expect(exports.length).toBeGreaterThan(5);
 
       // Check for essential component exports
       const essentialComponents = [
-        "DoughnutChart",
+        "LineChart",
         "BubbleComponent",
         "SeverityBubble",
         "SortableTable",
@@ -113,7 +96,7 @@ describe("Data Display Index Exports", () => {
 
   describe("Component Accessibility", () => {
     it("chart components have proper Vue component structure", async () => {
-      const chartComponents = ["DoughnutChart", "TreeChart"];
+      const chartComponents = ["LineChart", "WaffleChart"];
 
       for (const componentName of chartComponents) {
         const module = await import(`@/base_components/data-display`);
@@ -157,8 +140,8 @@ describe("Data Display Index Exports", () => {
       const indexModule = await import(`@/base_components/data-display`);
 
       // Test a few key components
-      const directDoughnut = (
-        await import(`@/base_components/data-display/charts/DoughnutChart.vue`)
+      const directLine = (
+        await import(`@/base_components/data-display/charts/LineChart.vue`)
       ).default;
       const directBubble = (
         await import(
@@ -169,7 +152,7 @@ describe("Data Display Index Exports", () => {
         await import(`@/base_components/data-display/tables/SortableTable.vue`)
       ).default;
 
-      expect(indexModule.DoughnutChart).toBe(directDoughnut);
+      expect(indexModule.LineChart).toBe(directLine);
       expect(indexModule.BubbleComponent).toBe(directBubble);
       expect(indexModule.SortableTable).toBe(directTable);
     });
@@ -193,7 +176,7 @@ describe("Data Display Index Exports", () => {
 
       // All expected components should be defined
       const criticalComponents = [
-        "DoughnutChart",
+        "LineChart",
         "SortableTable",
         "BubbleComponent",
       ];

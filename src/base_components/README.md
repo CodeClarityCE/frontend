@@ -87,11 +87,8 @@ In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 
 #### Charts (`data-display/charts/`, being replaced by `charts/`)
 
-- **DoughnutChart**: Doughnut chart
 - **LineChart**: Line chart
 - **RadarChart**: Radar/spider chart
-- **TreeChart**: Tree structure chart
-- **TreeChartLegend**: Legend for tree charts
 - **WaffleChart**: Waffle chart visualization
 
 #### Tables (`data-display/tables/`)

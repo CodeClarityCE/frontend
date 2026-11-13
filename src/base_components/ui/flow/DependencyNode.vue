@@ -51,44 +51,38 @@ defineProps<Props>();
 <style scoped>
 .dependency-node {
   position: relative;
-  background: white;
-  border: 1.5px solid #d1d5db;
+  background: var(--card);
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   padding: 6px 10px;
   min-width: 120px;
   max-width: 200px;
   cursor: pointer;
   transition:
-    border-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
 }
 
 .dependency-node:hover {
-  border-color: #9ca3af;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--muted-foreground);
+  box-shadow: var(--shadow-card);
 }
 
 .dependency-node.target {
-  border-color: #f59e0b;
+  border-color: var(--warning);
   border-width: 2px;
-  background: #fffbeb;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
-}
-
-.dependency-node.target:hover {
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+  background: var(--warning-subtle);
 }
 
 .dependency-node.pruned {
   border-style: dashed;
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  opacity: 0.7;
+  border-color: var(--muted-foreground);
+  background: var(--muted);
 }
 
 .dependency-node.virtual-root {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border: 2px solid var(--neutral);
+  background: var(--neutral-subtle);
 }
 
 .node-body {
@@ -101,7 +95,7 @@ defineProps<Props>();
 .node-name {
   font-size: 11px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground-strong);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -110,28 +104,28 @@ defineProps<Props>();
 }
 
 .target .node-name {
-  color: #92400e;
+  color: var(--warning);
   font-weight: 700;
 }
 
 .pruned .node-name {
-  color: #64748b;
+  color: var(--muted-foreground);
   font-weight: 400;
 }
 
 .virtual-root .node-name {
-  color: #1e40af;
+  color: var(--neutral);
   font-weight: 700;
 }
 
 .node-version {
   font-size: 10px;
-  color: #6b7280;
+  color: var(--muted-foreground);
   font-family: var(--font-mono);
 }
 
 .node-badge {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 8px;
@@ -140,32 +134,36 @@ defineProps<Props>();
 }
 
 .node-badge.prod {
-  background: #dcfce7;
-  color: #15803d;
-  border: 1px solid #86efac;
+  background: var(--success-subtle);
+  color: var(--success);
 }
 
 .node-badge.dev {
-  background: #f3e8ff;
-  color: #7c3aed;
-  border: 1px solid #c4b5fd;
+  background: var(--neutral-subtle);
+  color: var(--neutral);
 }
 
 .pruned-indicator {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--muted-foreground);
   letter-spacing: 2px;
 }
 
 .handle {
   width: 6px;
   height: 6px;
-  background: #d1d5db;
-  border: 1px solid #9ca3af;
+  background: var(--border);
+  border: 1px solid var(--muted-foreground);
 }
 
 .target .handle {
-  background: #fbbf24;
-  border-color: #f59e0b;
+  background: var(--warning-subtle);
+  border-color: var(--warning);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dependency-node {
+    transition: none;
+  }
 }
 </style>

@@ -1,503 +1,144 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { flushPromises } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 
+import { sbomDependency } from "./sbom.fixture";
 import SbomContent from "./SbomContent.vue";
 
-// Mock stores
-const mockUserStore = {
-  getDefaultOrg: { id: "org-1", name: "Test Org" },
-  getUser: {
-    default_org: { id: "org-1", name: "Test Org" },
-  },
-};
-
-const mockAuthStore = {
-  getToken: "test-token",
-  getAuthenticated: true,
-};
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => mockUserStore),
+const repo = vi.hoisted(() => ({
+  getSbomStat: vi.fn(),
+  getSbom: vi.fn(),
+  getVulnerabilitiesStat: vi.fn(),
 }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => mockAuthStore),
-}));
-
-// Mock child components
-vi.mock("./SbomTable.vue", () => ({
-  default: {
-    name: "SbomTable",
-    template: '<div data-testid="sbom-table">SBOM Table Component</div>',
-    props: ["analysisID", "projectID", "workspace"],
-  },
-}));
-
-vi.mock("../SelectWorkspace.vue", () => ({
-  default: {
-    name: "SelectWorkspace",
-    template:
-      '<div data-testid="select-workspace">Select Workspace Component</div>',
-    props: ["analysisID", "projectID"],
-    emits: ["update:selected_workspace"],
-  },
-}));
-
-vi.mock("@/base_components/ui/loaders/TextLoader.vue", () => ({
-  default: {
-    name: "TextLoader",
-    template: '<div data-testid="text-loader">Loading text...</div>',
-  },
-}));
-
-vi.mock("@/base_components/ui/loaders/DonutLoader.vue", () => ({
-  default: {
-    name: "DonutLoader",
-    template: '<div data-testid="donut-loader">Loading donut...</div>',
-  },
-}));
-
-vi.mock("@/base_components/data-display/charts/DoughnutChart.vue", () => ({
-  default: {
-    name: "DoughnutChart",
-    template: '<div data-testid="doughnut-chart">Doughnut Chart</div>',
-    props: ["data", "dimensions"],
-  },
-}));
-
-vi.mock("@/base_components/ui/cards/StatCard.vue", () => ({
-  default: {
-    name: "StatCard",
-    template:
-      '<div data-testid="stat-card">{{ label }}: {{ value }} ({{ subtitle }})<slot></slot></div>',
-    props: ["label", "value", "subtitle", "icon"],
-  },
-}));
-
-vi.mock("@/base_components/ui/cards/InfoCard.vue", () => ({
-  default: {
-    name: "InfoCard",
-    template: '<div data-testid="info-card"><slot></slot></div>',
-    props: ["title", "description", "icon", "variant"],
-  },
-}));
-
-// Mock Shadcn components
-vi.mock("@/shadcn/ui/button", () => ({
-  Button: {
-    name: "Button",
-    template: '<button data-testid="button"><slot></slot></button>',
-    props: ["variant", "size"],
-  },
-}));
-
-// Render tooltip content inline so its text can be read
-vi.mock("@/shadcn/ui/tooltip", () => {
-  const passthrough = { template: "<div><slot></slot></div>" };
-  return {
-    Tooltip: passthrough,
-    TooltipContent: passthrough,
-    TooltipProvider: passthrough,
-    TooltipTrigger: passthrough,
-  };
-});
-
-// Mock Icon component
-vi.mock("@iconify/vue", () => ({
-  Icon: {
-    name: "Icon",
-    template: '<span data-testid="icon"></span>',
-    props: ["icon"],
-  },
-}));
-
-// Mock results repository
-const mockSbomStats = {
-  number_of_dependencies: 100,
-  number_of_outdated_dependencies: 10,
-  number_of_deprecated_dependencies: 5,
-  number_of_unlicensed_dependencies: 3,
-  dependency_health: [],
-};
-
-const mockGetSbomStat = vi.fn();
-const mockGetVulnerabilitiesStat = vi.fn();
-
 vi.mock("@/codeclarity_components/results/results.repository", () => ({
   ResultsRepository: class {
-    getSbomStat = mockGetSbomStat;
-    getVulnerabilitiesStat = mockGetVulnerabilitiesStat;
-    getSbom = vi.fn().mockResolvedValue({
-      data: [],
-      pagination: { page: 1, limit: 50, totalPages: 1, totalItems: 0 },
-    });
-    getSbomWorkspaces = vi.fn().mockResolvedValue({
-      data: [{ name: "default", path: "." }],
-    });
+    getSbomStat = repo.getSbomStat;
+    getSbom = repo.getSbom;
+    getVulnerabilitiesStat = repo.getVulnerabilitiesStat;
   },
 }));
+vi.mock("@/stores/auth", () => ({
+  useAuthStore: () => ({ getToken: "token", getAuthenticated: true }),
+}));
+vi.mock("@/stores/user", () => ({
+  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
+}));
+
+const stats = {
+  number_of_dependencies: 3,
+  number_of_direct_dependencies: 1,
+  number_of_transitive_dependencies: 2,
+  number_of_both_direct_transitive_dependencies: 0,
+  number_of_deprecated_dependencies: 1,
+  number_of_unlicensed_dependencies: 0,
+  number_of_outdated_dependencies: 2,
+};
+
+const dependencies = [
+  sbomDependency("express", "4.18.2", {
+    newest_release: "5.0.1",
+    outdated: true,
+    is_direct: true,
+    is_direct_count: 1,
+  }),
+  sbomDependency("qs", "6.10.3"),
+  sbomDependency("ms", "2.1.3"),
+];
+
+async function show(
+  options: { stats?: object; issues?: number | null } = {},
+): Promise<void> {
+  repo.getSbomStat.mockResolvedValue({ data: options.stats ?? stats });
+  repo.getSbom.mockResolvedValue({ data: dependencies, total_pages: 1 });
+  if (options.issues === null)
+    repo.getVulnerabilitiesStat.mockRejectedValue(new Error("none"));
+  else
+    repo.getVulnerabilitiesStat.mockResolvedValue({
+      data: { number_of_issues: options.issues ?? 4 },
+    });
+  render(SbomContent, {
+    props: { analysisID: "a-1", projectID: "p-1", projectName: "web" },
+    global: { stubs: { SelectWorkspace: true } },
+  });
+  await flushPromises();
+}
+
+// The visible text pieces of an element, in reading order.
+function texts(element: HTMLElement): string[] {
+  return Array.from(element.querySelectorAll("*"))
+    .filter((el) => el.children.length === 0)
+    .map((el) => el.textContent?.trim() ?? "")
+    .filter(Boolean);
+}
 
 describe("SbomContent", () => {
-  let wrapper: any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockGetSbomStat.mockResolvedValue({ data: mockSbomStats });
-    mockGetVulnerabilitiesStat.mockResolvedValue({
-      data: { number_of_issues: 0, number_of_vulnerabilities: 0 },
-    });
+  it("sums up the dependencies in tiles", async () => {
+    await show();
+    const tiles = within(
+      screen.getByRole("list", { name: "Dependency numbers" }),
+    )
+      .getAllByRole("listitem")
+      .map((tile) => texts(tile).slice(0, 2));
+    expect(tiles).toEqual([
+      ["Dependencies", "3"],
+      ["Direct dependencies", "1"],
+      ["Health grade", expect.any(String)],
+      ["Security issues", "4"],
+    ]);
   });
 
-  async function mountLoaded(
-    sbomStats: Record<string, unknown> = {},
-  ): Promise<any> {
-    mockGetSbomStat.mockResolvedValue({
-      data: { ...mockSbomStats, ...sbomStats },
+  it("shows a dash when vulnerability data is missing", async () => {
+    await show({ issues: null });
+    const tile = screen
+      .getByText("Security issues")
+      .closest("li") as HTMLElement;
+    expect(texts(tile)).toEqual([
+      "Security issues",
+      "-",
+      "Vulnerability data unavailable",
+    ]);
+  });
+
+  it("describes the composition chart in words", async () => {
+    await show();
+    expect(
+      screen.getByLabelText("Transitive: 2 dependencies, 67% of total"),
+    ).toBeTruthy();
+  });
+
+  it("lists every dependency in the table", async () => {
+    await show();
+    const table = screen.getByRole("table", { name: "Dependencies" });
+    expect(within(table).getAllByRole("row")).toHaveLength(4);
+  });
+
+  it("opens the updates for direct dependencies behind their latest release", async () => {
+    await show();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Update 1 direct dependency" }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "Update direct dependencies",
     });
-    wrapper = mount(SbomContent, {
-      props: { projectID: "project-123", analysisID: "analysis-456" },
+    expect(within(dialog).getByText("express")).toBeTruthy();
+  });
+
+  it("explains an analysis with no dependencies", async () => {
+    await show({ stats: { number_of_dependencies: 0 } });
+    expect(screen.getByText("No dependencies found")).toBeTruthy();
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("says so when the SBOM cannot be loaded", async () => {
+    repo.getSbomStat.mockRejectedValue(new Error("down"));
+    repo.getSbom.mockResolvedValue({ data: [], total_pages: 1 });
+    repo.getVulnerabilitiesStat.mockResolvedValue({ data: null });
+    render(SbomContent, {
+      props: { analysisID: "a-1", projectID: "p-1" },
+      global: { stubs: { SelectWorkspace: true } },
     });
     await flushPromises();
-    return wrapper;
-  }
-
-  function securityCard(): string {
-    const card = wrapper
-      .findAll('[data-testid="stat-card"]')
-      .find((c: any) => c.text().startsWith("Security Issues"));
-    return card.text();
-  }
-
-  it("reads No issues found only when the vulnerability count is zero", async () => {
-    await mountLoaded();
-
-    expect(securityCard()).toContain("Security Issues: 0 (No issues found)");
-  });
-
-  it("does not reassure the user when the vulnerability count is unavailable", async () => {
-    mockGetVulnerabilitiesStat.mockRejectedValue(new Error("no results"));
-
-    await mountLoaded();
-
-    expect(securityCard()).not.toContain("No issues found");
-    expect(securityCard()).toContain("Vulnerability data unavailable");
-  });
-
-  it("does not reassure the user while the vulnerability count loads", () => {
-    mockGetVulnerabilitiesStat.mockReturnValue(new Promise(() => undefined));
-
-    wrapper = mount(SbomContent, {
-      props: { projectID: "project-123", analysisID: "analysis-456" },
-    });
-
-    expect(securityCard()).not.toContain("No issues found");
-  });
-
-  it("keeps deprecated and unlicensed out of Security Issues, under their own labels", async () => {
-    await mountLoaded({
-      number_of_deprecated_dependencies: 5,
-      number_of_unlicensed_dependencies: 3,
-    });
-
-    expect(securityCard()).toContain("Security Issues: 0");
-    expect(
-      wrapper.find('[data-testid="health-factor-deprecated"]').text(),
-    ).toMatch(/Deprecated\s*5/);
-    expect(
-      wrapper.find('[data-testid="health-factor-unlicensed"]').text(),
-    ).toMatch(/Unlicensed\s*3/);
-  });
-
-  it("does not call a project critical when every dependency is merely outdated", async () => {
-    await mountLoaded({
-      number_of_dependencies: 100,
-      number_of_outdated_dependencies: 100,
-      number_of_deprecated_dependencies: 0,
-      number_of_unlicensed_dependencies: 0,
-    });
-
-    expect(wrapper.text()).not.toContain("Critical");
-    expect(wrapper.text()).toContain("Needs attention");
-  });
-
-  it("does not call an empty project critical", async () => {
-    await mountLoaded({
-      number_of_dependencies: 0,
-      number_of_outdated_dependencies: 0,
-      number_of_deprecated_dependencies: 0,
-      number_of_unlicensed_dependencies: 0,
-    });
-
-    expect(wrapper.text()).not.toContain("Critical");
-  });
-
-  it("still calls a project critical when most dependencies are deprecated", async () => {
-    await mountLoaded({
-      number_of_dependencies: 100,
-      number_of_outdated_dependencies: 0,
-      number_of_deprecated_dependencies: 60,
-      number_of_unlicensed_dependencies: 0,
-    });
-
-    expect(wrapper.text()).toContain("Critical");
-  });
-
-  it("explains what the health grade is based on", async () => {
-    await mountLoaded();
-
-    const explanation = wrapper.find('[data-testid="health-explanation"]');
-    expect(explanation.text()).toContain("Deprecated");
-    expect(explanation.text()).toContain("outdated");
-    expect(explanation.text()).toContain("Security Issues");
-  });
-
-  it("counts vulnerabilities as Security Issues, for the selected workspace", async () => {
-    mockGetVulnerabilitiesStat.mockResolvedValue({
-      data: { number_of_issues: 15, number_of_vulnerabilities: 4 },
-    });
-
-    await mountLoaded({
-      number_of_deprecated_dependencies: 0,
-      number_of_unlicensed_dependencies: 0,
-    });
-
-    expect(securityCard()).toContain("Security Issues: 15");
-    expect(securityCard()).toContain("Requires attention");
-    expect(mockGetVulnerabilitiesStat).toHaveBeenCalledWith(
-      expect.objectContaining({
-        projectId: "project-123",
-        analysisId: "analysis-456",
-        workspace: ".",
-      }),
-    );
-  });
-
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
-  });
-
-  it("renders correctly with default props", () => {
-    wrapper = mount(SbomContent, {
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.exists()).toBe(true);
-  });
-
-  it("renders with provided projectID and analysisID props", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.vm.projectID).toBe("project-123");
-    expect(wrapper.vm.analysisID).toBe("analysis-456");
-  });
-
-  it("renders SelectWorkspace component", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    const selectWorkspace = wrapper.findComponent({ name: "SelectWorkspace" });
-    expect(selectWorkspace.exists()).toBe(true);
-  });
-
-  it("renders SbomTable component", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    const sbomTable = wrapper.findComponent({ name: "SbomTable" });
-    expect(sbomTable.exists()).toBe(true);
-  });
-
-  it("has correct default prop values", () => {
-    wrapper = mount(SbomContent, {
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.vm.projectID).toBe("");
-    expect(wrapper.vm.analysisID).toBe("");
-  });
-
-  it("initializes with correct default state", () => {
-    wrapper = mount(SbomContent, {
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.vm.error).toBe(false);
-    expect(wrapper.vm.loading).toBe(true);
-    expect(wrapper.vm.render).toBe(false);
-    expect(wrapper.vm.selected_workspace).toBe(".");
-  });
-
-  it("has health score computed property", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    // Health score is a computed property that should exist
-    expect(typeof wrapper.vm.healthScore).toBe("number");
-    expect(wrapper.vm.healthScore).toBeGreaterThanOrEqual(0);
-    expect(wrapper.vm.healthScore).toBeLessThanOrEqual(100);
-  });
-
-  it("handles prop changes gracefully", async () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    // Component should handle prop changes without errors
-    await wrapper.setProps({ projectID: "project-456" });
-    expect(wrapper.vm.projectID).toBe("project-456");
-
-    await wrapper.setProps({ analysisID: "analysis-789" });
-    expect(wrapper.vm.analysisID).toBe("analysis-789");
-  });
-
-  it("maintains reactive state across prop changes", async () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    const initialWorkspace = wrapper.vm.selected_workspace;
-
-    await wrapper.setProps({ projectID: "project-456" });
-
-    // Reactive state should be maintained
-    expect(wrapper.vm.selected_workspace).toBe(initialWorkspace);
-    expect(typeof wrapper.vm.error).toBe("boolean");
-  });
-
-  it("has loading state property", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    // Loading is a reactive property that should exist
-    expect(typeof wrapper.vm.loading).toBe("boolean");
-  });
-
-  it("has correct donut chart dimensions", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.vm.donutDimensions).toEqual({
-      width: "180px",
-      height: "180px",
-    });
-  });
-
-  it("has chart data properties", () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    // Chart data properties should exist
-    expect(wrapper.vm.donut_data).toBeDefined();
-    expect(wrapper.vm.bar_data).toHaveProperty("labels");
-    expect(wrapper.vm.bar_data).toHaveProperty("datasets");
-  });
-
-  it("handles repository authentication requirements", async () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    // Component should check for authentication before making API calls
-    expect(mockAuthStore.getAuthenticated).toBe(true);
-    expect(mockAuthStore.getToken).toBe("test-token");
-    expect(mockUserStore.getDefaultOrg).toBeTruthy();
-  });
-
-  it("passes correct props to child components", async () => {
-    wrapper = mount(SbomContent, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    const selectWorkspace = wrapper.findComponent({ name: "SelectWorkspace" });
-    const sbomTable = wrapper.findComponent({ name: "SbomTable" });
-
-    expect(selectWorkspace.props("projectID")).toBe("project-123");
-    expect(selectWorkspace.props("analysisID")).toBe("analysis-456");
-
-    expect(sbomTable.props("projectID")).toBe("project-123");
-    expect(sbomTable.props("analysisID")).toBe("analysis-456");
+    expect(screen.getByText("Could not load the SBOM")).toBeTruthy();
   });
 });

@@ -1,25 +1,17 @@
 <script lang="ts" setup>
-import { Rocket } from "@lucide/vue";
-import { type Ref, ref } from "vue";
+import { CircleCheck } from "@lucide/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
+import { type Ref, ref, watch } from "vue";
 
+import { DataTable } from "@/base_components/data-table";
+import { StatTile } from "@/base_components/page";
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
-import Alert from "@/shadcn/ui/alert/Alert.vue";
-import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
-import AlertTitle from "@/shadcn/ui/alert/AlertTitle.vue";
-import { Badge } from "@/shadcn/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shadcn/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
 import ResultTimestamp from "../components/ResultTimestamp.vue";
-import { Result } from "../result.entity";
 import { ResultsRepository } from "../results.repository";
 
 import type { CodeQLResult } from "./codeql.entity";
@@ -30,17 +22,47 @@ const props = defineProps<{
   runIndex?: number | null;
 }>();
 
-// Store setup
 const userStore = useUserStore();
 const authStore = useAuthStore();
+const resultsRepository = new ResultsRepository();
 
-// Repositories setup
-const resultsRepository: ResultsRepository = new ResultsRepository();
+interface Finding {
+  key: string;
+  rule: string;
+  message: string;
+  file: string;
+  lines: string;
+}
 
-const result: Ref<Result> = ref(new Result());
-const codeql_results: Ref<CodeQLResult[]> = ref([]);
+const createdOn: Ref<Date | string | undefined> = ref(undefined);
+const findings: Ref<Finding[]> = ref([]);
+const loading = ref(true);
+const failed = ref(false);
 
-async function init(): Promise<void> {
+// One row per location of each CodeQL result.
+function toFindings(results: CodeQLResult[]): Finding[] {
+  return results.flatMap((result, index) =>
+    (result.locations ?? []).map((location, i) => {
+      const { uri } = location.physicalLocation.artifactLocation;
+      const { startLine, endLine } = location.physicalLocation.region;
+      return {
+        key: `${index}-${i}`,
+        rule: result.ruleId,
+        message: result.message.text,
+        file: uri,
+        lines:
+          startLine === endLine || !endLine
+            ? String(startLine)
+            : `${startLine} to ${endLine}`,
+      };
+    }),
+  );
+}
+
+let latestRequest = 0;
+
+async function load(): Promise<void> {
+  const request = ++latestRequest;
   try {
     const res = await resultsRepository.getResultByType({
       orgId: userStore.getDefaultOrg?.id ?? "",
@@ -50,78 +72,111 @@ async function init(): Promise<void> {
       bearerToken: authStore.getToken ?? "",
       runIndex: props.runIndex,
     });
-    result.value = res.data;
-    const resultData = res.data.result as {
-      workspaces: Record<string, { results?: CodeQLResult[] }>;
+    if (request !== latestRequest) return;
+    createdOn.value = res.data.created_on;
+    const data = res.data.result as {
+      workspaces?: Record<string, { results?: CodeQLResult[] }>;
     };
-    const workspaces = resultData.workspaces;
-    const workspace = workspaces["."];
-    codeql_results.value = workspace?.results ?? [];
-  } catch (e) {
-    console.error(e);
+    findings.value = toFindings(data.workspaces?.["."]?.results ?? []);
+    failed.value = false;
+  } catch {
+    if (request === latestRequest) failed.value = true;
+  } finally {
+    if (request === latestRequest) loading.value = false;
   }
 }
 
-void init();
+watch(
+  [() => props.analysis.id, () => props.project.id, () => props.runIndex],
+  () => void load(),
+  { immediate: true },
+);
+
+const columns: ColumnDef<Finding, unknown>[] = [
+  { id: "rule", header: "Rule", accessorFn: (f) => f.rule },
+  {
+    id: "message",
+    header: "Finding",
+    enableSorting: false,
+    accessorFn: (f) => f.message,
+  },
+  { id: "file", header: "File", accessorFn: (f) => f.file },
+  {
+    id: "lines",
+    header: "Lines",
+    enableSorting: false,
+    enableGlobalFilter: false,
+    accessorFn: (f) => f.lines,
+  },
+];
+
+function rowKey(finding: Finding): string {
+  return finding.key;
+}
 </script>
 
 <template>
-  <ResultTimestamp
-    :created-on="result.created_on"
-    :run-index="props.runIndex"
-    plugin-name="CodeQL"
-  />
+  <section aria-labelledby="codeql-heading" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <h2
+        id="codeql-heading"
+        class="text-xl font-semibold tracking-tight text-foreground-strong"
+      >
+        CodeQL findings
+      </h2>
+      <ResultTimestamp
+        :created-on="createdOn"
+        :run-index="runIndex"
+        plugin-name="CodeQL"
+      />
+    </div>
 
-  <div
-    v-if="codeql_results.length > 0"
-    class="grid md:grid-cols-2 xl:grid-cols-3 gap-2"
-  >
-    <Card v-for="(codeql_result, index) in codeql_results" :key="index">
-      <CardHeader>
-        <CardTitle>{{ codeql_result.ruleId }}</CardTitle>
-        <CardDescription>{{ codeql_result.message.text }}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div class="grid grid-cols-8 gap-2">
-          <span class="text-xs col-span-4 text-center">File</span>
-          <span class="text-xs text-center">Start Line</span>
-          <span class="text-xs text-center">End Line</span>
-          <span class="text-xs text-center">Start Column</span>
-          <span class="text-xs text-center">End Column</span>
-        </div>
-        <div
-          v-for="(location, i) of codeql_result.locations"
-          :key="i"
-          class="grid grid-cols-8 gap-2"
-        >
-          <Badge variant="secondary" class="rounded-full col-span-4">{{
-            location.physicalLocation.artifactLocation.uri
-          }}</Badge>
-          <Badge class="rounded-full">{{
-            location.physicalLocation.region.startLine
-          }}</Badge>
-          <Badge class="rounded-full">{{
-            location.physicalLocation.region.endLine
-          }}</Badge>
-          <Badge class="rounded-full">{{
-            location.physicalLocation.region.startColumn
-          }}</Badge>
-          <Badge class="rounded-full">{{
-            location.physicalLocation.region.endColumn
-          }}</Badge>
-        </div>
-      </CardContent>
-      <br />
-    </Card>
-  </div>
-  <!-- <DataTable v-if="codeql_results.length > 0" :columns="columns" :data="codeql_results" /> -->
-  <div v-else class="flex justify-center">
-    <Alert class="w-1/2">
-      <Rocket class="h-4 w-4" />
-      <AlertTitle>Well done!</AlertTitle>
-      <AlertDescription>
-        Everything looks fine! CodeQL didn't find anything
-      </AlertDescription>
+    <Alert v-if="failed" variant="destructive">
+      <AlertTitle>Could not load the CodeQL results</AlertTitle>
+      <AlertDescription>Reload the page to try again.</AlertDescription>
     </Alert>
-  </div>
+
+    <Alert v-else-if="!loading && findings.length === 0">
+      <CircleCheck aria-hidden="true" class="size-4 text-success" />
+      <AlertTitle>No findings</AlertTitle>
+      <AlertDescription>CodeQL found no issues in this code.</AlertDescription>
+    </Alert>
+
+    <template v-else>
+      <ul
+        v-if="!loading"
+        aria-label="CodeQL numbers"
+        class="grid gap-4 sm:grid-cols-3"
+      >
+        <StatTile label="Findings" :value="findings.length" />
+        <StatTile
+          label="Rules"
+          :value="new Set(findings.map((f) => f.rule)).size"
+        />
+        <StatTile
+          label="Files"
+          :value="new Set(findings.map((f) => f.file)).size"
+        />
+      </ul>
+      <DataTable
+        :columns="columns"
+        :data="findings"
+        :loading="loading"
+        :row-key="rowKey"
+        :initial-sorting="[{ id: 'file', desc: false }]"
+        caption="CodeQL findings"
+        filter-label="Search findings"
+        empty-text="No findings match the search."
+      >
+        <template #cell-rule="{ row }">
+          <code class="font-mono font-semibold text-foreground-strong">{{
+            row.rule
+          }}</code>
+        </template>
+        <template #cell-file="{ row }">
+          <code class="font-mono text-sm">{{ row.file }}</code>
+        </template>
+      </DataTable>
+    </template>
+  </section>
 </template>

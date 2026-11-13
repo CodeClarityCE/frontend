@@ -470,6 +470,38 @@ vi.mock("@vueuse/core", () => ({
 
 // Mock @lucide/vue icons
 vi.mock("@lucide/vue", () => ({
+  CalendarDays: {
+    name: "CalendarDays",
+    template: '<svg data-testid="calendar-days-icon"><path/></svg>',
+  },
+  ChevronRight: {
+    name: "ChevronRight",
+    template: '<svg data-testid="chevron-right-icon"><path/></svg>',
+  },
+  CircleCheck: {
+    name: "CircleCheck",
+    template: '<svg data-testid="circle-check-icon"><path/></svg>',
+  },
+  Copy: {
+    name: "Copy",
+    template: '<svg data-testid="copy-icon"><path/></svg>',
+  },
+  Download: {
+    name: "Download",
+    template: '<svg data-testid="download-icon"><path/></svg>',
+  },
+  Maximize: {
+    name: "Maximize",
+    template: '<svg data-testid="maximize-icon"><path/></svg>',
+  },
+  Minus: {
+    name: "Minus",
+    template: '<svg data-testid="minus-icon"><path/></svg>',
+  },
+  RefreshCw: {
+    name: "RefreshCw",
+    template: '<svg data-testid="refresh-cw-icon"><path/></svg>',
+  },
   Search: {
     name: "Search",
     template: '<svg data-testid="search-icon"><path/></svg>',

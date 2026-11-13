@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { type Ref, ref, watch } from "vue";
+import { Copy } from "@lucide/vue";
+import { computed, type Ref, ref, watch } from "vue";
 
-import BubbleComponent from "@/base_components/data-display/bubbles/BubbleComponent.vue";
-import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
+import { StatusBadge, type StatusTone } from "@/base_components/page";
 import {
-  PatchedManifestData,
-  type PatchInfo,
+  type PatchedManifestData,
+  PatchType,
   type UpgradeInfo,
 } from "@/codeclarity_components/results/patching/Patching";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
+import { Button } from "@/shadcn/ui/button";
 import {
   Card,
   CardContent,
@@ -17,405 +17,198 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shadcn/ui/card";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
+import { errorToast, successToast } from "@/utils/toasts";
 
-export interface Props {
-  analysisID?: string;
-  projectID?: string;
+// The patched manifest and the steps to apply it.
+const props = withDefaults(
+  defineProps<{ analysisID?: string; projectID?: string }>(),
+  { analysisID: "", projectID: "" },
+);
+
+const resultsRepository = new ResultsRepository();
+const userStore = useUserStore();
+const authStore = useAuthStore();
+
+const data: Ref<PatchedManifestData | null> = ref(null);
+const loading = ref(true);
+
+let latestRequest = 0;
+
+async function load(): Promise<void> {
+  const org = userStore.getDefaultOrg;
+  const token = authStore.getToken;
+  if (!org || !token || props.projectID === "" || props.analysisID === "")
+    return;
+  const request = ++latestRequest;
+  try {
+    const res = await resultsRepository.getPatchesManifest({
+      orgId: org.id,
+      projectId: props.projectID,
+      analysisId: props.analysisID,
+      workspace: ".",
+      bearerToken: token,
+      handleBusinessErrors: true,
+    });
+    if (request === latestRequest) data.value = res.data;
+  } catch {
+    if (request === latestRequest) data.value = null;
+  } finally {
+    if (request === latestRequest) loading.value = false;
+  }
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  analysisID: "",
-  projectID: "",
+watch([() => props.projectID, () => props.analysisID], () => void load(), {
+  immediate: true,
 });
 
-const patches: Ref<PatchInfo[]> = ref([]);
-const error: Ref<boolean> = ref(false);
-const render: Ref<boolean> = ref(false);
-const sortOptionSelected: Ref<string> = ref("patch_type");
-const pageLimitSelected: Ref<number> = ref(5);
-const pageNumber: Ref<number> = ref(0);
-const searchKey: Ref<string> = ref("");
-const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
+const FIELDS = [
+  ["dependencies", "Dependencies"],
+  ["devDependencies", "Development dependencies"],
+  ["peerDependencies", "Peer dependencies"],
+  ["optionalDependencies", "Optional dependencies"],
+  ["bundleDependencies", "Bundled dependencies"],
+  ["bundledDependencies", "Bundled dependencies"],
+] as const;
 
-const patchedManifestData: Ref<PatchedManifestData> = ref(
-  new PatchedManifestData(),
+interface Change {
+  name: string;
+  from: string;
+  to: string | null;
+  label: string;
+  tone: StatusTone;
+}
+
+function change(name: string, info: UpgradeInfo): Change {
+  const base = { name, from: info.original_constraint, to: null };
+  if (!info.vulnerable)
+    return { ...base, label: "Not vulnerable", tone: "success" };
+  if (info.patch_type === PatchType.Full)
+    return {
+      ...base,
+      to: info.upgrade_to,
+      label: "Full patch",
+      tone: "success",
+    };
+  if (info.patch_type === PatchType.Partial)
+    return {
+      ...base,
+      to: info.upgrade_to,
+      label: "Partial patch",
+      tone: "warning",
+    };
+  return { ...base, label: "No patch", tone: "danger" };
+}
+
+const groups = computed(() => {
+  const manifest = data.value?.patched_manifest;
+  if (!manifest) return [];
+  return FIELDS.flatMap(([field, title]) => {
+    const deps = manifest[field];
+    if (!deps || typeof deps !== "object") return [];
+    const changes = Object.entries(deps)
+      .filter(([, info]) => typeof info === "object" && info !== null)
+      .map(([name, info]) => change(name, info as UpgradeInfo));
+    return changes.length > 0 ? [{ field, title, changes }] : [];
+  });
+});
+
+const packageFile = computed(
+  () => data.value?.other_info?.relative_package_file ?? "package.json",
 );
 
-watch(
-  [
-    pageNumber,
-    pageLimitSelected,
-    sortOptionSelected,
-    sortDirection,
-    pageNumber,
-  ],
-  () => {
-    void init();
-  },
-);
+const command = computed(() => {
+  const manager = data.value?.other_info?.package_manager;
+  if (manager === "YARN") return "rm yarn.lock ; yarn install --prefer-online";
+  if (manager === "NPM")
+    return "rm package-lock.json ; npm install . --prefer-online";
+  return null;
+});
 
-const resultsRepository: ResultsRepository = new ResultsRepository();
-
-function copyPatchedManfiest(): void {
-  void navigator.clipboard.writeText(
-    JSON.stringify(patchedManifestData.value.patched_manifest_raw, null, "\t"),
+function copy(text: string): void {
+  navigator.clipboard.writeText(text).then(
+    () => successToast("Copied to the clipboard"),
+    () => errorToast("Could not copy to the clipboard"),
   );
 }
 
-function copyPatchedText(text: string): void {
-  void navigator.clipboard.writeText(text);
+function copyManifest(): void {
+  copy(JSON.stringify(data.value?.patched_manifest_raw ?? {}, null, 2));
 }
-
-// Store setup
-const userStore = useUserStore();
-const authStore = useAuthStore();
-async function init(): Promise<void> {
-  if (!userStore.getDefaultOrg) {
-    throw new Error("No default org selected");
-  }
-  if (!authStore.getToken) {
-    throw new Error("No default org selected");
-  }
-  if (props.projectID === "" || props.analysisID === "") {
-    return;
-  }
-  try {
-    const res = await resultsRepository.getPatches({
-      orgId: userStore.getDefaultOrg.id,
-      projectId: props.projectID,
-      analysisId: props.analysisID,
-      workspace: ".",
-      bearerToken: authStore.getToken,
-      pagination: {
-        page: pageNumber.value,
-        entries_per_page: pageLimitSelected.value,
-      },
-      sort: {
-        sortKey: sortOptionSelected.value,
-        sortDirection: sortDirection.value,
-      },
-      active_filters: "",
-      search_key: searchKey.value,
-    });
-    // Extract patches array from workspace data
-    patches.value = Object.values(res.data.patches ?? {});
-
-    render.value = true;
-  } catch (_err) {
-    console.error("error", _err);
-    render.value = false;
-    error.value = true;
-  }
-
-  try {
-    const res = await resultsRepository.getPatchesManifest({
-      orgId: userStore.getDefaultOrg.id,
-      projectId: props.projectID,
-      analysisId: props.analysisID,
-      workspace: ".",
-      bearerToken: authStore.getToken,
-    });
-    patchedManifestData.value = res.data;
-    render.value = true;
-  } catch (_err) {
-    console.error("error", _err);
-    render.value = false;
-    error.value = true;
-  }
-}
-
-void init();
 </script>
 
 <template>
-  <div class="flex flex-col gap-7">
-    <!--------------------------------------------------------------------------->
-    <!--                            Search and Filters                         -->
-    <!--------------------------------------------------------------------------->
-
-    <Card v-if="render">
-      <CardHeader>
-        <CardTitle>Package Manifest</CardTitle>
-        <CardDescription>{{
-          patchedManifestData.other_info?.relative_package_file
-        }}</CardDescription>
-      </CardHeader>
-      <CardContent v-if="patchedManifestData.patched_manifest">
-        <div class="bg-[#f4f8ff] p-4 relative rounded flex gap-y-5 font-code">
-          <!-- <div style="color: #939090;">
-                        <div v-for="index in getPatchedManifestLineCount()" style="height:1.39em">
-                            {{ index }}.
-                        </div>
-                    </div> -->
-          <div style="font-size: 1em" class="patched-manifest">
-            <div class="line">
-              <span style="margin-left: 5px">&#123;</span>
-            </div>
-            <div class="line">
-              <span style="margin-left: 25px"
-                >"name": "{{
-                  patchedManifestData.patched_manifest?.name
-                }}",</span
-              >
-            </div>
-            <div class="line">
-              <span style="margin-left: 25px"
-                >"version": "{{
-                  patchedManifestData.patched_manifest?.version
-                }}",</span
-              >
-            </div>
-            <div
-              v-for="field in [
-                'dependencies',
-                'devDependencies',
-                'peerDependencies',
-                'bundleDependencies',
-                'bundledDependencies',
-                'optionalDependencies',
-              ]"
-              :key="field"
-            >
-              <div v-if="patchedManifestData.patched_manifest[field]">
-                <div class="line">
-                  <span style="margin-left: 25px">{{ field }}": &#123;</span>
-                </div>
-                <div
-                  v-for="(direct_dep, direct_dep_key) in patchedManifestData
-                    .patched_manifest[field]"
-                  :key="direct_dep_key"
-                  class="line"
-                >
-                  <span style="margin-left: 45px">
-                    <div
-                      v-if="
-                        (direct_dep as UpgradeInfo).vulnerable === true &&
-                        (direct_dep as UpgradeInfo).patch_type === 'FULL'
-                      "
-                      style="
-                        display: flex;
-                        flex-direction: row;
-                        column-gap: 5px;
-                        align-items: center;
-                      "
-                    >
-                      <div>
-                        {{ direct_dep_key }}": "{{
-                          (direct_dep as UpgradeInfo).original_constraint
-                        }}" ->
-                      </div>
-                      <span class="text-patched font-black">
-                        "{{ (direct_dep as UpgradeInfo).upgrade_to }}"
-                      </span>
-                    </div>
-                    <div
-                      v-if="
-                        (direct_dep as UpgradeInfo).vulnerable === true &&
-                        (direct_dep as UpgradeInfo).patch_type === 'PARTIAL'
-                      "
-                      class="flex gap-y-1 items-center"
-                    >
-                      <div>
-                        {{ direct_dep_key }}": "{{
-                          (direct_dep as UpgradeInfo).original_constraint
-                        }}" ->
-                      </div>
-                      <span class="text-partially-patched font-black">
-                        "{{ (direct_dep as UpgradeInfo).upgrade_to }}"
-                      </span>
-                    </div>
-                    <div
-                      v-if="
-                        (direct_dep as UpgradeInfo).vulnerable === true &&
-                        (direct_dep as UpgradeInfo).patch_type === 'NONE'
-                      "
-                      class="flex gap-y-1 items-center"
-                    >
-                      <div>
-                        {{ direct_dep_key }}": "{{
-                          (direct_dep as UpgradeInfo).original_constraint
-                        }}"
-                      </div>
-                      <span class="text-not-patched">
-                        <Icon icon="bi:shield-fill-exclamation" />
-                      </span>
-                      <div class="text-not-patched">Not Patchable</div>
-                    </div>
-                    <div
-                      v-if="(direct_dep as UpgradeInfo).vulnerable === false"
-                      class="flex gap-y-1 items-center"
-                    >
-                      <div>
-                        {{ direct_dep_key }}": "{{
-                          (direct_dep as UpgradeInfo).original_constraint
-                        }}"
-                      </div>
-                      <span class="text-patched">
-                        <Icon icon="bi:shield-fill-check" />
-                      </span>
-                      <div class="text-patched">Not Vulnerable</div>
-                    </div>
-                  </span>
-                </div>
-                <div class="line">
-                  <span class="ml-6">&#125;,</span>
-                </div>
-              </div>
-            </div>
-            <div class="line">&#125;</div>
-            <div
-              class="absolute top-4 right-4 cursor-pointer bg-white border border-[#d3d3d3] text-[#a4a2a2] p-1 rounded"
-            >
-              <Icon
-                class="m-2"
-                icon="ic:round-content-copy"
-                @click="copyPatchedManfiest()"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div
-          style="
-            display: flex;
-            flex-direction: column;
-            row-gap: 1em;
-            margin-top: 30px;
-          "
-        >
-          <div class="flex flex-row gap-2 items-center">
-            <BubbleComponent :slim="true">
-              <template #content> 1 </template>
-            </BubbleComponent>
-            <div>
-              Copy Patched Manifest and replace it in
-              <span
-                style="
-                  background-color: #f4f8ff;
-                  padding: 5px;
-                  border-radius: 5px;
-                "
-                >{{
-                  patchedManifestData.other_info.relative_package_file
-                }}</span
-              >
-            </div>
-          </div>
-          <div style="width: fit-content">
-            <div
-              class="bg-f4f8ff border rounded py-2 px-5 cursor-pointer text-center font-medium flex items-center gap-2"
-              @click="copyPatchedManfiest()"
-            >
-              Copy Patched Manifest
-              <Icon class="hover:text-lg" icon="ic:round-content-copy" />
-            </div>
-          </div>
-          <div
-            style="
-              display: flex;
-              flex-direction: row;
-              column-gap: 8px;
-              align-items: center;
-            "
+  <Skeleton
+    v-if="loading"
+    role="status"
+    aria-label="Loading the patched manifest"
+    class="h-48 rounded-card"
+  />
+  <Card v-else-if="data?.patched_manifest">
+    <CardHeader>
+      <CardTitle class="text-base">Patched manifest</CardTitle>
+      <CardDescription>
+        The upgrades applied to <code class="font-mono">{{ packageFile }}</code
+        >.
+      </CardDescription>
+    </CardHeader>
+    <CardContent class="flex flex-col gap-6">
+      <section
+        v-for="group in groups"
+        :key="group.field"
+        class="flex flex-col gap-2"
+      >
+        <h4 class="text-sm font-semibold text-foreground-strong">
+          {{ group.title }}
+        </h4>
+        <ul class="flex flex-col divide-y rounded-control border text-sm">
+          <li
+            v-for="item in group.changes"
+            :key="item.name"
+            class="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
           >
-            <BubbleComponent :slim="true">
-              <template #content> 2 </template>
-            </BubbleComponent>
-            <div>Run the following command</div>
-          </div>
-          <div
-            v-if="patchedManifestData.other_info.package_manager === 'NPM'"
-            style="
-              font-family: var(--font-mono);
-              display: flex;
-              flex-direction: row;
-              column-gap: 10px;
-              align-items: center;
-              border: 1px solid #eee;
-              border-radius: 5px;
-              padding: 10px;
-              width: fit-content;
-            "
-          >
-            <Icon :icon="'material-symbols:chevron-right'" />
-            <div style="margin-top: 2px">
-              rm package-lock.json ; npm install . --prefer-online
-            </div>
-            <Icon
-              icon="ic:round-content-copy"
-              class="click-scale"
-              style="cursor: pointer"
-              @click="
-                copyPatchedText(
-                  'rm package-lock.json ; npm install . --prefer-online',
-                )
-              "
-            />
-          </div>
-          <div
-            v-if="patchedManifestData.other_info.package_manager === 'YARN'"
-            style="
-              font-family: var(--font-mono);
-              display: flex;
-              flex-direction: row;
-              column-gap: 10px;
-              align-items: center;
-              border: 1px solid #eee;
-              border-radius: 5px;
-              padding: 10px;
-              width: fit-content;
-            "
-          >
-            <Icon :icon="'material-symbols:chevron-right'" />
-            <div style="margin-top: 2px">
-              rm yarn.lock ; yarn install --prefer-online
-            </div>
-            <Icon
-              icon="ic:round-content-copy"
-              class="cursor-pointer"
-              style="cursor: pointer"
-              @click="
-                copyPatchedText('rm yarn.lock ; yarn install --prefer-online')
-              "
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+            <span class="font-mono">
+              <span class="font-semibold text-foreground-strong">{{
+                item.name
+              }}</span>
+              {{ item.from }}
+              <template v-if="item.to"> to {{ item.to }}</template>
+            </span>
+            <StatusBadge :tone="item.tone" :label="item.label" />
+          </li>
+        </ul>
+      </section>
 
-    <!--------------------------------------------------------------------------->
-    <!--                            Loading skeleton                           -->
-    <!--------------------------------------------------------------------------->
-
-    <div v-if="!render">
-      <div style="display: flex; flex-direction: column; row-gap: 10px">
-        <BoxLoader
-          v-for="index in 3"
-          :key="index"
-          :dimensions="{ width: '100%', height: '150px' }"
-        />
-      </div>
-    </div>
-  </div>
+      <ol class="flex list-decimal flex-col gap-4 pl-5 text-sm">
+        <li class="flex flex-col items-start gap-2">
+          <span>
+            Replace <code class="font-mono">{{ packageFile }}</code> with the
+            patched manifest.
+          </span>
+          <Button variant="outline" size="sm" @click="copyManifest">
+            <Copy aria-hidden="true" class="size-4" />
+            Copy the patched manifest
+          </Button>
+        </li>
+        <li v-if="command" class="flex flex-col items-start gap-2">
+          <span>Reinstall to update the lockfile.</span>
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-control bg-muted px-3 py-2"
+          >
+            <code class="font-mono">{{ command }}</code>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Copy the command"
+              @click="copy(command)"
+            >
+              <Copy aria-hidden="true" class="size-4" />
+            </Button>
+          </div>
+        </li>
+      </ol>
+    </CardContent>
+  </Card>
 </template>
-
-<style scoped lang="scss">
-.patched-manifest {
-  counter-reset: linecount;
-}
-
-.patched-manifest .line {
-  position: relative;
-  display: flex;
-}
-
-.patched-manifest .line::before {
-  display: inline-block;
-  counter-increment: linecount;
-  content: counter(linecount) ".";
-  width: 50px;
-}
-</style>

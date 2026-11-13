@@ -5,21 +5,19 @@ import {
 import type { Result } from "@/codeclarity_components/results/result.entity";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 
-import type { DetectedLanguage } from "./ecosystem-shared";
+import type { DetectedLanguage as SharedDetectedLanguage } from "./ecosystem-shared";
 
-// Re-export DetectedLanguage for components that depend on it
-export type { DetectedLanguage };
+// A detected language and its logo; colours come from the logo itself.
+export type DetectedLanguage = Omit<SharedDetectedLanguage, "color">;
 
 export const SUPPORTED_LANGUAGES: Record<string, DetectedLanguage> = {
   javascript: {
     name: "JavaScript",
     icon: "devicon:javascript",
-    color: "#F7DF1E",
   },
   php: {
     name: "PHP",
     icon: "devicon:php",
-    color: "#777BB4",
   },
 };
 
@@ -94,32 +92,28 @@ export class LanguageDetectionService {
     // First, check which SBOM plugins were actually executed
     const executedPlugins = this.getExecutedSbomPlugins(analysis);
 
-    try {
-      // Check for JavaScript only if js-sbom was executed
-      if (executedPlugins.includes("js-sbom")) {
-        const jsLang = await this.tryDetectLanguage(
-          orgId,
-          projectId,
-          analysis.id,
-          "js-sbom",
-          bearerToken,
-        );
-        if (jsLang) detectedLanguages.push(jsLang);
-      }
+    // Check for JavaScript only if js-sbom was executed
+    if (executedPlugins.includes("js-sbom")) {
+      const jsLang = await this.tryDetectLanguage(
+        orgId,
+        projectId,
+        analysis.id,
+        "js-sbom",
+        bearerToken,
+      );
+      if (jsLang) detectedLanguages.push(jsLang);
+    }
 
-      // Check for PHP only if php-sbom was executed
-      if (executedPlugins.includes("php-sbom")) {
-        const phpLang = await this.tryDetectLanguage(
-          orgId,
-          projectId,
-          analysis.id,
-          "php-sbom",
-          bearerToken,
-        );
-        if (phpLang) detectedLanguages.push(phpLang);
-      }
-    } catch (error) {
-      console.error("Error detecting project languages:", error);
+    // Check for PHP only if php-sbom was executed
+    if (executedPlugins.includes("php-sbom")) {
+      const phpLang = await this.tryDetectLanguage(
+        orgId,
+        projectId,
+        analysis.id,
+        "php-sbom",
+        bearerToken,
+      );
+      if (phpLang) detectedLanguages.push(phpLang);
     }
 
     return detectedLanguages;

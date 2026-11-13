@@ -498,6 +498,186 @@ export default typescriptEslint.config(
               name: "DataTableDropDown",
               path: "src/codeclarity_components/results/sbom/table/DataTableDropDown.vue",
             },
+            {
+              name: "SortSelector",
+              path: "src/base_components/data-display/tables/SortSelector.vue",
+            },
+            {
+              name: "SortableTable",
+              path: "src/base_components/data-display/tables/SortableTable.vue",
+            },
+            {
+              name: "ActiveFilterBar",
+              path: "src/base_components/filters/ActiveFilterBar.vue",
+            },
+            {
+              name: "SearchBar",
+              path: "src/base_components/filters/SearchBar.vue",
+            },
+            {
+              name: "UtilitiesFilters",
+              path: "src/base_components/filters/UtilitiesFilters.vue",
+            },
+            {
+              name: "FormInlineCheckboxField",
+              path: "src/base_components/forms/FormInlineCheckboxField.vue",
+            },
+            {
+              name: "FormSelectField",
+              path: "src/base_components/forms/FormSelectField.vue",
+            },
+            {
+              name: "FormSelectLicense",
+              path: "src/base_components/forms/FormSelectLicense.vue",
+            },
+            {
+              name: "ExpandableBox",
+              path: "src/base_components/layout/ExpandableBox.vue",
+            },
+            {
+              name: "DonutLoader",
+              path: "src/base_components/ui/loaders/DonutLoader.vue",
+            },
+            {
+              name: "LoadingComponent",
+              path: "src/base_components/ui/loaders/LoadingComponent.vue",
+            },
+            {
+              name: "TextLoader",
+              path: "src/base_components/ui/loaders/TextLoader.vue",
+            },
+            {
+              name: "CenteredModal",
+              path: "src/base_components/ui/modals/CenteredModal.vue",
+            },
+            {
+              name: "PositionedModal",
+              path: "src/base_components/ui/modals/PositionedModal.vue",
+            },
+            {
+              name: "ErrorComponent",
+              path: "src/base_components/utilities/ErrorComponent.vue",
+            },
+            {
+              name: "PaginationComponent",
+              path: "src/base_components/utilities/PaginationComponent.vue",
+            },
+            {
+              name: "SemverToString",
+              path: "src/base_components/utilities/SemverToString.vue",
+            },
+            {
+              name: "UtilitiesSort",
+              path: "src/base_components/utilities/UtilitiesSort.vue",
+            },
+            {
+              name: "AnalyzerComp",
+              path: "src/codeclarity_components/analyses/create/components/AnalyzerComp.vue",
+            },
+            {
+              name: "DashboardFooter",
+              path: "src/codeclarity_components/dashboard/layout/DashboardFooter.vue",
+            },
+            {
+              name: "InviteItem",
+              path: "src/codeclarity_components/organizations/invites/invite/InviteItem.vue",
+            },
+            {
+              name: "ListItem",
+              path: "src/codeclarity_components/organizations/list/ListItem.vue",
+            },
+            {
+              name: "MemberItem",
+              path: "src/codeclarity_components/organizations/members/members/MemberItem.vue",
+            },
+            {
+              name: "VulnerabilityPoliciesView",
+              path: "src/codeclarity_components/organizations/policy/VulnerabilityPoliciesView.vue",
+            },
+            {
+              name: "DataTable",
+              path: "src/codeclarity_components/organizations/policy/create/DataTable.vue",
+            },
+            {
+              name: "PolicyCreate",
+              path: "src/codeclarity_components/organizations/policy/create/PolicyCreate.vue",
+            },
+            {
+              name: "PolicyEdit",
+              path: "src/codeclarity_components/organizations/policy/edit/PolicyEdit.vue",
+            },
+            {
+              name: "LicensePolicyDataTable",
+              path: "src/codeclarity_components/organizations/policy/license/LicensePolicyDataTable.vue",
+            },
+            {
+              name: "VulnerabilityDataTable",
+              path: "src/codeclarity_components/organizations/policy/vulnerability/VulnerabilityDataTable.vue",
+            },
+            {
+              name: "VulnerabilityPolicyCreate",
+              path: "src/codeclarity_components/organizations/policy/vulnerability/VulnerabilityPolicyCreate.vue",
+            },
+            {
+              name: "VulnerabilityPolicyEdit",
+              path: "src/codeclarity_components/organizations/policy/vulnerability/VulnerabilityPolicyEdit.vue",
+            },
+            {
+              name: "AnalysisItem",
+              path: "src/codeclarity_components/projects/list/components/AnalysisItem.vue",
+            },
+            {
+              name: "AnalysisList",
+              path: "src/codeclarity_components/projects/list/components/AnalysisList.vue",
+            },
+            {
+              name: "AnalysisListImproved",
+              path: "src/codeclarity_components/projects/list/components/AnalysisListImproved.vue",
+            },
+            {
+              name: "NoProjects",
+              path: "src/codeclarity_components/projects/list/components/NoProjects.vue",
+            },
+            {
+              name: "ProjectItem",
+              path: "src/codeclarity_components/projects/list/components/ProjectItem.vue",
+            },
+            {
+              name: "ProjectItemImproved",
+              path: "src/codeclarity_components/projects/list/components/ProjectItemImproved.vue",
+            },
+            {
+              name: "ProjectsList",
+              path: "src/codeclarity_components/projects/list/components/ProjectsList.vue",
+            },
+            {
+              name: "ProjectsListHeader",
+              path: "src/codeclarity_components/projects/list/components/ProjectsListHeader.vue",
+            },
+            {
+              name: "VulnsGraph",
+              path: "src/codeclarity_components/results/vulnerabilities/graphs/VulnsGraph.vue",
+            },
+            {
+              name: "BulletLegend",
+              path: "src/codeclarity_components/results/vulnerabilities/graphs/components/BulletLegend.vue",
+            },
+            {
+              name: "OwaspTopTen",
+              path: "src/codeclarity_components/results/vulnerabilities/graphs/components/OwaspTopTen.vue",
+            },
+            {
+              name: "SecurityImpact",
+              path: "src/codeclarity_components/results/vulnerabilities/graphs/components/SecurityImpact.vue",
+            },
+            {
+              name: "VulnerabilitiesInfo",
+              path: "src/codeclarity_components/results/vulnerabilities/graphs/components/VulnerabilitiesInfo.vue",
+            },
+            {
+              name: "OrgAuditLogItem",
+              path: "src/enterprise_components/activity_logs/audit/OrgAuditLogItem.vue",
+            },
           ],
         },
       ],

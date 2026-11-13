@@ -22,6 +22,7 @@ import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { runWithConcurrency } from "@/utils/concurrency";
+import { formatShortDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
@@ -277,17 +278,6 @@ function formatTime(date: Date | null): string | undefined {
   });
 }
 
-function formatDate(date: Date | null): string {
-  if (!date) return "-";
-  return new Date(date).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 const entryColumns: ColumnDef<DatasetEntry, unknown>[] = [
   {
     id: "rank",
@@ -341,7 +331,9 @@ onUnmounted(() => clearTimeout(pollTimer));
           {{ dataset.params.languages.join(" / ") }} repositories with more than
           {{ dataset.params.min_stars }} stars,
           {{ dataset.params.pages }} search page(s) per language. Created
-          {{ formatDate(dataset.created_on) }}
+          {{
+            formatShortDate(dataset.created_on, { time: true, fallback: "-" })
+          }}
           <template v-if="dataset.created_by_name">
             by {{ dataset.created_by_name }}</template
           >.

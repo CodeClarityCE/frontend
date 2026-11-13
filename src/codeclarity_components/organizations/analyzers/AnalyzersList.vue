@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
+import { formatShortDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -127,14 +128,6 @@ function closeDialog(open: boolean): void {
   if (!open) pendingDelete.value = null;
 }
 
-function formatDate(date: Date): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 const createRoute = {
   name: "orgs",
   params: { action: "add", page: "analyzers", orgId: props.orgId },
@@ -210,7 +203,7 @@ defineExpose({ fetchAnalyzers, orgInfo });
         </span>
       </template>
       <template #cell-created="{ row }">
-        {{ formatDate(row.created_on) }}
+        {{ formatShortDate(row.created_on) }}
       </template>
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">

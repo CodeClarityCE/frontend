@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/vue-table";
 
 import { DataTable } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
+import { formatShortDate } from "@/utils/dateUtils";
 
 import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
 import {
@@ -51,14 +52,6 @@ const columns: ColumnDef<TicketSummary, unknown>[] = [
 
 function statusLabel(ticket: TicketSummary): string {
   return ticket.external_status ?? TicketStatusLabels[ticket.status];
-}
-
-function formatDate(date: Date): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 </script>
 
@@ -122,7 +115,7 @@ function formatDate(date: Date): string {
       <TicketPriorityBadge :priority="row.priority" />
     </template>
     <template #cell-created="{ row }">
-      {{ formatDate(row.created_on) }}
+      {{ formatShortDate(row.created_on) }}
     </template>
   </DataTable>
 </template>

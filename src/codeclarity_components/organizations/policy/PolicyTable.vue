@@ -6,6 +6,7 @@ import { DataTable } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
+import { formatShortDate } from "@/utils/dateUtils";
 
 import { type Policy, policyTypeLabel, policyTypeTone } from "./policy-labels";
 
@@ -52,14 +53,6 @@ const columns: ColumnDef<TPolicy, unknown>[] = [
     enableGlobalFilter: false,
   },
 ];
-
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 </script>
 
 <template>
@@ -96,7 +89,7 @@ function formatDate(date: Date | string): string {
       <span class="tabular-nums">{{ row.content?.length ?? 0 }}</span>
     </template>
     <template #cell-created_on="{ row }">
-      {{ formatDate(row.created_on) }}
+      {{ formatShortDate(row.created_on) }}
     </template>
     <template #cell-actions="{ row }">
       <div class="flex items-center gap-1">

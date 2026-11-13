@@ -7,53 +7,30 @@ import {
   ref,
 } from "vue";
 
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
-import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import {
+  isMemberRoleGreaterOrEqualTo,
+  MemberRole,
+  type Organization,
+} from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
+import router from "@/router";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
-const OrgPoliciesList = defineAsyncComponent({
-  loader: (() => import("./list/PoliciesList.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
-
-const OrgPoliciesCreate = defineAsyncComponent({
-  loader: (() => import("./create/PolicyCreate.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
-
-const OrgPoliciesEdit = defineAsyncComponent({
-  loader: (() => import("./edit/PolicyEdit.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
-
-const VulnerabilityPoliciesView = defineAsyncComponent({
-  loader: (() =>
-    import("./VulnerabilityPoliciesView.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  timeout: 3000,
-}) as Component;
+const LicensePoliciesList = defineAsyncComponent(
+  (() => import("./list/PoliciesList.vue")) as AsyncComponentLoader,
+) as Component;
+const LicensePolicyForm = defineAsyncComponent(
+  (() => import("./license/LicensePolicyForm.vue")) as AsyncComponentLoader,
+) as Component;
+const VulnerabilityPolicyList = defineAsyncComponent(
+  (() =>
+    import("./vulnerability/VulnerabilityPolicyList.vue")) as AsyncComponentLoader,
+) as Component;
+const VulnerabilityPolicyForm = defineAsyncComponent(
+  (() =>
+    import("./vulnerability/VulnerabilityPolicyForm.vue")) as AsyncComponentLoader,
+) as Component;
 
 const props = defineProps<{
   page: string;
@@ -61,84 +38,68 @@ const props = defineProps<{
   action?: string;
 }>();
 
-const activeTab = ref("license");
-const orgInfo = ref<Organization>();
+const activeTab = ref(
+  props.page === "vulnerability-policy" ? "vulnerability" : "license",
+);
 
-// Determine if we should show the tab interface (for manage/list view) or a specific policy type view
-const showTabs = computed(() => props.action === "manage" || !props.action);
-const policyType = computed(() => {
-  // If specific policy page is requested, extract from page parameter
+// The list shows both kinds in tabs; add and edit open one kind's form.
+const showList = computed(() => props.action === "manage" || !props.action);
+const isForm = computed(
+  () => props.action === "add" || props.action === "edit",
+);
+const policyType = computed(() =>
+  props.page.includes("vulnerability") ? "vulnerability" : "license",
+);
+
+// Only admins may add or edit policies; others go back to the list.
+function checkRole(org: Organization): void {
   if (
-    props.page &&
-    (props.page.includes("vulnerability") ??
-      props.page === "vulnerability-policy")
-  )
-    return "vulnerability";
-  return "license";
-});
-
-function setOrgInfo(_orgInfo: Organization): void {
-  orgInfo.value = _orgInfo;
+    isForm.value &&
+    !isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN)
+  ) {
+    void router.replace({
+      name: "orgs",
+      params: { action: "manage", page: "policies", orgId: props.orgId },
+    });
+  }
 }
 </script>
 <template>
-  <div v-if="showTabs" class="min-h-screen bg-gray-50">
-    <!-- Page Header -->
-    <HeaderItem
-      v-if="orgId"
-      :org-id="orgId"
-      @on-org-info="setOrgInfo($event)"
-    />
+  <div class="flex flex-col gap-8">
+    <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="checkRole" />
 
-    <div class="max-w-7xl mx-auto px-8 py-8">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Policy Management</h1>
-        <p class="text-gray-600">
-          Configure license and vulnerability policies for your organization
-        </p>
-      </div>
+    <template v-if="showList">
+      <PageHeading
+        description="License and vulnerability rules applied to the analyses of this organisation."
+      >
+        <BrandEmphasis>Policies</BrandEmphasis>
+      </PageHeading>
 
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="grid w-full grid-cols-2 lg:w-[400px] mb-8">
-          <TabsTrigger value="license"> License Policies </TabsTrigger>
-          <TabsTrigger value="vulnerability">
-            Vulnerability Policies
-          </TabsTrigger>
+      <Tabs v-model="activeTab" class="flex flex-col gap-6">
+        <TabsList class="w-fit">
+          <TabsTrigger value="license">License policies</TabsTrigger>
+          <TabsTrigger value="vulnerability"
+            >Vulnerability policies</TabsTrigger
+          >
         </TabsList>
-
         <TabsContent value="license" class="mt-0">
-          <OrgPoliciesList :page="page" :org-id="orgId" />
+          <LicensePoliciesList :page="page" :org-id="orgId" />
         </TabsContent>
-
         <TabsContent value="vulnerability" class="mt-0">
-          <VulnerabilityPoliciesView
-            :page="page"
-            :org-id="orgId"
-            action="manage"
-          />
+          <VulnerabilityPolicyList :page="page" :org-id="orgId" />
         </TabsContent>
       </Tabs>
-    </div>
+    </template>
+
+    <LicensePolicyForm
+      v-else-if="isForm && policyType === 'license'"
+      :org-id="orgId"
+      :mode="action"
+    />
+    <VulnerabilityPolicyForm
+      v-else-if="isForm && policyType === 'vulnerability'"
+      :org-id="orgId"
+      :mode="action"
+    />
   </div>
-
-  <!-- Direct policy type views for add/edit actions -->
-  <OrgPoliciesCreate
-    v-else-if="action === 'add' && policyType === 'license'"
-    :page="page"
-    :org-id="orgId"
-  />
-  <OrgPoliciesEdit
-    v-else-if="action === 'edit' && policyType === 'license'"
-    :page="page"
-    :org-id="orgId"
-  />
-
-  <VulnerabilityPoliciesView
-    v-else-if="
-      (action === 'add' || action === 'edit') && policyType === 'vulnerability'
-    "
-    :page="page"
-    :org-id="orgId"
-    :action="action"
-  />
 </template>

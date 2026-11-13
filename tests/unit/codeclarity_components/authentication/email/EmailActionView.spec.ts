@@ -203,19 +203,17 @@ describe("EmailActionView", () => {
   });
 
   describe("Layout", () => {
-    it("should have proper semantic structure", () => {
+    it("shows the join page inside the shell's main, without a second main", () => {
       const wrapper = mount(EmailActionView, {
         props: {
           page: "join_org",
         },
       });
 
-      const mainElement = wrapper.find("main");
-      const component = wrapper.find('[data-testid="email-action-join-org"]');
-
-      expect(mainElement.exists()).toBe(true);
-      expect(component.exists()).toBe(true);
-      expect(mainElement.element.contains(component.element)).toBe(true);
+      expect(
+        wrapper.find('[data-testid="email-action-join-org"]').exists(),
+      ).toBe(true);
+      expect(wrapper.find("main").exists()).toBe(false);
     });
   });
 

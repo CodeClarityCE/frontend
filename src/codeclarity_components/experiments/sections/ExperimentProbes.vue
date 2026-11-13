@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
 import { formatShare } from "@/base_components/charts/chart-format";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shadcn/ui/table";
 
 import type {
   DatingPrecision,
@@ -59,16 +67,21 @@ const budgetLine = computed<string | null>(() => {
   const used = `Analysis budget: ${(budget.analyses_submitted ?? 0).toLocaleString()} of ${budget.analysis_budget.toLocaleString()} analyses submitted.`;
   return budget.spent ? `${used} Spent: no further fix probe runs.` : used;
 });
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-3"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-probes"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Fix probes</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Fix probes
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Probes analyse the commits between two snapshots to date a fix or an
         introduction to the commit that made it. Events found are dated to a
         commit; the rest stay dated to their snapshot interval and are pooled
@@ -76,46 +89,46 @@ const budgetLine = computed<string | null>(() => {
         in the interval contradicts a single change.
       </p>
     </div>
-    <table class="w-full text-sm">
-      <thead class="text-left text-gray-500">
-        <tr>
-          <th class="font-medium">Event</th>
-          <th class="font-medium text-right">Found</th>
-          <th class="font-medium text-right">Ambiguous</th>
-          <th class="font-medium text-right">Not found</th>
-          <th class="font-medium text-right">Not probed yet</th>
-          <th class="font-medium text-right">Commit precision</th>
-          <th class="font-medium text-right">Snapshot precision</th>
-        </tr>
-      </thead>
-      <tbody class="text-gray-700">
-        <tr
+    <Table>
+      <TableHeader>
+        <TableRow class="hover:bg-transparent">
+          <TableHead>Event</TableHead>
+          <TableHead class="text-right">Found</TableHead>
+          <TableHead class="text-right">Ambiguous</TableHead>
+          <TableHead class="text-right">Not found</TableHead>
+          <TableHead class="text-right">Not probed yet</TableHead>
+          <TableHead class="text-right">Commit precision</TableHead>
+          <TableHead class="text-right">Snapshot precision</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody class="tabular-nums">
+        <TableRow
           v-for="row in rows"
           :key="row.label"
           data-testid="probe-outcome-row"
         >
-          <td>{{ row.label }}</td>
-          <td class="text-right">{{ row.counts.found }}</td>
-          <td class="text-right">{{ row.counts.ambiguous }}</td>
-          <td class="text-right">{{ row.counts.not_found }}</td>
-          <td class="text-right">{{ row.counts.not_probed }}</td>
-          <td class="text-right">{{ row.commit }}</td>
-          <td class="text-right">{{ row.snapshot }}</td>
-        </tr>
-      </tbody>
-    </table>
+          <TableCell>{{ row.label }}</TableCell>
+          <TableCell class="text-right">{{ row.counts.found }}</TableCell>
+          <TableCell class="text-right">{{ row.counts.ambiguous }}</TableCell>
+          <TableCell class="text-right">{{ row.counts.not_found }}</TableCell>
+          <TableCell class="text-right">{{ row.counts.not_probed }}</TableCell>
+          <TableCell class="text-right">{{ row.commit }}</TableCell>
+          <TableCell class="text-right">{{ row.snapshot }}</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
     <p
       v-if="budgetLine"
-      class="text-sm text-gray-700"
+      class="text-sm text-foreground"
       data-testid="probe-budget"
     >
       {{ budgetLine }}
     </p>
     <div v-if="reasons.length > 0" data-testid="probe-reasons">
-      <h4 class="text-sm font-medium text-gray-900 mb-1">
+      <h4 class="text-sm font-medium text-foreground-strong mb-1">
         Why no commit was found
       </h4>
-      <ul class="text-sm text-gray-700 list-disc ml-4">
+      <ul class="text-sm text-foreground list-disc ml-4">
         <li
           v-for="[reason, n] in reasons"
           :key="reason"
@@ -125,5 +138,5 @@ const budgetLine = computed<string | null>(() => {
         </li>
       </ul>
     </div>
-  </div>
+  </section>
 </template>

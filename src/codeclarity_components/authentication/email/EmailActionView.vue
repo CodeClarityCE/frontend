@@ -15,9 +15,10 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-  <main v-if="props.page === 'join_org'" class="p-12">
+  <!-- Joining needs a signed-in user, so it renders inside the app shell's main. -->
+  <div v-if="props.page === 'join_org'" class="flex flex-col gap-8 p-8">
     <EmailActionJoinOrg />
-  </main>
+  </div>
   <PasswordResetForm v-else-if="props.page === 'reset_password'" />
   <ConfirmRegistration v-else />
 </template>

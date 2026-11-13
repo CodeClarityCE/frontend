@@ -6,6 +6,7 @@ import {
   BaseRepository,
 } from "../../../utils/api/BaseRepository";
 import { CreatedResponse } from "../../../utils/api/responses/CreatedResponse";
+import { DataResponse } from "../../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../../utils/api/responses/NoDataResponse";
 import { PaginatedResponse } from "../../../utils/api/responses/PaginatedResponse";
 
@@ -23,6 +24,10 @@ export interface GetLicensePoliciesRequestOptions extends AuthRepoMethodGetReque
 
 export interface CreatePolicyOptions extends AuthRepoMethodPostRequestOptions<CreatePolicy> {
   orgId: string;
+}
+export interface GetLicensePolicyRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  policyId: string;
 }
 export interface UpdatePolicyRequestOptions extends AuthRepoMethodPatchRequestOptions<PolicyUpdate> {
   orgId: string;
@@ -54,6 +59,25 @@ export class LicensePolicyRepository extends BaseRepository {
     );
 
     return res;
+  }
+
+  async getLicensePolicy(
+    options: GetLicensePolicyRequestOptions,
+  ): Promise<DataResponse<LicensePolicy>> {
+    const RELATIVE_URL = `/org/${options.orgId}/policies/license_policy/${options.policyId}`;
+
+    const response = await this.getRequest<DataResponse<LicensePolicy>>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<LicensePolicy>>(
+      response,
+      DataResponse<LicensePolicy>,
+    );
   }
 
   async createPolicy(options: CreatePolicyOptions): Promise<CreatedResponse> {

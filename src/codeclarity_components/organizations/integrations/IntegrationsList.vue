@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { type Ref, ref } from "vue";
+import { Trash2 } from "@lucide/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
+import { computed, ref } from "vue";
+import { type RouteLocationRaw, RouterLink } from "vue-router";
 
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
+import { DataTable } from "@/base_components/data-table";
+import { StatTile, StatusBadge, type StatusTone } from "@/base_components/page";
 import {
   IntegrationProvider,
   type VCS,
@@ -22,80 +24,189 @@ import {
 } from "@/codeclarity_components/tickets/tickets.entity";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
 import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/shadcn/ui/card";
 import { useAuthStore } from "@/stores/auth";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { getDaysUntilExpiry } from "@/utils/dateUtils";
+import { formatDate } from "@/utils/dateUtils";
+import { errorToast, successToast } from "@/utils/toasts";
 
-// Constants
-const EXPIRES_IN_DAYS_RISK = 14;
+import DeleteIntegrationDialog from "./DeleteIntegrationDialog.vue";
+import { integrationHealth } from "./integration-status";
+
+interface Row {
+  id: string;
+  name: string;
+  logo: string;
+  host: string;
+  kind: string;
+  tone: StatusTone;
+  status: string;
+  addedOn: number;
+  manage: RouteLocationRaw;
+  provider: IntegrationProvider;
+}
+
+const props = defineProps<{ orgId: string }>();
 
 const authStore = useAuthStore();
+const integrationRepo = new IntegrationsRepository();
+const ticketsRepo = new TicketsRepository();
 
-const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
-const ticketsRepo: TicketsRepository = new TicketsRepository();
+const vcsIntegrations = ref<VCS[]>([]);
+const clickUpConfig = ref<IntegrationConfigSummary | null>(null);
+const loading = ref(true);
+const vcsError = ref(false);
+const ticketingError = ref(false);
+const pendingDelete = ref<Row | null>(null);
+const deleting = ref(false);
 
-const orgInfo: Ref<Organization | undefined> = ref();
-const vcsIntegrations: Ref<VCS[]> = ref([]);
-const clickUpConfig: Ref<IntegrationConfigSummary | null> = ref(null);
-const loading: Ref<boolean> = ref(false);
-const ticketingLoading: Ref<boolean> = ref(false);
-const error: Ref<boolean> = ref(false);
-const ticketingError: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref();
+const deleteOpen = computed({
+  get: () => pendingDelete.value !== null,
+  set: (open: boolean) => {
+    if (!open) pendingDelete.value = null;
+  },
+});
 
-const props = defineProps<{
-  orgId: string;
-}>();
+// Literal ids so the logo bundler finds them.
+const logos: Record<string, string> = {
+  [IntegrationProvider.GITHUB]: "devicon:github",
+  [IntegrationProvider.GITLAB]: "devicon:gitlab",
+  [IntegrationProvider.CLICKUP]: "simple-icons:clickup",
+};
 
-function setOrgInfo(_orgInfo: Organization): void {
-  orgInfo.value = _orgInfo;
-  if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "integrations", orgId: _orgInfo.id },
-    });
+const providerNames: Record<string, string> = {
+  [IntegrationProvider.GITHUB]: "GitHub",
+  [IntegrationProvider.GITLAB]: "GitLab",
+  [IntegrationProvider.CLICKUP]: "ClickUp",
+};
+
+function manageRoute(
+  provider: IntegrationProvider,
+  integrationId?: string,
+): RouteLocationRaw {
+  return {
+    name: "orgs",
+    params: { action: "edit", page: "integrations", orgId: props.orgId },
+    query: integrationId ? { provider, integrationId } : { provider },
+  };
+}
+
+const rows = computed<Row[]>(() => {
+  const vcsRows = vcsIntegrations.value.map((integration): Row => {
+    const health = integrationHealth(integration);
+    const provider = integration.integration_provider;
+    return {
+      id: integration.id,
+      name: providerNames[provider] ?? "Integration",
+      logo: logos[provider] ?? "",
+      host: integration.service_domain,
+      kind: "Version control",
+      tone: health.tone,
+      status: health.label,
+      addedOn: new Date(integration.added_on).getTime(),
+      provider,
+      manage: manageRoute(provider, integration.id),
+    };
+  });
+  const config = clickUpConfig.value;
+  if (!config) return vcsRows;
+  const clickUpRow: Row = {
+    id: config.id,
+    name: "ClickUp",
+    logo: logos[IntegrationProvider.CLICKUP] ?? "",
+    host: config.workspace_name ?? "ClickUp workspace",
+    kind: "Ticketing",
+    tone: config.enabled ? "success" : "neutral",
+    status: config.enabled ? "Connected" : "Disabled",
+    addedOn: new Date(config.created_on).getTime(),
+    provider: IntegrationProvider.CLICKUP,
+    manage: manageRoute(IntegrationProvider.CLICKUP),
+  };
+  return [...vcsRows, clickUpRow];
+});
+
+const columns: ColumnDef<Row, unknown>[] = [
+  { id: "service", accessorKey: "name", header: "Service" },
+  { id: "host", accessorKey: "host", header: "Host" },
+  { id: "kind", accessorKey: "kind", header: "Type" },
+  { id: "status", accessorKey: "status", header: "Status" },
+  {
+    id: "added",
+    accessorKey: "addedOn",
+    header: "Added",
+    enableGlobalFilter: false,
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    enableSorting: false,
+    enableGlobalFilter: false,
+  },
+];
+
+const counts = computed(() => {
+  const tones = vcsIntegrations.value.map((i) => integrationHealth(i).tone);
+  return {
+    healthy: tones.filter((tone) => tone === "success").length,
+    expiring: tones.filter((tone) => tone === "warning").length,
+    invalid: tones.filter((tone) => tone === "danger").length,
+  };
+});
+
+function connected(provider: IntegrationProvider): boolean {
+  return vcsIntegrations.value.some((i) => i.integration_provider === provider);
+}
+
+const missing = computed(() =>
+  [
+    IntegrationProvider.GITHUB,
+    IntegrationProvider.GITLAB,
+    IntegrationProvider.CLICKUP,
+  ].filter((provider) =>
+    provider === IntegrationProvider.CLICKUP
+      ? !clickUpConfig.value
+      : !connected(provider),
+  ),
+);
+
+function addRoute(provider: IntegrationProvider): RouteLocationRaw {
+  return {
+    name: "orgs",
+    params: { action: "add", page: "integrations", orgId: props.orgId },
+    query: { provider },
+  };
+}
+
+function setOrgInfo(org: Organization): void {
+  if (!isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN)) {
+    void router.push({ name: "orgs", params: { page: "", orgId: org.id } });
   }
 }
 
-async function init(): Promise<void> {
-  await Promise.all([fetchVcsIntegrations(), fetchTicketingIntegrations()]);
-}
-
-async function fetchVcsIntegrations(refresh = false): Promise<void> {
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
-  error.value = false;
-  errorCode.value = undefined;
-  if (!refresh) loading.value = true;
-
+async function fetchVcs(): Promise<void> {
+  if (!authStore.getToken) return;
   try {
     const resp = await integrationRepo.getVCS({
       orgId: props.orgId,
       bearerToken: authStore.getToken,
-      pagination: {
-        page: 0,
-        entries_per_page: 100,
-      },
+      pagination: { page: 0, entries_per_page: 100 },
       handleBusinessErrors: true,
     });
     vcsIntegrations.value = resp.data;
-  } catch (err) {
-    error.value = true;
-    if (err instanceof BusinessLogicError) {
-      errorCode.value = err.error_code;
-    }
-  } finally {
-    loading.value = false;
+    vcsError.value = false;
+  } catch {
+    vcsError.value = true;
   }
 }
 
-async function fetchTicketingIntegrations(refresh = false): Promise<void> {
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
-  ticketingError.value = false;
-  if (!refresh) ticketingLoading.value = true;
-
+async function fetchTicketing(): Promise<void> {
+  if (!authStore.getToken) return;
   try {
     const resp = await ticketsRepo.getIntegrations({
       orgId: props.orgId,
@@ -104,575 +215,161 @@ async function fetchTicketingIntegrations(refresh = false): Promise<void> {
       handleHTTPErrors: true,
       handleOtherErrors: true,
     });
-
-    // Find ClickUp integration
-    const clickUp = resp.data.find(
-      (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config,
-    );
-    clickUpConfig.value = clickUp ?? null;
-  } catch (err) {
+    clickUpConfig.value =
+      resp.data.find(
+        (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config,
+      ) ?? null;
+    ticketingError.value = false;
+  } catch {
     ticketingError.value = true;
-    if (err instanceof BusinessLogicError) {
-      errorCode.value = err.error_code;
-    }
-  } finally {
-    ticketingLoading.value = false;
   }
 }
 
-async function deleteTicketingIntegration(
-  provider: ExternalTicketProvider,
-): Promise<void> {
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
+async function load(): Promise<void> {
+  loading.value = true;
+  await Promise.all([fetchVcs(), fetchTicketing()]);
+  loading.value = false;
+}
 
-  if (!confirm("Are you sure you want to delete the ClickUp integration?")) {
-    return;
-  }
-
-  ticketingError.value = false;
-
+async function confirmDelete(): Promise<void> {
+  const row = pendingDelete.value;
+  if (!row || !authStore.getToken) return;
+  deleting.value = true;
   try {
-    await ticketsRepo.deleteIntegration({
-      orgId: props.orgId,
-      bearerToken: authStore.getToken,
-      provider: provider,
-      handleBusinessErrors: true,
-    });
-  } catch (err) {
-    ticketingError.value = true;
-    if (err instanceof BusinessLogicError) {
-      errorCode.value = err.error_code;
+    if (row.provider === IntegrationProvider.CLICKUP) {
+      await ticketsRepo.deleteIntegration({
+        orgId: props.orgId,
+        bearerToken: authStore.getToken,
+        provider: ExternalTicketProvider.CLICKUP,
+        handleBusinessErrors: true,
+      });
+    } else {
+      await integrationRepo.deleteIntegration({
+        orgId: props.orgId,
+        bearerToken: authStore.getToken,
+        integrationId: row.id,
+        handleBusinessErrors: true,
+      });
     }
-  }
-  router.go(0);
-}
-
-async function deleteIntegration(integrationId: string): Promise<void> {
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
-  error.value = false;
-  errorCode.value = undefined;
-
-  try {
-    await integrationRepo.deleteIntegration({
-      orgId: props.orgId,
-      bearerToken: authStore.getToken,
-      integrationId: integrationId,
-      handleBusinessErrors: true,
-    });
-  } catch (err) {
-    error.value = true;
-    if (err instanceof BusinessLogicError) {
-      errorCode.value = err.error_code;
-    }
+    successToast(`Deleted the ${row.name} integration`);
+    pendingDelete.value = null;
+    await load();
+  } catch {
+    errorToast("Failed to delete the integration");
   } finally {
-    loading.value = false;
+    deleting.value = false;
   }
-  router.go(0);
 }
 
-function isAtRisk(vcs: VCS): boolean {
-  if (vcs.expiry_date)
-    return getDaysUntilExpiry(vcs.expiry_date) <= EXPIRES_IN_DAYS_RISK;
-  else return false;
-}
-
-void init();
+void load();
 </script>
+
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Page Header -->
-    <HeaderItem
-      v-if="orgId"
-      :org-id="orgId"
-      @on-org-info="setOrgInfo($event)"
+  <div class="flex flex-col gap-8">
+    <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo" />
+
+    <ul aria-label="Integration health" class="grid grid-cols-4 gap-4">
+      <StatTile label="Healthy" :value="counts.healthy" />
+      <StatTile label="Expiring soon" :value="counts.expiring" />
+      <StatTile label="Invalid or expired" :value="counts.invalid" />
+      <StatTile label="Total" :value="rows.length" />
+    </ul>
+
+    <Alert v-if="vcsError || ticketingError" variant="destructive">
+      <AlertTitle>Some integrations could not be loaded</AlertTitle>
+      <AlertDescription class="flex items-center justify-between gap-4">
+        {{
+          vcsError
+            ? "The version control integrations failed to load."
+            : "The ticketing integrations failed to load."
+        }}
+        <Button variant="outline" size="sm" @click="load">Try again</Button>
+      </AlertDescription>
+    </Alert>
+
+    <section aria-labelledby="integrations-heading" class="flex flex-col gap-4">
+      <h2
+        id="integrations-heading"
+        class="text-xl font-semibold text-foreground-strong"
+      >
+        Connected services
+      </h2>
+      <DataTable
+        :columns="columns"
+        :data="rows"
+        :loading="loading"
+        :row-key="(row: Row) => row.id"
+        caption="Integrations"
+        empty-text="No integrations yet. Add one below."
+      >
+        <template #cell-service="{ row }">
+          <span class="flex items-center gap-2 font-semibold">
+            <Icon :icon="row.logo" aria-hidden="true" class="size-5" />
+            {{ row.name }}
+          </span>
+        </template>
+        <template #cell-status="{ row }">
+          <StatusBadge :tone="row.tone" :label="row.status" />
+        </template>
+        <template #cell-added="{ row }">
+          {{ formatDate(new Date(row.addedOn), "MMM DD, YYYY") }}
+        </template>
+        <template #cell-actions="{ row }">
+          <div class="flex items-center gap-2">
+            <Button
+              :as="RouterLink"
+              :to="row.manage"
+              variant="outline"
+              size="sm"
+            >
+              Manage
+              <span class="sr-only">the {{ row.name }} integration</span>
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon-sm"
+              :aria-label="`Delete the ${row.name} integration on ${row.host}`"
+              @click="pendingDelete = row"
+            >
+              <Trash2 aria-hidden="true" />
+            </Button>
+          </div>
+        </template>
+      </DataTable>
+    </section>
+
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <h2 class="font-semibold leading-none text-foreground-strong">
+          Add an integration
+        </h2>
+        <CardDescription>
+          Import repositories from version control, or sync tickets to your
+          tracker.
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="flex flex-wrap gap-3">
+        <Button
+          v-for="provider in missing"
+          :key="provider"
+          :as="RouterLink"
+          :to="addRoute(provider)"
+          variant="outline"
+        >
+          <Icon :icon="logos[provider]!" aria-hidden="true" />
+          Add {{ providerNames[provider] }}
+        </Button>
+        <p v-if="missing.length === 0" class="text-sm text-muted-foreground">
+          Every supported service is connected.
+        </p>
+      </CardContent>
+    </Card>
+
+    <DeleteIntegrationDialog
+      v-model:open="deleteOpen"
+      :name="pendingDelete?.name ?? ''"
+      :busy="deleting"
+      @confirm="confirmDelete"
     />
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-8 py-8">
-      <!-- Integrations Overview -->
-      <InfoCard
-        title="Integrations"
-        description="Connect external tools and services"
-        icon="solar:settings-bold"
-        variant="primary"
-        class="mb-8"
-      >
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            label="Active Integrations"
-            :value="vcsIntegrations.filter((v: any) => !v.invalid).length"
-            icon="solar:check-circle-bold"
-            variant="success"
-            subtitle="Connected services"
-          />
-
-          <StatCard
-            label="At Risk"
-            :value="vcsIntegrations.filter((v: any) => isAtRisk(v)).length"
-            icon="solar:clock-circle-bold"
-            variant="primary"
-            subtitle="Expiring soon"
-          />
-
-          <StatCard
-            label="Invalid"
-            :value="vcsIntegrations.filter((v: any) => v.invalid).length"
-            icon="solar:close-circle-bold"
-            variant="danger"
-            subtitle="Need attention"
-          />
-
-          <StatCard
-            label="Total"
-            :value="vcsIntegrations.length"
-            icon="solar:database-bold"
-            variant="default"
-            subtitle="All integrations"
-          />
-        </div>
-      </InfoCard>
-
-      <!-- Version Control Section -->
-      <InfoCard
-        title="Version Control"
-        description="Manage your Git repository integrations"
-        icon="solar:code-square-bold"
-        variant="default"
-        class="mb-8"
-      >
-        <div v-if="loading" class="flex flex-row gap-4 flex-wrap">
-          <BoxLoader
-            v-for="i in 4"
-            :key="i"
-            :dimensions="{ width: '300px', height: '200px' }"
-          />
-        </div>
-
-        <div v-if="!loading">
-          <div
-            v-if="error"
-            class="flex flex-row gap-4 items-center p-8 bg-red-50 border border-red-200 rounded-xl"
-          >
-            <Icon
-              class="text-red-500"
-              icon="solar:confounded-square-outline"
-              style="font-size: 3rem"
-            />
-            <div class="flex-1">
-              <div class="text-lg font-semibold text-red-700 mb-2">
-                Failed to fetch VCS integrations
-              </div>
-              <div v-if="errorCode" class="text-red-600 mb-4">
-                We encountered an error while processing the request.
-              </div>
-              <div v-else class="text-red-600 mb-4">
-                We encountered an error while processing the request.
-              </div>
-              <div class="flex flex-row gap-3">
-                <Button variant="destructive" @click="fetchVcsIntegrations"
-                  >Try again</Button
-                >
-                <Button variant="outline" @click="router.back">Go back</Button>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="!error" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <!-- GitLab Integrations -->
-            <div
-              v-for="vcs in vcsIntegrations.filter(
-                (v: any) =>
-                  v.integration_provider === IntegrationProvider.GITLAB,
-              )"
-              :key="vcs.id"
-              class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4"
-              :class="{
-                'border-l-red-500': vcs.invalid,
-                'border-l-yellow-500': !vcs.invalid && isAtRisk(vcs),
-                'border-l-theme-primary': !vcs.invalid && !isAtRisk(vcs),
-              }"
-            >
-              <div class="flex items-center gap-3 mb-4">
-                <Icon icon="devicon:gitlab" class="text-4xl" />
-                <div>
-                  <h3 class="text-lg font-semibold text-theme-black">GitLab</h3>
-                  <p class="text-sm text-theme-gray">
-                    {{ vcs.service_domain }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="mb-6">
-                <div
-                  v-if="vcs.invalid"
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-red-100 text-red-700 rounded-full"
-                >
-                  <Icon icon="solar:close-circle-bold" class="mr-1 text-xs" />
-                  Invalid
-                </div>
-                <div
-                  v-else-if="isAtRisk(vcs)"
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-full"
-                >
-                  <Icon icon="solar:clock-circle-bold" class="mr-1 text-xs" />
-                  At Risk
-                </div>
-                <div
-                  v-else
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-green-100 text-theme-primary rounded-full"
-                >
-                  <Icon icon="solar:check-circle-bold" class="mr-1 text-xs" />
-                  Configured
-                </div>
-              </div>
-
-              <div class="flex gap-2">
-                <RouterLink
-                  :to="{
-                    name: 'orgs',
-                    params: {
-                      action: 'edit',
-                      page: 'integrations',
-                      orgId: orgId,
-                    },
-                    query: {
-                      provider: IntegrationProvider.GITLAB,
-                      integrationId: vcs.id,
-                    },
-                  }"
-                  class="flex-1"
-                >
-                  <Button
-                    class="w-full bg-theme-black hover:bg-theme-gray text-white"
-                  >
-                    <Icon icon="solar:eye-bold" class="mr-2 text-sm" />
-                    Show
-                  </Button>
-                </RouterLink>
-                <Button
-                  variant="outline"
-                  class="border-red-500 text-red-500 hover:bg-red-50"
-                  @click="deleteIntegration(vcs.id)"
-                >
-                  <Icon icon="solar:trash-bin-trash-bold" class="text-sm" />
-                </Button>
-              </div>
-            </div>
-
-            <!-- GitHub Integrations -->
-            <div
-              v-for="vcs in vcsIntegrations.filter(
-                (v: any) =>
-                  v.integration_provider === IntegrationProvider.GITHUB,
-              )"
-              :key="vcs.id"
-              class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4"
-              :class="{
-                'border-l-red-500': vcs.invalid,
-                'border-l-yellow-500': !vcs.invalid && isAtRisk(vcs),
-                'border-l-theme-primary': !vcs.invalid && !isAtRisk(vcs),
-              }"
-            >
-              <div class="flex items-center gap-3 mb-4">
-                <Icon icon="devicon:github" class="text-4xl" />
-                <div>
-                  <h3 class="text-lg font-semibold text-theme-black">GitHub</h3>
-                  <p class="text-sm text-theme-gray">
-                    {{ vcs.service_domain ?? "GitHub.com" }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="mb-6">
-                <div
-                  v-if="vcs.invalid"
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-red-100 text-red-700 rounded-full"
-                >
-                  <Icon icon="solar:close-circle-bold" class="mr-1 text-xs" />
-                  Invalid
-                </div>
-                <div
-                  v-else-if="isAtRisk(vcs)"
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-full"
-                >
-                  <Icon icon="solar:clock-circle-bold" class="mr-1 text-xs" />
-                  At Risk
-                </div>
-                <div
-                  v-else
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-green-100 text-theme-primary rounded-full"
-                >
-                  <Icon icon="solar:check-circle-bold" class="mr-1 text-xs" />
-                  Configured
-                </div>
-              </div>
-
-              <div class="flex gap-2">
-                <RouterLink
-                  :to="{
-                    name: 'orgs',
-                    params: {
-                      action: 'edit',
-                      page: 'integrations',
-                      orgId: orgId,
-                    },
-                    query: {
-                      provider: IntegrationProvider.GITHUB,
-                      integrationId: vcs.id,
-                    },
-                  }"
-                  class="flex-1"
-                >
-                  <Button
-                    class="w-full bg-theme-black hover:bg-theme-gray text-white"
-                  >
-                    <Icon icon="solar:eye-bold" class="mr-2 text-sm" />
-                    Show
-                  </Button>
-                </RouterLink>
-                <Button
-                  variant="outline"
-                  class="border-red-500 text-red-500 hover:bg-red-50"
-                  @click="deleteIntegration(vcs.id)"
-                >
-                  <Icon icon="solar:trash-bin-trash-bold" class="text-sm" />
-                </Button>
-              </div>
-            </div>
-
-            <!-- Add GitHub Integration -->
-            <RouterLink
-              v-if="
-                !vcsIntegrations.some(
-                  (v: any) =>
-                    v.integration_provider === IntegrationProvider.GITHUB,
-                )
-              "
-              :to="{
-                name: 'orgs',
-                params: {
-                  orgId: orgId,
-                  page: 'integrations',
-                  action: 'add',
-                  provider: IntegrationProvider.GITHUB,
-                },
-              }"
-              class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-theme-primary hover:bg-gray-50 transition-all duration-200 group"
-            >
-              <div
-                class="flex flex-col items-center justify-center h-full text-center"
-              >
-                <div class="flex items-center gap-3 mb-4">
-                  <Icon
-                    icon="devicon:github"
-                    class="text-4xl text-gray-400 group-hover:text-theme-black transition-colors"
-                  />
-                  <Icon
-                    icon="solar:add-circle-bold"
-                    class="text-2xl text-theme-primary"
-                  />
-                </div>
-                <h3 class="text-lg font-semibold text-theme-black mb-2">
-                  Add GitHub
-                </h3>
-                <p class="text-sm text-theme-gray">
-                  Connect your GitHub repositories
-                </p>
-              </div>
-            </RouterLink>
-
-            <!-- Add GitLab Integration -->
-            <RouterLink
-              v-if="
-                !vcsIntegrations.some(
-                  (v: any) =>
-                    v.integration_provider === IntegrationProvider.GITLAB,
-                )
-              "
-              :to="{
-                name: 'orgs',
-                params: { action: 'add', page: 'integrations', orgId: orgId },
-                query: { provider: IntegrationProvider.GITLAB },
-              }"
-              class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-theme-primary hover:bg-gray-50 transition-all duration-200 group"
-            >
-              <div
-                class="flex flex-col items-center justify-center h-full text-center"
-              >
-                <div class="flex items-center gap-3 mb-4">
-                  <Icon
-                    icon="devicon:gitlab"
-                    class="text-4xl text-gray-400 group-hover:text-orange-500 transition-colors"
-                  />
-                  <Icon
-                    icon="solar:add-circle-bold"
-                    class="text-2xl text-theme-primary"
-                  />
-                </div>
-                <h3 class="text-lg font-semibold text-theme-black mb-2">
-                  Add GitLab
-                </h3>
-                <p class="text-sm text-theme-gray">
-                  Connect your GitLab repositories
-                </p>
-              </div>
-            </RouterLink>
-          </div>
-        </div>
-      </InfoCard>
-
-      <!-- Ticket Management Section -->
-      <InfoCard
-        title="Ticket Management"
-        description="Connect external ticketing systems for vulnerability tracking"
-        icon="solar:ticket-bold"
-        variant="default"
-        class="mb-8"
-      >
-        <div v-if="ticketingLoading" class="flex flex-row gap-4 flex-wrap">
-          <BoxLoader
-            v-for="i in 2"
-            :key="i"
-            :dimensions="{ width: '300px', height: '200px' }"
-          />
-        </div>
-
-        <div v-if="!ticketingLoading">
-          <div
-            v-if="ticketingError"
-            class="flex flex-row gap-4 items-center p-8 bg-red-50 border border-red-200 rounded-xl"
-          >
-            <Icon
-              class="text-red-500"
-              icon="solar:confounded-square-outline"
-              style="font-size: 3rem"
-            />
-            <div class="flex-1">
-              <div class="text-lg font-semibold text-red-700 mb-2">
-                Failed to fetch ticketing integrations
-              </div>
-              <div class="text-red-600 mb-4">
-                We encountered an error while processing the request.
-              </div>
-              <div class="flex flex-row gap-3">
-                <Button
-                  variant="destructive"
-                  @click="fetchTicketingIntegrations"
-                  >Try again</Button
-                >
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-if="!ticketingError"
-            class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-          >
-            <!-- Existing ClickUp Integration -->
-            <div
-              v-if="clickUpConfig"
-              class="bg-white border rounded-xl p-6 hover:shadow-lg transition-all duration-200 border-l-4 border-l-theme-primary"
-            >
-              <div class="flex items-center gap-3 mb-4">
-                <Icon
-                  icon="simple-icons:clickup"
-                  class="text-4xl text-purple-600"
-                />
-                <div>
-                  <h3 class="text-lg font-semibold text-theme-black">
-                    ClickUp
-                  </h3>
-                  <p class="text-sm text-theme-gray">Ticket Sync</p>
-                </div>
-              </div>
-
-              <div class="mb-6">
-                <div
-                  class="inline-flex px-3 py-1 text-sm font-medium bg-green-100 text-theme-primary rounded-full"
-                >
-                  <Icon icon="solar:check-circle-bold" class="mr-1 text-xs" />
-                  Configured
-                </div>
-              </div>
-
-              <div class="flex gap-2">
-                <RouterLink
-                  :to="{
-                    name: 'orgs',
-                    params: {
-                      action: 'edit',
-                      page: 'integrations',
-                      orgId: orgId,
-                    },
-                    query: {
-                      provider: IntegrationProvider.CLICKUP,
-                    },
-                  }"
-                  class="flex-1"
-                >
-                  <Button
-                    class="w-full bg-theme-black hover:bg-theme-gray text-white"
-                  >
-                    <Icon icon="solar:eye-bold" class="mr-2 text-sm" />
-                    Show
-                  </Button>
-                </RouterLink>
-                <Button
-                  variant="outline"
-                  class="border-red-500 text-red-500 hover:bg-red-50"
-                  @click="
-                    deleteTicketingIntegration(ExternalTicketProvider.CLICKUP)
-                  "
-                >
-                  <Icon icon="solar:trash-bin-trash-bold" class="text-sm" />
-                </Button>
-              </div>
-            </div>
-
-            <!-- Add ClickUp Integration -->
-            <RouterLink
-              v-if="!clickUpConfig"
-              :to="{
-                name: 'orgs',
-                params: {
-                  orgId: orgId,
-                  page: 'integrations',
-                  action: 'add',
-                },
-                query: { provider: IntegrationProvider.CLICKUP },
-              }"
-              class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-purple-400 hover:bg-gray-50 transition-all duration-200 group"
-            >
-              <div
-                class="flex flex-col items-center justify-center h-full text-center"
-              >
-                <div class="flex items-center gap-3 mb-4">
-                  <Icon
-                    icon="simple-icons:clickup"
-                    class="text-4xl text-gray-400 group-hover:text-purple-600 transition-colors"
-                  />
-                  <Icon
-                    icon="solar:add-circle-bold"
-                    class="text-2xl text-theme-primary"
-                  />
-                </div>
-                <h3 class="text-lg font-semibold text-theme-black mb-2">
-                  Add ClickUp
-                </h3>
-                <p class="text-sm text-theme-gray">
-                  Sync tickets to ClickUp tasks
-                </p>
-              </div>
-            </RouterLink>
-          </div>
-        </div>
-      </InfoCard>
-    </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-/* Custom styles if needed - most styling is now handled by Tailwind classes */
-</style>

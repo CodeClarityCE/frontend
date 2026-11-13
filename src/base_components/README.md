@@ -35,9 +35,6 @@ base_components/
 #### Loaders (`ui/loaders/`)
 
 - **LoadingComponent**: General loading indicator
-- **LoadingButton**: Button with loading state
-- **LoadingSubmitButton**: Submit button with loading state
-- **LoadingContainer**: Container with loading overlay
 - **BoxLoader**: Box-style loading animation
 - **DonutLoader**: Donut-style loading animation
 - **TextLoader**: Text placeholder loading
@@ -103,7 +100,6 @@ In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 
 ### 📝 Forms (`forms/`)
 
-- **FormTextField**: Text input field
 - **FormSelectField**: Select dropdown field
 - **FormSelectLicense**: License selection field
 - **FormInlineCheckboxField**: Inline checkbox field
@@ -117,7 +113,6 @@ In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 ### 📐 Layout (`layout/`)
 
 - **ExpandableBox**: Collapsible content container
-- **FaqBox**: FAQ-style expandable box
 
 ### 🛠️ Utilities (`utilities/`)
 
@@ -185,12 +180,6 @@ import { SortableTable } from "@/base_components";
 
 ```vue
 <template>
-  <FormTextField
-    v-model="inputValue"
-    label="Username"
-    placeholder="Enter username"
-  />
-
   <FormSelectField
     v-model="selectedOption"
     label="Category"
@@ -199,7 +188,7 @@ import { SortableTable } from "@/base_components";
 </template>
 
 <script setup>
-import { FormTextField, FormSelectField } from "@/base_components";
+import { FormSelectField } from "@/base_components";
 </script>
 ```
 

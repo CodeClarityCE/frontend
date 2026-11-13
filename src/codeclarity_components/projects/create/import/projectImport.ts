@@ -1,5 +1,12 @@
+import type { Repository } from "@/codeclarity_components/projects/project.entity";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
+/** A repository whose import failed, and why. */
+export interface FailedProjectImport {
+  repo: Repository;
+  reason: string;
+}
 
 /** How many project imports a bulk import keeps in flight at once. */
 export const IMPORT_CONCURRENCY = 4;

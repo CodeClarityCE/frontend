@@ -82,8 +82,10 @@ describe("IntegrationsComponent", () => {
         props: { vcsIntegrations: [] },
       });
 
-      const cards = wrapper.findAll(".cursor-pointer");
-      await cards[cards.length - 1]!.trigger("click");
+      const upload = wrapper
+        .findAll("button")
+        .find((button) => button.text().includes("Upload an archive"));
+      await upload!.trigger("click");
 
       expect(wrapper.emitted("onLocalUpload")).toHaveLength(1);
     });

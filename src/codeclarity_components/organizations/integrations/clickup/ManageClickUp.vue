@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { LoaderCircle, PlugZap, Settings, Trash2 } from "@lucide/vue";
 import { onMounted, ref } from "vue";
+import { RouterLink } from "vue-router";
 
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
+import { StatusBadge } from "@/base_components/page";
 import ClickUpConfigModal from "@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue";
 import {
   ExternalTicketProvider,
@@ -12,32 +12,38 @@ import {
 } from "@/codeclarity_components/tickets/tickets.entity";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
 import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/shadcn/ui/card";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { errorToast, successToast } from "@/utils/toasts";
 
-const props = defineProps<{
-  orgId: string;
-}>();
+import DeleteIntegrationDialog from "../DeleteIntegrationDialog.vue";
+
+const props = defineProps<{ orgId: string }>();
 
 const authStore = useAuthStore();
 const ticketsRepository = new TicketsRepository();
 
-// State
 const loading = ref(true);
 const error = ref(false);
 const clickUpConfig = ref<IntegrationConfigSummary | null>(null);
 const showConfigModal = ref(false);
+const confirmOpen = ref(false);
 const isDeleting = ref(false);
 const isTesting = ref(false);
 const testResult = ref<{ success: boolean; message: string } | null>(null);
 
 async function fetchClickUpConfig(): Promise<void> {
   if (!authStore.getToken) return;
-
   loading.value = true;
   error.value = false;
-
   try {
     const response = await ticketsRepository.getIntegrations({
       orgId: props.orgId,
@@ -46,12 +52,10 @@ async function fetchClickUpConfig(): Promise<void> {
       handleHTTPErrors: true,
       handleOtherErrors: true,
     });
-
-    // Find ClickUp integration
-    const clickUp = response.data.find(
-      (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config,
-    );
-    clickUpConfig.value = clickUp ?? null;
+    clickUpConfig.value =
+      response.data.find(
+        (i) => i.provider === ExternalTicketProvider.CLICKUP && i.has_config,
+      ) ?? null;
   } catch {
     error.value = true;
   } finally {
@@ -61,10 +65,8 @@ async function fetchClickUpConfig(): Promise<void> {
 
 async function testConnection(): Promise<void> {
   if (!authStore.getToken) return;
-
   isTesting.value = true;
   testResult.value = null;
-
   try {
     const response = await ticketsRepository.testIntegration({
       orgId: props.orgId,
@@ -74,22 +76,19 @@ async function testConnection(): Promise<void> {
       handleHTTPErrors: true,
       handleOtherErrors: true,
     });
-
-    if (response.data.success) {
-      testResult.value = {
-        success: true,
-        message: `Connected as ${response.data.user_info?.name ?? "Unknown"}`,
-      };
-    } else {
-      testResult.value = {
-        success: false,
-        message: response.data.error ?? "Connection test failed",
-      };
-    }
+    testResult.value = response.data.success
+      ? {
+          success: true,
+          message: `Connected as ${response.data.user_info?.name ?? "an unknown user"}`,
+        }
+      : {
+          success: false,
+          message: response.data.error ?? "The connection test failed",
+        };
   } catch {
     testResult.value = {
       success: false,
-      message: "Connection test failed",
+      message: "The connection test failed",
     };
   } finally {
     isTesting.value = false;
@@ -98,13 +97,7 @@ async function testConnection(): Promise<void> {
 
 async function deleteIntegration(): Promise<void> {
   if (!authStore.getToken) return;
-
-  if (!confirm("Are you sure you want to delete the ClickUp integration?")) {
-    return;
-  }
-
   isDeleting.value = true;
-
   try {
     await ticketsRepository.deleteIntegration({
       orgId: props.orgId,
@@ -114,14 +107,13 @@ async function deleteIntegration(): Promise<void> {
       handleHTTPErrors: true,
       handleOtherErrors: true,
     });
-
-    successToast("ClickUp integration deleted successfully");
+    successToast("Deleted the ClickUp integration");
     void router.push({
       name: "orgs",
       params: { orgId: props.orgId, page: "integrations", action: "manage" },
     });
   } catch {
-    errorToast("Failed to delete ClickUp integration");
+    errorToast("Failed to delete the ClickUp integration");
   } finally {
     isDeleting.value = false;
   }
@@ -130,264 +122,149 @@ async function deleteIntegration(): Promise<void> {
 function onConfigured(): void {
   showConfigModal.value = false;
   void fetchClickUpConfig();
-  void successToast("ClickUp integration updated successfully");
+  successToast("Updated the ClickUp integration");
 }
 
-function onClose(): void {
-  showConfigModal.value = false;
-}
-
-onMounted(() => {
-  void fetchClickUpConfig();
-});
+onMounted(() => void fetchClickUpConfig());
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Page Header -->
-      <InfoCard
-        title="ClickUp Integration"
-        description="Manage your ClickUp workspace connection and sync settings"
-        icon="simple-icons:clickup"
-        variant="primary"
-        class="mb-8 shadow-lg"
-      />
+  <div class="flex flex-col gap-6">
+    <h2
+      class="flex items-center gap-3 text-2xl font-bold text-foreground-strong"
+    >
+      <Icon icon="simple-icons:clickup" aria-hidden="true" class="size-8" />
+      ClickUp integration
+    </h2>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="grid lg:grid-cols-2 gap-8">
-        <BoxLoader :dimensions="{ width: '100%', height: '400px' }" />
-        <BoxLoader :dimensions="{ width: '100%', height: '400px' }" />
-      </div>
-
-      <!-- Error State -->
-      <div
-        v-else-if="error"
-        class="flex flex-row gap-4 items-center p-8 bg-red-50 border border-red-200 rounded-xl"
-      >
-        <Icon
-          class="text-red-500"
-          icon="solar:confounded-square-outline"
-          style="font-size: 3rem"
-        />
-        <div class="flex-1">
-          <div class="text-lg font-semibold text-red-700 mb-2">
-            Failed to load ClickUp integration
-          </div>
-          <div class="text-red-600 mb-4">
-            We encountered an error while fetching the integration
-            configuration.
-          </div>
-          <div class="flex flex-row gap-3">
-            <Button variant="destructive" @click="fetchClickUpConfig"
-              >Try again</Button
-            >
-            <Button variant="outline" @click="router.back()">Go back</Button>
-          </div>
-        </div>
-      </div>
-
-      <!-- No Config State -->
-      <div
-        v-else-if="!clickUpConfig"
-        class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-xl"
-      >
-        <Icon
-          icon="simple-icons:clickup"
-          class="w-16 h-16 text-gray-300 mb-4"
-        />
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">
-          No ClickUp Integration
-        </h3>
-        <p class="text-gray-600 mb-6 text-center max-w-md">
-          You haven't configured a ClickUp integration yet. Click below to set
-          it up.
-        </p>
-        <Button
-          class="bg-purple-600 hover:bg-purple-700"
-          @click="showConfigModal = true"
-        >
-          <Icon icon="simple-icons:clickup" class="mr-2" />
-          Configure ClickUp
-        </Button>
-      </div>
-
-      <!-- Config Display -->
-      <div v-else class="grid lg:grid-cols-2 gap-8">
-        <!-- Left Column - Status & Actions -->
-        <div class="space-y-6">
-          <InfoCard
-            title="Integration Status"
-            description="Current ClickUp connection status"
-            icon="solar:settings-bold"
-            variant="default"
-            class="shadow-md"
-          >
-            <!-- Status Badge -->
-            <div class="mb-6">
-              <div
-                class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full"
-              >
-                <Icon icon="solar:check-circle-bold" class="text-sm" />
-                <span class="font-medium">Connected</span>
-              </div>
-            </div>
-
-            <!-- Test Result -->
-            <div
-              v-if="testResult"
-              class="p-3 rounded-lg text-sm mb-6"
-              :class="{
-                'bg-green-50 text-green-700': testResult.success,
-                'bg-red-50 text-red-700': !testResult.success,
-              }"
-            >
-              <div class="flex items-center gap-2">
-                <Icon
-                  v-if="testResult.success"
-                  icon="solar:check-circle-bold"
-                  class="w-4 h-4"
-                />
-                <Icon v-else icon="solar:close-circle-bold" class="w-4 h-4" />
-                {{ testResult.message }}
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="space-y-3">
-              <Button
-                class="w-full bg-purple-600 hover:bg-purple-700"
-                @click="showConfigModal = true"
-              >
-                <Icon icon="solar:settings-bold" class="mr-2" />
-                Reconfigure Integration
-              </Button>
-
-              <Button
-                variant="outline"
-                class="w-full"
-                :disabled="isTesting"
-                @click="testConnection"
-              >
-                <Icon
-                  v-if="isTesting"
-                  icon="solar:spinner-outline"
-                  class="mr-2 animate-spin"
-                />
-                <Icon v-else icon="solar:check-circle-bold" class="mr-2" />
-                Test Connection
-              </Button>
-
-              <Button
-                variant="outline"
-                class="w-full border-red-300 text-red-600 hover:bg-red-50"
-                :disabled="isDeleting"
-                @click="deleteIntegration"
-              >
-                <Icon
-                  v-if="isDeleting"
-                  icon="solar:spinner-outline"
-                  class="mr-2 animate-spin"
-                />
-                <Icon v-else icon="solar:trash-bin-trash-bold" class="mr-2" />
-                Delete Integration
-              </Button>
-            </div>
-          </InfoCard>
-        </div>
-
-        <!-- Right Column - Stats & Info -->
-        <div class="space-y-6">
-          <InfoCard
-            title="Sync Options"
-            description="Current sync settings"
-            icon="solar:refresh-circle-bold"
-            variant="primary"
-            class="shadow-md"
-          >
-            <div class="grid grid-cols-2 gap-4">
-              <StatCard
-                label="Auto-sync"
-                :value="
-                  clickUpConfig?.auto_sync_on_create ? 'Enabled' : 'Disabled'
-                "
-                :icon="
-                  clickUpConfig?.auto_sync_on_create
-                    ? 'solar:check-circle-bold'
-                    : 'solar:close-circle-bold'
-                "
-                :variant="
-                  clickUpConfig?.auto_sync_on_create ? 'success' : 'default'
-                "
-                subtitle="New tickets"
-              />
-
-              <StatCard
-                label="Status Sync"
-                :value="
-                  clickUpConfig?.sync_status_changes ? 'Enabled' : 'Disabled'
-                "
-                :icon="
-                  clickUpConfig?.sync_status_changes
-                    ? 'solar:check-circle-bold'
-                    : 'solar:close-circle-bold'
-                "
-                :variant="
-                  clickUpConfig?.sync_status_changes ? 'success' : 'default'
-                "
-                subtitle="Changes sync"
-              />
-            </div>
-          </InfoCard>
-
-          <InfoCard
-            title="What's Next?"
-            description="Use the ClickUp integration"
-            icon="solar:arrow-right-bold"
-            variant="default"
-            class="shadow-md"
-          >
-            <div class="space-y-4">
-              <div class="flex items-start gap-3">
-                <div
-                  class="shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
-                >
-                  <Icon
-                    icon="solar:ticket-bold"
-                    class="text-purple-600 text-sm"
-                  />
-                </div>
-                <div>
-                  <h4 class="font-semibold text-gray-900">Go to Tickets</h4>
-                  <p class="text-sm text-gray-600">
-                    View your tickets and sync them to ClickUp
-                  </p>
-                </div>
-              </div>
-
-              <RouterLink
-                :to="{
-                  name: 'tickets',
-                  params: { orgId: orgId, action: 'manage' },
-                }"
-              >
-                <Button variant="outline" class="w-full">
-                  <Icon icon="solar:ticket-bold" class="mr-2" />
-                  View Tickets
-                </Button>
-              </RouterLink>
-            </div>
-          </InfoCard>
-        </div>
-      </div>
+    <div
+      v-if="loading"
+      role="status"
+      aria-label="Loading the ClickUp integration"
+      class="grid grid-cols-2 gap-6"
+    >
+      <Skeleton class="h-64 rounded-card" />
+      <Skeleton class="h-64 rounded-card" />
     </div>
 
-    <!-- ClickUp Config Modal -->
+    <Alert v-else-if="error" variant="destructive">
+      <AlertTitle>The ClickUp integration could not be loaded</AlertTitle>
+      <AlertDescription class="flex flex-col items-start gap-3">
+        We encountered an error while loading its configuration.
+        <div class="flex gap-2">
+          <Button variant="outline" size="sm" @click="fetchClickUpConfig">
+            Try again
+          </Button>
+          <Button variant="outline" size="sm" @click="router.back()">
+            Go back
+          </Button>
+        </div>
+      </AlertDescription>
+    </Alert>
+
+    <Card v-else-if="!clickUpConfig" class="rounded-card shadow-card">
+      <CardHeader>
+        <h3 class="text-lg font-semibold leading-none text-foreground-strong">
+          ClickUp is not configured
+        </h3>
+        <CardDescription>
+          Configure it to sync tickets to ClickUp tasks.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button @click="showConfigModal = true">Configure ClickUp</Button>
+      </CardContent>
+    </Card>
+
+    <div v-else class="grid grid-cols-2 items-start gap-6">
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h3 class="text-lg font-semibold leading-none text-foreground-strong">
+            Status
+          </h3>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-6">
+          <dl class="grid grid-cols-[max-content_1fr] gap-x-8 gap-y-3 text-sm">
+            <dt class="text-muted-foreground">Connection</dt>
+            <dd>
+              <StatusBadge
+                :tone="clickUpConfig.enabled ? 'success' : 'neutral'"
+                :label="clickUpConfig.enabled ? 'Connected' : 'Disabled'"
+              />
+            </dd>
+            <dt class="text-muted-foreground">Workspace</dt>
+            <dd>{{ clickUpConfig.workspace_name ?? "Not set" }}</dd>
+            <dt class="text-muted-foreground">List</dt>
+            <dd>{{ clickUpConfig.list_name ?? "Not set" }}</dd>
+            <dt class="text-muted-foreground">Create tasks for new tickets</dt>
+            <dd>{{ clickUpConfig.auto_sync_on_create ? "On" : "Off" }}</dd>
+            <dt class="text-muted-foreground">Sync status changes</dt>
+            <dd>{{ clickUpConfig.sync_status_changes ? "On" : "Off" }}</dd>
+          </dl>
+
+          <p
+            v-if="testResult"
+            role="status"
+            class="text-sm"
+            :class="testResult.success ? 'text-success' : 'text-destructive'"
+          >
+            {{ testResult.message }}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h3 class="text-lg font-semibold leading-none text-foreground-strong">
+            Actions
+          </h3>
+          <CardDescription>
+            Synced tasks appear on the
+            <RouterLink
+              :to="{ name: 'tickets' }"
+              class="rounded-sm font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >Tickets</RouterLink
+            >
+            page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="flex flex-wrap gap-3">
+          <Button variant="outline" @click="showConfigModal = true">
+            <Settings aria-hidden="true" />
+            Reconfigure
+          </Button>
+          <Button
+            variant="outline"
+            :disabled="isTesting"
+            @click="testConnection"
+          >
+            <LoaderCircle
+              v-if="isTesting"
+              aria-hidden="true"
+              class="animate-spin motion-reduce:animate-none"
+            />
+            <PlugZap v-else aria-hidden="true" />
+            Test connection
+          </Button>
+          <Button variant="destructive" @click="confirmOpen = true">
+            <Trash2 aria-hidden="true" />
+            Delete integration
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+
     <ClickUpConfigModal
       v-if="showConfigModal"
       :existing-config="clickUpConfig || undefined"
-      @close="onClose"
+      @close="showConfigModal = false"
       @configured="onConfigured"
+    />
+    <DeleteIntegrationDialog
+      v-model:open="confirmOpen"
+      name="ClickUp"
+      :busy="isDeleting"
+      @confirm="deleteIntegration"
     />
   </div>
 </template>

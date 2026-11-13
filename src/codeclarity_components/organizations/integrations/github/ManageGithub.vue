@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { type Ref, ref } from "vue";
+import { ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { GithubTokenType } from "@/codeclarity_components/organizations/integrations/integration_add.http";
@@ -17,130 +17,102 @@ import { errorToast, successToast } from "@/utils/toasts";
 
 import OrgIntegrationManageTokenBasedIntegration from "../IntegrationManageTokenBasedIntegration.vue";
 
-const integration: Ref<GithubIntegration | undefined> = ref();
+const props = defineProps<{ orgId: string }>();
 
-// Repositories
-const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
-
-// State
-const integrationId: Ref<string | undefined> = ref();
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref("");
-const loading: Ref<boolean> = ref(false);
-
-const props = defineProps<{
-  orgId: string;
-}>();
-
-// Stores
 const authStore = useAuthStore();
+const integrationRepo = new IntegrationsRepository();
+const route = useRoute();
+
+const integrationId =
+  typeof route.query.integrationId === "string"
+    ? route.query.integrationId
+    : undefined;
+
+const integration = ref<GithubIntegration>();
+const loading = ref(true);
+const error = ref(false);
+const errorCode = ref<string>();
+const deleting = ref(false);
 
 async function fetchIntegration(): Promise<void> {
-  if (!integrationId.value) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
+  if (!integrationId || !authStore.getToken) return;
+  loading.value = true;
   error.value = false;
   errorCode.value = undefined;
-
   try {
-    const _integration = await integrationRepo.getGithubIntegration({
+    integration.value = await integrationRepo.getGithubIntegration({
       orgId: props.orgId,
-      integrationId: integrationId.value,
+      integrationId,
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
-
-    integration.value = _integration;
-  } catch (_err) {
+  } catch (err) {
     error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
+    if (err instanceof BusinessLogicError) errorCode.value = err.error_code;
   } finally {
     loading.value = false;
   }
 }
 
-async function init(): Promise<void> {
-  const route = useRoute();
-
-  const _integrationId = route.query.integrationId as string;
-
-  if (!_integrationId) {
-    router.back();
-  }
-
-  integrationId.value = _integrationId;
-  await fetchIntegration();
-}
-
 async function deleteIntegration(): Promise<void> {
-  if (!integrationId.value) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
+  if (!integrationId || !authStore.getToken) return;
+  deleting.value = true;
   try {
     await integrationRepo.deleteIntegration({
       orgId: props.orgId,
-      integrationId: integrationId.value,
+      integrationId,
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
-
-    successToast("Succesfully deleted the integration");
+    successToast("Deleted the GitHub integration");
     void router.push({
       name: "orgs",
       params: { orgId: props.orgId, page: "integrations", action: "manage" },
     });
-  } catch (_err) {
-    if (_err instanceof BusinessLogicError) {
-      if (_err.error_code === APIErrors.NotAuthorized) {
-        void errorToast("You are not authorized to perform this action.");
-      } else if (_err.error_code === APIErrors.EntityNotFound) {
-        errorToast("Succesfully deleted the integration");
-      } else if (_err.error_code === APIErrors.InternalError) {
-        errorToast("Failed to delete the integration.");
-      } else {
-        errorToast("Failed to delete the integration.");
-      }
+  } catch (err) {
+    if (
+      err instanceof BusinessLogicError &&
+      err.error_code === APIErrors.NotAuthorized
+    ) {
+      errorToast("You are not authorized to perform this action.");
     } else {
       errorToast("Failed to delete the integration.");
     }
+  } finally {
+    deleting.value = false;
   }
 }
 
-void init();
+if (integrationId) void fetchIntegration();
+else router.back();
 </script>
 <template>
-  <main class="p-12">
-    <OrgIntegrationManageTokenBasedIntegration
-      v-if="!loading && integration !== undefined && integration !== null"
-      :error="error"
-      :error-code="errorCode"
-      :integration="integration"
-      :provider="IntegrationProvider.GITHUB"
-      :update-route="{
-        name: 'orgs',
-        params: { action: 'manage', page: 'integrations', orgId: orgId },
-        query: { update: integrationId, provider: IntegrationProvider.GITHUB },
-      }"
-      @refresh="fetchIntegration()"
-      @delete="deleteIntegration()"
-    >
-      <template #header-integration-icon>
-        <Icon icon="devicon:github" class="icon integration-icon"></Icon>
-      </template>
-      <template #header-integration-name> Github </template>
-      <template #header-integration-description>
-        Your organization is linked to Github.
-      </template>
-      <template #token-type>
-        <div v-if="integration.token_type === GithubTokenType.CLASSIC_TOKEN">
-          Classic Token
-        </div>
-        <div v-else-if="integration.token_type === GithubTokenType.OAUTH_TOKEN">
-          OAuth Token
-        </div>
-      </template>
-    </OrgIntegrationManageTokenBasedIntegration>
-  </main>
+  <OrgIntegrationManageTokenBasedIntegration
+    name="GitHub"
+    :integration="integration"
+    :loading="loading"
+    :error="error"
+    :error-code="errorCode"
+    :deleting="deleting"
+    :update-route="{
+      name: 'orgs',
+      params: { action: 'add', page: 'integrations', orgId: orgId },
+      query: { update: integrationId, provider: IntegrationProvider.GITHUB },
+    }"
+    @refresh="fetchIntegration()"
+    @delete="deleteIntegration()"
+  >
+    <template #header-integration-icon>
+      <Icon icon="devicon:github" aria-hidden="true" class="size-8" />
+    </template>
+    <template #header-integration-description>
+      Your organization imports repositories from GitHub with this token.
+    </template>
+    <template #token-type>
+      <template v-if="integration?.token_type === GithubTokenType.CLASSIC_TOKEN"
+        >Classic token</template
+      >
+      <template v-else>OAuth token</template>
+    </template>
+  </OrgIntegrationManageTokenBasedIntegration>
 </template>

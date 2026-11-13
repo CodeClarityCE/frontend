@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useId } from "vue";
 
 import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
@@ -106,16 +106,21 @@ const caption = computed(() => {
       : `median ${formatNumber(g.median_days)} days`;
   return `Exposure survival, ${labelOf(g).toLowerCase()}: ${g.n} exposures, ${g.fixed} fixed, ${median}`;
 });
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-4"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-survival"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Exposure survival</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Exposure survival
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Share of exposures still unfixed after a number of days, from their
         introduction (or the first grid date they were seen) to the fix
         (Kaplan-Meier). Exposures still open at HEAD are censored, shown as
@@ -133,7 +138,7 @@ const caption = computed(() => {
       }"
     />
 
-    <p class="text-sm text-gray-700">
+    <p class="text-sm text-foreground">
       {{ counts }}
       <template v-if="snapshotShare">
         {{ snapshotShare }} of fixes dated only to a snapshot interval, using
@@ -141,7 +146,7 @@ const caption = computed(() => {
       </template>
     </p>
 
-    <p v-if="survival.overall.n === 0" class="text-sm text-gray-500">
+    <p v-if="survival.overall.n === 0" class="text-sm text-muted-foreground">
       No exposures yet.
     </p>
     <template v-else>
@@ -152,11 +157,11 @@ const caption = computed(() => {
           type="button"
           data-testid="survival-group"
           :aria-pressed="group.key === selected.key ? 'true' : 'false'"
-          class="rounded-full border px-3 py-1 text-xs"
+          class="rounded-full border px-3 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           :class="
             group.key === selected.key
-              ? 'border-gray-900 bg-gray-900 text-white'
-              : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+              ? 'border-foreground-strong bg-foreground-strong text-background'
+              : 'border-border text-foreground hover:bg-muted'
           "
           @click="selectedKey = group.key"
         >
@@ -164,7 +169,7 @@ const caption = computed(() => {
         </button>
       </div>
 
-      <p class="text-sm text-gray-700">{{ medianText }}</p>
+      <p class="text-sm text-foreground">{{ medianText }}</p>
 
       <ChartExport
         :name="`exposure-survival-${selected.key.toLowerCase()}`"
@@ -179,7 +184,7 @@ const caption = computed(() => {
       </ChartExport>
 
       <ChartTable>
-        <thead class="text-left text-gray-500">
+        <thead class="text-left text-muted-foreground">
           <tr>
             <th class="font-medium">Group</th>
             <th class="font-medium text-right">Exposures</th>
@@ -188,7 +193,10 @@ const caption = computed(() => {
             <th class="font-medium text-right">Median days</th>
           </tr>
         </thead>
-        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+        <tbody
+          class="text-foreground"
+          style="font-variant-numeric: tabular-nums"
+        >
           <tr
             v-for="group in groups"
             :key="group.key"
@@ -204,7 +212,7 @@ const caption = computed(() => {
       </ChartTable>
 
       <ChartTable label="Show steps with 95% bounds">
-        <thead class="text-left text-gray-500">
+        <thead class="text-left text-muted-foreground">
           <tr>
             <th class="font-medium text-right">Day</th>
             <th class="font-medium text-right">Still exposed</th>
@@ -213,7 +221,10 @@ const caption = computed(() => {
             <th class="font-medium text-right">At risk</th>
           </tr>
         </thead>
-        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+        <tbody
+          class="text-foreground"
+          style="font-variant-numeric: tabular-nums"
+        >
           <tr
             v-for="step in selected.curve"
             :key="step.time"
@@ -228,5 +239,5 @@ const caption = computed(() => {
         </tbody>
       </ChartTable>
     </template>
-  </div>
+  </section>
 </template>

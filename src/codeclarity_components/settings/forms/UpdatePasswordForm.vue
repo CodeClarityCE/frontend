@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { vAutoAnimate } from "@formkit/auto-animate/vue";
+import { LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
+import { ref } from "vue";
 import * as z from "zod";
 
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
@@ -16,132 +17,131 @@ import {
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
-import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
+import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { errorToast, successToast } from "@/utils/toasts";
 
-const state = useStateStore();
 const authStore = useAuthStore();
-state.menu = "settingsAccount";
-
-const userRepository: UserRepository = new UserRepository();
-
 const userStore = useUserStore();
-const user = userStore.user;
+const userRepository = new UserRepository();
 
-// UPDATE INFO FORM
-const formSchema = z.object({
-  old_password: z.string().min(10).max(75),
-  password: z.string().min(10).max(75),
-  password_confirmation: z.string().min(2).max(25),
-});
+const formSchema = z
+  .object({
+    old_password: z.string().min(1, "Enter your current password"),
+    password: z
+      .string()
+      .min(10, "At least 10 characters")
+      .max(75, "At most 75 characters"),
+    password_confirmation: z.string().min(1, "Confirm the new password"),
+  })
+  .refine((values) => values.password === values.password_confirmation, {
+    message: "The passwords do not match",
+    path: ["password_confirmation"],
+  });
 type FormValues = z.infer<typeof formSchema>;
+
+const emptyValues = {
+  old_password: "",
+  password: "",
+  password_confirmation: "",
+};
 
 const form = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
+  initialValues: emptyValues,
 });
 
-const onSubmit = form.handleSubmit((values): void => {
-  void updatePassword(
-    values.old_password,
-    values.password,
-    values.password_confirmation,
-  );
-});
+const submitting = ref(false);
 
-/*****************************************************************************/
-/*                                  API Calls                                */
-/*****************************************************************************/
-
-async function updatePassword(
-  password: string,
-  new_password: string,
-  new_password_confirmation: string,
-): Promise<void> {
-  if (authStore.getAuthenticated && authStore.getToken) {
-    try {
-      await userRepository.patchPassword({
-        userId: user?.id ?? "",
-        data: {
-          old_password: password,
-          password: new_password,
-          password_confirmation: new_password_confirmation,
-        },
-        bearerToken: authStore.getToken,
-        handleBusinessErrors: true,
-      });
-    } catch (err) {
-      if (err instanceof BusinessLogicError) {
-        console.error(err);
-      }
+function failureMessage(err: unknown): string {
+  if (err instanceof BusinessLogicError) {
+    if (err.error_code === APIErrors.CannotPerformActionOnSocialAccount) {
+      return "Accounts that sign in with GitHub or GitLab have no password to change";
+    }
+    if (err.error_code === APIErrors.PasswordsDoNotMatch) {
+      return "The passwords do not match";
     }
   }
+  return "The password could not be changed. Check your current password.";
 }
+
+const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+  const user = userStore.user;
+  if (!user || !authStore.getToken) return;
+  submitting.value = true;
+  try {
+    await userRepository.patchPassword({
+      userId: user.id,
+      data: values,
+      bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
+    });
+    form.resetForm({ values: emptyValues });
+    successToast("Your password was changed");
+  } catch (err) {
+    errorToast(failureMessage(err));
+  } finally {
+    submitting.value = false;
+  }
+});
 </script>
 
 <template>
-  <form class="space-y-6" @submit="onSubmit">
+  <form class="flex flex-col gap-6" novalidate @submit="onSubmit">
     <FormField v-slot="{ componentField }" name="old_password">
-      <FormItem v-auto-animate>
-        <FormLabel class="text-sm font-semibold text-theme-black"
-          >Current Password</FormLabel
-        >
+      <FormItem>
+        <FormLabel>Current password</FormLabel>
         <FormControl>
           <Input
             type="password"
-            placeholder="Enter your current password"
+            autocomplete="current-password"
             v-bind="filterUndefined(componentField)"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
           />
         </FormControl>
         <FormMessage />
       </FormItem>
     </FormField>
-
-    <FormField v-slot="{ componentField }" name="password">
-      <FormItem v-auto-animate>
-        <FormLabel class="text-sm font-semibold text-theme-black"
-          >New Password</FormLabel
-        >
-        <FormControl>
-          <Input
-            type="password"
-            placeholder="Enter your new password"
-            v-bind="filterUndefined(componentField)"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
-          />
-        </FormControl>
-        <FormDescription class="text-xs text-theme-gray mt-1">
-          Password must be at least 10 characters long and contain a mix of
-          letters, numbers, and symbols.
-        </FormDescription>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <FormField v-slot="{ componentField }" name="password_confirmation">
-      <FormItem v-auto-animate>
-        <FormLabel class="text-sm font-semibold text-theme-black"
-          >Confirm New Password</FormLabel
-        >
-        <FormControl>
-          <Input
-            type="password"
-            placeholder="Confirm your new password"
-            v-bind="filterUndefined(componentField)"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all duration-200"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <Button
-      type="submit"
-      class="w-full bg-theme-black hover:bg-theme-gray text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-    >
-      Update Password
-    </Button>
+    <div class="grid grid-cols-2 gap-4">
+      <FormField v-slot="{ componentField }" name="password">
+        <FormItem>
+          <FormLabel>New password</FormLabel>
+          <FormControl>
+            <Input
+              type="password"
+              autocomplete="new-password"
+              v-bind="filterUndefined(componentField)"
+            />
+          </FormControl>
+          <FormDescription>Between 10 and 75 characters.</FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+      <FormField v-slot="{ componentField }" name="password_confirmation">
+        <FormItem>
+          <FormLabel>Confirm new password</FormLabel>
+          <FormControl>
+            <Input
+              type="password"
+              autocomplete="new-password"
+              v-bind="filterUndefined(componentField)"
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+    </div>
+    <div class="flex justify-end">
+      <Button type="submit" :disabled="submitting">
+        <LoaderCircle
+          v-if="submitting"
+          aria-hidden="true"
+          class="animate-spin motion-reduce:animate-none"
+        />
+        Change password
+      </Button>
+    </div>
   </form>
 </template>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 
+import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 
 import { TicketsRepository } from "../tickets.repository";
@@ -67,73 +68,50 @@ onMounted(async () => {
         query: { clickup_oauth: "success" },
       });
     }, 1500);
-  } catch (error) {
-    console.error("OAuth exchange failed:", error);
+  } catch {
     status.value = "error";
     errorMessage.value = "Failed to connect to ClickUp. Please try again.";
     sessionStorage.removeItem("clickup_oauth_org_id");
   }
 });
-
-function goToTickets(): void {
-  void router.push("/tickets");
-}
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full p-8">
-      <!-- Loading State -->
-      <div v-if="status === 'loading'" class="text-center">
-        <div
-          class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4"
-        >
-          <Icon
-            icon="solar:spinner-outline"
-            class="w-8 h-8 text-purple-600 animate-spin"
-          />
-        </div>
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">
-          Connecting to ClickUp...
-        </h2>
-        <p class="text-gray-500">
-          Please wait while we complete the authorization.
-        </p>
-      </div>
+  <div class="flex min-h-[60vh] items-center justify-center p-8">
+    <section
+      class="flex w-full max-w-md flex-col items-center gap-4 rounded-card border bg-card p-8 text-center shadow-card"
+    >
+      <Icon
+        icon="simple-icons:clickup"
+        aria-hidden="true"
+        class="size-10 text-foreground-strong"
+      />
 
-      <!-- Success State -->
-      <div v-else-if="status === 'success'" class="text-center">
-        <div
-          class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"
-        >
-          <Icon icon="solar:check-circle-bold" class="w-8 h-8 text-green-600" />
-        </div>
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">
-          Connected Successfully!
-        </h2>
-        <p class="text-gray-500">
-          Redirecting you back to complete the setup...
+      <template v-if="status === 'loading'">
+        <h1 class="text-xl font-bold text-foreground-strong">
+          Connecting to ClickUp
+        </h1>
+        <p role="status" class="text-sm text-muted-foreground">
+          Please wait while we complete the authorisation.
         </p>
-      </div>
+      </template>
 
-      <!-- Error State -->
-      <div v-else class="text-center">
-        <div
-          class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4"
-        >
-          <Icon icon="solar:close-circle-bold" class="w-8 h-8 text-red-600" />
-        </div>
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">
-          Connection Failed
-        </h2>
-        <p class="text-gray-500 mb-4">{{ errorMessage }}</p>
-        <button
-          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          @click="goToTickets"
-        >
-          Go to Tickets
-        </button>
-      </div>
-    </div>
+      <template v-else-if="status === 'success'">
+        <h1 class="text-xl font-bold text-foreground-strong">Connected</h1>
+        <p role="status" class="text-sm text-muted-foreground">
+          Taking you back to finish the setup.
+        </p>
+      </template>
+
+      <template v-else>
+        <h1 class="text-xl font-bold text-foreground-strong">
+          Connection failed
+        </h1>
+        <p role="alert" class="text-sm text-muted-foreground">
+          {{ errorMessage }}
+        </p>
+        <Button :as="RouterLink" to="/tickets">Go to Tickets</Button>
+      </template>
+    </section>
   </div>
 </template>

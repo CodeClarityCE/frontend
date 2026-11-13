@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { FilterType } from "@/base_components/filters/filterTypes";
 import {
   type GetRepositoriesRequestOptions,
   GetRepositoriesSortInterface,
@@ -27,28 +26,16 @@ const LANGUAGE_BY_FILTER: Record<string, string> = {
   language_php: "PHP",
 };
 
-// The list is at most 100 entries, so one page holds all of them and
-// "Select All" selects the whole ranking.
+// The list is at most 100 entries, ranked by stars.
 const tableConfig: RepoTableConfig = {
   defaultSortKey: GetRepositoriesSortInterface.STARS,
-  defaultEntriesPerPage: 100,
   showStars: true,
-  extraFilters: {
-    Language: {
-      name: "Language",
-      icon: "solar:code-bold",
-      type: FilterType.RADIO,
-      data: {
-        language_all: {
-          title: "All (JavaScript, TypeScript, PHP)",
-          value: true,
-        },
-        language_javascript: { title: "JavaScript", value: false },
-        language_typescript: { title: "TypeScript", value: false },
-        language_php: { title: "PHP", value: false },
-      },
-    },
-  },
+  languages: [
+    { key: "language_all", label: "All (JavaScript, TypeScript, PHP)" },
+    { key: "language_javascript", label: "JavaScript" },
+    { key: "language_typescript", label: "TypeScript" },
+    { key: "language_php", label: "PHP" },
+  ],
 };
 
 function getRepos(

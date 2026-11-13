@@ -1,56 +1,37 @@
 <script lang="ts" setup>
-/**
- * SBOM Content Component
- *
- * Main component for displaying Software Bill of Materials (SBOM) data.
- * Features:
- * - Package manager detection and adaptation
- * - Health score calculation and security metrics
- * - Direct dependency update modal
- * - Multi-format export (CSV, JSON, CycloneDX, HTML)
- * - Interactive charts and statistics
- */
-
-import { Icon } from "@iconify/vue";
+import { Info, RefreshCw } from "@lucide/vue";
 import { computed, type Ref, ref, watch } from "vue";
 
-import type { DoughnutChartData } from "@/base_components/data-display/charts/doughnutChart";
-import DoughnutChart from "@/base_components/data-display/charts/DoughnutChart.vue";
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-import DonutLoader from "@/base_components/ui/loaders/DonutLoader.vue";
-import TextLoader from "@/base_components/ui/loaders/TextLoader.vue";
+import ColumnChart from "@/base_components/charts/ColumnChart.vue";
+import { OwlEmptyState, StatTile } from "@/base_components/page";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import {
   type AnalysisStats,
   SbomStats,
 } from "@/codeclarity_components/results/stats.entity";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
-import { Card, CardContent } from "@/shadcn/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shadcn/ui/tooltip";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import type { DataResponse } from "@/utils/api/responses/DataResponse";
 import { saveBlob } from "@/utils/download";
 import {
   getGradeSubtitle,
-  getScoreBorderColor,
   GRADE_DISPLAY_RANGES,
   scoreToGrade,
 } from "@/utils/gradeUtils";
+import { errorToast } from "@/utils/toasts";
 
+import type { Dependency as SbomDependency } from "../graph.entity";
 import SelectWorkspace from "../SelectWorkspace.vue";
 
 import {
   convertToCSV,
   convertToCycloneDX,
   convertToHTML,
-  type ExportOptions,
+  type ExportFormat,
   sortDependenciesByPriority,
 } from "./exports/sbomExportUtils";
 import PackageJsonUpdatesModal from "./PackageJsonUpdatesModal.vue";
@@ -60,84 +41,153 @@ import {
   calculateHealthScore,
   calculateSecurityIssues,
   convertToPackageUpdates,
-  type Dependency,
   getDirectDependenciesNeedingUpdates,
 } from "./utils/sbomUtils";
 
-export interface Props {
-  analysisID?: string;
-  projectID?: string;
-  projectName?: string;
-  executedSbomPlugins?: string[];
-}
-const props = withDefaults(defineProps<Props>(), {
-  projectID: "",
-  analysisID: "",
-  projectName: "",
-  executedSbomPlugins: () => [],
-});
+const props = withDefaults(
+  defineProps<{
+    analysisID?: string;
+    projectID?: string;
+    projectName?: string;
+    executedSbomPlugins?: string[];
+  }>(),
+  {
+    projectID: "",
+    analysisID: "",
+    projectName: "",
+    executedSbomPlugins: () => [],
+  },
+);
 
-// Repositories and stores
-const sbomRepo: ResultsRepository = new ResultsRepository();
+const sbomRepo = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-// Component state
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref();
-const loading: Ref<boolean> = ref(true);
-const render: Ref<boolean> = ref(false);
-
-// SBOM data
+const failed = ref(false);
+const loading = ref(true);
 const stats: Ref<SbomStats> = ref(new SbomStats());
 const vulnerabilityStats: Ref<AnalysisStats | null> = ref(null);
-const dependencies: Ref<Dependency[]> = ref([]);
-const allDependencies: Ref<Dependency[]> = ref([]); // Store all dependencies for filtering
-const selected_workspace: Ref<string> = ref(".");
-const packageManager: Ref<string> = ref("yarn"); // Detected from workspace data
-const selectedEcosystemFilter: Ref<string | null> = ref(null);
+const dependencies: Ref<SbomDependency[]> = ref([]);
+const selected_workspace = ref(".");
+const packageManager = ref("yarn");
+const ecosystemFilter: Ref<string | null> = ref(null);
+const showUpdatesModal = ref(false);
+const exporting = ref(false);
 
-// UI state
-const showUpdatesModal: Ref<boolean> = ref(false);
+// Counts requests so an answer for an earlier selection is dropped.
+let latestRequest = 0;
 
-const initChartData = {
-  labels: ["Label"],
-  datasets: [
-    {
-      borderColor: "transparent",
-      spacing: 3,
-      borderRadius: 3,
-      data: [0],
-      backgroundColor: ["#146C94"],
-    },
+function context(): { orgId: string; token: string } | null {
+  const org = userStore.getDefaultOrg;
+  const token = authStore.getToken;
+  if (!org || !authStore.getAuthenticated || !token) return null;
+  if (props.projectID === "" || props.analysisID === "") return null;
+  return { orgId: org.id, token };
+}
+
+// The API pages at 100, so every page is fetched to have all dependencies.
+async function fetchAllDependencies(): Promise<SbomDependency[]> {
+  const ctx = context();
+  if (!ctx) return [];
+  const fetchPage = (page: number): ReturnType<typeof sbomRepo.getSbom> =>
+    sbomRepo.getSbom({
+      orgId: ctx.orgId,
+      projectId: props.projectID,
+      analysisId: props.analysisID,
+      workspace: selected_workspace.value,
+      bearerToken: ctx.token,
+      pagination: { page, entries_per_page: 100 },
+      sort: { sortKey: "name", sortDirection: "ASC" },
+      active_filters: "",
+      search_key: "",
+      ecosystem_filter: ecosystemFilter.value ?? undefined,
+      handleBusinessErrors: true,
+    });
+  const first = await fetchPage(0);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, (first.total_pages ?? 1) - 1) }, (_, i) =>
+      fetchPage(i + 1),
+    ),
+  );
+  return [first, ...rest].flatMap((page) => page.data ?? []);
+}
+
+async function fetchVulnerabilityStats(): Promise<AnalysisStats | null> {
+  const ctx = context();
+  if (!ctx) return null;
+  try {
+    const res = await sbomRepo.getVulnerabilitiesStat({
+      orgId: ctx.orgId,
+      projectId: props.projectID,
+      analysisId: props.analysisID,
+      workspace: selected_workspace.value,
+      bearerToken: ctx.token,
+      ecosystem_filter: ecosystemFilter.value ?? undefined,
+      handleBusinessErrors: true,
+    });
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+async function load(): Promise<void> {
+  const ctx = context();
+  if (!ctx) return;
+  const request = ++latestRequest;
+  try {
+    const [statsRes, deps, vulnStats] = await Promise.all([
+      sbomRepo.getSbomStat({
+        orgId: ctx.orgId,
+        projectId: props.projectID,
+        analysisId: props.analysisID,
+        workspace: selected_workspace.value,
+        bearerToken: ctx.token,
+        ecosystem_filter: ecosystemFilter.value ?? undefined,
+        handleBusinessErrors: true,
+      }),
+      fetchAllDependencies(),
+      fetchVulnerabilityStats(),
+    ]);
+    if (request !== latestRequest) return;
+    stats.value = statsRes.data;
+    dependencies.value = deps;
+    vulnerabilityStats.value = vulnStats;
+    failed.value = false;
+  } catch {
+    if (request === latestRequest) failed.value = true;
+  } finally {
+    if (request === latestRequest) loading.value = false;
+  }
+}
+
+watch(
+  [
+    () => props.projectID,
+    () => props.analysisID,
+    selected_workspace,
+    ecosystemFilter,
   ],
-};
-const donut_data: Ref<DoughnutChartData> = ref([]);
-const bar_data = ref(initChartData);
-const bar_config = ref({});
-const exportMenuRef = ref<InstanceType<typeof SbomExportMenu>>();
-
-const donutDimensions = {
-  width: "180px",
-  height: "180px",
-};
-
-// Watchers
-watch(
-  () => props.projectID,
-  () => getSbomStats(),
+  () => void load(),
+  { immediate: true },
 );
-watch(
-  () => props.analysisID,
-  () => getSbomStats(),
-);
-watch(selected_workspace, () => getSbomStats());
 
-// Computed properties - using utility functions for clarity
-const healthScore = computed(() => calculateHealthScore(stats.value));
+const total = computed(() => stats.value.number_of_dependencies ?? 0);
+const directTotal = computed(
+  () =>
+    (stats.value.number_of_direct_dependencies ?? 0) +
+    (stats.value.number_of_both_direct_transitive_dependencies ?? 0),
+);
+const healthGrade = computed(() =>
+  scoreToGrade(calculateHealthScore(stats.value)),
+);
 const securityIssues = computed(() =>
   calculateSecurityIssues(vulnerabilityStats.value),
 );
+const securityHint = computed(() => {
+  if (securityIssues.value === null) return "Vulnerability data unavailable";
+  return securityIssues.value === 0 ? "No issues found" : "Requires attention";
+});
 
 const healthFactors = computed(() => [
   {
@@ -154,769 +204,266 @@ const healthFactors = computed(() => [
   },
 ]);
 
-// An unknown count stays neutral so it never reads as a clean result
-const securityCard = computed(() => {
-  if (securityIssues.value === null) {
-    return {
-      variant: "default" as const,
-      subtitle: loading.value ? "Loading..." : "Vulnerability data unavailable",
-      border: "border-l-gray-400",
-    };
-  }
-  return securityIssues.value === 0
-    ? {
-        variant: "success" as const,
-        subtitle: "No issues found",
-        border: "border-l-green-500",
-      }
-    : {
-        variant: "danger" as const,
-        subtitle: "Requires attention",
-        border: "border-l-red-500",
-      };
-});
+const COMPOSITION = ["Direct", "Transitive", "Both"];
+const compositionCounts = computed(() => [
+  stats.value.number_of_direct_dependencies ?? 0,
+  stats.value.number_of_transitive_dependencies ?? 0,
+  stats.value.number_of_both_direct_transitive_dependencies ?? 0,
+]);
+const compositionSeries = computed(() => [
+  {
+    key: "count",
+    label: "Dependencies",
+    values: compositionCounts.value,
+    color: "var(--viz-series-1)",
+  },
+]);
 
-// Health grade mapping using shared utility
-const healthGrade = computed(() => scoreToGrade(healthScore.value));
-const healthGradeSubtitle = computed(() =>
-  getGradeSubtitle(healthGrade.value, "health"),
-);
-const healthScoreBorderColor = computed(() =>
-  getScoreBorderColor(healthScore.value),
-);
-const directDependenciesNeedingUpdates = computed(() =>
-  getDirectDependenciesNeedingUpdates(dependencies.value),
-);
-const directUpdatesCount = computed(
-  () => directDependenciesNeedingUpdates.value.length,
-);
+function describeComposition(index: number): string {
+  const count = compositionCounts.value[index] ?? 0;
+  const share = total.value > 0 ? Math.round((count / total.value) * 100) : 0;
+  return `${COMPOSITION[index] ?? ""}: ${count} ${count === 1 ? "dependency" : "dependencies"}, ${share}% of total`;
+}
+
 const packageUpdates = computed(() =>
-  convertToPackageUpdates(directDependenciesNeedingUpdates.value),
+  convertToPackageUpdates(
+    getDirectDependenciesNeedingUpdates(dependencies.value),
+  ),
 );
 
-// Event handlers
-function handleUpdateOutdated(): void {
-  /** Opens the package.json updates modal if there are direct dependencies needing updates */
-  if (directUpdatesCount.value > 0) {
-    showUpdatesModal.value = true;
-  }
-}
-
-function handleCopyToClipboard(_content: string): void {
-  /** Handles clipboard copy events from the modal */
-  // Content copied to clipboard
-}
-
-function handlePackageManagerLoaded(manager: string): void {
-  /** Receives package manager info from SelectWorkspace component */
+function onPackageManagerLoaded(manager: string): void {
   packageManager.value = manager.toLowerCase();
 }
 
-function handleEcosystemFilterChanged(ecosystemType: string | null): void {
-  /** Handles ecosystem filter changes from SelectWorkspace component */
-  selectedEcosystemFilter.value = ecosystemType;
-  // Refresh both dependencies and stats with the new filter
-  void getSbomStats(true); // This will call fetchDependencies() as well
+function onEcosystemFilterChanged(ecosystem: string | null): void {
+  ecosystemFilter.value = ecosystem;
 }
 
-async function handleExportReport(
-  format: "csv" | "json" | "cyclonedx" | "html",
-): Promise<void> {
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
-  if (!userStore.getDefaultOrg || !props.analysisID) return;
+const EXPORTS: Record<
+  ExportFormat,
+  { suffix: string; mime: string; build: (deps: SbomDependency[]) => string }
+> = {
+  csv: { suffix: ".csv", mime: "text/csv", build: (d) => convertToCSV(d) },
+  html: {
+    suffix: ".html",
+    mime: "text/html",
+    build: (d) =>
+      convertToHTML(d, {
+        projectName: props.projectName,
+        projectId: props.projectID,
+      }),
+  },
+  json: {
+    suffix: ".json",
+    mime: "application/json",
+    build: (d) => JSON.stringify(sortDependenciesByPriority(d), null, 2),
+  },
+  cyclonedx: {
+    suffix: "-cyclonedx.json",
+    mime: "application/json",
+    build: (d) =>
+      convertToCycloneDX(d, {
+        projectName: props.projectName,
+        projectId: props.projectID,
+      }),
+  },
+};
 
+async function exportReport(format: ExportFormat): Promise<void> {
+  exporting.value = true;
   try {
-    const exportMenu = exportMenuRef.value as {
-      setExportProgress?: (msg: string) => void;
-    } | null;
-    if (exportMenu?.setExportProgress) {
-      exportMenu.setExportProgress("Fetching dependencies...");
-    }
-
-    // First, get the initial page to know the total count
-    const firstPage = await sbomRepo.getSbom({
-      orgId: userStore.getDefaultOrg.id,
-      projectId: props.projectID,
-      analysisId: props.analysisID,
-      workspace: selected_workspace.value,
-      bearerToken: authStore.getToken,
-      pagination: { page: 0, entries_per_page: 100 },
-      sort: { sortKey: "name", sortDirection: "asc" },
-      active_filters: "",
-      search_key: "",
-      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
-      handleBusinessErrors: true,
-    });
-
-    // Collect all dependencies
-    let exportDependencies = [...firstPage.data];
-
-    // If there are more pages, fetch them all
-    if (firstPage.total_pages > 1) {
-      const exportMenu = exportMenuRef.value as {
-        setExportProgress?: (msg: string) => void;
-      } | null;
-      if (exportMenu?.setExportProgress) {
-        exportMenu.setExportProgress(
-          `Fetching ${firstPage.total_pages} pages...`,
-        );
-      }
-
-      const promises = [];
-      for (let page = 1; page < firstPage.total_pages; page++) {
-        promises.push(
-          sbomRepo.getSbom({
-            orgId: userStore.getDefaultOrg.id,
-            projectId: props.projectID,
-            analysisId: props.analysisID,
-            workspace: selected_workspace.value,
-            bearerToken: authStore.getToken,
-            pagination: { page, entries_per_page: 100 },
-            sort: { sortKey: "name", sortDirection: "asc" },
-            active_filters: "",
-            search_key: "",
-            ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
-            handleBusinessErrors: true,
-          }),
-        );
-      }
-
-      const additionalPages = await Promise.all(promises);
-      additionalPages.forEach((page) => {
-        exportDependencies = exportDependencies.concat(page.data);
-      });
-    }
-
-    const exportMenu2 = exportMenuRef.value as {
-      setExportProgress?: (msg: string) => void;
-    } | null;
-    if (exportMenu2?.setExportProgress) {
-      exportMenu2.setExportProgress(
-        `Generating ${format.toUpperCase()} file...`,
-      );
-    }
-
-    const exportOptions: ExportOptions = {
-      projectName: props.projectName ?? "",
-      projectId: props.projectID ?? "",
-    };
-
-    let content: string;
-    let filename: string;
-    let mimeType: string;
-    const dateStr = new Date().toISOString().split("T")[0];
-    const projectName = props.projectName ?? props.projectID;
-
-    switch (format) {
-      case "csv":
-        content = convertToCSV(exportDependencies);
-        filename = `sbom-${projectName}-${dateStr}.csv`;
-        mimeType = "text/csv";
-        break;
-      case "html":
-        content = convertToHTML(exportDependencies, exportOptions);
-        filename = `sbom-${projectName}-${dateStr}.html`;
-        mimeType = "text/html";
-        break;
-      case "json":
-        content = JSON.stringify(
-          sortDependenciesByPriority(exportDependencies),
-          null,
-          2,
-        );
-        filename = `sbom-${projectName}-${dateStr}.json`;
-        mimeType = "application/json";
-        break;
-      case "cyclonedx":
-        content = convertToCycloneDX(exportDependencies, exportOptions);
-        filename = `sbom-${projectName}-${dateStr}-cyclonedx.json`;
-        mimeType = "application/json";
-        break;
-      default:
-        throw new Error(`Unsupported export format: ${format as string}`);
-    }
-
-    // Create and trigger download
-    saveBlob(new Blob([content], { type: mimeType }), filename);
-
-    // Reset export state
-    const exportMenu3 = exportMenuRef.value as {
-      resetExportState?: () => void;
-    } | null;
-    if (exportMenu3?.resetExportState) {
-      exportMenu3.resetExportState();
-    }
-  } catch (error) {
-    console.error("Export failed:", error);
-    const exportMenu4 = exportMenuRef.value as {
-      resetExportState?: () => void;
-    } | null;
-    if (exportMenu4?.resetExportState) {
-      exportMenu4.resetExportState();
-    }
-  }
-}
-
-async function fetchDependencies(): Promise<void> {
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
-  if (!userStore.getDefaultOrg || !props.analysisID) return;
-
-  try {
-    // Fetch first page to get total count
-    const firstPage = await sbomRepo.getSbom({
-      orgId: userStore.getDefaultOrg.id,
-      projectId: props.projectID,
-      analysisId: props.analysisID,
-      workspace: selected_workspace.value,
-      bearerToken: authStore.getToken,
-      pagination: { page: 0, entries_per_page: 100 },
-      sort: { sortKey: "name", sortDirection: "asc" },
-      active_filters: "",
-      search_key: "",
-      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
-      handleBusinessErrors: true,
-    });
-
-    let fetchedDependencies = [...firstPage.data];
-
-    // If there are more pages, fetch them all
-    if (firstPage.total_pages > 1) {
-      const promises = [];
-      for (let page = 1; page < firstPage.total_pages; page++) {
-        promises.push(
-          sbomRepo.getSbom({
-            orgId: userStore.getDefaultOrg.id,
-            projectId: props.projectID,
-            analysisId: props.analysisID,
-            workspace: selected_workspace.value,
-            bearerToken: authStore.getToken,
-            pagination: { page, entries_per_page: 100 },
-            sort: { sortKey: "name", sortDirection: "asc" },
-            active_filters: "",
-            search_key: "",
-            ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
-            handleBusinessErrors: true,
-          }),
-        );
-      }
-
-      const additionalPages = await Promise.all(promises);
-      additionalPages.forEach((page) => {
-        fetchedDependencies = fetchedDependencies.concat(page.data);
-      });
-    }
-
-    dependencies.value = fetchedDependencies;
-    allDependencies.value = fetchedDependencies; // Store for potential client-side operations
-  } catch (error) {
-    console.error("Failed to fetch dependencies:", error);
-  }
-}
-
-// Only the latest request may update the card when the workspace changes quickly
-let vulnerabilityStatsRequest = 0;
-async function fetchVulnerabilityStats(): Promise<void> {
-  if (!authStore.getToken || !userStore.getDefaultOrg) return;
-  const request = ++vulnerabilityStatsRequest;
-
-  try {
-    const res = await sbomRepo.getVulnerabilitiesStat({
-      orgId: userStore.getDefaultOrg.id,
-      projectId: props.projectID,
-      analysisId: props.analysisID,
-      workspace: selected_workspace.value,
-      bearerToken: authStore.getToken,
-      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
-      handleBusinessErrors: true,
-    });
-    if (request === vulnerabilityStatsRequest) {
-      vulnerabilityStats.value = res.data;
-    }
+    const deps = await fetchAllDependencies();
+    const target = EXPORTS[format];
+    const date = new Date().toISOString().split("T")[0];
+    const name = props.projectName || props.projectID;
+    saveBlob(
+      new Blob([target.build(deps)], { type: target.mime }),
+      `sbom-${name}-${date}${target.suffix}`,
+    );
   } catch {
-    if (request === vulnerabilityStatsRequest) {
-      vulnerabilityStats.value = null;
-    }
-  }
-}
-
-// Methods
-void getSbomStats();
-async function getSbomStats(refresh = false): Promise<void> {
-  if (!userStore.getDefaultOrg) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
-  error.value = false;
-  errorCode.value = undefined;
-  if (!refresh) loading.value = true;
-
-  if (!authStore.getAuthenticated || !props.analysisID) return;
-
-  let res: DataResponse<SbomStats>;
-  try {
-    res = await sbomRepo.getSbomStat({
-      orgId: userStore.getDefaultOrg.id,
-      projectId: props.projectID,
-      analysisId: props.analysisID,
-      workspace: selected_workspace.value,
-      bearerToken: authStore.getToken,
-      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
-      handleBusinessErrors: true,
-    });
-    stats.value = res.data;
-
-    // Also fetch dependencies to calculate accurate counts
-    await Promise.all([fetchDependencies(), fetchVulnerabilityStats()]);
-
-    render.value = true;
-  } catch (_err) {
-    console.error(_err);
-
-    error.value = true;
-    render.value = false;
-    // if (_err instanceof BusinessLogicError) {
-    //     errorCode.value = _err.error_code;
-    // }
+    errorToast("Could not export the SBOM");
   } finally {
-    loading.value = false;
-    void createDepTypeChart();
-    void createDepStatusDistChart();
+    exporting.value = false;
   }
 }
 
-// Create charts
-function createDepStatusDistChart(): void {
-  const labels = ["Deprecated", "Unlicensed", "Outdated"];
-  const data = [
-    stats.value.number_of_deprecated_dependencies,
-    stats.value.number_of_unlicensed_dependencies,
-    stats.value.number_of_outdated_dependencies,
-  ];
-  // Updated colors to use theme colors
-  const colors = ["#000000", "#1dce79", "#333333"];
-
-  const dependency_dist_data = {
-    labels: labels,
-    datasets: [
-      {
-        borderColor: "transparent",
-        spacing: 3,
-        borderRadius: 3,
-        data: data,
-        backgroundColor: colors,
-      },
-    ],
-  };
-
-  bar_data.value = dependency_dist_data;
-  bar_config.value = {
-    maintainAspectRatio: true,
-    responsive: true,
-    scales: {
-      y: {
-        display: false,
-        grid: {
-          drawBorder: false,
-          display: false,
-        },
-      },
-      x: {
-        display: false,
-        grid: {
-          drawBorder: false,
-          display: false,
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    layout: {
-      padding: 20,
-    },
-  };
-}
-
-function createDepTypeChart(): void {
-  const labels = ["Direct", "Transitive", "Both"];
-  const data = [
-    stats.value.number_of_direct_dependencies,
-    stats.value.number_of_transitive_dependencies,
-    stats.value.number_of_both_direct_transitive_dependencies,
-  ];
-  // Updated colors to use theme colors
-  const colors = ["#1dce79", "#000000", "#666666"];
-
-  // Convert to d3 DoughnutChart format
-  const d3_data = labels.map((label, index) => ({
-    label: String(label),
-    count: data[index] ?? 0,
-    color: colors[index] ?? "#000000",
-  })) as DoughnutChartData;
-
-  donut_data.value = d3_data;
-}
+const LINK =
+  "rounded-sm font-medium text-brand-subtle-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 </script>
 
 <template>
-  <div value="sbom" class="space-y-8">
-    <SelectWorkspace
-      v-model:error="error"
-      v-model:selected_workspace="selected_workspace"
-      :project-i-d="projectID"
-      :analysis-i-d="analysisID"
-      :executed-sbom-plugins="executedSbomPlugins"
-      @package-manager-loaded="handlePackageManagerLoaded"
-      @ecosystem-filter-changed="handleEcosystemFilterChanged"
-    ></SelectWorkspace>
-
-    <!-- Quick Stats Row -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Total Dependencies -->
-      <StatCard
-        label="Total Dependencies"
-        :value="stats.number_of_dependencies ?? 0"
-        icon="solar:folder-bold"
-        variant="default"
-        subtitle="All project dependencies"
-        subtitle-icon="solar:folder-linear"
-        class="border-l-4 border-l-gray-400"
+  <section aria-labelledby="sbom-heading" class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <h2
+        id="sbom-heading"
+        class="text-xl font-semibold tracking-tight text-foreground-strong"
+      >
+        Software bill of materials
+      </h2>
+      <SelectWorkspace
+        v-model:selected_workspace="selected_workspace"
+        :project-i-d="projectID"
+        :analysis-i-d="analysisID"
+        :executed-sbom-plugins="executedSbomPlugins"
+        @package-manager-loaded="onPackageManagerLoaded"
+        @ecosystem-filter-changed="onEcosystemFilterChanged"
       />
+    </div>
 
-      <!-- Direct Dependencies -->
-      <StatCard
-        label="Direct Dependencies"
-        :value="
-          (stats.number_of_direct_dependencies ?? 0) +
-          (stats.number_of_both_direct_transitive_dependencies ?? 0)
-        "
-        icon="solar:target-bold"
-        variant="primary"
-        subtitle="Explicitly added"
-        subtitle-icon="solar:target-linear"
-        class="border-l-4 border-l-[#1dce79]"
-      />
+    <Alert v-if="failed" variant="destructive">
+      <AlertTitle>Could not load the SBOM</AlertTitle>
+      <AlertDescription>Reload the page to try again.</AlertDescription>
+    </Alert>
 
-      <!-- Health Score with tooltip -->
-      <TooltipProvider>
-        <Card
-          class="border shadow-sm hover:shadow-md transition-shadow h-full border-l-4"
-          :class="healthScoreBorderColor"
-        >
-          <CardContent class="p-6 h-full flex flex-col">
-            <p
-              class="text-sm font-semibold uppercase tracking-wide text-theme-gray mb-2"
-            >
-              Health Score
-            </p>
+    <div
+      v-if="loading"
+      role="status"
+      aria-label="Loading the SBOM"
+      class="flex flex-col gap-4"
+    >
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Skeleton v-for="i in 4" :key="i" class="h-24 rounded-card" />
+      </div>
+      <Skeleton class="h-64 rounded-card" />
+      <Skeleton class="h-96 rounded-card" />
+    </div>
 
-            <div class="flex-1 flex items-center">
-              <div class="flex items-center justify-between w-full">
-                <div class="space-y-2">
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <p
-                        class="text-3xl font-bold text-theme-black cursor-help flex items-center gap-2"
-                      >
-                        {{ healthGrade }}
-                        <Icon
-                          icon="solar:info-circle-line-duotone"
-                          class="w-5 h-5 text-gray-400"
-                        />
-                      </p>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="bottom"
-                      class="max-w-xs bg-white text-gray-900 border border-gray-200 shadow-lg p-3"
-                    >
-                      <div class="space-y-2">
-                        <p class="font-semibold text-sm text-gray-900">
-                          Health Grade Scale
-                        </p>
-                        <div class="space-y-1 text-xs">
-                          <div class="flex justify-between gap-4">
-                            <span class="text-green-600 font-medium"
-                              >A+ / A</span
-                            >
-                            <span class="text-gray-500"
-                              >Excellent ({{
-                                GRADE_DISPLAY_RANGES.excellent
-                              }})</span
-                            >
-                          </div>
-                          <div class="flex justify-between gap-4">
-                            <span class="text-blue-600 font-medium"
-                              >B+ / B</span
-                            >
-                            <span class="text-gray-500"
-                              >Good ({{ GRADE_DISPLAY_RANGES.good }})</span
-                            >
-                          </div>
-                          <div class="flex justify-between gap-4">
-                            <span class="text-yellow-600 font-medium"
-                              >C+ / C</span
-                            >
-                            <span class="text-gray-500"
-                              >Fair ({{ GRADE_DISPLAY_RANGES.fair }})</span
-                            >
-                          </div>
-                          <div class="flex justify-between gap-4">
-                            <span class="text-red-600 font-medium">D+ / D</span>
-                            <span class="text-gray-500"
-                              >Poor ({{ GRADE_DISPLAY_RANGES.poor }})</span
-                            >
-                          </div>
-                        </div>
-                        <p
-                          data-testid="health-explanation"
-                          class="text-xs text-gray-500 pt-1 border-t border-gray-200"
-                        >
-                          Deprecated and unlicensed dependencies lower the grade
-                          most; outdated ones count for less. Replace or update
-                          them to improve it. Vulnerabilities are counted under
-                          Security Issues.
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
+    <OwlEmptyState
+      v-else-if="!failed && total === 0"
+      title="No dependencies found"
+    >
+      <template #description>
+        The analysis found no dependencies. A project needs a package manifest,
+        such as
+        <a
+          :class="LINK"
+          href="https://docs.npmjs.com/cli/configuring-npm/package-json"
+          target="_blank"
+          rel="noopener"
+          >package.json</a
+        >, next to its lockfile. If your project has both, write to
+        <a :class="LINK" href="mailto:help@codeclarity.io"
+          >help@codeclarity.io</a
+        >.
+      </template>
+    </OwlEmptyState>
 
-                  <div class="flex items-center gap-1 text-xs">
-                    <span class="font-medium text-theme-gray">
-                      {{ healthGradeSubtitle }}
-                    </span>
-                  </div>
-                </div>
+    <template v-else-if="!failed">
+      <ul
+        aria-label="Dependency numbers"
+        class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <StatTile
+          label="Dependencies"
+          :value="total"
+          hint="All project dependencies"
+        />
+        <StatTile
+          label="Direct dependencies"
+          :value="directTotal"
+          hint="Added by you"
+        />
+        <StatTile
+          label="Health grade"
+          :value="healthGrade"
+          :hint="getGradeSubtitle(healthGrade, 'health')"
+        />
+        <StatTile
+          label="Security issues"
+          :value="securityIssues ?? '-'"
+          :hint="securityHint"
+        />
+      </ul>
 
-                <div class="p-3 rounded-full bg-gray-100">
-                  <Icon
-                    icon="solar:heart-pulse-bold"
-                    class="h-8 w-8 text-gray-600"
-                  />
-                </div>
+      <Popover>
+        <PopoverTrigger as-child>
+          <Button variant="ghost" size="sm" class="self-start">
+            <Info aria-hidden="true" class="size-4" />
+            How the health grade is set
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" class="w-80 text-sm">
+          <p class="mb-2">
+            Deprecated and unlicensed dependencies lower the grade most;
+            outdated ones count for less. Vulnerabilities are counted under
+            security issues.
+          </p>
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
+            <dt class="font-medium">A+ or A</dt>
+            <dd>Excellent, {{ GRADE_DISPLAY_RANGES.excellent }}</dd>
+            <dt class="font-medium">B+ or B</dt>
+            <dd>Good, {{ GRADE_DISPLAY_RANGES.good }}</dd>
+            <dt class="font-medium">C+ or C</dt>
+            <dd>Fair, {{ GRADE_DISPLAY_RANGES.fair }}</dd>
+            <dt class="font-medium">D+ or D</dt>
+            <dd>Poor, {{ GRADE_DISPLAY_RANGES.poor }}</dd>
+          </dl>
+        </PopoverContent>
+      </Popover>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle class="text-base">Dependency composition</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ColumnChart
+              :labels="COMPOSITION"
+              :series="compositionSeries"
+              :y-max="Math.max(...compositionCounts, 1)"
+              :format-y="(v) => String(v)"
+              :describe="describeComposition"
+              caption="Dependencies by how they are added"
+              x-title="Added as"
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle class="text-base">Health factors</CardTitle>
+          </CardHeader>
+          <CardContent class="flex flex-col gap-6">
+            <dl class="flex flex-col gap-2 text-sm">
+              <div
+                v-for="factor in healthFactors"
+                :key="factor.label"
+                class="flex items-center justify-between gap-4 border-b pb-2 last:border-b-0"
+              >
+                <dt>{{ factor.label }}</dt>
+                <dd class="font-semibold tabular-nums text-foreground-strong">
+                  {{ factor.count }}
+                </dd>
               </div>
+            </dl>
+            <div class="flex flex-wrap gap-2">
+              <Button
+                :disabled="packageUpdates.length === 0"
+                @click="showUpdatesModal = true"
+              >
+                <RefreshCw aria-hidden="true" class="size-4" />
+                Update {{ packageUpdates.length }} direct
+                {{
+                  packageUpdates.length === 1 ? "dependency" : "dependencies"
+                }}
+              </Button>
+              <SbomExportMenu :exporting="exporting" @export="exportReport" />
             </div>
           </CardContent>
         </Card>
-      </TooltipProvider>
-
-      <!-- Security Issues -->
-      <StatCard
-        label="Security Issues"
-        :value="securityIssues ?? '-'"
-        icon="solar:shield-warning-bold"
-        :variant="securityCard.variant"
-        :subtitle="securityCard.subtitle"
-        subtitle-icon="solar:shield-warning-linear"
-        :class="`border-l-4 ${securityCard.border}`"
-      />
-    </div>
-    <!-- Main Dashboard Grid -->
-    <div class="grid gap-6 lg:grid-cols-12">
-      <!-- Dependency Composition Chart -->
-      <InfoCard
-        title="Dependency Composition"
-        :description="`${stats.number_of_dependencies ?? 0} dependencies in your project`"
-        icon="solar:chart-donut-bold"
-        variant="primary"
-        class="lg:col-span-6"
-      >
-        <div class="flex items-center justify-between gap-6">
-          <!-- Chart -->
-          <div class="shrink-0">
-            <div v-if="render" class="relative">
-              <DoughnutChart
-                id="sbom-dependency-chart"
-                :data="donut_data"
-                :options="{ w: 180, h: 180, p: 20 }"
-              />
-              <!-- Center text overlay -->
-              <div class="absolute inset-0 flex items-center justify-center">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.number_of_dependencies ?? 0 }}
-                  </div>
-                  <div class="text-xs text-gray-600">Total</div>
-                </div>
-              </div>
-            </div>
-            <DonutLoader v-if="!render" :dimensions="donutDimensions" />
-          </div>
-
-          <!-- Legend with improved readability -->
-          <div class="flex-1 space-y-3">
-            <div v-if="render" class="space-y-3">
-              <div
-                class="flex items-center justify-between p-3 bg-linear-to-r from-green-50 to-transparent border border-green-100 rounded-lg hover:shadow-sm transition-shadow"
-              >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-4 h-4 rounded-full bg-theme-primary shadow-sm"
-                  ></div>
-                  <div>
-                    <span class="text-sm font-semibold text-gray-900"
-                      >Direct</span
-                    >
-                    <p class="text-xs text-gray-600">Explicitly added</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-xl font-bold text-[#1dce79]">
-                    {{ stats?.number_of_direct_dependencies }}
-                  </div>
-                  <div class="text-xs font-medium text-gray-500">
-                    {{
-                      Math.round(
-                        (stats?.number_of_direct_dependencies /
-                          stats?.number_of_dependencies) *
-                          100,
-                      )
-                    }}% of total
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="flex items-center justify-between p-3 bg-linear-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-4 h-4 rounded-full bg-gray-900 shadow-sm"></div>
-                  <div>
-                    <span class="text-sm font-semibold text-gray-900"
-                      >Transitive</span
-                    >
-                    <p class="text-xs text-gray-600">
-                      Pulled in by other packages
-                    </p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-xl font-bold text-black">
-                    {{ stats?.number_of_transitive_dependencies }}
-                  </div>
-                  <div class="text-xs font-medium text-gray-500">
-                    {{
-                      Math.round(
-                        (stats?.number_of_transitive_dependencies /
-                          stats?.number_of_dependencies) *
-                          100,
-                      )
-                    }}% of total
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="flex items-center justify-between p-3 bg-linear-to-r from-gray-50 to-transparent border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-4 h-4 rounded-full bg-gray-400 shadow-sm"></div>
-                  <div>
-                    <span class="text-sm font-semibold text-gray-900"
-                      >Both</span
-                    >
-                    <p class="text-xs text-gray-600">Direct & transitive</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-xl font-bold text-gray-400">
-                    {{ stats?.number_of_both_direct_transitive_dependencies }}
-                  </div>
-                  <div class="text-xs font-medium text-gray-500">
-                    {{
-                      Math.round(
-                        (stats?.number_of_both_direct_transitive_dependencies /
-                          stats?.number_of_dependencies) *
-                          100,
-                      )
-                    }}% of total
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div v-else class="space-y-2">
-              <TextLoader v-for="i in 3" :key="i" />
-            </div>
-          </div>
-        </div>
-      </InfoCard>
-
-      <!-- Quick Actions and Additional Stats -->
-      <div class="lg:col-span-6 space-y-6">
-        <!-- Quick Actions -->
-        <InfoCard
-          title="Quick Actions"
-          description="Common dependency management tasks"
-          icon="solar:lightning-bold"
-          variant="success"
-        >
-          <div class="space-y-3">
-            <Button
-              class="w-full bg-theme-primary hover:bg-theme-primary-dark text-white flex items-center gap-3 justify-start p-4 h-auto text-left shadow-sm hover:shadow-md transition-all"
-              @click="handleUpdateOutdated"
-            >
-              <div class="bg-white/20 p-2 rounded-lg">
-                <Icon icon="solar:refresh-bold" class="h-5 w-5" />
-              </div>
-              <div class="flex-1">
-                <div class="font-semibold">Update Outdated</div>
-                <div class="text-sm opacity-90">
-                  Update {{ directUpdatesCount }} direct dependencies
-                </div>
-              </div>
-            </Button>
-
-            <SbomExportMenu ref="exportMenuRef" @export="handleExportReport" />
-          </div>
-        </InfoCard>
-
-        <!-- Counts that feed the health grade -->
-        <InfoCard
-          title="Health Factors"
-          description="Dependency upkeep issues, separate from vulnerabilities"
-          icon="solar:heart-pulse-bold"
-          variant="default"
-        >
-          <div class="space-y-2">
-            <div
-              v-for="factor in healthFactors"
-              :key="factor.label"
-              :data-testid="`health-factor-${factor.label.toLowerCase()}`"
-              class="flex items-center justify-between text-sm"
-            >
-              <span class="font-medium text-gray-900">{{ factor.label }}</span>
-              <span class="font-semibold text-gray-700">{{
-                factor.count
-              }}</span>
-            </div>
-          </div>
-        </InfoCard>
       </div>
-    </div>
 
-    <!-- SBOM Table -->
-    <InfoCard
-      title="Dependencies Table"
-      description="Detailed view of all project dependencies"
-      icon="solar:table-bold"
-      variant="default"
-    >
       <SbomTable
-        :project-i-d="projectID"
+        :dependencies="dependencies"
         :analysis-i-d="analysisID"
-        :selected_workspace="selected_workspace"
-        :ecosystem-filter="selectedEcosystemFilter"
-        :stats="stats"
+        :project-i-d="projectID"
       />
-    </InfoCard>
-  </div>
+    </template>
 
-  <!-- Package.json Updates Modal -->
-  <PackageJsonUpdatesModal
-    v-model:open="showUpdatesModal"
-    :updates="packageUpdates"
-    :project-name="projectName"
-    :package-manager="packageManager"
-    @copy-to-clipboard="handleCopyToClipboard"
-  />
+    <PackageJsonUpdatesModal
+      v-model:open="showUpdatesModal"
+      :updates="packageUpdates"
+      :project-name="projectName"
+      :package-manager="packageManager"
+    />
+  </section>
 </template>

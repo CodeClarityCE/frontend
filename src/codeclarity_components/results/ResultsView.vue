@@ -200,7 +200,10 @@ onBeforeMount(async () => {
 <template>
   <div class="flex flex-col gap-8 p-8">
     <PageHeading
-      v-if="props.page !== 'vulnerabilities_details'"
+      v-if="
+        props.page !== 'vulnerabilities_details' &&
+        props.page !== 'sbom_details'
+      "
       :description="project.name"
     >
       Results

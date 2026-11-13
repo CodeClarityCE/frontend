@@ -426,6 +426,42 @@ export default typescriptEslint.config(
               name: "BarChart",
               path: "src/base_components/data-display/charts/BarChart.vue",
             },
+            {
+              name: "DoughnutChart",
+              path: "src/base_components/data-display/charts/DoughnutChart.vue",
+            },
+            {
+              name: "GroupedBarChart",
+              path: "src/base_components/data-display/charts/GroupedBarChart.vue",
+            },
+            {
+              name: "TreeChart",
+              path: "src/base_components/data-display/charts/TreeChart.vue",
+            },
+            {
+              name: "TreeChartLegend",
+              path: "src/base_components/data-display/charts/TreeChartLegend.vue",
+            },
+            {
+              name: "PatchingSummary",
+              path: "src/codeclarity_components/results/patching/PatchingSummary.vue",
+            },
+            {
+              name: "SbomImportPaths",
+              path: "src/codeclarity_components/results/sbom/SbomDetails/SbomImportPaths.vue",
+            },
+            {
+              name: "ComposerDependencyTree",
+              path: "src/codeclarity_components/results/sbom/ComposerDependencyTree.vue",
+            },
+            {
+              name: "DataTable",
+              path: "src/codeclarity_components/results/sbom/table/DataTable.vue",
+            },
+            {
+              name: "DataTableDropDown",
+              path: "src/codeclarity_components/results/sbom/table/DataTableDropDown.vue",
+            },
           ],
         },
       ],

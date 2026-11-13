@@ -4,11 +4,8 @@
     "palette"
   ],
   "src/base_components/data-display/bubbles/SeverityBubble.vue": ["palette"],
-  "src/base_components/data-display/charts/GroupedBarChart.vue": ["hex"],
   "src/base_components/data-display/charts/LineChart.vue": ["hex"],
   "src/base_components/data-display/charts/RadarChart.vue": ["hex"],
-  "src/base_components/data-display/charts/TreeChart.vue": ["hex"],
-  "src/base_components/data-display/charts/TreeChartLegend.vue": ["hex"],
   "src/base_components/data-display/charts/WaffleChart.vue": ["hex"],
   "src/base_components/data-display/charts/radarChart.ts": ["hex"],
   "src/base_components/data-display/tables/SortSelector.vue": ["hex", "icon"],
@@ -29,7 +26,6 @@
   "src/base_components/ui/InfoMarkdown.vue": ["hex"],
   "src/base_components/ui/cards/InfoCard.vue": ["palette", "theme"],
   "src/base_components/ui/cards/StatCard.vue": ["palette", "theme"],
-  "src/base_components/ui/flow/DependencyNode.vue": ["hex"],
   "src/base_components/ui/loaders/LoadingComponent.vue": ["icon"],
   "src/base_components/ui/modals/CenteredModal.vue": ["palette"],
   "src/base_components/ui/modals/PositionedModal.vue": ["palette"],
@@ -64,101 +60,6 @@
     "theme",
     "icon"
   ],
-  "src/codeclarity_components/results/components/ResultTimestamp.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/licenses/LicenseComponent.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/licenses/LicensesComponent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/licenses/ResultsLicenses.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/patching/PatchingContent.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/results/patching/PatchingPatches.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/patching/PatchingSummary.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/results/patching/PatchingTable.vue": ["hex"],
-  "src/codeclarity_components/results/patching/patch/PatchComponent.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/ComposerDependencyTree.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/PackageJsonUpdatesModal.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomContent.vue": [
-    "hex",
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomDetails.vue": [
-    "hex",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomDetails/SbomDependencyGraph.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomDetails/SbomDependencyHealth.vue": [
-    "hex",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomDetails/SbomDetailsHeader.vue": [
-    "theme"
-  ],
-  "src/codeclarity_components/results/sbom/SbomDetails/SbomImportPaths.vue": [
-    "hex",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomDetails/SbomInformation.vue": [
-    "hex",
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomExportMenu.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/SbomTable.vue": ["palette", "icon"],
-  "src/codeclarity_components/results/sbom/exports/sbomExportUtils.ts": ["hex"],
-  "src/codeclarity_components/results/sbom/table/DataTable.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/table/columns.ts": [
-    "palette",
-    "icon"
-  ],
-  "src/utils/dependencyGraphLayout.ts": ["hex"],
   "src/utils/gradeUtils.ts": ["hex", "palette"],
   "src/utils/languageDetection.ts": ["hex"],
   "src/utils/owasp.ts": ["palette"],

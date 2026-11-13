@@ -1,9 +1,9 @@
 import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { DataTable } from "@/base_components/data-table";
 import SearchBar from "@/base_components/filters/SearchBar.vue";
 import UserAuthForm from "@/codeclarity_components/authentication/signin/UserAuthForm.vue";
-import DataTable from "@/codeclarity_components/results/sbom/table/DataTable.vue";
 
 import {
   detectMemoryLeaks,
@@ -161,6 +161,7 @@ describe.skip("Component Performance Tests", () => {
         () => {
           return mount(DataTable, {
             props: {
+              caption: "Items",
               columns: mockColumns,
               data: createMockData(10),
             },
@@ -192,6 +193,7 @@ describe.skip("Component Performance Tests", () => {
         () => {
           return mount(DataTable, {
             props: {
+              caption: "Items",
               columns: mockColumns,
               data: createMockData(100),
             },
@@ -221,6 +223,7 @@ describe.skip("Component Performance Tests", () => {
         (dataSize) =>
           mount(DataTable, {
             props: {
+              caption: "Items",
               columns: mockColumns,
               data: createMockData(dataSize),
             },
@@ -250,6 +253,7 @@ describe.skip("Component Performance Tests", () => {
     it("should handle sorting performance", async () => {
       const wrapper = mount(DataTable, {
         props: {
+          caption: "Items",
           columns: mockColumns,
           data: createMockData(200),
         },
@@ -282,6 +286,7 @@ describe.skip("Component Performance Tests", () => {
     it("should handle filtering performance", async () => {
       const wrapper = mount(DataTable, {
         props: {
+          caption: "Items",
           columns: mockColumns,
           data: createMockData(300),
         },
@@ -309,6 +314,7 @@ describe.skip("Component Performance Tests", () => {
       await performanceSuite.runMemoryLeakTest("DataTable", () => {
         return mount(DataTable, {
           props: {
+            caption: "Items",
             columns: mockColumns,
             data: createMockData(100),
           },

@@ -1,194 +1,69 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { computed, type PropType } from "vue";
+import { ExternalLink } from "@lucide/vue";
+import { computed } from "vue";
 
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
-import { Badge } from "@/shadcn/ui/badge";
 
-const props = defineProps({
-  dependency: {
-    type: Object as PropType<DependencyDetails>,
-    required: true,
-  },
-});
+// Links to the package registry and source repository of a dependency.
+const props = defineProps<{ dependency: DependencyDetails }>();
 
-const isNpmEcosystem = computed(() => {
-  const pm = props.dependency.package_manager?.toLowerCase() ?? "";
-  return pm === "npm" || pm === "yarn" || pm === "pnpm" || pm === "";
-});
+interface PackageLink {
+  label: string;
+  href: string;
+  logo: string;
+}
 
-const isComposerEcosystem = computed(() => {
-  const pm = props.dependency.package_manager?.toLowerCase() ?? "";
-  return pm === "composer";
+const links = computed((): PackageLink[] => {
+  const { name, version, package_manager, source } = props.dependency;
+  const pm = package_manager?.toLowerCase() ?? "";
+  const list: PackageLink[] = [];
+  if (["npm", "yarn", "pnpm", ""].includes(pm)) {
+    list.push(
+      {
+        label: "npm",
+        href: `https://www.npmjs.com/package/${name}/v/${version}`,
+        logo: "simple-icons:npm",
+      },
+      {
+        label: "Yarn",
+        href: `https://yarnpkg.com/package?name=${name}&version=${version}`,
+        logo: "simple-icons:yarn",
+      },
+    );
+  }
+  if (pm === "composer") {
+    list.push({
+      label: "Packagist",
+      href: `https://packagist.org/packages/${name}#${version}`,
+      logo: "simple-icons:packagist",
+    });
+  }
+  if (source?.Type === "git") {
+    const href = source.Url.replace("git+", "");
+    if (source.Url.includes("github"))
+      list.push({ label: "GitHub", href, logo: "simple-icons:github" });
+    else if (source.Url.includes("gitlab"))
+      list.push({ label: "GitLab", href, logo: "simple-icons:gitlab" });
+  }
+  return list;
 });
 </script>
 
 <template>
-  <div class="sbom-header">
-    <div class="package-title-section">
-      <div class="package-name-version">
-        <h1 class="package-name">{{ dependency.name }}</h1>
-        <span class="package-version">@{{ dependency.version }}</span>
-      </div>
-    </div>
-
-    <div class="external-links">
-      <!-- npm ecosystem links -->
-      <Badge v-if="isNpmEcosystem" variant="secondary" class="link-badge">
-        <a
-          :href="`https://www.npmjs.com/package/${dependency.name}/v/${dependency.version}`"
-          target="_blank"
-          class="link-content"
-          title="View on NPM (opens in new tab)"
-        >
-          <Icon :icon="'simple-icons:npm'" class="link-icon"></Icon>
-          <span>NPM</span>
-        </a>
-      </Badge>
-
-      <Badge v-if="isNpmEcosystem" variant="secondary" class="link-badge">
-        <a
-          :href="`https://yarnpkg.com/package?name=${dependency.name}&version=${dependency.version}`"
-          target="_blank"
-          class="link-content"
-          title="View on Yarn (opens in new tab)"
-        >
-          <Icon :icon="'simple-icons:yarn'" class="link-icon"></Icon>
-          <span>Yarn</span>
-        </a>
-      </Badge>
-
-      <!-- Composer ecosystem link -->
-      <Badge v-if="isComposerEcosystem" variant="secondary" class="link-badge">
-        <a
-          :href="`https://packagist.org/packages/${dependency.name}#${dependency.version}`"
-          target="_blank"
-          class="link-content"
-          title="View on Packagist (opens in new tab)"
-        >
-          <Icon :icon="'simple-icons:packagist'" class="link-icon"></Icon>
-          <span>Packagist</span>
-        </a>
-      </Badge>
-
-      <!-- Source repository link -->
-      <Badge v-if="dependency.source" variant="secondary" class="link-badge">
-        <a
-          v-if="dependency.source.Type === 'git'"
-          :href="`${dependency.source.Url.replace('git+', '')}`"
-          target="_blank"
-          class="link-content"
-          title="View repository (opens in new tab)"
-        >
-          <div
-            v-if="dependency.source.Url.includes('github')"
-            class="link-content"
-          >
-            <Icon :icon="'simple-icons:github'" class="link-icon"></Icon>
-            <span>GitHub</span>
-          </div>
-          <div
-            v-else-if="dependency.source.Url.includes('gitlab')"
-            class="link-content"
-          >
-            <Icon :icon="'simple-icons:gitlab'" class="link-icon"></Icon>
-            <span>GitLab</span>
-          </div>
-        </a>
-      </Badge>
-    </div>
-  </div>
+  <ul v-if="links.length > 0" class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+    <li v-for="link in links" :key="link.label">
+      <a
+        :href="link.href"
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-1.5 rounded-sm font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Icon :icon="link.logo" aria-hidden="true" class="size-4" />
+        {{ link.label }}
+        <ExternalLink aria-hidden="true" class="size-3.5" />
+        <span class="sr-only">(opens in a new tab)</span>
+      </a>
+    </li>
+  </ul>
 </template>
-
-<style scoped lang="scss">
-.sbom-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.package-title-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.package-name-version {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.package-name {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-theme-black);
-  margin: 0;
-  word-break: break-word;
-  line-height: 1.1;
-
-  @media (max-width: 768px) {
-    font-size: 1.75rem;
-  }
-}
-
-.package-version {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-theme-primary);
-
-  @media (max-width: 768px) {
-    font-size: 1.125rem;
-  }
-}
-
-.external-links {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.link-badge {
-  border-radius: 6px;
-  transition: all 0.15s ease-in-out;
-
-  &:hover {
-    background: var(--color-theme-primary);
-    color: white;
-  }
-}
-
-.link-content {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  text-decoration: none;
-  color: inherit;
-  font-weight: 500;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: all 0.15s ease-in-out;
-
-  &:hover {
-    color: inherit;
-  }
-}
-
-.link-icon {
-  font-size: 1rem;
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .package-name-version {
-    flex-direction: column;
-    gap: 0.25rem;
-    align-items: flex-start;
-  }
-
-  .external-links {
-    gap: 0.5rem;
-  }
-}
-</style>

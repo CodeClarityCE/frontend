@@ -571,6 +571,14 @@ vi.mock("@lucide/vue", () => ({
     name: "MoreHorizontal",
     template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
   },
+  Download: {
+    name: "Download",
+    template: '<svg data-testid="download-icon"><path/></svg>',
+  },
+  Lock: {
+    name: "Lock",
+    template: '<svg data-testid="lock-icon"><path/></svg>',
+  },
   TriangleAlert: {
     name: "TriangleAlert",
     template: '<svg data-testid="triangle-alert-icon"><path/></svg>',

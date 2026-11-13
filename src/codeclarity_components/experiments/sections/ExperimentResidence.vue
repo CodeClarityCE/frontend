@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
 import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
@@ -10,6 +10,14 @@ import {
   plural,
 } from "@/base_components/charts/chart-format";
 import ChartExport from "@/base_components/charts/ChartExport.vue";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shadcn/ui/table";
 
 import { excluded } from "../charts/experiment-caption";
 import { lagChartData, type LagChartRow } from "../charts/experiment-format";
@@ -105,16 +113,21 @@ function describe(row: LagChartRow, days: number): string {
   if (days === 0) return `${row.label}: introduced on the day of disclosure`;
   return `${row.label}: introduced ${formatDays(days)} before disclosure`;
 }
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-4"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-residence"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Pre-disclosure residence</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Pre-disclosure residence
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Days a vulnerable version sat in a project before its advisory was
         published, from the introduction to the disclosure. Each dot is one
         introduction; the band spans the middle half and the tick marks the
@@ -122,7 +135,7 @@ function describe(row: LagChartRow, days: number): string {
       </p>
     </div>
 
-    <p class="text-sm text-gray-700">
+    <p class="text-sm text-foreground">
       {{ counts }}
       <template v-if="snapshotShare">
         {{ snapshotShare }} dated only to a snapshot interval, using the later
@@ -130,11 +143,13 @@ function describe(row: LagChartRow, days: number): string {
       </template>
     </p>
 
-    <p v-if="residence.overall.n === 0" class="text-sm text-gray-500">
+    <p v-if="residence.overall.n === 0" class="text-sm text-muted-foreground">
       No introductions before disclosure yet.
     </p>
     <div v-else data-testid="residence-by-severity">
-      <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
+      <h4 class="text-sm font-medium text-foreground-strong mb-1">
+        By severity
+      </h4>
       <OpenAsFigure
         :definition="{
           metric: 'residence',
@@ -164,36 +179,40 @@ function describe(row: LagChartRow, days: number): string {
       data-testid="residence-after-disclosure"
       class="text-sm"
     >
-      <h4 class="font-medium text-gray-900 mb-1">After disclosure</h4>
-      <p class="text-gray-700 mb-2">{{ after }}</p>
-      <table class="w-full">
-        <thead class="text-left text-gray-500">
-          <tr>
-            <th class="font-medium">Severity</th>
-            <th class="font-medium text-right">Introductions</th>
-            <th class="font-medium text-right">Median days after disclosure</th>
-            <th v-if="intervals" class="font-medium text-right">95% CI</th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
-          <tr
+      <h4 class="font-medium text-foreground-strong mb-1">After disclosure</h4>
+      <p class="text-foreground mb-2">{{ after }}</p>
+      <Table>
+        <TableHeader>
+          <TableRow class="hover:bg-transparent">
+            <TableHead>Severity</TableHead>
+            <TableHead class="text-right">Introductions</TableHead>
+            <TableHead class="text-right"
+              >Median days after disclosure</TableHead
+            >
+            <TableHead v-if="intervals" class="text-right">95% CI</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody class="tabular-nums">
+          <TableRow
             v-for="group in residence.after_disclosure_by_severity"
             :key="group.key"
             data-testid="residence-after-row"
           >
-            <td>{{ severityLabel(group.key) }}</td>
-            <td class="text-right">{{ group.n }}</td>
-            <td class="text-right">{{ formatNumber(group.median) }}</td>
-            <td v-if="intervals" class="text-right">
+            <TableCell>{{ severityLabel(group.key) }}</TableCell>
+            <TableCell class="text-right">{{ group.n }}</TableCell>
+            <TableCell class="text-right">{{
+              formatNumber(group.median)
+            }}</TableCell>
+            <TableCell v-if="intervals" class="text-right">
               {{
                 formatBracketInterval(
                   intervals.after_disclosure_by_severity[group.key],
                 )
               }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
-  </div>
+  </section>
 </template>

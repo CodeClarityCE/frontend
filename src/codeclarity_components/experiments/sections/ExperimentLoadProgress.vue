@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, useId } from "vue";
 
 import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
@@ -20,6 +20,7 @@ const experimentsRepository = new ExperimentsRepository();
 const progress = ref<LoadProgress | null>(null);
 let timer: ReturnType<typeof setTimeout> | undefined;
 let stopped = false;
+const labelId = useId();
 
 const percent = computed(() =>
   progress.value
@@ -67,10 +68,10 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-sm text-gray-600 space-y-3"
+    class="flex flex-col gap-3 rounded-card border bg-muted p-6 text-sm text-foreground"
     role="status"
   >
-    <p>{{ message }}</p>
-    <Progress :model-value="percent" />
+    <p :id="labelId">{{ message }}</p>
+    <Progress :model-value="percent" :aria-labelledby="labelId" />
   </div>
 </template>

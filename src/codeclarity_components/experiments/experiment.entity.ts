@@ -77,14 +77,6 @@ export const ExperimentStatusTones: Record<ExperimentStatus, StatusTone> = {
   [ExperimentStatus.FAILED]: "danger",
 };
 
-export const ExperimentStatusColors: Record<ExperimentStatus, string> = {
-  [ExperimentStatus.PENDING]: "bg-gray-100 text-gray-800",
-  [ExperimentStatus.RUNNING]: "bg-blue-100 text-blue-800",
-  [ExperimentStatus.COMPLETED]: "bg-green-100 text-green-800",
-  [ExperimentStatus.CANCELLED]: "bg-yellow-100 text-yellow-800",
-  [ExperimentStatus.FAILED]: "bg-red-100 text-red-800",
-};
-
 export const ExperimentRunStatusLabels: Record<ExperimentRunStatus, string> = {
   [ExperimentRunStatus.PENDING]: "Pending",
   [ExperimentRunStatus.DONE]: "Done",
@@ -92,12 +84,14 @@ export const ExperimentRunStatusLabels: Record<ExperimentRunStatus, string> = {
   [ExperimentRunStatus.SKIPPED]: "Skipped",
 };
 
-export const ExperimentRunStatusColors: Record<ExperimentRunStatus, string> = {
-  [ExperimentRunStatus.PENDING]: "bg-gray-100 text-gray-800",
-  [ExperimentRunStatus.DONE]: "bg-green-100 text-green-800",
-  [ExperimentRunStatus.FAILED]: "bg-red-100 text-red-800",
-  [ExperimentRunStatus.SKIPPED]: "bg-yellow-100 text-yellow-800",
-};
+/** Run states in the shared status colours; the label carries the meaning. */
+export const ExperimentRunStatusTones: Record<ExperimentRunStatus, StatusTone> =
+  {
+    [ExperimentRunStatus.PENDING]: "neutral",
+    [ExperimentRunStatus.DONE]: "success",
+    [ExperimentRunStatus.FAILED]: "danger",
+    [ExperimentRunStatus.SKIPPED]: "neutral",
+  };
 
 export interface ExperimentRunCounts {
   pending: number;

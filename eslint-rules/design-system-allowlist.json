@@ -97,39 +97,6 @@
     "theme",
     "icon"
   ],
-  "src/codeclarity_components/experiments/experiment.entity.ts": ["palette"],
-  "src/codeclarity_components/experiments/sections/ExperimentDetail.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentFigures.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentFixLag.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentLoad.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentLoadProgress.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentProbes.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentResidence.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentResults.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentSurvival.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/sections/ExperimentUpstreamLeverage.vue": [
-    "palette"
-  ],
   "src/codeclarity_components/organizations/OrganizationView.vue": ["palette"],
   "src/codeclarity_components/organizations/analyzers/AnalyzerCreate.vue": [
     "palette",

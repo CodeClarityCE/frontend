@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
 import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import ChartExport from "@/base_components/charts/ChartExport.vue";
@@ -53,16 +53,21 @@ const figureCaption = computed<ChartCaption>(() => {
     notes: [AS_OF_APPROXIMATION],
   };
 });
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-2"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-load"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Load over time</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Load over time
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Vulnerability instances per grid date, summed over the projects with a
         done snapshot. Hindsight counts every advisory known today; as-of drops
         advisories published after the grid date (HEAD uses the experiment's end
@@ -82,5 +87,5 @@ const figureCaption = computed<ChartCaption>(() => {
     <ChartExport name="load-over-time" :data="plotted" :caption="figureCaption">
       <LoadOverTimeChart :rows="rows" :caption="TITLE" />
     </ChartExport>
-  </div>
+  </section>
 </template>

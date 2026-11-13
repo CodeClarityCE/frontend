@@ -1,24 +1,27 @@
 <script lang="ts">
-import { InfoCard } from "@/base_components";
 import { type GetRepositoriesRequestOptions } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import { type Repository } from "@/codeclarity_components/projects/project.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Button } from "@/shadcn/ui/button";
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/shadcn/ui/form";
-import Input from "@/shadcn/ui/input/Input.vue";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shadcn/ui/card";
+import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
 import { Progress } from "@/shadcn/ui/progress";
 import { runWithConcurrency } from "@/utils/concurrency";
 
 import RepoTable, { type RepoTableConfig } from "./components/RepoTable.vue";
-import { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
+import {
+  type FailedProjectImport,
+  getImportErrorMessage,
+  IMPORT_CONCURRENCY,
+} from "./projectImport";
 
 export { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
 
@@ -35,13 +38,10 @@ export interface GetReposOptions extends GetRepositoriesRequestOptions {
   activeFilters: string[];
 }
 
-export interface FailedProjectImport {
-  repo: Repository;
-  reason: string;
-}
+export type { FailedProjectImport } from "./projectImport";
 </script>
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import { Plus, RefreshCw } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { computed, type Ref, ref } from "vue";
@@ -50,7 +50,6 @@ import * as z from "zod";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
-import { filterUndefined } from "@/utils/form/filterUndefined";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import Faq from "./components/FaqComponent.vue";
@@ -101,13 +100,18 @@ const importProgressPercent = computed(() =>
 );
 
 const formSchema = z.object({
-  repository: z.string().min(2).max(150),
+  repository: z
+    .string({ required_error: "A repository URL is required" })
+    .min(2, "A repository URL is required")
+    .max(150, "At most 150 characters"),
 });
 type FormValues = z.infer<typeof formSchema>;
 
 const form = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
 });
+const [repository] = form.defineField("repository");
+const repositoryError = computed(() => form.errors.value.repository);
 
 const onSubmit = form.handleSubmit(async (values) => {
   if (!userStore.getDefaultOrg) return;
@@ -234,182 +238,137 @@ function onSelectedReposChange(repos: Repository[]): void {
 }
 </script>
 <template>
-  <main class="min-h-screen bg-white p-6">
-    <div class="space-y-8">
-      <!-- Repository Selection -->
-      <div v-if="Object.keys(reposFailedToImport).length === 0">
-        <InfoCard
-          title="Select Repositories"
-          description="Browse available repositories and select the ones you want to import"
-          icon="solar:folder-bold"
-          variant="default"
+  <div class="flex flex-col gap-8">
+    <Card v-if="Object.keys(reposFailedToImport).length === 0">
+      <CardHeader class="flex-row items-start justify-between gap-4">
+        <div class="flex flex-col gap-1.5">
+          <CardTitle>Repositories</CardTitle>
+          <CardDescription>
+            Select the repositories to import, then import them together.
+          </CardDescription>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          :disabled="importing"
+          @click="forceRefreshRepos()"
         >
-          <template #actions>
-            <Button
-              variant="outline"
-              size="sm"
-              class="border-gray-300 text-gray-700 hover:border-theme-primary hover:text-theme-primary"
-              :disabled="importing"
-              @click="forceRefreshRepos()"
-            >
-              <Icon icon="solar:refresh-bold" class="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-          </template>
-          <RepoTable
-            ref="repoTableRef"
-            :integration="integration"
-            :get-repos="getRepos"
-            :config="tableConfig"
+          <RefreshCw aria-hidden="true" />
+          Refresh from provider
+        </Button>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-6">
+        <RepoTable
+          ref="repoTableRef"
+          :integration="integration"
+          :get-repos="getRepos"
+          :config="tableConfig"
+          :disabled="importing"
+          @on-selected-repos-change="onSelectedReposChange($event)"
+        />
+
+        <div
+          v-if="showImportCard"
+          class="flex flex-col gap-3 rounded-card border bg-muted p-4"
+        >
+          <div
+            v-if="importing"
+            class="flex flex-col gap-2"
+            data-testid="import-progress"
+          >
+            <div class="flex justify-between text-sm">
+              <span class="font-medium text-foreground-strong">
+                Importing {{ importProgress.done }} /
+                {{ importProgress.total }}
+              </span>
+              <span class="text-muted-foreground">
+                {{ importProgressPercent }}%
+              </span>
+            </div>
+            <Progress
+              :model-value="importProgressPercent"
+              aria-label="Import progress"
+            />
+          </div>
+          <Button
+            class="w-fit"
             :disabled="importing"
-            @on-selected-repos-change="onSelectedReposChange($event)"
-          />
-        </InfoCard>
-      </div>
+            data-testid="bulk-import-button"
+            arrow
+            @click="importProjectsBulk()"
+          >
+            <template v-if="importing">Importing</template>
+            <template v-else>
+              Import {{ selectedRepos.length }}
+              {{ selectedRepos.length === 1 ? "Project" : "Projects" }}
+            </template>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
 
-      <!-- Import Errors -->
-      <div v-else>
-        <InfoCard
-          title="Import Results"
-          description="Some repositories failed to import"
-          icon="solar:danger-triangle-bold"
-          variant="danger"
-        >
-          <div class="space-y-4">
-            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
-              <div class="flex items-start gap-3">
-                <Icon
-                  icon="solar:danger-triangle-bold"
-                  class="h-5 w-5 text-red-600 mt-0.5"
-                />
-                <div>
-                  <p class="font-medium text-red-800">
-                    Some repository imports failed
-                  </p>
-                  <p class="text-sm text-red-700 mt-1">
-                    Note: other repository imports succeeded.
-                  </p>
-                </div>
-              </div>
-            </div>
+    <Card v-else>
+      <CardHeader>
+        <CardTitle>Some imports failed</CardTitle>
+        <CardDescription>
+          The other selected repositories were imported.
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-4">
+        <ImportErrorTable :repos-failed-to-import="reposFailedToImport" />
+        <Button class="w-fit" variant="outline" @click="clearImportErrors()">
+          <RefreshCw aria-hidden="true" />
+          Back to the repositories
+        </Button>
+      </CardContent>
+    </Card>
 
-            <ImportErrorTable :repos-failed-to-import="reposFailedToImport" />
-
-            <div class="pt-4">
-              <Button
-                class="bg-theme-primary hover:bg-theme-primary/90 text-white"
-                @click="clearImportErrors()"
-              >
-                <Icon icon="solar:refresh-bold" class="h-4 w-4 mr-2" />
-                Clear Errors & Retry
-              </Button>
-            </div>
-          </div>
-        </InfoCard>
-      </div>
-
-      <!-- Bulk Import Action -->
-      <div v-if="showImportCard">
-        <InfoCard
-          title="Ready to Import"
-          description="You have selected repositories for import"
-          icon="solar:download-bold"
-          variant="success"
-        >
-          <div class="space-y-4">
-            <div
-              class="p-4 bg-theme-primary/5 rounded-lg border border-theme-primary/20"
+    <Card>
+      <CardHeader>
+        <CardTitle>Import by URL</CardTitle>
+        <CardDescription>
+          Cannot find a repository? Import it with its URL.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form class="flex flex-col gap-4" novalidate @submit="onSubmit">
+          <div class="flex max-w-xl flex-col gap-2">
+            <Label for="manual-repository">Repository URL</Label>
+            <Input
+              id="manual-repository"
+              v-model="repository"
+              type="url"
+              placeholder="https://github.com/owner/repository"
+              :aria-invalid="repositoryError ? true : undefined"
+              :aria-describedby="
+                repositoryError
+                  ? 'manual-repository-error'
+                  : 'manual-repository-hint'
+              "
+            />
+            <p
+              v-if="repositoryError"
+              id="manual-repository-error"
+              class="text-sm text-destructive"
             >
-              <div class="flex items-center gap-3 mb-3">
-                <Icon
-                  icon="solar:check-circle-bold"
-                  class="h-5 w-5 text-theme-primary"
-                />
-                <span class="font-medium text-theme-black">
-                  {{ selectedRepos.length }}
-                  {{
-                    selectedRepos.length === 1 ? "repository" : "repositories"
-                  }}
-                  selected
-                </span>
-              </div>
-              <p class="text-sm text-theme-gray mb-4">
-                Click the button below to start importing the selected
-                repositories for security analysis.
-              </p>
-              <div v-if="importing" class="mb-4" data-testid="import-progress">
-                <div class="flex items-center justify-between text-sm mb-2">
-                  <span class="font-medium text-theme-black">
-                    Importing {{ importProgress.done }} /
-                    {{ importProgress.total }}
-                  </span>
-                  <span class="text-theme-gray">
-                    {{ importProgressPercent }}%
-                  </span>
-                </div>
-                <Progress :model-value="importProgressPercent" />
-              </div>
-              <Button
-                class="bg-theme-primary hover:bg-theme-primary/90 text-white font-medium"
-                :disabled="importing"
-                data-testid="bulk-import-button"
-                @click="importProjectsBulk()"
-              >
-                <Icon icon="solar:download-bold" class="w-4 h-4 mr-2" />
-                <template v-if="importing">Importing…</template>
-                <template v-else>
-                  Import {{ selectedRepos.length }}
-                  {{ selectedRepos.length === 1 ? "Project" : "Projects" }}
-                </template>
-              </Button>
-            </div>
-          </div>
-        </InfoCard>
-      </div>
-
-      <!-- Manual Import -->
-      <InfoCard
-        title="Manual Import"
-        description="Can't find your repository? Import it directly using its URL"
-        icon="solar:link-bold"
-        variant="default"
-      >
-        <form class="space-y-4" @submit="onSubmit">
-          <FormField v-slot="{ componentField }" name="repository">
-            <FormItem>
-              <FormLabel class="text-sm font-medium text-theme-black"
-                >Repository URL</FormLabel
-              >
-              <FormControl>
-                <Input
-                  type="text"
-                  placeholder="https://github.com/username/repository"
-                  v-bind="filterUndefined(componentField)"
-                  class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
-                />
-              </FormControl>
-              <FormDescription class="text-xs text-theme-gray">
-                Enter the complete URL of the repository you want to import
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <div class="pt-2">
-            <Button
-              type="submit"
-              class="bg-theme-black hover:bg-theme-black/90 text-white"
+              {{ repositoryError }}
+            </p>
+            <p
+              v-else
+              id="manual-repository-hint"
+              class="text-sm text-muted-foreground"
             >
-              <Icon icon="solar:add-circle-bold" class="w-4 h-4 mr-2" />
-              Import Repository
-            </Button>
+              The full URL of the repository.
+            </p>
           </div>
+          <Button type="submit" variant="outline" class="w-fit">
+            <Plus aria-hidden="true" />
+            Import repository
+          </Button>
         </form>
-      </InfoCard>
+      </CardContent>
+    </Card>
 
-      <!-- FAQ Section -->
-      <div class="pt-8">
-        <Faq />
-      </div>
-    </div>
-  </main>
+    <Faq />
+  </div>
 </template>

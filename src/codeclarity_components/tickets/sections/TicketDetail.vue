@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+import {
+  Archive,
+  ArrowUpRight,
+  ChevronDown,
+  CircleCheck,
+  CircleX,
+  Link,
+  LoaderCircle,
+  Play,
+  RefreshCw,
+  Unlink,
+} from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 
+import { StatusBadge } from "@/base_components/page";
 import {
   Accordion,
   AccordionContent,
@@ -17,29 +30,30 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shadcn/ui/tooltip";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/shadcn/ui/sheet";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { getOwaspInfoById } from "@/utils/owasp";
+import { errorToast } from "@/utils/toasts";
 
 import RiskScoreGauge from "../components/RiskScoreGauge.vue";
 import ScoreProgressBar from "../components/ScoreProgressBar.vue";
+import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
 import {
   ExternalProviderIcons,
   ExternalProviderLabels,
   type ExternalTicketProvider,
   type IntegrationConfigSummary,
   type TicketDetails,
-  TicketPriorityColors,
-  TicketPriorityLabels,
   TicketStatus,
-  TicketStatusColors,
   TicketStatusLabels,
-  TicketTypeColors,
+  TicketStatusTones,
   TicketTypeLabels,
   type VulnerabilityDetailsReport,
 } from "../tickets.entity";
@@ -82,7 +96,7 @@ async function loadIntegrations(): Promise<void> {
     });
     availableIntegrations.value = response.data.filter((i) => i.enabled);
   } catch {
-    console.error("Failed to load integrations");
+    // Without integrations the Sync menu stays hidden.
   }
 }
 
@@ -101,8 +115,8 @@ async function syncToProvider(provider: ExternalTicketProvider): Promise<void> {
       handleOtherErrors: true,
     });
     void emit("updated");
-  } catch (error) {
-    console.error("Failed to sync ticket:", error);
+  } catch {
+    errorToast("Failed to sync the ticket");
   } finally {
     isSyncing.value = false;
   }
@@ -123,8 +137,8 @@ async function unlinkFromProvider(linkId: string): Promise<void> {
       handleOtherErrors: true,
     });
     void emit("updated");
-  } catch (error) {
-    console.error("Failed to unlink ticket:", error);
+  } catch {
+    errorToast("Failed to unlink the ticket");
   } finally {
     isUnlinking.value = null;
   }
@@ -147,8 +161,8 @@ async function syncFromExternalLink(linkId: string): Promise<void> {
     if (result.data.updated) {
       void emit("updated");
     }
-  } catch (error) {
-    console.error("Failed to sync from external:", error);
+  } catch {
+    errorToast("Failed to sync the status");
   } finally {
     isSyncingFromExternal.value = null;
   }
@@ -169,13 +183,14 @@ async function updateStatus(newStatus: TicketStatus): Promise<void> {
       handleOtherErrors: true,
     });
     void emit("updated");
-  } catch (error) {
-    console.error("Failed to update ticket status:", error);
+  } catch {
+    errorToast("Failed to update the ticket status");
   } finally {
     isUpdatingStatus.value = false;
   }
 }
 
+// Lets the closing animation finish before the parent unmounts the panel.
 function close(): void {
   isOpen.value = false;
   setTimeout(() => emit("close"), 300);
@@ -227,25 +242,6 @@ const epssFormatted = computed(() => {
   };
 });
 
-// Get color for CVSS vector value
-function getCvssValueColor(value: string | undefined): string {
-  if (!value) return "text-gray-500";
-  const lowRisk = [
-    "LOCAL",
-    "PHYSICAL",
-    "HIGH",
-    "REQUIRED",
-    "NONE",
-    "UNCHANGED",
-  ];
-  const highRisk = ["NETWORK", "LOW", "CHANGED"];
-  if (highRisk.some((h) => value.toUpperCase().includes(h)))
-    return "text-red-600";
-  if (lowRisk.some((l) => value.toUpperCase().includes(l)))
-    return "text-green-600";
-  return "text-yellow-600";
-}
-
 // Get CVSS base score safely
 function getCvssBaseScore(): number {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -274,57 +270,54 @@ const overallRiskLevel = computed(() => {
   return "none";
 });
 
-// Risk banner styling
-interface RiskConfig {
-  bg: string;
-  text: string;
-  icon: string;
-  label: string;
-  recommendation: string;
+// Risk banner colour and advice for each CVSS level.
+const riskBanners: Record<
+  "critical" | "high" | "medium" | "low" | "none",
+  { class: string; label: string; recommendation: string }
+> = {
+  critical: {
+    class: "bg-severity-critical text-severity-foreground",
+    label: "Critical",
+    recommendation: "Immediate action required",
+  },
+  high: {
+    class: "bg-severity-high text-severity-foreground",
+    label: "High",
+    recommendation: "Address as soon as possible",
+  },
+  medium: {
+    class: "bg-severity-medium text-severity-foreground",
+    label: "Medium",
+    recommendation: "Plan remediation in an upcoming cycle",
+  },
+  low: {
+    class: "bg-severity-low text-severity-foreground",
+    label: "Low",
+    recommendation: "Monitor and address when convenient",
+  },
+  none: {
+    class: "bg-neutral-subtle text-neutral",
+    label: "Info",
+    recommendation: "No immediate action required",
+  },
+};
+const riskBanner = computed(() => riskBanners[overallRiskLevel.value]);
+
+// CVSS vector fields shown in the breakdown, in reading order.
+const cvssVectorFields = [
+  ["attack_vector", "Attack vector"],
+  ["attack_complexity", "Attack complexity"],
+  ["privileges_required", "Privileges required"],
+  ["user_interaction", "User interaction"],
+  ["scope", "Scope"],
+  ["confidentiality_impact", "Confidentiality"],
+  ["integrity_impact", "Integrity"],
+  ["availability_impact", "Availability"],
+] as const;
+
+function onOpenChange(open: boolean): void {
+  if (!open) close();
 }
-const riskBannerConfig = computed((): RiskConfig => {
-  const configs: Record<
-    "critical" | "high" | "medium" | "low" | "none",
-    RiskConfig
-  > = {
-    critical: {
-      bg: "bg-black",
-      text: "text-white",
-      icon: "solar:danger-triangle-bold",
-      label: "Critical",
-      recommendation: "Immediate action required",
-    },
-    high: {
-      bg: "bg-red-600",
-      text: "text-white",
-      icon: "solar:shield-warning-bold",
-      label: "High",
-      recommendation: "Address as soon as possible",
-    },
-    medium: {
-      bg: "bg-amber-500",
-      text: "text-white",
-      icon: "solar:shield-warning-linear",
-      label: "Medium",
-      recommendation: "Plan remediation in upcoming cycle",
-    },
-    low: {
-      bg: "bg-green-600",
-      text: "text-white",
-      icon: "solar:shield-check-bold",
-      label: "Low",
-      recommendation: "Monitor and address when convenient",
-    },
-    none: {
-      bg: "bg-gray-100",
-      text: "text-gray-700",
-      icon: "solar:info-circle-bold",
-      label: "Info",
-      recommendation: "No immediate action required",
-    },
-  };
-  return configs[overallRiskLevel.value] ?? configs.none;
-});
 
 // Check if we have any scores to show in risk overview
 const hasRiskScores = computed(() => {
@@ -348,77 +341,24 @@ onMounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <!-- Backdrop -->
-    <div
-      class="fixed inset-0 bg-black/50 z-40 transition-opacity"
-      :class="isOpen ? 'opacity-100' : 'opacity-0'"
-      @click="close"
-    />
-
-    <!-- Slide-over Panel -->
-    <div
-      class="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-white shadow-xl transition-transform duration-300"
-      :class="isOpen ? 'translate-x-0' : 'translate-x-full'"
-    >
-      <!-- Header -->
-      <div
-        class="flex items-center justify-between px-6 py-4 border-b border-gray-200"
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-lg flex items-center justify-center"
-            :class="TicketTypeColors[ticket.type]"
-          >
-            <Icon
-              v-if="ticket.type === 'VULNERABILITY'"
-              icon="solar:shield-warning-bold"
-              class="w-5 h-5"
-            />
-            <Icon
-              v-else-if="ticket.type === 'LICENSE'"
-              icon="solar:document-bold"
-              class="w-5 h-5"
-            />
-            <Icon v-else icon="solar:upload-bold" class="w-5 h-5" />
-          </div>
-          <div>
-            <span class="text-xs text-gray-500 uppercase tracking-wide">
-              {{ TicketTypeLabels[ticket.type] }}
-            </span>
-            <h2 class="text-lg font-semibold text-gray-900">Ticket Details</h2>
-          </div>
-        </div>
-        <button
-          class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-          @click="close"
+  <Sheet :open="isOpen" @update:open="onOpenChange">
+    <SheetContent class="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+      <SheetHeader class="gap-3 border-b px-6 py-5 pr-12">
+        <p
+          class="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
         >
-          <Icon icon="solar:close-circle-linear" class="w-6 h-6" />
-        </button>
-      </div>
-
-      <!-- Content -->
-      <div class="overflow-y-auto h-[calc(100vh-140px)] px-6 py-6 space-y-6">
-        <!-- Title & Status -->
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
-            {{ ticket.title }}
-          </h3>
-          <div class="flex items-center gap-2 flex-wrap">
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-              :class="TicketStatusColors[ticket.status]"
-            >
-              {{ TicketStatusLabels[ticket.status] }}
-            </span>
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-              :class="TicketPriorityColors[ticket.priority]"
-            >
-              {{ TicketPriorityLabels[ticket.priority] }}
-            </span>
-          </div>
-          <!-- CVE ID Link (only if not already in title) -->
+          {{ TicketTypeLabels[ticket.type] }} ticket
+        </p>
+        <SheetTitle class="text-xl font-bold text-foreground-strong">
+          {{ ticket.title }}
+        </SheetTitle>
+        <SheetDescription class="flex flex-wrap items-center gap-2">
+          <StatusBadge
+            :tone="TicketStatusTones[ticket.status]"
+            :label="TicketStatusLabels[ticket.status]"
+          />
+          <TicketPriorityBadge :priority="ticket.priority" />
+          <span class="sr-only">priority</span>
           <a
             v-if="
               ticket.vulnerability_id &&
@@ -427,837 +367,491 @@ onMounted(() => {
             :href="`https://nvd.nist.gov/vuln/detail/${ticket.vulnerability_id}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1.5 mt-2 font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            class="inline-flex items-center gap-1 rounded-sm font-mono text-sm text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {{ ticket.vulnerability_id }}
-            <Icon icon="solar:arrow-right-up-linear" class="w-3.5 h-3.5" />
+            <ArrowUpRight aria-hidden="true" class="size-3.5" />
           </a>
-        </div>
+        </SheetDescription>
+      </SheetHeader>
 
-        <!-- Risk Banner (shown when vulnerability details available) -->
-        <div
+      <div class="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-6">
+        <template
           v-if="vulnerabilityDetails && hasRiskScores && !isLoadingVulnDetails"
-          :class="[
-            'flex items-center gap-3 p-4 rounded-lg',
-            riskBannerConfig.bg,
-            riskBannerConfig.text,
-          ]"
         >
-          <Icon :icon="riskBannerConfig.icon" class="w-6 h-6 shrink-0" />
-          <div>
-            <p class="font-semibold">{{ riskBannerConfig.label }} Risk</p>
-            <p class="text-sm opacity-90">
-              {{ riskBannerConfig.recommendation }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Risk Overview Section -->
-        <div
-          v-if="vulnerabilityDetails && hasRiskScores && !isLoadingVulnDetails"
-          class="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200"
-        >
-          <h4
-            class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"
-          >
-            <Icon icon="solar:chart-2-bold" class="w-5 h-5" />
-            Risk Overview
-          </h4>
-
-          <!-- Score Gauges Grid -->
-          <div class="grid grid-cols-3 gap-4 mb-4">
-            <!-- CVSS Gauge -->
-            <TooltipProvider v-if="cvssData">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <div class="cursor-help">
-                    <RiskScoreGauge
-                      :score="getCvssBaseScore()"
-                      :max-score="10"
-                      :label="'CVSS v' + cvssData.version"
-                      type="cvss"
-                      size="md"
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent
-                  class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4"
-                  side="bottom"
-                >
-                  <div class="space-y-2">
-                    <h5 class="font-semibold">CVSS Score</h5>
-                    <p class="text-sm text-gray-600">
-                      Common Vulnerability Scoring System - industry standard
-                      for assessing severity.
-                    </p>
-                    <div class="text-xs space-y-1 mt-2">
-                      <div class="flex items-center gap-2">
-                        <span
-                          class="w-2.5 h-2.5 rounded bg-black shrink-0"
-                        ></span>
-                        <span>Critical: 9.0-10.0</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span
-                          class="w-2.5 h-2.5 rounded bg-red-600 shrink-0"
-                        ></span>
-                        <span>High: 7.0-8.9</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span
-                          class="w-2.5 h-2.5 rounded bg-amber-500 shrink-0"
-                        ></span>
-                        <span>Medium: 4.0-6.9</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <span
-                          class="w-2.5 h-2.5 rounded bg-green-500 shrink-0"
-                        ></span>
-                        <span>Low: 0.1-3.9</span>
-                      </div>
-                    </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <!-- EPSS Gauge -->
-            <TooltipProvider v-if="epssFormatted">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <div class="cursor-help">
-                    <RiskScoreGauge
-                      :score="epssFormatted.scoreRaw"
-                      :max-score="100"
-                      label="EPSS"
-                      type="epss"
-                      size="md"
-                      :sublabel="
-                        epssFormatted.percentile
-                          ? 'Top ' + epssFormatted.percentile
-                          : ''
-                      "
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent
-                  class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4"
-                  side="bottom"
-                >
-                  <div class="space-y-2">
-                    <h5 class="font-semibold">EPSS Score</h5>
-                    <p class="text-sm text-gray-600">
-                      Exploit Prediction Scoring System - probability this
-                      vulnerability will be exploited in the wild within 30
-                      days.
-                    </p>
-                    <div
-                      v-if="epssFormatted.percentile"
-                      class="text-xs text-gray-500 mt-2"
-                    >
-                      Percentile: {{ epssFormatted.percentile }} of all CVEs
-                    </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <!-- VLAI Gauge -->
-            <TooltipProvider v-if="vulnerabilityDetails.other?.vlai_score">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <div class="cursor-help">
-                    <RiskScoreGauge
-                      :score="
-                        getVlaiNumericScore(
-                          vulnerabilityDetails.other.vlai_score,
-                        )
-                      "
-                      :max-score="10"
-                      label="VLAI"
-                      type="vlai"
-                      size="md"
-                      :sublabel="vulnerabilityDetails.other.vlai_score"
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent
-                  class="max-w-xs !bg-white !text-gray-900 border shadow-lg p-4"
-                  side="bottom"
-                >
-                  <div class="space-y-2">
-                    <h5 class="font-semibold">VLAI Score</h5>
-                    <p class="text-sm text-gray-600">
-                      AI-powered risk assessment considering real-world
-                      exploitability and context.
-                    </p>
-                    <div
-                      v-if="vulnerabilityDetails.other.vlai_confidence"
-                      class="text-xs text-gray-500 mt-2"
-                    >
-                      Confidence:
-                      {{
-                        (
-                          vulnerabilityDetails.other.vlai_confidence * 100
-                        ).toFixed(0)
-                      }}%
-                    </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          <!-- OWASP Badge -->
           <div
-            v-if="vulnerabilityDetails.owasp_top_10?.id"
-            class="pt-4 border-t border-gray-200"
+            class="flex flex-col gap-0.5 rounded-card p-4"
+            :class="riskBanner.class"
           >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <div
-                    :class="[
-                      'inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium cursor-help',
-                      owaspInfo?.color ||
-                        'bg-gray-50 border-gray-200 text-gray-800',
-                    ]"
-                  >
-                    <Icon icon="simple-icons:owasp" class="w-4 h-4" />
-                    <span>
-                      OWASP {{ vulnerabilityDetails.owasp_top_10.id }}:
-                      {{ vulnerabilityDetails.owasp_top_10.name }}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent
-                  class="max-w-sm !bg-white !text-gray-900 border shadow-lg p-4"
-                  side="bottom"
-                >
-                  <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                      <Icon
-                        icon="simple-icons:owasp"
-                        class="w-4 h-4 text-orange-600"
-                      />
-                      <span class="font-semibold">
-                        OWASP Top 10 - {{ owaspInfo?.id }}
-                      </span>
-                    </div>
-                    <h5 class="font-medium">{{ owaspInfo?.name }}</h5>
-                    <p class="text-sm text-gray-600">
-                      {{ owaspInfo?.description }}
-                    </p>
-                    <div class="pt-2 border-t border-gray-100">
-                      <p class="text-xs font-medium text-gray-700">
-                        Potential Impact:
-                      </p>
-                      <p class="text-xs text-gray-600">
-                        {{ owaspInfo?.impact }}
-                      </p>
-                    </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <p class="font-semibold">{{ riskBanner.label }} risk</p>
+            <p class="text-sm">{{ riskBanner.recommendation }}</p>
           </div>
-        </div>
 
-        <!-- Affected Component (Compact) -->
-        <div
-          v-if="ticket.affected_package"
-          class="bg-gray-50 rounded-lg p-4 space-y-3"
-        >
-          <h4 class="text-sm font-medium text-gray-700">Affected Component</h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs text-gray-500">Package</p>
+          <section
+            aria-labelledby="ticket-risk-overview"
+            class="flex flex-col gap-4 rounded-card border bg-card p-5"
+          >
+            <h3
+              id="ticket-risk-overview"
+              class="text-sm font-semibold text-foreground-strong"
+            >
+              Risk overview
+            </h3>
+            <ul class="grid grid-cols-3 gap-4">
+              <li v-if="cvssData">
+                <RiskScoreGauge
+                  :score="getCvssBaseScore()"
+                  :max-score="10"
+                  :label="'CVSS v' + cvssData.version"
+                  type="cvss"
+                  sublabel="Severity, 0 to 10"
+                />
+              </li>
+              <li v-if="epssFormatted">
+                <RiskScoreGauge
+                  :score="epssFormatted.scoreRaw"
+                  :max-score="100"
+                  label="EPSS"
+                  type="epss"
+                  :sublabel="
+                    epssFormatted.percentile
+                      ? `Exploit chance in 30 days, top ${epssFormatted.percentile}`
+                      : 'Exploit chance in 30 days'
+                  "
+                />
+              </li>
+              <li v-if="vulnerabilityDetails.other?.vlai_score">
+                <RiskScoreGauge
+                  :score="
+                    getVlaiNumericScore(vulnerabilityDetails.other.vlai_score)
+                  "
+                  :max-score="10"
+                  label="VLAI"
+                  type="vlai"
+                  :sublabel="vulnerabilityDetails.other.vlai_score"
+                />
+              </li>
+            </ul>
+            <div
+              v-if="vulnerabilityDetails.owasp_top_10?.id"
+              class="flex flex-col gap-1 border-t pt-4 text-sm"
+            >
               <p
-                class="text-sm text-gray-900 truncate"
-                :title="ticket.affected_package"
+                class="flex items-center gap-2 font-semibold text-foreground-strong"
               >
-                {{ ticket.affected_package }}
+                <Icon
+                  icon="simple-icons:owasp"
+                  aria-hidden="true"
+                  class="size-4"
+                />
+                OWASP {{ vulnerabilityDetails.owasp_top_10.id }}:
+                {{ vulnerabilityDetails.owasp_top_10.name }}
               </p>
+              <p class="text-muted-foreground">{{ owaspInfo?.description }}</p>
+              <p class="text-muted-foreground">
+                Potential impact: {{ owaspInfo?.impact }}
+              </p>
+            </div>
+          </section>
+        </template>
+
+        <section
+          v-if="ticket.affected_package"
+          aria-labelledby="ticket-component"
+          class="flex flex-col gap-3 rounded-card bg-muted p-4"
+        >
+          <h3
+            id="ticket-component"
+            class="text-sm font-semibold text-foreground-strong"
+          >
+            Affected component
+          </h3>
+          <dl class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-xs text-muted-foreground">Package</dt>
+              <dd class="truncate text-foreground-strong">
+                {{ ticket.affected_package }}
+              </dd>
             </div>
             <div>
-              <p class="text-xs text-gray-500">Version</p>
-              <p class="text-sm text-gray-900">
-                {{ ticket.affected_version ?? "N/A" }}
-                <span v-if="ticket.recommended_version" class="text-green-600">
-                  → {{ ticket.recommended_version }}
-                </span>
-              </p>
+              <dt class="text-xs text-muted-foreground">Version</dt>
+              <dd class="text-foreground-strong">
+                {{ ticket.affected_version ?? "Unknown"
+                }}{{
+                  ticket.recommended_version
+                    ? `, fixed in ${ticket.recommended_version}`
+                    : ""
+                }}
+              </dd>
             </div>
-          </div>
+          </dl>
+        </section>
+
+        <div
+          v-if="isLoadingVulnDetails"
+          role="status"
+          class="flex items-center gap-2 rounded-card bg-muted p-4 text-sm text-muted-foreground"
+        >
+          <LoaderCircle
+            aria-hidden="true"
+            class="size-4 animate-spin motion-reduce:animate-none"
+          />
+          Loading vulnerability details
         </div>
 
-        <!-- Loading vulnerability details -->
-        <div v-if="isLoadingVulnDetails" class="bg-gray-50 rounded-lg p-4">
-          <div class="flex items-center gap-2 text-gray-500">
-            <Icon icon="solar:spinner-outline" class="w-4 h-4 animate-spin" />
-            <span class="text-sm">Loading vulnerability details...</span>
-          </div>
-        </div>
-
-        <!-- Detailed Breakdowns (Accordion) -->
         <Accordion
           v-if="vulnerabilityDetails && !isLoadingVulnDetails"
           v-model="openAccordionItems"
           type="multiple"
-          class="space-y-2"
+          class="flex flex-col gap-2"
         >
-          <!-- CVSS Details Section -->
           <AccordionItem
             v-if="cvssData"
             value="cvss-details"
-            class="border rounded-lg overflow-hidden"
+            class="overflow-hidden rounded-card border"
           >
-            <AccordionTrigger
-              class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
-            >
-              <div class="flex items-center gap-2 text-sm font-medium">
-                <Icon
-                  icon="solar:shield-check-bold"
-                  class="w-4 h-4 text-gray-600"
-                />
-                CVSS v{{ cvssData.version }} Breakdown
-              </div>
+            <AccordionTrigger class="px-4 py-3 text-sm hover:no-underline">
+              CVSS v{{ cvssData.version }} breakdown
             </AccordionTrigger>
-            <AccordionContent class="px-4 pb-4 pt-2">
-              <!-- Exploitability & Impact Sub-scores -->
-              <div class="grid grid-cols-2 gap-3 mb-4">
-                <div
+            <AccordionContent class="flex flex-col gap-4 px-4 pb-4 pt-2">
+              <div class="grid grid-cols-2 gap-3">
+                <ScoreProgressBar
                   v-if="cvssData.data.exploitability_score"
-                  class="bg-white rounded-lg p-3 border"
-                >
-                  <ScoreProgressBar
-                    :value="cvssData.data.exploitability_score"
-                    :max="3.9"
-                    label="Exploitability"
-                    color-scheme="severity"
-                    size="sm"
-                  />
-                </div>
-                <div
+                  :value="cvssData.data.exploitability_score"
+                  :max="3.9"
+                  label="Exploitability"
+                />
+                <ScoreProgressBar
                   v-if="cvssData.data.impact_score"
-                  class="bg-white rounded-lg p-3 border"
-                >
-                  <ScoreProgressBar
-                    :value="cvssData.data.impact_score"
-                    :max="6.1"
-                    label="Impact"
-                    color-scheme="severity"
-                    size="sm"
-                  />
-                </div>
+                  :value="cvssData.data.impact_score"
+                  :max="6.1"
+                  label="Impact"
+                />
               </div>
-
-              <!-- CVSS Vector Components -->
-              <div class="grid grid-cols-2 gap-2 text-xs">
-                <div
-                  v-if="cvssData.data.attack_vector"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Attack Vector</span>
-                  <span
-                    class="font-medium"
-                    :class="getCvssValueColor(cvssData.data.attack_vector)"
+              <dl class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+                <template v-for="[key, label] in cvssVectorFields" :key="key">
+                  <div
+                    v-if="cvssData.data[key]"
+                    class="flex justify-between gap-2 py-1"
                   >
-                    {{ cvssData.data.attack_vector }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.attack_complexity"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Attack Complexity</span>
-                  <span
-                    class="font-medium"
-                    :class="getCvssValueColor(cvssData.data.attack_complexity)"
-                  >
-                    {{ cvssData.data.attack_complexity }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.privileges_required"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Privileges Required</span>
-                  <span
-                    class="font-medium"
-                    :class="
-                      getCvssValueColor(cvssData.data.privileges_required)
-                    "
-                  >
-                    {{ cvssData.data.privileges_required }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.user_interaction"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">User Interaction</span>
-                  <span
-                    class="font-medium"
-                    :class="getCvssValueColor(cvssData.data.user_interaction)"
-                  >
-                    {{ cvssData.data.user_interaction }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.scope"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Scope</span>
-                  <span
-                    class="font-medium"
-                    :class="getCvssValueColor(cvssData.data.scope)"
-                  >
-                    {{ cvssData.data.scope }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.confidentiality_impact"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Confidentiality</span>
-                  <span
-                    class="font-medium"
-                    :class="
-                      getCvssValueColor(cvssData.data.confidentiality_impact)
-                    "
-                  >
-                    {{ cvssData.data.confidentiality_impact }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.integrity_impact"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Integrity</span>
-                  <span
-                    class="font-medium"
-                    :class="getCvssValueColor(cvssData.data.integrity_impact)"
-                  >
-                    {{ cvssData.data.integrity_impact }}
-                  </span>
-                </div>
-                <div
-                  v-if="cvssData.data.availability_impact"
-                  class="flex justify-between py-1"
-                >
-                  <span class="text-gray-500">Availability</span>
-                  <span
-                    class="font-medium"
-                    :class="
-                      getCvssValueColor(cvssData.data.availability_impact)
-                    "
-                  >
-                    {{ cvssData.data.availability_impact }}
-                  </span>
-                </div>
-              </div>
+                    <dt class="text-muted-foreground">{{ label }}</dt>
+                    <dd class="font-medium text-foreground-strong">
+                      {{ cvssData.data[key] }}
+                    </dd>
+                  </div>
+                </template>
+              </dl>
             </AccordionContent>
           </AccordionItem>
 
-          <!-- CWE Weaknesses Section -->
           <AccordionItem
             v-if="vulnerabilityDetails.weaknesses?.length"
             value="weaknesses"
-            class="border rounded-lg overflow-hidden"
+            class="overflow-hidden rounded-card border"
           >
-            <AccordionTrigger
-              class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
-            >
-              <div class="flex items-center gap-2 text-sm font-medium">
-                <Icon icon="solar:bug-bold" class="w-4 h-4 text-gray-600" />
-                Weaknesses ({{ vulnerabilityDetails.weaknesses.length }})
-              </div>
+            <AccordionTrigger class="px-4 py-3 text-sm hover:no-underline">
+              Weaknesses ({{ vulnerabilityDetails.weaknesses.length }})
             </AccordionTrigger>
             <AccordionContent class="px-4 pb-4 pt-2">
-              <div class="space-y-3">
-                <div
+              <ul class="flex flex-col gap-2">
+                <li
                   v-for="weakness in vulnerabilityDetails.weaknesses"
                   :key="weakness.id"
-                  class="bg-white rounded-lg p-3 border"
+                  class="flex items-start gap-2 rounded-control border bg-card p-3 text-sm"
                 >
-                  <div class="flex items-start gap-2">
-                    <span
-                      class="font-mono text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
-                    >
-                      {{ weakness.id }}
+                  <span
+                    class="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
+                  >
+                    {{ weakness.id }}
+                  </span>
+                  <span class="flex min-w-0 flex-col">
+                    <span class="font-medium text-foreground-strong">
+                      {{ weakness.name }}
                     </span>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900">
-                        {{ weakness.name }}
-                      </p>
-                      <p
-                        v-if="weakness.description"
-                        class="text-xs text-gray-500 mt-1 line-clamp-2"
-                      >
-                        {{ weakness.description }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    <span
+                      v-if="weakness.description"
+                      class="line-clamp-2 text-xs text-muted-foreground"
+                    >
+                      {{ weakness.description }}
+                    </span>
+                  </span>
+                </li>
+              </ul>
             </AccordionContent>
           </AccordionItem>
 
-          <!-- Affected Locations Section -->
           <AccordionItem
             v-if="vulnerabilityDetails.location?.length"
             value="locations"
-            class="border rounded-lg overflow-hidden"
+            class="overflow-hidden rounded-card border"
           >
-            <AccordionTrigger
-              class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
-            >
-              <div class="flex items-center gap-2 text-sm font-medium">
-                <Icon
-                  icon="solar:folder-path-connect-bold"
-                  class="w-4 h-4 text-gray-600"
-                />
-                Affected Locations ({{ vulnerabilityDetails.location.length }})
-              </div>
+            <AccordionTrigger class="px-4 py-3 text-sm hover:no-underline">
+              Affected locations ({{ vulnerabilityDetails.location.length }})
             </AccordionTrigger>
             <AccordionContent class="px-4 pb-4 pt-2">
-              <div class="space-y-2 max-h-48 overflow-y-auto">
-                <div
+              <ul class="flex max-h-48 flex-col gap-2 overflow-y-auto">
+                <li
                   v-for="(path, index) in vulnerabilityDetails.location"
                   :key="index"
-                  class="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border font-mono text-xs"
+                  class="truncate rounded-control border bg-card px-3 py-2 font-mono text-xs text-foreground"
+                  :title="path"
                 >
-                  <Icon
-                    icon="solar:document-text-linear"
-                    class="w-4 h-4 text-gray-400 shrink-0"
-                  />
-                  <span class="truncate text-gray-700" :title="path">{{
-                    path
-                  }}</span>
-                </div>
-              </div>
+                  {{ path }}
+                </li>
+              </ul>
             </AccordionContent>
           </AccordionItem>
 
-          <!-- References Section -->
           <AccordionItem
             v-if="vulnerabilityDetails.references?.length"
             value="references"
-            class="border rounded-lg overflow-hidden"
+            class="overflow-hidden rounded-card border"
           >
-            <AccordionTrigger
-              class="px-4 py-3 hover:no-underline hover:bg-gray-50 data-[state=open]:bg-gray-50"
-            >
-              <div class="flex items-center gap-2 text-sm font-medium">
-                <Icon icon="solar:link-bold" class="w-4 h-4 text-gray-600" />
-                References ({{ vulnerabilityDetails.references.length }})
-              </div>
+            <AccordionTrigger class="px-4 py-3 text-sm hover:no-underline">
+              References ({{ vulnerabilityDetails.references.length }})
             </AccordionTrigger>
             <AccordionContent class="px-4 pb-4 pt-2">
-              <div class="space-y-1 max-h-48 overflow-y-auto">
-                <a
+              <ul class="flex max-h-48 flex-col gap-1 overflow-y-auto">
+                <li
                   v-for="(reference, index) in vulnerabilityDetails.references"
                   :key="index"
-                  :href="reference.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex items-center gap-2 px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  <Icon
-                    icon="solar:arrow-right-up-linear"
-                    class="w-3 h-3 shrink-0"
-                  />
-                  <span class="truncate">{{ reference.url }}</span>
-                </a>
-              </div>
+                  <a
+                    :href="reference.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-2 rounded-sm px-1 py-1 text-xs text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ArrowUpRight aria-hidden="true" class="size-3 shrink-0" />
+                    <span class="truncate">{{ reference.url }}</span>
+                  </a>
+                </li>
+              </ul>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
 
-        <!-- Description -->
-        <div>
-          <h4 class="text-sm font-medium text-gray-700 mb-2">Description</h4>
-          <p class="text-sm text-gray-600 whitespace-pre-wrap">
+        <section aria-labelledby="ticket-description">
+          <h3
+            id="ticket-description"
+            class="mb-2 text-sm font-semibold text-foreground-strong"
+          >
+            Description
+          </h3>
+          <p class="whitespace-pre-wrap text-sm text-foreground">
             {{ ticket.description }}
           </p>
-        </div>
+        </section>
 
-        <!-- Remediation Notes -->
-        <div v-if="ticket.remediation_notes">
-          <h4 class="text-sm font-medium text-gray-700 mb-2">
-            Remediation Notes
-          </h4>
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-sm text-blue-800 whitespace-pre-wrap">
-              {{ ticket.remediation_notes }}
-            </p>
-          </div>
-        </div>
+        <section
+          v-if="ticket.remediation_notes"
+          aria-labelledby="ticket-remediation"
+        >
+          <h3
+            id="ticket-remediation"
+            class="mb-2 text-sm font-semibold text-foreground-strong"
+          >
+            Remediation notes
+          </h3>
+          <p
+            class="whitespace-pre-wrap rounded-card border border-brand-subtle-border bg-brand-subtle p-4 text-sm text-brand-subtle-foreground"
+          >
+            {{ ticket.remediation_notes }}
+          </p>
+        </section>
 
-        <!-- Metadata -->
-        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+        <dl class="grid grid-cols-2 gap-4 border-t pt-4 text-sm">
           <div>
-            <p class="text-xs text-gray-500">Project</p>
-            <p class="text-sm text-gray-900">{{ ticket.project_name }}</p>
+            <dt class="text-xs text-muted-foreground">Project</dt>
+            <dd class="text-foreground-strong">{{ ticket.project_name }}</dd>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Created By</p>
-            <p class="text-sm text-gray-900">{{ ticket.created_by_name }}</p>
+            <dt class="text-xs text-muted-foreground">Created by</dt>
+            <dd class="text-foreground-strong">
+              {{ ticket.created_by_name }}
+            </dd>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Assigned To</p>
-            <p class="text-sm text-gray-900">
+            <dt class="text-xs text-muted-foreground">Assigned to</dt>
+            <dd class="text-foreground-strong">
               {{ ticket.assigned_to_name ?? "Unassigned" }}
-            </p>
+            </dd>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Due Date</p>
-            <p class="text-sm text-gray-900">
+            <dt class="text-xs text-muted-foreground">Due date</dt>
+            <dd class="text-foreground-strong">
               {{ formatDate(ticket.due_date) }}
-            </p>
+            </dd>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Created On</p>
-            <p class="text-sm text-gray-900">
+            <dt class="text-xs text-muted-foreground">Created on</dt>
+            <dd class="text-foreground-strong">
               {{ formatDate(ticket.created_on) }}
-            </p>
+            </dd>
           </div>
           <div v-if="ticket.resolved_on">
-            <p class="text-xs text-gray-500">Resolved On</p>
-            <p class="text-sm text-green-600">
+            <dt class="text-xs text-muted-foreground">Resolved on</dt>
+            <dd class="text-foreground-strong">
               {{ formatDate(ticket.resolved_on) }}
-            </p>
+            </dd>
           </div>
-        </div>
+        </dl>
 
-        <!-- Occurrence Stats (only shown if there are occurrences) -->
-        <div
+        <p
           v-if="ticket.occurrence_count > 0"
-          class="flex items-center gap-4 pt-4 border-t border-gray-200"
+          class="border-t pt-4 text-sm text-foreground"
         >
-          <div class="flex items-center gap-2">
-            <Icon icon="solar:document-bold" class="w-4 h-4 text-gray-400" />
-            <span class="text-sm text-gray-600">
-              <strong>{{ ticket.occurrence_count }}</strong> total occurrences
-            </span>
-          </div>
-          <div class="flex items-center gap-2">
-            <Icon
-              icon="solar:danger-triangle-bold"
-              class="w-4 h-4 text-orange-400"
-            />
-            <span class="text-sm text-gray-600">
-              <strong>{{ ticket.active_occurrence_count }}</strong> active
-            </span>
-          </div>
-        </div>
+          <strong>{{ ticket.occurrence_count }}</strong> total occurrences,
+          <strong>{{ ticket.active_occurrence_count }}</strong> active
+        </p>
 
-        <!-- External Links -->
-        <div
+        <section
           v-if="ticket.external_links.length > 0"
-          class="pt-4 border-t border-gray-200"
+          aria-labelledby="ticket-links"
+          class="border-t pt-4"
         >
-          <h4 class="text-sm font-medium text-gray-700 mb-3">External Links</h4>
-          <div class="space-y-2">
-            <div
+          <h3
+            id="ticket-links"
+            class="mb-3 text-sm font-semibold text-foreground-strong"
+          >
+            External links
+          </h3>
+          <ul class="flex flex-col gap-2">
+            <li
               v-for="link in ticket.external_links"
               :key="link.id"
-              class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group"
+              class="flex items-center gap-3 rounded-card bg-muted p-3"
             >
               <a
                 :href="link.external_url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                class="flex min-w-0 flex-1 items-center gap-3 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <div
-                  class="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200"
-                >
-                  <Icon
-                    :icon="
-                      ExternalProviderIcons[
-                        link.provider as ExternalTicketProvider
-                      ] || 'solar:link-bold'
-                    "
-                    class="w-4 h-4"
-                    :class="{
-                      'text-purple-600': link.provider === 'CLICKUP',
-                      'text-blue-600': link.provider === 'JIRA',
-                      'text-indigo-600': link.provider === 'LINEAR',
-                      'text-gray-400': !['CLICKUP', 'JIRA', 'LINEAR'].includes(
-                        link.provider,
-                      ),
-                    }"
-                  />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-gray-900">
-                    {{
-                      ExternalProviderLabels[
-                        link.provider as ExternalTicketProvider
-                      ] || link.provider
-                    }}
-                  </p>
-                  <p class="text-xs text-gray-500 truncate">
-                    {{ link.external_id }}
-                  </p>
-                </div>
                 <Icon
-                  icon="solar:arrow-right-up-linear"
-                  class="w-4 h-4 text-gray-400"
+                  v-if="ExternalProviderIcons[link.provider]"
+                  :icon="ExternalProviderIcons[link.provider]"
+                  aria-hidden="true"
+                  class="size-4 shrink-0 text-foreground-strong"
+                />
+                <Link
+                  v-else
+                  aria-hidden="true"
+                  class="size-4 shrink-0 text-foreground-strong"
+                />
+                <span class="flex min-w-0 flex-1 flex-col">
+                  <span class="text-sm font-medium text-foreground-strong">
+                    {{ ExternalProviderLabels[link.provider] || link.provider }}
+                  </span>
+                  <span class="truncate text-xs text-muted-foreground">
+                    {{ link.external_id }}
+                  </span>
+                </span>
+                <ArrowUpRight
+                  aria-hidden="true"
+                  class="size-4 text-muted-foreground"
                 />
               </a>
-              <!-- Sync from external button -->
-              <button
-                class="p-1.5 text-gray-400 hover:text-blue-500 rounded-md hover:bg-blue-50 transition-colors"
-                title="Sync status from external"
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                :aria-label="`Sync status from ${ExternalProviderLabels[link.provider] || link.provider}`"
                 :disabled="isSyncingFromExternal === link.id"
-                @click.stop="syncFromExternalLink(link.id)"
+                @click="syncFromExternalLink(link.id)"
               >
-                <Icon
-                  v-if="isSyncingFromExternal === link.id"
-                  icon="solar:spinner-outline"
-                  class="w-4 h-4 animate-spin"
+                <RefreshCw
+                  aria-hidden="true"
+                  :class="{
+                    'animate-spin motion-reduce:animate-none':
+                      isSyncingFromExternal === link.id,
+                  }"
                 />
-                <Icon v-else icon="solar:refresh-linear" class="w-4 h-4" />
-              </button>
-              <!-- Unlink button -->
-              <button
-                class="p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors"
-                title="Unlink from external"
-                :disabled="isUnlinking === link.id"
-                @click.stop="unlinkFromProvider(link.id)"
-              >
-                <Icon
-                  v-if="isUnlinking === link.id"
-                  icon="solar:spinner-outline"
-                  class="w-4 h-4 animate-spin"
-                />
-                <Icon v-else icon="solar:link-broken-linear" class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer Actions -->
-      <div
-        class="absolute bottom-0 left-0 right-0 px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between gap-3"
-      >
-        <Button variant="outline" @click="close">Close</Button>
-        <div class="flex items-center gap-2">
-          <!-- Sync Button -->
-          <DropdownMenu v-if="availableSyncProviders.length > 0">
-            <DropdownMenuTrigger as-child>
-              <Button variant="outline" :disabled="isSyncing">
-                <Icon
-                  v-if="isSyncing"
-                  icon="solar:spinner-outline"
-                  class="w-4 h-4 mr-2 animate-spin"
-                />
-                <Icon v-else icon="solar:link-linear" class="w-4 h-4 mr-2" />
-                Sync
-                <Icon icon="solar:alt-arrow-down-linear" class="w-3 h-3 ml-1" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                v-for="integration in availableSyncProviders"
-                :key="integration.provider"
-                @click="
-                  syncToProvider(integration.provider as ExternalTicketProvider)
-                "
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                :aria-label="`Unlink from ${ExternalProviderLabels[link.provider] || link.provider}`"
+                :disabled="isUnlinking === link.id"
+                @click="unlinkFromProvider(link.id)"
               >
-                <Icon
-                  :icon="
-                    ExternalProviderIcons[
-                      integration.provider as ExternalTicketProvider
-                    ]
-                  "
-                  class="w-4 h-4 mr-2"
-                />
-                Sync to
-                {{
-                  ExternalProviderLabels[
-                    integration.provider as ExternalTicketProvider
-                  ]
-                }}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <!-- Start Progress (shown for OPEN tickets) -->
-          <Button
-            v-if="ticket.status === TicketStatus.OPEN"
-            variant="outline"
-            class="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
-            :disabled="isUpdatingStatus"
-            @click="updateStatus(TicketStatus.IN_PROGRESS)"
-          >
-            <Icon
-              v-if="isUpdatingStatus"
-              icon="solar:spinner-outline"
-              class="w-4 h-4 mr-2 animate-spin"
-            />
-            <Icon v-else icon="solar:play-bold" class="w-4 h-4 mr-2" />
-            Start Progress
-          </Button>
-
-          <!-- Mark Resolved (shown for IN_PROGRESS tickets) -->
-          <Button
-            v-if="ticket.status === TicketStatus.IN_PROGRESS"
-            class="bg-green-600 hover:bg-green-700"
-            :disabled="isUpdatingStatus"
-            @click="updateStatus(TicketStatus.RESOLVED)"
-          >
-            <Icon
-              v-if="isUpdatingStatus"
-              icon="solar:spinner-outline"
-              class="w-4 h-4 mr-2 animate-spin"
-            />
-            <Icon v-else icon="solar:check-circle-bold" class="w-4 h-4 mr-2" />
-            Mark Resolved
-          </Button>
-
-          <!-- Won't Fix (shown for OPEN or IN_PROGRESS tickets) -->
-          <Button
-            v-if="
-              ticket.status === TicketStatus.OPEN ||
-              ticket.status === TicketStatus.IN_PROGRESS
-            "
-            variant="outline"
-            class="text-gray-600 border-gray-300 hover:bg-gray-50"
-            :disabled="isUpdatingStatus"
-            @click="updateStatus(TicketStatus.WONT_FIX)"
-          >
-            <Icon
-              v-if="isUpdatingStatus"
-              icon="solar:spinner-outline"
-              class="w-4 h-4 mr-2 animate-spin"
-            />
-            <Icon v-else icon="solar:close-circle-bold" class="w-4 h-4 mr-2" />
-            Won't Fix
-          </Button>
-
-          <!-- Close (shown for RESOLVED tickets) -->
-          <Button
-            v-if="ticket.status === TicketStatus.RESOLVED"
-            variant="outline"
-            class="text-blue-600 border-blue-600 hover:bg-blue-50"
-            :disabled="isUpdatingStatus"
-            @click="updateStatus(TicketStatus.CLOSED)"
-          >
-            <Icon
-              v-if="isUpdatingStatus"
-              icon="solar:spinner-outline"
-              class="w-4 h-4 mr-2 animate-spin"
-            />
-            <Icon v-else icon="solar:archive-bold" class="w-4 h-4 mr-2" />
-            Close
-          </Button>
-        </div>
+                <Unlink aria-hidden="true" />
+              </Button>
+            </li>
+          </ul>
+        </section>
       </div>
-    </div>
-  </Teleport>
+
+      <SheetFooter
+        class="flex-row items-center justify-end gap-2 border-t px-6 py-4"
+      >
+        <DropdownMenu v-if="availableSyncProviders.length > 0">
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" :disabled="isSyncing">
+              <LoaderCircle
+                v-if="isSyncing"
+                aria-hidden="true"
+                class="animate-spin motion-reduce:animate-none"
+              />
+              <Link v-else aria-hidden="true" />
+              Sync
+              <ChevronDown aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              v-for="integration in availableSyncProviders"
+              :key="integration.provider"
+              @click="syncToProvider(integration.provider)"
+            >
+              <Icon
+                :icon="ExternalProviderIcons[integration.provider]"
+                aria-hidden="true"
+                class="size-4"
+              />
+              Sync to {{ ExternalProviderLabels[integration.provider] }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button
+          v-if="ticket.status === TicketStatus.OPEN"
+          variant="outline"
+          :disabled="isUpdatingStatus"
+          @click="updateStatus(TicketStatus.IN_PROGRESS)"
+        >
+          <Play aria-hidden="true" />
+          Start progress
+        </Button>
+        <Button
+          v-if="ticket.status === TicketStatus.IN_PROGRESS"
+          :disabled="isUpdatingStatus"
+          @click="updateStatus(TicketStatus.RESOLVED)"
+        >
+          <CircleCheck aria-hidden="true" />
+          Mark resolved
+        </Button>
+        <Button
+          v-if="
+            ticket.status === TicketStatus.OPEN ||
+            ticket.status === TicketStatus.IN_PROGRESS
+          "
+          variant="outline"
+          :disabled="isUpdatingStatus"
+          @click="updateStatus(TicketStatus.WONT_FIX)"
+        >
+          <CircleX aria-hidden="true" />
+          Won't fix
+        </Button>
+        <Button
+          v-if="ticket.status === TicketStatus.RESOLVED"
+          variant="outline"
+          :disabled="isUpdatingStatus"
+          @click="updateStatus(TicketStatus.CLOSED)"
+        >
+          <Archive aria-hidden="true" />
+          Close ticket
+        </Button>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
 </template>

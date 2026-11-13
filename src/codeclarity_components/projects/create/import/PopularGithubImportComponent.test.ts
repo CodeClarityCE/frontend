@@ -1,7 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FilterType } from "@/base_components/filters/filterTypes";
 import { GetRepositoriesSortInterface } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 
 import PopularGithubImportComponent from "./PopularGithubImportComponent.vue";
@@ -66,24 +65,24 @@ describe("PopularGithubImportComponent", () => {
     return { props: base.props() };
   }
 
-  it("renders the base importer with the integration and a stars-first, single-page table", () => {
+  it("renders the base importer ranked by stars with the language choices", () => {
     const { props } = mountWithBase();
 
     expect(props.integration).toBe("gh-1");
     expect(props.tableConfig).toMatchObject({
       defaultSortKey: GetRepositoriesSortInterface.STARS,
-      defaultEntriesPerPage: 100,
       showStars: true,
     });
-    const language = props.tableConfig.extraFilters.Language;
-    expect(language.type).toBe(FilterType.RADIO);
-    expect(Object.keys(language.data)).toEqual([
-      "language_all",
-      "language_javascript",
-      "language_typescript",
-      "language_php",
+    expect(
+      props.tableConfig.languages.map(
+        (option: { label: string }) => option.label,
+      ),
+    ).toEqual([
+      "All (JavaScript, TypeScript, PHP)",
+      "JavaScript",
+      "TypeScript",
+      "PHP",
     ]);
-    expect(language.data.language_all.value).toBe(true);
   });
 
   it("turns a selected language filter into the languages parameter and strips it from the filters", async () => {

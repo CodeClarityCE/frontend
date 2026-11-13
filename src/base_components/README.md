@@ -37,7 +37,6 @@ base_components/
 - **LoadingComponent**: General loading indicator
 - **LoadingButton**: Button with loading state
 - **LoadingSubmitButton**: Submit button with loading state
-- **LoadingContainer**: Container with loading overlay
 - **BoxLoader**: Box-style loading animation
 - **DonutLoader**: Donut-style loading animation
 - **TextLoader**: Text placeholder loading

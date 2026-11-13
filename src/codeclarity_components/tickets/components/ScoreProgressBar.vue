@@ -1,89 +1,45 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-interface Props {
+// A sub-score as a bar on the severity scale, with its value in text.
+const props = defineProps<{
   value: number;
   max: number;
-  label?: string;
-  showValue?: boolean;
-  size?: "sm" | "md";
-  colorScheme?: "severity" | "percentile" | "confidence";
-}
+  label: string;
+}>();
 
-const props = withDefaults(defineProps<Props>(), {
-  label: "",
-  showValue: true,
-  size: "md",
-  colorScheme: "severity",
-});
+const percentage = computed(() =>
+  props.max === 0
+    ? 0
+    : Math.min(100, Math.max(0, (props.value / props.max) * 100)),
+);
 
-const percentage = computed(() => {
-  if (props.max === 0) return 0;
-  return Math.min(100, Math.max(0, (props.value / props.max) * 100));
-});
-
-// Get color based on percentage and color scheme
-const barColorClass = computed(() => {
+const barClass = computed(() => {
   const pct = percentage.value;
-
-  if (props.colorScheme === "confidence") {
-    // Higher confidence = better (blue scale)
-    if (pct >= 80) return "bg-blue-600";
-    if (pct >= 60) return "bg-blue-500";
-    if (pct >= 40) return "bg-blue-400";
-    return "bg-blue-300";
-  }
-
-  if (props.colorScheme === "percentile") {
-    // Higher percentile = worse (more likely to be exploited)
-    if (pct >= 90) return "bg-black";
-    if (pct >= 70) return "bg-red-600";
-    if (pct >= 40) return "bg-amber-500";
-    return "bg-green-500";
-  }
-
-  // Default severity scheme (higher = worse)
-  if (pct >= 90) return "bg-black";
-  if (pct >= 70) return "bg-red-600";
-  if (pct >= 40) return "bg-amber-500";
-  if (pct >= 10) return "bg-green-500";
-  return "bg-teal-500";
-});
-
-const heightClass = computed(() => {
-  return props.size === "sm" ? "h-1.5" : "h-2";
-});
-
-const textClass = computed(() => {
-  return props.size === "sm" ? "text-xs" : "text-sm";
+  if (pct >= 90) return "bg-severity-critical";
+  if (pct >= 70) return "bg-severity-high";
+  if (pct >= 40) return "bg-severity-medium";
+  if (pct >= 10) return "bg-severity-low";
+  return "bg-severity-none";
 });
 </script>
 
 <template>
-  <div class="w-full">
-    <!-- Label and value row -->
-    <div
-      v-if="label || showValue"
-      class="flex items-center justify-between mb-1"
-    >
-      <span v-if="label" :class="[textClass, 'text-gray-600']">{{
-        label
-      }}</span>
-      <span v-if="showValue" :class="[textClass, 'font-medium text-gray-900']">
-        {{ value.toFixed(1) }}
+  <div class="flex flex-col gap-1 rounded-control border bg-card p-3">
+    <div class="flex items-center justify-between text-xs">
+      <span class="text-muted-foreground">{{ label }}</span>
+      <span class="font-semibold text-foreground-strong">
+        {{ value.toFixed(1) }} of {{ max }}
       </span>
     </div>
-    <!-- Progress bar -->
     <div
-      :class="['w-full bg-gray-200 rounded-full overflow-hidden', heightClass]"
+      class="h-1.5 w-full overflow-hidden rounded-full bg-neutral-subtle"
+      aria-hidden="true"
     >
       <div
-        :class="[
-          'rounded-full transition-all duration-300 ease-out',
-          heightClass,
-          barColorClass,
-        ]"
-        :style="{ width: percentage + '%' }"
+        class="h-1.5 rounded-full"
+        :class="barClass"
+        :style="{ width: `${percentage}%` }"
       />
     </div>
   </div>

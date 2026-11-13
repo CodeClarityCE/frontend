@@ -30,43 +30,17 @@
   "src/base_components/layout/PageHeader.vue": ["palette", "theme", "icon"],
   "src/base_components/ui/EcosystemBadge.vue": ["palette"],
   "src/base_components/ui/InfoMarkdown.vue": ["hex"],
-  "src/base_components/ui/LanguageBadge.vue": ["palette"],
   "src/base_components/ui/cards/InfoCard.vue": ["palette", "theme"],
   "src/base_components/ui/cards/StatCard.vue": ["palette", "theme"],
-  "src/base_components/ui/cards/VerticalCard.vue": ["palette", "theme"],
   "src/base_components/ui/flow/AnalyzerNode.vue": ["hex", "palette", "icon"],
   "src/base_components/ui/flow/ConfigNode.vue": ["hex", "palette", "icon"],
   "src/base_components/ui/flow/DependencyNode.vue": ["hex"],
   "src/base_components/ui/loaders/LoadingButton.vue": ["hex"],
   "src/base_components/ui/loaders/LoadingComponent.vue": ["icon"],
-  "src/base_components/ui/loaders/LoadingContainer.vue": ["hex", "icon"],
   "src/base_components/ui/loaders/LoadingSubmitButton.vue": ["hex", "palette"],
   "src/base_components/ui/modals/CenteredModal.vue": ["palette"],
   "src/base_components/ui/modals/PositionedModal.vue": ["palette"],
   "src/base_components/utilities/UtilitiesSort.vue": ["icon"],
-  "src/codeclarity_components/analyses/AnalysisFailureReason.vue": ["palette"],
-  "src/codeclarity_components/analyses/create/AnalysisCreate.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/analyses/create/components/AnalyzerComp.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/analyses/create/components/ScheduleSelector.vue": [
-    "hex",
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/analyses/create/components/SelectLicensePolicy.vue": [
-    "hex",
-    "palette"
-  ],
-  "src/codeclarity_components/analyses/create/components/SelectVulnerabilityPolicy.vue": [
-    "hex",
-    "palette"
-  ],
   "src/codeclarity_components/dashboard/charts/CurrentVulns.vue": [
     "hex",
     "icon"
@@ -285,90 +259,6 @@
     "theme",
     "icon"
   ],
-  "src/codeclarity_components/projects/components/ProjectLanguageDetection.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/CreateProject.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/import/BaseImportComponent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/import/LocalUploadComponent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/import/PopularGithubImportComponent.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/import/components/FaqComponent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/import/components/ImportErrorTable.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/import/components/RepoTable.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/integrations/IntegrationsComponent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/create/integrations/NoIntegration.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/ProjectsList.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/AnalysisItem.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/AnalysisList.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/AnalysisListImproved.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/AnalysisRuns.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/ProjectItem.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/ProjectItemImproved.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/projects/list/components/ProjectsList.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
   "src/codeclarity_components/results/ResultsView.vue": ["palette", "icon"],
   "src/codeclarity_components/results/SelectWorkspace.vue": ["palette"],
   "src/codeclarity_components/results/components/ResultTimestamp.vue": [
@@ -543,50 +433,6 @@
     "palette",
     "theme"
   ],
-  "src/codeclarity_components/tickets/TicketsView.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/components/CreateTicketButton.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/components/RiskScoreGauge.vue": [
-    "hex",
-    "palette"
-  ],
-  "src/codeclarity_components/tickets/components/ScoreProgressBar.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/tickets/components/TicketCreateModal.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/integrations/ClickUpOAuthCallback.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/integrations/IntegrationsConfigPanel.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/sections/TicketDetail.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/sections/TicketsKanban.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/sections/TicketsList.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/tickets/tickets.entity.ts": ["palette"],
   "src/enterprise_components/activity_logs/audit/OrgAuditLogItem.vue": ["hex"],
   "src/utils/dependencyGraphLayout.ts": ["hex"],
   "src/utils/gradeUtils.ts": ["hex", "palette"],

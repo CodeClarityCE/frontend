@@ -17,7 +17,7 @@ withDefaults(
 
 <template>
   <div
-    class="pointer-events-none absolute z-10 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 shadow-sm whitespace-nowrap dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700"
+    class="pointer-events-none absolute z-10 rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm whitespace-nowrap"
     :style="{
       left: `${(x / CHART_WIDTH) * 100}%`,
       top: `calc(${(y / height) * 100}% - 8px)`,

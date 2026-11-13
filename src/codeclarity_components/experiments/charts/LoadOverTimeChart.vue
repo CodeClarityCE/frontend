@@ -2,8 +2,6 @@
 import { line, scaleLinear, scalePoint } from "d3";
 import { computed, ref } from "vue";
 
-import type { LoadRow } from "../experiment.entity";
-
 import {
   AXIS_HEIGHT,
   formatNumber,
@@ -11,12 +9,14 @@ import {
   RIGHT_PADDING,
   TOP_PADDING,
   xTickCount,
-} from "./chart-format";
-import { useChartWidth } from "./chart-layout";
-import ChartTable from "./ChartTable.vue";
-import ChartTooltip from "./ChartTooltip.vue";
+} from "@/base_components/charts/chart-format";
+import { useChartWidth } from "@/base_components/charts/chart-layout";
+import ChartTable from "@/base_components/charts/ChartTable.vue";
+import ChartTooltip from "@/base_components/charts/ChartTooltip.vue";
 
-import "./experiment-chart.css";
+import type { LoadRow } from "../experiment.entity";
+
+import "@/base_components/charts/chart.css";
 
 const props = defineProps<{
   rows: LoadRow[];
@@ -129,10 +129,10 @@ const tooltipY = computed(() => {
 </script>
 
 <template>
-  <div class="exp-viz max-w-[640px]">
+  <div class="chart-viz max-w-[640px]">
     <ul
       data-export-legend
-      class="flex gap-4 text-xs text-gray-700 mb-1"
+      class="flex gap-4 text-xs text-foreground mb-1"
       aria-hidden="true"
     >
       <li
@@ -270,7 +270,7 @@ const tooltipY = computed(() => {
     </div>
 
     <ChartTable>
-      <thead class="text-left text-gray-500">
+      <thead class="text-left text-muted-foreground">
         <tr>
           <th class="font-medium">Grid date</th>
           <th class="font-medium text-right">Projects</th>
@@ -279,7 +279,7 @@ const tooltipY = computed(() => {
           <th class="font-medium text-right">Undated</th>
         </tr>
       </thead>
-      <tbody class="text-gray-700" style="font-variant-numeric: tabular-nums">
+      <tbody class="text-foreground" style="font-variant-numeric: tabular-nums">
         <tr
           v-for="row in rows"
           :key="labelOf(row)"

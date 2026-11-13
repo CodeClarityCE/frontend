@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
   formatDays,
   formatShareWithInterval,
-  lagChartData,
-  type LagChartRow,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+
+import { excluded } from "../charts/experiment-caption";
+import { lagChartData, type LagChartRow } from "../charts/experiment-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
@@ -90,7 +91,7 @@ const counts = computed(() => {
     : `${fixes}.`;
 });
 
-function figureCaption(description: string): FigureCaption {
+function figureCaption(description: string): ChartCaption {
   const { fixes, overall } = props.fixLag;
   return {
     description,

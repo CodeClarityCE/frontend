@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { formatShare } from "../charts/chart-format";
+import { formatShare } from "@/base_components/charts/chart-format";
+
 import type {
   DatingPrecision,
   ExposuresBlock,

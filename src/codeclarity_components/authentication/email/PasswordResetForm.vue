@@ -1,31 +1,39 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import { CircleAlert, LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
-import { Form } from "vee-validate";
+import { useForm } from "vee-validate";
 import { onMounted, type Ref, ref } from "vue";
 import * as z from "zod";
 
-import FormTextField from "@/base_components/forms/FormTextField.vue";
-import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import router from "@/router";
-import Alert from "@/shadcn/ui/alert/Alert.vue";
-import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
+import { cn } from "@/shadcn/lib/utils";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import { Button, buttonVariants } from "@/shadcn/ui/button";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shadcn/ui/form";
+import { Input } from "@/shadcn/ui/input";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import {
   BusinessLogicError,
   ValidationError,
 } from "@/utils/api/BaseRepository";
+import { filterUndefined } from "@/utils/form/filterUndefined";
+
+import AuthLayout from "../layout/AuthLayout.vue";
+import TextLink from "../layout/TextLink.vue";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
 
 // State
 const nonRecoverableError: Ref<boolean> = ref(false);
-const loadingButtonRef: Ref<{
-  setLoading: (loading: boolean) => void;
-  setDisabled: (disabled: boolean) => void;
-} | null> = ref(null);
+const loading: Ref<boolean> = ref(false);
 const token: Ref<string> = ref("");
 const userIdHash: Ref<string> = ref("");
 const success: Ref<boolean> = ref(false);
@@ -33,28 +41,28 @@ const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const validationError: Ref<ValidationError | undefined> = ref();
 
-// Form Data
-const formPassword: Ref<string> = ref("");
-const formPasswordConfirmation: Ref<string> = ref("");
-
 // Form Validation
-const formValidationSchema = toTypedSchema(
-  z
-    .object({
-      new_password: z.string().min(10, "Too short").max(75, "Too long"),
-      new_password_confirmation: z.string(),
-    })
-    .refine((data) => data.new_password === data.new_password_confirmation, {
-      message: "Passwords must match",
-      path: ["new_password_confirmation"],
-    }),
-);
+const formSchema = z
+  .object({
+    new_password: z.string().min(10, "Too short").max(75, "Too long"),
+    new_password_confirmation: z.string(),
+  })
+  .refine((data) => data.new_password === data.new_password_confirmation, {
+    message: "Passwords must match",
+    path: ["new_password_confirmation"],
+  });
+type FormValues = z.infer<typeof formSchema>;
+const { handleSubmit } = useForm<FormValues>({
+  validationSchema: toTypedSchema(formSchema),
+});
+
+const onSubmit = handleSubmit((values): void => {
+  void submit(values);
+});
 
 // Methods
-async function submit(): Promise<void> {
-  loadingButtonRef.value?.setLoading(true);
-  loadingButtonRef.value?.setDisabled(true);
-
+async function submit(values: FormValues): Promise<void> {
+  loading.value = true;
   success.value = false;
   errorCode.value = undefined;
   error.value = false;
@@ -63,8 +71,8 @@ async function submit(): Promise<void> {
   try {
     await authRepository.resetPassword({
       data: {
-        new_password: formPassword.value,
-        new_password_confirmation: formPasswordConfirmation.value,
+        new_password: values.new_password,
+        new_password_confirmation: values.new_password_confirmation,
         token: token.value,
         user_id_hash: userIdHash.value,
       },
@@ -89,20 +97,14 @@ async function submit(): Promise<void> {
       }
     }
   } finally {
-    loadingButtonRef.value?.setLoading(false);
-    loadingButtonRef.value?.setDisabled(false);
+    loading.value = false;
   }
 }
 
 // Life cycle
 onMounted(() => {
-  const url = new URL(window.location.href);
-  const searchParams = url.searchParams;
-
-  // Token
+  const searchParams = new URL(window.location.href).searchParams;
   const _token = searchParams.get("token");
-
-  // User id hash
   const _userIdHash = searchParams.get("userid");
 
   if (!_token || !_userIdHash) {
@@ -115,143 +117,119 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="password-reset-wrapper">
-    <!-- Not submitted OR form error -->
-    <div
-      v-if="!success && !nonRecoverableError"
-      class="password-reset-inner-wrapper"
-    >
-      <div>
-        <div class="title">Password Reset</div>
-        <div class="subtitle">
-          To reset your password, enter your email below
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; row-gap: 2rem">
-        <Alert v-if="error" variant="destructive">
-          <AlertDescription class="flex-row flex-row-05rem">
-            <Icon icon="material-symbols:error-outline" />
-            <div v-if="errorCode">
-              <div
-                v-if="errorCode === APIErrors.ValidationFailed"
-                style="white-space: break-spaces"
-              >
-                <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                {{ validationError!.toMessage("Invalid form:") }}
-              </div>
-              <div v-else-if="errorCode === APIErrors.PasswordsDoNotMatch">
-                Passwords do not match.
-              </div>
-              <div v-else>
-                An error occured during the processing of the request.
-              </div>
-            </div>
-            <div v-else>
-              An error occured during the processing of the request.
-            </div>
-          </AlertDescription>
-        </Alert>
-
-        <Form
-          style="display: flex; flex-direction: column; row-gap: 1.5rem"
-          name="password_reset_form"
-          :validation-schema="formValidationSchema"
-          @submit="submit"
-        >
-          <FormTextField
-            v-model="formPassword"
-            :placeholder="'Enter your new password'"
-            :type="'password'"
-            :name="'new_password'"
-          >
-            <template #name>New password</template>
-          </FormTextField>
-          <FormTextField
-            v-model="formPasswordConfirmation"
-            :placeholder="'Confirm your new password'"
-            :type="'password'"
-            :name="'new_password_comfirmation'"
-          >
-            <template #name>Confirm the new password</template>
-          </FormTextField>
-
-          <LoadingSubmitButton ref="loadingButtonRef">
-            <span>Update password</span>
-          </LoadingSubmitButton>
-        </Form>
-      </div>
-    </div>
-
-    <!-- A non-recoverable error -->
-    <div v-else-if="nonRecoverableError" class="password-reset-inner-wrapper">
-      <div class="flex-column flex-column-20">
-        <div>
-          <div class="title">Failed</div>
-          <div
-            v-if="errorCode === APIErrors.PasswordResetTokenInvalidOrExpired"
-            class="subtitle"
-          >
-            Your password was
-            <span style="font-weight: 900; text-decoration: underline"
-              >not</span
-            >
-            reset because the password reset has expired. Please request a new
-            password reset and click on the link in the email.<br /><br />
-            Note: the link in the email is only valid for 5 minutes.
-          </div>
-          <div v-else class="subtitle">
-            An error occured during the processing of the request.
-          </div>
-        </div>
-        <div
-          style="
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            column-gap: 1rem;
-          "
-        >
-          <RouterLink
-            class="filled-button router-link-button"
-            :to="{ name: 'recoveryRequest' }"
-            style="width: 100%"
-          >
-            Request a new password reset
-          </RouterLink>
-          <RouterLink
-            class="bordered-button router-link-button"
-            :to="{ name: 'login' }"
-            style="width: 100%"
-          >
-            Back to login
-          </RouterLink>
-        </div>
-      </div>
-    </div>
-
-    <!-- Password Reset Succeeded -->
-    <div v-else-if="success" class="password-reset-inner-wrapper">
-      <div>
-        <div class="title">Success</div>
-        <div class="subtitle">Your password has been succesfully updated.</div>
-      </div>
-      <div
-        style="
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          column-gap: 1rem;
+  <AuthLayout>
+    <template #title>
+      <template v-if="success">Password updated</template>
+      <template
+        v-else-if="
+          nonRecoverableError &&
+          errorCode === APIErrors.PasswordResetTokenInvalidOrExpired
         "
       >
-        <RouterLink
-          class="filled-button router-link-button"
-          :to="{ name: 'login' }"
-          style="width: 100%"
-        >
-          Back to login
-        </RouterLink>
-      </div>
+        Reset link expired
+      </template>
+      <template v-else-if="nonRecoverableError">Password reset failed</template>
+      <template v-else>Choose a new password</template>
+    </template>
+    <template #description>
+      <template v-if="success">
+        Your password has been successfully updated.
+      </template>
+      <template v-else-if="nonRecoverableError">
+        Your password was not reset.
+      </template>
+      <template v-else>Enter the new password for your account.</template>
+    </template>
+
+    <div v-if="success" class="flex flex-col gap-6">
+      <RouterLink
+        :to="{ name: 'login' }"
+        :class="cn(buttonVariants(), 'w-full')"
+      >
+        Back to sign in
+      </RouterLink>
     </div>
-  </div>
+
+    <div v-else-if="nonRecoverableError" class="flex flex-col gap-6">
+      <p
+        v-if="errorCode === APIErrors.PasswordResetTokenInvalidOrExpired"
+        class="text-sm"
+      >
+        The link in the email is only valid for 5 minutes. Request a new
+        password reset and follow the link in the new email.
+      </p>
+      <p v-else class="text-sm">
+        An error occured during the processing of the request.
+      </p>
+      <RouterLink
+        :to="{ name: 'recoveryRequest' }"
+        :class="cn(buttonVariants(), 'w-full')"
+      >
+        Request a new password reset
+      </RouterLink>
+    </div>
+
+    <template v-else>
+      <Alert v-if="error" variant="destructive" class="mb-6">
+        <CircleAlert aria-hidden="true" />
+        <AlertDescription>
+          <div
+            v-if="errorCode === APIErrors.ValidationFailed"
+            class="whitespace-break-spaces"
+          >
+            {{ validationError!.toMessage("Invalid form:") }}
+          </div>
+          <div v-else-if="errorCode === APIErrors.PasswordsDoNotMatch">
+            Passwords do not match.
+          </div>
+          <div v-else>
+            An error occured during the processing of the request.
+          </div>
+        </AlertDescription>
+      </Alert>
+
+      <form class="flex flex-col gap-4" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="new_password">
+          <FormItem>
+            <FormLabel>New password</FormLabel>
+            <FormControl>
+              <Input
+                type="password"
+                autocomplete="new-password"
+                placeholder="Enter your new password"
+                v-bind="filterUndefined(componentField)"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="new_password_confirmation">
+          <FormItem>
+            <FormLabel>Confirm new password</FormLabel>
+            <FormControl>
+              <Input
+                type="password"
+                autocomplete="new-password"
+                placeholder="Confirm your new password"
+                v-bind="filterUndefined(componentField)"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <Button type="submit" class="mt-2 w-full" :disabled="loading">
+          <LoaderCircle
+            v-if="loading"
+            aria-hidden="true"
+            class="animate-spin motion-reduce:animate-none"
+          />
+          Update password
+        </Button>
+      </form>
+    </template>
+
+    <template v-if="!success" #footer>
+      <TextLink :to="{ name: 'login' }">Back to sign in</TextLink>
+    </template>
+  </AuthLayout>
 </template>

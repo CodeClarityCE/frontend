@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import DocumentPage from "./DocumentPage.vue";
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-12">
-    <div class="text-3xl self-center">Gestion des données personnelles</div>
-    <div class="text-2xl pt-4">
-      Objet du traitement (finalité et base légale)
-    </div>
+  <DocumentPage lang="fr">
+    <template #title>Gestion des données personnelles</template>
+    <h2>Objet du traitement (finalité et base légale)</h2>
     <div>
       <span>
         La société CodeClarity,
@@ -20,13 +17,13 @@ import Button from "@/shadcn/ui/button/Button.vue";
       ><br /><br />
       <span>
         Ce fichier permet de :
-        <ul class="list list-inside list-disc pl-4">
+        <ul>
           <li>Gérer les commandes, le paiement et la livraison.</li>
           <li>
             Mener des opérations de marketing (fidélisation, promotions) et
             adresser des publicités par courriel auprès de nos clients qui ne
             s'y sont pas opposés ou qui l'ont accepté :
-            <ul class="list list-inside list-disc pl-4">
+            <ul>
               <li>Sur des produits analogues à ceux qu'ils ont commandés.</li>
               <li>
                 Sur d'autres produits proposés par la société. Par exemple, si
@@ -40,9 +37,9 @@ import Button from "@/shadcn/ui/button/Button.vue";
       </span>
     </div>
 
-    <div class="text-2xl pt-4">Bases légales des traitements</div>
+    <h2>Bases légales des traitements</h2>
     <div>
-      <ul class="list list-inside list-disc pl-4">
+      <ul>
         <li>
           Gestion des commandes : la base légale du traitement est l'exécution
           d'un contrat (Cf. article 6.1.b) du Règlement européen sur la
@@ -72,9 +69,9 @@ import Button from "@/shadcn/ui/button/Button.vue";
       </ul>
     </div>
 
-    <div class="text-2xl pt-4">Catégories de données</div>
+    <h2>Catégories de données</h2>
     <div>
-      <ul class="list list-inside list-disc pl-4">
+      <ul>
         <li>
           Identité : civilité, nom, prénom, adresse, adresse de livraison,
           numéro de téléphone, adresse électronique, date de naissance, code
@@ -98,16 +95,16 @@ import Button from "@/shadcn/ui/button/Button.vue";
       </ul>
     </div>
 
-    <div class="text-2xl pt-4">Destinataires des données</div>
+    <h2>Destinataires des données</h2>
     <div>
-      <ul class="list list-inside list-disc pl-4">
+      <ul>
         <li>
           Les services clients et facturation de la société CodeClarity sont
           destinataires de l'ensemble des catégories de données.
         </li>
         <!-- <li>Ses sous-traitants, chargés de la livraison de ses commandes, sont destinataires de l'identité, de l'adresse et du numéro de téléphone de nos clients.</li> -->
         <!-- <li>Les adresses électroniques des clients qui l'ont accepté sont transmises à de nos partenaires commerciaux (liste des partenaires commerciaux, régulièrement mise à jour) :
-                    <ul class="list list-inside list-disc pl-4">
+                    <ul>
                         <li>société X</li>
                         <li>société Y</li>
                         <li>société Z</li>
@@ -116,9 +113,9 @@ import Button from "@/shadcn/ui/button/Button.vue";
       </ul>
     </div>
 
-    <div class="text-2xl pt-4">Catégories de données</div>
+    <h2>Catégories de données</h2>
     <div>
-      <ul class="list list-inside list-disc pl-4">
+      <ul>
         <li>
           Données nécessaires à la gestion des commandes et à la facturation :
           pendant toute la durée de la relation commerciale et dix (10) ans au
@@ -142,7 +139,7 @@ import Button from "@/shadcn/ui/button/Button.vue";
       </ul>
     </div>
 
-    <div class="text-2xl pt-4">Vos droits</div>
+    <h2>Vos droits</h2>
     <div>
       <span>
         Si vous ne souhaitez plus recevoir de publicité de la part de la société
@@ -172,6 +169,5 @@ import Button from "@/shadcn/ui/button/Button.vue";
         </ul>
       </span>
     </div>
-    <Button @click="router.back()">Go back</Button>
-  </div>
+  </DocumentPage>
 </template>

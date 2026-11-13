@@ -67,23 +67,6 @@
     "hex",
     "palette"
   ],
-  "src/codeclarity_components/authentication/email/PasswordResetForm.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/authentication/oauth/OAuth2Callback.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/authentication/signin/UserAuthForm.vue": ["icon"],
-  "src/codeclarity_components/authentication/signup/SignupForm.vue": ["icon"],
-  "src/codeclarity_components/authentication/signup/SocialSetup.vue": [
-    "palette",
-    "icon"
-  ],
   "src/codeclarity_components/dashboard/charts/CurrentVulns.vue": [
     "hex",
     "icon"
@@ -126,24 +109,6 @@
   "src/codeclarity_components/datasets/sections/DatasetsList.vue": [
     "palette",
     "icon"
-  ],
-  "src/codeclarity_components/experiments/charts/ChartExport.vue": ["palette"],
-  "src/codeclarity_components/experiments/charts/ChartTable.vue": ["palette"],
-  "src/codeclarity_components/experiments/charts/ChartTooltip.vue": ["palette"],
-  "src/codeclarity_components/experiments/charts/FigureBarChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/FigureStepChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/GridLineChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/LagStripChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/LoadOverTimeChart.vue": [
-    "palette"
   ],
   "src/codeclarity_components/experiments/experiment.entity.ts": ["palette"],
   "src/codeclarity_components/experiments/sections/ExperimentCreate.vue": [
@@ -635,7 +600,6 @@
     "icon"
   ],
   "src/codeclarity_components/tickets/tickets.entity.ts": ["palette"],
-  "src/codeclarity_components/views/NotFoundView.vue": ["hex"],
   "src/enterprise_components/activity_logs/audit/OrgAuditLogItem.vue": ["hex"],
   "src/utils/dependencyGraphLayout.ts": ["hex"],
   "src/utils/gradeUtils.ts": ["hex", "palette"],

@@ -1,0 +1,39 @@
+/*
+ * Chart roles. Charts draw with these only, never raw colours; values come
+ * from the tokens in main.css, so dark mode follows the app's .dark class.
+ * Single-series charts use --viz-series-1.
+ */
+.chart-viz {
+  --viz-surface: var(--background);
+  --viz-text-primary: var(--foreground-strong);
+  --viz-text-secondary: var(--muted-foreground);
+  --viz-text-muted: var(--muted-foreground);
+  --viz-grid: var(--chart-grid);
+  --viz-baseline: var(--chart-baseline);
+  --viz-series-1: var(--chart-1);
+  --viz-series-1-soft: var(--chart-1-soft);
+  --viz-series-2: var(--chart-2);
+  --viz-series-3: var(--chart-3);
+  --viz-series-4: var(--chart-4);
+  --viz-series-5: var(--chart-5);
+  --viz-series-6: var(--chart-6);
+  --viz-severity-critical: var(--severity-critical);
+  --viz-severity-high: var(--severity-high);
+  --viz-severity-medium: var(--severity-medium);
+  --viz-severity-low: var(--severity-low);
+  --viz-severity-none: var(--severity-none);
+  --viz-status-success: var(--success);
+  --viz-status-warning: var(--warning);
+  --viz-status-danger: var(--danger);
+  --viz-status-neutral: var(--neutral);
+}
+
+/* Colours of exported charts. Used by chart-export.ts, not on the page. */
+.chart-viz-print {
+  --viz-series-1: var(--chart-print-1);
+  --viz-series-2: var(--chart-print-2);
+  --viz-series-3: var(--chart-print-3);
+  --viz-series-4: var(--chart-print-4);
+  --viz-series-5: var(--chart-print-5);
+  --viz-series-6: var(--chart-print-6);
+}

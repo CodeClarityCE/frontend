@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, ref, watch } from "vue";
 
+import {
+  type ChartCaption,
+  PAGE_EXCLUSIONS,
+} from "@/base_components/charts/chart-caption";
+import type {
+  ChartData,
+  CsvValue,
+} from "@/base_components/charts/chart-export";
+import {
+  formatNumber,
+  type GridLineSeries,
+  type StepSeries,
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+import ColumnChart from "@/base_components/charts/ColumnChart.vue";
+import GridLineChart from "@/base_components/charts/GridLineChart.vue";
+import StepChart from "@/base_components/charts/StepChart.vue";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -18,20 +35,10 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
-  type FigureCaption,
+  AS_OF_APPROXIMATION,
   gridCoverageOf,
-  SNAPSHOT_COVERAGE,
-} from "../charts/chart-caption";
-import type { ChartData, CsvValue } from "../charts/chart-export";
-import {
-  formatNumber,
-  type GridLineSeries,
-  type StepSeries,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
-import FigureBarChart from "../charts/FigureBarChart.vue";
-import FigureStepChart from "../charts/FigureStepChart.vue";
-import GridLineChart from "../charts/GridLineChart.vue";
+  snapshotExclusions,
+} from "../charts/experiment-caption";
 import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 import {
   definitionKey,
@@ -57,15 +64,15 @@ const props = defineProps<{
 }>();
 
 provide(
-  SNAPSHOT_COVERAGE,
-  computed(() => gridCoverageOf(props.gridCoverage)),
+  PAGE_EXCLUSIONS,
+  computed(() => snapshotExclusions(gridCoverageOf(props.gridCoverage))),
 );
 
 /** A select's value for "nothing chosen": Select items cannot be empty */
 const NONE = "none";
 
 /** Severities in colour-slot order, so a class keeps its colour */
-/** Series colours defined in experiment-chart.css; more groups reuse them */
+/** Series colours defined in chart.css; more groups reuse them */
 const SERIES_TOKENS = 6;
 
 const SEVERITY_SLOTS = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"];
@@ -278,7 +285,7 @@ const exportName = computed(() => {
   return slug || (metric.value?.id ?? "figure");
 });
 
-const figureCaption = computed<FigureCaption>(() => {
+const figureCaption = computed<ChartCaption>(() => {
   const data = preview.value;
   const description = [
     `${metric.value?.label ?? "Figure"}: ${data?.y_title ?? ""} by ${data?.x_title ?? ""}`,
@@ -289,9 +296,11 @@ const figureCaption = computed<FigureCaption>(() => {
     description,
     n: data?.caption?.n ?? "Sample size not reported",
     exclusions: data?.caption?.exclusions ?? [],
-    asOf:
+    notes:
       definition.value?.filters.view === "as_of" ||
-      (data?.series ?? []).some((series) => series.key === "as_of"),
+      (data?.series ?? []).some((series) => series.key === "as_of")
+        ? [AS_OF_APPROXIMATION]
+        : [],
     unpublished: tiedVersion.value === null,
     ...(tiedVersion.value === null ? {} : { metricVersion: tiedVersion.value }),
   };
@@ -750,14 +759,14 @@ onMounted(() => void loadFigures());
           :data="plotted"
           :caption="figureCaption"
         >
-          <FigureStepChart
+          <StepChart
             v-if="censoredAt"
             :labels="preview.labels"
             :series="stepSeries"
             :caption="`${metric?.label}: ${preview.y_title} by ${preview.x_title}`"
             :x-title="preview.x_title"
           />
-          <FigureBarChart
+          <ColumnChart
             v-else-if="form?.mark === 'bar'"
             :labels="preview.labels"
             :series="chartSeries"

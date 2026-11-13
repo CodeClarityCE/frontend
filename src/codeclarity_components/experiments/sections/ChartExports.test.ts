@@ -2,10 +2,10 @@ import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { h } from "vue";
 
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+import GridLineChart from "@/base_components/charts/GridLineChart.vue";
 import { testPdfFonts } from "@/utils/svg-pdf/test/fonts";
 
-import ChartExport from "../charts/ChartExport.vue";
-import GridLineChart from "../charts/GridLineChart.vue";
 import type { ExperimentResults as Results } from "../experiment.entity";
 
 import ExperimentResults from "./ExperimentResults.vue";

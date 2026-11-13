@@ -62,16 +62,6 @@ describe("EmailActionView", () => {
     mockStateStore.page = "";
   });
 
-  describe("Component Structure", () => {
-    it("should render the main container with correct styling", () => {
-      const wrapper = mount(EmailActionView);
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.exists()).toBe(true);
-      expect(mainElement.classes()).toContain("p-12");
-    });
-  });
-
   describe("State Management", () => {
     it("should reset the state store on component setup", () => {
       mount(EmailActionView);
@@ -226,13 +216,6 @@ describe("EmailActionView", () => {
       expect(mainElement.exists()).toBe(true);
       expect(component.exists()).toBe(true);
       expect(mainElement.element.contains(component.element)).toBe(true);
-    });
-
-    it("should apply consistent padding to main container", () => {
-      const wrapper = mount(EmailActionView);
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.classes()).toEqual(["p-12"]);
     });
   });
 

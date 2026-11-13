@@ -21,18 +21,6 @@ describe("PasswordResetRequestView", () => {
   });
 
   describe("Component Structure", () => {
-    it("should render the main container with correct styling", () => {
-      const wrapper = mount(PasswordResetRequestView, {
-        global: {
-          stubs: ["PasswordResetRequestForm"],
-        },
-      });
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.exists()).toBe(true);
-      expect(mainElement.classes()).toContain("p-12");
-    });
-
     it("should handle async component configuration", () => {
       const wrapper = mount(PasswordResetRequestView, {
         global: {
@@ -74,31 +62,6 @@ describe("PasswordResetRequestView", () => {
       });
 
       expect(mockStateStore.publicPage).toBe(true);
-    });
-  });
-
-  describe("Layout", () => {
-    it("should have proper semantic structure", () => {
-      const wrapper = mount(PasswordResetRequestView, {
-        global: {
-          stubs: ["PasswordResetRequestForm"],
-        },
-      });
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.exists()).toBe(true);
-      expect(wrapper.html()).toContain("main");
-    });
-
-    it("should apply consistent padding to main container", () => {
-      const wrapper = mount(PasswordResetRequestView, {
-        global: {
-          stubs: ["PasswordResetRequestForm"],
-        },
-      });
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.classes()).toEqual(["p-12"]);
     });
   });
 

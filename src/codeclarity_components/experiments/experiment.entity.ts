@@ -8,6 +8,8 @@ import {
   IsString,
 } from "class-validator";
 
+import type { StatusTone } from "@/base_components/page";
+
 export enum ExperimentStatus {
   PENDING = "PENDING",
   RUNNING = "RUNNING",
@@ -65,6 +67,14 @@ export const ExperimentStatusLabels: Record<ExperimentStatus, string> = {
   [ExperimentStatus.COMPLETED]: "Completed",
   [ExperimentStatus.CANCELLED]: "Cancelled",
   [ExperimentStatus.FAILED]: "Failed",
+};
+
+export const ExperimentStatusTones: Record<ExperimentStatus, StatusTone> = {
+  [ExperimentStatus.PENDING]: "neutral",
+  [ExperimentStatus.RUNNING]: "neutral",
+  [ExperimentStatus.COMPLETED]: "success",
+  [ExperimentStatus.CANCELLED]: "warning",
+  [ExperimentStatus.FAILED]: "danger",
 };
 
 export const ExperimentStatusColors: Record<ExperimentStatus, string> = {

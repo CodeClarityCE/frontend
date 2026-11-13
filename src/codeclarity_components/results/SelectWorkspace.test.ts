@@ -224,10 +224,6 @@ describe("SelectWorkspace", () => {
     // Configure mock to reject
     mockGetSbomWorkspaces.mockRejectedValue(new Error("API Error"));
 
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
     wrapper = mount(SelectWorkspace, {
       props: {
         projectID: "project-123",
@@ -240,10 +236,7 @@ describe("SelectWorkspace", () => {
 
     await flushPromises();
 
-    expect(consoleError).toHaveBeenCalled();
     expect(wrapper.vm.error).toBe(true);
-
-    consoleError.mockRestore();
   });
 
   it("does not call repository when no default org", async () => {

@@ -14,6 +14,8 @@ export interface GridLineSeries {
   values: (number | null)[];
   /** A role token from chart.css, e.g. "var(--viz-series-1)" */
   color: string;
+  /** A role token per value, for columns coloured one by one (severity) */
+  colors?: string[];
   /** 95% interval around values, drawn as error bars or listed in the CSV */
   lower?: (number | null)[];
   upper?: (number | null)[];

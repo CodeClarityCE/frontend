@@ -27,7 +27,7 @@ vi.mock("./list/PoliciesList.vue", () => ({
   },
 }));
 
-vi.mock("./create/PolicyCreate.vue", () => ({
+vi.mock("./license/LicensePolicyForm.vue", () => ({
   default: {
     name: "OrgPoliciesCreate",
     template: '<div data-testid="policy-create">Policy Create</div>',
@@ -35,7 +35,7 @@ vi.mock("./create/PolicyCreate.vue", () => ({
   },
 }));
 
-vi.mock("./edit/PolicyEdit.vue", () => ({
+vi.mock("./vulnerability/VulnerabilityPolicyForm.vue", () => ({
   default: {
     name: "OrgPoliciesEdit",
     template: '<div data-testid="policy-edit">Policy Edit</div>',

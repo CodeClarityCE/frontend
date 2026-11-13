@@ -35,7 +35,7 @@ import { getPiniaMock, resetPiniaMock } from "./test-utils/setup.js";
 import "@testing-library/jest-dom/vitest";
 
 // Suppress known Zod v4 cleanup errors during test teardown
-// These occur when components using Zod schemas and @formkit/auto-animate are unmounted
+// These occur when components using Zod schemas are unmounted
 process.on("unhandledRejection", (reason: unknown) => {
   const message = reason instanceof Error ? reason.message : String(reason);
   if (message.includes("_zod") || message.includes("Closing rpc while")) {
@@ -133,7 +133,7 @@ Object.defineProperty(window, "scrollTo", {
   value: vi.fn(),
 });
 
-// Mock requestAnimationFrame for auto-animate library
+// Mock requestAnimationFrame for components that animate
 global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback): number => {
   cb(0);
   return 0;
@@ -146,7 +146,7 @@ if (typeof Element !== "undefined") {
   Element.prototype.scrollIntoView = vi.fn();
 }
 
-// Mock Web Animations API for auto-animate
+// Mock the Web Animations API, which jsdom lacks
 if (typeof Element !== "undefined") {
   Element.prototype.animate = vi.fn().mockReturnValue({
     cancel: vi.fn(),
@@ -591,6 +591,34 @@ vi.mock("@lucide/vue", () => ({
     name: "Trash2",
     template: '<svg data-testid="trash-2-icon"><path/></svg>',
   },
+  ScrollText: {
+    name: "ScrollText",
+    template: '<svg data-testid="scroll-text-icon"><path/></svg>',
+  },
+  UserMinus: {
+    name: "UserMinus",
+    template: '<svg data-testid="user-minus-icon"><path/></svg>',
+  },
+  UserPlus: {
+    name: "UserPlus",
+    template: '<svg data-testid="user-plus-icon"><path/></svg>',
+  },
+  Download: {
+    name: "Download",
+    template: '<svg data-testid="download-icon"><path/></svg>',
+  },
+  Lock: {
+    name: "Lock",
+    template: '<svg data-testid="lock-icon"><path/></svg>',
+  },
+  TriangleAlert: {
+    name: "TriangleAlert",
+    template: '<svg data-testid="triangle-alert-icon"><path/></svg>',
+  },
+  ListFilter: {
+    name: "ListFilter",
+    template: '<svg data-testid="list-filter-icon"><path/></svg>',
+  },
   History: {
     name: "History",
     template: '<svg data-testid="history-icon"><path/></svg>',
@@ -614,5 +642,21 @@ vi.mock("@lucide/vue", () => ({
   FileArchive: {
     name: "FileArchive",
     template: '<svg data-testid="file-archive-icon"><path/></svg>',
+  },
+  Globe: {
+    name: "Globe",
+    template: '<svg data-testid="globe-icon"><path/></svg>',
+  },
+  Shield: {
+    name: "Shield",
+    template: '<svg data-testid="shield-icon"><path/></svg>',
+  },
+  ShieldCheck: {
+    name: "ShieldCheck",
+    template: '<svg data-testid="shield-check-icon"><path/></svg>',
+  },
+  ShieldPlus: {
+    name: "ShieldPlus",
+    template: '<svg data-testid="shield-plus-icon"><path/></svg>',
   },
 }));

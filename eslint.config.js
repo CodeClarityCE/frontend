@@ -406,6 +406,26 @@ export default typescriptEslint.config(
               name: "LoadingContainer",
               path: "src/base_components/ui/loaders/LoadingContainer.vue",
             },
+            {
+              name: "FaqBox",
+              path: "src/base_components/layout/FaqBox.vue",
+            },
+            {
+              name: "LoadingButton",
+              path: "src/base_components/ui/loaders/LoadingButton.vue",
+            },
+            {
+              name: "LoadingSubmitButton",
+              path: "src/base_components/ui/loaders/LoadingSubmitButton.vue",
+            },
+            {
+              name: "FormTextField",
+              path: "src/base_components/forms/FormTextField.vue",
+            },
+            {
+              name: "BarChart",
+              path: "src/base_components/data-display/charts/BarChart.vue",
+            },
           ],
         },
       ],

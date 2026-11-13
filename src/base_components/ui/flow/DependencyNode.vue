@@ -127,7 +127,7 @@ defineProps<Props>();
 .node-version {
   font-size: 10px;
   color: #6b7280;
-  font-family: "SF Mono", "Monaco", "Consolas", monospace;
+  font-family: var(--font-mono);
 }
 
 .node-badge {

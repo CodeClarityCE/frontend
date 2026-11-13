@@ -329,7 +329,7 @@ void init();
           <div
             v-if="patchedManifestData.other_info.package_manager === 'NPM'"
             style="
-              font-family: &quot;Courier New&quot;, Courier, monospace;
+              font-family: var(--font-mono);
               display: flex;
               flex-direction: row;
               column-gap: 10px;
@@ -358,7 +358,7 @@ void init();
           <div
             v-if="patchedManifestData.other_info.package_manager === 'YARN'"
             style="
-              font-family: &quot;Courier New&quot;, Courier, monospace;
+              font-family: var(--font-mono);
               display: flex;
               flex-direction: row;
               column-gap: 10px;

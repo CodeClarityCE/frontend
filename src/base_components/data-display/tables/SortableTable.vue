@@ -101,7 +101,7 @@ async function updateSort(key: string | null): Promise<void> {
 }
 
 .stylized_table .header {
-  font-family: "lato";
+  font-family: var(--font-sans);
   white-space: nowrap;
   text-align: left;
 }

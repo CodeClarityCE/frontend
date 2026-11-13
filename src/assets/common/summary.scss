@@ -137,7 +137,7 @@
 }
 
 .summary-wrapper .summary-container-partitioned .content-wrapper .title {
-  font-family: "lato";
+  font-family: var(--font-sans);
   font-weight: 400;
   color: gray;
 }
@@ -191,7 +191,7 @@
   display: flex;
   align-items: center;
   font-weight: 900;
-  font-family: lato;
+  font-family: var(--font-sans);
 }
 
 .single-value-summary-centered {

@@ -838,7 +838,7 @@ onMounted(() => {
 
 .target-name {
   color: #f59e0b;
-  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-family: var(--font-mono);
   background: rgba(251, 191, 36, 0.1);
   padding: 2px 6px;
   border-radius: 4px;

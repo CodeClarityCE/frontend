@@ -134,10 +134,7 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.expectFormVisible();
       // Pre-existing violations, each removed by the ticket that fixes it.
       await expectNoAxeViolations(page, {
-        known: [
-          { rule: "color-contrast", owner: "#112 primary button text" },
-          { rule: "image-alt", owner: "#126 login logos" },
-        ],
+        known: [{ rule: "image-alt", owner: "#126 login logos" }],
       });
     });
 

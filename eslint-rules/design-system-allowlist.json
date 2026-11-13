@@ -499,8 +499,7 @@
     "icon"
   ],
   "src/codeclarity_components/results/sbom/SbomDetails/SbomDetailsHeader.vue": [
-    "theme",
-    "icon"
+    "theme"
   ],
   "src/codeclarity_components/results/sbom/SbomDetails/SbomImportPaths.vue": [
     "hex",
@@ -526,9 +525,6 @@
   ],
   "src/codeclarity_components/results/sbom/table/columns.ts": [
     "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/sbom/utils/packageManagerUtils.ts": [
     "icon"
   ],
   "src/codeclarity_components/results/vulnerabilities/ResultsVulnerabilities.vue": [
@@ -655,7 +651,6 @@
   "src/codeclarity_components/tickets/tickets.entity.ts": ["palette"],
   "src/codeclarity_components/views/NotFoundView.vue": ["hex"],
   "src/enterprise_components/activity_logs/audit/OrgAuditLogItem.vue": ["hex"],
-  "src/enterprise_components/sso/SSOAuth.vue": ["icon"],
   "src/utils/dependencyGraphLayout.ts": ["hex"],
   "src/utils/gradeUtils.ts": ["hex", "palette"],
   "src/utils/languageDetection.ts": ["hex"],

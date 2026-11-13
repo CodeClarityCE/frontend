@@ -349,7 +349,7 @@ function getVersionStatusDescription(finding: VulnerabilityDetails): string {
                 title="opens the npm package page (in a new tab)"
                 target="_blank"
               >
-                <Icon :icon="'iconoir:npm'" class="text-5xl"></Icon>
+                <Icon :icon="'simple-icons:npm'" class="text-5xl"></Icon>
               </a>
             </div>
             <div>

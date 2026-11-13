@@ -279,7 +279,10 @@ void init();
               ref="loadingButtonRef"
               class="w-full bg-theme-black hover:bg-theme-gray text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
             >
-              <Icon icon="mdi:github" class="mr-2 text-lg text-white" />
+              <Icon
+                icon="simple-icons:github"
+                class="mr-2 text-lg text-white"
+              />
               <span v-if="mode === FormMode.CREATE"
                 >Connect GitHub Integration</span
               >
@@ -342,7 +345,10 @@ void init();
                   <Button
                     class="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <Icon icon="mdi:github" class="mr-2 text-lg text-white" />
+                    <Icon
+                      icon="simple-icons:github"
+                      class="mr-2 text-lg text-white"
+                    />
                     <div class="text-left">
                       <div class="text-sm">Full Access</div>
                       <div class="text-xs opacity-90">
@@ -361,7 +367,7 @@ void init();
                     variant="outline"
                     class="w-full border-gray-600 text-gray-700 hover:bg-gray-50 font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <Icon icon="mdi:github" class="mr-2 text-lg" />
+                    <Icon icon="simple-icons:github" class="mr-2 text-lg" />
                     <div class="text-left">
                       <div class="text-sm">Public Only</div>
                       <div class="text-xs opacity-70">Public Repos Only</div>
@@ -467,7 +473,7 @@ void init();
                     variant="outline"
                     class="border-gray-300 hover:border-gray-400 font-semibold px-6 py-3 rounded-lg transition-all duration-200"
                   >
-                    <Icon icon="mdi:github" class="mr-2 text-lg" />
+                    <Icon icon="simple-icons:github" class="mr-2 text-lg" />
                     Create Token Manually
                   </Button>
                 </a>

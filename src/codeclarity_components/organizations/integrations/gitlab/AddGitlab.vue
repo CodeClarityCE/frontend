@@ -454,7 +454,10 @@ void init();
                   <Button
                     class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <Icon icon="mdi:gitlab" class="mr-2 text-lg text-white" />
+                    <Icon
+                      icon="simple-icons:gitlab"
+                      class="mr-2 text-lg text-white"
+                    />
                     <div class="text-left">
                       <div class="text-sm">Full Access</div>
                       <div class="text-xs opacity-90">Complete API Access</div>
@@ -474,7 +477,7 @@ void init();
                     variant="outline"
                     class="w-full border-orange-600 text-orange-700 hover:bg-orange-50 font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <Icon icon="mdi:gitlab" class="mr-2 text-lg" />
+                    <Icon icon="simple-icons:gitlab" class="mr-2 text-lg" />
                     <div class="text-left">
                       <div class="text-sm">Repository Only</div>
                       <div class="text-xs opacity-70">

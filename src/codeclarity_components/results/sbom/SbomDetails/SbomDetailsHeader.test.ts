@@ -144,7 +144,7 @@ describe("SbomDetailsHeader.vue", () => {
     it("should render NPM icon", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("akar-icons:npm-fill");
+      expect(wrapper.text()).toContain("simple-icons:npm");
       expect(wrapper.text()).toContain("NPM");
     });
   });
@@ -183,7 +183,7 @@ describe("SbomDetailsHeader.vue", () => {
     it("should render Yarn icon", () => {
       const wrapper = createWrapper();
 
-      expect(wrapper.text()).toContain("akar-icons:yarn-fill");
+      expect(wrapper.text()).toContain("simple-icons:yarn");
       expect(wrapper.text()).toContain("Yarn");
     });
   });
@@ -200,7 +200,7 @@ describe("SbomDetailsHeader.vue", () => {
 
       const repoLink = wrapper.find('a[href*="github.com"]');
       expect(repoLink.exists()).toBe(true);
-      expect(wrapper.text()).toContain("akar-icons:github-fill");
+      expect(wrapper.text()).toContain("simple-icons:github");
       expect(wrapper.text()).toContain("GitHub");
     });
 
@@ -215,7 +215,7 @@ describe("SbomDetailsHeader.vue", () => {
 
       const repoLink = wrapper.find('a[href*="gitlab.com"]');
       expect(repoLink.exists()).toBe(true);
-      expect(wrapper.text()).toContain("akar-icons:gitlab-fill");
+      expect(wrapper.text()).toContain("simple-icons:gitlab");
       expect(wrapper.text()).toContain("GitLab");
     });
 
@@ -307,9 +307,9 @@ describe("SbomDetailsHeader.vue", () => {
       expect(icons.length).toBeGreaterThanOrEqual(3);
 
       const iconNames = icons.map((icon) => icon.props("icon"));
-      expect(iconNames).toContain("akar-icons:npm-fill");
-      expect(iconNames).toContain("akar-icons:yarn-fill");
-      expect(iconNames).toContain("akar-icons:github-fill");
+      expect(iconNames).toContain("simple-icons:npm");
+      expect(iconNames).toContain("simple-icons:yarn");
+      expect(iconNames).toContain("simple-icons:github");
     });
 
     it("should apply correct icon classes", () => {

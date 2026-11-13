@@ -7,6 +7,9 @@ import security from "eslint-plugin-security";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import testingLibrary from "eslint-plugin-testing-library";
 
+import designSystem from "./eslint-rules/design-system.js";
+import designSystemAllowlist from "./eslint-rules/design-system-allowlist.json" with { type: "json" };
+
 /** @type {import('eslint').Linter.Config[]} */
 export default typescriptEslint.config(
   // ==========================================
@@ -349,6 +352,30 @@ export default typescriptEslint.config(
       "testing-library/no-container": "off",
       // Allow common naming patterns for render results in Vue tests
       "testing-library/render-result-naming-convention": "off",
+    },
+  },
+
+  // ==========================================
+  // Design System Guardrail
+  // ==========================================
+  // Bans raw colours, stray icon sets and removed components. Allowlisted files only ever leave the list.
+  {
+    files: ["src/**/*.{js,ts,vue}"],
+    ignores: ["**/*.spec.ts", "**/*.test.ts", "**/__tests__/**"],
+    plugins: {
+      local: { rules: { "design-system": designSystem } },
+    },
+    rules: {
+      "local/design-system": [
+        "error",
+        {
+          root: import.meta.dirname,
+          allowlist: designSystemAllowlist,
+          logoIconSets: ["simple-icons", "devicon"],
+          // Add { name, path } here when a home-grown component is replaced.
+          removedComponents: [],
+        },
+      ],
     },
   },
 

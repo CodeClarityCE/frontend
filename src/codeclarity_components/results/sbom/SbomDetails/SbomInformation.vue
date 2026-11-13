@@ -76,14 +76,14 @@ const getVersionLag = (): string => {
 // Engine icon mapping
 const getEngineIcon = (engineName: string): string => {
   const iconMap: Record<string, string> = {
-    node: "akar-icons:node-fill",
-    npm: "akar-icons:npm-fill",
-    yarn: "akar-icons:yarn-fill",
-    python: "akar-icons:python-fill",
-    java: "skill-icons:java-dark",
-    go: "skill-icons:golang",
-    rust: "skill-icons:rust",
-    php: "skill-icons:php-dark",
+    node: "devicon:nodejs",
+    npm: "devicon:npm",
+    yarn: "devicon:yarn",
+    python: "devicon:python",
+    java: "devicon:java",
+    go: "devicon:go",
+    rust: "devicon:rust",
+    php: "devicon:php",
   };
   return iconMap[engineName.toLowerCase()] ?? "solar:cpu-bolt-bold";
 };

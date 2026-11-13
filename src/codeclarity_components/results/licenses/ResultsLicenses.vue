@@ -75,7 +75,10 @@ const no_deps = false;
               <div class="flex items-center gap-2">
                 <span class="font-medium">Lockfile:</span>
                 <div class="flex items-center gap-2">
-                  <Icon icon="fa-brands:yarn" class="h-4 w-4 text-blue-500" />
+                  <Icon
+                    icon="simple-icons:yarn"
+                    class="h-4 w-4 text-blue-500"
+                  />
                   <a
                     href="https://classic.yarnpkg.com/lang/en/docs/yarn-lock/"
                     target="_blank"
@@ -88,7 +91,7 @@ const no_deps = false;
                     />
                   </a>
                   <span class="text-gray-600">or</span>
-                  <Icon icon="fa-brands:npm" class="h-4 w-4 text-red-500" />
+                  <Icon icon="simple-icons:npm" class="h-4 w-4 text-red-500" />
                   <a
                     href="https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json"
                     target="_blank"

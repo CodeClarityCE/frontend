@@ -2,6 +2,7 @@
   "extends": "@tsconfig/node18/tsconfig.json",
   "include": [
     "vite.config.*",
+    "vite-plugin-logo-icons.ts",
     "vitest.config.*",
     "cypress.config.*",
     "nightwatch.conf.*",
@@ -27,6 +28,7 @@
 
     // Module & File System
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "resolveJsonModule": true
   }
 }

@@ -41,7 +41,7 @@ const isComposerEcosystem = computed(() => {
           class="link-content"
           title="View on NPM (opens in new tab)"
         >
-          <Icon :icon="'akar-icons:npm-fill'" class="link-icon"></Icon>
+          <Icon :icon="'simple-icons:npm'" class="link-icon"></Icon>
           <span>NPM</span>
         </a>
       </Badge>
@@ -53,7 +53,7 @@ const isComposerEcosystem = computed(() => {
           class="link-content"
           title="View on Yarn (opens in new tab)"
         >
-          <Icon :icon="'akar-icons:yarn-fill'" class="link-icon"></Icon>
+          <Icon :icon="'simple-icons:yarn'" class="link-icon"></Icon>
           <span>Yarn</span>
         </a>
       </Badge>
@@ -84,14 +84,14 @@ const isComposerEcosystem = computed(() => {
             v-if="dependency.source.Url.includes('github')"
             class="link-content"
           >
-            <Icon :icon="'akar-icons:github-fill'" class="link-icon"></Icon>
+            <Icon :icon="'simple-icons:github'" class="link-icon"></Icon>
             <span>GitHub</span>
           </div>
           <div
             v-else-if="dependency.source.Url.includes('gitlab')"
             class="link-content"
           >
-            <Icon :icon="'akar-icons:gitlab-fill'" class="link-icon"></Icon>
+            <Icon :icon="'simple-icons:gitlab'" class="link-icon"></Icon>
             <span>GitLab</span>
           </div>
         </a>

@@ -51,7 +51,7 @@ async function initiateGitlabAuthentication(): Promise<void> {
       type="button"
       @click="initiateGithubAuthentication"
     >
-      <Icon icon="bi:github" class="mr-2 h-4 w-4" />
+      <Icon icon="simple-icons:github" class="mr-2 h-4 w-4" />
       GitHub
     </Button>
     <Button
@@ -59,7 +59,7 @@ async function initiateGitlabAuthentication(): Promise<void> {
       type="button"
       @click="initiateGitlabAuthentication"
     >
-      <Icon icon="bi:gitlab" class="mr-2 h-4 w-4" />
+      <Icon icon="simple-icons:gitlab" class="mr-2 h-4 w-4" />
       GitLab
     </Button>
   </div>

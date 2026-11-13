@@ -40,3 +40,11 @@ export function severityLevel(score: number | null | undefined): SeverityLevel {
   if (score >= 4.0) return "medium";
   return "low";
 }
+
+// The level for a severity name from the API, such as "CRITICAL"; unknown names count as none.
+export function severityLevelFromLabel(
+  label: string | null | undefined,
+): SeverityLevel {
+  const level = label?.toLowerCase() as SeverityLevel | undefined;
+  return level && SEVERITY_LEVELS.includes(level) ? level : "none";
+}

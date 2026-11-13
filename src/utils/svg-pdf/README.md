@@ -1,6 +1,6 @@
 # svg-pdf
 
-Converts a standalone figure SVG (from `standaloneFigure()` in `codeclarity_components/experiments/charts/chart-export.ts`) into a one-page vector PDF with embedded fonts, for LaTeX workflows. It has no npm dependencies. Compression uses the browser's `CompressionStream`.
+Converts a standalone chart SVG (from `standaloneChart()` in `base_components/charts/chart-export.ts`) into a one-page vector PDF with embedded fonts, for LaTeX workflows. It has no npm dependencies. Compression uses the browser's `CompressionStream`.
 
 The writer was chosen over a PDF library after the supply-chain review recorded on CodeClarityCE/codeclarity-dev#71.
 
@@ -32,5 +32,5 @@ Text is set in Type0 fonts with a ToUnicode map, so labels stay selectable and s
 ## Removing it
 
 1. Delete this directory.
-2. Remove the `svg-pdf` imports, `downloadPdf()` and the "Download PDF" button from `codeclarity_components/experiments/charts/ChartExport.vue`.
+2. Remove the `svg-pdf` imports, `downloadPdf()` and the "Download PDF" button from `base_components/charts/ChartExport.vue`.
 3. Remove the `@/utils/svg-pdf/load-fonts` mocks and the PDF tests from `ChartExports.test.ts` and `ExperimentDetail.test.ts`.

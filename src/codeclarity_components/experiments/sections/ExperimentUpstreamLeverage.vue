@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
   formatInterval,
   formatNumber,
@@ -10,9 +10,11 @@ import {
   gridLineData,
   type GridLineSeries,
   plural,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
-import GridLineChart from "../charts/GridLineChart.vue";
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+import GridLineChart from "@/base_components/charts/GridLineChart.vue";
+
+import { excluded } from "../charts/experiment-caption";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import type {
   ConfidenceInterval,
@@ -131,7 +133,7 @@ function describeShare(index: number): string {
 
 const overall = computed(() => props.leverage.overall);
 
-const clearCaption = computed<FigureCaption>(() => {
+const clearCaption = computed<ChartCaption>(() => {
   const last = clear.value.at(-1);
   return {
     description: CLEAR_TITLE,
@@ -145,7 +147,7 @@ const clearCaption = computed<FigureCaption>(() => {
   };
 });
 
-const shareCaption = computed<FigureCaption>(() => {
+const shareCaption = computed<ChartCaption>(() => {
   const { fixes, unknown } = overall.value;
   return {
     description: SHARE_TITLE,

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
-import ChartExport from "../charts/ChartExport.vue";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+
+import { AS_OF_APPROXIMATION, excluded } from "../charts/experiment-caption";
 import LoadOverTimeChart from "../charts/LoadOverTimeChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import type { LoadRow } from "../experiment.entity";
@@ -31,7 +33,7 @@ const plotted = computed(() => ({
   ]),
 }));
 
-const figureCaption = computed<FigureCaption>(() => {
+const figureCaption = computed<ChartCaption>(() => {
   const counts = props.rows
     .filter((r) => r.hindsight !== null)
     .map((r) => r.projects);
@@ -48,7 +50,7 @@ const figureCaption = computed<FigureCaption>(() => {
       "grid dates",
       "without a done snapshot",
     ),
-    asOf: true,
+    notes: [AS_OF_APPROXIMATION],
   };
 });
 </script>

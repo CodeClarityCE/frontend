@@ -110,24 +110,6 @@
     "palette",
     "icon"
   ],
-  "src/codeclarity_components/experiments/charts/ChartExport.vue": ["palette"],
-  "src/codeclarity_components/experiments/charts/ChartTable.vue": ["palette"],
-  "src/codeclarity_components/experiments/charts/ChartTooltip.vue": ["palette"],
-  "src/codeclarity_components/experiments/charts/FigureBarChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/FigureStepChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/GridLineChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/LagStripChart.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/experiments/charts/LoadOverTimeChart.vue": [
-    "palette"
-  ],
   "src/codeclarity_components/experiments/experiment.entity.ts": ["palette"],
   "src/codeclarity_components/experiments/sections/ExperimentCreate.vue": [
     "palette",

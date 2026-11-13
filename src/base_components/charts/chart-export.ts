@@ -1,5 +1,7 @@
-import { type FigureMarks, figureMarkText } from "./chart-caption";
-import chartCss from "./experiment-chart.css?raw";
+import tokenCss from "@/assets/main.css?raw";
+
+import chartCss from "./chart.css?raw";
+import { type ChartMarks, chartMarkText } from "./chart-caption";
 
 const FONT_FAMILY = "Helvetica, Arial, sans-serif";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -23,32 +25,38 @@ const SERIES_DASH: Record<string, string> = {
   "6": "1 3 5 3",
 };
 
-function tokensOf(block: RegExp): [string, string][] {
-  const body = block.exec(chartCss)?.[1] ?? "";
-  return [...body.matchAll(/(--viz-[\w-]+):\s*([^;]+);/g)].map((m) => [
+function tokensOf(css: string, block: RegExp): [string, string][] {
+  const body = block.exec(css)?.[1] ?? "";
+  return [...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [
     m[1]!,
     m[2]!.trim(),
   ]);
 }
 
-/** The light theme with the print overrides, the same in dark mode. */
+/** The light tokens and chart roles with the print overrides, in any theme. */
 function printTokens(): Map<string, string> {
   return new Map([
-    ...tokensOf(/^\.exp-viz\s*\{([^}]*)\}/m),
-    ...tokensOf(/^\.exp-viz-print\s*\{([^}]*)\}/m),
+    ...tokensOf(tokenCss, /:root\s*\{([^}]*)\}/),
+    ...tokensOf(chartCss, /^\.chart-viz\s*\{([^}]*)\}/m),
+    ...tokensOf(chartCss, /^\.chart-viz-print\s*\{([^}]*)\}/m),
   ]);
 }
 
+/** Replaces each var() with its value, following roles down to the token. */
 function resolveTokens(value: string, tokens: Map<string, string>): string {
-  return value.replace(/var\((--[\w-]+)\)/g, (_, name: string) => {
-    const resolved = tokens.get(name);
-    if (resolved === undefined) throw new Error(`Unknown chart token ${name}`);
-    return resolved;
-  });
+  let resolved = value;
+  for (let depth = 0; depth < 8 && resolved.includes("var("); depth++) {
+    resolved = resolved.replace(/var\((--[\w-]+)\)/g, (_, name: string) => {
+      const found = tokens.get(name);
+      if (found === undefined) throw new Error(`Unknown chart token ${name}`);
+      return found;
+    });
+  }
+  return resolved;
 }
 
 /** Removes marked interactive elements and comments, keeping the rest. */
-function dropNonFigureNodes(root: Element): void {
+function dropNonChartNodes(root: Element): void {
   for (const element of root.querySelectorAll("[data-export-omit]")) {
     element.remove();
   }
@@ -122,11 +130,11 @@ function svgElement(name: string, attributes: Record<string, string>): Element {
   return element;
 }
 
-/** One step that adds to the figure while it is assembled. */
-type FigureStep = (
+/** One step that adds to the chart while it is assembled. */
+type ChartStep = (
   svg: SVGSVGElement,
   source: HTMLElement,
-  marks: FigureMarks,
+  marks: ChartMarks,
 ) => void;
 
 const LEGEND_FONT = 11;
@@ -136,7 +144,7 @@ const SWATCH = 24;
 const CHAR_WIDTH = LEGEND_FONT * 0.58;
 
 /** Redraws a legend kept outside the svg, in rows above the plot. */
-const addLegend: FigureStep = (svg, source) => {
+const addLegend: ChartStep = (svg, source) => {
   const entries = [...source.querySelectorAll("[data-export-legend] > *")].map(
     (item) => ({
       label: item.querySelector("span")?.textContent?.trim() ?? "",
@@ -199,9 +207,9 @@ const addLegend: FigureStep = (svg, source) => {
   setViewBox(svg, { ...box, y: top, height: box.height + height });
 };
 
-/** States above the plot whether the figure is a draft or which version. */
-const addMark: FigureStep = (svg, _source, marks) => {
-  const mark = figureMarkText(marks);
+/** States above the plot whether the chart is a draft or which version. */
+const addMark: ChartStep = (svg, _source, marks) => {
+  const mark = chartMarkText(marks);
   if (!mark) return;
   const box = viewBoxOf(svg);
   const height = LEGEND_ROW + 4;
@@ -218,8 +226,8 @@ const addMark: FigureStep = (svg, _source, marks) => {
   setViewBox(svg, { ...box, y: top, height: box.height + height });
 };
 
-/** Keeps the figure readable in dark viewers. */
-const addBackground: FigureStep = (svg) => {
+/** Keeps the chart readable in dark viewers. */
+const addBackground: ChartStep = (svg) => {
   const { x, y, width, height } = viewBoxOf(svg);
   svg.prepend(
     svgElement("rect", {
@@ -232,29 +240,29 @@ const addBackground: FigureStep = (svg) => {
   );
 };
 
-const FIGURE_STEPS: FigureStep[] = [addLegend, addMark, addBackground];
+const CHART_STEPS: ChartStep[] = [addLegend, addMark, addBackground];
 
-/** An assembled figure, ready to save as SVG or to rasterise. */
-export interface StandaloneFigure {
+/** An assembled chart, ready to save as SVG or to rasterise. */
+export interface StandaloneChart {
   svg: string;
   pixelWidth: number;
   pixelHeight: number;
 }
 
 /** Builds an SVG file needing no page CSS from the chart inside `source`. */
-export function standaloneFigure(
+export function standaloneChart(
   source: HTMLElement,
   preset: ExportPreset,
-  marks: FigureMarks = {},
-): StandaloneFigure | null {
+  marks: ChartMarks = {},
+): StandaloneChart | null {
   const chart = [...source.querySelectorAll("svg")].find(
     (candidate) => !candidate.closest("[data-export-legend]"),
   );
   if (!chart) return null;
 
   const svg = chart.cloneNode(true) as SVGSVGElement;
-  dropNonFigureNodes(svg);
-  for (const step of FIGURE_STEPS) step(svg, source, marks);
+  dropNonChartNodes(svg);
+  for (const step of CHART_STEPS) step(svg, source, marks);
   cleanElement(svg, printTokens());
 
   const { inches } = EXPORT_PRESETS[preset];
@@ -306,17 +314,17 @@ function loadImage(svg: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Could not draw the figure"));
+    image.onerror = () => reject(new Error("Could not draw the chart"));
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   });
 }
 
-/** Rasterises a figure to a PNG file at 300 dpi. */
-export async function figurePng(figure: StandaloneFigure): Promise<Blob> {
-  const image = await loadImage(figure.svg);
+/** Rasterises a chart to a PNG file at 300 dpi. */
+export async function chartPng(chart: StandaloneChart): Promise<Blob> {
+  const image = await loadImage(chart.svg);
   const canvas = document.createElement("canvas");
-  canvas.width = figure.pixelWidth;
-  canvas.height = figure.pixelHeight;
+  canvas.width = chart.pixelWidth;
+  canvas.height = chart.pixelHeight;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Canvas is not available");
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -324,7 +332,7 @@ export async function figurePng(figure: StandaloneFigure): Promise<Blob> {
   const blob = await new Promise<Blob | null>((resolve) => {
     canvas.toBlob(resolve, "image/png");
   });
-  if (!blob) throw new Error("Could not encode the figure");
+  if (!blob) throw new Error("Could not encode the chart");
   const bytes = new Uint8Array(await blob.arrayBuffer());
   return new Blob([withDensity(bytes) as BlobPart], { type: "image/png" });
 }

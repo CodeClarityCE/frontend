@@ -571,4 +571,32 @@ vi.mock("@lucide/vue", () => ({
     name: "MoreHorizontal",
     template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
   },
+  TriangleAlert: {
+    name: "TriangleAlert",
+    template: '<svg data-testid="triangle-alert-icon"><path/></svg>',
+  },
+  ListFilter: {
+    name: "ListFilter",
+    template: '<svg data-testid="list-filter-icon"><path/></svg>',
+  },
+  History: {
+    name: "History",
+    template: '<svg data-testid="history-icon"><path/></svg>',
+  },
+  Globe: {
+    name: "Globe",
+    template: '<svg data-testid="globe-icon"><path/></svg>',
+  },
+  Shield: {
+    name: "Shield",
+    template: '<svg data-testid="shield-icon"><path/></svg>',
+  },
+  ShieldCheck: {
+    name: "ShieldCheck",
+    template: '<svg data-testid="shield-check-icon"><path/></svg>',
+  },
+  ShieldPlus: {
+    name: "ShieldPlus",
+    template: '<svg data-testid="shield-plus-icon"><path/></svg>',
+  },
 }));

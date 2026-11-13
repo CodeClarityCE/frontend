@@ -43,6 +43,9 @@ const props = withDefaults(
     initialSorting?: SortingState;
     rowKey?: (row: TData) => string;
     rowTestid?: string;
+    // Server-side mode: the number of matching rows on the server. `data` is
+    // then one page, and sorting, filtering and paging are left to the parent.
+    total?: number;
   }>(),
   {
     loading: false,
@@ -52,17 +55,26 @@ const props = withDefaults(
     initialSorting: () => [],
     rowKey: undefined,
     rowTestid: undefined,
+    total: undefined,
   },
 );
+
+const emit = defineEmits<{ "update:sorting": [sorting: SortingState] }>();
 
 // Each `cell-<column id>` slot renders that column's cells.
 const slots =
   defineSlots<
     Record<`cell-${string}`, (props: { row: TData; value: unknown }) => unknown>
   >();
+const serverSide = computed(() => props.total !== undefined);
 const sorting = ref<SortingState>(props.initialSorting);
-const globalFilter = ref("");
-const pagination = ref({ pageIndex: 0, pageSize: props.pageSize });
+// Bind these with v-model in server-side mode to load the matching page.
+const globalFilter = defineModel<string>("filter", { default: "" });
+const pageIndex = defineModel<number>("pageIndex", { default: 0 });
+const pagination = computed(() => ({
+  pageIndex: pageIndex.value,
+  pageSize: props.pageSize,
+}));
 
 const table = useVueTable({
   get data() {
@@ -83,9 +95,29 @@ const table = useVueTable({
       return pagination.value;
     },
   },
-  onSortingChange: (updater) => valueUpdater(updater, sorting),
+  onSortingChange: (updater) => {
+    valueUpdater(updater, sorting);
+    emit("update:sorting", sorting.value);
+    if (serverSide.value) pageIndex.value = 0;
+  },
   onGlobalFilterChange: (updater) => valueUpdater(updater, globalFilter),
-  onPaginationChange: (updater) => valueUpdater(updater, pagination),
+  onPaginationChange: (updater) => {
+    const next =
+      typeof updater === "function" ? updater(pagination.value) : updater;
+    pageIndex.value = next.pageIndex;
+  },
+  get manualSorting() {
+    return serverSide.value;
+  },
+  get manualFiltering() {
+    return serverSide.value;
+  },
+  get manualPagination() {
+    return serverSide.value;
+  },
+  get rowCount() {
+    return props.total;
+  },
   autoResetPageIndex: false,
   sortDescFirst: false,
   getCoreRowModel: getCoreRowModel(),
@@ -96,10 +128,12 @@ const table = useVueTable({
 
 // A new filter starts from the first page.
 watch(globalFilter, () => {
-  pagination.value = { ...pagination.value, pageIndex: 0 };
+  pageIndex.value = 0;
 });
 
-const filteredCount = computed(() => table.getFilteredRowModel().rows.length);
+const filteredCount = computed(
+  () => props.total ?? table.getFilteredRowModel().rows.length,
+);
 
 function ariaSort(
   header: Header<TData, unknown>,

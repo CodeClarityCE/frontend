@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import { TriangleAlert } from "@lucide/vue";
 import { ref, watch } from "vue";
 
 import {
@@ -69,7 +69,6 @@ async function loadAdvisories(): Promise<void> {
       });
     if (request === latestRequest) advisories.value = response.data;
   } catch (error) {
-    console.warn("Could not load malicious package advisories", error);
     if (request === latestRequest) checkFailed.value = !isNoResult(error);
   }
 }
@@ -90,7 +89,7 @@ watch(
 
 <template>
   <Alert v-if="checkFailed" data-testid="malicious-package-check-failed">
-    <Icon icon="solar:danger-triangle-bold" class="h-5 w-5" />
+    <TriangleAlert aria-hidden="true" class="size-5" />
     <AlertTitle>Could not check for malicious packages</AlertTitle>
     <AlertDescription>
       This does not mean none were found. Reload the page to try again.
@@ -102,7 +101,7 @@ watch(
     data-testid="malicious-package-advisories"
     class="border-2"
   >
-    <Icon icon="solar:danger-triangle-bold" class="h-5 w-5" />
+    <TriangleAlert aria-hidden="true" class="size-5" />
     <AlertTitle class="text-base font-semibold">
       Malicious packages found
     </AlertTitle>
@@ -152,7 +151,7 @@ watch(
                   :href="reference"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="break-all underline"
+                  class="break-all rounded-sm underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >{{ reference }}</a
                 >
               </li>

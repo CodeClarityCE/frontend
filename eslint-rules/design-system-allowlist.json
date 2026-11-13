@@ -4,7 +4,6 @@
     "palette"
   ],
   "src/base_components/data-display/bubbles/SeverityBubble.vue": ["palette"],
-  "src/base_components/data-display/charts/BarChart.vue": ["hex"],
   "src/base_components/data-display/charts/GroupedBarChart.vue": ["hex"],
   "src/base_components/data-display/charts/LineChart.vue": ["hex"],
   "src/base_components/data-display/charts/RadarChart.vue": ["hex"],
@@ -361,8 +360,6 @@
     "theme",
     "icon"
   ],
-  "src/codeclarity_components/results/ResultsView.vue": ["palette", "icon"],
-  "src/codeclarity_components/results/SelectWorkspace.vue": ["palette"],
   "src/codeclarity_components/results/components/ResultTimestamp.vue": [
     "palette",
     "icon"
@@ -456,62 +453,6 @@
   "src/codeclarity_components/results/sbom/table/columns.ts": [
     "palette",
     "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/ResultsVulnerabilities.vue": [
-    "palette"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnContent.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails.vue": [
-    "hex",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetailsHeader.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnReferences.vue": [
-    "hex",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnSummaryContent.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnDetails/VulnerabilitySeverities.vue": [
-    "hex",
-    "palette"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnList.vue": [
-    "hex",
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/VulnTable.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/components/AddToPolicyButton.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/components/MaliciousPackageAdvisories.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/graphs/VulnsGraph.vue": [
-    "palette",
-    "icon"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/graphs/components/OwaspTopTen.vue": [
-    "hex"
-  ],
-  "src/codeclarity_components/results/vulnerabilities/graphs/components/VulnerabilitiesInfo.vue": [
-    "hex"
   ],
   "src/codeclarity_components/settings/SettingsView.vue": [
     "palette",

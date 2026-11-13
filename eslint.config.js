@@ -394,6 +394,10 @@ export default typescriptEslint.config(
               name: "UserNav",
               path: "src/codeclarity_components/header/components/UserNav.vue",
             },
+            {
+              name: "BarChart",
+              path: "src/base_components/data-display/charts/BarChart.vue",
+            },
           ],
         },
       ],

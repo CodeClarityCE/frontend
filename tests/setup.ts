@@ -115,18 +115,16 @@ global.IntersectionObserver =
 // Mock matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(
-    (query: string): MediaQueryList => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }),
-  ),
+  value: vi.fn().mockImplementation((query: string): MediaQueryList => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
 // Mock scrollTo
@@ -524,5 +522,13 @@ vi.mock("@lucide/vue", () => ({
   ExternalLink: {
     name: "ExternalLink",
     template: '<svg data-testid="external-link-icon"><path/></svg>',
+  },
+  CircleAlert: {
+    name: "CircleAlert",
+    template: '<svg data-testid="circle-alert-icon"><path/></svg>',
+  },
+  LoaderCircle: {
+    name: "LoaderCircle",
+    template: '<svg data-testid="loader-circle-icon"><path/></svg>',
   },
 }));

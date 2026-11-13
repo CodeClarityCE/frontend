@@ -15,11 +15,9 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-  <main class="p-12">
-    <EmailActionJoinOrg v-if="props.page === 'join_org'" />
-    <PasswordResetForm
-      v-else-if="props.page === 'reset_password'"
-    ></PasswordResetForm>
-    <ConfirmRegistration v-else></ConfirmRegistration>
+  <main v-if="props.page === 'join_org'" class="p-12">
+    <EmailActionJoinOrg />
   </main>
+  <PasswordResetForm v-else-if="props.page === 'reset_password'" />
+  <ConfirmRegistration v-else />
 </template>

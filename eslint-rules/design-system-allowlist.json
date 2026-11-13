@@ -67,23 +67,6 @@
     "hex",
     "palette"
   ],
-  "src/codeclarity_components/authentication/email/PasswordResetForm.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/authentication/oauth/OAuth2Callback.vue": [
-    "icon"
-  ],
-  "src/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue": [
-    "palette",
-    "theme",
-    "icon"
-  ],
-  "src/codeclarity_components/authentication/signin/UserAuthForm.vue": ["icon"],
-  "src/codeclarity_components/authentication/signup/SignupForm.vue": ["icon"],
-  "src/codeclarity_components/authentication/signup/SocialSetup.vue": [
-    "palette",
-    "icon"
-  ],
   "src/codeclarity_components/dashboard/charts/CurrentVulns.vue": [
     "hex",
     "icon"
@@ -649,7 +632,6 @@
     "icon"
   ],
   "src/codeclarity_components/tickets/tickets.entity.ts": ["palette"],
-  "src/codeclarity_components/views/NotFoundView.vue": ["hex"],
   "src/enterprise_components/activity_logs/audit/OrgAuditLogItem.vue": ["hex"],
   "src/utils/dependencyGraphLayout.ts": ["hex"],
   "src/utils/gradeUtils.ts": ["hex", "palette"],

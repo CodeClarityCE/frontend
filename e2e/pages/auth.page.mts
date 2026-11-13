@@ -13,6 +13,8 @@ export class AuthPage {
   readonly loginButton: Locator;
   readonly authError: Locator;
   readonly loginLoading: Locator;
+  readonly forgotPasswordLink: Locator;
+  readonly signupLink: Locator;
 
   // Form validation messages (vee-validate FormMessage)
   readonly formMessages: Locator;
@@ -28,6 +30,10 @@ export class AuthPage {
     // Error states - the app uses Alert component for errors
     this.authError = page.locator('[role="alert"]');
     this.loginLoading = page.getByText("Connecting");
+    this.forgotPasswordLink = page.getByRole("link", {
+      name: "Forgot your password?",
+    });
+    this.signupLink = page.getByRole("link", { name: "Create an account" });
 
     // Form validation messages from vee-validate
     this.formMessages = page.locator('[id$="-form-item-message"]');
@@ -38,7 +44,7 @@ export class AuthPage {
   }
 
   async gotoPasswordReset() {
-    await this.page.goto("/password-reset");
+    await this.page.goto("/password_reset_request");
   }
 
   async login(email: string, password: string) {

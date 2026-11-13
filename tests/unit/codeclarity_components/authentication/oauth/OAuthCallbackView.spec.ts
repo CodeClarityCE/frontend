@@ -80,18 +80,6 @@ describe("OAuthCallbackView", () => {
   });
 
   describe("Component Structure", () => {
-    it("should render the main container with correct styling", () => {
-      const wrapper = mount(OAuthCallbackView, {
-        props: {
-          provider: SocialProvider.GITLAB,
-        },
-      });
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.exists()).toBe(true);
-      expect(mainElement.classes()).toContain("p-12");
-    });
-
     it("should render the OAuth2Callback component", () => {
       const wrapper = mount(OAuthCallbackView, {
         props: {
@@ -197,34 +185,6 @@ describe("OAuthCallbackView", () => {
 
       const oauth2Component = wrapper.find('[data-testid="oauth2-callback"]');
       expect(oauth2Component.exists()).toBe(true);
-    });
-  });
-
-  describe("Layout", () => {
-    it("should have proper semantic structure", () => {
-      const wrapper = mount(OAuthCallbackView, {
-        props: {
-          provider: SocialProvider.GITLAB,
-        },
-      });
-
-      const mainElement = wrapper.find("main");
-      const oauth2Component = wrapper.find('[data-testid="oauth2-callback"]');
-
-      expect(mainElement.exists()).toBe(true);
-      expect(oauth2Component.exists()).toBe(true);
-      expect(mainElement.element.contains(oauth2Component.element)).toBe(true);
-    });
-
-    it("should apply consistent padding to main container", () => {
-      const wrapper = mount(OAuthCallbackView, {
-        props: {
-          provider: SocialProvider.GITLAB,
-        },
-      });
-
-      const mainElement = wrapper.find("main");
-      expect(mainElement.classes()).toEqual(["p-12"]);
     });
   });
 

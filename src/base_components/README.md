@@ -97,6 +97,12 @@ base_components/
 
 - **InfoMarkdown**: Markdown content renderer
 
+## Icons
+
+Lucide (`@lucide/vue`) is the only general icon set. Use it for every icon that is not a logo.
+
+Brand and language logos are the only exception. Use `simple-icons:<name>` (brands) or `devicon:<name>` (languages and tools) with Iconify's `<Icon>`. `vite-plugin-logo-icons.ts` bundles every logo id it finds in `src/`, so they are never fetched at runtime. Write the id as a full string literal, or the plugin cannot find it.
+
 ## Usage Examples
 
 ### Using Card Components

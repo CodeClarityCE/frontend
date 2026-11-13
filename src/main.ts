@@ -1,6 +1,8 @@
 import "reflect-metadata";
 
+import { addCollection } from "@iconify/vue";
 import { createPinia } from "pinia";
+import logoIcons from "virtual:logo-icons";
 import { type Component, createApp } from "vue";
 import VueCookies from "vue-cookies";
 
@@ -8,6 +10,9 @@ import App from "./App.vue";
 import router from "./router.ts";
 
 import "./assets/main.css";
+
+// Brand and language logos ship with the app, so Iconify never fetches them.
+for (const collection of logoIcons) addCollection(collection);
 
 // Vite emits this when a dynamically imported chunk fails to load — typically
 // after the dev server restarts or the machine sleeps/wakes, invalidating the

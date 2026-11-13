@@ -310,14 +310,14 @@ describe("SbomInformation.vue", () => {
       });
       const wrapper = createWrapper(dependency);
 
-      expect(wrapper.text()).toContain("akar-icons:node-fill");
-      expect(wrapper.text()).toContain("akar-icons:npm-fill");
-      expect(wrapper.text()).toContain("akar-icons:yarn-fill");
-      expect(wrapper.text()).toContain("akar-icons:python-fill");
-      expect(wrapper.text()).toContain("skill-icons:java-dark");
-      expect(wrapper.text()).toContain("skill-icons:golang");
-      expect(wrapper.text()).toContain("skill-icons:rust");
-      expect(wrapper.text()).toContain("skill-icons:php-dark");
+      expect(wrapper.text()).toContain("devicon:nodejs");
+      expect(wrapper.text()).toContain("devicon:npm");
+      expect(wrapper.text()).toContain("devicon:yarn");
+      expect(wrapper.text()).toContain("devicon:python");
+      expect(wrapper.text()).toContain("devicon:java");
+      expect(wrapper.text()).toContain("devicon:go");
+      expect(wrapper.text()).toContain("devicon:rust");
+      expect(wrapper.text()).toContain("devicon:php");
     });
 
     it("should use default icon for unknown engines", () => {

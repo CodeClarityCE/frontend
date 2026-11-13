@@ -35,7 +35,7 @@ import { getPiniaMock, resetPiniaMock } from "./test-utils/setup.js";
 import "@testing-library/jest-dom/vitest";
 
 // Suppress known Zod v4 cleanup errors during test teardown
-// These occur when components using Zod schemas and @formkit/auto-animate are unmounted
+// These occur when components using Zod schemas are unmounted
 process.on("unhandledRejection", (reason: unknown) => {
   const message = reason instanceof Error ? reason.message : String(reason);
   if (message.includes("_zod") || message.includes("Closing rpc while")) {
@@ -133,7 +133,7 @@ Object.defineProperty(window, "scrollTo", {
   value: vi.fn(),
 });
 
-// Mock requestAnimationFrame for auto-animate library
+// Mock requestAnimationFrame for components that animate
 global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback): number => {
   cb(0);
   return 0;
@@ -146,7 +146,7 @@ if (typeof Element !== "undefined") {
   Element.prototype.scrollIntoView = vi.fn();
 }
 
-// Mock Web Animations API for auto-animate
+// Mock the Web Animations API, which jsdom lacks
 if (typeof Element !== "undefined") {
   Element.prototype.animate = vi.fn().mockReturnValue({
     cancel: vi.fn(),
@@ -570,5 +570,17 @@ vi.mock("@lucide/vue", () => ({
   MoreHorizontal: {
     name: "MoreHorizontal",
     template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
+  },
+  ScrollText: {
+    name: "ScrollText",
+    template: '<svg data-testid="scroll-text-icon"><path/></svg>',
+  },
+  UserMinus: {
+    name: "UserMinus",
+    template: '<svg data-testid="user-minus-icon"><path/></svg>',
+  },
+  UserPlus: {
+    name: "UserPlus",
+    template: '<svg data-testid="user-plus-icon"><path/></svg>',
   },
 }));

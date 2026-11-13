@@ -166,9 +166,6 @@ importers:
 
   .:
     dependencies:
-      '@formkit/auto-animate':
-        specifier: 0.10.1
-        version: 0.10.1
       '@lucide/vue':
         specifier: 1.69.0
         version: 1.69.0(vue@3.5.45(typescript@6.0.3))
@@ -905,9 +902,6 @@ packages:
 
   '@formatjs/intl-localematcher@0.6.2':
     resolution: {integrity: sha512-XOMO2Hupl0wdd172Y06h6kLpBz6Dv+J4okPLl4LPtzbr8f66WbIoy4ev98EBuZ6ZK4h5ydTN6XneT4QVpD7cdA==}
-
-  '@formkit/auto-animate@0.10.1':
-    resolution: {integrity: sha512-6hkN1bMuOxbF9owoLtBLG94QWAMtuMD7DECbygcKlfS3GAhBfaXNXaj4XAJC+3e+a3C25SDZ7tIXf0S4QkKqjg==}
 
   '@hapi/address@5.1.1':
     resolution: {integrity: sha512-A+po2d/dVoY7cYajycYI43ZbYMXukuopIsqCjh5QzsBCipDtdofHntljDlpccMjIfTy6UOkg+5KPriwYch2bXA==}
@@ -6159,8 +6153,6 @@ snapshots:
   '@formatjs/intl-localematcher@0.6.2':
     dependencies:
       tslib: 2.8.1
-
-  '@formkit/auto-animate@0.10.1': {}
 
   '@hapi/address@5.1.1':
     dependencies:

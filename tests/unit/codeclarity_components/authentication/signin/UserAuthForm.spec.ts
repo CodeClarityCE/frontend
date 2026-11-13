@@ -181,11 +181,6 @@ vi.mock("vee-validate", () => ({
   }),
 }));
 
-// Mock auto-animate
-vi.mock("@formkit/auto-animate/vue", () => ({
-  vAutoAnimate: {},
-}));
-
 describe("UserAuthForm.vue", () => {
   let wrapper: any;
 

@@ -1,601 +1,174 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { toTypedSchema } from "@vee-validate/zod";
-import { Form } from "vee-validate";
-import { type Ref, ref } from "vue";
+import { ExternalLink } from "@lucide/vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import * as z from "zod";
 
-import FormTextField from "@/base_components/forms/FormTextField.vue";
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { GithubTokenType } from "@/codeclarity_components/organizations/integrations/integration_add.http";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import router from "@/router";
-import Alert from "@/shadcn/ui/alert/Alert.vue";
-import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
-import Button from "@/shadcn/ui/button/Button.vue";
-import { useAuthStore } from "@/stores/auth";
-import { APIErrors } from "@/utils/api/ApiErrors";
+import { Button } from "@/shadcn/ui/button";
 import {
-  BusinessLogicError,
-  ValidationError,
-} from "@/utils/api/BaseRepository";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/shadcn/ui/card";
+import { useAuthStore } from "@/stores/auth";
 import { successToast } from "@/utils/toasts";
 
-enum FormMode {
-  UPDATE = "UPDATE",
-  CREATE = "CREATE",
-}
+import { tokenIntegrationError } from "../integration-errors";
+import TokenIntegrationForm from "../TokenIntegrationForm.vue";
 
-// Constants
 const githubClassicTokenRegex = /^ghp_[a-zA-Z0-9]{36}$/;
 
-// Stores
 const authStore = useAuthStore();
+const integrationRepo = new IntegrationsRepository();
+const route = useRoute();
 
-// Repositories
-const integrationRepo: IntegrationsRepository = new IntegrationsRepository();
+const orgId = typeof route.params.orgId === "string" ? route.params.orgId : "";
+const updateId =
+  typeof route.query.update === "string" ? route.query.update : undefined;
+const updating = updateId !== undefined;
 
-// State
-const validationError: Ref<ValidationError | undefined> = ref();
-const loadingButtonRef: Ref<{
-  setLoading: (val: boolean) => void;
-  setDisabled: (val: boolean) => void;
-} | null> = ref(null);
-const orgId: Ref<string> = ref("");
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref();
-const mode: Ref<FormMode> = ref(FormMode.CREATE);
-const updateId: Ref<string | undefined> = ref();
+const token = ref("");
+const busy = ref(false);
+const apiError = ref<string>();
 
-// Form Data
-const formPersonalClassicToken: Ref<string> = ref("");
-
-async function submit(): Promise<void> {
-  loadingButtonRef.value?.setLoading(true);
-  loadingButtonRef.value?.setDisabled(true);
-
-  if (!orgId.value) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
-
-  error.value = false;
-  errorCode.value = undefined;
-  validationError.value = undefined;
-
-  try {
-    if (mode.value === FormMode.CREATE) {
-      await integrationRepo.addGithubIntegration({
-        orgId: orgId.value,
-        bearerToken: authStore.getToken,
-        data: {
-          token: formPersonalClassicToken.value,
-          token_type: GithubTokenType.CLASSIC_TOKEN,
-        },
-      });
-      void successToast("Successfully added the integration");
-      void router.push({
-        name: "orgs",
-        params: { orgId: orgId.value, page: "integrations", action: "manage" },
-      });
-    } else if (mode.value === FormMode.UPDATE) {
-      await integrationRepo.updateGithubIntegration({
-        orgId: orgId.value,
-        integrationId: updateId.value!,
-        bearerToken: authStore.getToken,
-        data: {
-          token: formPersonalClassicToken.value,
-          token_type: GithubTokenType.CLASSIC_TOKEN,
-        },
-      });
-      void successToast("Successfully updated the integration");
-      void router.push({
-        name: "orgs",
-        params: { orgId: orgId.value, page: "integrations", action: "manage" },
-      });
-    }
-
-    formPersonalClassicToken.value = "";
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof ValidationError) {
-      errorCode.value = _err.error_code;
-      validationError.value = _err;
-    } else if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
-  } finally {
-    loadingButtonRef.value?.setLoading(false);
-    loadingButtonRef.value?.setDisabled(false);
-  }
-}
-// Form Validation
-const formValidationSchema = toTypedSchema(
-  z.object({
-    token: z
-      .string()
-      .min(1, "Enter a Github classic token")
-      .regex(
-        githubClassicTokenRegex,
-        "Please enter a valid Github classic token",
-      ),
-  }),
+const title = computed(() =>
+  updating ? "Replace the GitHub token" : "Connect GitHub",
 );
 
-async function init(): Promise<void> {
-  const route = useRoute();
-  const _orgId = route.params.orgId;
-
-  if (!_orgId) {
-    router.back();
+function validate(value: string): string | undefined {
+  if (value.length === 0) return "Enter a GitHub classic token";
+  if (!githubClassicTokenRegex.test(value)) {
+    return "A classic token starts with ghp_ followed by 36 letters or digits";
   }
+  return undefined;
+}
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const _updateId = urlParams.get("update");
-
-  if (typeof _updateId === "string") {
-    updateId.value = _updateId;
-    mode.value = FormMode.UPDATE;
-  }
-
-  if (typeof _orgId === "string") {
-    orgId.value = _orgId;
-  } else {
-    router.back();
+async function submit(): Promise<void> {
+  if (!orgId || !authStore.getToken) return;
+  busy.value = true;
+  apiError.value = undefined;
+  const data = {
+    token: token.value,
+    token_type: GithubTokenType.CLASSIC_TOKEN,
+  };
+  try {
+    if (updateId) {
+      await integrationRepo.updateGithubIntegration({
+        orgId,
+        integrationId: updateId,
+        bearerToken: authStore.getToken,
+        data,
+      });
+      successToast("Updated the GitHub integration");
+    } else {
+      await integrationRepo.addGithubIntegration({
+        orgId,
+        bearerToken: authStore.getToken,
+        data,
+      });
+      successToast("Added the GitHub integration");
+    }
+    token.value = "";
+    void router.push({
+      name: "orgs",
+      params: { orgId, page: "integrations", action: "manage" },
+    });
+  } catch (err) {
+    apiError.value = tokenIntegrationError(err, {
+      provider: "GitHub",
+      scopes: "repo and write:org",
+      updating,
+    });
+  } finally {
+    busy.value = false;
   }
 }
 
-void init();
+if (!orgId) router.back();
 </script>
+
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Page Header -->
-      <InfoCard
-        title="GitHub Integration"
-        description="Connect your GitHub repositories for comprehensive security analysis and vulnerability detection"
-        icon="devicon:github"
-        variant="primary"
-        class="mb-8 shadow-lg"
+  <div class="flex flex-col gap-6">
+    <h2
+      class="flex items-center gap-3 text-2xl font-bold text-foreground-strong"
+    >
+      <Icon icon="devicon:github" aria-hidden="true" class="size-8" />
+      {{ title }}
+    </h2>
+
+    <div class="grid grid-cols-2 items-start gap-6">
+      <TokenIntegrationForm
+        v-model:token="token"
+        title="Personal access token"
+        description="Paste a classic token with the scopes below. It lets CodeClarity list and clone your repositories."
+        label="GitHub classic token"
+        placeholder="ghp_..."
+        hint="A classic token with the repo and write:org scopes, or public_repo for public repositories only."
+        :submit-label="updating ? 'Replace token' : 'Connect GitHub'"
+        :validate="validate"
+        :busy="busy"
+        :api-error="apiError"
+        @submit="submit"
       />
 
-      <div class="grid lg:grid-cols-2 gap-8">
-        <!-- Left Column - Configuration Form -->
-        <InfoCard
-          :title="
-            mode === FormMode.CREATE
-              ? 'Add GitHub Integration'
-              : 'Update GitHub Integration'
-          "
-          :description="
-            mode === FormMode.CREATE
-              ? 'Link your GitHub account by entering a classic token with the required permissions'
-              : 'Update your GitHub integration credentials and permissions'
-          "
-          icon="solar:settings-bold"
-          variant="default"
-          class="shadow-md"
-        >
-          <Alert v-if="error" variant="destructive" class="mb-6">
-            <AlertDescription class="flex flex-row gap-2 items-center">
-              <Icon icon="solar:danger-triangle-bold" class="text-red-500" />
-              <div v-if="errorCode">
-                <div
-                  v-if="
-                    errorCode === APIErrors.IntegrationTokenExpired ||
-                    errorCode === APIErrors.IntegrationInvalidToken ||
-                    errorCode === APIErrors.IntegrationWrongTokenType
-                  "
-                  class="text-red-700"
-                >
-                  Your token appears invalid or expired.
-                </div>
-                <div
-                  v-else-if="
-                    errorCode ==
-                    APIErrors.IntegrationIntegrationTokenMissingPermissions
-                  "
-                  class="text-red-700"
-                >
-                  Your token does not have the required permissions. Please
-                  select both
-                  <span class="px-2 py-1 bg-gray-200 rounded text-sm font-mono"
-                    >repo</span
-                  >
-                  and
-                  <span class="px-2 py-1 bg-gray-200 rounded text-sm font-mono"
-                    >write:org</span
-                  >
-                  scopes.
-                </div>
-                <div
-                  v-else-if="errorCode === APIErrors.DuplicateIntegration"
-                  class="text-red-700"
-                >
-                  You already have an integration with GitHub.
-                </div>
-                <div
-                  v-else-if="errorCode === APIErrors.EntityNotFound"
-                  class="text-red-700"
-                >
-                  <div v-if="mode === FormMode.CREATE">
-                    This should not have happened. Please try again.
-                  </div>
-                  <div v-if="mode === FormMode.UPDATE">
-                    The integration you are trying to update does not exist.
-                  </div>
-                </div>
-                <div
-                  v-else-if="errorCode === APIErrors.ValidationFailed"
-                  class="text-red-700 whitespace-pre-line"
-                >
-                  {{ validationError!.toMessage("Invalid form:") }}
-                </div>
-                <div
-                  v-else-if="errorCode === APIErrors.NotAuthorized"
-                  class="text-red-700"
-                >
-                  You are not authorized to perform this action.
-                </div>
-                <div v-else class="text-red-700">
-                  An error occurred during the processing of the request.
-                </div>
-              </div>
-              <div v-else class="text-red-700">
-                An error occurred during the processing of the request.
-              </div>
-            </AlertDescription>
-          </Alert>
-
-          <Form
-            class="space-y-6"
-            :validation-schema="formValidationSchema"
-            @submit="submit"
-          >
-            <div class="space-y-2">
-              <FormTextField
-                v-model="formPersonalClassicToken"
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                type="password"
-                name="token"
-                class="bg-white border-gray-300 focus:border-theme-primary focus:ring-theme-primary/20"
-              >
-                <template #name>
-                  <div class="flex items-center gap-2">
-                    <Icon icon="solar:key-bold" class="text-theme-primary" />
-                    <span class="text-sm font-semibold text-theme-black"
-                      >GitHub Classic Token</span
-                    >
-                  </div>
-                </template>
-              </FormTextField>
-              <p class="text-xs text-theme-gray">
-                Enter your GitHub personal access token (classic) with repo and
-                write:org scopes
-              </p>
-            </div>
-
-            <LoadingSubmitButton
-              ref="loadingButtonRef"
-              class="w-full bg-theme-black hover:bg-theme-gray text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h2 class="text-lg font-semibold leading-none text-foreground-strong">
+            Create a token
+          </h2>
+          <CardDescription>
+            These links open GitHub with the scopes already selected.
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-6">
+          <div class="flex flex-wrap gap-3">
+            <Button
+              as="a"
+              variant="outline"
+              href="https://github.com/settings/tokens/new?description=CodeClarity&scopes=repo,write:org"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <Icon
-                icon="simple-icons:github"
-                class="mr-2 text-lg text-white"
-              />
-              <span v-if="mode === FormMode.CREATE"
-                >Connect GitHub Integration</span
-              >
-              <span v-else-if="mode === FormMode.UPDATE"
-                >Update GitHub Integration</span
-              >
-            </LoadingSubmitButton>
-
-            <div
-              class="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+              Full access token
+              <ExternalLink aria-hidden="true" />
+              <span class="sr-only">(opens GitHub in a new tab)</span>
+            </Button>
+            <Button
+              as="a"
+              variant="outline"
+              href="https://github.com/settings/tokens/new?description=CodeClarity+Public&scopes=public_repo"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <Icon
-                icon="solar:shield-check-bold"
-                class="text-blue-600 mt-0.5 shrink-0"
-              />
-              <div class="text-xs text-blue-700">
-                <strong>Security Note:</strong> Your token is encrypted and
-                stored securely. We only use it to access your repositories for
-                security analysis.
-              </div>
-            </div>
-          </Form>
-        </InfoCard>
-
-        <!-- Right Column - Instructions -->
-        <div class="space-y-6">
-          <InfoCard
-            title="Quick Setup"
-            description="Choose your access level and create a pre-configured token"
-            icon="solar:magic-stick-bold"
-            variant="primary"
-            class="shadow-md"
+              Public repositories only
+              <ExternalLink aria-hidden="true" />
+              <span class="sr-only">(opens GitHub in a new tab)</span>
+            </Button>
+          </div>
+          <ol
+            class="flex list-decimal flex-col gap-2 pl-5 text-sm text-muted-foreground"
           >
-            <div class="space-y-6">
-              <div
-                class="flex items-start gap-3 p-4 bg-linear-to-r from-theme-primary/10 to-blue-50 rounded-lg border border-theme-primary/20"
-              >
-                <div
-                  class="shrink-0 w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center"
-                >
-                  <Icon icon="solar:star-bold" class="text-white text-sm" />
-                </div>
-                <div>
-                  <h4 class="font-semibold text-theme-black mb-1">
-                    Choose Your Access Level
-                  </h4>
-                  <p class="text-sm text-theme-gray">
-                    Select the appropriate token type based on whether you need
-                    access to private repositories or only public ones.
-                  </p>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <a
-                  target="_blank"
-                  href="https://github.com/settings/tokens/new?description=CodeClarity&scopes=repo,write:org"
-                  class="inline-block"
-                >
-                  <Button
-                    class="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    <Icon
-                      icon="simple-icons:github"
-                      class="mr-2 text-lg text-white"
-                    />
-                    <div class="text-left">
-                      <div class="text-sm">Full Access</div>
-                      <div class="text-xs opacity-90">
-                        Public + Private Repos
-                      </div>
-                    </div>
-                  </Button>
-                </a>
-
-                <a
-                  target="_blank"
-                  href="https://github.com/settings/tokens/new?description=CodeClarity+Public&scopes=public_repo"
-                  class="inline-block"
-                >
-                  <Button
-                    variant="outline"
-                    class="w-full border-gray-600 text-gray-700 hover:bg-gray-50 font-semibold px-4 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    <Icon icon="simple-icons:github" class="mr-2 text-lg" />
-                    <div class="text-left">
-                      <div class="text-sm">Public Only</div>
-                      <div class="text-xs opacity-70">Public Repos Only</div>
-                    </div>
-                  </Button>
-                </a>
-              </div>
-
-              <div
-                class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
-              >
-                <div class="flex items-center gap-2 mb-3">
-                  <div
-                    class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"
-                  >
-                    <Icon
-                      icon="solar:list-check-bold"
-                      class="text-white text-xs"
-                    />
-                  </div>
-                  <h4 class="font-semibold text-theme-black">
-                    Follow these steps:
-                  </h4>
-                </div>
-                <ol class="space-y-2">
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >1</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Choose "Full Access" for private repos or "Public Only"
-                      for public repos</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >2</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Select an expiration time that fits your security
-                      policy</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >3</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Click "Generate token" button</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-theme-primary text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >4</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Copy and paste the token in the form above</span
-                    >
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </InfoCard>
-
-          <InfoCard
-            title="Manual Setup"
-            description="Create a token manually with the required permissions"
-            icon="solar:settings-bold"
-            variant="default"
-            class="shadow-md"
-          >
-            <div class="space-y-6">
-              <div
-                class="flex items-start gap-3 p-4 bg-orange-50 rounded-lg border border-orange-200"
-              >
-                <div
-                  class="shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center"
-                >
-                  <Icon icon="solar:settings-bold" class="text-white text-sm" />
-                </div>
-                <div>
-                  <h4 class="font-semibold text-theme-black mb-1">
-                    Advanced Configuration
-                  </h4>
-                  <p class="text-sm text-theme-gray">
-                    For users who prefer to configure permissions manually or
-                    need custom settings.
-                  </p>
-                </div>
-              </div>
-
-              <div class="text-center">
-                <a
-                  target="_blank"
-                  href="https://github.com/settings/tokens/new"
-                  class="inline-block"
-                >
-                  <Button
-                    variant="outline"
-                    class="border-gray-300 hover:border-gray-400 font-semibold px-6 py-3 rounded-lg transition-all duration-200"
-                  >
-                    <Icon icon="simple-icons:github" class="mr-2 text-lg" />
-                    Create Token Manually
-                  </Button>
-                </a>
-              </div>
-
-              <div
-                class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
-              >
-                <div class="flex items-center gap-2 mb-3">
-                  <div
-                    class="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center"
-                  >
-                    <Icon
-                      icon="solar:list-check-bold"
-                      class="text-white text-xs"
-                    />
-                  </div>
-                  <h4 class="font-semibold text-theme-black">
-                    Configuration steps:
-                  </h4>
-                </div>
-                <ol class="space-y-3">
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >1</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Enter a descriptive name, such as "CodeClarity"</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >2</span
-                    >
-                    <div class="flex-1">
-                      <span class="text-sm text-theme-gray block mb-2"
-                        >Select the required scopes based on your needs:</span
-                      >
-                      <div class="space-y-2">
-                        <div>
-                          <div class="text-xs font-semibold text-gray-700 mb-1">
-                            For private repositories:
-                          </div>
-                          <div class="flex flex-wrap gap-2">
-                            <span
-                              class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 border border-gray-300 rounded-full text-xs font-mono"
-                            >
-                              <Icon
-                                icon="solar:check-circle-bold"
-                                class="text-theme-primary"
-                              />
-                              repo
-                            </span>
-                            <span
-                              class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 border border-gray-300 rounded-full text-xs font-mono"
-                            >
-                              <Icon
-                                icon="solar:check-circle-bold"
-                                class="text-theme-primary"
-                              />
-                              write:org
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div class="text-xs font-semibold text-gray-700 mb-1">
-                            For public repositories only:
-                          </div>
-                          <div class="flex flex-wrap gap-2">
-                            <span
-                              class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 border border-blue-300 rounded-full text-xs font-mono"
-                            >
-                              <Icon
-                                icon="solar:check-circle-bold"
-                                class="text-blue-600"
-                              />
-                              public_repo
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >3</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Select an expiration time that fits your security
-                      policy</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >4</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Click "Generate Token" button</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <span
-                      class="shrink-0 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                      >5</span
-                    >
-                    <span class="text-sm text-theme-gray"
-                      >Copy and paste the token in the form on the left</span
-                    >
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </InfoCard>
-        </div>
-      </div>
+            <li>
+              Pick "Full access token" for private repositories, or "Public
+              repositories only".
+            </li>
+            <li>Select an expiration that fits your security policy.</li>
+            <li>Click "Generate token".</li>
+            <li>Copy the token and paste it into the form.</li>
+          </ol>
+          <p class="text-sm text-muted-foreground">
+            Creating the token by hand? Select
+            <code class="font-mono text-foreground-strong">repo</code> and
+            <code class="font-mono text-foreground-strong">write:org</code>, or
+            only
+            <code class="font-mono text-foreground-strong">public_repo</code>.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
-<style scoped lang="scss">
-/* Custom styles if needed - most styling is now handled by Tailwind classes */
-</style>

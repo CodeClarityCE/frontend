@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import BrandEmphasis from "@/codeclarity_components/authentication/layout/BrandEmphasis.vue";
+import BrandEmphasis from "@/base_components/page/BrandEmphasis.vue";
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
 import {
   Accordion,

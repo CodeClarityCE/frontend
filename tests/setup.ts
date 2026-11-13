@@ -531,4 +531,44 @@ vi.mock("@lucide/vue", () => ({
     name: "LoaderCircle",
     template: '<svg data-testid="loader-circle-icon"><path/></svg>',
   },
+  ArrowRight: {
+    name: "ArrowRight",
+    template: '<svg data-testid="arrow-right-icon"><path/></svg>',
+  },
+  ArrowLeft: {
+    name: "ArrowLeft",
+    template: '<svg data-testid="arrow-left-icon"><path/></svg>',
+  },
+  ArrowUp: {
+    name: "ArrowUp",
+    template: '<svg data-testid="arrow-up-icon"><path/></svg>',
+  },
+  ArrowDown: {
+    name: "ArrowDown",
+    template: '<svg data-testid="arrow-down-icon"><path/></svg>',
+  },
+  ArrowUpDown: {
+    name: "ArrowUpDown",
+    template: '<svg data-testid="arrow-up-down-icon"><path/></svg>',
+  },
+  FlaskConical: {
+    name: "FlaskConical",
+    template: '<svg data-testid="flask-conical-icon"><path/></svg>',
+  },
+  FolderInput: {
+    name: "FolderInput",
+    template: '<svg data-testid="folder-input-icon"><path/></svg>',
+  },
+  ChevronLeftIcon: {
+    name: "ChevronLeftIcon",
+    template: '<svg data-testid="chevron-left-icon-icon"><path/></svg>',
+  },
+  ChevronRightIcon: {
+    name: "ChevronRightIcon",
+    template: '<svg data-testid="chevron-right-icon-icon"><path/></svg>',
+  },
+  MoreHorizontal: {
+    name: "MoreHorizontal",
+    template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
+  },
 }));

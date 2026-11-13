@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import BrandEmphasis from "@/base_components/page/BrandEmphasis.vue";
 import { useStateStore } from "@/stores/state";
 
 import AuthLayout from "../layout/AuthLayout.vue";
-import BrandEmphasis from "../layout/BrandEmphasis.vue";
 import TextLink from "../layout/TextLink.vue";
 
 import UserAuthForm from "./UserAuthForm.vue";

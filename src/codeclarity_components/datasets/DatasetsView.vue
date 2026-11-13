@@ -5,35 +5,17 @@ import {
   defineAsyncComponent,
 } from "vue";
 
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import { useStateStore } from "@/stores/state";
 
-const DatasetsList = defineAsyncComponent({
-  loader: (() => import("./sections/DatasetsList.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  timeout: 3000,
-}) as Component;
-
-const DatasetCreate = defineAsyncComponent({
-  loader: (() =>
-    import("./sections/DatasetCreate.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  timeout: 3000,
-}) as Component;
-
-const DatasetDetail = defineAsyncComponent({
-  loader: (() =>
-    import("./sections/DatasetDetail.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  timeout: 3000,
-}) as Component;
+const DatasetsList = defineAsyncComponent(
+  (() => import("./sections/DatasetsList.vue")) as AsyncComponentLoader,
+) as Component;
+const DatasetCreate = defineAsyncComponent(
+  (() => import("./sections/DatasetCreate.vue")) as AsyncComponentLoader,
+) as Component;
+const DatasetDetail = defineAsyncComponent(
+  (() => import("./sections/DatasetDetail.vue")) as AsyncComponentLoader,
+) as Component;
 
 const state = useStateStore();
 state.$reset();
@@ -45,9 +27,9 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-  <main class="p-8 space-y-6">
+  <div class="flex flex-col gap-8 p-8">
     <DatasetCreate v-if="props.page === 'add'" />
     <DatasetDetail v-else-if="props.page === 'detail'" />
     <DatasetsList v-else />
-  </main>
+  </div>
 </template>

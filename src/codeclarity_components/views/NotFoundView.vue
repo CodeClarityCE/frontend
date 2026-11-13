@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BrandEmphasis from "@/codeclarity_components/authentication/layout/BrandEmphasis.vue";
+import BrandEmphasis from "@/base_components/page/BrandEmphasis.vue";
 import router from "@/router";
 import { Button, buttonVariants } from "@/shadcn/ui/button";
 

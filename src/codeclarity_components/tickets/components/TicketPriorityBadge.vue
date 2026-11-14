@@ -11,7 +11,7 @@ defineProps<{ priority: TicketPriority }>();
 
 <template>
   <span
-    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
+    class="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold"
     :class="TicketPriorityColors[priority]"
   >
     {{ TicketPriorityLabels[priority] }}

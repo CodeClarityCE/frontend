@@ -53,7 +53,35 @@ if (!org || !policy) {
   throw new Error("No organisation has a license policy: create one first.");
 }
 
+// Picks the first organisation that has a ticket to read back.
+type TicketList = { data: { id: string; project_id: string }[] };
+let ticketPaths: Record<string, [string, string]> = {};
+for (const id of orgIds) {
+  const tickets = (await call(
+    `/org/${id}/tickets?page=0&entries_per_page=1`,
+    token,
+  )) as TicketList;
+  const first = tickets.data[0];
+  if (first) {
+    ticketPaths = {
+      "ticket-detail": [
+        "GET /org/:org/tickets/:ticket",
+        `/org/${id}/tickets/${first.id}`,
+      ],
+      "project-tickets": [
+        "GET /org/:org/projects/:project/tickets",
+        `/org/${id}/projects/${first.project_id}/tickets?page=0&entries_per_page=100`,
+      ],
+    };
+    break;
+  }
+}
+if (Object.keys(ticketPaths).length === 0) {
+  throw new Error("No organisation has a ticket: create one first.");
+}
+
 const captures: Record<string, [string, string]> = {
+  ...ticketPaths,
   "organization-list": ["GET /org", "/org?page=0&entries_per_page=50"],
   members: [
     "GET /org/:org/members",
@@ -62,6 +90,10 @@ const captures: Record<string, [string, string]> = {
   "license-policy": [
     "GET /org/:org/policies/license_policy/:policy",
     `/org/${org}/policies/license_policy/${policy}`,
+  ],
+  "license-policy-list": [
+    "GET /org/:org/policies/license_policy",
+    `/org/${org}/policies/license_policy?page=0&entries_per_page=100`,
   ],
 };
 

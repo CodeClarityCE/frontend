@@ -22,6 +22,7 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import { OrgRepository } from "../organization.repository";
@@ -45,8 +46,9 @@ type FormValues = z.infer<typeof formSchema>;
 const form = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
 });
+const isSubmitting = form.isSubmitting;
 
-const onSubmit = form.handleSubmit(async (values) => {
+const submitForm = form.handleSubmit(async (values) => {
   if (submitting.value) return;
   submitting.value = true;
   try {
@@ -74,6 +76,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     submitting.value = false;
   }
 });
+
+// Ignored while a submit is already running
+const onSubmit = guardSubmit(isSubmitting, submitForm);
 </script>
 <template>
   <div class="flex max-w-3xl flex-col gap-8">
@@ -125,7 +130,7 @@ const onSubmit = form.handleSubmit(async (values) => {
           </FormField>
 
           <div class="flex justify-end">
-            <Button type="submit" :disabled="submitting">
+            <Button type="submit" :disabled="submitting || isSubmitting">
               <LoaderCircle
                 v-if="submitting"
                 aria-hidden="true"

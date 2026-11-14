@@ -11,6 +11,8 @@ import PolicyRadioGroup from "./PolicyRadioGroup.vue";
 
 const user = useUserStore();
 const auth = useAuthStore();
+// Large enough that one request usually returns every policy.
+const FETCH_PAGE_SIZE = 100;
 const repository = new LicensePolicyRepository();
 
 // The disallowed licenses of the chosen policy, empty for no policy.
@@ -29,19 +31,32 @@ watch(selectedId, (id) => {
     policies.value.find((policy) => policy.id === id)?.content ?? [];
 });
 
+async function fetchAll(
+  orgId: string,
+  token: string,
+): Promise<LicensePolicy[]> {
+  const all: LicensePolicy[] = [];
+  for (let page = 0; ; page++) {
+    const response = await repository.getLicensePolicies({
+      orgId,
+      page,
+      entries_per_page: FETCH_PAGE_SIZE,
+      search_key: "",
+      bearerToken: token,
+      handleBusinessErrors: true,
+    });
+    all.push(...response.data);
+    if (page + 1 >= response.total_pages || response.data.length === 0) {
+      return all;
+    }
+  }
+}
+
 async function load(): Promise<void> {
   const orgId = user.defaultOrg?.id;
   if (!orgId || !auth.getToken) return;
   try {
-    const response = await repository.getLicensePolicies({
-      orgId,
-      page: 0,
-      entries_per_page: 0,
-      search_key: "",
-      bearerToken: auth.getToken,
-      handleBusinessErrors: true,
-    });
-    policies.value = response.data;
+    policies.value = await fetchAll(orgId, auth.getToken);
     selectedId.value =
       policies.value.find((policy) => policy.default)?.id ?? null;
   } catch {

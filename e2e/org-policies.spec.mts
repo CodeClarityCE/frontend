@@ -173,7 +173,9 @@ test.describe("License policy form", () => {
     await expectScreenshots(page, "org-policies-create-errors");
   });
 
-  test("creates an allow list from the picked licenses", async ({ page }) => {
+  test("creates an allow list from the picked licenses, once on a double click", async ({
+    page,
+  }) => {
     const policies = new OrgPoliciesPage(page);
     await policies.signIn();
     await policies.gotoCreateLicense();
@@ -190,7 +192,7 @@ test.describe("License policy form", () => {
         request.method() === "POST" &&
         request.url().endsWith("/policies/license_policy"),
     );
-    await page.getByRole("button", { name: "Create policy" }).click();
+    await page.getByRole("button", { name: "Create policy" }).dblclick();
 
     expect((await posted).postDataJSON()).toMatchObject({
       name: "Permissive only",
@@ -199,6 +201,9 @@ test.describe("License policy form", () => {
       default: false,
     });
     await expect(page).toHaveURL(/\/orgs\/manage\/policies\/org-123\/?$/);
+    expect(policies.writes).toEqual([
+      "POST /org/org-123/policies/license_policy",
+    ]);
   });
 
   test("editing loads the saved policy into the form", async ({ page }) => {

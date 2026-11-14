@@ -565,6 +565,48 @@ test.describe("Add a Project", () => {
     await expectScreenshots(page, "projects-add-upload-errors");
   });
 
+  test("a double click on Import repository creates one project", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await page.getByTestId("github-card").click();
+
+    await page
+      .getByLabel("Repository URL")
+      .fill("https://github.com/example/tools.git");
+    await page.getByRole("button", { name: "Import repository" }).dblclick();
+
+    await expect(page).toHaveURL(/\/projects$/);
+    expect(projects.writes).toEqual(["POST /org/org-123/projects"]);
+  });
+
+  test("a double click on Create project and upload creates one project", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await page.route("**/api/org/org-123/file/**", (route) =>
+      route.fulfill({ json: { status: "success" } }),
+    );
+    await projects.gotoCreate();
+    await page.getByRole("button", { name: /Upload an archive/ }).click();
+
+    await page.getByLabel("Name").fill("Shop");
+    await page.getByLabel("Archive", { exact: true }).setInputFiles({
+      name: "shop.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.from("PK"),
+    });
+    await page
+      .getByRole("button", { name: "Create project and upload" })
+      .dblclick();
+
+    await expect(page).toHaveURL(/\/projects$/);
+    expect(projects.writes).toEqual(["POST /org/org-123/projects"]);
+  });
+
   test("Tab moves through the import methods and back with visible focus", async ({
     page,
   }) => {

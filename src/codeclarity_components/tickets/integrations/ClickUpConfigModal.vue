@@ -318,7 +318,8 @@ async function createSpace(): Promise<void> {
     !userStore.defaultOrg?.id ||
     !auth.getToken ||
     !workspaceId.value ||
-    !newSpaceName.value.trim()
+    !newSpaceName.value.trim() ||
+    isCreatingSpace.value
   )
     return;
 
@@ -356,7 +357,8 @@ async function createFolder(): Promise<void> {
     !userStore.defaultOrg?.id ||
     !auth.getToken ||
     !spaceId.value ||
-    !newFolderName.value.trim()
+    !newFolderName.value.trim() ||
+    isCreatingFolder.value
   )
     return;
 
@@ -390,7 +392,12 @@ async function createFolder(): Promise<void> {
 }
 
 async function createList(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !newListName.value.trim())
+  if (
+    !userStore.defaultOrg?.id ||
+    !auth.getToken ||
+    !newListName.value.trim() ||
+    isCreatingList.value
+  )
     return;
 
   isCreatingList.value = true;

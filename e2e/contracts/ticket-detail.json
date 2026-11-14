@@ -1,0 +1,35 @@
+{
+  "endpoint": "GET /org/:org/tickets/:ticket",
+  "response": {
+    "status_code": 200,
+    "status": "success",
+    "data": {
+      "id": "96db1c74-3532-4926-bc70-c5f513808bfa",
+      "title": "CVE-2020-7720: node-forge",
+      "description": "#### Prototype Pollution in node-forge.\n\nThe package node-forge before 0.10.0 is vulnerable to Prototype Pollution via the util.setPath function. Note: version 0.10.0 is a breaking change removing the vulnerable functions.",
+      "status": "RESOLVED",
+      "priority": "CRITICAL",
+      "type": "VULNERABILITY",
+      "vulnerability_id": "CVE-2020-7720",
+      "affected_package": "node-forge",
+      "affected_version": "0.9.0",
+      "severity_score": 9.8,
+      "severity_class": "CRITICAL",
+      "recommended_version": null,
+      "remediation_notes": "Upgrade node-forge to 1.4.3 (audit)",
+      "created_on": "2026-11-14T18:44:30.921Z",
+      "updated_on": "2026-11-14T18:45:40.092Z",
+      "resolved_on": "2026-11-14T18:45:40.092Z",
+      "due_date": null,
+      "project_id": "2e49a288-72f7-41cb-9663-99c13d53e880",
+      "project_name": "audit-vuln-js",
+      "created_by_id": "8de53635-4bfb-4538-86c5-653c6c71fc6a",
+      "created_by_name": "John Doe",
+      "external_links": [],
+      "has_external_links": false,
+      "external_status": "complete",
+      "occurrence_count": 0,
+      "active_occurrence_count": 0
+    }
+  }
+}

@@ -35,6 +35,7 @@ import {
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardSubmit } from "@/utils/form/guardSubmit";
 import { successToast } from "@/utils/toasts";
 
 import { LicensePolicyType } from "../license_policy.entity";
@@ -73,10 +74,16 @@ const formSchema = z.object({
   licenses: z.string().array().min(1, "Pick at least one license"),
 });
 
-const { handleSubmit, values, setValues, setFieldValue } = useForm({
-  validationSchema: toTypedSchema(formSchema),
-  initialValues: { name: "", description: "", isDefault: false, licenses: [] },
-});
+const { handleSubmit, isSubmitting, values, setValues, setFieldValue } =
+  useForm({
+    validationSchema: toTypedSchema(formSchema),
+    initialValues: {
+      name: "",
+      description: "",
+      isDefault: false,
+      licenses: [],
+    },
+  });
 
 const selected = computed(() => new Set(values.licenses ?? []));
 
@@ -103,7 +110,7 @@ const listRoute = computed(() => ({
   params: { action: "manage", page: "policies", orgId: props.orgId },
 }));
 
-const onSubmit = handleSubmit(async (form): Promise<void> => {
+const submitForm = handleSubmit(async (form): Promise<void> => {
   if (!authStore.getToken || submitting.value) return;
   submitting.value = true;
   failure.value = "";
@@ -142,6 +149,9 @@ const onSubmit = handleSubmit(async (form): Promise<void> => {
     submitting.value = false;
   }
 });
+
+// Ignored while a submit is already running
+const onSubmit = guardSubmit(isSubmitting, submitForm);
 
 async function loadLicenses(): Promise<void> {
   try {
@@ -324,7 +334,7 @@ onBeforeMount(() => {
             <Button variant="outline" :as="RouterLink" :to="listRoute">
               Cancel
             </Button>
-            <Button type="submit" :disabled="submitting">
+            <Button type="submit" :disabled="submitting || isSubmitting">
               <LoaderCircle
                 v-if="submitting"
                 aria-hidden="true"

@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { finding, VulnerabilitiesPage } from "./pages/vulnerabilities.page.mjs";
+import {
+  finding,
+  sampleDetails,
+  VulnerabilitiesPage,
+} from "./pages/vulnerabilities.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -332,5 +336,87 @@ test.describe("Vulnerability details", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "vulnerability-details");
+  });
+});
+
+test.describe("Tickets from vulnerability results", () => {
+  test("creating a ticket confirms it and the finding then links to it", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+    const card = vulns.cards.first();
+
+    await card.getByRole("button", { name: "Create Ticket" }).click();
+    const dialog = page.getByRole("dialog", { name: "Create Ticket" });
+    await dialog.getByRole("button", { name: "Create Ticket" }).click();
+
+    await expect(
+      page
+        .getByRole("region", { name: /Notifications/ })
+        .getByText("Ticket created"),
+    ).toBeVisible();
+    await expect(dialog).toHaveCount(0);
+    expect(vulns.createdTickets).toHaveLength(1);
+    await expect(
+      card.getByRole("button", { name: "Create Ticket" }),
+    ).toHaveCount(0);
+    await expect(
+      card.getByRole("link", { name: "View ticket" }),
+    ).toHaveAttribute("href", "/tickets?ticket_id=t-new-1");
+  });
+
+  test("a finding that already has a ticket links to it", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn({
+      tickets: [
+        {
+          id: "t-9",
+          title: "CVE-2024-0002: express",
+          status: "OPEN",
+          priority: "HIGH",
+          type: "VULNERABILITY",
+          vulnerability_id: "CVE-2024-0002",
+          created_on: "2026-10-01T09:00:00Z",
+          project_id: "proj-1",
+          project_name: "web-frontend",
+          has_external_links: false,
+        },
+      ],
+    });
+    await vulns.gotoResults();
+
+    await expect(
+      vulns.cards.nth(1).getByRole("link", { name: "View ticket" }),
+    ).toHaveAttribute("href", "/tickets?ticket_id=t-9");
+    await expect(
+      vulns.cards.first().getByRole("button", { name: "Create Ticket" }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("Vulnerability details references", () => {
+  test("lists each reference once", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    const advisory = { url: "https://example.com/advisory", tags: ["Patch"] };
+    await vulns.signIn({
+      details: {
+        ...sampleDetails,
+        references: [
+          advisory,
+          { url: "https://example.com/other", tags: [] },
+          advisory,
+        ],
+      },
+    });
+    await vulns.gotoDetails();
+
+    await expect(
+      page.getByRole("link", { name: /example\.com\/advisory/ }),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole("link", { name: /example\.com\/other/ }),
+    ).toHaveCount(1);
   });
 });

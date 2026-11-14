@@ -53,7 +53,7 @@ function columnLabel(label: string, status: TicketStatus): string {
 </script>
 
 <template>
-  <div class="grid grid-cols-4 gap-4">
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
     <section
       v-for="column in KanbanColumns"
       :key="column.status"

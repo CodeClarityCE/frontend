@@ -44,6 +44,20 @@ export function xTickCount(width: number): number {
   return width < CHART_WIDTH ? 3 : 6;
 }
 
+/** Space kept between neighbouring x labels */
+export const LABEL_GAP = 8;
+
+/** A generous width of an 11px axis label, to keep labels apart and inside. */
+export function labelWidth(text: string): number {
+  return text.length * 7;
+}
+
+/** The x of a centred label, moved in so it is not cut at either edge. */
+export function insideX(x: number, text: string, width: number): number {
+  const half = labelWidth(text) / 2;
+  return Math.min(Math.max(x, half), width - half);
+}
+
 /** Whole numbers as is, others with one decimal. */
 export function formatNumber(value: number | null): string {
   if (value === null) return "-";

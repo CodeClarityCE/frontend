@@ -374,6 +374,8 @@ export interface ResultTabsOptions {
   graph?: Record<string, unknown>[];
   /** The vulnerability stats answer. */
   vulnStats?: Record<string, unknown>;
+  /** Adds a successful vuln-finder step, so the SBOM asks for vulnerability stats. */
+  vulnFinder?: boolean;
   /** Keeps the tab's main requests pending until the returned function runs. */
   hold?: boolean;
   /** Leaves the real clock: the fixed one stops menus moving focus. */
@@ -434,7 +436,14 @@ export class ResultTabsPage {
         const perPage = Number(url.searchParams.get("entries_per_page") ?? 20);
         if (path === base) return fulfil(route, { data: project });
         if (path === `${base}/analyses/${ANALYSIS}`)
-          return fulfil(route, { data: analysis });
+          return fulfil(route, {
+            data: options.vulnFinder
+              ? {
+                  ...analysis,
+                  steps: [...analysis.steps, [step("vuln-finder")]],
+                }
+              : analysis,
+          });
         if (path === `${results}/sbom/workspaces`)
           return fulfil(route, {
             data: options.workspaces ?? {

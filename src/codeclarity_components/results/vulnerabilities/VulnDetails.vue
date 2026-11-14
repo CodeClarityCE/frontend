@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { ArrowLeft, ExternalLink, Globe } from "@lucide/vue";
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
 
 import { PageHeading, SeverityBadge, StatTile } from "@/base_components/page";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
@@ -37,7 +37,6 @@ const props = withDefaults(
   { showBack: false, runIndex: null },
 );
 
-const router = useRouter();
 const resultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -115,10 +114,10 @@ const linkClass =
 <template>
   <div class="flex flex-col gap-8">
     <div
-      v-if="showBack && !notFound"
+      v-if="showBack && !notFound && backTo"
       class="flex items-center justify-between gap-4"
     >
-      <Button variant="ghost" size="sm" @click="router.back()">
+      <Button variant="ghost" size="sm" :as="RouterLink" :to="backTo">
         <ArrowLeft aria-hidden="true" class="size-4" />
         Back to results
       </Button>

@@ -288,6 +288,17 @@ export interface CheckDuplicateRequest {
   vulnerability_id: string;
 }
 
+// The finding a ticket is created from.
+export interface VulnerabilityData {
+  vulnerability_id: string;
+  severity_score?: number;
+  severity_class?: string;
+  affected_package?: string;
+  affected_version?: string;
+  description?: string;
+  recommended_version?: string;
+}
+
 // ============================================
 // Response Types
 // ============================================

@@ -272,6 +272,8 @@ export class VulnerabilitiesPage {
   readonly cards: Locator;
   /** The query string of every vulnerability list request, in order. */
   readonly listRequests: URLSearchParams[] = [];
+  /** Bodies of the tickets the page created, in order. */
+  readonly createdTickets: Record<string, unknown>[] = [];
 
   constructor(page: Page) {
     this.page = page;
@@ -293,6 +295,8 @@ export class VulnerabilitiesPage {
       findings?: Record<string, unknown>[];
       details?: Record<string, unknown>;
       hold?: boolean;
+      // Tickets the project already has.
+      tickets?: Record<string, unknown>[];
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -310,6 +314,37 @@ export class VulnerabilitiesPage {
       /^https:\/\/api\d*\.(iconify\.design|simplesvg\.com|unisvg\.com)\//,
       (route) => route.abort(),
     );
+    const tickets = [...(options.tickets ?? [])];
+    await this.page.route(`**/api/org/${ORG}/tickets**`, async (route) => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      if (path.endsWith("/check-duplicate")) {
+        const body = request.postDataJSON() as { vulnerability_id: string };
+        const existing = tickets.find(
+          (t) => t.vulnerability_id === body.vulnerability_id,
+        );
+        return fulfil(route, {
+          data: existing
+            ? {
+                exists: true,
+                existing_ticket_id: existing.id,
+                existing_ticket_title: existing.title,
+              }
+            : { exists: false },
+        });
+      }
+      if (path.endsWith("/tickets") && request.method() === "POST") {
+        const body = request.postDataJSON() as Record<string, unknown>;
+        this.createdTickets.push(body);
+        const id = `t-new-${this.createdTickets.length}`;
+        tickets.push({ ...body, id, status: "OPEN" });
+        return route.fulfill({
+          status: 201,
+          json: { id, status_code: 201, status: "success" },
+        });
+      }
+      return fulfil(route, { data: [] });
+    });
     await this.page.route("**/api/knowledge/status", (route) =>
       fulfil(route, { data: { sources: [] } }),
     );
@@ -321,6 +356,8 @@ export class VulnerabilitiesPage {
         const base = `/org/${ORG}/projects/${PROJECT}`;
         const results = `${base}/analysis/${ANALYSIS}`;
         if (path === base) return fulfil(route, { data: project });
+        if (path === `${base}/tickets`)
+          return fulfil(route, paginated(tickets, 0, 100, tickets.length));
         if (path === `${base}/analyses/${ANALYSIS}`)
           return fulfil(route, { data: analysis });
         if (path === `${results}/sbom/workspaces`)

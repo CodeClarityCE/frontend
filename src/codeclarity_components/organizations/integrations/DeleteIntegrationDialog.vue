@@ -12,7 +12,20 @@ import {
 } from "@/shadcn/ui/dialog";
 
 // Asks before an integration is deleted; the parent does the deletion on confirm.
-defineProps<{ name: string; busy?: boolean }>();
+withDefaults(
+  defineProps<{
+    name: string;
+    busy?: boolean;
+    description?: string;
+    verb?: "Delete" | "Disconnect";
+  }>(),
+  {
+    busy: false,
+    description:
+      "Projects imported through it can no longer be analysed until you add the integration again. This cannot be undone.",
+    verb: "Delete",
+  },
+);
 const open = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{ confirm: [] }>();
 </script>
@@ -21,11 +34,13 @@ const emit = defineEmits<{ confirm: [] }>();
   <Dialog v-model:open="open">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Delete the {{ name }} integration?</DialogTitle>
-        <DialogDescription>
-          Projects imported through it can no longer be analysed until you add
-          the integration again. This cannot be undone.
-        </DialogDescription>
+        <DialogTitle>
+          <template v-if="verb === 'Disconnect'"
+            >Disconnect {{ name }}?</template
+          >
+          <template v-else>Delete the {{ name }} integration?</template>
+        </DialogTitle>
+        <DialogDescription>{{ description }}</DialogDescription>
       </DialogHeader>
       <DialogFooter class="gap-2">
         <Button variant="outline" @click="open = false">Cancel</Button>
@@ -36,7 +51,7 @@ const emit = defineEmits<{ confirm: [] }>();
             class="animate-spin motion-reduce:animate-none"
           />
           <Trash2 v-else aria-hidden="true" />
-          Delete integration
+          {{ verb === "Disconnect" ? "Disconnect" : "Delete integration" }}
         </Button>
       </DialogFooter>
     </DialogContent>

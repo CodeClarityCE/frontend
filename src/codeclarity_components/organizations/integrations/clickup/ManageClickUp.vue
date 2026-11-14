@@ -6,6 +6,7 @@ import { RouterLink } from "vue-router";
 
 import { StatusBadge } from "@/base_components/page";
 import ClickUpConfigModal from "@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue";
+import { connectionFailureText } from "@/codeclarity_components/tickets/integrations/connection-test";
 import {
   ExternalTicketProvider,
   type IntegrationConfigSummary,
@@ -27,6 +28,9 @@ import { errorToast, successToast } from "@/utils/toasts";
 import DeleteIntegrationDialog from "../DeleteIntegrationDialog.vue";
 
 const props = defineProps<{ orgId: string }>();
+
+const CLICKUP_DELETE_TEXT =
+  "Tickets stop syncing to ClickUp. Tasks already in ClickUp stay there.";
 
 const authStore = useAuthStore();
 const ticketsRepository = new TicketsRepository();
@@ -83,7 +87,7 @@ async function testConnection(): Promise<void> {
         }
       : {
           success: false,
-          message: response.data.error ?? "The connection test failed",
+          message: connectionFailureText(response.data),
         };
   } catch {
     testResult.value = {
@@ -263,6 +267,7 @@ onMounted(() => void fetchClickUpConfig());
     <DeleteIntegrationDialog
       v-model:open="confirmOpen"
       name="ClickUp"
+      :description="CLICKUP_DELETE_TEXT"
       :busy="isDeleting"
       @confirm="deleteIntegration"
     />

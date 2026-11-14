@@ -63,6 +63,10 @@ const captures: Record<string, [string, string]> = {
     "GET /org/:org/policies/license_policy/:policy",
     `/org/${org}/policies/license_policy/${policy}`,
   ],
+  "license-policy-list": [
+    "GET /org/:org/policies/license_policy",
+    `/org/${org}/policies/license_policy?page=0&entries_per_page=100`,
+  ],
 };
 
 for (const [name, [endpoint, path]] of Object.entries(captures)) {

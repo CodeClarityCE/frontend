@@ -13,6 +13,8 @@ function paginated(all: unknown[], url: string): Record<string, unknown> {
   const size = asked > 0 ? Math.min(asked, 100) : 10;
   const data = all.slice(page * size, (page + 1) * size);
   return {
+    status_code: 200,
+    status: "success",
     data,
     page,
     entry_count: data.length,
@@ -21,7 +23,6 @@ function paginated(all: unknown[], url: string): Record<string, unknown> {
     total_pages: Math.ceil(all.length / size),
     matching_count: all.length,
     filter_count: {},
-    status: "success",
   };
 }
 
@@ -86,9 +87,10 @@ export const vulnerabilityPolicies = [
     id: "vp-1",
     name: "Ignore disputed",
     description: "CVEs the team disputed",
-    policy_type: "BLACKLIST",
+    policy_type: "VULNERABILITY_POLICY",
     default: false,
     created_on: "2025-01-01T00:00:00Z",
+    created_by: "",
     content: ["CVE-2024-0001", "CVE-2024-0002"],
   },
 ];
@@ -98,9 +100,10 @@ export const licensePolicies = [
     id: "lp-1",
     name: "No copyleft",
     description: "Strong copyleft is not allowed",
-    policy_type: "BLACKLIST",
+    policy_type: "LICENSE_POLICY",
     default: true,
     created_on: "2025-01-01T00:00:00Z",
+    created_by: "",
     content: ["GPL-3.0", "AGPL-3.0"],
   },
 ];

@@ -11,6 +11,7 @@ import { Skeleton } from "@/shadcn/ui/skeleton";
 
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import {
+  aiAssessments,
   detailsRoute,
   findingSignals,
   formatPercent,
@@ -213,9 +214,15 @@ function cweUrl(id: string): string {
                 </a>
               </dd>
             </div>
-            <div v-if="finding.VLAI?.length" class="flex flex-col gap-1">
+            <div
+              v-if="aiAssessments(finding.VLAI).length"
+              class="flex flex-col gap-1"
+            >
               <dt class="font-medium text-foreground-strong">AI assessment</dt>
-              <dd v-for="vlai in finding.VLAI" :key="vlai.Source">
+              <dd
+                v-for="vlai in aiAssessments(finding.VLAI)"
+                :key="vlai.Source"
+              >
                 {{ vlai.Source }}: {{ vlai.Score }},
                 {{ Math.round(vlai.Confidence * 100) }}% confident
               </dd>

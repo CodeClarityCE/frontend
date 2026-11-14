@@ -2,7 +2,12 @@
 import type { StatusTone } from "@/base_components/page";
 import { severityLevel } from "@/utils/severity";
 
-import type { Severity, VulnerabilityMerged, WeaknessInfo } from "./VulnStats";
+import type {
+  Severity,
+  VLAI,
+  VulnerabilityMerged,
+  WeaknessInfo,
+} from "./VulnStats";
 
 export interface OwaspCategory {
   id: string;
@@ -193,11 +198,21 @@ export interface PatchStatus {
   tone: StatusTone;
 }
 
-export function patchStatus(patchType: string): PatchStatus {
+// A dependency with no patching result has an unknown patch status.
+export function patchStatus(patchType: string | undefined): PatchStatus {
   if (patchType === "FULL") return { label: "Patchable", tone: "success" };
   if (patchType === "PARTIAL")
     return { label: "Partially patchable", tone: "warning" };
-  return { label: "Not patchable", tone: "danger" };
+  if (patchType === "NONE") return { label: "Not patchable", tone: "danger" };
+  return { label: "Patch status unknown", tone: "neutral" };
+}
+
+// The AI assessments that carry a score; the API sends empty ones too.
+export function aiAssessments(vlai: VLAI[] | null | undefined): VLAI[] {
+  return (vlai ?? []).filter((entry) => {
+    const score = String(entry.Score ?? "").trim();
+    return score !== "" && score !== "null" && score !== "undefined";
+  });
 }
 
 // What a new ticket needs to know about a finding.

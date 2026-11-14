@@ -21,6 +21,8 @@ const {
   isLoading,
   defaultOrg,
   refreshData,
+  quickStats,
+  recentVulns,
 } = useDashboardData();
 </script>
 
@@ -75,8 +77,14 @@ const {
         @retry="refreshData"
       />
       <template v-else>
-        <DashboardQuickStats :integration-ids="activeIntegrationIds" />
-        <DashboardCharts :integration-ids="activeIntegrationIds" />
+        <DashboardQuickStats
+          :quick-stats="quickStats"
+          :recent-vulns="recentVulns"
+        />
+        <DashboardCharts
+          :integration-ids="activeIntegrationIds"
+          :recent-vulns="recentVulns"
+        />
       </template>
     </section>
   </div>

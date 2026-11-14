@@ -402,7 +402,7 @@ test.describe("OAuth callback", () => {
   test("returns to sign in when the state does not match", async ({ page }) => {
     await seedAuthStore(page, { socialAuthState: "other" });
     await page.goto(callback);
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login\?notice=oauth_failed$/);
   });
 
   test("shows progress while signing in", async ({ page }) => {

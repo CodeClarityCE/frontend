@@ -28,6 +28,8 @@ import { filterUndefined } from "@/utils/form/filterUndefined";
 
 import TextLink from "../layout/TextLink.vue";
 
+import { loginRoute, redirectAfterLogin } from "./login-route";
+
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
 
@@ -94,13 +96,19 @@ async function submit(values: {
     authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
     authStore.setAuthenticated(true);
     userStore.setUser(user);
-    void router.push("/");
+    void router.push(redirectAfterLogin(router.currentRoute.value.query));
   } catch (_err) {
     error.value = true;
 
     if (_err instanceof BusinessLogicError) {
       if (_err.error_code === "AccountNotActivated") {
-        void router.push("/trial");
+        void router.replace(
+          loginRoute({
+            notice: "not_activated",
+            redirect: redirectAfterLogin(router.currentRoute.value.query),
+          }),
+        );
+        return;
       }
       errorCode.value = _err.error_code;
     }

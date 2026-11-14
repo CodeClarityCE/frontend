@@ -1,5 +1,6 @@
 import { type Edge, type Node, Position } from "@vue-flow/core";
 
+import type { StageBase } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 
 export interface AnalyzerNode extends Node {
@@ -103,6 +104,41 @@ export function createAnalyzerNodes(plugins: Plugin[]): {
   });
 
   return { nodes, edges };
+}
+
+/** Draws a saved workflow: one column per stage, edges from plugin dependencies. */
+export function createNodesFromSteps(
+  steps: StageBase[][],
+  plugins: Plugin[],
+): { nodes: AnalyzerNode[]; edges: Edge[] } {
+  const nodes: AnalyzerNode[] = [];
+  steps.forEach((stage, stageIndex) => {
+    stage.forEach((step, row) => {
+      // A plugin that is no longer installed is still drawn, without dependencies.
+      const plugin = plugins.find((p) => p.name === step.name) ?? {
+        name: step.name,
+        version: step.version,
+        description: "",
+        depends_on: [],
+        config: {},
+      };
+      nodes.push({
+        id: `analyzer-${step.name}`,
+        type: "analyzer",
+        position: { x: stageIndex * 500, y: row * 300 },
+        data: {
+          label: step.name,
+          plugin,
+          version: step.version,
+          description: plugin.description,
+          stage: stageIndex,
+        },
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right,
+      });
+    });
+  });
+  return { nodes, edges: createEdgesFromNodes(nodes) };
 }
 
 export function createEdgesFromNodes(analyzerNodes: AnalyzerNode[]): Edge[] {

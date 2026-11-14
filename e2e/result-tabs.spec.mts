@@ -96,6 +96,66 @@ test.describe("SBOM results", () => {
     await expect(open).toBeFocused();
   });
 
+  for (const [manager, command, lockfile] of [
+    ["NPM", "npm install express@^5.0.1 lodash@^4.17.21", "package-lock.json"],
+    ["YARN", "yarn add express@^5.0.1 lodash@^4.17.21", "yarn.lock"],
+    ["PNPM", "pnpm add express@^5.0.1 lodash@^4.17.21", "pnpm-lock.yaml"],
+    [
+      "composer",
+      "composer require express:^5.0.1 lodash:^4.17.21",
+      "composer.lock",
+    ],
+  ] as const) {
+    test(`the update dialog gives ${manager} commands`, async ({ page }) => {
+      const tabs = new ResultTabsPage(page);
+      await tabs.signIn({
+        workspaces: {
+          workspaces: ["."],
+          package_manager: "multi-language",
+          package_managers: { ".": manager },
+        },
+      });
+      await tabs.goto();
+
+      await page
+        .getByRole("button", { name: "Update 2 direct dependencies" })
+        .click();
+      const dialog = page.getByRole("dialog", {
+        name: "Update direct dependencies",
+      });
+      await expect(dialog.getByLabel("Update commands")).toHaveText(command);
+      await expect(dialog).toContainText(`The commands update ${lockfile}`);
+      await expect(
+        dialog.getByRole("button", { name: "Copy commands" }),
+      ).toBeEnabled();
+    });
+  }
+
+  test("the update dialog explains an unknown package manager", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({
+      workspaces: { workspaces: ["."], package_manager: "multi-language" },
+    });
+    await tabs.goto();
+
+    await page
+      .getByRole("button", { name: "Update 2 direct dependencies" })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "Update direct dependencies",
+    });
+    await expect(dialog).toContainText(
+      "CodeClarity could not tell which package manager this workspace uses",
+    );
+    await expect(dialog).not.toContainText("yarn");
+    await expect(
+      dialog.getByRole("button", { name: "Copy commands" }),
+    ).toBeDisabled();
+    await expectNoAxeViolations(page);
+  });
+
   test("Tab reaches the actions, search and table with visible focus", async ({
     page,
   }) => {

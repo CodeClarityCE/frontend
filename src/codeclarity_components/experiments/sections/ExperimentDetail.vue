@@ -12,6 +12,7 @@ import { useRoute } from "vue-router";
 import DataTablePagination from "@/base_components/data-table/DataTablePagination.vue";
 import {
   BrandEmphasis,
+  FrozenBadge,
   PageHeading,
   StatusBadge,
 } from "@/base_components/page";
@@ -675,13 +676,7 @@ onUnmounted(() => clearTimeout(pollTimer));
                   >
                     Results
                   </h2>
-                  <span
-                    v-if="selectedVersion"
-                    class="inline-flex items-center gap-1 rounded-full bg-neutral-subtle px-2.5 py-0.5 text-xs font-semibold text-neutral"
-                  >
-                    <Lock aria-hidden="true" class="size-3" />
-                    Frozen
-                  </span>
+                  <FrozenBadge v-if="selectedVersion" />
                 </div>
                 <p
                   v-if="selectedVersion"

@@ -24,6 +24,7 @@ Shared pieces for migrated pages. Build new screens from these and the shadcn co
 - **StatTile**: one number with a `label`, a `value` and an optional `hint`. It renders an `<li>`, so put tiles in a `<ul aria-label="...">`.
 - **StatusBadge**: a status in words with the shared status colours. Props `tone` (`success`, `warning`, `danger`, `neutral`), `label`, and `busy` for a spinner.
 - **SeverityBadge**: a severity in words ("Critical", "High", ...) on the severity ramp, never brand green. Pass a CVSS `score` (also shown) or a `level`; `severityLevel()` in `@/utils/severity` gives the band of a score.
+- **FrozenBadge**: the neutral "Frozen" pill with a lock, for published results that no longer change.
 - **OwlEmptyState**: the owl, a `title`, a `description` (prop or slot) and the next step in the default slot, usually `<Button :as="RouterLink" to="..." arrow>`.
 - **DataTable** (`@/base_components/data-table`): tanstack table on the shadcn `Table`, with sorting, an optional filter box and pagination, all on the rows it is given (load every row first). Props:
   - `columns` (tanstack `ColumnDef[]`; the `header` string labels the sort button; `enableSorting: false` or `enableGlobalFilter: false` opt a column out), `data`, `caption` (screen reader name);

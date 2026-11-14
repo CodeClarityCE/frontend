@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ArrowLeft } from "@lucide/vue";
 import { computed, type Ref, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 
 import { PageHeading, SeverityBadge, StatTile } from "@/base_components/page";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
@@ -33,7 +33,6 @@ const props = withDefaults(
   { showBack: false, runIndex: null },
 );
 
-const router = useRouter();
 const route = useRoute();
 const resultsRepository = new ResultsRepository();
 const userStore = useUserStore();
@@ -141,8 +140,8 @@ const LINK =
 
 <template>
   <div class="flex flex-col gap-8">
-    <div v-if="showBack && !notFound">
-      <Button variant="ghost" size="sm" @click="router.back()">
+    <div v-if="showBack && !notFound && backTo">
+      <Button variant="ghost" size="sm" :as="RouterLink" :to="backTo">
         <ArrowLeft aria-hidden="true" class="size-4" />
         Back to results
       </Button>

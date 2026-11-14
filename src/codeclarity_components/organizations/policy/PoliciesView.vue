@@ -5,7 +5,9 @@ import {
   computed,
   defineAsyncComponent,
   ref,
+  watch,
 } from "vue";
+import { useRoute } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import {
@@ -38,8 +40,25 @@ const props = defineProps<{
   action?: string;
 }>();
 
-const activeTab = ref(
-  props.page === "vulnerability-policy" ? "vulnerability" : "license",
+const route = useRoute();
+
+// The selected tab lives in the URL; the vulnerability policy page opens on its tab.
+function tabFromUrl(): string {
+  const tab = route.query.tab;
+  if (tab === "license" || tab === "vulnerability") return tab;
+  return props.page === "vulnerability-policy" ? "vulnerability" : "license";
+}
+
+const activeTab = ref(tabFromUrl());
+watch(activeTab, (tab) => {
+  if (route.query.tab !== tab)
+    void router.replace({ query: { ...route.query, tab } });
+});
+watch(
+  () => route.query.tab,
+  () => {
+    activeTab.value = tabFromUrl();
+  },
 );
 
 // The list shows both kinds in tabs; add and edit open one kind's form.

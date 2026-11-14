@@ -323,6 +323,15 @@ export function usesLoggedOutLayout(to: RouteLocationNormalized): boolean {
   return to.meta.loggedOutLayout === true;
 }
 
+// Remounts the page on any URL change except the selected tab, which pages handle themselves.
+export function viewKey(to: RouteLocationNormalized): string {
+  const query = Object.entries(to.query)
+    .filter(([name]) => name !== "tab")
+    .map(([name, value]) => `${name}=${String(value)}`)
+    .join("&");
+  return `${to.path}?${query}${to.hash}`;
+}
+
 declare module "vue-router" {
   interface RouteMeta {
     // Opens without signing in.

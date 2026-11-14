@@ -210,7 +210,7 @@ void fetchVcsIntegrations();
       </p>
     </div>
 
-    <LocalUploadComponent v-if="showLocalUpload" />
+    <LocalUploadComponent v-if="showLocalUpload" @cancel="goBackToSelection" />
     <PopularGithubImportComponent
       v-else-if="popularGithub && selectedVCS"
       :integration="selectedVCS.id"

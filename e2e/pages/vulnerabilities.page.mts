@@ -3,8 +3,8 @@ import { type Locator, type Page, type Route } from "@playwright/test";
 import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
-export const PROJECT = "proj-1";
-export const ANALYSIS = "an-1";
+export const PROJECT = "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03";
+export const ANALYSIS = "2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04";
 
 const project = {
   id: PROJECT,

@@ -26,6 +26,9 @@ import { useUserStore } from "@/stores/user";
 import { guardSubmit } from "@/utils/form/guardSubmit";
 import { successToast } from "@/utils/toasts";
 
+// Cancel hands control back to the import method picker.
+const emit = defineEmits<{ cancel: [] }>();
+
 // Repositories
 const projectsRepo = new ProjectRepository();
 const fileRepo = new FileRepository();
@@ -330,7 +333,7 @@ function removeFile(): void {
             type="button"
             variant="outline"
             :disabled="isUploading"
-            @click="router.back()"
+            @click="emit('cancel')"
           >
             Cancel
           </Button>

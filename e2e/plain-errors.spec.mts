@@ -135,19 +135,22 @@ test.describe("One plain error per failure", () => {
 
     const name = page.getByRole("textbox", { name: "Name" });
     const description = page.getByRole("textbox", { name: "Description" });
+    const create = page.getByRole("button", { name: "Create organisation" });
     await name.fill("n".repeat(51));
     await description.fill("d".repeat(251));
-    await page.getByRole("button", { name: "Create organisation" }).click();
+    await create.click();
 
     await expect(name).toHaveAccessibleDescription(/At most 50 characters/);
     await expect(description).toHaveAccessibleDescription(
       /At most 250 characters/,
     );
+    // Waits for the refused submit to finish before typing valid values.
+    await expect(create).toBeEnabled();
     expect(orgs.created).toEqual([]);
 
     await name.fill("n".repeat(50));
     await description.fill("d".repeat(250));
-    await page.getByRole("button", { name: "Create organisation" }).click();
+    await create.click();
     await expect.poll(() => orgs.created.length).toBe(1);
   });
 

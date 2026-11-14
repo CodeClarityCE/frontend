@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ArrowLeft, LoaderCircle } from "@lucide/vue";
 import type { Edge } from "@vue-flow/core";
-import { type Ref, ref } from "vue";
+import { computed, type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
@@ -38,6 +38,7 @@ import AnalyzerTemplateSelector from "./shared/AnalyzerTemplateSelector.vue";
 import { initializeDefaultNodes } from "./shared/analyzerUtils";
 import { useAnalyzerForm } from "./shared/useAnalyzerForm";
 import WorkflowDesigner from "./shared/WorkflowDesigner.vue";
+import { workflowProblem } from "./shared/workflowRules";
 
 const props = defineProps<{
   page?: string;
@@ -59,6 +60,15 @@ const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
 const submitting = ref(false);
 
+// Why the workflow on the canvas cannot be saved, shown once the user tried.
+const workflowError = computed(() =>
+  workflowProblem(
+    nodes.value
+      .filter((n): n is AnalyzerNode => n.type === "analyzer")
+      .map((n) => n.data.plugin),
+  ),
+);
+
 const listRoute = {
   name: "orgs",
   params: { action: "manage", page: "analyzers", orgId: props.orgId },
@@ -79,20 +89,32 @@ function setNodes(next: AnalyzerNode[]): void {
   edges.value = createEdgesFromNodes(next);
 }
 
-// A template fills in the form and replaces the workflow.
-function onTemplateChanged(template: AnalyzerTemplate): void {
+// A template fills in the form and replaces the workflow; Custom puts back the default one.
+function onTemplateChanged(template: AnalyzerTemplate | null): void {
+  if (!template) {
+    supportedLanguages.value = ["javascript"];
+    languageConfig.value = {};
+    logo.value = "js";
+    setNodes(initializeDefaultNodes(plugins.value));
+    return;
+  }
   name.value = template.name;
   description.value = template.description;
   supportedLanguages.value = [...template.supported_languages];
   languageConfig.value = { ...template.language_config };
   logo.value = template.logo;
-  const templateNodes = initializeDefaultNodes(plugins.value, template.steps);
-  if (templateNodes.length > 0) setNodes(templateNodes);
+  setNodes(initializeDefaultNodes(plugins.value, template.steps));
 }
 
 async function submit(): Promise<void> {
   submitted.value = true;
-  if (!isValid.value || !authStore.getToken || submitting.value) return;
+  if (
+    !isValid.value ||
+    workflowError.value ||
+    !authStore.getToken ||
+    submitting.value
+  )
+    return;
 
   submitting.value = true;
   try {
@@ -184,6 +206,13 @@ void init();
             v-model:edges="edges"
             :plugins="plugins"
           />
+          <p
+            v-if="submitted && workflowError"
+            role="alert"
+            class="mt-3 text-sm text-destructive"
+          >
+            {{ workflowError }}
+          </p>
         </CardContent>
       </Card>
 

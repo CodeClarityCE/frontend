@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { ticket, TicketsPage } from "./pages/tickets.page.mjs";
+import { sampleTickets, ticket, TicketsPage } from "./pages/tickets.page.mjs";
 
 // Waits for dialogs to finish fading in so axe sees the final colours.
 async function axe(page: Page): Promise<void> {
@@ -383,5 +383,116 @@ test.describe("ClickUp authorisation callback", () => {
 
     await page.getByRole("link", { name: "Go to Tickets" }).click();
     await expect(page).toHaveURL(/\/tickets$/);
+  });
+});
+
+test.describe("Tickets read the same everywhere", () => {
+  const synced = ticket(
+    "t-1",
+    "CVE-2026-0001: lodash prototype pollution",
+    "RESOLVED",
+    "HIGH",
+    {
+      external_status: "complete",
+      has_external_links: true,
+    },
+  );
+  const wontFix = ticket("t-4", "CVE-2026-0004: minimist", "WONT_FIX", "LOW");
+
+  test("the board has a column for every status, adding up to the total", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({ tickets: [...sampleTickets, wontFix] });
+    await tickets.goto();
+    await page.getByRole("button", { name: "Kanban" }).click();
+
+    await expect(
+      page.getByRole("list", { name: "Won't Fix, 1 ticket" }),
+    ).toContainText("minimist");
+    const stats = page.getByRole("list", { name: "Ticket numbers" });
+    await expect(stats.getByRole("listitem").first()).toHaveText(/Total\s*4/);
+    await expect(page.locator("main li[draggable]")).toHaveCount(4);
+  });
+
+  test("a synced ticket shows the same status in the list, board and detail", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({
+      tickets: [synced],
+      detail: { status: "RESOLVED", external_status: "complete" },
+    });
+    await tickets.goto();
+
+    await expect(tickets.rows().first().locator("td").nth(1)).toHaveText(
+      "Resolved",
+    );
+    await page.getByRole("button", { name: "Kanban" }).click();
+    await expect(
+      page.getByRole("list", { name: "Resolved, 1 ticket" }),
+    ).toContainText("lodash");
+    await page.getByRole("button", { name: /lodash/ }).click();
+    await expect(
+      tickets.detail().getByText("Resolved", { exact: true }),
+    ).toBeVisible();
+    await expect(tickets.detail()).not.toContainText("complete");
+  });
+
+  test("the detail words the exploit chance as the vulnerability pages do", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto("/tickets?ticket_id=t-1");
+
+    await expect(tickets.detail()).toContainText(
+      "Higher than 90.0% of vulnerabilities",
+    );
+    await expect(tickets.detail()).not.toContainText("top 90");
+  });
+
+  test("the description is rendered and references are listed once", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    const advisory = { url: "https://example.com/advisory", tags: [] };
+    await tickets.signIn({
+      detail: {
+        description:
+          "#### Prototype Pollution in lodash.\n\nUpgrade to **4.17.21**.",
+      },
+      vulnerability: {
+        references: [
+          advisory,
+          { url: "https://example.com/other", tags: [] },
+          advisory,
+        ],
+      },
+    });
+    await tickets.goto("/tickets?ticket_id=t-1");
+    const detail = tickets.detail();
+
+    await expect(
+      detail.getByRole("heading", { name: "Prototype Pollution in lodash." }),
+    ).toBeVisible();
+    await expect(detail).not.toContainText("####");
+    await expect(detail).not.toContainText("**");
+    await expect(
+      detail.getByRole("button", { name: "References (2)" }),
+    ).toBeVisible();
+  });
+
+  test("status badges stay on one line", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({ tickets: [...sampleTickets, wontFix] });
+    await page.setViewportSize({ width: 900, height: 1024 });
+    await tickets.goto();
+
+    for (const label of ["In Progress", "Won't Fix"]) {
+      const badge = tickets.rows().getByText(label, { exact: true });
+      const box = await badge.boundingBox();
+      expect(box?.height ?? 0).toBeLessThan(26);
+    }
   });
 });

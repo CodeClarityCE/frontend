@@ -4,6 +4,7 @@ import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   finding,
+  sampleDetails,
   VulnerabilitiesPage,
 } from "./pages/vulnerabilities.page.mjs";
 
@@ -392,5 +393,30 @@ test.describe("Tickets from vulnerability results", () => {
     await expect(
       vulns.cards.first().getByRole("button", { name: "Create Ticket" }),
     ).toBeVisible();
+  });
+});
+
+test.describe("Vulnerability details references", () => {
+  test("lists each reference once", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    const advisory = { url: "https://example.com/advisory", tags: ["Patch"] };
+    await vulns.signIn({
+      details: {
+        ...sampleDetails,
+        references: [
+          advisory,
+          { url: "https://example.com/other", tags: [] },
+          advisory,
+        ],
+      },
+    });
+    await vulns.gotoDetails();
+
+    await expect(
+      page.getByRole("link", { name: /example\.com\/advisory/ }),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole("link", { name: /example\.com\/other/ }),
+    ).toHaveCount(1);
   });
 });

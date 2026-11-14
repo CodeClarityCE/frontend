@@ -148,6 +148,9 @@ export class TicketsPage {
       // Page size the mocked API serves, to test fetching every page.
       pageSize?: number;
       fail?: boolean;
+      // Fields that replace the sample detail's and vulnerability's.
+      detail?: Record<string, unknown>;
+      vulnerability?: Record<string, unknown>;
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -174,13 +177,15 @@ export class TicketsPage {
         return fulfil(route, { data: options.integrations ?? [] });
       }
       if (path.endsWith("/vulnerability")) {
-        return fulfil(route, { data: sampleVulnerability });
+        return fulfil(route, {
+          data: { ...sampleVulnerability, ...options.vulnerability },
+        });
       }
       if (request.method() === "PATCH") {
         this.updates.push(request.postDataJSON());
         return fulfil(route, { status_code: 200, status: "success" });
       }
-      return fulfil(route, { data: sampleDetail });
+      return fulfil(route, { data: { ...sampleDetail, ...options.detail } });
     });
     return release;
   }

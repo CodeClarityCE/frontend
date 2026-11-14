@@ -86,6 +86,12 @@ const recentVulns = {
       cwe: "CWE-400",
       cwe_name: "Uncontrolled Resource Consumption",
     },
+    "CVE-2026-0004": {
+      severity: 2.1,
+      severity_class: "LOW",
+      cwe: "CWE-200",
+      cwe_name: "Information Exposure",
+    },
   },
   severity_count: [
     { severity_class: "CRITICAL", count: 2 },
@@ -95,13 +101,15 @@ const recentVulns = {
   ],
 };
 
-function week(
+/** One week of exposure as the API sends it: an ISO week number and year. */
+export function week(
   n: number,
   summed: number,
   counts: [number, number, number, number, number],
+  year = 2026,
 ): Record<string, unknown> {
   return {
-    week_number: { week: n, year: 2026 },
+    week_number: { week: n, year },
     summed_severity: summed,
     nmb_critical: counts[0],
     nmb_high: counts[1],
@@ -170,6 +178,8 @@ export class DashboardPage {
   readonly heading: Locator;
   readonly research: Locator;
   readonly projects: Locator;
+  /** How often each endpoint was requested, by path below the organisation */
+  readonly requests = new Map<string, number>();
 
   constructor(page: Page) {
     this.page = page;
@@ -190,8 +200,14 @@ export class DashboardPage {
       published?: Record<string, unknown[]>;
       /** False answers as an organisation with no projects */
       projects?: boolean;
+      /** False answers as an organisation whose projects have no analysis */
+      analyses?: boolean;
       failExperiments?: boolean;
       hold?: boolean;
+      /** Paths below the organisation, e.g. "/meta_data", answered with a 500 */
+      fail?: string[];
+      weeklySeverity?: unknown[];
+      licenseDist?: Record<string, number>;
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -207,6 +223,10 @@ export class DashboardPage {
         `/api/org/${ORG}`,
         "",
       );
+      this.requests.set(path, (this.requests.get(path) ?? 0) + 1);
+      if (options.fail?.includes(path)) {
+        return route.fulfill({ status: 500, json: { status: "failure" } });
+      }
       if (path === "/datasets") {
         return fulfil(route, paginated(options.datasets ?? sampleDatasets));
       }
@@ -236,12 +256,14 @@ export class DashboardPage {
       if (path === "/tickets/stats")
         return fulfil(route, { data: ticketStats });
       const dashboard: Record<string, unknown> = {
-        "/dashboard/quick_stats": withProjects
-          ? quickStats
-          : { ...quickStats, nmb_projects: 0 },
+        "/dashboard/quick_stats":
+          withProjects && (options.analyses ?? true)
+            ? quickStats
+            : { ...quickStats, nmb_projects: 0 },
         "/dashboard/recent_vulns": recentVulns,
-        "/dashboard/weekly_severity_info": weeklySeverity,
-        "/dashboard/overall_license_dist": licenseDist,
+        "/dashboard/weekly_severity_info":
+          options.weeklySeverity ?? weeklySeverity,
+        "/dashboard/overall_license_dist": options.licenseDist ?? licenseDist,
         "/dashboard/overall_cia_impact": ciaImpact,
       };
       if (path in dashboard) return fulfil(route, { data: dashboard[path] });

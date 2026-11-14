@@ -87,6 +87,7 @@ function describe(index: number): string {
       :describe="describe"
       caption="Dependencies by licence"
       x-title="Licence"
+      integer
     />
   </CardState>
 </template>

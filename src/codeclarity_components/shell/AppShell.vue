@@ -5,6 +5,7 @@ import { SidebarInset, SidebarProvider } from "@/shadcn/ui/sidebar";
 
 import AppSidebar from "./AppSidebar.vue";
 import CommandPalette from "./CommandPalette.vue";
+import MobileHeader from "./MobileHeader.vue";
 
 const paletteOpen = ref(false);
 </script>
@@ -17,9 +18,16 @@ const paletteOpen = ref(false);
       >Skip to content</a
     >
     <AppSidebar @open-palette="paletteOpen = true" />
-    <SidebarInset id="main-content" tabindex="-1" class="min-w-0 outline-none">
-      <slot />
-    </SidebarInset>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <MobileHeader />
+      <SidebarInset
+        id="main-content"
+        tabindex="-1"
+        class="min-w-0 outline-none"
+      >
+        <slot />
+      </SidebarInset>
+    </div>
     <CommandPalette v-model:open="paletteOpen" />
   </SidebarProvider>
 </template>

@@ -23,6 +23,7 @@ import { Label } from "@/shadcn/ui/label";
 import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { guardSubmit } from "@/utils/form/guardSubmit";
 import { successToast } from "@/utils/toasts";
 
 // Repositories
@@ -66,6 +67,7 @@ const [name] = form.defineField("name");
 const [description] = form.defineField("description");
 const nameError = computed(() => form.errors.value.name);
 const descriptionError = computed(() => form.errors.value.description);
+const isSubmitting = form.isSubmitting;
 const fileInput = ref<HTMLInputElement | null>(null);
 
 // File validation
@@ -132,8 +134,7 @@ function clearFile(): void {
   uploadError.value = null;
 }
 
-// Submit handler
-const onSubmit = form.handleSubmit(async (values) => {
+const submitForm = form.handleSubmit(async (values) => {
   if (!selectedFile.value) {
     uploadError.value = "Please select a file to upload.";
     return;
@@ -193,6 +194,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     isUploading.value = false;
   }
 });
+
+// Ignored while a submit is already running
+const onSubmit = guardSubmit(isSubmitting, submitForm);
 
 // Clears the native input too, so the same file can be picked again.
 function removeFile(): void {
@@ -314,7 +318,11 @@ function removeFile(): void {
         </Alert>
 
         <div class="flex gap-3">
-          <Button type="submit" :disabled="isUploading || !selectedFile" arrow>
+          <Button
+            type="submit"
+            :disabled="isSubmitting || isUploading || !selectedFile"
+            arrow
+          >
             {{ isUploading ? "Uploading" : "Create project and upload" }}
           </Button>
           <Button

@@ -29,18 +29,9 @@ import {
   TicketPriorityLabels,
   TicketType,
   TicketTypeLabels,
+  type VulnerabilityData,
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
-
-export interface VulnerabilityData {
-  vulnerability_id: string;
-  severity_score?: number;
-  severity_class?: string;
-  affected_package?: string;
-  affected_version?: string;
-  description?: string;
-  recommended_version?: string;
-}
 
 const props = defineProps<{
   projectId: string;

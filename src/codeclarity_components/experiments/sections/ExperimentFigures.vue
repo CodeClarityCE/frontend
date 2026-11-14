@@ -91,6 +91,7 @@ const name = ref("");
 /** The saved Figure being edited, null for a new one */
 const openFigureId = ref<string | null>(null);
 const confirmingDelete = ref<string | null>(null);
+const deletingFigure = ref(false);
 const saving = ref(false);
 /** The version the selector shows; moving needs the button */
 const chosenVersion = ref(NONE);
@@ -474,7 +475,8 @@ async function saveFigure(): Promise<void> {
 
 async function deleteFigure(figureId: string): Promise<void> {
   const context = requestContext();
-  if (!context) return;
+  if (!context || deletingFigure.value) return;
+  deletingFigure.value = true;
   try {
     await experimentsRepository.deleteFigure({
       ...context,
@@ -488,6 +490,7 @@ async function deleteFigure(figureId: string): Promise<void> {
   } catch {
     errorToast("Failed to delete the Figure");
   } finally {
+    deletingFigure.value = false;
     confirmingDelete.value = null;
   }
 }
@@ -758,6 +761,7 @@ onMounted(() => void loadFigures());
               v-else
               variant="destructive"
               size="sm"
+              :disabled="deletingFigure"
               data-testid="figure-delete-confirm"
               @click="deleteFigure(figure.id)"
             >

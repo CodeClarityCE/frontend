@@ -50,6 +50,7 @@ import * as z from "zod";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
+import { guardSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import Faq from "./components/FaqComponent.vue";
@@ -112,8 +113,9 @@ const form = useForm<FormValues>({
 });
 const [repository] = form.defineField("repository");
 const repositoryError = computed(() => form.errors.value.repository);
+const isSubmitting = form.isSubmitting;
 
-const onSubmit = form.handleSubmit(async (values) => {
+const submitForm = form.handleSubmit(async (values) => {
   if (!userStore.getDefaultOrg) return;
   if (!authStore.getAuthenticated || !authStore.getToken) return;
   try {
@@ -128,6 +130,9 @@ const onSubmit = form.handleSubmit(async (values) => {
   }
   void router.push({ name: "projects" });
 });
+
+// Ignored while a submit is already running
+const onSubmit = guardSubmit(isSubmitting, submitForm);
 
 // Methods
 /**
@@ -361,7 +366,12 @@ function onSelectedReposChange(repos: Repository[]): void {
               The full URL of the repository.
             </p>
           </div>
-          <Button type="submit" variant="outline" class="w-fit">
+          <Button
+            type="submit"
+            variant="outline"
+            class="w-fit"
+            :disabled="isSubmitting"
+          >
             <Plus aria-hidden="true" />
             Import repository
           </Button>

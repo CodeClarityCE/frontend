@@ -3,6 +3,7 @@ import { ExternalLink } from "@lucide/vue";
 import { computed, ref } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
+import { uniqueReferences } from "@/utils/references";
 
 interface ReferenceInfo {
   url: string;
@@ -15,8 +16,9 @@ const props = defineProps<{
 
 const LIMIT = 8;
 const showAll = ref(false);
+const references = computed(() => uniqueReferences(props.references));
 const shown = computed(() =>
-  showAll.value ? props.references : props.references.slice(0, LIMIT),
+  showAll.value ? references.value : references.value.slice(0, LIMIT),
 );
 
 function host(url: string): string {

@@ -26,9 +26,11 @@ export function ticket(
     severity_score: 7.5,
     severity_class: "HIGH",
     created_on: "2026-10-01T09:00:00Z",
+    updated_on: "2026-10-01T09:00:00Z",
     project_id: "proj-1",
     project_name: "web-frontend",
     has_external_links: false,
+    external_status: null,
     ...overrides,
   };
 }
@@ -56,6 +58,8 @@ export const sampleDetail = {
   affected_version: "4.17.15",
   recommended_version: "4.17.21",
   remediation_notes: "Upgrade lodash to 4.17.21",
+  resolved_on: null,
+  due_date: null,
   created_by_id: "u-1",
   created_by_name: "John Doe",
   external_links: [],
@@ -114,6 +118,7 @@ function paginated(
     total_pages: Math.max(1, Math.ceil(all.length / size)),
     matching_count: all.length,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }
@@ -148,6 +153,9 @@ export class TicketsPage {
       // Page size the mocked API serves, to test fetching every page.
       pageSize?: number;
       fail?: boolean;
+      // Fields that replace the sample detail's and vulnerability's.
+      detail?: Record<string, unknown>;
+      vulnerability?: Record<string, unknown>;
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -174,13 +182,19 @@ export class TicketsPage {
         return fulfil(route, { data: options.integrations ?? [] });
       }
       if (path.endsWith("/vulnerability")) {
-        return fulfil(route, { data: sampleVulnerability });
+        return fulfil(route, {
+          data: { ...sampleVulnerability, ...options.vulnerability },
+        });
       }
       if (request.method() === "PATCH") {
         this.updates.push(request.postDataJSON());
         return fulfil(route, { status_code: 200, status: "success" });
       }
-      return fulfil(route, { data: sampleDetail });
+      return fulfil(route, {
+        status_code: 200,
+        status: "success",
+        data: { ...sampleDetail, ...options.detail },
+      });
     });
     return release;
   }

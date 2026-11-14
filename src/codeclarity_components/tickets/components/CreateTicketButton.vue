@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Ticket } from "@lucide/vue";
+import { Eye, Ticket } from "@lucide/vue";
 import { ref } from "vue";
+import { RouterLink } from "vue-router";
 
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -9,12 +10,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
+import { successToast } from "@/utils/toasts";
 
-import TicketCreateModal, {
-  type VulnerabilityData,
-} from "./TicketCreateModal.vue";
+import { useVulnerabilityTicket } from "../composables/useVulnerabilityTicket";
+import type { VulnerabilityData } from "../tickets.entity";
 
-defineProps<{
+import TicketCreateModal from "./TicketCreateModal.vue";
+
+const props = defineProps<{
   projectId: string;
   projectName?: string;
   vulnerability: VulnerabilityData;
@@ -28,19 +31,36 @@ const emit = defineEmits<{
 }>();
 
 const isModalOpen = ref(false);
+const { ticketId, remember } = useVulnerabilityTicket(
+  () => props.projectId,
+  () => props.vulnerability.vulnerability_id,
+);
 
 function openModal(): void {
   isModalOpen.value = true;
 }
 
-function handleCreated(ticketId: string): void {
-  void emit("created", ticketId);
+function handleCreated(id: string): void {
+  remember(id);
+  successToast("Ticket created");
+  void emit("created", id);
 }
 </script>
 
 <template>
   <div>
-    <TooltipProvider>
+    <Button
+      v-if="ticketId"
+      as-child
+      :size="size || 'sm'"
+      :variant="variant || 'outline'"
+    >
+      <RouterLink :to="{ path: '/tickets', query: { ticket_id: ticketId } }">
+        <Eye aria-hidden="true" />
+        View ticket
+      </RouterLink>
+    </Button>
+    <TooltipProvider v-else>
       <Tooltip>
         <TooltipTrigger as-child>
           <Button

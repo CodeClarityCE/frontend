@@ -1,12 +1,18 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
+import licensePolicyList from "./contracts/license-policy-list.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
 import organizationList from "./contracts/organization-list.json" with { type: "json" };
+import projectTickets from "./contracts/project-tickets.json" with { type: "json" };
+import ticketDetail from "./contracts/ticket-detail.json" with { type: "json" };
 import { shapeDiff } from "./helpers/shape.mjs";
+import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
+import { ticket, TicketsPage } from "./pages/tickets.page.mjs";
+import { VulnerabilitiesPage } from "./pages/vulnerabilities.page.mjs";
 
 // Proves the shape check reports drift, on inline values only.
 test.describe("Shape check", () => {
@@ -84,7 +90,29 @@ const contracts = [
     capture: licensePolicy,
     path: "/api/org/org-123/policies/license_policy/lp-1",
     signIn: (page: Page) => new OrgPoliciesPage(page).signIn(),
-    drift: "#131",
+  },
+  {
+    name: "ticket detail",
+    capture: ticketDetail,
+    path: "/api/org/org-123/tickets/t-1",
+    signIn: (page: Page) => new TicketsPage(page).signIn(),
+  },
+  {
+    name: "project tickets",
+    capture: projectTickets,
+    path: "/api/org/org-123/projects/proj-1/tickets?page=0&entries_per_page=100",
+    signIn: (page: Page) =>
+      new VulnerabilitiesPage(page).signIn({
+        tickets: [ticket("t-9", "CVE-2024-0002: express")],
+      }),
+  },
+  {
+    name: "license policy list",
+    capture: licensePolicyList,
+    path: "/api/org/org-123/policies/license_policy?page=0&entries_per_page=100",
+    signIn: async (page: Page) => {
+      await new AnalysesPage(page).signIn();
+    },
   },
 ];
 

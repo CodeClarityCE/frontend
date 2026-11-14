@@ -39,6 +39,7 @@ import {
 } from "@/shadcn/ui/sheet";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { formatShortDate } from "@/utils/dateUtils";
 import { getOwaspInfoById } from "@/utils/owasp";
 import { errorToast } from "@/utils/toasts";
 
@@ -196,17 +197,6 @@ function close(): void {
   setTimeout(() => emit("close"), 300);
 }
 
-function formatDate(date: Date | undefined): string {
-  if (!date) return "Not set";
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 // Get providers that aren't already linked
 const availableSyncProviders = computed(() => {
   const linkedProviders = new Set(
@@ -276,22 +266,22 @@ const riskBanners: Record<
   { class: string; label: string; recommendation: string }
 > = {
   critical: {
-    class: "bg-severity-critical text-severity-foreground",
+    class: "bg-severity-critical text-severity-critical-foreground",
     label: "Critical",
     recommendation: "Immediate action required",
   },
   high: {
-    class: "bg-severity-high text-severity-foreground",
+    class: "bg-severity-high text-severity-high-foreground",
     label: "High",
     recommendation: "Address as soon as possible",
   },
   medium: {
-    class: "bg-severity-medium text-severity-foreground",
+    class: "bg-severity-medium text-severity-medium-foreground",
     label: "Medium",
     recommendation: "Plan remediation in an upcoming cycle",
   },
   low: {
-    class: "bg-severity-low text-severity-foreground",
+    class: "bg-severity-low text-severity-low-foreground",
     label: "Low",
     recommendation: "Monitor and address when convenient",
   },
@@ -680,19 +670,34 @@ onMounted(() => {
           <div>
             <dt class="text-xs text-muted-foreground">Due date</dt>
             <dd class="text-foreground-strong">
-              {{ formatDate(ticket.due_date) }}
+              {{
+                formatShortDate(ticket.due_date, {
+                  time: true,
+                  fallback: "Not set",
+                })
+              }}
             </dd>
           </div>
           <div>
             <dt class="text-xs text-muted-foreground">Created on</dt>
             <dd class="text-foreground-strong">
-              {{ formatDate(ticket.created_on) }}
+              {{
+                formatShortDate(ticket.created_on, {
+                  time: true,
+                  fallback: "Not set",
+                })
+              }}
             </dd>
           </div>
           <div v-if="ticket.resolved_on">
             <dt class="text-xs text-muted-foreground">Resolved on</dt>
             <dd class="text-foreground-strong">
-              {{ formatDate(ticket.resolved_on) }}
+              {{
+                formatShortDate(ticket.resolved_on, {
+                  time: true,
+                  fallback: "Not set",
+                })
+              }}
             </dd>
           </div>
         </dl>

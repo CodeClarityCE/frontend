@@ -360,10 +360,11 @@ export const TicketPriorityLabels: Record<TicketPriority, string> = {
 
 // Priority uses the severity scale, as a solid fill with light text.
 export const TicketPriorityColors: Record<TicketPriority, string> = {
-  [TicketPriority.CRITICAL]: "bg-severity-critical text-severity-foreground",
-  [TicketPriority.HIGH]: "bg-severity-high text-severity-foreground",
-  [TicketPriority.MEDIUM]: "bg-severity-medium text-severity-foreground",
-  [TicketPriority.LOW]: "bg-severity-low text-severity-foreground",
+  [TicketPriority.CRITICAL]:
+    "bg-severity-critical text-severity-critical-foreground",
+  [TicketPriority.HIGH]: "bg-severity-high text-severity-high-foreground",
+  [TicketPriority.MEDIUM]: "bg-severity-medium text-severity-medium-foreground",
+  [TicketPriority.LOW]: "bg-severity-low text-severity-low-foreground",
 };
 
 // Sorts priorities from the most urgent (0) to the least.

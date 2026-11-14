@@ -11,6 +11,23 @@ const WEEK_MS = 7 * DAY_MS;
 const MONTH_MS = 30 * DAY_MS;
 const YEAR_MS = 365 * DAY_MS;
 
+// A short date such as "Jan 10, 2025", optionally with the time or without the year.
+export function formatShortDate(
+  date: Date | string | null | undefined,
+  options: { time?: boolean; year?: boolean; fallback?: string } = {},
+): string {
+  const { time = false, year = true, fallback = "" } = options;
+  if (!date) return fallback;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  if (!isValidDate(dateObj)) return fallback;
+  return dateObj.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(year ? { year: "numeric" } : {}),
+    ...(time ? { hour: "numeric", minute: "2-digit" } : {}),
+  });
+}
+
 /**
  * Format a date according to common patterns used in the application
  */

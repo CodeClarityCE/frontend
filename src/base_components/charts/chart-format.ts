@@ -16,6 +16,8 @@ export interface GridLineSeries {
   color: string;
   /** A role token per value, for columns coloured one by one (severity) */
   colors?: string[];
+  /** An outline token per value, for light columns that need one against white */
+  strokes?: (string | undefined)[];
   /** 95% interval around values, drawn as error bars or listed in the CSV */
   lower?: (number | null)[];
   upper?: (number | null)[];

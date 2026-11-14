@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { h } from "vue";
 
 import ChartExport from "./ChartExport.vue";
+import ColumnChart from "./ColumnChart.vue";
 import GridLineChart from "./GridLineChart.vue";
 
 const { saveBlob } = vi.hoisted(() => ({ saveBlob: vi.fn() }));
@@ -71,6 +72,8 @@ describe("shared chart layer", () => {
     "var(--viz-series-1)",
     "var(--viz-severity-critical)",
     "var(--viz-severity-low)",
+    "var(--viz-severity-medium-stroke)",
+    "var(--viz-severity-low-stroke)",
     "var(--viz-status-success)",
     "var(--viz-status-danger)",
   ])("exports a chart drawn in %s with every colour resolved", async (role) => {
@@ -80,5 +83,48 @@ describe("shared chart layer", () => {
 
     expect(svg).not.toContain("var(");
     expect(svg).toMatch(/stroke="#[0-9a-f]{6}"/i);
+  });
+
+  it("exports severity columns with the outlines of light colours resolved", async () => {
+    const levels = ["critical", "high", "medium", "low"];
+    render(ChartExport, {
+      props: {
+        name: "severity",
+        data: { columns: ["Severity", "Count"], rows: [] },
+        caption: { description: "Vulnerabilities by severity", n: "n = 10" },
+      },
+      slots: {
+        default: () =>
+          h(ColumnChart, {
+            labels: levels,
+            series: [
+              {
+                key: "count",
+                label: "Vulnerabilities",
+                values: [1, 2, 3, 4],
+                color: "var(--viz-series-1)",
+                colors: levels.map((l) => `var(--viz-severity-${l})`),
+                strokes: [
+                  undefined,
+                  undefined,
+                  "var(--viz-severity-medium-stroke)",
+                  "var(--viz-severity-low-stroke)",
+                ],
+              },
+            ],
+            yMax: 4,
+            formatY: String,
+            describe: (i: number) => levels[i]!,
+            caption: "Vulnerabilities by severity",
+            xTitle: "Severity",
+          }),
+      },
+    });
+
+    const svg = await exportedSvg();
+
+    expect(svg).not.toContain("var(");
+    const outlined = [...svg.matchAll(/<path[^>]*\bstroke="#[0-9a-f]{6}"/gi)];
+    expect(outlined).toHaveLength(2);
   });
 });

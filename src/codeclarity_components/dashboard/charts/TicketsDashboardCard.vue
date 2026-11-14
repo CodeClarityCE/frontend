@@ -11,6 +11,7 @@ import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repo
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { formatShortDate } from "@/utils/dateUtils";
 
 import CardState from "../layout/CardState.vue";
 
@@ -80,13 +81,6 @@ const priorities = computed(() =>
     count: stats.value?.by_priority[key] ?? 0,
   })).filter((entry) => entry.count > 0),
 );
-
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
 </script>
 
 <template>
@@ -152,7 +146,7 @@ function formatDate(date: Date | string): string {
                 <span class="truncate text-foreground">{{ ticket.title }}</span>
               </span>
               <span class="shrink-0 text-xs text-muted-foreground">
-                {{ formatDate(ticket.created_on) }}
+                {{ formatShortDate(ticket.created_on, { year: false }) }}
               </span>
             </RouterLink>
           </li>

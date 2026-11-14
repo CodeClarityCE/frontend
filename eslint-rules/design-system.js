@@ -12,9 +12,14 @@ const PALETTE_RE = new RegExp(
   `(?<![\\w-])(?:${UTILITIES})-(?:(?:${PALETTE})-(?:50|[1-9]00|950)|black|white)(?![\\w-])`,
   "g",
 );
-// The nested groups below split on "-", so they cannot backtrack badly.
-// eslint-disable-next-line security/detect-unsafe-regex
-const THEME_RE = /(?<![\w])(?:[a-z]+-)+theme-(?:primary|black|gray)(?![\w])/g;
+// Legacy theme-<colour> classes and --color-theme-* variables, with any prefix or shade.
+// Non-colour options such as a library's theme-default stay allowed.
+const THEME_COLOURS = `primary|secondary|accent|black|white|grey|${PALETTE}`;
+// Segments split on "-", so the repeated group cannot backtrack badly.
+const THEME_RE = new RegExp(
+  `(?<![\\w-])(?:-?-?[a-z]+-)*theme-(?:${THEME_COLOURS})(?:-[a-z0-9]+)*(?![\\w-])`,
+  "g",
+);
 
 // Iconify sets seen in this codebase plus common ones; anything else is checked only on icon props.
 const KNOWN_ICON_SETS = new Set(

@@ -1,4 +1,5 @@
 export { default as BrandEmphasis } from "./BrandEmphasis.vue";
+export { default as FrozenBadge } from "./FrozenBadge.vue";
 export { default as OwlEmptyState } from "./OwlEmptyState.vue";
 export { default as PageHeading } from "./PageHeading.vue";
 export { default as SeverityBadge } from "./SeverityBadge.vue";

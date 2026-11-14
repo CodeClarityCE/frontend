@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { Lock, Plus } from "@lucide/vue";
+import { Plus } from "@lucide/vue";
 import { RouterLink } from "vue-router";
 
-import { OwlEmptyState, StatusBadge } from "@/base_components/page";
+import {
+  FrozenBadge,
+  OwlEmptyState,
+  StatusBadge,
+} from "@/base_components/page";
 import {
   type Experiment,
   ExperimentRunStatus,
@@ -268,12 +272,7 @@ const linkClass =
                   >
                 </span>
               </div>
-              <span
-                class="inline-flex shrink-0 items-center gap-1 rounded-full bg-neutral-subtle px-2.5 py-0.5 text-xs font-semibold text-neutral"
-              >
-                <Lock aria-hidden="true" class="size-3" />
-                Frozen
-              </span>
+              <FrozenBadge />
             </li>
           </ul>
         </CardContent>

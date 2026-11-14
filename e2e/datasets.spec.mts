@@ -269,6 +269,26 @@ test.describe("New Dataset", () => {
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "datasets-create-errors");
   });
+
+  test("the open integration list passes axe", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoCreate();
+
+    await page.getByRole("combobox").click();
+    await expect(page.getByRole("listbox")).toBeVisible();
+    await page.evaluate(() =>
+      Promise.all(document.getAnimations().map((a) => a.finished)),
+    );
+
+    await expectNoAxeViolations(page);
+
+    // Closing hands focus back and the rest of the form works again.
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("combobox")).toBeFocused();
+    await page.getByLabel("Name").fill("Top npm packages");
+    await expect(page.getByLabel("Name")).toHaveValue("Top npm packages");
+  });
 });
 
 test.describe("Dataset detail", () => {

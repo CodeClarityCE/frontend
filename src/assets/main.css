@@ -89,13 +89,19 @@
   --color-neutral: var(--neutral);
   --color-neutral-subtle: var(--neutral-subtle);
 
-  /* Severity: solid fills with white text, and chart marks */
+  /* Severity: solid fills with their own text colour, and chart marks */
   --color-severity-critical: var(--severity-critical);
   --color-severity-high: var(--severity-high);
   --color-severity-medium: var(--severity-medium);
   --color-severity-low: var(--severity-low);
   --color-severity-none: var(--severity-none);
-  --color-severity-foreground: var(--severity-foreground);
+  --color-severity-critical-foreground: var(--severity-critical-foreground);
+  --color-severity-high-foreground: var(--severity-high-foreground);
+  --color-severity-medium-foreground: var(--severity-medium-foreground);
+  --color-severity-low-foreground: var(--severity-low-foreground);
+  --color-severity-none-foreground: var(--severity-none-foreground);
+  --color-severity-medium-stroke: var(--severity-medium-stroke);
+  --color-severity-low-stroke: var(--severity-low-stroke);
   --color-severity-critical-light: color-mix(
     in srgb,
     var(--severity-critical) 70%,
@@ -229,7 +235,7 @@
     --card-foreground: #212529;
 
     --border: #dee2e6;
-    --input: #dee2e6;
+    --input: #868e96;
 
     /* White on brand green fails AA, so primary text is near-black. */
     --primary: #1dce79;
@@ -266,12 +272,20 @@
     --neutral: #374151;
     --neutral-subtle: #f3f4f6;
 
-    --severity-critical: #7f1d1d;
-    --severity-high: #c2410c;
-    --severity-medium: #a16207;
-    --severity-low: #1d4ed8;
-    --severity-none: #4b5563;
-    --severity-foreground: #ffffff;
+    /* Severity: a red-to-yellow ramp; light fills take dark text */
+    --severity-critical: #9b1c2c;
+    --severity-critical-foreground: #ffffff;
+    --severity-high: #dc3545;
+    --severity-high-foreground: #ffffff;
+    --severity-medium: #fd7e14;
+    --severity-medium-foreground: #111111;
+    --severity-low: #ffc107;
+    --severity-low-foreground: #111111;
+    --severity-none: #6c757d;
+    --severity-none-foreground: #ffffff;
+    /* Outlines and text for the light fills, at least 3:1 on white */
+    --severity-medium-stroke: #a8500a;
+    --severity-low-stroke: #997404;
 
     /* Chart series: apart for colour-blind readers, never brand green */
     --chart-1: #2a78d6;
@@ -328,7 +342,7 @@
     --card-foreground: #f8f9fa;
 
     --border: #2b2f33;
-    --input: #2b2f33;
+    --input: #6c757d;
 
     --primary: #1dce79;
     --primary-hover: #3fd58d;
@@ -364,12 +378,20 @@
     --neutral: #e5e7eb;
     --neutral-subtle: #374151;
 
-    --severity-critical: #7f1d1d;
-    --severity-high: #c2410c;
-    --severity-medium: #a16207;
-    --severity-low: #1d4ed8;
-    --severity-none: #4b5563;
-    --severity-foreground: #ffffff;
+    /* Severity: a red-to-yellow ramp; light fills take dark text */
+    --severity-critical: #9b1c2c;
+    --severity-critical-foreground: #ffffff;
+    --severity-high: #dc3545;
+    --severity-high-foreground: #ffffff;
+    --severity-medium: #fd7e14;
+    --severity-medium-foreground: #111111;
+    --severity-low: #ffc107;
+    --severity-low-foreground: #111111;
+    --severity-none: #6c757d;
+    --severity-none-foreground: #ffffff;
+    /* Outlines and text for the light fills, at least 3:1 on white */
+    --severity-medium-stroke: #a8500a;
+    --severity-low-stroke: #997404;
 
     --chart-1: #3987e5;
     --chart-1-soft: #184f95;
@@ -448,4 +470,19 @@
 
 @utility animate-collapsible-up {
   animation: collapsible-up 0.2s ease-in-out;
+}
+
+/* Reduced motion: decorative animations and transitions finish at once, so
+   state changes (open, close, collapse) still happen, just without motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
 }

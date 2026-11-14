@@ -165,6 +165,34 @@ test.describe("Organisation switcher and user menu", () => {
     await expect(page.getByRole("navigation")).toHaveCount(1);
     await expect(page.getByRole("banner")).toHaveCount(0);
   });
+
+  test("with reduced motion, dialogs and the sidebar change state without animating", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await shell.goto();
+    await page.getByRole("button", { name: "Collapse sidebar" }).click();
+    await page.keyboard.press("ControlOrMeta+k");
+    await expect(shell.palette).toBeVisible();
+
+    // The longest animation or transition on any element, in milliseconds.
+    const longest = await page.evaluate(() => {
+      const ms = (value: string): number[] =>
+        value
+          .split(",")
+          .map((v) => parseFloat(v) * (v.trim().endsWith("ms") ? 1 : 1000));
+      return Math.max(
+        ...[...document.querySelectorAll("*")].flatMap((el) => {
+          const style = getComputedStyle(el);
+          return [
+            ...ms(style.animationDuration),
+            ...ms(style.transitionDuration),
+          ];
+        }),
+      );
+    });
+    expect(longest).toBeLessThanOrEqual(1);
+  });
 });
 
 test.describe("Command palette", () => {

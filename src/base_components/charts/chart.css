@@ -22,6 +22,9 @@
   --viz-severity-medium: var(--severity-medium);
   --viz-severity-low: var(--severity-low);
   --viz-severity-none: var(--severity-none);
+  /* Medium and low columns need an outline to stand out from white */
+  --viz-severity-medium-stroke: var(--severity-medium-stroke);
+  --viz-severity-low-stroke: var(--severity-low-stroke);
   --viz-status-success: var(--success);
   --viz-status-warning: var(--warning);
   --viz-status-danger: var(--danger);

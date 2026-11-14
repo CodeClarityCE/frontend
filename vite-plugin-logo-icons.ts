@@ -17,6 +17,8 @@ const RESOLVED_ID = `\0${MODULE_ID}`;
 const ICON_ID = /\b(simple-icons|devicon):([a-z0-9-]+)/g;
 
 function sourceFiles(dir: string): string[] {
+  // Build-time walk of our own src/ tree, never user input.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) return sourceFiles(path);
@@ -29,6 +31,7 @@ function sourceFiles(dir: string): string[] {
 function findLogoIds(srcDir: string): Map<string, Set<string>> {
   const found = new Map<string, Set<string>>();
   for (const file of sourceFiles(srcDir)) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- paths come from sourceFiles
     for (const [, set, name] of readFileSync(file, "utf8").matchAll(ICON_ID)) {
       if (!found.has(set!)) found.set(set!, new Set());
       found.get(set!)!.add(name!);

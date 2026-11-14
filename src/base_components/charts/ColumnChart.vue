@@ -107,6 +107,7 @@ const bars = computed(() =>
             {
               key: `${series.key}-${groupIndex}`,
               color: series.colors?.[groupIndex] ?? series.color,
+              stroke: series.strokes?.[groupIndex],
               d: barPath(groupIndex, seriesIndex, value),
             },
           ],
@@ -201,6 +202,8 @@ function formatCell(value: number | null): string {
           data-testid="figure-bar"
           :d="bar.d"
           :fill="bar.color"
+          :stroke="bar.stroke"
+          :stroke-width="bar.stroke ? 1 : undefined"
         />
         <g
           v-for="bar in errorBars"

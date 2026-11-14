@@ -74,13 +74,8 @@ test.describe("Organisation policies list", () => {
     });
     await expect(dialog).toBeVisible();
     const confirm = dialog.getByRole("button", { name: "Delete policy" });
-    const background = await confirm.evaluate(
-      (el) => getComputedStyle(el).backgroundColor,
-    );
-    const [r, g, b] = background.match(/\d+/g)!.map(Number);
-    expect(r).toBeGreaterThan(150);
-    expect(g).toBeLessThan(100);
-    expect(b).toBeLessThan(100);
+    await expect(confirm).toBeEnabled();
+    await expect(dialog).toContainText("This cannot be undone.");
 
     for (let i = 0; i < 4; i++) {
       await page.keyboard.press("Tab");

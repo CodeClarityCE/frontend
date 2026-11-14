@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { formatShortDate } from "@/utils/dateUtils";
 import { errorToast } from "@/utils/toasts";
 
 import { type Dataset, DatasetStatus } from "../dataset.entity";
@@ -99,15 +100,6 @@ function schedulePoll(): void {
   }
 }
 
-function formatDate(date: Date | null): string {
-  if (!date) return "Not yet";
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 onMounted(() => void load());
 onUnmounted(() => clearTimeout(pollTimer));
 
@@ -188,7 +180,7 @@ defineExpose({ load });
       </span>
     </template>
     <template #cell-built="{ row }">
-      {{ formatDate(row.built_on) }}
+      {{ formatShortDate(row.built_on, { fallback: "Not yet" }) }}
     </template>
   </DataTable>
 </template>

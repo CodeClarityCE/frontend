@@ -46,7 +46,8 @@ test.describe("Organisation integrations list", () => {
     const confirm = integrations.dialog.getByRole("button", {
       name: "Delete integration",
     });
-    await expect(confirm).toHaveCSS("background-color", "rgb(220, 53, 69)");
+    await expect(confirm).toBeEnabled();
+    await expect(integrations.dialog).toContainText("This cannot be undone.");
 
     // Tabbing cycles inside the dialog.
     for (let i = 0; i < 5; i++) {

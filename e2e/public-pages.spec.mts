@@ -78,6 +78,58 @@ for (const doc of [
   });
 }
 
+test.describe("Legal links", () => {
+  test("every link in the terms of service leads somewhere real", async ({
+    page,
+  }) => {
+    await page.goto("/terms");
+    const links = page.locator("article a");
+    await expect(links.first()).toBeVisible();
+    const hrefs = await links.evaluateAll((anchors) =>
+      anchors.map((a) => a.getAttribute("href") ?? ""),
+    );
+
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      expect(href).toMatch(
+        /^(mailto:contact@codeclarity\.io|\/privacy|https:\/\/www\.codeclarity\.io)$/,
+      );
+    }
+    await expect(
+      page.getByRole("link", { name: "contact our Support team" }).first(),
+    ).toHaveAttribute("href", "mailto:contact@codeclarity.io");
+  });
+
+  test("the privacy policy links the data protection officer's email", async ({
+    page,
+  }) => {
+    await page.goto("/privacy");
+    await expect(
+      page.getByRole("link", { name: "dpo@codeclarity.io" }),
+    ).toHaveAttribute("href", "mailto:dpo@codeclarity.io");
+  });
+});
+
+test.describe("Help page signed out", () => {
+  test("opens without signing in and offers a way to write to support", async ({
+    page,
+  }) => {
+    await page.goto("/help");
+
+    await expect(page).toHaveURL(/\/help$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /help/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "CodeClarity" }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "contact@codeclarity.io" }),
+    ).toHaveAttribute("href", "mailto:contact@codeclarity.io");
+    await expectNoAxeViolations(page);
+  });
+});
+
 test.describe("Help page", () => {
   test.beforeEach(async ({ page }) => {
     await seedAuthStore(page, { authenticated: true });

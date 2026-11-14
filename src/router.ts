@@ -293,6 +293,7 @@ router.beforeEach(async (to) => {
     "/login",
     "/signup",
     "/password_reset_request",
+    "/help",
     "/404",
     "/terms",
     "/privacy",

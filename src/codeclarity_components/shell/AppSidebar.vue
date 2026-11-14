@@ -40,9 +40,15 @@ defineEmits<{ openPalette: [] }>();
 
 const route = useRoute();
 const userStore = useUserStore();
-const { state, toggleSidebar } = useSidebar();
+const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar();
 
 const expanded = computed(() => state.value === "expanded");
+
+// On a phone the same button closes the navigation drawer.
+const toggleLabel = computed(() => {
+  if (isMobile.value) return "Close navigation";
+  return expanded.value ? "Collapse sidebar" : "Expand sidebar";
+});
 
 // Results need an analysis, so remember the last one the user opened.
 const lastResults = ref<RouteLocationRaw | null>(null);
@@ -50,6 +56,8 @@ watch(
   () => route.fullPath,
   () => {
     if (route.name === "results") lastResults.value = route.fullPath;
+    // Close the phone drawer once the user has moved to another page.
+    setOpenMobile(false);
   },
   { immediate: true },
 );
@@ -101,8 +109,8 @@ const activeBar =
         <button
           type="button"
           class="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted-foreground outline-hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:ml-0"
-          :aria-label="expanded ? 'Collapse sidebar' : 'Expand sidebar'"
-          :aria-expanded="expanded"
+          :aria-label="toggleLabel"
+          :aria-expanded="isMobile ? undefined : expanded"
           @click="toggleSidebar"
         >
           <PanelLeft class="size-4" aria-hidden="true" />

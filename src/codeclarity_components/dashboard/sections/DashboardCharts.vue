@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
 import {
   Card,
   CardContent,
@@ -12,9 +13,14 @@ import ExposureOverview from "../charts/ExposureOverview.vue";
 import LicenseDist from "../charts/LicenseDist.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
+import type { DashboardRequest } from "../composables/useDashboardRequest";
 
 // The project overview's charts and summaries, one card each.
-defineProps<{ integrationIds: string[] }>();
+defineProps<{
+  integrationIds: string[];
+  /** Shared with the project numbers, so it is requested once */
+  recentVulns: DashboardRequest<LatestVulns>;
+}>();
 </script>
 
 <template>
@@ -38,7 +44,7 @@ defineProps<{ integrationIds: string[] }>();
         >
       </CardHeader>
       <CardContent>
-        <CurrentVulns :integration-ids="integrationIds" />
+        <CurrentVulns :request="recentVulns" />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

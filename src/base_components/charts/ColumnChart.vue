@@ -2,7 +2,14 @@
 import { scaleLinear } from "d3";
 import { computed, ref } from "vue";
 
-import { type GridLineSeries, TOP_PADDING, xTickCount } from "./chart-format";
+import {
+  type GridLineSeries,
+  insideX,
+  LABEL_GAP,
+  labelWidth,
+  TOP_PADDING,
+  xTickCount,
+} from "./chart-format";
 import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
@@ -22,6 +29,8 @@ const props = defineProps<{
   caption: string;
   /** Header of the table's first column */
   xTitle: string;
+  /** Counts: y labels only at whole numbers */
+  integer?: boolean;
 }>();
 
 const chartWidth = useChartWidth();
@@ -55,13 +64,23 @@ const y = computed(() =>
     .range([baseline, TOP_PADDING]),
 );
 
-const yTicks = computed(() => y.value.ticks(4));
+const yTicks = computed(() =>
+  y.value.ticks(4).filter((tick) => !props.integer || Number.isInteger(tick)),
+);
+
+/** How many steps along x the widest label needs to stay clear of the next */
+const labelSteps = computed(
+  () =>
+    (Math.max(0, ...props.labels.map(labelWidth)) + LABEL_GAP) /
+    Math.max(step.value, 1),
+);
 
 /** Evenly spaced labels, as many as the width fits. */
 const xTicks = computed(() => {
   const every = Math.max(
     1,
     Math.ceil(props.labels.length / xTickCount(chartWidth.value)),
+    Math.ceil(labelSteps.value),
   );
   return props.labels.map((_, i) => i).filter((i) => i % every === 0);
 });
@@ -188,7 +207,7 @@ function formatCell(value: number | null): string {
         <text
           v-for="i in xTicks"
           :key="`x-${i}`"
-          :x="xOf(i)"
+          :x="insideX(xOf(i), labels[i] ?? '', chartWidth)"
           :y="baseline + 16"
           text-anchor="middle"
           font-size="11"

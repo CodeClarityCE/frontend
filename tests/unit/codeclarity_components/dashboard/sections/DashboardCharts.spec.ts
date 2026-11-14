@@ -1,12 +1,19 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
+import { useDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
+import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
 import DashboardCharts from "@/codeclarity_components/dashboard/sections/DashboardCharts.vue";
 
 describe("DashboardCharts", () => {
   it("shows a titled card for each part of the project overview", () => {
     const wrapper = mount(DashboardCharts, {
-      props: { integrationIds: [] },
+      props: {
+        integrationIds: [],
+        recentVulns: useDashboardRequest<LatestVulns>(
+          () => new Promise(() => {}),
+        ),
+      },
       global: {
         stubs: {
           CurrentVulns: true,

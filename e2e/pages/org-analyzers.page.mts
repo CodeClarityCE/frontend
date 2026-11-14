@@ -4,7 +4,7 @@ import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
 
-/** An analyzer as the API returns it. */
+/** An analyzer as the API returns it (GET /org/:org/analyzers/:id). */
 export function analyzer(
   id: string,
   name: string,
@@ -15,14 +15,12 @@ export function analyzer(
     name,
     description: `${name} workflow for JavaScript projects`,
     created_on: "2026-10-01T09:00:00Z",
-    created_by: { id: "u-1", handle: "john", first_name: "John" },
     steps: [
       [
         {
           name: "js-sbom",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
       [
@@ -30,11 +28,12 @@ export function analyzer(
           name: "vuln-finder",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
     ],
-    organization_id: ORG,
+    supported_languages: ["javascript"],
+    language_config: { javascript: { plugins: ["js-sbom", "vuln-finder"] } },
+    logo: "js",
     ...overrides,
   };
 }
@@ -49,7 +48,6 @@ export const sampleAnalyzers = [
           name: "js-sbom",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
     ],
@@ -76,6 +74,13 @@ export const samplePlugins = [
     description: "Finds licences in the SBOM",
     version: "1.0.0",
     depends_on: ["js-sbom"],
+    config: {},
+  },
+  {
+    name: "js-patching",
+    description: "Suggests upgrades that fix the vulnerabilities",
+    version: "1.0.0",
+    depends_on: ["vuln-finder"],
     config: {},
   },
 ];
@@ -144,7 +149,9 @@ export class OrgAnalyzersPage {
         });
       }
       if (request.method() === "PUT" && id) {
-        this.updated.push(request.postDataJSON());
+        const body = request.postDataJSON() as Record<string, unknown>;
+        this.updated.push(body);
+        analyzers = analyzers.map((a) => (a.id === id ? { ...a, ...body } : a));
         return route.fulfill({
           json: { status_code: 200, status: "success" },
         });
@@ -181,6 +188,16 @@ export class OrgAnalyzersPage {
 
   async gotoEdit(id: string): Promise<void> {
     await this.shell.goto(`/orgs/edit/analyzers/${ORG}?analyzerId=${id}`);
+  }
+
+  /** The workflow canvas on the create and edit pages. */
+  canvas(): Locator {
+    return this.page.locator(".vue-flow");
+  }
+
+  /** The plugin nodes drawn on the workflow canvas. */
+  workflowNodes(): Locator {
+    return this.canvas().locator(".vue-flow__node");
   }
 
   /** The table's body rows, without the header row. */

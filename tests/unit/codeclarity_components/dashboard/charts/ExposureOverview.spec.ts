@@ -46,8 +46,8 @@ describe("ExposureOverview", () => {
     expect(
       chart.findAll('[role="img"]').map((c) => c.attributes("aria-label")),
     ).toEqual([
-      "Oct 26 - Nov 01, 2026: summed severity 98",
-      "Nov 02 - Nov 08, 2026: summed severity 0",
+      "Oct 19 - Oct 25, 2026: summed severity 98",
+      "Oct 26 - Nov 01, 2026: summed severity 0",
     ]);
   });
 
@@ -62,9 +62,9 @@ describe("ExposureOverview", () => {
       .find('[aria-labelledby="dashboard-weekly-exposure"]')
       .findAll(":scope > li");
     expect(weeks).toHaveLength(2);
-    expect(weeks[0]!.text()).toContain("Nov 02 - Nov 08, 2026");
+    expect(weeks[0]!.text()).toContain("Oct 26 - Nov 01, 2026");
     expect(weeks[0]!.text()).toContain("No vulnerabilities");
-    expect(weeks[1]!.text()).toContain("Oct 26 - Nov 01, 2026");
+    expect(weeks[1]!.text()).toContain("Oct 19 - Oct 25, 2026");
     expect(weeks[1]!.text()).toContain("2 Critical");
     expect(weeks[1]!.text()).toContain("4 Low");
   });

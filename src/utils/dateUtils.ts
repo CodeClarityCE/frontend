@@ -300,26 +300,17 @@ export function isPackageOutdated(
   return diffDays > thresholdDays;
 }
 
-/**
- * Get week range for a specific week number and year
- * Replaces moment().day('Monday').year(year).week(weekNumber) logic
- */
+/** Monday to Sunday of an ISO week number in an ISO week year. */
 export function getWeekRange(
   weekNumber: number,
   year: number,
 ): { start: Date; end: Date } {
-  // Create a date for January 1st of the given year
-  const jan1 = new Date(year, 0, 1);
-
-  // Find the first Monday of the year
-  const firstMonday = new Date(jan1);
-  const dayOfWeek = jan1.getDay();
-  const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-  firstMonday.setDate(jan1.getDate() + daysUntilMonday);
-
-  // Calculate the start of the requested week
-  const weekStart = new Date(firstMonday);
-  weekStart.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
+  // ISO week 1 is the week, starting Monday, that contains January 4.
+  const jan4 = new Date(year, 0, 4);
+  const weekStart = new Date(jan4);
+  weekStart.setDate(
+    jan4.getDate() - ((jan4.getDay() + 6) % 7) + (weekNumber - 1) * 7,
+  );
 
   // Calculate the end of the week (Sunday)
   const weekEnd = new Date(weekStart);

@@ -92,6 +92,11 @@ const availablePlugins = computed(() => {
   );
 });
 
+// Fit the canvas to the nodes once they are drawn, without enlarging them.
+function fitToContent(): void {
+  void fitView({ padding: 0.1, maxZoom: 1 });
+}
+
 function onPaneContextMenu(event: MouseEvent): void {
   if (props.readonly) return;
   event.preventDefault();
@@ -339,6 +344,7 @@ onUnmounted(() => {
       @node-context-menu="onNodeContextMenu"
       @selection-change="onSelectionChange"
       @node-click="onNodeClick"
+      @nodes-initialized="fitToContent"
     >
       <Background :gap="16" />
       <Controls

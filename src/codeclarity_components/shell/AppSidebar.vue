@@ -67,13 +67,29 @@ function target(item: NavItem): RouteLocationRaw | null {
   return item.to(userStore.getDefaultOrg?.id);
 }
 
-// Inside the organisation settings, its pages are listed under the item.
-const orgSubItems = computed(() => {
-  const org = userStore.getDefaultOrg;
-  if (!org || !isActive(orgSettingsItem, route.name)) return [];
-  if (route.params.orgId !== org.id) return [];
-  return orgSettingsSubItems(org);
+// Inside an organisation's settings, the links refer to that organisation.
+const viewedOrgId = computed(() =>
+  isActive(orgSettingsItem, route.name) &&
+  typeof route.params.orgId === "string" &&
+  route.params.orgId !== ""
+    ? route.params.orgId
+    : undefined,
+);
+const viewedOrg = computed(() => {
+  const id = viewedOrgId.value;
+  if (!id) return undefined;
+  if (userStore.getViewedOrg?.id === id) return userStore.getViewedOrg;
+  if (userStore.getDefaultOrg?.id === id) return userStore.getDefaultOrg;
+  return undefined;
 });
+const orgSettingsTarget = computed(() =>
+  orgSettingsItem.to(viewedOrgId.value ?? userStore.getDefaultOrg?.id)!,
+);
+
+// Inside the organisation settings, its pages are listed under the item.
+const orgSubItems = computed(() =>
+  viewedOrg.value ? orgSettingsSubItems(viewedOrg.value) : [],
+);
 
 function isSubActive(item: OrgSettingsSubItem): boolean {
   const page = typeof route.params.page === "string" ? route.params.page : "";
@@ -193,7 +209,7 @@ const activeBar =
               :class="activeBar"
             >
               <RouterLink
-                :to="orgSettingsItem.to(userStore.getDefaultOrg?.id)!"
+                :to="orgSettingsTarget"
                 :aria-current="
                   isActive(orgSettingsItem, route.name) &&
                   orgSubItems.length === 0
@@ -209,9 +225,7 @@ const activeBar =
               <SidebarMenuSubItem v-for="sub in orgSubItems" :key="sub.label">
                 <SidebarMenuSubButton as-child :is-active="isSubActive(sub)">
                   <RouterLink
-                    :to="
-                      orgSettingsSubItemTarget(sub, userStore.getDefaultOrg!.id)
-                    "
+                    :to="orgSettingsSubItemTarget(sub, viewedOrg!.id)"
                     :aria-current="isSubActive(sub) ? 'page' : undefined"
                   >
                     <span>{{ sub.label }}</span>

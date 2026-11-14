@@ -246,6 +246,15 @@ test.describe("Sign up", () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
+  test("the logo leads to the login page", async ({ page }) => {
+    await page.goto("/signup");
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "CodeClarity" })
+      .click();
+    await expect(page).toHaveURL(/\/login$/);
+  });
+
   test("keyboard reaches every control in order with a visible focus", async ({
     page,
   }) => {

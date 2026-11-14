@@ -143,7 +143,10 @@ describe("SignupForm.vue", () => {
     });
 
     it("has a sign in link", () => {
-      expect(wrapper.find('a[href="login"]').text()).toBe("Sign in");
+      // The logo links to login too, so look among every login link.
+      expect(wrapper.findAll('a[href="login"]').map((a) => a.text())).toContain(
+        "Sign in",
+      );
     });
   });
 

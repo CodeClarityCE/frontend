@@ -68,6 +68,14 @@ for (const doc of [
       await expectVisibleFocus(back);
     });
 
+    test("the logo leads to the login page", async ({ page }) => {
+      await page
+        .getByRole("banner")
+        .getByRole("link", { name: "CodeClarity" })
+        .click();
+      await expect(page).toHaveURL(/\/login$/);
+    });
+
     test("has no WCAG 2.2 AA violations", async ({ page }) => {
       await expectNoAxeViolations(page);
     });

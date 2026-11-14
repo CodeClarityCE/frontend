@@ -49,7 +49,9 @@ export class Dependency {
   is_prod_count!: number;
   key!: string;
   last_published!: string;
-  licenses!: License[];
+  // The package's license as an SPDX expression, e.g. "(MIT OR GPL-2.0)"
+  license?: string;
+  ecosystem?: string;
   link_type!: string;
   linked_git_url!: GitUrl | null;
   name!: string;

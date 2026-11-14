@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { dependency, ResultTabsPage } from "./pages/result-tabs.page.mjs";
+import {
+  dependency,
+  ResultTabsPage,
+  sampleLicenses,
+} from "./pages/result-tabs.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -248,6 +252,58 @@ test.describe("License results", () => {
     await expect(numbers.getByRole("listitem").nth(4)).toHaveText(
       /Policy violations\s*1/,
     );
+  });
+
+  test("an OR expression is named by its licenses and counts as copyleft", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    // node-forge is "(BSD-3-Clause OR GPL-2.0)"; the API lists it under both.
+    const listed = (id: string, name: string, deps: string[]) => ({
+      ...sampleLicenses[0],
+      id,
+      licenseId: id,
+      name,
+      description: "",
+      license_category: id === "MIT" ? "permissive" : "",
+      license_properties: null,
+      deps_using_license: deps,
+      _key: id,
+    });
+    await tabs.signIn({
+      licenses: [
+        listed("BSD-3-Clause", 'BSD 3-Clause "New" or "Revised" License', [
+          "node-forge@0.9.0",
+        ]),
+        listed("GPL-2.0", "GNU General Public License v2.0 only", [
+          "node-forge@0.9.0",
+        ]),
+        {
+          ...listed("", "", ["ghost@1.0.0"]),
+          unable_to_infer: true,
+        },
+      ],
+    });
+    await tabs.goto("Licenses");
+
+    const rows = tabs.rows("Licenses");
+    await expect(rows).toHaveCount(3);
+    await expect(rows.filter({ hasText: "GNU General Public" })).toContainText(
+      "Copyleft",
+    );
+    const numbers = page.getByRole("list", { name: "License numbers" });
+    await expect(numbers.getByRole("listitem").nth(3)).toHaveText(
+      /Copyleft\s*1/,
+    );
+    await expect(
+      page.getByText(/listed under each license it names/),
+    ).toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Details of Unknown license" })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Unknown license" });
+    await expect(dialog).toContainText("ghost@1.0.0");
   });
 
   test("the license dialog traps focus and closes with Escape", async ({

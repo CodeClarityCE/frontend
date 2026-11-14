@@ -115,6 +115,8 @@ async function checkDuplicate(): Promise<void> {
     const response = await ticketsRepository.checkDuplicate({
       orgId,
       bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data: {
         project_id: props.projectId,
         vulnerability_id: props.vulnerability.vulnerability_id,
@@ -155,6 +157,8 @@ async function handleSubmit(): Promise<void> {
     const result = await ticketsRepository.createTicket({
       orgId,
       bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data: {
         title: title.value,
         description: description.value,

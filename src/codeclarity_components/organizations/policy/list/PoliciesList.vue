@@ -7,7 +7,6 @@ import { OwlEmptyState, StatTile } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
@@ -48,11 +47,8 @@ async function loadPolicies(): Promise<void> {
       search_key: "",
     });
     policies.value = response.data ?? [];
-  } catch (err) {
-    error.value =
-      err instanceof BusinessLogicError && err.error_message
-        ? err.error_message
-        : "The license policies could not be loaded.";
+  } catch {
+    error.value = "The license policies could not be loaded.";
   } finally {
     loaded.value = true;
   }

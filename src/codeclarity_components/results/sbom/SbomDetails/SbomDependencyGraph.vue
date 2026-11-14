@@ -59,6 +59,8 @@ async function loadGraph(): Promise<void> {
       workspace: ".",
       dependency: target,
       bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     const layout = layoutDependencyGraph(res.data, target);
     nodes.value = layout.nodes;

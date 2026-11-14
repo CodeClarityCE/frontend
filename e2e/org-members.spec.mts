@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { OrgMembersPage } from "./pages/org-members.page.mjs";
+import {
+  member,
+  OrgMembersPage,
+  sampleMembers,
+} from "./pages/org-members.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -116,6 +120,34 @@ test.describe("Organisation members", () => {
       page.getByText("The members could not be loaded."),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+  });
+
+  test("a personal organisation lists its one member", async ({ page }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn({
+      org: { name: "JohnDoe's Org", personal: true },
+      members: [sampleMembers[0]],
+    });
+    await members.gotoMembers();
+
+    await expect(members.rows()).toHaveCount(1);
+    await expect(members.row("John Doe")).toContainText("Owner");
+    await expect(members.row("John Doe")).toContainText("(you)");
+  });
+
+  test("a response the page cannot read shows the error, not an empty list", async ({
+    page,
+  }) => {
+    const members = new OrgMembersPage(page);
+    const broken = member("u-eve", "Eve", "Stone", 3);
+    delete broken.user.first_name;
+    await members.signIn({ members: [sampleMembers[0], broken] });
+    await members.gotoMembers();
+
+    await expect(
+      page.getByText("The members could not be loaded."),
+    ).toBeVisible();
+    await expect(page.getByText("No members match.")).toHaveCount(0);
   });
 });
 

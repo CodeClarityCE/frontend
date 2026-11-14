@@ -11,6 +11,7 @@ import { shapeDiff } from "./helpers/shape.mjs";
 import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
+import { OrgSettingsPage } from "./pages/org-settings.page.mjs";
 import {
   ANALYSIS,
   PROJECT,
@@ -82,14 +83,18 @@ const contracts = [
     capture: organizationList,
     path: "/api/org?page=0&entries_per_page=50",
     signIn: (page: Page) => new ShellPage(page).signIn(),
-    drift: "#130",
+  },
+  {
+    name: "organization list (organisations page)",
+    capture: organizationList,
+    path: "/api/org?page=0&entries_per_page=100",
+    signIn: (page: Page) => new OrgSettingsPage(page).signIn(),
   },
   {
     name: "members list",
     capture: members,
     path: "/api/org/org-123/members?page=0&entries_per_page=50",
     signIn: (page: Page) => new OrgMembersPage(page).signIn(),
-    drift: "#130",
   },
   {
     name: "single license policy",

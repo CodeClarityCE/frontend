@@ -1,5 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 
+import { orgListRow } from "../fixtures/memberships.mjs";
 import user from "../fixtures/user.json" with { type: "json" };
 
 const org = {
@@ -27,6 +28,7 @@ function paginated(data: unknown[]): Record<string, unknown> {
     total_pages: 1,
     matching_count: data.length,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }
@@ -155,13 +157,7 @@ export class ShellPage {
       }
       if (path === "/org") {
         return route.fulfill({
-          json: paginated(
-            [org, otherOrg].map((o) => ({
-              joined_on: o.joined_on,
-              organization: o,
-              role: 0,
-            })),
-          ),
+          json: paginated([org, otherOrg].map(orgListRow)),
         });
       }
       if (path === `/org/${org.id}/datasets`) {

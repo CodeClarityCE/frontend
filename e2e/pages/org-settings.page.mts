@@ -1,5 +1,6 @@
 import { type Locator, type Page, type Route } from "@playwright/test";
 
+import { orgListRow } from "../fixtures/memberships.mjs";
 import { ShellPage } from "./shell.page.mjs";
 
 export const ORG = "org-123";
@@ -30,7 +31,7 @@ export function organization(
 export function membership(
   org: Record<string, unknown>,
 ): Record<string, unknown> {
-  return { joined_on: org.joined_on, organization: org, role: org.role };
+  return orgListRow(org);
 }
 
 export const sampleOrg = organization(ORG, "Test Organization", {
@@ -65,6 +66,7 @@ function paginated(data: unknown[]): Record<string, unknown> {
     total_pages: 1,
     matching_count: data.length,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }

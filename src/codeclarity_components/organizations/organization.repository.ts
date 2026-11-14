@@ -127,14 +127,7 @@ export class OrgRepository extends BaseRepository {
       handleOtherErrors: options.handleOtherErrors,
     });
 
-    const paginatedResp = Entity.unMarshal<
-      PaginatedResponse<OrganizationMembership>
-    >(response, PaginatedResponse<OrganizationMembership>);
-    paginatedResp.data = Entity.unMarshalMany<OrganizationMembership>(
-      paginatedResp.data,
-      OrganizationMembership,
-    );
-    return paginatedResp;
+    return unMarshalMemberships(response);
   }
 
   async create(options: CreateOrgRequestOptions): Promise<CreatedResponse> {
@@ -184,10 +177,12 @@ export class OrgRepository extends BaseRepository {
 
   async getOrgMembers(
     options: GetOrgMembersRequestOptions,
-  ): Promise<PaginatedResponse<TeamMember>> {
+  ): Promise<PaginatedResponse<OrganizationMembership>> {
     const RELATIVE_URL = `/org/${options.orgId}/members`;
 
-    const response = await this.getRequest<PaginatedResponse<TeamMember>>({
+    const response = await this.getRequest<
+      PaginatedResponse<OrganizationMembership>
+    >({
       queryParams: {
         page: options.pagination.page,
         entries_per_page: options.pagination.entries_per_page,
@@ -202,15 +197,7 @@ export class OrgRepository extends BaseRepository {
       handleOtherErrors: options.handleOtherErrors,
     });
 
-    const paginatedResp = Entity.unMarshal<PaginatedResponse<TeamMember>>(
-      response,
-      PaginatedResponse<TeamMember>,
-    );
-    paginatedResp.data = Entity.unMarshalMany<TeamMember>(
-      paginatedResp.data,
-      TeamMember,
-    );
-    return paginatedResp;
+    return unMarshalMemberships(response);
   }
 
   async getOrgMember(options: GetOrgMemberRequestOptions): Promise<TeamMember> {
@@ -436,4 +423,20 @@ export class OrgRepository extends BaseRepository {
 
     return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
   }
+}
+
+/** Unmarshals a page of memberships; one invalid membership fails the whole page. */
+function unMarshalMemberships(
+  response: PaginatedResponse<OrganizationMembership>,
+): PaginatedResponse<OrganizationMembership> {
+  const paginatedResp = Entity.unMarshal<
+    PaginatedResponse<OrganizationMembership>
+  >(response, PaginatedResponse<OrganizationMembership>);
+  paginatedResp.data = Entity.unMarshalMany<OrganizationMembership>(
+    paginatedResp.data,
+    OrganizationMembership,
+    false,
+  );
+  for (const membership of paginatedResp.data) Entity.validate(membership);
+  return paginatedResp;
 }

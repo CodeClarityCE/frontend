@@ -1,5 +1,6 @@
 import { type Locator, type Page, type Route } from "@playwright/test";
 
+import { apiUser } from "../fixtures/memberships.mjs";
 import user from "../fixtures/user.json" with { type: "json" };
 import { ShellPage } from "./shell.page.mjs";
 
@@ -11,26 +12,56 @@ export const NOW = new Date("2026-11-13T12:00:00Z");
 
 type Role = 0 | 1 | 2 | 3;
 
-/** An organisation member as the members endpoint returns it. */
+type Membership = {
+  role: Role;
+  joined_on: string;
+  user: Record<string, unknown>;
+  organization: Record<string, unknown>;
+};
+
+/** A user as the members endpoint nests it in a membership. */
+function memberUser(
+  id: string,
+  first: string,
+  last: string,
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return apiUser({
+    id,
+    first_name: first,
+    last_name: last,
+    handle: `${first.toLowerCase()}${last.toLowerCase()}`,
+    email: `${first.toLowerCase()}@example.com`,
+    created_on: "2026-01-10T09:00:00Z",
+    ...overrides,
+  });
+}
+
+/** The organisation each membership of the members endpoint carries. */
+export const memberOrg = {
+  id: ORG,
+  name: "Test Organization",
+  description: "Test org",
+  color_scheme: "1",
+  created_on: "2024-01-01T00:00:00Z",
+  personal: false,
+  auto_resolve_tickets: false,
+};
+
+/** A membership as the members endpoint returns it; `joined_on` is the membership's, the rest the user's. */
 export function member(
   id: string,
   first: string,
   last: string,
   role: Role,
   overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
+): Membership {
+  const { joined_on = "2026-01-12T09:00:00Z", ...user } = overrides;
   return {
-    id,
-    first_name: first,
-    last_name: last,
-    handle: `${first.toLowerCase()}${last.toLowerCase()}`,
-    email: `${first.toLowerCase()}@example.com`,
     role,
-    added_on: "2026-01-10T09:00:00Z",
-    added_by: user.id,
-    joined_on: "2026-01-12T09:00:00Z",
-    organization_id: ORG,
-    ...overrides,
+    joined_on: joined_on as string,
+    user: memberUser(id, first, last, user),
+    organization: memberOrg,
   };
 }
 
@@ -44,6 +75,11 @@ export const sampleMembers = [
   member("u-bob", "Bob", "Keller", 3, { joined_on: "2026-03-04T09:00:00Z" }),
 ];
 
+/** A member as the invitation and audit log fixtures embed them, with their role. */
+function person(m: Membership): Record<string, unknown> {
+  return { ...m.user, role: m.role };
+}
+
 /** An open invitation as the invitations endpoint returns it. */
 export function invitation(
   id: string,
@@ -54,7 +90,7 @@ export function invitation(
   return {
     id,
     created_on: "2026-11-10T09:00:00Z",
-    created_by: sampleMembers[0],
+    created_by: person(sampleMembers[0]),
     role,
     organization_id: ORG,
     user_email: email,
@@ -66,7 +102,7 @@ export function invitation(
 export const sampleInvitations = [
   invitation("inv-1", "carol@example.com", 3),
   invitation("inv-2", "dave@example.com", 2, {
-    created_by: sampleMembers[1],
+    created_by: person(sampleMembers[1]),
     created_on: "2026-11-12T09:00:00Z",
   }),
 ];
@@ -89,7 +125,7 @@ export function auditLog(
         : "Organization",
     action,
     description,
-    blame_on: sampleMembers[0],
+    blame_on: person(sampleMembers[0]),
     blame_on_email: user.email,
     created_on: "2026-11-12T10:30:00Z",
     ...overrides,
@@ -106,7 +142,7 @@ export const sampleLogs = [
     "OrganizationMembershipRevoked",
     "Removed eve@example.com",
     {
-      blame_on: sampleMembers[1],
+      blame_on: person(sampleMembers[1]),
       blame_on_email: "alice@example.com",
       created_on: "2026-11-11T08:00:00Z",
     },
@@ -128,6 +164,7 @@ function paginated(data: unknown[]): Record<string, unknown> {
     total_pages: 1,
     matching_count: data.length,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }
@@ -165,6 +202,8 @@ export class OrgMembersPage {
       members?: unknown[];
       invitations?: unknown[];
       logs?: unknown[];
+      /** Overrides the organisation the header loads, e.g. `{ personal: true }`. */
+      org?: Record<string, unknown>;
       fail?: boolean;
       hold?: boolean;
     } = {},
@@ -177,7 +216,7 @@ export class OrgMembersPage {
       release = resolve;
     });
     let members = [...(options.members ?? sampleMembers)] as {
-      id: string;
+      user: { id: string };
     }[];
     let invitations = [...(options.invitations ?? sampleInvitations)] as {
       id: string;
@@ -195,13 +234,24 @@ export class OrgMembersPage {
       return route.fulfill({ json: paginated(data) });
     };
 
+    if (options.org) {
+      const org = {
+        ...memberOrg,
+        role: 0,
+        number_of_members: 1,
+        ...options.org,
+      };
+      await this.page.route(`**/api/org/${ORG}`, (route) =>
+        route.fulfill({ json: { data: { joined_on: NOW, ...org } } }),
+      );
+    }
     await this.page.route(`**/api/org/${ORG}/members**`, (route) => {
       const request = route.request();
       if (request.method() === "DELETE") {
         const path = new URL(request.url()).pathname;
         this.deleted.push(path);
         const id = path.split("/").pop();
-        members = members.filter((m) => m.id !== id);
+        members = members.filter((m) => m.user.id !== id);
         return route.fulfill({ json: ok });
       }
       return list(route, members);

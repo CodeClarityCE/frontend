@@ -102,13 +102,16 @@ function member(
   extra: object = {},
 ): object {
   return {
-    id,
-    first_name: first,
-    last_name: "Doe",
-    handle: first.toLowerCase(),
-    email: `${first.toLowerCase()}@example.com`,
     role,
     joined_on: "2025-01-10T10:00:00Z",
+    user: {
+      id,
+      first_name: first,
+      last_name: "Doe",
+      handle: first.toLowerCase(),
+      email: `${first.toLowerCase()}@example.com`,
+    },
+    organization: { id: "org-1", name: "Org" },
     ...extra,
   };
 }

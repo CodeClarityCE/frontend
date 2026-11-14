@@ -27,6 +27,18 @@ test.describe("Organisations list", () => {
     await expect(orgs.rows().first()).toContainText("Owner");
     await expect(orgs.rows().nth(1)).toContainText("Member");
     await expect(orgs.rows().nth(2)).toContainText("Personal");
+    // Member count and join date come from the membership row
+    await expect(orgs.rows().first().locator("td")).toHaveText([
+      /Test Organization/,
+      "Owner",
+      "3",
+      "Jan 15, 2024",
+      /Leave/,
+    ]);
+    await expect(orgs.rows().nth(1).locator("td").nth(2)).toHaveText("12");
+    await expect(orgs.rows().nth(1).locator("td").nth(3)).toHaveText(
+      "Mar 02, 2025",
+    );
 
     await orgs.table.getByRole("link", { name: "Test Organization" }).click();
 

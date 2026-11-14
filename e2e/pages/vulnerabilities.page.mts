@@ -52,6 +52,23 @@ const SCORES: Record<Level, number> = {
   low: 2.1,
 };
 
+/**
+ * A finding's affected dependency. The API sends no PatchType unless a
+ * patching result says otherwise.
+ */
+export function affected(
+  dependency: string,
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    AffectedDependency: dependency,
+    AffectedVersion: "1.0.0",
+    Sources: ["NVD"],
+    VulnerabilityId: "",
+    ...overrides,
+  };
+}
+
 /** A vulnerability finding as the list endpoint returns it. */
 export function finding(
   id: string,
@@ -85,19 +102,10 @@ export function finding(
         OWASPTop10Name: "Injection",
       },
     ],
-    Affected: [
-      {
-        Affected: {},
-        AffectedDependencyName: dependency,
-        AffectedVersion: "1.0.0",
-        AffectedDependency: dependency,
-        AffectedDependencyFilePath: "package.json",
-        AffectedDependencyImportPaths: [],
-        PatchType: level === "low" ? "NONE" : "FULL",
-      },
-    ],
+    Affected: [affected(dependency)],
     Conflict: { ConflictWinner: "", ConflictFlag: "NO_CONFLICT" },
-    VLAI: [],
+    // The API sends a VLAI entry with an empty score when there is none.
+    VLAI: [{ Source: "NVD", Score: "", Confidence: 0 }],
     EPSS: { Score: 0.02, Percentile: 0.4 },
     is_blacklisted: false,
     ...overrides,

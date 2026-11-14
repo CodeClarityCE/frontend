@@ -229,7 +229,7 @@
     --card-foreground: #212529;
 
     --border: #dee2e6;
-    --input: #dee2e6;
+    --input: #868e96;
 
     /* White on brand green fails AA, so primary text is near-black. */
     --primary: #1dce79;
@@ -328,7 +328,7 @@
     --card-foreground: #f8f9fa;
 
     --border: #2b2f33;
-    --input: #2b2f33;
+    --input: #6c757d;
 
     --primary: #1dce79;
     --primary-hover: #3fd58d;

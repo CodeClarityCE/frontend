@@ -266,22 +266,22 @@ const riskBanners: Record<
   { class: string; label: string; recommendation: string }
 > = {
   critical: {
-    class: "bg-severity-critical text-severity-foreground",
+    class: "bg-severity-critical text-severity-critical-foreground",
     label: "Critical",
     recommendation: "Immediate action required",
   },
   high: {
-    class: "bg-severity-high text-severity-foreground",
+    class: "bg-severity-high text-severity-high-foreground",
     label: "High",
     recommendation: "Address as soon as possible",
   },
   medium: {
-    class: "bg-severity-medium text-severity-foreground",
+    class: "bg-severity-medium text-severity-medium-foreground",
     label: "Medium",
     recommendation: "Plan remediation in an upcoming cycle",
   },
   low: {
-    class: "bg-severity-low text-severity-foreground",
+    class: "bg-severity-low text-severity-low-foreground",
     label: "Low",
     recommendation: "Monitor and address when convenient",
   },

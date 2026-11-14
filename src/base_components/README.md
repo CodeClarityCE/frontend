@@ -23,7 +23,7 @@ Shared pieces for migrated pages. Build new screens from these and the shadcn co
 - **BrandEmphasis**: wrap the key word of a title to give it the green mark: `<PageHeading>New <BrandEmphasis>Dataset</BrandEmphasis></PageHeading>`.
 - **StatTile**: one number with a `label`, a `value` and an optional `hint`. It renders an `<li>`, so put tiles in a `<ul aria-label="...">`.
 - **StatusBadge**: a status in words with the shared status colours. Props `tone` (`success`, `warning`, `danger`, `neutral`), `label`, and `busy` for a spinner.
-- **SeverityBadge**: a severity in words ("Critical", "High", ...) on the severity ramp, never brand green. Pass a CVSS `score` (also shown) or a `level`; `severityLevel()` in `@/utils/severity` gives the band of a score.
+- **SeverityBadge**: a severity in words ("Critical", "High", ...) on the severity ramp (red to yellow), never brand green; each level has its own text colour (`text-severity-<level>-foreground`). Pass a CVSS `score` (also shown) or a `level`; `severityLevel()` in `@/utils/severity` gives the band of a score.
 - **FrozenBadge**: the neutral "Frozen" pill with a lock, for published results that no longer change.
 - **OwlEmptyState**: the owl, a `title`, a `description` (prop or slot) and the next step in the default slot, usually `<Button :as="RouterLink" to="..." arrow>`.
 - **DataTable** (`@/base_components/data-table`): tanstack table on the shadcn `Table`, with sorting, an optional filter box and pagination, all on the rows it is given (load every row first). Props:
@@ -46,7 +46,7 @@ The shared chart layer and the only chart system; the older generic charts were 
 - **ChartExport**: wraps a chart with its generated caption (which names the chart for screen readers) and SVG, PNG, PDF, CSV and caption downloads
 - **ChartTable**: the data-table fallback behind "Show table"
 - **ChartTooltip**: hover label over a chart
-- **GridLineChart**, **ColumnChart**, **StepChart**: line, grouped column and step charts. A ColumnChart series can colour each column with `colors` (for example `var(--viz-severity-high)`)
+- **GridLineChart**, **ColumnChart**, **StepChart**: line, grouped column and step charts. A ColumnChart series can colour each column with `colors` (for example `var(--viz-severity-high)`) and outline them with `strokes`; medium and low columns need `var(--viz-severity-medium-stroke)` and `var(--viz-severity-low-stroke)` to stand out from white
 - `chart.css`: the colour roles charts draw with (`--viz-series-*`, `--viz-severity-*`, `--viz-status-*`, text, grid), taken from the tokens in `assets/main.css`. Never use raw colours in a chart.
 - `chart-caption.ts`, `chart-export.ts`, `chart-format.ts`, `chart-layout.ts`: captions, export, formatting and layout width
 

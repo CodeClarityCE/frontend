@@ -134,6 +134,12 @@ const severitySeries = computed(() => [
     values: severityCounts.value,
     color: "var(--viz-series-1)",
     colors: SEVERITIES.map((s) => `var(--viz-severity-${s.color})`),
+    // Medium and low are light, so their columns get a darker outline.
+    strokes: SEVERITIES.map((s) =>
+      s.color === "medium" || s.color === "low"
+        ? `var(--viz-severity-${s.color}-stroke)`
+        : undefined,
+    ),
   },
 ]);
 

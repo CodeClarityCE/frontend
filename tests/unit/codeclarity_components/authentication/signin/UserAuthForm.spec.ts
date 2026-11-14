@@ -277,11 +277,13 @@ describe("UserAuthForm.vue", () => {
       expect(mockAuthRepository.authenticate).toHaveBeenCalledWith({
         data: { email: "test@example.com", password: "password123" },
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
 
       expect(mockAuthRepository.getAuthenticatedUser).toHaveBeenCalledWith({
         bearerToken: "test-token",
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
 
       expect(mockAuthStore.setToken).toHaveBeenCalledWith("test-token");
@@ -308,7 +310,9 @@ describe("UserAuthForm.vue", () => {
       await form.trigger("submit");
       await nextTick();
 
-      expect(wrapper.find(".flex.flex-col.items-center").exists()).toBe(true);
+      expect(
+        wrapper.find('button[type="submit"]').attributes("disabled"),
+      ).toBeDefined();
       expect(wrapper.text()).toContain("Connecting");
       expect(wrapper.find(".animate-spin").exists()).toBe(true);
     });
@@ -331,7 +335,7 @@ describe("UserAuthForm.vue", () => {
       const alert = wrapper.find(".alert");
       expect(alert.exists()).toBe(true);
       expect(alert.classes()).toContain("destructive");
-      expect(wrapper.text()).toContain("Wrong credentials.");
+      expect(wrapper.text()).toContain("The email or password is incorrect.");
     });
 
     it("handles registration not verified error", async () => {
@@ -366,7 +370,7 @@ describe("UserAuthForm.vue", () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain(
-        "To connected using your Social account",
+        "This account signs in with GitHub or GitLab, so it has no password.",
       );
     });
 
@@ -380,7 +384,9 @@ describe("UserAuthForm.vue", () => {
       await form.trigger("submit");
       await flushPromises();
 
-      expect(wrapper.text()).toContain("Invalid form: Validation error");
+      expect(wrapper.text()).toContain(
+        "Something went wrong while signing you in. Please try again.",
+      );
     });
 
     it("handles account not activated and redirects to trial", async () => {
@@ -407,7 +413,7 @@ describe("UserAuthForm.vue", () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain(
-        "An error occured during the processing of the request",
+        "Something went wrong while signing you in. Please try again.",
       );
     });
   });

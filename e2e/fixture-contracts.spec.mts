@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import analysis from "./contracts/analysis.json" with { type: "json" };
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
 import licensePolicyList from "./contracts/license-policy-list.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
@@ -10,6 +11,11 @@ import { shapeDiff } from "./helpers/shape.mjs";
 import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
+import {
+  ANALYSIS,
+  PROJECT,
+  ResultsStatusPage,
+} from "./pages/results-status.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 import { ticket, TicketsPage } from "./pages/tickets.page.mjs";
 import { VulnerabilitiesPage } from "./pages/vulnerabilities.page.mjs";
@@ -113,6 +119,13 @@ const contracts = [
     signIn: async (page: Page) => {
       await new AnalysesPage(page).signIn();
     },
+  },
+  {
+    name: "single analysis",
+    capture: analysis,
+    path: `/api/org/org-123/projects/${PROJECT}/analyses/${ANALYSIS}`,
+    signIn: (page: Page) => new ResultsStatusPage(page).signIn(),
+    drift: undefined,
   },
 ];
 

@@ -240,7 +240,7 @@ watch(
       <AlertDescription>Reload the page to try again.</AlertDescription>
     </Alert>
 
-    <TabsContent value="list" class="mt-0 flex flex-col gap-4">
+    <TabsContent v-if="!failed" value="list" class="mt-0 flex flex-col gap-4">
       <VulnList
         :findings="findings"
         :loading="loading"
@@ -256,7 +256,7 @@ watch(
         @update:page-index="pageIndex = $event"
       />
     </TabsContent>
-    <TabsContent value="table" class="mt-0">
+    <TabsContent v-if="!failed" value="table" class="mt-0">
       <VulnTable
         v-model:page-index="pageIndex"
         :findings="findings"

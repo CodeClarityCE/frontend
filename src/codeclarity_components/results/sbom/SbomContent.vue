@@ -50,12 +50,15 @@ const props = withDefaults(
     projectID?: string;
     projectName?: string;
     executedSbomPlugins?: string[];
+    // Whether the vulnerability plugin succeeded, so its numbers exist.
+    hasVulnerabilities?: boolean;
   }>(),
   {
     projectID: "",
     analysisID: "",
     projectName: "",
     executedSbomPlugins: () => [],
+    hasVulnerabilities: true,
   },
 );
 
@@ -114,7 +117,7 @@ async function fetchAllDependencies(): Promise<SbomDependency[]> {
 
 async function fetchVulnerabilityStats(): Promise<AnalysisStats | null> {
   const ctx = context();
-  if (!ctx) return null;
+  if (!ctx || !props.hasVulnerabilities) return null;
   try {
     const res = await sbomRepo.getVulnerabilitiesStat({
       orgId: ctx.orgId,

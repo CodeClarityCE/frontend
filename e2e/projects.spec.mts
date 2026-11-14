@@ -848,19 +848,25 @@ test.describe("Add a Project", () => {
     await page.getByTestId("github-card").click();
     const field = page.getByLabel("Repository URL");
 
-    for (const value of ["   ", "not a url", "github.com/example/tools"]) {
+    const submit = page.getByRole("button", { name: "Import repository" });
+    const notUrl =
+      "Enter the full URL, like https://github.com/owner/repository";
+    // Each message differs from the one before, so a stale error cannot pass.
+    for (const [value, message] of [
+      ["not a url", notUrl],
+      ["   ", "A repository URL is required"],
+      ["github.com/example/tools", notUrl],
+    ] as const) {
       await field.fill(value);
-      await page.getByRole("button", { name: "Import repository" }).click();
+      await submit.click();
+      await expect(field).toHaveAccessibleDescription(message);
       await expect(field).toHaveAttribute("aria-invalid", "true");
-      await expect(field).toHaveAccessibleDescription(
-        /A repository URL is required|Enter the full URL/,
-      );
+      await expect(submit).toBeEnabled();
     }
     expect(projects.writes).toEqual([]);
 
     await field.fill("  https://github.com/example/tools  ");
-    await expect(field).not.toHaveAttribute("aria-invalid", "true");
-    await page.getByRole("button", { name: "Import repository" }).click();
+    await submit.click();
     await expect(page).toHaveURL(/\/projects$/);
     expect(projects.writes).toEqual(["POST /org/org-123/projects"]);
   });

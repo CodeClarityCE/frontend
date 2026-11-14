@@ -19,7 +19,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:selectedTemplate": [template: AnalyzerTemplate | null];
-  templateChanged: [template: AnalyzerTemplate];
+  // Null when the user goes back to Custom.
+  templateChanged: [template: AnalyzerTemplate | null];
 }>();
 
 // The radio value for "no template".
@@ -36,7 +37,7 @@ const selected = computed({
   set: (value: string) => {
     const template = templates.value.find((t) => t.name === value) ?? null;
     emit("update:selectedTemplate", template);
-    if (template) emit("templateChanged", template);
+    emit("templateChanged", template);
   },
 });
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ArrowLeft, LoaderCircle } from "@lucide/vue";
 import type { Edge } from "@vue-flow/core";
-import { type Ref, ref } from "vue";
+import { computed, type Ref, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
@@ -34,6 +34,7 @@ import {
 import AnalyzerFormFields from "./shared/AnalyzerFormFields.vue";
 import { useAnalyzerForm } from "./shared/useAnalyzerForm";
 import WorkflowDesigner from "./shared/WorkflowDesigner.vue";
+import { workflowProblem } from "./shared/workflowRules";
 
 const props = defineProps<{
   page?: string;
@@ -55,6 +56,15 @@ const edges: Ref<Edge[]> = ref([]);
 const savedSteps: Ref<Stage[][] | null> = ref(null);
 const submitting = ref(false);
 
+// The API refuses a saved workflow that cannot run, so say why before saving.
+const workflowError = computed(() =>
+  workflowProblem(
+    nodes.value
+      .filter((n): n is AnalyzerNode => n.type === "analyzer")
+      .map((n) => n.data.plugin),
+  ),
+);
+
 const listRoute = {
   name: "orgs",
   params: { action: "manage", page: "analyzers", orgId: props.orgId },
@@ -74,6 +84,7 @@ async function submit(): Promise<void> {
   submitted.value = true;
   if (
     !isValid.value ||
+    workflowError.value ||
     !authStore.getToken ||
     !savedSteps.value ||
     submitting.value
@@ -168,6 +179,13 @@ void init();
             :plugins="plugins"
             :readonly="true"
           />
+          <p
+            v-if="submitted && workflowError"
+            role="alert"
+            class="mt-3 text-sm text-destructive"
+          >
+            {{ workflowError }}
+          </p>
         </CardContent>
       </Card>
 

@@ -133,7 +133,7 @@ test.describe("Results page for an unfinished analysis", () => {
         .getByRole("list", { name: "Dependency numbers" })
         .getByRole("listitem")
         .nth(3),
-    ).toHaveText(/Security issues\s*-/);
+    ).toHaveText(/Vulnerabilities\s*-/);
     expect(results.requested("/sbom/stats")).toBe(true);
     expect(results.requested("/vulnerabilities/stats")).toBe(false);
   });

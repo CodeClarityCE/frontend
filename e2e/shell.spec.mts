@@ -161,6 +161,16 @@ test.describe("Organisation switcher and user menu", () => {
     await expect(shell.nav).toBeHidden();
   });
 
+  test("the user menu opens Help", async ({ page }) => {
+    await page.getByRole("button", { name: /account menu/ }).click();
+    await page.getByRole("menuitem", { name: "Help" }).click();
+
+    await expect(page).toHaveURL(/\/help$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /help/i }),
+    ).toBeVisible();
+  });
+
   test("the top navigation bar is gone", async ({ page }) => {
     await expect(page.getByRole("navigation")).toHaveCount(1);
     await expect(page.getByRole("banner")).toHaveCount(0);

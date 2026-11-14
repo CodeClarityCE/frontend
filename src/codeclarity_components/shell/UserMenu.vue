@@ -3,6 +3,7 @@ import {
   Building2,
   ChevronsUpDown,
   CircleAlert,
+  CircleHelp,
   LogOut,
   UserRound,
 } from "@lucide/vue";
@@ -105,6 +106,13 @@ function openReport(): void {
             >
               <Building2 class="size-4" aria-hidden="true" />
               Manage organisations
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              class="cursor-pointer gap-2"
+              @select="router.push({ name: 'help' })"
+            >
+              <CircleHelp class="size-4" aria-hidden="true" />
+              Help
             </DropdownMenuItem>
             <DropdownMenuItem class="cursor-pointer gap-2" @select="openReport">
               <CircleAlert class="size-4" aria-hidden="true" />

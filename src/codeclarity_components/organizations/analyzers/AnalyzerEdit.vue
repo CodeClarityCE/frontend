@@ -5,6 +5,7 @@ import { type Ref, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import type { Stage } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import { PluginRepository } from "@/codeclarity_components/organizations/analyzers/PluginRepository";
@@ -27,9 +28,7 @@ import { errorToast, successToast } from "@/utils/toasts";
 import {
   type AnalyzerNode,
   type ConfigNode,
-  createAnalyzerNodes,
-  layoutNodes,
-  retrieveWorkflowSteps,
+  createNodesFromSteps,
 } from "@/utils/vueFlow";
 
 import AnalyzerFormFields from "./shared/AnalyzerFormFields.vue";
@@ -52,6 +51,8 @@ const { name, description, shownErrors, isValid, submitted } =
 const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
+// The workflow is read-only here, so a save sends back the steps as loaded.
+const savedSteps: Ref<Stage[][] | null> = ref(null);
 const submitting = ref(false);
 
 const listRoute = {
@@ -71,7 +72,13 @@ function setOrgInfo(orgInfo: Organization): void {
 
 async function submit(): Promise<void> {
   submitted.value = true;
-  if (!isValid.value || !authStore.getToken || submitting.value) return;
+  if (
+    !isValid.value ||
+    !authStore.getToken ||
+    !savedSteps.value ||
+    submitting.value
+  )
+    return;
 
   submitting.value = true;
   try {
@@ -81,7 +88,7 @@ async function submit(): Promise<void> {
       data: {
         name: name.value.trim(),
         description: description.value.trim(),
-        steps: retrieveWorkflowSteps(nodes.value, edges.value),
+        steps: savedSteps.value,
       },
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
@@ -98,23 +105,21 @@ async function submit(): Promise<void> {
 async function init(): Promise<void> {
   if (!authStore.getToken) return;
   try {
-    const resp = await pluginRepo.geAllPlugins({
-      bearerToken: authStore.getToken,
-    });
-    plugins.value = resp.data;
-    const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(
-      plugins.value,
-    );
-    nodes.value = layoutNodes(flowNodes);
-    edges.value = flowEdges;
-
-    const res = await analyzerRepo.getAnalyzer({
-      orgId: props.orgId,
-      bearerToken: authStore.getToken,
-      analyzer_id: analyzerId,
-    });
+    const [pluginResp, res] = await Promise.all([
+      pluginRepo.geAllPlugins({ bearerToken: authStore.getToken }),
+      analyzerRepo.getAnalyzer({
+        orgId: props.orgId,
+        bearerToken: authStore.getToken,
+        analyzer_id: analyzerId,
+      }),
+    ]);
+    plugins.value = pluginResp.data;
     name.value = res.data.name;
     description.value = res.data.description;
+    savedSteps.value = res.data.steps;
+    const flow = createNodesFromSteps(res.data.steps, plugins.value);
+    nodes.value = flow.nodes;
+    edges.value = flow.edges;
   } catch {
     errorToast("Failed to load the analyzer");
   }
@@ -170,7 +175,7 @@ void init();
         <Button :as="RouterLink" :to="listRoute" variant="outline">
           Cancel
         </Button>
-        <Button type="submit" :disabled="submitting">
+        <Button type="submit" :disabled="submitting || !savedSteps">
           <LoaderCircle
             v-if="submitting"
             aria-hidden="true"

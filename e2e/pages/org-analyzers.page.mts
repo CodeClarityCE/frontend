@@ -78,6 +78,13 @@ export const samplePlugins = [
     depends_on: ["js-sbom"],
     config: {},
   },
+  {
+    name: "js-patching",
+    description: "Suggests upgrades that fix the vulnerabilities",
+    version: "1.0.0",
+    depends_on: ["vuln-finder"],
+    config: {},
+  },
 ];
 
 export const sampleTemplates = [
@@ -144,7 +151,9 @@ export class OrgAnalyzersPage {
         });
       }
       if (request.method() === "PUT" && id) {
-        this.updated.push(request.postDataJSON());
+        const body = request.postDataJSON() as Record<string, unknown>;
+        this.updated.push(body);
+        analyzers = analyzers.map((a) => (a.id === id ? { ...a, ...body } : a));
         return route.fulfill({
           json: { status_code: 200, status: "success" },
         });
@@ -181,6 +190,16 @@ export class OrgAnalyzersPage {
 
   async gotoEdit(id: string): Promise<void> {
     await this.shell.goto(`/orgs/edit/analyzers/${ORG}?analyzerId=${id}`);
+  }
+
+  /** The workflow canvas on the create and edit pages. */
+  canvas(): Locator {
+    return this.page.locator(".vue-flow");
+  }
+
+  /** The plugin nodes drawn on the workflow canvas. */
+  workflowNodes(): Locator {
+    return this.canvas().locator(".vue-flow__node");
   }
 
   /** The table's body rows, without the header row. */

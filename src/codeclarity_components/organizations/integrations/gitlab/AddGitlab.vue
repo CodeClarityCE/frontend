@@ -2,10 +2,11 @@
 import { Icon } from "@iconify/vue";
 import { ExternalLink } from "@lucide/vue";
 import { computed, ref } from "vue";
-import { useRoute } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 import * as z from "zod";
 
 import { GitlabTokenType } from "@/codeclarity_components/organizations/integrations/integration_add.http";
+import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
@@ -19,6 +20,7 @@ import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/shadcn/ui/radio-group";
 import { useAuthStore } from "@/stores/auth";
+import { serverFeatures } from "@/utils/server-features";
 import { successToast } from "@/utils/toasts";
 
 import { tokenIntegrationError } from "../integration-errors";
@@ -36,6 +38,8 @@ const orgId = typeof route.params.orgId === "string" ? route.params.orgId : "";
 const updateId =
   typeof route.query.update === "string" ? route.query.update : undefined;
 const updating = updateId !== undefined;
+// The server cannot replace a GitLab token yet, so the form is not offered.
+const replaceUnavailable = updating && !serverFeatures.gitlabTokenReplacement;
 
 const token = ref("");
 const instance = ref<"cloud" | "self-hosted">("cloud");
@@ -122,10 +126,37 @@ if (!orgId) router.back();
       class="flex items-center gap-3 text-2xl font-bold text-foreground-strong"
     >
       <Icon icon="devicon:gitlab" aria-hidden="true" class="size-8" />
-      {{ updating ? "Replace the GitLab token" : "Connect GitLab" }}
+      <template v-if="replaceUnavailable">
+        Replacing a GitLab token is not available
+      </template>
+      <template v-else>
+        {{ updating ? "Replace the GitLab token" : "Connect GitLab" }}
+      </template>
     </h2>
 
-    <div class="grid grid-cols-2 items-start gap-6">
+    <Card v-if="replaceUnavailable" class="rounded-card shadow-card">
+      <CardContent class="flex flex-col items-start gap-4 pt-6">
+        <p class="text-sm">
+          To use a new token, delete this integration and connect GitLab again.
+        </p>
+        <Button
+          :as="RouterLink"
+          :to="{
+            name: 'orgs',
+            params: { action: 'edit', page: 'integrations', orgId },
+            query: {
+              provider: IntegrationProvider.GITLAB,
+              integrationId: updateId,
+            },
+          }"
+          variant="outline"
+        >
+          Back to the integration
+        </Button>
+      </CardContent>
+    </Card>
+
+    <div v-else class="grid grid-cols-2 items-start gap-6">
       <TokenIntegrationForm
         v-model:token="token"
         title="Personal access token"

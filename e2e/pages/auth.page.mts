@@ -28,7 +28,8 @@ export class AuthPage {
     this.loginButton = page.getByRole("button", { name: "Sign in" });
 
     // Error states - the app uses Alert component for errors
-    this.authError = page.locator('[role="alert"]');
+    // The form-level Alert, not the per-field messages that also use role=alert.
+    this.authError = page.locator('div[role="alert"]');
     this.loginLoading = page.getByText("Connecting");
     this.forgotPasswordLink = page.getByRole("link", {
       name: "Forgot your password?",

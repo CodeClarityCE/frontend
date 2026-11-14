@@ -17,6 +17,9 @@ import { cvssV2_fields_map, cvssV3_fields_map } from "@/utils/cvss";
 import { formatDate } from "@/utils/dateUtils";
 import { SEVERITY_LABELS, severityLevel } from "@/utils/severity";
 
+import ResultsNotFound from "../components/ResultsNotFound.vue";
+import { isNotFound, resultsRoute } from "../result-errors";
+
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import VulnDetailsHeader from "./VulnDetails/VulnDetailsHeader.vue";
 import VulnDetailsLoader from "./VulnDetails/VulnDetailsLoader.vue";
@@ -41,14 +44,21 @@ const authStore = useAuthStore();
 
 const finding = ref<VulnerabilityDetails | null>(null);
 const failed = ref(false);
+const notFound = ref(false);
+const backTo = resultsRoute(props.analysisID, props.projectID, props.runIndex);
+const hasIds = props.analysisID !== "" && props.projectID !== "";
 
 async function getFinding(): Promise<void> {
-  const findingID =
-    new URLSearchParams(window.location.search).get("finding_id") ??
-    props.analysisID;
+  const findingID = new URLSearchParams(window.location.search).get(
+    "finding_id",
+  );
   const org = userStore.getDefaultOrg;
   const token = authStore.getToken;
-  if (findingID === "" || !org || !token) return;
+  if (!findingID || !hasIds) {
+    notFound.value = true;
+    return;
+  }
+  if (!org || !token) return;
   try {
     const res = await resultsRepository.getFinding({
       orgId: org.id,
@@ -61,8 +71,10 @@ async function getFinding(): Promise<void> {
       workspace: ".",
     });
     finding.value = res.data;
-  } catch {
-    failed.value = true;
+  } catch (error) {
+    if (isNotFound(error, [props.projectID, props.analysisID]))
+      notFound.value = true;
+    else failed.value = true;
   }
 }
 void getFinding();
@@ -102,14 +114,24 @@ const linkClass =
 
 <template>
   <div class="flex flex-col gap-8">
-    <div v-if="showBack" class="flex items-center justify-between gap-4">
+    <div
+      v-if="showBack && !notFound"
+      class="flex items-center justify-between gap-4"
+    >
       <Button variant="ghost" size="sm" @click="router.back()">
         <ArrowLeft aria-hidden="true" class="size-4" />
         Back to results
       </Button>
     </div>
 
-    <Alert v-if="failed" variant="destructive">
+    <ResultsNotFound
+      v-if="notFound"
+      title="Vulnerability not found"
+      description="This analysis has no such vulnerability, or you do not have access to it."
+      :results="backTo"
+    />
+
+    <Alert v-else-if="failed" variant="destructive">
       <AlertTitle>Could not load this vulnerability</AlertTitle>
       <AlertDescription>Reload the page to try again.</AlertDescription>
     </Alert>

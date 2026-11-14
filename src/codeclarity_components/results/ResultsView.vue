@@ -3,6 +3,7 @@ import { History } from "@lucide/vue";
 import {
   type AsyncComponentLoader,
   type Component,
+  computed,
   defineAsyncComponent,
   onBeforeMount,
   type Ref,
@@ -18,11 +19,15 @@ import {
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import { Project } from "@/codeclarity_components/projects/project.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 import type { DataResponse } from "@/utils/api/responses/DataResponse";
+
+import ResultsNotFound from "./components/ResultsNotFound.vue";
+import { isNotFound } from "./result-errors";
 
 function lazy(loader: () => Promise<unknown>): Component {
   return defineAsyncComponent(loader as AsyncComponentLoader) as Component;
@@ -75,6 +80,50 @@ const tab = ref({
 const default_tab: Ref<string> = ref("sbom");
 const current_tab: Ref<string> = ref("sbom");
 const loading: Ref<boolean> = ref(true);
+// Whether the analysis could not be found, or could not be loaded.
+const notFound = ref(false);
+const failed = ref(false);
+
+// Maps a plugin to the tab that shows its results.
+const TAB_OF: Record<string, keyof typeof tab.value> = {
+  "js-sbom": "sbom",
+  "php-sbom": "sbom",
+  "vuln-finder": "vuln-finder",
+  "js-patching": "js-patching",
+  "license-finder": "license-finder",
+  codeql: "codeql",
+};
+
+const hasTabs = computed(() => Object.values(tab.value).some(Boolean));
+
+// The analysis status in words, when it has not completed.
+const statusNotice = computed((): { title: string; text: string } | null => {
+  switch (analysis.value.status) {
+    case AnalysisStatus.COMPLETED:
+    case AnalysisStatus.FINISHED:
+      return null;
+    case AnalysisStatus.FAILED:
+    case AnalysisStatus.FAILURE:
+      return {
+        title: "Analysis failed",
+        text:
+          analysis.value.failure_reason ??
+          "The analysis stopped before it finished.",
+      };
+    case AnalysisStatus.STARTED:
+    case AnalysisStatus.ONGOING:
+    case AnalysisStatus.UPDATING_DB:
+      return {
+        title: "Analysis running",
+        text: "Results appear here when it finishes. Reload the page to check.",
+      };
+    default:
+      return {
+        title: "Analysis queued",
+        text: "The analysis has not started yet. Reload the page to check.",
+      };
+  }
+});
 
 async function init(): Promise<void> {
   const url = new URL(window.location.href);
@@ -84,8 +133,9 @@ async function init(): Promise<void> {
   const project_id = searchParams.get("project_id");
   const run_index = searchParams.get("run_index");
 
-  if (analysis_id === null || project_id === null) {
-    throw new Error("Missing analysis_id or project_id");
+  if (!analysis_id || !project_id) {
+    notFound.value = true;
+    return;
   }
   analysisID.value = analysis_id;
   projectID.value = project_id;
@@ -98,23 +148,19 @@ async function init(): Promise<void> {
   void getProject(project_id);
   await getAnalysis(project_id, analysis_id);
 
-  for (const step of analysis.value.steps) {
+  // Only plugins that succeeded have results to show.
+  let first: string | null = null;
+  for (const step of analysis.value.steps ?? []) {
     for (const result of step) {
-      if (result.Status !== AnalysisStatus.SUCCESS) {
-        continue;
-      }
-      if (result.Name === "js-sbom" || result.Name === "php-sbom") {
-        tab.value.sbom = true;
-      } else if (result.Name === "vuln-finder") {
-        tab.value["vuln-finder"] = true;
-      } else if (result.Name === "js-patching") {
-        tab.value["js-patching"] = true;
-      } else if (result.Name === "license-finder") {
-        tab.value["license-finder"] = true;
-      } else if (result.Name === "codeql") {
-        tab.value.codeql = true;
-      }
+      const name = TAB_OF[result.Name];
+      if (result.Status !== AnalysisStatus.SUCCESS || !name) continue;
+      tab.value[name] = true;
+      first ??= name;
     }
+  }
+  if (first) {
+    default_tab.value = first;
+    current_tab.value = first;
   }
 }
 
@@ -167,16 +213,9 @@ async function getAnalysis(
       handleBusinessErrors: true,
     });
     analysis.value = res.data;
-    // Map plugin names to tab names
-    const pluginName = res.data.steps?.[0]?.[0]?.Name ?? "";
-    let tabName = pluginName;
-    if (pluginName === "js-sbom" || pluginName === "php-sbom") {
-      tabName = "sbom";
-    }
-    default_tab.value = tabName;
-    current_tab.value = tabName;
-  } catch {
-    // The tabs stay empty when the project or analysis cannot be read.
+  } catch (error) {
+    if (isNotFound(error, [projectID, analysisID])) notFound.value = true;
+    else failed.value = true;
   }
 }
 
@@ -193,14 +232,21 @@ function handleTabChange(newTab: string): void {
 }
 
 onBeforeMount(async () => {
-  await init();
+  // The detail pages load what they show themselves.
+  if (props.page !== "vulnerabilities_details" && props.page !== "sbom_details")
+    await init();
   loading.value = false;
 });
 </script>
 <template>
   <div class="flex flex-col gap-8 p-8">
+    <ResultsNotFound
+      v-if="notFound"
+      title="Analysis not found"
+      description="This analysis does not exist, or you do not have access to it."
+    />
     <PageHeading
-      v-if="
+      v-else-if="
         props.page !== 'vulnerabilities_details' &&
         props.page !== 'sbom_details'
       "
@@ -216,69 +262,92 @@ onBeforeMount(async () => {
         </span>
       </template>
     </PageHeading>
+    <template v-if="notFound" />
     <ResultsVulnerabilitiesDetails
-      v-if="props.page === 'vulnerabilities_details'"
+      v-else-if="props.page === 'vulnerabilities_details'"
       :run-index="runIndex"
     />
     <ResultsSBOMDetails
       v-else-if="props.page === 'sbom_details'"
       :run-index="runIndex"
     />
-    <Tabs
-      v-else-if="!loading"
-      v-model="current_tab"
-      :default-value="default_tab"
-      class="flex flex-col gap-6"
-      @value-change="handleTabChange"
-    >
-      <TabsList aria-label="Results" class="self-start">
-        <TabsTrigger v-if="tab['sbom']" value="sbom"> SBOM </TabsTrigger>
-        <TabsTrigger v-if="tab['vuln-finder']" value="vuln-finder">
-          Vulnerabilities
-        </TabsTrigger>
-        <TabsTrigger v-if="tab['js-patching']" value="js-patching">
-          Patches
-        </TabsTrigger>
-        <TabsTrigger v-if="tab['license-finder']" value="license-finder">
-          Licenses
-        </TabsTrigger>
-        <TabsTrigger v-if="tab['codeql']" value="codeql"> CodeQL </TabsTrigger>
-      </TabsList>
-      <TabsContent value="sbom" class="space-y-4">
-        <ResultsSBOM
-          :project="project"
-          :analysis="analysis"
-          :run-index="runIndex"
-        />
-      </TabsContent>
-      <TabsContent value="vuln-finder" class="mt-0">
-        <ResultsVulnerabilities
-          :project="project"
-          :analysis="analysis"
-          :run-index="runIndex"
-        />
-      </TabsContent>
-      <TabsContent value="js-patching" class="space-y-4">
-        <ResultsPatching
-          :project="project"
-          :analysis="analysis"
-          :run-index="runIndex"
-        />
-      </TabsContent>
-      <TabsContent value="license-finder" class="space-y-4">
-        <ResultsLicenses
-          :project="project"
-          :analysis="analysis"
-          :run-index="runIndex"
-        />
-      </TabsContent>
-      <TabsContent value="codeql" class="space-y-4">
-        <ResultsCodeQL
-          :project="project"
-          :analysis="analysis"
-          :run-index="runIndex"
-        />
-      </TabsContent>
-    </Tabs>
+    <template v-else-if="!loading">
+      <Alert v-if="failed" variant="destructive">
+        <AlertTitle>Could not load this analysis</AlertTitle>
+        <AlertDescription>Reload the page to try again.</AlertDescription>
+      </Alert>
+      <Alert
+        v-else-if="statusNotice"
+        role="status"
+        aria-label="Analysis status"
+        :variant="
+          analysis.status === AnalysisStatus.FAILURE ||
+          analysis.status === AnalysisStatus.FAILED
+            ? 'destructive'
+            : 'default'
+        "
+      >
+        <AlertTitle>{{ statusNotice.title }}</AlertTitle>
+        <AlertDescription>{{ statusNotice.text }}</AlertDescription>
+      </Alert>
+      <Tabs
+        v-if="!failed && hasTabs"
+        v-model="current_tab"
+        :default-value="default_tab"
+        class="flex flex-col gap-6"
+        @value-change="handleTabChange"
+      >
+        <TabsList aria-label="Results" class="self-start">
+          <TabsTrigger v-if="tab['sbom']" value="sbom"> SBOM </TabsTrigger>
+          <TabsTrigger v-if="tab['vuln-finder']" value="vuln-finder">
+            Vulnerabilities
+          </TabsTrigger>
+          <TabsTrigger v-if="tab['js-patching']" value="js-patching">
+            Patches
+          </TabsTrigger>
+          <TabsTrigger v-if="tab['license-finder']" value="license-finder">
+            Licenses
+          </TabsTrigger>
+          <TabsTrigger v-if="tab['codeql']" value="codeql">
+            CodeQL
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="sbom" class="space-y-4">
+          <ResultsSBOM
+            :project="project"
+            :analysis="analysis"
+            :run-index="runIndex"
+          />
+        </TabsContent>
+        <TabsContent value="vuln-finder" class="mt-0">
+          <ResultsVulnerabilities
+            :project="project"
+            :analysis="analysis"
+            :run-index="runIndex"
+          />
+        </TabsContent>
+        <TabsContent value="js-patching" class="space-y-4">
+          <ResultsPatching
+            :project="project"
+            :analysis="analysis"
+            :run-index="runIndex"
+          />
+        </TabsContent>
+        <TabsContent value="license-finder" class="space-y-4">
+          <ResultsLicenses
+            :project="project"
+            :analysis="analysis"
+            :run-index="runIndex"
+          />
+        </TabsContent>
+        <TabsContent value="codeql" class="space-y-4">
+          <ResultsCodeQL
+            :project="project"
+            :analysis="analysis"
+            :run-index="runIndex"
+          />
+        </TabsContent>
+      </Tabs>
+    </template>
   </div>
 </template>

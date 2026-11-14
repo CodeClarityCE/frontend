@@ -94,8 +94,12 @@ describe("SbomDetails", () => {
 
   it("says so when the dependency cannot be loaded", async () => {
     repo.getDependency.mockRejectedValue(new Error("down"));
+    // Real ids: a request with malformed ids that fails reads as not found.
     render(SbomDetails, {
-      props: { analysisID: "a-1", projectID: "p-1" },
+      props: {
+        analysisID: "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e",
+        projectID: "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69",
+      },
       global: { stubs: { SbomDependencyGraph: true } },
     });
     await flushPromises();

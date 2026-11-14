@@ -90,8 +90,8 @@ async function loadSnapshot(token: string): Promise<KnowledgeSnapshot | null> {
       handleOtherErrors: true,
     });
     return response.data;
-  } catch (error) {
-    console.warn("Could not load the analysis's knowledge snapshot", error);
+  } catch {
+    // The notice is advisory: without a snapshot it falls back to the live status.
     return null;
   }
 }
@@ -115,8 +115,8 @@ onMounted(async () => {
       handleOtherErrors: true,
     });
     sources.value = response.data.sources;
-  } catch (error) {
-    console.warn("Could not load knowledge source status", error);
+  } catch {
+    // Without a status the notice stays hidden.
   }
 });
 </script>

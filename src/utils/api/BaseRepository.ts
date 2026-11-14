@@ -520,8 +520,7 @@ export class BaseRepository {
   /**
    * Default http error handler that runs in case no http error handler was supplied by the user.
    */
-  private async defaultHttpErrorHandler(http_error: HttpError): Promise<void> {
-    console.error(http_error);
+  private async defaultHttpErrorHandler(_http_error: HttpError): Promise<void> {
     toast.error(
       "Request failed to be processed. Please reload the page and try again.",
     );

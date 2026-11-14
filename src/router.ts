@@ -228,6 +228,7 @@ const router = createRouter({
     {
       path: "/help",
       name: "help",
+      meta: { public: true },
       component: HelpView as Component,
     },
     {

@@ -71,11 +71,9 @@ export function mountWithSetup<T extends ComponentPublicInstance>(
     ): Promise<VueWrapper<T>> {
       // Merge options
       const globalOptions = options.global as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       const mountGlobalOptions = mountOptions.global as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       const finalOptions = {
         ...options,
         ...mountOptions,

@@ -1,7 +1,15 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import {
+  Cpu,
+  Link2,
+  Maximize,
+  Plus,
+  Workflow,
+  ZoomIn,
+  ZoomOut,
+} from "@lucide/vue";
 import { Background } from "@vue-flow/background";
-import { Controls } from "@vue-flow/controls";
+import { ControlButton, Controls } from "@vue-flow/controls";
 import {
   type Edge,
   type NodeMouseEvent,
@@ -46,16 +54,18 @@ const emit = defineEmits<{
 
 let vueFlowInstance: ReturnType<typeof useVueFlow> | null = null;
 try {
-  const vueFlow = useVueFlow();
-  vueFlowInstance = vueFlow;
-} catch (error) {
-  console.warn("Could not get VueFlow instance:", error);
+  vueFlowInstance = useVueFlow();
+} catch {
+  // Without an instance the designer still works, it just cannot fit the view.
 }
 
-const { fitView } = vueFlowInstance ?? {
-  fitView: () => {
-    /* no-op fallback */
-  },
+const noop = (): void => {
+  // Nothing to do without a canvas instance.
+};
+const { fitView, zoomIn, zoomOut } = vueFlowInstance ?? {
+  fitView: noop,
+  zoomIn: noop,
+  zoomOut: noop,
 };
 
 // Using markRaw to prevent Vue from making components reactive
@@ -224,8 +234,8 @@ function handleKeyDown(event: KeyboardEvent): void {
         if (vueFlowSelected.length > 0) {
           nodesToDelete = vueFlowSelected;
         }
-      } catch (error) {
-        console.warn("Could not get VueFlow selected nodes:", error);
+      } catch {
+        // Fall back to the nodes marked selected below.
       }
     }
 
@@ -250,35 +260,20 @@ function handleKeyDown(event: KeyboardEvent): void {
 function onSelectionChange(selection: {
   nodes?: (AnalyzerNode | ConfigNode)[];
 }): void {
-  try {
-    const selectedNodesList = selection?.nodes ?? [];
-    selectedNodes.value = selectedNodesList;
-  } catch (error) {
-    console.error("Error in onSelectionChange:", error);
-  }
+  selectedNodes.value = selection?.nodes ?? [];
 }
 
 function onNodeClick(eventData: NodeMouseEvent): void {
   if (props.readonly) return;
-  try {
-    const node = eventData.node;
-
-    if (node?.id) {
-      const updatedNodes = props.nodes.map((n) => ({
-        ...n,
-        selected: n.id === node.id,
-      })) as (AnalyzerNode | ConfigNode)[];
-
-      void emit("update:nodes", updatedNodes);
-
-      const foundNode = updatedNodes.find((n) => n.id === node.id);
-      if (foundNode) {
-        selectedNodes.value = [foundNode];
-      }
-    }
-  } catch (error) {
-    console.error("Error in onNodeClick:", error);
-  }
+  const node = eventData.node;
+  if (!node?.id) return;
+  const updatedNodes = props.nodes.map((n) => ({
+    ...n,
+    selected: n.id === node.id,
+  })) as (AnalyzerNode | ConfigNode)[];
+  void emit("update:nodes", updatedNodes);
+  const foundNode = updatedNodes.find((n) => n.id === node.id);
+  if (foundNode) selectedNodes.value = [foundNode];
 }
 
 function deleteNode(node: { id?: string }): void {
@@ -311,21 +306,9 @@ function deleteNode(node: { id?: string }): void {
 
 function onNodeContextMenu(event: NodeMouseEvent): void {
   if (props.readonly) return;
-  try {
-    const mouseEvent = event.event;
-    const node = event.node;
-
-    if (mouseEvent) {
-      mouseEvent.preventDefault();
-      mouseEvent.stopPropagation();
-    }
-
-    if (node) {
-      deleteNode(node);
-    }
-  } catch (error) {
-    console.error("Error in onNodeContextMenu:", error);
-  }
+  event.event.preventDefault();
+  event.event.stopPropagation();
+  deleteNode(event.node);
 }
 
 onMounted(() => {
@@ -340,157 +323,149 @@ onUnmounted(() => {
   }
 });
 </script>
-
 <template>
-  <div class="bg-white border border-slate-200/60 rounded-lg p-6">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2">
-        <Icon icon="solar:diagram-up-bold" class="w-5 h-5 text-theme-primary" />
-        <h3 class="text-lg font-semibold text-theme-black">
-          Workflow Designer
-        </h3>
+  <div class="relative h-[700px] w-full">
+    <VueFlow
+      :nodes="nodes"
+      :edges="edges"
+      :node-types="nodeTypes"
+      class="workflow-canvas h-full w-full rounded-card border bg-background"
+      :default-viewport="{ zoom: 0.8 }"
+      :min-zoom="0.2"
+      :max-zoom="4"
+      :nodes-selectable="!readonly"
+      :multi-selection-key-code="['Control', 'Meta']"
+      @pane-context-menu="onPaneContextMenu"
+      @node-context-menu="onNodeContextMenu"
+      @selection-change="onSelectionChange"
+      @node-click="onNodeClick"
+    >
+      <Background :gap="16" />
+      <Controls
+        :show-zoom="false"
+        :show-fit-view="false"
+        :show-interactive="false"
+      >
+        <ControlButton aria-label="Zoom in" @click="zoomIn()">
+          <ZoomIn aria-hidden="true" />
+        </ControlButton>
+        <ControlButton aria-label="Zoom out" @click="zoomOut()">
+          <ZoomOut aria-hidden="true" />
+        </ControlButton>
+        <ControlButton aria-label="Fit view" @click="fitView()">
+          <Maximize aria-hidden="true" />
+        </ControlButton>
+      </Controls>
+    </VueFlow>
+
+    <!-- Menu to add a plugin where the user right-clicked -->
+    <div
+      v-if="showContextMenu && !readonly"
+      role="menu"
+      aria-label="Add plugin"
+      class="fixed z-50 min-w-[280px] rounded-card border bg-popover py-1 text-popover-foreground shadow-raised"
+      :style="{
+        left: contextMenuPosition.x + 'px',
+        top: contextMenuPosition.y + 'px',
+      }"
+    >
+      <div
+        class="flex items-center gap-2 border-b px-4 py-3 text-sm font-semibold text-foreground-strong"
+      >
+        <Plus aria-hidden="true" class="size-4" />
+        Add plugin
       </div>
-      <div class="flex items-center gap-2 text-xs text-theme-gray">
-        <Icon icon="solar:info-circle-bold" class="w-4 h-4" />
-        <span>{{
-          readonly
-            ? "View workflow configuration"
-            : "Design your analysis workflow visually"
-        }}</span>
+      <div class="max-h-48 overflow-y-auto py-1">
+        <button
+          v-for="plugin in availablePlugins"
+          :key="plugin.name"
+          type="button"
+          role="menuitem"
+          class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+          @click="addNodeToGraph(plugin)"
+        >
+          <Cpu
+            aria-hidden="true"
+            class="size-4 shrink-0 text-muted-foreground"
+          />
+          <span class="flex min-w-0 flex-col">
+            <span class="font-semibold text-foreground-strong">
+              {{ plugin.name }}
+            </span>
+            <span class="truncate text-xs text-muted-foreground">
+              {{ plugin.description }}
+            </span>
+          </span>
+        </button>
+        <p
+          v-if="availablePlugins.length === 0"
+          class="px-4 py-6 text-center text-sm text-muted-foreground"
+        >
+          Every plugin is already in the workflow
+        </p>
       </div>
     </div>
 
-    <div>
-      <div class="relative w-full h-[700px]">
-        <VueFlow
-          :nodes="nodes"
-          :edges="edges"
-          :node-types="nodeTypes"
-          class="w-full h-full rounded-lg border-2 border-slate-300/60 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300"
-          :default-viewport="{ zoom: 0.8 }"
-          :min-zoom="0.2"
-          :max-zoom="4"
-          :nodes-selectable="!readonly"
-          :multi-selection-key-code="['Control', 'Meta']"
-          @pane-context-menu="onPaneContextMenu"
-          @node-context-menu="onNodeContextMenu"
-          @selection-change="onSelectionChange"
-          @node-click="onNodeClick"
-        >
-          <Background pattern-color="#aaa" :gap="16" />
-          <Controls />
-        </VueFlow>
+    <!-- Backdrop to close the menu -->
+    <div
+      v-if="showContextMenu && !readonly"
+      class="fixed inset-0 z-40"
+      @click="closeContextMenu"
+    ></div>
 
-        <!-- Context Menu -->
-        <div
-          v-if="showContextMenu && !readonly"
-          class="fixed bg-white/95 backdrop-blur-md border border-slate-200/60 rounded-xl shadow-2xl shadow-slate-900/10 py-1 z-50 min-w-[280px]"
-          :style="{
-            left: contextMenuPosition.x + 'px',
-            top: contextMenuPosition.y + 'px',
-          }"
-        >
-          <div
-            class="px-4 py-3 text-sm font-semibold text-theme-black border-b border-slate-200/60 bg-slate-50/50"
-          >
-            <div class="flex items-center gap-2">
-              <Icon
-                icon="solar:add-circle-bold"
-                class="w-4 h-4 text-theme-primary"
-              />
-              Add Plugin
-            </div>
-          </div>
-          <div class="max-h-48 overflow-y-auto py-1">
-            <button
-              v-for="plugin in availablePlugins"
-              :key="plugin.name"
-              class="w-full px-4 py-3 text-left text-sm hover:bg-theme-primary/5 hover:border-l-4 hover:border-l-theme-primary flex items-center gap-3 transition-all duration-200 border-l-4 border-l-transparent group"
-              @click="addNodeToGraph(plugin)"
-            >
-              <div
-                class="shrink-0 w-8 h-8 bg-theme-primary/10 rounded-lg flex items-center justify-center group-hover:bg-theme-primary/20 transition-colors duration-200"
-              >
-                <Icon
-                  icon="solar:cpu-bolt-bold"
-                  class="w-4 h-4 text-theme-primary"
-                />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div
-                  class="font-semibold text-theme-black group-hover:text-theme-primary transition-colors duration-200"
-                >
-                  {{ plugin.name }}
-                </div>
-                <div class="text-xs text-theme-gray truncate mt-0.5">
-                  {{ plugin.description }}
-                </div>
-              </div>
-            </button>
-            <div
-              v-if="availablePlugins.length === 0"
-              class="px-4 py-6 text-sm text-theme-gray text-center"
-            >
-              <Icon
-                icon="solar:box-bold"
-                class="w-8 h-8 text-theme-gray/50 mx-auto mb-2"
-              />
-              <div>All plugins already added</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Backdrop to close context menu -->
-        <div
-          v-if="showContextMenu && !readonly"
-          class="fixed inset-0 z-40"
-          @click="closeContextMenu"
-        ></div>
-
-        <!-- Status Info -->
-        <div class="absolute bottom-4 left-4 z-10">
-          <div
-            class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
-          >
-            <div class="flex items-center gap-6 text-xs text-theme-gray">
-              <span class="flex items-center gap-1">
-                <Icon
-                  icon="solar:widget-bold"
-                  class="w-3 h-3 text-theme-primary"
-                />
-                <span
-                  >{{
-                    nodes.filter((n) => n.type === "analyzer").length
-                  }}
-                  nodes</span
-                >
-              </span>
-              <span class="flex items-center gap-1">
-                <Icon
-                  icon="solar:link-bold"
-                  class="w-3 h-3 text-theme-primary"
-                />
-                <span>{{ edges.length }} connections</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Help Text -->
-        <div class="absolute bottom-4 right-4 z-10">
-          <div
-            class="bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md border border-slate-200/60"
-          >
-            <div class="text-xs text-theme-gray">
-              {{
-                readonly
-                  ? "Workflow view (read-only)"
-                  : "Right-click canvas to add • Select & Delete key to remove"
-              }}
-            </div>
-          </div>
-        </div>
-      </div>
+    <div
+      class="absolute left-4 top-4 z-10 flex items-center gap-6 rounded-md border bg-background px-4 py-2 text-xs text-muted-foreground shadow-card"
+    >
+      <span class="flex items-center gap-1">
+        <Workflow aria-hidden="true" class="size-3" />
+        {{ nodes.filter((n) => n.type === "analyzer").length }} plugins
+      </span>
+      <span class="flex items-center gap-1">
+        <Link2 aria-hidden="true" class="size-3" />
+        {{ edges.length }} connections
+      </span>
     </div>
+    <p
+      v-if="readonly"
+      class="absolute right-4 top-4 z-10 rounded-md border bg-background px-4 py-2 text-xs text-muted-foreground shadow-card"
+    >
+      Read-only view
+    </p>
   </div>
 </template>
+
+<style>
+/* Canvas dots and controls drawn with the design tokens. */
+.workflow-canvas .vue-flow__background circle {
+  fill: var(--border);
+}
+.workflow-canvas .vue-flow__controls {
+  display: flex;
+  gap: 0.25rem;
+}
+.workflow-canvas .vue-flow__controls-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--background);
+  color: var(--foreground);
+}
+.workflow-canvas .vue-flow__controls-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+.workflow-canvas .vue-flow__controls-button svg {
+  fill: none;
+}
+.workflow-canvas .vue-flow__controls-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.workflow-canvas .vue-flow__controls-button:hover {
+  background: var(--muted);
+}
+</style>

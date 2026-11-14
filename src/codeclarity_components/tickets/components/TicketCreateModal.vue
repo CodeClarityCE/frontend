@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { Eye, LoaderCircle, Plus, Ticket } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -128,8 +128,8 @@ async function checkDuplicate(): Promise<void> {
         title: result.existing_ticket_title ?? "Existing ticket",
       };
     }
-  } catch (err) {
-    console.error("Error checking duplicate:", err);
+  } catch {
+    // Without the check the user can still create the ticket.
   } finally {
     isCheckingDuplicate.value = false;
   }
@@ -174,8 +174,7 @@ async function handleSubmit(): Promise<void> {
     void emit("created", result.id);
     isOpen.value = false;
     void resetForm();
-  } catch (err) {
-    console.error("Error creating ticket:", err);
+  } catch {
     error.value = "Failed to create ticket. Please try again.";
   } finally {
     isLoading.value = false;
@@ -210,7 +209,7 @@ function viewExistingTicket(): void {
     <DialogContent class="sm:max-w-[600px]">
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
-          <Icon icon="solar:ticket-bold" class="w-5 h-5 text-blue-600" />
+          <Ticket aria-hidden="true" class="size-5" />
           Create Ticket
         </DialogTitle>
         <DialogDescription>
@@ -218,94 +217,81 @@ function viewExistingTicket(): void {
         </DialogDescription>
       </DialogHeader>
 
-      <!-- Duplicate Warning -->
       <div
         v-if="duplicateTicket"
-        class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3"
+        role="status"
+        class="flex flex-col gap-2 rounded-card border border-warning bg-warning-subtle p-4 text-sm text-warning"
       >
-        <Icon
-          icon="solar:info-circle-bold"
-          class="w-5 h-5 text-yellow-600 shrink-0 mt-0.5"
-        />
-        <div class="flex-1">
-          <p class="text-sm font-medium text-yellow-800">
-            A ticket already exists for this vulnerability
-          </p>
-          <p class="text-sm text-yellow-700 mt-1">
-            {{ duplicateTicket.title }}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            class="mt-2 text-yellow-700 border-yellow-300 hover:bg-yellow-100"
-            @click="viewExistingTicket"
-          >
-            <Icon icon="solar:eye-bold" class="w-4 h-4 mr-1" />
-            View Existing Ticket
-          </Button>
-        </div>
+        <p class="font-semibold">
+          A ticket already exists for this vulnerability
+        </p>
+        <p>{{ duplicateTicket.title }}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          class="w-fit"
+          @click="viewExistingTicket"
+        >
+          <Eye aria-hidden="true" />
+          View Existing Ticket
+        </Button>
       </div>
 
-      <!-- Checking duplicate loading -->
-      <div
+      <p
         v-if="isCheckingDuplicate"
-        class="flex items-center gap-2 text-sm text-gray-500"
+        role="status"
+        class="flex items-center gap-2 text-sm text-muted-foreground"
       >
-        <Icon icon="solar:refresh-bold" class="w-4 h-4 animate-spin" />
-        Checking for existing tickets...
-      </div>
+        <LoaderCircle
+          aria-hidden="true"
+          class="size-4 animate-spin motion-reduce:animate-none"
+        />
+        Checking for existing tickets
+      </p>
 
-      <!-- Vulnerability Info -->
-      <div v-if="vulnerability" class="bg-gray-50 rounded-lg p-4 space-y-2">
+      <dl
+        v-if="vulnerability"
+        class="flex flex-col gap-2 rounded-card bg-muted p-4 text-sm"
+      >
         <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-gray-700">Vulnerability</span>
-          <span class="font-mono text-sm font-semibold text-gray-900">
+          <dt class="font-medium text-foreground">Vulnerability</dt>
+          <dd class="font-mono font-semibold text-foreground-strong">
             {{ vulnerability.vulnerability_id }}
-          </span>
+          </dd>
         </div>
         <div
           v-if="vulnerability.severity_score"
           class="flex items-center justify-between"
         >
-          <span class="text-sm text-gray-600">Severity</span>
-          <span
-            class="text-sm font-medium"
-            :class="{
-              'text-red-600': (vulnerability.severity_score ?? 0) >= 9,
-              'text-orange-600':
-                (vulnerability.severity_score ?? 0) >= 7 &&
-                (vulnerability.severity_score ?? 0) < 9,
-              'text-yellow-600':
-                (vulnerability.severity_score ?? 0) >= 4 &&
-                (vulnerability.severity_score ?? 0) < 7,
-              'text-green-600': (vulnerability.severity_score ?? 0) < 4,
-            }"
-          >
+          <dt class="text-muted-foreground">Severity</dt>
+          <dd class="font-medium text-foreground-strong">
             {{ vulnerability.severity_score?.toFixed(1) }}
-            <span v-if="vulnerability.severity_class" class="text-gray-500">
+            <span
+              v-if="vulnerability.severity_class"
+              class="text-muted-foreground"
+            >
               ({{ vulnerability.severity_class }})
             </span>
-          </span>
+          </dd>
         </div>
         <div
           v-if="vulnerability.affected_package"
           class="flex items-center justify-between"
         >
-          <span class="text-sm text-gray-600">Package</span>
-          <span class="text-sm text-gray-900">
+          <dt class="text-muted-foreground">Package</dt>
+          <dd class="text-foreground-strong">
             {{ vulnerability.affected_package }}@{{
               vulnerability.affected_version
             }}
-          </span>
+          </dd>
         </div>
-      </div>
+      </dl>
 
-      <!-- Form -->
       <form class="space-y-4" @submit.prevent="handleSubmit">
         <div class="space-y-2">
-          <Label for="title">Title</Label>
+          <Label for="ticket-title">Title</Label>
           <Input
-            id="title"
+            id="ticket-title"
             v-model="title"
             placeholder="Enter ticket title"
             :disabled="isLoading"
@@ -314,9 +300,9 @@ function viewExistingTicket(): void {
 
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
-            <Label for="priority">Priority</Label>
+            <Label for="ticket-priority">Priority</Label>
             <Select v-model="priority" :disabled="isLoading">
-              <SelectTrigger>
+              <SelectTrigger id="ticket-priority">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>
@@ -332,9 +318,9 @@ function viewExistingTicket(): void {
           </div>
 
           <div class="space-y-2">
-            <Label for="type">Type</Label>
+            <Label for="ticket-type">Type</Label>
             <Select v-model="ticketType" :disabled="isLoading">
-              <SelectTrigger>
+              <SelectTrigger id="ticket-type">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -351,9 +337,9 @@ function viewExistingTicket(): void {
         </div>
 
         <div class="space-y-2">
-          <Label for="description">Description</Label>
+          <Label for="ticket-description">Description</Label>
           <Textarea
-            id="description"
+            id="ticket-description"
             v-model="description"
             placeholder="Describe the issue..."
             rows="3"
@@ -362,9 +348,9 @@ function viewExistingTicket(): void {
         </div>
 
         <div class="space-y-2">
-          <Label for="remediation">Remediation Notes (Optional)</Label>
+          <Label for="ticket-remediation">Remediation Notes (Optional)</Label>
           <Textarea
-            id="remediation"
+            id="ticket-remediation"
             v-model="remediationNotes"
             placeholder="Steps to remediate this vulnerability..."
             rows="2"
@@ -372,17 +358,13 @@ function viewExistingTicket(): void {
           />
         </div>
 
-        <!-- Error Message -->
-        <div
+        <p
           v-if="error"
-          class="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2"
+          role="alert"
+          class="rounded-control border border-danger p-3 text-sm text-danger"
         >
-          <Icon
-            icon="solar:danger-triangle-bold"
-            class="w-4 h-4 text-red-600"
-          />
-          <span class="text-sm text-red-700">{{ error }}</span>
-        </div>
+          {{ error }}
+        </p>
       </form>
 
       <DialogFooter>
@@ -390,12 +372,12 @@ function viewExistingTicket(): void {
           Cancel
         </Button>
         <Button :disabled="isLoading || !title.trim()" @click="handleSubmit">
-          <Icon
+          <LoaderCircle
             v-if="isLoading"
-            icon="solar:refresh-bold"
-            class="w-4 h-4 mr-2 animate-spin"
+            aria-hidden="true"
+            class="animate-spin motion-reduce:animate-none"
           />
-          <Icon v-else icon="solar:add-circle-bold" class="w-4 h-4 mr-2" />
+          <Plus v-else aria-hidden="true" />
           {{ isLoading ? "Creating..." : "Create Ticket" }}
         </Button>
       </DialogFooter>

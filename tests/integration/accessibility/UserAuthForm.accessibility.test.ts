@@ -197,7 +197,7 @@ describe("UserAuthForm Accessibility Tests", () => {
 
       // Form validation is handled by vee-validate, not HTML5 required attributes
       // Check that required indicators are present in the labels
-      expect(wrapper.text()).toContain("Email*");
+      expect(wrapper.text()).toContain("Email");
       expect(wrapper.text()).toContain("Password");
     });
 

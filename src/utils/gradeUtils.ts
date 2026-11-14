@@ -16,7 +16,6 @@ export interface GradeThreshold {
   grade: Grade;
   minScore: number;
   label: string;
-  color: string;
 }
 
 /**
@@ -24,14 +23,14 @@ export interface GradeThreshold {
  * These thresholds are shared between frontend and should match backend
  */
 export const GRADE_THRESHOLDS: GradeThreshold[] = [
-  { grade: "A+", minScore: 95, label: "Excellent", color: "text-green-600" },
-  { grade: "A", minScore: 90, label: "Excellent", color: "text-green-600" },
-  { grade: "B+", minScore: 85, label: "Good", color: "text-blue-600" },
-  { grade: "B", minScore: 75, label: "Good", color: "text-blue-600" },
-  { grade: "C+", minScore: 65, label: "Fair", color: "text-yellow-600" },
-  { grade: "C", minScore: 55, label: "Fair", color: "text-yellow-600" },
-  { grade: "D+", minScore: 45, label: "Poor", color: "text-red-600" },
-  { grade: "D", minScore: 0, label: "Poor", color: "text-red-600" },
+  { grade: "A+", minScore: 95, label: "Excellent" },
+  { grade: "A", minScore: 90, label: "Excellent" },
+  { grade: "B+", minScore: 85, label: "Good" },
+  { grade: "B", minScore: 75, label: "Good" },
+  { grade: "C+", minScore: 65, label: "Fair" },
+  { grade: "C", minScore: 55, label: "Fair" },
+  { grade: "D+", minScore: 45, label: "Poor" },
+  { grade: "D", minScore: 0, label: "Poor" },
 ];
 
 /**
@@ -85,21 +84,4 @@ export function getGradeSubtitle(
     return "Needs attention";
   }
   return "Critical - immediate action required";
-}
-
-/**
- * Get the color class for a grade
- */
-export function getGradeColor(grade: Grade): string {
-  const threshold = GRADE_THRESHOLDS.find((t) => t.grade === grade);
-  return threshold?.color ?? "text-gray-600";
-}
-
-/**
- * Get the border color class based on score percentage
- */
-export function getScoreBorderColor(score: number): string {
-  if (score >= 80) return "border-l-green-500";
-  if (score >= 60) return "border-l-[#1dce79]";
-  return "border-l-red-500";
 }

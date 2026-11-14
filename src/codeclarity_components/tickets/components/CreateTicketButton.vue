@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { Ticket } from "@lucide/vue";
 import { ref } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -46,11 +46,10 @@ function handleCreated(ticketId: string): void {
           <Button
             :size="size || 'sm'"
             :variant="variant || 'outline'"
-            class="gap-1.5"
             @click="openModal"
           >
-            <Icon icon="solar:ticket-bold" class="w-3.5 h-3.5" />
-            <span class="hidden sm:inline">Create Ticket</span>
+            <Ticket aria-hidden="true" />
+            Create Ticket
           </Button>
         </TooltipTrigger>
         <TooltipContent>

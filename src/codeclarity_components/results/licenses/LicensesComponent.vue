@@ -1,449 +1,222 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, type Ref, ref, watch } from "vue";
 
-import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
-import {
-  createNewFilterState,
-  type FilterConfig,
-  type FilterState,
-  FilterType,
-} from "@/base_components/filters/filterTypes";
-import SearchBar from "@/base_components/filters/SearchBar.vue";
-import UtilitiesFilters from "@/base_components/filters/UtilitiesFilters.vue";
-import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
-import PaginationComponent from "@/base_components/utilities/PaginationComponent.vue";
-import UtilitiesSort from "@/base_components/utilities/UtilitiesSort.vue";
-import { ProjectsSortInterface } from "@/codeclarity_components/projects/project.repository";
+import { DataTable } from "@/base_components/data-table";
+import { StatTile, StatusBadge } from "@/base_components/page";
 import type { License } from "@/codeclarity_components/results/licenses/License";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 
 import SelectWorkspace from "../SelectWorkspace.vue";
 
+import { licenseFamily, licenseName, licenseStatus } from "./license-format";
 import LicenseComponent from "./LicenseComponent.vue";
-// Import stores
 
-export interface Props {
-  analysisID?: string;
-  projectID?: string;
-  ecosystemFilter?: string | null;
-  executedSbomPlugins?: string[];
-}
-const props = withDefaults(defineProps<Props>(), {
-  analysisID: "",
-  projectID: "",
-  ecosystemFilter: null,
-  executedSbomPlugins: () => [],
-});
+const props = withDefaults(
+  defineProps<{
+    analysisID?: string;
+    projectID?: string;
+    executedSbomPlugins?: string[];
+  }>(),
+  { analysisID: "", projectID: "", executedSbomPlugins: () => [] },
+);
 
-const render = ref(false);
-const sortDirection = ref(SortDirection.DESC);
-const sortKey = ref(ProjectsSortInterface.LICENSE_TYPE);
-const pageLimitSelected = ref(10);
-const selectionPageLimit = [5, 10, 20, 30, 40, 50, 75, 100];
-const nmbEntriesShowing = ref(pageLimitSelected.value);
-const matchingItemsCount = ref(0);
-const nmbEntriesTotal = ref(0);
-const pageNumber = ref(0);
-const totalPages = ref(10);
-const filterApplied = ref(false);
-const searchKey = ref("");
-const placeholder = "Search by licenses";
-// const licenses_used = ref([]);
-const licensesUsed: Ref<License[]> = ref([]);
-const selected_workspace = ref(".");
-const selectedEcosystemFilter: Ref<string | null> = ref(null);
-
-const sortByOptions = [
-  { key: "type", label: "Type" },
-  { key: "dep_count", label: "Nmb. of deps" },
-  { key: "id", label: "License Id" },
-];
-
-// Store setup
-const resultsRepository: ResultsRepository = new ResultsRepository();
+const resultsRepository = new ResultsRepository();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-watch(
-  [
-    pageNumber,
-    pageLimitSelected,
-    sortKey,
-    sortDirection,
-    searchKey,
-    selected_workspace,
-    selectedEcosystemFilter,
-  ],
-  () => {
-    void init();
-  },
-);
+const licenses: Ref<License[]> = ref([]);
+const loading = ref(true);
+const failed = ref(false);
+const selected_workspace = ref(".");
+const ecosystemFilter: Ref<string | null> = ref(null);
 
-// Event handlers
-function handleEcosystemFilterChanged(ecosystemType: string | null): void {
-  /** Handles ecosystem filter changes from SelectWorkspace component */
-  selectedEcosystemFilter.value = ecosystemType;
-  // init() will be called automatically by the watch
-}
+// Counts requests so an answer for an earlier selection is dropped.
+let latestRequest = 0;
 
-// Filters
-const filterConfigDef = {
-  ImportState: {
-    name: "Language",
-    type: FilterType.RADIO,
-    data: {
-      js: {
-        title: "JavaScript",
-        value: true,
-      },
-    },
-  },
-} satisfies FilterConfig;
-
-const filterState: Ref<FilterState> = ref(
-  createNewFilterState(filterConfigDef),
-);
-
-async function init(): Promise<void> {
-  if (!userStore.getDefaultOrg) {
-    throw new Error("No default org selected");
-  }
-  if (!authStore.getToken) {
-    throw new Error("No default org selected");
-  }
-  if (props.projectID === "" || props.analysisID === "") {
+// Every license of the analysis; the API pages at 100.
+async function load(): Promise<void> {
+  const org = userStore.getDefaultOrg;
+  const token = authStore.getToken;
+  if (!org || !token || props.projectID === "" || props.analysisID === "")
     return;
-  }
-  try {
-    const res = await resultsRepository.getLicenses({
-      orgId: userStore.getDefaultOrg.id,
+  const request = ++latestRequest;
+  const fetchPage = (
+    page: number,
+  ): ReturnType<typeof resultsRepository.getLicenses> =>
+    resultsRepository.getLicenses({
+      orgId: org.id,
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: selected_workspace.value,
-      bearerToken: authStore.getToken,
-      pagination: {
-        page: pageNumber.value,
-        entries_per_page: pageLimitSelected.value,
-      },
-      sort: {
-        sortKey: sortKey.value,
-        sortDirection: sortDirection.value,
-      },
+      bearerToken: token,
+      pagination: { page, entries_per_page: 100 },
+      sort: { sortKey: "type", sortDirection: SortDirection.DESC },
       active_filters: "",
-      search_key: searchKey.value,
-      ecosystem_filter: selectedEcosystemFilter.value ?? undefined,
+      search_key: "",
+      ecosystem_filter: ecosystemFilter.value ?? undefined,
+      handleBusinessErrors: true,
     });
-    licensesUsed.value = res.data;
-    pageNumber.value = res.page;
-    pageLimitSelected.value = res.entries_per_page;
-    nmbEntriesShowing.value = res.entry_count;
-    matchingItemsCount.value = res.matching_count;
-    nmbEntriesTotal.value = res.total_entries;
-    totalPages.value = res.total_pages;
-    render.value = true;
-  } catch (error) {
-    console.error("error", error);
+  try {
+    const first = await fetchPage(0);
+    const rest = await Promise.all(
+      Array.from(
+        { length: Math.max(0, (first.total_pages ?? 1) - 1) },
+        (_, i) => fetchPage(i + 1),
+      ),
+    );
+    if (request !== latestRequest) return;
+    licenses.value = [first, ...rest].flatMap((page) => page.data ?? []);
+    failed.value = false;
+  } catch {
+    if (request === latestRequest) failed.value = true;
+  } finally {
+    if (request === latestRequest) loading.value = false;
   }
 }
 
-// Computed statistics for dashboard
-const uniqueLicenseCount = computed((): number => {
-  return licensesUsed.value.length;
-});
+watch(
+  [
+    () => props.projectID,
+    () => props.analysisID,
+    selected_workspace,
+    ecosystemFilter,
+  ],
+  () => void load(),
+  { immediate: true },
+);
 
-const totalDependencies = computed((): number => {
-  return licensesUsed.value.reduce(
+function count(predicate: (license: License) => boolean): number {
+  return licenses.value.filter(predicate).length;
+}
+
+const dependencyCount = computed(() =>
+  licenses.value.reduce(
     (total, license) => total + (license.deps_using_license?.length ?? 0),
     0,
-  );
-});
+  ),
+);
 
-const copyleftLicenseCount = computed((): number => {
-  const copyleftLicenses = [
-    "GPL",
-    "LGPL",
-    "AGPL",
-    "MPL",
-    "EPL",
-    "CDDL",
-    "EUPL",
-  ];
-  return licensesUsed.value.filter((license) =>
-    copyleftLicenses.some(
-      (copyleft) =>
-        license.name?.toUpperCase().includes(copyleft) ||
-        license.id?.toUpperCase().includes(copyleft),
-    ),
-  ).length;
-});
+const columns: ColumnDef<License, unknown>[] = [
+  { id: "name", header: "License", accessorFn: (l) => licenseName(l) },
+  {
+    id: "family",
+    header: "Type",
+    enableGlobalFilter: false,
+    accessorFn: (l) => licenseFamily(l),
+  },
+  {
+    id: "status",
+    header: "Status",
+    enableGlobalFilter: false,
+    accessorFn: (l) => licenseStatus(l).label,
+  },
+  {
+    id: "dependencies",
+    header: "Dependencies",
+    enableGlobalFilter: false,
+    accessorFn: (l) => l.deps_using_license?.length ?? 0,
+  },
+  {
+    id: "details",
+    header: "Details",
+    enableSorting: false,
+    enableGlobalFilter: false,
+    accessorFn: () => null,
+  },
+];
 
-const permissiveLicenseCount = computed((): number => {
-  const permissiveLicenses = ["MIT", "BSD", "Apache", "ISC", "Zlib"];
-  return licensesUsed.value.filter((license) =>
-    permissiveLicenses.some(
-      (permissive) =>
-        license.name?.toUpperCase().includes(permissive) ||
-        license.id?.toUpperCase().includes(permissive),
-    ),
-  ).length;
-});
-
-void init();
+function rowKey(license: License): string {
+  return license.id;
+}
 </script>
 
 <template>
-  <div class="container py-6 mx-auto space-y-6">
-    <!-- Header Section -->
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-bold text-theme-black">Licenses</h2>
-          <p class="text-sm text-theme-gray mt-1">
-            License compliance and usage analysis for your project dependencies
-          </p>
-        </div>
-        <div class="flex items-center gap-2 text-sm text-theme-gray">
-          <Icon icon="tabler:license" class="w-4 h-4 text-theme-primary" />
-          <span>{{ nmbEntriesTotal }} total licenses</span>
-        </div>
-      </div>
-
-      <!-- Workspace Selection -->
+  <section aria-labelledby="licenses-heading" class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <h2
+        id="licenses-heading"
+        class="text-xl font-semibold tracking-tight text-foreground-strong"
+      >
+        Licenses
+      </h2>
       <SelectWorkspace
         v-model:selected_workspace="selected_workspace"
         :project-i-d="projectID"
         :analysis-i-d="analysisID"
         :executed-sbom-plugins="executedSbomPlugins"
-        @ecosystem-filter-changed="handleEcosystemFilterChanged"
+        @ecosystem-filter-changed="ecosystemFilter = $event"
       />
-
-      <!-- Quick Stats -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white border rounded-lg p-3 shadow-sm">
-          <div class="flex items-center gap-2">
-            <Icon
-              icon="tabler:file-certificate"
-              class="w-4 h-4 text-theme-primary"
-            />
-            <span class="text-xs text-theme-gray uppercase tracking-wide"
-              >Unique</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-theme-black">
-            {{ uniqueLicenseCount }}
-          </div>
-        </div>
-
-        <div class="bg-white border rounded-lg p-3 shadow-sm">
-          <div class="flex items-center gap-2">
-            <Icon icon="tabler:package" class="w-4 h-4 text-theme-primary" />
-            <span class="text-xs text-theme-gray uppercase tracking-wide"
-              >Dependencies</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-theme-black">
-            {{ totalDependencies }}
-          </div>
-        </div>
-
-        <div class="bg-white border rounded-lg p-3 shadow-sm">
-          <div class="flex items-center gap-2">
-            <Icon
-              icon="tabler:shield-check"
-              class="w-4 h-4 text-theme-primary"
-            />
-            <span class="text-xs text-theme-gray uppercase tracking-wide"
-              >Permissive</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-theme-black">
-            {{ permissiveLicenseCount }}
-          </div>
-        </div>
-
-        <div class="bg-white border rounded-lg p-3 shadow-sm">
-          <div class="flex items-center gap-2">
-            <Icon
-              icon="tabler:shield-exclamation"
-              class="w-4 h-4 text-theme-primary"
-            />
-            <span class="text-xs text-theme-gray uppercase tracking-wide"
-              >Copyleft</span
-            >
-          </div>
-          <div class="text-lg font-semibold text-theme-black">
-            {{ copyleftLicenseCount }}
-          </div>
-        </div>
-      </div>
-
-      <!-- License Information Legend -->
-      <div
-        class="bg-linear-to-r from-gray-50 to-green-50 rounded-lg p-4 border border-theme-primary/20"
-      >
-        <h3
-          class="text-sm font-medium text-theme-black mb-3 flex items-center gap-2"
-        >
-          <Icon icon="tabler:info-circle" class="w-4 h-4 text-theme-primary" />
-          License Types & Compliance Information
-        </h3>
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs"
-        >
-          <div class="space-y-2">
-            <div class="font-medium text-theme-black">License Categories</div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-theme-primary rounded"></div>
-                <span class="text-theme-gray"
-                  >Permissive (MIT, BSD, Apache)</span
-                >
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-yellow-500 rounded"></div>
-                <span class="text-theme-gray">Copyleft (GPL, LGPL, MPL)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-theme-black rounded"></div>
-                <span class="text-theme-gray">Proprietary & Other</span>
-              </div>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <div class="font-medium text-theme-black">Compliance Status</div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <Icon
-                  icon="tabler:check-circle"
-                  class="w-3 h-3 text-theme-primary"
-                />
-                <span class="text-theme-gray">Compliant</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Icon
-                  icon="tabler:alert-triangle"
-                  class="w-3 h-3 text-yellow-600"
-                />
-                <span class="text-theme-gray">Review Required</span>
-              </div>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <div class="font-medium text-theme-black">Usage Rights</div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <Icon
-                  icon="tabler:building"
-                  class="w-3 h-3 text-theme-primary"
-                />
-                <span class="text-theme-gray">Commercial Use</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Icon
-                  icon="tabler:git-fork"
-                  class="w-3 h-3 text-theme-primary"
-                />
-                <span class="text-theme-gray">Distribution Rights</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="flex flex-col gap-4">
-      <div class="flex gap-4">
-        <SearchBar v-model:search-key="searchKey" :placeholder="placeholder" />
-        <UtilitiesFilters v-model:filter-state="filterState"></UtilitiesFilters>
-      </div>
+    <Alert v-if="failed" variant="destructive">
+      <AlertTitle>Could not load the licenses</AlertTitle>
+      <AlertDescription>Reload the page to try again.</AlertDescription>
+    </Alert>
 
-      <!--------------------------------------------------------------------------->
-      <!--                           Active Filters list                         -->
-      <!--------------------------------------------------------------------------->
-
-      <ActiveFilterBar v-model:filter-state="filterState"></ActiveFilterBar>
-
-      <UtilitiesSort
-        v-model:page-limit-selected="pageLimitSelected"
-        v-model:sort-key="sortKey"
-        v-model:sort-direction="sortDirection"
-        :selection-page-limit="selectionPageLimit"
-        :sort-options="sortByOptions"
-        :showing="nmbEntriesShowing"
-        :total="nmbEntriesTotal"
+    <template v-else>
+      <ul
+        v-if="!loading"
+        aria-label="License numbers"
+        class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"
       >
-      </UtilitiesSort>
-    </div>
-
-    <!-- Licenses List -->
-    <div v-if="render" class="flex flex-col gap-y-8">
-      <div v-for="(license, index) in licensesUsed" :key="index">
-        <LicenseComponent
-          :key="license.id"
-          :license="license"
-          :last="false"
-          :analysis-i-d="analysisID"
-          :project-i-d="projectID"
+        <StatTile label="Licenses" :value="licenses.length" />
+        <StatTile
+          label="Dependencies"
+          :value="dependencyCount"
+          hint="Using these licenses"
         />
-      </div>
-
-      <!-- No Results Messages -->
-      <div
-        v-if="matchingItemsCount === 0 && filterApplied && render"
-        class="mt-5"
-      >
-        <div style="text-align: center">No licenses match the filter</div>
-      </div>
-      <div
-        v-if="matchingItemsCount === 0 && !filterApplied && render"
-        class="mt-5"
-      >
-        <div style="text-align: center">No licenses</div>
-      </div>
-
-      <!-- Pagination -->
-      <div
-        class="flex items-center justify-between border-t border-gray-200 py-4"
-      >
-        <div class="flex items-center gap-4 text-sm text-theme-gray">
-          <div class="flex items-center gap-2">
-            <Icon icon="tabler:file-text" class="w-4 h-4 text-theme-primary" />
-            <span>Page {{ pageNumber + 1 }} of {{ totalPages }}</span>
-          </div>
-          <div class="text-xs">
-            Showing
-            {{
-              Math.min(pageNumber * pageLimitSelected + 1, nmbEntriesTotal)
-            }}-{{
-              Math.min((pageNumber + 1) * pageLimitSelected, nmbEntriesTotal)
-            }}
-            of {{ nmbEntriesTotal }}
-          </div>
-        </div>
-
-        <PaginationComponent
-          v-model:page="pageNumber"
-          v-model:nmb-entries-showing="pageLimitSelected"
-          v-model:nmb-entries-total="nmbEntriesTotal"
-          v-model:total-pages="totalPages"
+        <StatTile
+          label="Permissive"
+          :value="count((l) => licenseFamily(l) === 'Permissive')"
+          hint="MIT, BSD, Apache and similar"
         />
-      </div>
-    </div>
-
-    <!-- Loading skeleton -->
-    <div v-else>
-      <div class="flex flex-col gap-2">
-        <BoxLoader
-          v-for="index in 4"
-          :key="index"
-          :dimensions="{ width: '100%', height: '100px' }"
+        <StatTile
+          label="Copyleft"
+          :value="count((l) => licenseFamily(l) === 'Copyleft')"
+          hint="GPL, LGPL, MPL and similar"
         />
-      </div>
-    </div>
-  </div>
+        <StatTile
+          label="Policy violations"
+          :value="count((l) => l.license_compliance_violation)"
+          :hint="`${count((l) => l.unable_to_infer)} need review`"
+        />
+      </ul>
+
+      <DataTable
+        :columns="columns"
+        :data="licenses"
+        :loading="loading"
+        :row-key="rowKey"
+        caption="Licenses"
+        filter-label="Search licenses"
+        empty-text="No licenses found."
+      >
+        <template #cell-name="{ row }">
+          <span class="font-semibold text-foreground-strong">{{
+            licenseName(row)
+          }}</span>
+          <span
+            v-if="row.name && row.name !== row.id"
+            class="ml-1 text-muted-foreground"
+            >({{ row.id }})</span
+          >
+        </template>
+        <template #cell-status="{ row }">
+          <StatusBadge v-bind="licenseStatus(row)" class="whitespace-nowrap" />
+        </template>
+        <template #cell-details="{ row }">
+          <LicenseComponent
+            :license="row"
+            :analysis-i-d="analysisID"
+            :project-i-d="projectID"
+          />
+        </template>
+      </DataTable>
+    </template>
+  </section>
 </template>

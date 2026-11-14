@@ -45,6 +45,9 @@ export const APIErrors = {
   CannotRevokeOwnMembership: "CannotRevokeOwnMembership",
   InvitationInvalidOrExpired: "InvitationInvalidOrExpired",
   EntityNotFound: "EntityNotFound",
+  EntityInUse: "EntityInUse",
+  DatasetNotReady: "DatasetNotReady",
+  AnalyzerMissingRequiredPlugins: "AnalyzerMissingRequiredPlugins",
   IntegrationIntegrationTokenMissingPermissions:
     "IntegrationIntegrationTokenMissingPermissions",
   FailedToSendAccountRegistrationVerificationEmail:
@@ -52,6 +55,7 @@ export const APIErrors = {
   FailedToSendPasswordResetEmail: "FailedToSendPasswordResetEmail",
   FailedToSendOrganizationInviteEmail: "FailedToSendOrganizationInviteEmail",
   InternalError: "InternalError",
+  FigureVersionNotCurrent: "FigureVersionNotCurrent",
 } as const;
 
 export type APIErrorType = (typeof APIErrors)[keyof typeof APIErrors];

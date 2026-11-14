@@ -1,271 +1,135 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { storeToRefs } from "pinia";
 import { type Ref, ref, watch } from "vue";
 
+import { SeverityBadge } from "@/base_components/page";
 import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
-import Button from "@/shadcn/ui/button/Button.vue";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
-import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import {
+  SEVERITY_LABELS,
+  SEVERITY_LEVELS,
+  type SeverityLevel,
+} from "@/utils/severity";
 
-// Props
+import CardState from "../layout/CardState.vue";
+
 const props = defineProps<{
   integrationIds: string[];
 }>();
 
-watch(props.integrationIds, async () => {
-  void fetch();
-});
+watch(
+  () => props.integrationIds,
+  () => void fetch(),
+);
 
-// Repositories
-const dashboardRepository: DashboardRepository = new DashboardRepository();
-
-// Stores
-const userStore = useUserStore();
+const dashboardRepository = new DashboardRepository();
 const authStore = useAuthStore();
-
-const { defaultOrg } = storeToRefs(userStore);
+const userStore = useUserStore();
 
 interface Vuln {
   severity: number;
-  class: string;
-  cve: string;
+  level: SeverityLevel;
+  name: string;
 }
 
-// State
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref();
-const loading: Ref<boolean> = ref(true);
-const severityCountsShort: Ref<Record<string, number>> = ref({
-  CRITICAL: 0,
-  HIGH: 0,
-  MEDIUM: 0,
-});
-const noData: Ref<boolean> = ref(false);
+/** The levels counted at the top of the card */
+const COUNTED: SeverityLevel[] = ["critical", "high", "medium"];
+
+const error = ref(false);
+const loading = ref(true);
+const noData = ref(false);
+const counts: Ref<Record<SeverityLevel, number>> = ref(emptyCounts());
 const vulns: Ref<Vuln[]> = ref([]);
 
-async function fetch(refresh = false): Promise<void> {
-  if (!defaultOrg?.value) return;
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+function emptyCounts(): Record<SeverityLevel, number> {
+  return { critical: 0, high: 0, medium: 0, low: 0, none: 0 };
+}
 
-  if (!refresh) loading.value = true;
+function levelOf(severityClass: string | null | undefined): SeverityLevel {
+  const level = (severityClass ?? "").toLowerCase() as SeverityLevel;
+  return SEVERITY_LEVELS.includes(level) ? level : "none";
+}
 
-  noData.value = false;
+async function fetch(): Promise<void> {
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !authStore.getAuthenticated || !authStore.getToken) return;
+
+  loading.value = true;
   error.value = false;
-  errorCode.value = undefined;
-  severityCountsShort.value = { CRITICAL: 0, HIGH: 0, MEDIUM: 0 };
 
   try {
     const resp = await dashboardRepository.getRecentVulns({
-      orgId: defaultOrg.value.id,
+      orgId,
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       integrationIds: props.integrationIds,
     });
-    if (Object.keys(resp.data.vulns).length === 0) noData.value = true;
-    else {
-      for (const x of resp.data.severity_count) {
-        if (
-          x.severity_class === "CRITICAL" ||
-          x.severity_class === "HIGH" ||
-          x.severity_class === "MEDIUM"
-        ) {
-          severityCountsShort.value[x.severity_class] = x.count;
-        }
-      }
-
-      for (const vuln of Object.keys(resp.data.vulns)) {
-        const vulnData = resp.data.vulns[vuln];
-        if (!vulnData) continue;
-        vulns.value.push({
-          severity: vulnData.severity ?? 0,
-          class: vulnData.severity_class ?? "",
-          cve: vulnData.cwe_name,
-        });
-      }
-      vulns.value.sort((a, b) => {
-        return b.severity - a.severity;
-      });
+    const next = emptyCounts();
+    for (const item of resp.data.severity_count) {
+      next[levelOf(item.severity_class)] = item.count;
     }
-  } catch (_err) {
+    counts.value = next;
+    vulns.value = Object.values(resp.data.vulns)
+      .map((vuln) => ({
+        severity: vuln.severity ?? 0,
+        level: levelOf(vuln.severity_class),
+        name: vuln.cwe_name,
+      }))
+      .sort((a, b) => b.severity - a.severity);
+    noData.value = vulns.value.length === 0;
+  } catch {
     error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
   } finally {
-    if (!refresh) loading.value = false;
+    loading.value = false;
   }
 }
 void fetch();
 </script>
+
 <template>
-  <div class="w-full">
-    <div
-      v-if="loading || noData"
-      class="flex flex-col gap-8"
-      style="position: relative"
-    >
-      <div class="flex flex-row gap-4 justify-center items-center">
-        <Skeleton
-          v-for="index in 3"
-          :key="index"
-          class="h-[50px] w-[150px] rounded-xl"
-        />
-      </div>
-      <div class="flex flex-col gap-1">
-        <Skeleton
-          v-for="index in 3"
-          :key="index"
-          class="h-[50px] w-full rounded-xl"
-        />
-      </div>
-      <div
-        v-if="noData"
-        class="flex flex-row justify-center items-center absolute w-full h-full"
+  <CardState
+    label="vulnerabilities summary"
+    :loading="loading"
+    :error="error"
+    :empty="noData"
+    empty-text="No vulnerabilities found."
+    @retry="() => void fetch()"
+  >
+    <div class="flex flex-col gap-4">
+      <ul
+        aria-label="Vulnerabilities by severity"
+        class="grid grid-cols-3 gap-3"
       >
-        <div class="font-black text-xl">No Data</div>
-      </div>
-    </div>
-    <div v-else>
-      <div v-if="error">
-        <div class="flex flex-row gap-2">
-          <Icon
-            class="icon user-icon"
-            icon="solar:confounded-square-outline"
-            style="font-size: 3rem; height: fit-content"
-          ></Icon>
-          <div>
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-col gap-2">
-                <div>Failed to load the dashboard component</div>
-              </div>
-              <div class="flex flex-row gap-2 items-center flex-wrap">
-                <Button @click="() => void fetch()"> Try again </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div v-else class="dashboard-current-vulns">
-        <div class="flex flex-row gap-4 justify-evenly">
-          <div
-            v-for="(value, key, index) in severityCountsShort"
-            :key="index"
-            class="flex flex-col items-center"
+        <li
+          v-for="level in COUNTED"
+          :key="level"
+          class="flex flex-col items-center gap-1 rounded-control border p-3"
+        >
+          <span class="text-sm text-muted-foreground">
+            {{ SEVERITY_LABELS[level] }}
+          </span>
+          <span
+            class="text-2xl font-bold tabular-nums text-foreground-strong"
+            >{{ counts[level] }}</span
           >
-            <div class="font-black text-5xl">
-              {{ value }}
-            </div>
-            <div class="font-bold text-lg text-muted-foreground">
-              {{ key }}
-            </div>
-          </div>
-        </div>
-
-        <ScrollArea class="h-72 rounded-md border p-4">
-          <div v-for="vuln in vulns" :key="vuln.cve">
-            <div class="font-bold flex justify-between pb-2">
-              <div>{{ vuln.severity }}</div>
-              <div>
-                <div
-                  v-if="vuln.class === 'CRITICAL'"
-                  class="severity-indicator critical"
-                >
-                  CRITICAL
-                </div>
-                <div
-                  v-else-if="vuln.class === 'HIGH'"
-                  class="severity-indicator high"
-                >
-                  HIGH
-                </div>
-                <div
-                  v-else-if="vuln.class === 'MEDIUM'"
-                  class="severity-indicator medium"
-                >
-                  MEDIUM
-                </div>
-                <div
-                  v-else-if="vuln.class === 'LOW'"
-                  class="severity-indicator low"
-                >
-                  LOW
-                </div>
-                <div
-                  v-else-if="vuln.class === 'NONE'"
-                  class="severity-indicator none"
-                >
-                  NONE
-                </div>
-              </div>
-              <div>{{ vuln.cve }}</div>
-            </div>
-          </div>
-        </ScrollArea>
-      </div>
+        </li>
+      </ul>
+      <ScrollArea
+        class="rounded-control border"
+        :class="{ 'h-64': vulns.length > 6 }"
+      >
+        <ul aria-label="Most severe vulnerabilities" class="divide-y">
+          <li
+            v-for="(vuln, index) in vulns"
+            :key="index"
+            class="flex items-center gap-3 px-3 py-2 text-sm"
+          >
+            <SeverityBadge :level="vuln.level" :score="vuln.severity" />
+            <span class="truncate">{{ vuln.name }}</span>
+          </li>
+        </ul>
+      </ScrollArea>
     </div>
-  </div>
+  </CardState>
 </template>
-
-<style scoped lang="scss">
-$--section-title-color: #4f4e4e;
-$--section-title-size: 2.7rem;
-$--section-title-font-weight: 600;
-$--section-subtitle-color: rgb(157, 157, 157);
-$--section-subtitle-size: 0.95rem;
-$--section-subtitle-font-weight: 600;
-
-.dashboard-current-vulns {
-  display: flex;
-  flex-direction: column;
-  row-gap: 2rem;
-
-  .class-count-container {
-    display: flex;
-    flex-direction: column;
-    row-gap: 5px;
-    text-align: center;
-
-    .count {
-      font-size: 3em;
-      font-weight: 900;
-    }
-
-    .class {
-      font-weight: 900;
-      color: $--section-subtitle-color;
-    }
-  }
-}
-
-.severity-indicator {
-  padding: 5px;
-  color: white;
-  font-weight: 600;
-  text-transform: uppercase;
-  border-radius: 5px;
-}
-
-.severity-indicator.critical {
-  background-color: var(--color-severity-critical);
-}
-
-.severity-indicator.high {
-  background-color: var(--color-severity-high);
-}
-
-.severity-indicator.medium {
-  background-color: var(--color-severity-medium);
-}
-
-.severity-indicator.low {
-  background-color: var(--color-severity-low);
-}
-
-.severity-indicator.none {
-  background-color: var(--color-severity-none);
-}
-</style>

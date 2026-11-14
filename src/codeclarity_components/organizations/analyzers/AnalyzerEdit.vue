@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { toTypedSchema } from "@vee-validate/zod";
+import { ArrowLeft, LoaderCircle } from "@lucide/vue";
 import type { Edge } from "@vue-flow/core";
-import { storeToRefs } from "pinia";
-import { Form } from "vee-validate";
 import { type Ref, ref } from "vue";
-import { useRoute } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 
-import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import { PluginRepository } from "@/codeclarity_components/organizations/analyzers/PluginRepository";
@@ -17,9 +15,15 @@ import {
 } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import router from "@/router";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/shadcn/ui/card";
 import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { errorToast, successToast } from "@/utils/toasts";
 import {
   type AnalyzerNode,
   type ConfigNode,
@@ -29,88 +33,73 @@ import {
 } from "@/utils/vueFlow";
 
 import AnalyzerFormFields from "./shared/AnalyzerFormFields.vue";
-import { analyzerValidationSchema } from "./shared/analyzerValidation";
+import { useAnalyzerForm } from "./shared/useAnalyzerForm";
 import WorkflowDesigner from "./shared/WorkflowDesigner.vue";
 
-const analyzer_id: Ref<string> = ref("");
-const orgId: Ref<string> = ref("");
-const orgInfo: Ref<Organization | undefined> = ref();
+const props = defineProps<{
+  page?: string;
+  orgId: string;
+}>();
 
-// Repositories
-const analyzerRepo: AnalyzerRepository = new AnalyzerRepository();
-const pluginRepo: PluginRepository = new PluginRepository();
-
-// Store setup
-const userStore = useUserStore();
+const route = useRoute();
+const analyzerRepo = new AnalyzerRepository();
+const pluginRepo = new PluginRepository();
 const authStore = useAuthStore();
 
-const { defaultOrg } = storeToRefs(userStore);
-
-// Error Handling
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string> = ref("");
-
-// Form Data
-const name: Ref<string> = ref("");
-const description: Ref<string> = ref("");
+const analyzerId = String(route.query.analyzerId ?? "");
+const { name, description, shownErrors, isValid, submitted } =
+  useAnalyzerForm();
 const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
-// Form Validation
-const formValidationSchema = toTypedSchema(analyzerValidationSchema);
+const submitting = ref(false);
 
-function setOrgInfo(_orgInfo: Organization): void {
-  orgInfo.value = _orgInfo;
-  if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
+const listRoute = {
+  name: "orgs",
+  params: { action: "manage", page: "analyzers", orgId: props.orgId },
+};
+
+// Only admins manage analyzers; others go back to the organisation overview.
+function setOrgInfo(orgInfo: Organization): void {
+  if (!isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)) {
     void router.push({
-      name: "orgManage",
-      params: { page: "", orgId: _orgInfo.id },
+      name: "orgs",
+      params: { action: "manage", page: "main", orgId: orgInfo.id },
     });
   }
 }
 
-// Methods
 async function submit(): Promise<void> {
-  const arr = retrieveWorkflowSteps(nodes.value, edges.value);
+  submitted.value = true;
+  if (!isValid.value || !authStore.getToken || submitting.value) return;
+
+  submitting.value = true;
   try {
     await analyzerRepo.updateAnalyzer({
-      orgId: defaultOrg!.value!.id,
-      analyzer_id: analyzer_id.value,
+      orgId: props.orgId,
+      analyzer_id: analyzerId,
       data: {
-        name: name.value,
-        description: description.value,
-        steps: arr,
+        name: name.value.trim(),
+        description: description.value.trim(),
+        steps: retrieveWorkflowSteps(nodes.value, edges.value),
       },
-      bearerToken: authStore.getToken ?? "",
+      bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
     });
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
-    console.error(_err);
+    successToast(`Saved ${name.value.trim()}`);
+    void router.push(listRoute);
+  } catch {
+    errorToast("Failed to save the analyzer");
   } finally {
-    router.back();
+    submitting.value = false;
   }
 }
 
 async function init(): Promise<void> {
-  const route = useRoute();
-  const _orgId = route.params.orgId;
-
-  if (!_orgId) {
-    router.back();
-  }
-
-  if (typeof _orgId === "string") {
-    orgId.value = _orgId;
-  } else {
-    router.back();
-  }
-
+  if (!authStore.getToken) return;
   try {
     const resp = await pluginRepo.geAllPlugins({
-      bearerToken: authStore.getToken ?? "",
+      bearerToken: authStore.getToken,
     });
     plugins.value = resp.data;
     const { nodes: flowNodes, edges: flowEdges } = createAnalyzerNodes(
@@ -118,63 +107,78 @@ async function init(): Promise<void> {
     );
     nodes.value = layoutNodes(flowNodes);
     edges.value = flowEdges;
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
-  }
 
-  try {
-    analyzer_id.value = route.query.analyzerId as string;
     const res = await analyzerRepo.getAnalyzer({
-      orgId: defaultOrg!.value!.id,
-      bearerToken: authStore.getToken ?? "",
-      analyzer_id: analyzer_id.value,
+      orgId: props.orgId,
+      bearerToken: authStore.getToken,
+      analyzer_id: analyzerId,
     });
     name.value = res.data.name;
     description.value = res.data.description;
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
+  } catch {
+    errorToast("Failed to load the analyzer");
   }
 }
 
 void init();
 </script>
 <template>
-  <div class="flex flex-col gap-8 w-full mb-2">
-    <HeaderItem
-      v-if="orgId"
-      :org-id="orgId"
-      @on-org-info="setOrgInfo($event)"
-    ></HeaderItem>
+  <div class="flex flex-col gap-8">
+    <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo" />
 
-    <div class="p-12">
-      <Form
-        id="form"
-        class="flex flex-col gap-6"
-        :validation-schema="formValidationSchema"
-        @submit="submit"
+    <div class="flex flex-col gap-3">
+      <RouterLink
+        :to="listRoute"
+        class="inline-flex w-fit items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <AnalyzerFormFields
-          v-model:name="name"
-          v-model:description="description"
-        />
-
-        <WorkflowDesigner
-          v-model:nodes="nodes"
-          v-model:edges="edges"
-          :plugins="plugins"
-          :readonly="true"
-        />
-
-        <LoadingSubmitButton ref="loadingButtonRef">
-          <span>Create</span>
-        </LoadingSubmitButton>
-      </Form>
+        <ArrowLeft aria-hidden="true" class="size-4" />
+        Analyzers
+      </RouterLink>
+      <PageHeading>Edit <BrandEmphasis>analyzer</BrandEmphasis></PageHeading>
     </div>
+
+    <form class="flex flex-col gap-6" novalidate @submit.prevent="submit">
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h2 class="text-lg font-semibold text-foreground-strong">Details</h2>
+        </CardHeader>
+        <CardContent>
+          <AnalyzerFormFields
+            v-model:name="name"
+            v-model:description="description"
+            :errors="shownErrors"
+          />
+        </CardContent>
+      </Card>
+
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h2 class="text-lg font-semibold text-foreground-strong">Workflow</h2>
+          <CardDescription>The plugins this analyzer runs.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WorkflowDesigner
+            v-model:nodes="nodes"
+            v-model:edges="edges"
+            :plugins="plugins"
+            :readonly="true"
+          />
+        </CardContent>
+      </Card>
+
+      <div class="flex justify-end gap-3">
+        <Button :as="RouterLink" :to="listRoute" variant="outline">
+          Cancel
+        </Button>
+        <Button type="submit" :disabled="submitting">
+          <LoaderCircle
+            v-if="submitting"
+            aria-hidden="true"
+            class="animate-spin motion-reduce:animate-none"
+          />
+          Save changes
+        </Button>
+      </div>
+    </form>
   </div>
 </template>

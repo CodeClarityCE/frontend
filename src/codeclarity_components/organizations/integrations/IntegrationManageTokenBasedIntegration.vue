@@ -1,295 +1,241 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { type Ref, ref } from "vue";
-import type { RouteLocationRaw } from "vue-router";
+import { KeyRound, RefreshCw, Trash2, TriangleAlert } from "@lucide/vue";
+import { computed, ref } from "vue";
+import { type RouteLocationRaw, RouterLink } from "vue-router";
 
-import SortableTable, {
-  type TableHeader,
-} from "@/base_components/data-display/tables/SortableTable.vue";
-import FaqBox from "@/base_components/layout/FaqBox.vue";
-import {
-  type AccessTokenBasedIntegration,
-  type IntegrationProvider,
-} from "@/codeclarity_components/organizations/integrations/Integrations";
+import { StatusBadge } from "@/base_components/page";
+import { type AccessTokenBasedIntegration } from "@/codeclarity_components/organizations/integrations/Integrations";
 import router from "@/router";
-import { Alert, AlertDescription } from "@/shadcn/ui/alert";
-import { Badge } from "@/shadcn/ui/badge";
-import Button from "@/shadcn/ui/button/Button.vue";
-import { APIErrors } from "@/utils/api/ApiErrors";
-import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import {
-  formatDate,
-  formatRelativeTime,
-  getDaysUntilExpiry,
-} from "@/utils/dateUtils";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/shadcn/ui/accordion";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/shadcn/ui/card";
+import { Skeleton } from "@/shadcn/ui/skeleton";
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { formatDate, formatRelativeTime } from "@/utils/dateUtils";
 
-// Props
+import DeleteIntegrationDialog from "./DeleteIntegrationDialog.vue";
+import { integrationHealth } from "./integration-status";
+
+// The detail page of a GitHub or GitLab integration: health, token and actions.
 const props = defineProps<{
-  provider: IntegrationProvider;
-  integration: AccessTokenBasedIntegration;
+  name: string;
+  integration?: AccessTokenBasedIntegration;
   updateRoute: RouteLocationRaw;
+  loading?: boolean;
+  error?: boolean;
+  errorCode?: string;
+  deleting?: boolean;
 }>();
-
-const headers: TableHeader[] = [
-  {
-    label: "Case",
-    key: null,
-  },
-  {
-    label: "Remediation",
-    key: null,
-  },
-];
-
-const sortKey: Ref<string> = ref("");
-const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
-
-// Constants
-const EXPIRES_IN_DAYS_RISK = 14;
-
-// State
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string | undefined> = ref("");
-
-function isAtRisk(): boolean {
-  if (props.integration?.expiry_date)
-    return (
-      getDaysUntilExpiry(props.integration.expiry_date) <= EXPIRES_IN_DAYS_RISK
-    );
-  else return false;
-}
 
 const emit = defineEmits<{
   (e: "refresh"): void;
   (e: "delete"): void;
 }>();
+
+const confirmOpen = ref(false);
+
+const health = computed(() =>
+  props.integration ? integrationHealth(props.integration) : undefined,
+);
+
+const errorText = computed(() => {
+  if (props.errorCode === APIErrors.EntityNotFound) {
+    return "This integration does not exist.";
+  }
+  if (props.errorCode === APIErrors.NotAuthorized) {
+    return "You do not have the permissions to view this integration.";
+  }
+  return "We encountered an error while loading the integration.";
+});
 </script>
+
 <template>
-  <div v-if="error">
-    <div class="flex flex-col gap-5 w-fit" style="font-size: 1.5em">
-      <div class="flex flex-row gap-2">
-        <Icon
-          class="icon user-icon text-5xl w-fit"
-          icon="solar:confounded-square-outline"
-        ></Icon>
-        <div>
-          <div class="flex flex-col gap-5">
-            <div class="flex flex-col gap-2">
-              <div>We failed to retrieve information on the integration</div>
-              <div v-if="errorCode" style="font-size: 0.7em">
-                <div v-if="errorCode === APIErrors.EntityNotFound">
-                  This integration does not exist.
-                </div>
-                <div v-if="errorCode === APIErrors.NotAuthorized">
-                  You do not have the correct permissions to view this page.
-                </div>
-                <div v-else>
-                  We encountered an error while retrieving the integration
-                  information.
-                </div>
-              </div>
-              <div v-else style="font-size: 0.7em">
-                <div>
-                  We encountered an error while retrieving the integration
-                  information.
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-row gap-2 items-center flex-wrap">
-              <Button
-                v-if="errorCode !== APIErrors.NotAuthorized"
-                @click="emit('refresh')"
-              >
-                Try again
-              </Button>
-              <Button @click="router.back()"> Go back </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="flex flex-col gap-6">
+    <h2
+      class="flex items-center gap-3 text-2xl font-bold text-foreground-strong"
+    >
+      <slot name="header-integration-icon" />
+      {{ name }} integration
+    </h2>
 
-  <div
-    v-else
-    class="flex-column flex-column-2rem org-manage-integration-wrapper"
-  >
-    <div class="flex flex-row gap-8">
-      <div class="flex flex-column gap-5">
-        <div v-if="isAtRisk()" class="mb-5">
-          <Alert variant="destructive">
-            <AlertDescription>
-              <span class="font-semibold"> Expiry : </span>
-              <span>
-                Your integration token is about to expire. Please use the action
-                'Update/Replace integration token' before the token expires.
-              </span>
-            </AlertDescription>
-          </Alert>
+    <Alert v-if="error" variant="destructive">
+      <AlertTitle>The integration could not be loaded</AlertTitle>
+      <AlertDescription class="flex flex-col items-start gap-3">
+        {{ errorText }}
+        <div class="flex gap-2">
+          <Button
+            v-if="errorCode !== APIErrors.NotAuthorized"
+            variant="outline"
+            size="sm"
+            @click="emit('refresh')"
+          >
+            Try again
+          </Button>
+          <Button variant="outline" size="sm" @click="router.back()">
+            Go back
+          </Button>
         </div>
-        <div class="flex flex-col gap-1">
-          <div class="flex flex-row gap-2 items-center" style="font-size: 2em">
-            <slot name="header-integration-icon"></slot>
-            <slot name="header-integration-name"></slot>
-          </div>
-          <div class="flex flex-col gap-1">
-            <div>
-              <slot name="header-integration-description"></slot>
-            </div>
-            <div>Added on: {{ formatDate(integration.added_on, "LL") }}</div>
-            <div>
-              Expiry date:
-              <span v-if="integration.expiry_date">
+      </AlertDescription>
+    </Alert>
+
+    <div
+      v-else-if="loading || !integration || !health"
+      role="status"
+      aria-label="Loading the integration"
+      class="flex flex-col gap-3"
+    >
+      <Skeleton class="h-40 w-full rounded-card" />
+      <Skeleton class="h-24 w-full rounded-card" />
+    </div>
+
+    <template v-else>
+      <Alert
+        v-if="health.tone === 'warning'"
+        class="border-warning bg-warning-subtle text-warning [&>svg]:text-warning"
+      >
+        <TriangleAlert aria-hidden="true" class="size-4" />
+        <AlertTitle>The token expires soon</AlertTitle>
+        <AlertDescription>
+          Replace it with "Replace token" before it expires, or analyses of its
+          repositories stop.
+        </AlertDescription>
+      </Alert>
+
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h3 class="font-semibold leading-none text-foreground-strong">
+            Details
+          </h3>
+          <CardDescription>
+            <slot name="header-integration-description" />
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <dl class="grid grid-cols-[max-content_1fr] gap-x-8 gap-y-3 text-sm">
+            <dt class="text-muted-foreground">Status</dt>
+            <dd class="flex items-center gap-2">
+              <StatusBadge :tone="health.tone" :label="health.label" />
+              <span class="text-muted-foreground">{{ health.hint }}</span>
+            </dd>
+            <dt class="text-muted-foreground">Host</dt>
+            <dd>{{ integration.service_domain }}</dd>
+            <dt class="text-muted-foreground">Added on</dt>
+            <dd>{{ formatDate(integration.added_on, "LL") }}</dd>
+            <dt class="text-muted-foreground">Expires</dt>
+            <dd>
+              <template v-if="integration.expiry_date">
                 {{ formatDate(integration.expiry_date, "LL") }}
-                <span
-                  v-if="getDaysUntilExpiry(integration.expiry_date) > 0"
-                  :style="{
-                    color: isAtRisk() ? 'red' : 'unset',
-                    'font-weight': isAtRisk() ? 900 : 'unset',
-                  }"
-                >
-                  (expires {{ formatRelativeTime(integration.expiry_date) }})
-                </span>
-                <span v-else style="color: red; font-weight: 900"
-                  >(Expired)</span
-                >
-              </span>
-              <span v-else>No expiry</span>
-            </div>
-            <div class="flex flex-row gap-1 items-center">
-              <div>Token type:</div>
-              <Badge class="rounded-full gap-1" variant="secondary">
-                <Icon class="icon" icon="solar:key-minimalistic-bold"></Icon>
-                <slot name="token-type"></slot>
-              </Badge>
-            </div>
-            <div class="flex flex-row gap-1 items-center">
-              <div>Status:</div>
-              <div
-                v-if="integration.invalid === false && isAtRisk()"
-                class="general-bubble general-bubble-slim general-bubble-orange"
-                title="Integration token is about to expire. Please use the action 'Update/Replace integration token'."
-              >
-                At Risk
-              </div>
-              <div
-                v-else-if="integration.invalid === true"
-                class="general-bubble general-bubble-slim general-bubble-red"
-                title="Integration token expired or permissions have been modified."
-              >
-                Unhealthy
-              </div>
-              <div
-                v-else-if="integration.invalid === false"
-                class="general-bubble general-bubble-slim general-bubble-green"
-                title="Integration token is healthy."
-              >
-                Healthy
-              </div>
-            </div>
-            <div>
-              <slot name="extra-header-item"></slot>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div>
-      <h2 class="text-2xl font-semibold mb-2">Actions</h2>
-      <div class="flex flex-row gap-5 flex-wrap faq-wrapper">
-        <Button variant="outline" @click="emit('delete')"
-          >Delete integration</Button
-        >
-
-        <RouterLink :to="props.updateRoute">
-          <Button variant="outline">Update/Replace integration token</Button>
-        </RouterLink>
-        <slot name="extra-action"></slot>
-      </div>
-    </div>
-    <div>
-      <h2 class="text-2xl font-semibold mb-2">Faq</h2>
-      <div class="flex flex-row gap-5 flex-wrap faq-wrapper">
-        <FaqBox>
-          <template #question>
-            What does it mean that an integration status is unhealty?
-          </template>
-          <template #answer>
-            An integration becomes unhealthy, in the following circumstances:
-            <ul>
-              <li>
-                The permissions of the token were changed after the initial
-                integration into our platform.
-              </li>
-              <li>The token is invalid or expired.</li>
-              <li>
-                The required permissions of our platform have changed since this
-                token was integrated.
-              </li>
-            </ul>
-          </template>
-        </FaqBox>
-        <FaqBox>
-          <template #question>
-            What to do when an integration status is unhealty?
-          </template>
-          <template #answer>
-            <SortableTable
-              class="w-full"
-              :headers="headers"
-              :sort-key="sortKey"
-              :sort-direction="sortDirection"
-            >
-              <template #data>
-                <tr>
-                  <td>
-                    <div>The token is invalid or expired.</div>
-                  </td>
-                  <td>
-                    <div>
-                      If the token has expired, you will need to create a new
-                      one. Please use the action 'Update/Replace integration
-                      token' to update the integration with the new token.
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div>
-                      The permissions of the token were changed after the
-                      initial integration into our platform
-                    </div>
-                  </td>
-                  <td>
-                    <div>
-                      Set the permissions of the token to include these scopes:
-                      <span class="code-bubble">repo</span> and
-                      <span class="code-bubble">write:org</span> scopes.
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div>
-                      The required permissions of our platform have changed
-                      since this token was integrated.
-                    </div>
-                  </td>
-                  <td>
-                    <div>
-                      No permission changes have been made. Placeholder for the
-                      future.
-                    </div>
-                  </td>
-                </tr>
+                ({{ formatRelativeTime(integration.expiry_date) }})
               </template>
-            </SortableTable>
-          </template>
-        </FaqBox>
-        <slot name="extra-faq-item"></slot>
-      </div>
-    </div>
+              <template v-else>Never</template>
+            </dd>
+            <dt class="text-muted-foreground">Token type</dt>
+            <dd class="flex items-center gap-2">
+              <KeyRound aria-hidden="true" class="size-4" />
+              <slot name="token-type" />
+            </dd>
+            <slot name="extra-header-item" />
+          </dl>
+        </CardContent>
+      </Card>
+
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h3 class="font-semibold leading-none text-foreground-strong">
+            Actions
+          </h3>
+        </CardHeader>
+        <CardContent class="flex flex-wrap gap-3">
+          <Button :as="RouterLink" :to="updateRoute" variant="outline">
+            <RefreshCw aria-hidden="true" />
+            Replace token
+          </Button>
+          <slot name="extra-action" />
+          <Button variant="destructive" @click="confirmOpen = true">
+            <Trash2 aria-hidden="true" />
+            Delete integration
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h3 class="font-semibold leading-none text-foreground-strong">
+            Questions
+          </h3>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="multiple">
+            <AccordionItem value="unhealthy">
+              <AccordionTrigger
+                class="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                When does an integration become invalid?
+              </AccordionTrigger>
+              <AccordionContent>
+                <ul class="flex list-disc flex-col gap-1 pl-5">
+                  <li>The token is invalid or has expired.</li>
+                  <li>
+                    The token's permissions changed after it was added here.
+                  </li>
+                  <li>
+                    The permissions CodeClarity needs changed since the token
+                    was added.
+                  </li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="fix">
+              <AccordionTrigger
+                class="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                How do I fix an invalid integration?
+              </AccordionTrigger>
+              <AccordionContent>
+                <dl class="flex flex-col gap-3">
+                  <div>
+                    <dt class="font-medium">The token is invalid or expired</dt>
+                    <dd class="text-muted-foreground">
+                      Create a new token and add it with "Replace token".
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="font-medium">The token's permissions changed</dt>
+                    <dd class="text-muted-foreground">
+                      Give the token the
+                      <code class="font-mono text-foreground-strong">repo</code>
+                      and
+                      <code class="font-mono text-foreground-strong"
+                        >write:org</code
+                      >
+                      scopes again.
+                    </dd>
+                  </div>
+                </dl>
+              </AccordionContent>
+            </AccordionItem>
+            <slot name="extra-faq-item" />
+          </Accordion>
+        </CardContent>
+      </Card>
+    </template>
+
+    <DeleteIntegrationDialog
+      v-model:open="confirmOpen"
+      :name="name"
+      :busy="deleting"
+      @confirm="emit('delete')"
+    />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

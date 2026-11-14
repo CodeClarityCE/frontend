@@ -8,6 +8,8 @@ import {
   IsString,
 } from "class-validator";
 
+import type { StatusTone } from "@/base_components/page";
+
 export enum DatasetStatus {
   BUILDING = "BUILDING",
   READY = "READY",
@@ -48,10 +50,10 @@ export const DatasetStatusLabels: Record<DatasetStatus, string> = {
   [DatasetStatus.FAILED]: "Failed",
 };
 
-export const DatasetStatusColors: Record<DatasetStatus, string> = {
-  [DatasetStatus.BUILDING]: "bg-blue-100 text-blue-800",
-  [DatasetStatus.READY]: "bg-green-100 text-green-800",
-  [DatasetStatus.FAILED]: "bg-red-100 text-red-800",
+export const DatasetStatusTones: Record<DatasetStatus, StatusTone> = {
+  [DatasetStatus.BUILDING]: "neutral",
+  [DatasetStatus.READY]: "success",
+  [DatasetStatus.FAILED]: "danger",
 };
 
 /** Why probed candidates were left out, in the order the builder checks. */

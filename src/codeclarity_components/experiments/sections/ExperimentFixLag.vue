@@ -1,0 +1,197 @@
+<script setup lang="ts">
+import { computed, useId } from "vue";
+
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
+import {
+  formatDays,
+  formatShareWithInterval,
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+
+import { excluded } from "../charts/experiment-caption";
+import { lagChartData, type LagChartRow } from "../charts/experiment-format";
+import LagStripChart from "../charts/LagStripChart.vue";
+import OpenAsFigure from "../charts/OpenAsFigure.vue";
+import {
+  type ConfidenceInterval,
+  type ExposuresBlock,
+  type FixKind,
+  FixKindLabels,
+  type FixLagBlock,
+  type FixLagPoint,
+  type LagGroup,
+  type ResultIntervals,
+  type SeverityCounts,
+  SeverityLabels,
+} from "../experiment.entity";
+
+const props = defineProps<{
+  fixLag: FixLagBlock;
+  exposures: ExposuresBlock | null;
+  intervals?: ResultIntervals["fix_lag"] | null;
+  snapshotInterval?: ConfidenceInterval | null | undefined;
+}>();
+
+const SEVERITY_TITLE = "Fix lag in days by severity";
+const KIND_TITLE = "Fix lag in days by fix kind";
+
+function rowsOf(
+  groups: LagGroup[],
+  label: (key: string) => string,
+  matches: (point: FixLagPoint, key: string) => boolean,
+  intervals?: Record<string, LagChartRow["interval"]>,
+): LagChartRow[] {
+  return groups.map((group) => ({
+    key: group.key,
+    label: label(group.key),
+    summary: group,
+    lags: props.fixLag.points
+      .filter((point) => matches(point, group.key))
+      .map((point) => point.lag_days),
+    interval: intervals?.[group.key] ?? null,
+  }));
+}
+
+const bySeverity = computed(() =>
+  rowsOf(
+    props.fixLag.by_severity,
+    (key) => SeverityLabels[key as keyof SeverityCounts] ?? key,
+    (point, key) => point.severity === key,
+    props.intervals?.by_severity,
+  ),
+);
+
+const byKind = computed(() =>
+  rowsOf(
+    props.fixLag.by_kind,
+    (key) => FixKindLabels[key as FixKind | "unknown"] ?? key,
+    (point, key) => (point.kind ?? "unknown") === key,
+    props.intervals?.by_kind,
+  ),
+);
+
+/** Both charts share one x range so they compare. */
+const domain = computed<[number, number]>(() => {
+  const { min, max } = props.fixLag.overall;
+  return [Math.min(min ?? 0, 0), Math.max(max ?? 0, 0, 1)];
+});
+
+const snapshotShare = computed(() => {
+  const share = props.fixLag.snapshot_precision_share;
+  return share === null
+    ? null
+    : formatShareWithInterval(share, props.snapshotInterval);
+});
+
+const counts = computed(() => {
+  const fixes = `${props.fixLag.fixes} fixes, ${props.fixLag.overall.before_disclosure} before disclosure`;
+  const exposures = props.exposures;
+  return exposures
+    ? `${fixes}, over ${exposures.exposures} exposures (${exposures.open} still open at HEAD).`
+    : `${fixes}.`;
+});
+
+function figureCaption(description: string): ChartCaption {
+  const { fixes, overall } = props.fixLag;
+  return {
+    description,
+    n: `n = ${overall.n} fixes`,
+    exclusions: excluded(
+      fixes - overall.n,
+      "fix",
+      "fixes",
+      "without a disclosure date",
+    ),
+  };
+}
+
+function describe(row: LagChartRow, lag: number): string {
+  if (lag === 0) return `${row.label}: fixed on the day of disclosure`;
+  const when = lag < 0 ? "before" : "after";
+  return `${row.label}: fixed ${formatDays(lag)} ${when} disclosure`;
+}
+
+const headingId = useId();
+</script>
+
+<template>
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
+    data-testid="experiment-fix-lag"
+  >
+    <div>
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Fix lag
+      </h3>
+      <p class="text-sm text-muted-foreground">
+        Days from an advisory's disclosure to the fix. Below zero, the project
+        fixed it before the advisory was published. Each dot is one fix; the
+        band spans the middle half and the tick marks the median.
+      </p>
+    </div>
+
+    <p class="text-sm text-foreground">
+      {{ counts }}
+      <template v-if="snapshotShare">
+        {{ snapshotShare }} dated only to a snapshot interval, using the later
+        snapshot's commit date (an upper bound). A fix reverted and re-applied
+        within one interval reads as one fix.
+      </template>
+    </p>
+
+    <p v-if="fixLag.overall.n === 0" class="text-sm text-muted-foreground">
+      No fixes with a disclosure date yet.
+    </p>
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div data-testid="fix-lag-by-severity">
+        <h4 class="text-sm font-medium text-foreground-strong mb-1">
+          By severity
+        </h4>
+        <OpenAsFigure
+          :definition="{
+            metric: 'fix_lag',
+            chart_form: 'step',
+            group_by: 'severity',
+            filters: {},
+          }"
+        />
+        <ChartExport
+          name="fix-lag-by-severity"
+          :data="lagChartData(bySeverity, 'lag_days')"
+          :caption="figureCaption(SEVERITY_TITLE)"
+        >
+          <LagStripChart
+            :rows="bySeverity"
+            :domain="domain"
+            :caption="SEVERITY_TITLE"
+            zero-label="Disclosure"
+            unit="fixes"
+            below-zero="before disclosure"
+            :describe="describe"
+          />
+        </ChartExport>
+      </div>
+      <div data-testid="fix-lag-by-kind">
+        <h4 class="text-sm font-medium text-foreground-strong mb-1">
+          By fix kind
+        </h4>
+        <ChartExport
+          name="fix-lag-by-kind"
+          :data="lagChartData(byKind, 'lag_days')"
+          :caption="figureCaption(KIND_TITLE)"
+        >
+          <LagStripChart
+            :rows="byKind"
+            :domain="domain"
+            :caption="KIND_TITLE"
+            zero-label="Disclosure"
+            unit="fixes"
+            below-zero="before disclosure"
+            :describe="describe"
+          />
+        </ChartExport>
+      </div>
+    </div>
+  </section>
+</template>

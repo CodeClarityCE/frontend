@@ -1,59 +1,43 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { computed, onBeforeMount, type Ref, ref } from "vue";
-import { useRouter } from "vue-router";
+import { Plus } from "@lucide/vue";
+import { computed, onBeforeMount, ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
 
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
+import { OwlEmptyState, StatTile } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
-import Button from "@/shadcn/ui/button/Button.vue";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shadcn/ui/dialog";
+import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
-import LicensePolicyDataTable from "../license/LicensePolicyDataTable.vue";
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
-// Organization imports removed since we're in a tab view context
+import PolicyTable from "../PolicyTable.vue";
+
 const props = defineProps<{
   page: string;
   orgId: string;
 }>();
 
-// Repository
 const licensePolicyRepository = new LicensePolicyRepository();
 const router = useRouter();
-
-// Store setup
 const authStore = useAuthStore();
 
-// Component state
-const policies: Ref<LicensePolicy[]> = ref([]);
-const loading: Ref<boolean> = ref(false);
-const error: Ref<string> = ref("");
+const policies = ref<LicensePolicy[]>([]);
+const loaded = ref(false);
+const error = ref("");
 
-// Dialog states (for future delete functionality)
-const deleteDialog: Ref<boolean> = ref(false);
-const policyToDelete: Ref<LicensePolicy | null> = ref(null);
-const deleting: Ref<boolean> = ref(false);
+const createRoute = computed(() => ({
+  name: "orgs",
+  params: { action: "add", page: "policy", orgId: props.orgId },
+}));
 
-// For simplicity, assume user has admin rights in tab view
-const canManagePolicies = computed(() => true);
-
-// Methods
+const licenseCount = computed(
+  () => new Set(policies.value.flatMap((policy) => policy.content ?? [])).size,
+);
 
 async function loadPolicies(): Promise<void> {
   if (!authStore.getToken) return;
-
-  loading.value = true;
   error.value = "";
-
   try {
     const response = await licensePolicyRepository.getLicensePolicies({
       orgId: props.orgId,
@@ -63,206 +47,77 @@ async function loadPolicies(): Promise<void> {
       entries_per_page: 100,
       search_key: "",
     });
-
     policies.value = response.data ?? [];
   } catch (err) {
-    console.error("Error loading license policies:", err);
-    if (err instanceof BusinessLogicError) {
-      error.value = err.error_message ?? "Business logic error occurred";
-    } else {
-      error.value = "Failed to load license policies. Please try again.";
-    }
+    error.value =
+      err instanceof BusinessLogicError && err.error_message
+        ? err.error_message
+        : "The license policies could not be loaded.";
   } finally {
-    loading.value = false;
+    loaded.value = true;
   }
-}
-
-function navigateToCreate(): void {
-  void router.push({
-    name: "orgs",
-    params: {
-      action: "add",
-      page: "policy",
-      orgId: props.orgId,
-    },
-  });
 }
 
 function handleEdit(policy: LicensePolicy): void {
   void router.push({
     name: "orgs",
-    params: {
-      action: "edit",
-      page: "policy",
-      orgId: props.orgId,
-    },
+    params: { action: "edit", page: "policy", orgId: props.orgId },
     query: { policyId: policy.id },
   });
 }
 
-function handleDelete(policy: LicensePolicy): void {
-  policyToDelete.value = policy;
-  deleteDialog.value = true;
-}
-
-async function confirmDelete(): Promise<void> {
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
-
-  deleting.value = true;
-  try {
-    // TODO: Implement delete API call when endpoint is available
-    // await licensePolicyRepository.deleteLicensePolicy({
-    //     orgId: props.orgId,
-    //     policyId: policyToDelete.value.id,
-    //     bearerToken: authStore.getToken
-    // });
-    await loadPolicies();
-  } catch (err) {
-    console.error("Error deleting policy:", err);
-    if (err instanceof BusinessLogicError) {
-      error.value = err.error_message ?? "Failed to delete policy";
-    } else {
-      error.value = "Failed to delete policy. Please try again.";
-    }
-  } finally {
-    deleting.value = false;
-    deleteDialog.value = false;
-    policyToDelete.value = null;
-  }
-}
-
-// Initialize component
-onBeforeMount(() => {
-  void loadPolicies();
-});
+onBeforeMount(() => void loadPolicies());
 </script>
 <template>
-  <!-- Don't show header item here since we're now inside tabs -->
-  <div class="space-y-6">
-    <!-- Header with Create Button -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-900">License Policies</h2>
-        <p class="text-gray-600">
-          Manage license compliance policies for your organization
+  <section aria-labelledby="license-policies-title" class="flex flex-col gap-6">
+    <div class="flex items-start justify-between gap-6">
+      <div class="flex flex-col gap-1">
+        <h2
+          id="license-policies-title"
+          class="text-xl font-semibold text-foreground-strong"
+        >
+          License policies
+        </h2>
+        <p class="text-sm text-muted-foreground">
+          Allow or block licenses in the projects of this organisation.
         </p>
       </div>
-      <div class="flex items-center gap-4">
-        <Button
-          v-if="canManagePolicies"
-          class="bg-theme-black hover:bg-theme-gray text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
-          @click="navigateToCreate"
-        >
-          <Icon icon="solar:add-circle-bold" class="w-5 h-5" />
-          Create Policy
-        </Button>
-      </div>
+      <Button :as="RouterLink" :to="createRoute">
+        <Plus aria-hidden="true" />
+        New license policy
+      </Button>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <StatCard
-        label="Total Policies"
-        :value="policies.length"
-        icon="solar:shield-bold"
-        variant="default"
-        subtitle="All policies"
-      />
+    <ul
+      v-if="loaded && policies.length > 0"
+      aria-label="License policy totals"
+      class="grid grid-cols-2 gap-4 lg:max-w-xl"
+    >
+      <StatTile label="Policies" :value="policies.length" />
+      <StatTile label="Licenses covered" :value="licenseCount" />
+    </ul>
 
-      <StatCard
-        label="Active Policies"
-        :value="policies.length"
-        icon="solar:check-circle-bold"
-        variant="success"
-        subtitle="Currently enforced"
-      />
-
-      <StatCard
-        label="License Types"
-        :value="new Set(policies.flatMap((p: any) => p.content ?? [])).size"
-        icon="solar:document-text-bold"
-        variant="primary"
-        subtitle="Unique licenses"
-      />
-    </div>
-
-    <!-- Error Alert -->
-    <Alert v-if="error && !loading" variant="destructive">
-      <Icon icon="solar:danger-triangle-bold" class="h-4 w-4" />
-      <AlertDescription>
-        {{ error }}
-      </AlertDescription>
+    <Alert v-if="error" variant="destructive">
+      <AlertDescription>{{ error }}</AlertDescription>
     </Alert>
 
-    <!-- Main Content -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
-      <div
-        v-if="!loading && policies.length === 0 && !error"
-        class="p-12 text-center"
-      >
-        <Icon
-          icon="solar:shield-check-bold"
-          class="w-16 h-16 text-gray-400 mx-auto mb-4"
-        />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">
-          No License Policies
-        </h3>
-        <p class="text-gray-600 mb-6 max-w-sm mx-auto">
-          Get started by creating your first license policy to control which
-          licenses are allowed in your projects.
-        </p>
-        <Button
-          v-if="canManagePolicies"
-          class="bg-theme-black hover:bg-theme-gray text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
-          @click="navigateToCreate"
-        >
-          <Icon icon="solar:add-circle-bold" class="w-5 h-5" />
-          Create First Policy
-        </Button>
-      </div>
+    <OwlEmptyState
+      v-else-if="loaded && policies.length === 0"
+      title="No license policies yet"
+      description="A license policy flags dependencies whose license your organisation does not accept."
+    >
+      <Button :as="RouterLink" :to="createRoute" arrow>
+        Create a license policy
+      </Button>
+    </OwlEmptyState>
 
-      <LicensePolicyDataTable
-        v-else
-        :data="policies"
-        :loading="loading"
-        @edit="handleEdit"
-        @delete="handleDelete"
-      />
-    </div>
-  </div>
-
-  <!-- Delete Confirmation Dialog -->
-  <Dialog v-model:open="deleteDialog">
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Delete License Policy</DialogTitle>
-        <DialogDescription>
-          Are you sure you want to delete "{{ policyToDelete?.name }}"? This
-          action cannot be undone.
-        </DialogDescription>
-      </DialogHeader>
-
-      <DialogFooter>
-        <Button
-          variant="outline"
-          :disabled="deleting"
-          @click="deleteDialog = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="destructive"
-          :disabled="deleting"
-          @click="confirmDelete"
-        >
-          <Icon
-            v-if="deleting"
-            icon="eos-icons:loading"
-            class="w-4 h-4 mr-2 animate-spin"
-          />
-          Delete Policy
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+    <PolicyTable
+      v-else
+      :policies="policies"
+      :loading="!loaded"
+      caption="License policies"
+      content-label="Licenses"
+      @edit="handleEdit"
+    />
+  </section>
 </template>

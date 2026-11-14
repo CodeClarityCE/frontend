@@ -1,114 +1,85 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import CurrentVulns from "@/codeclarity_components/dashboard/charts/CurrentVulns.vue";
 
-// Mock external dependencies
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BusinessLogicError: class BusinessLogicError extends Error {},
-}));
+const { getRecentVulns } = vi.hoisted(() => ({ getRecentVulns: vi.fn() }));
 
 vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
   DashboardRepository: class {
-    getCurrentVulns = vi.fn();
+    getRecentVulns = getRecentVulns;
   },
 }));
 
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    token: "mock-token",
-  })),
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => ({
-    defaultOrg: { id: "org-123" },
-  })),
-}));
-
-vi.mock("pinia", () => ({
-  storeToRefs: vi.fn((store) => store),
-}));
-
-// Mock UI components
-vi.mock("@iconify/vue", () => ({
-  Icon: {
-    name: "Icon",
-    template: '<div data-testid="icon"></div>',
-    props: ["icon"],
+const recent = {
+  data: {
+    vulns: {
+      a: {
+        severity: 5.3,
+        severity_class: "MEDIUM",
+        cwe_name: "Uncontrolled Resource Consumption",
+      },
+      b: {
+        severity: 9.8,
+        severity_class: "CRITICAL",
+        cwe_name: "Code Injection",
+      },
+    },
+    severity_count: [
+      { severity_class: "CRITICAL", count: 1 },
+      { severity_class: "MEDIUM", count: 4 },
+    ],
   },
-}));
-
-vi.mock("@/shadcn/ui/skeleton", () => ({
-  Skeleton: {
-    name: "Skeleton",
-    template: '<div data-testid="skeleton"></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/button/Button.vue", () => ({
-  default: {
-    name: "Button",
-    template: '<button data-testid="button"><slot /></button>',
-    props: ["variant", "size"],
-  },
-}));
-
-vi.mock("@/shadcn/ui/scroll-area", () => ({
-  ScrollArea: {
-    name: "ScrollArea",
-    template: '<div data-testid="scroll-area"><slot /></div>',
-  },
-}));
+};
 
 describe("CurrentVulns", () => {
-  const defaultProps = {
-    integrationIds: ["test-id-1", "test-id-2"],
-  };
+  beforeEach(() => getRecentVulns.mockReset());
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it("counts vulnerabilities by severity and lists the most severe first", async () => {
+    getRecentVulns.mockResolvedValue(recent);
+    const wrapper = mount(CurrentVulns, { props: { integrationIds: [] } });
+    await flushPromises();
+
+    const counts = wrapper.find('[aria-label="Vulnerabilities by severity"]');
+    expect(
+      counts.findAll("li").map((li) => li.findAll("span").map((s) => s.text())),
+    ).toEqual([
+      ["Critical", "1"],
+      ["High", "0"],
+      ["Medium", "4"],
+    ]);
+    const list = wrapper.find('[aria-label="Most severe vulnerabilities"]');
+    const rows = list.findAll("li");
+    expect(rows.map((li) => li.text())).toEqual([
+      expect.stringMatching(/^Critical\s*9\.8\s*Code Injection$/),
+      expect.stringMatching(
+        /^Medium\s*5\.3\s*Uncontrolled Resource Consumption$/,
+      ),
+    ]);
   });
 
-  it("should render successfully", () => {
-    const wrapper = mount(CurrentVulns, {
-      props: defaultProps,
+  it("says when there are no vulnerabilities", async () => {
+    getRecentVulns.mockResolvedValue({
+      data: { vulns: {}, severity_count: [] },
     });
-    expect(wrapper.exists()).toBe(true);
+    const wrapper = mount(CurrentVulns, { props: { integrationIds: [] } });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("No vulnerabilities found.");
   });
 
-  it("should accept integration IDs as props", () => {
-    const wrapper = mount(CurrentVulns, {
-      props: defaultProps,
-    });
+  it("offers to try again after a failed load", async () => {
+    getRecentVulns.mockRejectedValueOnce(new Error("down"));
+    getRecentVulns.mockResolvedValueOnce(recent);
+    const wrapper = mount(CurrentVulns, { props: { integrationIds: [] } });
+    await flushPromises();
 
-    expect(wrapper.props("integrationIds")).toEqual(["test-id-1", "test-id-2"]);
-  });
+    expect(wrapper.find('[role="alert"]').text()).toContain(
+      "The vulnerabilities summary could not be loaded.",
+    );
+    await wrapper.find("button").trigger("click");
+    await flushPromises();
 
-  it("should handle empty integration IDs", () => {
-    const wrapper = mount(CurrentVulns, {
-      props: { integrationIds: [] },
-    });
-
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.props("integrationIds")).toEqual([]);
-  });
-
-  it("should render loading state initially", () => {
-    const wrapper = mount(CurrentVulns, {
-      props: defaultProps,
-    });
-
-    // Should have loading-related elements
-    expect(wrapper.html()).toBeTruthy();
-  });
-
-  it("should handle props changes", async () => {
-    const wrapper = mount(CurrentVulns, {
-      props: defaultProps,
-    });
-
-    await wrapper.setProps({ integrationIds: ["new-id"] });
-    expect(wrapper.props("integrationIds")).toEqual(["new-id"]);
+    expect(wrapper.text()).toContain("Code Injection");
   });
 });

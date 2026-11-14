@@ -1,113 +1,25 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
+import { fireEvent, render, screen, waitFor } from "@testing-library/vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FilterType } from "@/base_components/filters/filterTypes";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
 
 import RepoTable, { type RepoTableConfig } from "./RepoTable.vue";
 
-// Mirrors the real Filters popover: it flips the options of one radio category
-// in place on the filter state it is given and emits nothing.
-vi.mock("@/base_components/filters/UtilitiesFilters.vue", async () => {
-  const { getActiveState } = await vi.importActual<
-    typeof import("@/base_components/filters/filterTypes")
-  >("@/base_components/filters/filterTypes");
-  return {
-    default: {
-      name: "UtilitiesFilters",
-      props: ["filterState"],
-      setup(props: {
-        filterState: import("@/base_components/filters/filterTypes").FilterState;
-      }) {
-        function pick(category: string, option: string): void {
-          const options = props.filterState.filterConfig[category]!.data;
-          for (const key of Object.keys(options)) {
-            options[key]!.value = key === option;
-          }
-          props.filterState.activeFilters = getActiveState(
-            props.filterState.filterConfig,
-          );
-        }
-        return { pick };
-      },
-      template: `
-        <div>
-          <button data-testid="pick-php" @click="pick('Language', 'language_php')" />
-          <button data-testid="pick-both" @click="pick('ImportState', 'imported_and_non_imported')" />
-        </div>`,
-    },
-  };
-});
-
-vi.mock("@/base_components/filters/ActiveFilterBar.vue", () => ({
-  default: {
-    name: "ActiveFilterBar",
-    props: ["filterState"],
-    template: "<div />",
-  },
-}));
-
-vi.mock("@/base_components/filters/SearchBar.vue", () => ({
-  default: {
-    name: "SearchBar",
-    props: ["searchKey", "placeholder"],
-    template: "<div />",
-  },
-}));
-
-vi.mock("@/base_components/utilities/PaginationComponent.vue", () => ({
-  default: {
-    name: "PaginationComponent",
-    props: ["page", "nmbEntriesShowing", "nmbEntriesTotal", "totalPages"],
-    emits: ["update:page"],
-    template: `
-      <div>
-        <button data-testid="go-to-page-2" @click="$emit('update:page', 2)" />
-        <slot name="content" />
-      </div>`,
-  },
-}));
-
-vi.mock("@/base_components/data-display/tables/SortableTable.vue", () => ({
-  default: {
-    name: "SortableTable",
-    props: ["headers", "sortKey", "sortDirection"],
-    template: '<table><tbody><slot name="data" /></tbody></table>',
-  },
-}));
-
-vi.mock("@/base_components/ui/loaders/BoxLoader.vue", () => ({
-  default: { name: "BoxLoader", props: ["dimensions"], template: "<div />" },
-}));
-
-vi.mock("@/shadcn/ui/badge", () => ({
-  Badge: { name: "Badge", template: "<span><slot /></span>" },
-}));
-
-vi.mock("@/shadcn/ui/button/Button.vue", () => ({
-  default: {
-    name: "Button",
-    props: ["variant", "size", "disabled"],
-    emits: ["click"],
-    template:
-      '<button :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>',
-  },
+// The real helpers, so the shadcn controls follow prop changes.
+vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BaseRepository: class {},
+  BusinessLogicError: class extends Error {},
 }));
 
 const popularConfig: RepoTableConfig = {
-  extraFilters: {
-    Language: {
-      name: "Language",
-      type: FilterType.RADIO,
-      data: {
-        language_all: { title: "All", value: true },
-        language_php: { title: "PHP", value: false },
-      },
-    },
-  },
+  languages: [
+    { key: "language_all", label: "All" },
+    { key: "language_php", label: "PHP" },
+  ],
 };
 
-function repository(index: number): Repository {
+function repository(index: number, imported = false): Repository {
   return {
     id: `repo-${index}`,
     url: `https://github.com/org/repo-${index}`,
@@ -116,7 +28,7 @@ function repository(index: number): Repository {
     fully_qualified_name: `org/repo-${index}`,
     description: "",
     created_at: new Date("2026-01-01"),
-    imported_already: false,
+    imported_already: imported,
     integration_id: "gh-1",
   };
 }
@@ -126,100 +38,122 @@ describe("RepoTable", () => {
 
   beforeEach(() => {
     getRepos.mockReset();
-    getRepos.mockResolvedValue({
-      data: [repository(1), repository(2)],
-      total_entries: 60,
-      total_pages: 3,
-    });
+    getRepos.mockImplementation(
+      ({ pagination }: { pagination: { page: number } }) =>
+        Promise.resolve({
+          data: [
+            repository(pagination.page * 2 + 1, pagination.page === 0),
+            repository(pagination.page * 2 + 2),
+          ],
+          total_entries: 6,
+          total_pages: 3,
+        }),
+    );
   });
 
-  async function mountTable(config?: RepoTableConfig): Promise<VueWrapper> {
-    const wrapper = mount(RepoTable, {
-      props: { integration: "gh-1", getRepos, config },
+  function renderTable(
+    props: { config?: RepoTableConfig; disabled?: boolean } = {},
+  ): ReturnType<typeof render> {
+    return render(RepoTable, {
+      props: { integration: "gh-1", getRepos, ...props },
     });
-    await flushPromises();
-    return wrapper;
   }
 
-  function lastRequest(): {
-    activeFilters: string[];
-    pagination: { page: number };
-  } {
-    return getRepos.mock.lastCall![0];
+  function requests(): { activeFilters: string[]; page: number }[] {
+    return getRepos.mock.calls.map((call) => {
+      const options = call[0] as {
+        activeFilters: string[];
+        pagination: { page: number };
+      };
+      return {
+        activeFilters: options.activeFilters,
+        page: options.pagination.page,
+      };
+    });
   }
 
-  describe("filters", () => {
-    it("requests the default filters on mount", async () => {
-      await mountTable(popularConfig);
+  describe("loading", () => {
+    it("loads every page with the default filters and lists every repository", async () => {
+      renderTable({ config: popularConfig });
 
-      expect(getRepos).toHaveBeenCalledTimes(1);
-      expect(lastRequest().activeFilters).toEqual([
-        "only_non_imported",
-        "language_all",
+      expect(await screen.findByText("org/repo-6")).toBeTruthy();
+      expect(requests()).toEqual([
+        { activeFilters: ["only_non_imported", "language_all"], page: 0 },
+        { activeFilters: ["only_non_imported", "language_all"], page: 1 },
+        { activeFilters: ["only_non_imported", "language_all"], page: 2 },
       ]);
     });
 
-    it("fetches again with the language picked in the Filters popover", async () => {
-      const wrapper = await mountTable(popularConfig);
+    it("asks only for the import state when the source has no languages", async () => {
+      renderTable();
 
-      await wrapper.find('[data-testid="pick-php"]').trigger("click");
-      await flushPromises();
-
-      expect(getRepos).toHaveBeenCalledTimes(2);
-      expect(lastRequest().activeFilters).toEqual([
-        "only_non_imported",
-        "language_php",
-      ]);
+      await screen.findByText("org/repo-6");
+      expect(requests()[0]!.activeFilters).toEqual(["only_non_imported"]);
     });
 
-    it("fetches again when the import state filter changes", async () => {
-      const wrapper = await mountTable();
+    it("says when the repositories cannot be loaded and offers a retry", async () => {
+      getRepos.mockRejectedValue(new Error("boom"));
+      renderTable();
 
-      await wrapper.find('[data-testid="pick-both"]').trigger("click");
-      await flushPromises();
-
-      expect(getRepos).toHaveBeenCalledTimes(2);
-      expect(lastRequest().activeFilters).toEqual([
-        "imported_and_non_imported",
-      ]);
-    });
-
-    it("returns to the first page with a single request when a filter changes", async () => {
-      const wrapper = await mountTable(popularConfig);
-      await wrapper.find('[data-testid="go-to-page-2"]').trigger("click");
-      await flushPromises();
-      expect(lastRequest().pagination.page).toBe(2);
-
-      await wrapper.find('[data-testid="pick-php"]').trigger("click");
-      await flushPromises();
-
-      expect(getRepos).toHaveBeenCalledTimes(3);
-      expect(lastRequest().pagination.page).toBe(0);
-      expect(lastRequest().activeFilters).toContain("language_php");
+      expect(
+        await screen.findByText(/could not be loaded from the integration/),
+      ).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
     });
   });
 
   describe("selection", () => {
+    it("selects every repository not imported yet with one checkbox", async () => {
+      const { emitted } = renderTable();
+      await screen.findByText("org/repo-6");
+
+      await fireEvent.click(
+        screen.getByRole("checkbox", {
+          name: "Select every repository not imported yet",
+        }),
+      );
+
+      const selections = emitted<Repository[][]>("onSelectedReposChange");
+      expect(selections.at(-1)![0]!.map((repo) => repo.id)).toEqual([
+        "repo-2",
+        "repo-3",
+        "repo-4",
+        "repo-5",
+        "repo-6",
+      ]);
+      expect(screen.getByText(/5\s+repositories\s+selected/)).toBeTruthy();
+    });
+
+    it("keeps an imported repository out of reach", async () => {
+      renderTable();
+      await screen.findByText("org/repo-6");
+
+      const imported = screen.getByRole("checkbox", {
+        name: "Select org/repo-1",
+      });
+      expect(imported.hasAttribute("disabled")).toBe(true);
+    });
+
     it("freezes the selection controls while disabled", async () => {
-      const wrapper = await mountTable();
-      const checkboxes = () => wrapper.findAll('input[type="checkbox"]');
+      const { emitted, rerender } = renderTable();
+      await screen.findByText("org/repo-6");
 
-      // The first checkbox is "Select All", the others are the rows.
-      await checkboxes()[1]!.trigger("click");
-      expect(wrapper.emitted("onSelectedReposChange")).toHaveLength(1);
+      await fireEvent.click(
+        screen.getByRole("checkbox", { name: "Select org/repo-2" }),
+      );
+      expect(emitted("onSelectedReposChange")).toHaveLength(1);
 
-      await wrapper.setProps({ disabled: true });
+      await rerender({ disabled: true });
 
-      for (const checkbox of checkboxes()) {
-        expect(checkbox.attributes("disabled")).toBeDefined();
-      }
-      const clearSelection = wrapper
-        .findAll("button")
-        .find((button) => button.text() === "Clear Selection");
-      expect(clearSelection!.attributes("disabled")).toBeDefined();
-
-      await checkboxes()[2]!.trigger("click");
-      expect(wrapper.emitted("onSelectedReposChange")).toHaveLength(1);
+      await waitFor(() => {
+        for (const checkbox of screen.getAllByRole("checkbox")) {
+          expect(checkbox.hasAttribute("disabled")).toBe(true);
+        }
+      });
+      await fireEvent.click(
+        screen.getByRole("checkbox", { name: "Select org/repo-3" }),
+      );
+      expect(emitted("onSelectedReposChange")).toHaveLength(1);
     });
   });
 });

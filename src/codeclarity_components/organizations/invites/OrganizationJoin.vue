@@ -1,10 +1,19 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { onMounted, type Ref, ref } from "vue";
+import { Building2, CircleAlert, LoaderCircle } from "@lucide/vue";
+import { computed, onMounted, type Ref, ref } from "vue";
 
-import FaqBox from "@/base_components/layout/FaqBox.vue";
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/shadcn/ui/accordion";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
+import { Card, CardContent } from "@/shadcn/ui/card";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -14,68 +23,117 @@ import { successToast } from "@/utils/toasts";
 import {
   MemberRole,
   type OrganizationInfoForInvitee,
+  type TeamMember,
 } from "../organization.entity";
 import { OrgRepository } from "../organization.repository";
 
-const inviteToken: Ref<string | undefined> = ref();
-const userEmailHash: Ref<string | undefined> = ref();
-const orgId: Ref<string | undefined> = ref();
-const fetchError: Ref<boolean> = ref(false);
-const fetchErrorCode: Ref<string | undefined> = ref();
 const authStore = useAuthStore();
-const joinOrgResp: Ref<boolean> = ref(false);
-const joinError: Ref<boolean> = ref(false);
-const joinErrorCode: Ref<string | undefined> = ref();
+const orgRepository = new OrgRepository();
 
-const orgRepository: OrgRepository = new OrgRepository();
+const inviteToken = ref<string>();
+const userEmailHash = ref<string>();
+const orgId = ref<string>();
 const orgInfo: Ref<OrganizationInfoForInvitee | undefined> = ref();
+const fetchErrorCode = ref<string>();
+const fetchFailed = ref(false);
+const joinErrorCode = ref<string>();
+const joinFailed = ref(false);
+const joining = ref(false);
+
+const roleNames: Record<MemberRole, string> = {
+  [MemberRole.OWNER]: "Owner",
+  [MemberRole.ADMIN]: "Admin",
+  [MemberRole.MODERATOR]: "Moderator",
+  [MemberRole.USER]: "User",
+};
+
+const faqs = [
+  {
+    question: "What happens when I join an organisation?",
+    answer:
+      "You can work with its members on its projects, Datasets and Experiments.",
+  },
+  {
+    question: "Can I leave an organisation I did not mean to join?",
+    answer:
+      "Yes. Open Organisation settings for that organisation and choose Leave the organisation.",
+  },
+  {
+    question: "What can each role do?",
+    answer:
+      "Users import projects, start analyses and read results. Moderators also manage invites and members. Admins also add integrations with external services. The Owner created the organisation and can manage all of it.",
+  },
+  {
+    question: "The inviter or owner shows as Deleted user. What now?",
+    answer:
+      "We recommend not joining. An organisation whose inviter or owner was deleted is often a sign of spam.",
+  },
+];
+
+// Expired or unknown invitations cannot succeed on a retry.
+const fetchRetryable = computed(
+  () =>
+    fetchErrorCode.value !== APIErrors.NotAuthorized &&
+    fetchErrorCode.value !== APIErrors.EntityNotFound,
+);
+const joinRetryable = computed(
+  () =>
+    joinErrorCode.value !== APIErrors.NotAuthorized &&
+    joinErrorCode.value !== APIErrors.EntityNotFound &&
+    joinErrorCode.value !== APIErrors.InvitationInvalidOrExpired,
+);
+
+const fetchMessage = computed(() =>
+  fetchRetryable.value
+    ? "Something went wrong while loading the invitation."
+    : "This invitation does not exist or has expired.",
+);
+const joinMessage = computed(() =>
+  joinRetryable.value
+    ? "Something went wrong while joining the organisation."
+    : "This invitation does not exist or has expired.",
+);
+
+function personName(person: TeamMember | undefined): string {
+  if (!person) return "Deleted user";
+  return `${person.first_name} ${person.last_name} (${person.email})`;
+}
 
 onMounted(() => {
-  const url = new URL(window.location.href);
-  const searchParams = url.searchParams;
+  const searchParams = new URL(window.location.href).searchParams;
+  const token = searchParams.get("token");
+  const emailHash = searchParams.get("useremail");
+  const id = searchParams.get("orgId");
 
-  // Token
-  const _token = searchParams.get("token");
-
-  // User email hash
-  const _userEmailHash = searchParams.get("useremail");
-
-  // orgId
-  const _orgId = searchParams.get("orgId");
-
-  if (!_token || !_userEmailHash || !_orgId) {
+  if (!token || !emailHash || !id) {
     void router.push("/");
     return;
   }
 
-  inviteToken.value = _token;
-  userEmailHash.value = _userEmailHash;
-  orgId.value = _orgId;
+  inviteToken.value = token;
+  userEmailHash.value = emailHash;
+  orgId.value = id;
 
   void fetchOrgInfo();
 });
 
 async function fetchOrgInfo(): Promise<void> {
-  if (
-    !authStore.getAuthenticated ||
-    !userEmailHash.value ||
-    !orgId.value ||
-    !inviteToken.value
-  )
-    return;
+  if (!userEmailHash.value || !orgId.value || !inviteToken.value) return;
   if (!authStore.getAuthenticated || !authStore.getToken) return;
 
+  fetchFailed.value = false;
+  fetchErrorCode.value = undefined;
   try {
-    const _orgInfo = await orgRepository.getOrgInfoAsInvitedMember({
+    orgInfo.value = await orgRepository.getOrgInfoAsInvitedMember({
       bearerToken: authStore.getToken,
       orgId: orgId.value,
       inviteToken: inviteToken.value,
       userEmailHash: userEmailHash.value,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
-    orgInfo.value = _orgInfo;
   } catch (err) {
-    fetchError.value = true;
+    fetchFailed.value = true;
     if (err instanceof BusinessLogicError) {
       fetchErrorCode.value = err.error_code;
     }
@@ -83,15 +141,12 @@ async function fetchOrgInfo(): Promise<void> {
 }
 
 async function joinOrg(): Promise<void> {
-  if (
-    !authStore.getAuthenticated ||
-    !userEmailHash.value ||
-    !orgId.value ||
-    !inviteToken.value
-  )
-    return;
+  if (!userEmailHash.value || !orgId.value || !inviteToken.value) return;
   if (!authStore.getAuthenticated || !authStore.getToken) return;
 
+  joining.value = true;
+  joinFailed.value = false;
+  joinErrorCode.value = undefined;
   try {
     await orgRepository.joinOrgViaInvitation({
       bearerToken: authStore.getToken,
@@ -101,311 +156,140 @@ async function joinOrg(): Promise<void> {
         email_digest: userEmailHash.value,
       },
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
-
+    successToast(`You joined ${orgInfo.value?.name ?? "the organisation"}`);
     void router.push({
       name: "orgs",
-      params: { page: "manage", orgId: orgId.value },
+      params: { action: "manage", page: "main", orgId: orgId.value },
     });
-    void successToast("Successfully joined the org");
   } catch (err) {
-    joinError.value = true;
+    joinFailed.value = true;
     if (err instanceof BusinessLogicError) {
       joinErrorCode.value = err.error_code;
     }
   } finally {
-    joinOrgResp.value = true;
+    joining.value = false;
   }
 }
 </script>
+
 <template>
-  <div class="flex flex-col items-center">
-    <div v-if="joinOrgResp">
-      <div v-if="joinError" class="flex flex-col gap-5 w-fit">
-        <div class="flex flex-row gap-2">
-          <Icon
-            class="icon user-icon"
-            icon="solar:confounded-square-outline"
-            style="font-size: 3rem; height: fit-content"
-          ></Icon>
-          <div>
-            <div class="flex flex-col gap-5">
-              <div class="flex flex-col gap-2">
-                <div>Failed to join the organization</div>
-                <div v-if="joinErrorCode" style="font-size: 0.7em">
-                  <div
-                    v-if="
-                      joinErrorCode === APIErrors.InvitationInvalidOrExpired
-                    "
-                  >
-                    This invite link does not exist or has expired.
-                  </div>
-                  <div v-else>
-                    We encountered an error while processing the join request.
-                  </div>
-                </div>
-                <div v-else style="font-size: 0.7em">
-                  <div>
-                    We encountered an error while processing the join request.
-                  </div>
-                </div>
-              </div>
-              <div class="flex flex-row gap-2 items-center flex-wrap">
-                <Button
-                  v-if="
-                    joinErrorCode !== APIErrors.NotAuthorized &&
-                    joinErrorCode !== APIErrors.EntityNotFound
-                  "
-                  @click="joinOrg"
-                >
-                  Try again
-                </Button>
-                <Button @click="router.back"> Go back </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="flex max-w-3xl flex-col gap-8">
+    <template v-if="fetchFailed">
+      <PageHeading
+        >Organisation <BrandEmphasis>invitation</BrandEmphasis></PageHeading
+      >
+      <Alert variant="destructive">
+        <CircleAlert aria-hidden="true" class="size-4" />
+        <AlertTitle>We could not load this invitation</AlertTitle>
+        <AlertDescription>{{ fetchMessage }}</AlertDescription>
+      </Alert>
+      <div class="flex gap-2">
+        <Button v-if="fetchRetryable" @click="fetchOrgInfo">Try again</Button>
+        <Button variant="outline" @click="router.back()">Go back</Button>
       </div>
+    </template>
+
+    <div
+      v-else-if="!orgInfo"
+      role="status"
+      aria-label="Loading the invitation"
+      class="flex flex-col gap-4"
+    >
+      <Skeleton class="h-9 w-2/3" />
+      <Skeleton class="h-40 w-full rounded-card" />
     </div>
+
     <template v-else>
-      <div class="flex flex-col gap-4">
-        <div v-if="fetchError">
-          <div class="flex flex-col gap-5 w-fit" style="font-size: 1.5em">
-            <div class="flex flex-row gap-2">
-              <Icon
-                class="icon user-icon"
-                icon="confounded-square-outline"
-              ></Icon>
-              <div>
-                <div class="flex flex-col gap-5">
-                  <div class="flex flex-col gap-2">
-                    <div>We failed to retrieve information on the invite</div>
-                    <div v-if="fetchErrorCode" style="font-size: 0.7em">
-                      <div
-                        v-if="
-                          fetchErrorCode === APIErrors.EntityNotFound ||
-                          fetchErrorCode === APIErrors.NotAuthorized
-                        "
-                      >
-                        This invite link does not exist or has expired.
-                      </div>
-                      <div v-else>
-                        We encountered an error while retrieving the invite
-                        information.
-                      </div>
-                    </div>
-                    <div v-else style="font-size: 0.7em">
-                      <div>
-                        We encountered an error while retrieving the invite
-                        information.
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex flex-row gap-2 items-center flex-wrap">
-                    <Button
-                      v-if="
-                        joinErrorCode !== APIErrors.NotAuthorized &&
-                        joinErrorCode !== APIErrors.EntityNotFound
-                      "
-                      @click="fetchOrgInfo"
-                    >
-                      Try again
-                    </Button>
-                    <Button @click="router.back"> Go back </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="orgInfo" class="flex flex-col gap-4 w-1/2 self-center">
-          <div class="text-xl">
-            Join the
-            <span class="text-theme-primary font-semibold">{{
-              orgInfo.name
-            }}</span>
-            organization?
-          </div>
-          <div class="flex flex-col gap-2">
-            <div class="flex flex-row gap-2 items-center">
-              <Icon class="text-2xl" icon="iconoir:group"></Icon>
-              <div class="text-2xl">
+      <PageHeading
+        description="Accept the invitation to work with this organisation's members."
+      >
+        Join <BrandEmphasis>{{ orgInfo.name }}</BrandEmphasis
+        >?
+      </PageHeading>
+
+      <Card class="rounded-card shadow-card">
+        <CardContent class="flex flex-col gap-6 pt-6">
+          <div class="flex items-start gap-3">
+            <Building2
+              aria-hidden="true"
+              class="mt-1 size-5 shrink-0 text-muted-foreground"
+            />
+            <div class="flex flex-col gap-1">
+              <h2 class="text-lg font-semibold text-foreground-strong">
                 {{ orgInfo.name }}
-              </div>
-            </div>
-            <div class="ml-8">
-              {{ orgInfo.description }}
+              </h2>
+              <p v-if="orgInfo.description" class="text-muted-foreground">
+                {{ orgInfo.description }}
+              </p>
             </div>
           </div>
-          <div class="text-secondary-foreground">
-            <span
-              v-if="orgInfo.invite_created_by"
-              class="text-theme-primary font-semibold"
+
+          <dl class="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
+            <dt class="text-muted-foreground">Invited by</dt>
+            <dd>{{ personName(orgInfo.invite_created_by) }}</dd>
+            <dt class="text-muted-foreground">Your role</dt>
+            <dd class="font-semibold">{{ roleNames[orgInfo.role] }}</dd>
+            <dt class="text-muted-foreground">Owner</dt>
+            <dd>{{ personName(orgInfo.created_by) }}</dd>
+            <dt class="text-muted-foreground">Members</dt>
+            <dd class="tabular-nums">{{ orgInfo.number_of_members }}</dd>
+            <dt class="text-muted-foreground">Invited on</dt>
+            <dd>{{ formatDate(orgInfo.invite_created_on, "LL") }}</dd>
+          </dl>
+
+          <Alert v-if="joinFailed" variant="destructive">
+            <CircleAlert aria-hidden="true" class="size-4" />
+            <AlertTitle>You could not join the organisation</AlertTitle>
+            <AlertDescription>{{ joinMessage }}</AlertDescription>
+          </Alert>
+
+          <div class="flex gap-2">
+            <Button
+              v-if="!joinFailed || joinRetryable"
+              :disabled="joining"
+              arrow
+              @click="joinOrg"
             >
-              {{ orgInfo.invite_created_by.last_name }}
-              {{ orgInfo.invite_created_by.first_name }} ({{
-                orgInfo.invite_created_by.email
-              }})
-            </span>
-            <span v-else> Deleted User </span>
-            <span>
-              has invited you to join the Organization '<span
-                class="text-theme-primary font-semibold"
-                >{{ orgInfo.name }}</span
-              >' as a
-              <span
-                v-if="orgInfo.role === MemberRole.OWNER"
-                class="font-bold text-severity-medium"
-                >Owner</span
-              >
-              <span
-                v-if="orgInfo.role === MemberRole.ADMIN"
-                class="font-bold text-severity-high"
-                >Admin</span
-              >
-              <span
-                v-if="orgInfo.role === MemberRole.MODERATOR"
-                class="font-bold text-severity-low"
-                >Moderator</span
-              >
-              <span
-                v-if="orgInfo.role === MemberRole.USER"
-                class="font-bold text-severity-none"
-                >User</span
-              >.
-            </span>
-            <span>This organization is owned by </span>
-            <span v-if="orgInfo.created_by">
-              {{ orgInfo.created_by.last_name }}
-              {{ orgInfo.created_by.first_name }} ({{
-                orgInfo.created_by.email
-              }})
-            </span>
-            <span v-else> Deleted User </span>
-            <span v-if="orgInfo.number_of_members > 1">
-              and has {{ orgInfo.number_of_members }} members.
-            </span>
-            <span v-else>
-              and has {{ orgInfo.number_of_members }} member.
-            </span>
+              <LoaderCircle
+                v-if="joining"
+                aria-hidden="true"
+                class="animate-spin motion-reduce:animate-none"
+              />
+              {{ joinFailed ? "Try again" : "Join organisation" }}
+            </Button>
+            <Button variant="outline" @click="router.back()">
+              {{ joinFailed ? "Go back" : "Cancel" }}
+            </Button>
           </div>
-          <div class="flex flex-col gap-1 font-semibold">
-            <div>
-              Invite created on:
-              {{ formatDate(orgInfo.invite_created_on, "LL") }}
-            </div>
-          </div>
-          <div class="flex flex-row gap-2">
-            <Button class="rounded-full" @click="joinOrg"
-              >Join Organization</Button
+        </CardContent>
+      </Card>
+
+      <section aria-labelledby="join-faq-title" class="flex flex-col gap-2">
+        <h2
+          id="join-faq-title"
+          class="text-lg font-semibold text-foreground-strong"
+        >
+          Questions
+        </h2>
+        <Accordion type="multiple">
+          <AccordionItem
+            v-for="(faq, index) in faqs"
+            :key="faq.question"
+            :value="`faq-${index}`"
+          >
+            <AccordionTrigger
+              class="rounded-sm text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-            <Button class="rounded-full" variant="outline" @click="router.back">
-              Cancel
-            </Button>
-          </div>
-          <div>
-            <div class="divider"></div>
-          </div>
-          <div class="flex flex-col gap-2 w-1/2 self-center">
-            <Button class="rounded-full" variant="destructive">
-              <a href="">Block all further invites from this organization</a>
-            </Button>
-            <Button class="rounded-full" variant="destructive">
-              <a href="">Block all further invites from any organization</a>
-            </Button>
-          </div>
-        </div>
-        <div v-if="orgInfo" class="w-2/3 self-center">
-          <h2 class="text-2xl">Faq</h2>
-          <div class="flex flex-row gap-5 flex-wrap">
-            <FaqBox>
-              <template #question
-                >What happens when I join an organization?</template
-              >
-              <template #answer
-                >When you accept an organization you will be able to collaborate
-                with people in that organization.</template
-              >
-            </FaqBox>
-            <FaqBox>
-              <template #question
-                >Can I leave an organization I did not intend to join?</template
-              >
-              <template #answer
-                >Yes, you can always leave an organization. Go the Organizations
-                > View, and then click on 'Manage Organization'. Lastly click on
-                'Leave the organization'.</template
-              >
-            </FaqBox>
-            <FaqBox>
-              <template #question
-                >I do not wish to receive these invitations and emails
-                anymore.</template
-              >
-              <template #answer
-                >Simply click on the links above the FAQ. The first allows you
-                to block invites from this particular organization. The second
-                allows you to block all invites from all
-                organizations.</template
-              >
-            </FaqBox>
-            <FaqBox>
-              <template #question
-                >What roles are there, and what are their differences?</template
-              >
-              <template #answer>
-                The following roles are available:
-                <ul>
-                  <li>
-                    <div>User</div>
-                    <div>
-                      Users cannot manage any part of an organization. They may
-                      however import projects, start analyses and view the
-                      analyses results.
-                    </div>
-                  </li>
-                  <li>
-                    <div>Moderators</div>
-                    <div>
-                      In addition to the permissions of the User role,
-                      Moderators can manage certain parts of an organization,
-                      such as managing invites, and members.
-                    </div>
-                  </li>
-                  <li>
-                    <div>Admin</div>
-                    <div>
-                      In addition to the permissions of the Moderators role,
-                      Admins can also add integrations with external services.
-                    </div>
-                  </li>
-                  <li>
-                    <div>Owner</div>
-                    <div>
-                      The role 'Owner' is reserverd for people that created the
-                      organization. They can manage all parts of an
-                      organization.
-                    </div>
-                  </li>
-                </ul>
-              </template>
-            </FaqBox>
-            <FaqBox>
-              <template #question
-                >The inviter or owner of the org shows as 'Deleted User', what
-                now?</template
-              >
-              <template #answer
-                >We recommend not joining an organization where the person that
-                invited you shows as 'Deleted user'. The same applies if the
-                owner of the organization shows as 'Deleted user'. This is
-                usually an indicator that this organization was created for spam
-                purposes.</template
-              >
-            </FaqBox>
-          </div>
-        </div>
-      </div>
+              {{ faq.question }}
+            </AccordionTrigger>
+            <AccordionContent class="text-muted-foreground">
+              {{ faq.answer }}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </section>
     </template>
   </div>
 </template>

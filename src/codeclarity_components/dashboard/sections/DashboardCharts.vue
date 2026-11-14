@@ -1,65 +1,11 @@
-<template>
-  <!-- Main dashboard charts and visualizations -->
-  <div class="grid gap-8 lg:grid-cols-12">
-    <!-- Vulnerability Exposure Overview (large card) -->
-    <InfoCard
-      title="Vulnerability Exposure Overview"
-      description="Total severity of vulnerabilities across all your projects"
-      icon="solar:chart-square-bold"
-      variant="primary"
-      class="lg:col-span-8"
-    >
-      <ExposureOverview :integration-ids="integrationIds" />
-    </InfoCard>
-
-    <!-- Vulnerabilities Summary (smaller card) -->
-    <InfoCard
-      title="Vulnerabilities Summary"
-      description="Current threats affecting your projects"
-      icon="solar:bug-bold"
-      variant="default"
-      class="lg:col-span-4"
-    >
-      <CurrentVulns :integration-ids="integrationIds" />
-    </InfoCard>
-
-    <!-- License Distribution -->
-    <InfoCard
-      title="Open Source Licenses"
-      description="License compliance across your dependencies"
-      icon="solar:document-text-bold"
-      variant="primary"
-      class="lg:col-span-6"
-    >
-      <LicenseDist :integration-ids="integrationIds" />
-    </InfoCard>
-
-    <!-- Vulnerability Impact Analysis -->
-    <InfoCard
-      title="Impact Analysis"
-      description="Risk assessment and severity insights"
-      icon="solar:target-bold"
-      variant="default"
-      class="lg:col-span-6"
-    >
-      <VulnerabilityImpact :integration-ids="integrationIds" />
-    </InfoCard>
-
-    <!-- Tickets Summary -->
-    <InfoCard
-      title="Tickets"
-      description="Track vulnerability remediation progress"
-      icon="solar:ticket-bold"
-      variant="default"
-      class="lg:col-span-4"
-    >
-      <TicketsDashboardCard :integration-ids="integrationIds" />
-    </InfoCard>
-  </div>
-</template>
-
 <script setup lang="ts">
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shadcn/ui/card";
 
 import CurrentVulns from "../charts/CurrentVulns.vue";
 import ExposureOverview from "../charts/ExposureOverview.vue";
@@ -67,19 +13,64 @@ import LicenseDist from "../charts/LicenseDist.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
 
-/**
- * DashboardCharts - Simple chart grid layout
- *
- * Four main charts in a responsive grid:
- * - Exposure overview (large)
- * - Current vulnerabilities (small)
- * - License distribution
- * - Vulnerability impact
- */
-
-interface Props {
-  integrationIds: string[];
-}
-
-defineProps<Props>();
+// The project overview's charts and summaries, one card each.
+defineProps<{ integrationIds: string[] }>();
 </script>
+
+<template>
+  <div class="grid gap-6 lg:grid-cols-2">
+    <Card class="rounded-card shadow-card lg:col-span-2">
+      <CardHeader>
+        <CardTitle class="text-base">Vulnerability exposure</CardTitle>
+        <CardDescription>
+          Total severity of vulnerabilities across all your projects
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ExposureOverview :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <CardTitle class="text-base">Vulnerabilities summary</CardTitle>
+        <CardDescription
+          >Current threats affecting your projects</CardDescription
+        >
+      </CardHeader>
+      <CardContent>
+        <CurrentVulns :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <CardTitle class="text-base">Tickets</CardTitle>
+        <CardDescription
+          >Track vulnerability remediation progress</CardDescription
+        >
+      </CardHeader>
+      <CardContent>
+        <TicketsDashboardCard :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <CardTitle class="text-base">Open source licences</CardTitle>
+        <CardDescription>Licences across your dependencies</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <LicenseDist :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <CardTitle class="text-base">Impact analysis</CardTitle>
+        <CardDescription>
+          Mean impact of vulnerabilities on your projects
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <VulnerabilityImpact :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+  </div>
+</template>

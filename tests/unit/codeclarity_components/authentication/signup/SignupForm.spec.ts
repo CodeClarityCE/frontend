@@ -130,42 +130,39 @@ describe("SignupForm.vue", () => {
     it("displays the main heading", () => {
       const heading = wrapper.find("h1");
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toBe("Sign Up");
+      expect(heading.text()).toBe("Create your CodeClarity account");
     });
 
     it("renders the welcome description", () => {
       const text = wrapper.text();
-      expect(text).toContain("Welcome, please fill out the below information.");
+      expect(text).toContain("Welcome, please fill out the information below.");
     });
 
-    it("renders logo images", () => {
-      const images = wrapper.findAll("img");
-      expect(images.length).toBeGreaterThanOrEqual(2);
+    it("renders the logo with alternative text", () => {
+      expect(wrapper.find('img[alt="CodeClarity"]').exists()).toBe(true);
     });
 
     it("has a sign in link", () => {
-      const signInLink = wrapper.findComponent({ name: "RouterLink" });
-      expect(signInLink.exists()).toBe(true);
-      expect(signInLink.text()).toContain("Sign In");
+      expect(wrapper.find('a[href="login"]').text()).toBe("Sign in");
     });
   });
 
   describe("Form Structure", () => {
     it("renders the signup form", () => {
-      const form = wrapper.find(".signup-form");
+      const form = wrapper.find("form");
       expect(form.exists()).toBe(true);
     });
 
     it("renders form fields", () => {
       // Check for basic form structure instead of specific field count
-      const form = wrapper.find(".signup-form");
+      const form = wrapper.find("form");
       expect(form.exists()).toBe(true);
     });
 
     it("renders register button", () => {
       const button = wrapper.findComponent({ name: "Button" });
       expect(button.exists()).toBe(true);
-      expect(button.text()).toBe("Register");
+      expect(button.text()).toBe("Create account");
     });
   });
 
@@ -175,7 +172,7 @@ describe("SignupForm.vue", () => {
       expect(routerLinks.length).toBeGreaterThanOrEqual(1);
 
       const signInLink = routerLinks.find((link: any) =>
-        link.text().includes("Sign In"),
+        link.text().includes("Sign in"),
       );
       expect(signInLink).toBeTruthy();
     });
@@ -190,7 +187,7 @@ describe("SignupForm.vue", () => {
 
   describe("Form Behavior", () => {
     it("shows form by default (not loading)", () => {
-      const form = wrapper.find(".signup-form");
+      const form = wrapper.find("form");
       expect(form.exists()).toBe(true);
 
       const text = wrapper.text();
@@ -204,25 +201,8 @@ describe("SignupForm.vue", () => {
 
     it("includes form description structure", () => {
       // Check for presence of form description elements in template
-      const form = wrapper.find(".signup-form");
+      const form = wrapper.find("form");
       expect(form.exists()).toBe(true);
-    });
-  });
-
-  describe("Layout and Styling", () => {
-    it("applies correct container classes", () => {
-      const container = wrapper.find(".mx-auto");
-      expect(container.exists()).toBe(true);
-    });
-
-    it("centers the content appropriately", () => {
-      const centerSection = wrapper.find(".text-center");
-      expect(centerSection.exists()).toBe(true);
-    });
-
-    it("groups name fields in a flex row", () => {
-      const flexRow = wrapper.find(".flex-row");
-      expect(flexRow.exists()).toBe(true);
     });
   });
 
@@ -230,8 +210,6 @@ describe("SignupForm.vue", () => {
     it("uses semantic heading structure", () => {
       const heading = wrapper.find("h1");
       expect(heading.exists()).toBe(true);
-      expect(heading.classes()).toContain("text-2xl");
-      expect(heading.classes()).toContain("font-semibold");
     });
 
     it("uses proper form structure", () => {

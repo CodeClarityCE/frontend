@@ -14,6 +14,7 @@ export enum AnalysisStatus {
   SUCCESS = "success",
   UPDATING_DB = "updating_db",
   ONGOING = "ongoing",
+  SKIPPED = "skipped",
 }
 
 export class Analysis {
@@ -40,6 +41,9 @@ export class Analysis {
 
   @IsEnum(AnalysisStatus)
   status!: AnalysisStatus;
+
+  // Why the analysis failed, when it did
+  failure_reason?: string | null;
 
   @IsDefined()
   steps!: AnalysisStage[][];
@@ -91,7 +95,14 @@ export class Stage extends StageBase {
 
 export class AnalysisStage extends StageBase {
   Status!: AnalysisStatus;
-  Result: string | undefined;
+  Result: Record<string, unknown> | string | undefined;
   Started_on?: Date;
   Ended_on?: Date;
+}
+
+// Why the dispatcher skipped this plugin, or an empty string
+export function stageSkipReason(stage: AnalysisStage): string {
+  const result = stage.Result;
+  if (typeof result !== "object" || result === null) return "";
+  return typeof result.skip_reason === "string" ? result.skip_reason : "";
 }

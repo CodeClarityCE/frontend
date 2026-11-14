@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+import { CircleCheck, CircleX, Copy, Info, LoaderCircle, X } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn/ui/dialog";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -94,9 +103,14 @@ const canSave = computed(() => {
   return listId.value.length > 0;
 });
 
+// Lets the closing animation finish before the parent unmounts the dialog.
 function close(): void {
   isOpen.value = false;
   setTimeout(() => emit("close"), 300);
+}
+
+function onOpenChange(open: boolean): void {
+  if (!open) close();
 }
 
 // OAuth redirect URI
@@ -229,7 +243,7 @@ async function fetchSpaces(): Promise<void> {
     });
     spaces.value = response.data;
   } catch {
-    console.error("Failed to fetch spaces");
+    testResult.value = { success: false, message: "Failed to load the spaces" };
   } finally {
     isLoadingSpaces.value = false;
   }
@@ -259,7 +273,10 @@ async function fetchFolders(): Promise<void> {
     // Also fetch folderless lists directly from space
     await fetchListsFromSpace();
   } catch {
-    console.error("Failed to fetch folders");
+    testResult.value = {
+      success: false,
+      message: "Failed to load the folders",
+    };
   } finally {
     isLoadingFolders.value = false;
   }
@@ -289,7 +306,7 @@ async function fetchLists(): Promise<void> {
     });
     lists.value = response.data;
   } catch {
-    console.error("Failed to fetch lists");
+    testResult.value = { success: false, message: "Failed to load the lists" };
   } finally {
     isLoadingLists.value = false;
   }
@@ -529,8 +546,7 @@ async function saveConfiguration(): Promise<void> {
       handleOtherErrors: true,
     });
     void emit("configured");
-  } catch (error) {
-    console.error("Failed to save configuration:", error);
+  } catch {
     testResult.value = {
       success: false,
       message: "Failed to save configuration",
@@ -671,676 +687,624 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
 </script>
 
 <template>
-  <Teleport to="body">
-    <!-- Backdrop -->
-    <div
-      class="fixed inset-0 bg-black/50 z-40 transition-opacity"
-      :class="isOpen ? 'opacity-100' : 'opacity-0'"
-      @click="close"
-    />
+  <Dialog :open="isOpen" @update:open="onOpenChange">
+    <DialogContent class="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <Icon icon="simple-icons:clickup" aria-hidden="true" class="size-5" />
+          {{ existingConfig ? "Configure" : "Connect" }} ClickUp
+        </DialogTitle>
+        <DialogDescription>Sync tickets to ClickUp tasks.</DialogDescription>
+      </DialogHeader>
 
-    <!-- Modal -->
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden transition-all"
-        :class="isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'"
-        @click.stop
-      >
-        <!-- Header -->
-        <div
-          class="flex items-center justify-between px-6 py-4 border-b border-gray-200"
-        >
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center"
-            >
-              <Icon
-                icon="simple-icons:clickup"
-                class="w-5 h-5 text-purple-600"
+      <Tabs v-model="authMethod" class="w-full">
+        <TabsList class="grid w-full grid-cols-2">
+          <TabsTrigger value="API_KEY">API Key</TabsTrigger>
+          <TabsTrigger value="OAUTH">OAuth</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="API_KEY" class="space-y-4 mt-4">
+          <!-- API Key Input -->
+          <div class="space-y-2">
+            <Label for="api-key">ClickUp API key</Label>
+            <div class="flex gap-2">
+              <Input
+                id="api-key"
+                v-model="apiKey"
+                type="password"
+                placeholder="pk_xxxxxxxx"
+                class="flex-1"
               />
+              <Button
+                variant="outline"
+                :disabled="!canFetchWorkspaces || isLoadingWorkspaces"
+                @click="fetchWorkspaces"
+              >
+                <LoaderCircle
+                  v-if="isLoadingWorkspaces"
+                  aria-hidden="true"
+                  class="animate-spin motion-reduce:animate-none"
+                />
+                Verify
+              </Button>
             </div>
-            <div>
-              <h2 class="text-lg font-semibold text-gray-900">
-                {{ existingConfig ? "Configure" : "Connect" }} ClickUp
-              </h2>
-              <p class="text-sm text-gray-500">Sync tickets to ClickUp tasks</p>
+            <p class="text-xs text-muted-foreground">
+              Get your API key from
+              <a
+                href="https://app.clickup.com/settings/apps"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-brand-subtle-foreground underline underline-offset-4"
+              >
+                ClickUp Settings &rarr; Apps
+              </a>
+            </p>
+          </div>
+
+          <!-- Test Result -->
+          <div
+            v-if="testResult"
+            role="status"
+            class="rounded-control p-3 text-sm"
+            :class="{
+              'bg-success-subtle text-success': testResult.success,
+              'border border-danger text-danger': !testResult.success,
+            }"
+          >
+            <div class="flex items-center gap-2">
+              <CircleCheck
+                v-if="testResult.success"
+                aria-hidden="true"
+                class="size-4"
+              />
+              <CircleX v-else aria-hidden="true" class="size-4" />
+              {{ testResult.message }}
             </div>
           </div>
-          <button
-            class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-            @click="close"
-          >
-            <Icon icon="solar:close-circle-linear" class="w-6 h-6" />
-          </button>
-        </div>
 
-        <!-- Content -->
-        <div class="px-6 py-6 overflow-y-auto max-h-[60vh]">
-          <Tabs v-model="authMethod" class="w-full">
-            <TabsList class="grid w-full grid-cols-2">
-              <TabsTrigger value="API_KEY">API Key</TabsTrigger>
-              <TabsTrigger value="OAUTH">OAuth</TabsTrigger>
-            </TabsList>
+          <!-- Workspace Selector -->
+          <div v-if="workspaces.length > 0" class="space-y-2">
+            <Label for="workspace">Workspace</Label>
+            <Select v-model="workspaceId">
+              <SelectTrigger id="workspace">
+                <SelectValue placeholder="Select workspace" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="workspace in workspaces"
+                  :key="workspace.id"
+                  :value="workspace.id"
+                >
+                  {{ workspace.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <TabsContent value="API_KEY" class="space-y-4 mt-4">
-              <!-- API Key Input -->
-              <div class="space-y-2">
-                <Label for="api-key">ClickUp API Key</Label>
-                <div class="flex gap-2">
-                  <Input
-                    id="api-key"
-                    v-model="apiKey"
-                    type="password"
-                    placeholder="pk_xxxxxxxx"
-                    class="flex-1"
-                  />
-                  <Button
-                    variant="outline"
-                    :disabled="!canFetchWorkspaces || isLoadingWorkspaces"
-                    @click="fetchWorkspaces"
-                  >
-                    <Icon
-                      v-if="isLoadingWorkspaces"
-                      icon="solar:spinner-outline"
-                      class="w-4 h-4 mr-1 animate-spin"
-                    />
-                    Verify
-                  </Button>
-                </div>
-                <p class="text-xs text-gray-500">
-                  Get your API key from
+          <!-- Space Selector -->
+          <div v-if="spaces.length > 0" class="space-y-2">
+            <Label for="space">Space</Label>
+            <Select v-model="spaceId" :disabled="isLoadingSpaces">
+              <SelectTrigger id="space">
+                <SelectValue placeholder="Select space" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="space in spaces"
+                  :key="space.id"
+                  :value="space.id"
+                >
+                  {{ space.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- Folder Selector -->
+          <div v-if="folders.length > 0" class="space-y-2">
+            <Label for="folder">Folder (optional)</Label>
+            <Select v-model="folderId" :disabled="isLoadingFolders">
+              <SelectTrigger id="folder">
+                <SelectValue placeholder="Select folder" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="folder in folders"
+                  :key="folder.id"
+                  :value="folder.id"
+                >
+                  {{ folder.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- List Selector -->
+          <div v-if="lists.length > 0" class="space-y-2">
+            <Label for="list">List</Label>
+            <Select v-model="listId" :disabled="isLoadingLists">
+              <SelectTrigger id="list">
+                <SelectValue placeholder="Select list" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="list in lists"
+                  :key="list.id"
+                  :value="list.id"
+                >
+                  {{ list.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p class="text-xs text-muted-foreground">
+              All synced tickets will be created as tasks in this list
+            </p>
+          </div>
+
+          <!-- Sync Options -->
+          <div v-if="listId" class="space-y-3 border-t pt-4">
+            <h4 class="text-sm font-semibold text-foreground-strong">
+              Sync Options
+            </h4>
+
+            <div class="flex items-center space-x-2">
+              <Checkbox id="auto-sync" v-model="autoSyncOnCreate" />
+              <Label for="auto-sync" class="text-sm font-normal cursor-pointer">
+                Auto-sync new tickets to ClickUp
+              </Label>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <Checkbox id="sync-status" v-model="syncStatusChanges" />
+              <Label
+                for="sync-status"
+                class="text-sm font-normal cursor-pointer"
+              >
+                Sync status changes to ClickUp
+              </Label>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="OAUTH" class="space-y-4 mt-4">
+          <!-- OAuth Connection Status -->
+          <div v-if="!oauthConnected" class="space-y-4">
+            <!-- Setup Instructions -->
+            <div class="rounded-card border bg-muted p-4">
+              <h4 class="mb-2 text-sm font-semibold text-foreground-strong">
+                <Info aria-hidden="true" class="mr-1 inline size-4" />
+                Setup Instructions
+              </h4>
+              <ol class="ml-4 list-decimal space-y-1 text-xs text-foreground">
+                <li>
+                  Go to
                   <a
                     href="https://app.clickup.com/settings/apps"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-purple-600 hover:underline"
+                    class="font-medium underline underline-offset-4"
                   >
-                    ClickUp Settings &rarr; Apps
+                    ClickUp API Settings
                   </a>
-                </p>
-              </div>
-
-              <!-- Test Result -->
-              <div
-                v-if="testResult"
-                class="p-3 rounded-lg text-sm"
-                :class="{
-                  'bg-green-50 text-green-700': testResult.success,
-                  'bg-red-50 text-red-700': !testResult.success,
-                }"
-              >
-                <div class="flex items-center gap-2">
-                  <Icon
-                    v-if="testResult.success"
-                    icon="solar:check-circle-bold"
-                    class="w-4 h-4"
-                  />
-                  <Icon v-else icon="solar:close-circle-bold" class="w-4 h-4" />
-                  {{ testResult.message }}
-                </div>
-              </div>
-
-              <!-- Workspace Selector -->
-              <div v-if="workspaces.length > 0" class="space-y-2">
-                <Label for="workspace">Workspace</Label>
-                <Select v-model="workspaceId">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select workspace" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="workspace in workspaces"
-                      :key="workspace.id"
-                      :value="workspace.id"
-                    >
-                      {{ workspace.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <!-- Space Selector -->
-              <div v-if="spaces.length > 0" class="space-y-2">
-                <Label for="space">Space</Label>
-                <Select v-model="spaceId" :disabled="isLoadingSpaces">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select space" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="space in spaces"
-                      :key="space.id"
-                      :value="space.id"
-                    >
-                      {{ space.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <!-- Folder Selector -->
-              <div v-if="folders.length > 0" class="space-y-2">
-                <Label for="folder">Folder (optional)</Label>
-                <Select v-model="folderId" :disabled="isLoadingFolders">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select folder" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="folder in folders"
-                      :key="folder.id"
-                      :value="folder.id"
-                    >
-                      {{ folder.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <!-- List Selector -->
-              <div v-if="lists.length > 0" class="space-y-2">
-                <Label for="list">List</Label>
-                <Select v-model="listId" :disabled="isLoadingLists">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="list in lists"
-                      :key="list.id"
-                      :value="list.id"
-                    >
-                      {{ list.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <p class="text-xs text-gray-500">
-                  All synced tickets will be created as tasks in this list
-                </p>
-              </div>
-
-              <!-- Sync Options -->
-              <div
-                v-if="listId"
-                class="space-y-3 pt-4 border-t border-gray-200"
-              >
-                <h4 class="text-sm font-medium text-gray-700">Sync Options</h4>
-
-                <div class="flex items-center space-x-2">
-                  <Checkbox id="auto-sync" v-model:checked="autoSyncOnCreate" />
-                  <Label
-                    for="auto-sync"
-                    class="text-sm font-normal cursor-pointer"
-                  >
-                    Auto-sync new tickets to ClickUp
-                  </Label>
-                </div>
-
-                <div class="flex items-center space-x-2">
-                  <Checkbox
-                    id="sync-status"
-                    v-model:checked="syncStatusChanges"
-                  />
-                  <Label
-                    for="sync-status"
-                    class="text-sm font-normal cursor-pointer"
-                  >
-                    Sync status changes to ClickUp
-                  </Label>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="OAUTH" class="space-y-4 mt-4">
-              <!-- OAuth Connection Status -->
-              <div v-if="!oauthConnected" class="space-y-4">
-                <!-- Setup Instructions -->
-                <div class="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                  <h4 class="text-sm font-medium text-blue-800 mb-2">
-                    <Icon
-                      icon="solar:info-circle-linear"
-                      class="w-4 h-4 inline mr-1"
-                    />
-                    Setup Instructions
-                  </h4>
-                  <ol class="text-xs text-blue-700 space-y-1 list-decimal ml-4">
-                    <li>
-                      Go to
-                      <a
-                        href="https://app.clickup.com/settings/apps"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="underline font-medium"
-                      >
-                        ClickUp API Settings
-                      </a>
-                    </li>
-                    <li>Click "Create an App"</li>
-                    <li>Enter App Name: <strong>CodeClarity</strong></li>
-                    <li>Copy the Redirect URL below and paste it:</li>
-                  </ol>
-                  <div class="mt-2 flex items-center gap-2">
-                    <code
-                      class="flex-1 px-2 py-1 bg-white rounded border border-blue-300 text-xs text-blue-900 break-all"
-                    >
-                      {{ getOAuthRedirectUri() }}
-                    </code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      class="shrink-0 h-7 px-2"
-                      @click="copyRedirectUri"
-                    >
-                      <Icon icon="solar:copy-linear" class="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <!-- Connect Button -->
-                <div class="text-center py-4">
-                  <Icon
-                    icon="simple-icons:clickup"
-                    class="w-10 h-10 text-purple-400 mx-auto mb-3"
-                  />
-                  <p class="text-gray-600 mb-4 text-sm">
-                    Once you've created the app in ClickUp, click below to
-                    connect.
-                  </p>
-                  <Button
-                    :disabled="isConnectingOAuth"
-                    class="bg-purple-600 hover:bg-purple-700"
-                    @click="startOAuthFlow"
-                  >
-                    <Icon
-                      v-if="isConnectingOAuth"
-                      icon="solar:spinner-outline"
-                      class="w-4 h-4 mr-2 animate-spin"
-                    />
-                    <Icon
-                      v-else
-                      icon="solar:link-linear"
-                      class="w-4 h-4 mr-2"
-                    />
-                    Connect to ClickUp
-                  </Button>
-                </div>
-              </div>
-
-              <!-- OAuth Connected - Show hierarchy selectors -->
-              <template v-else>
-                <div
-                  class="p-3 rounded-lg bg-green-50 text-green-700 text-sm flex items-center gap-2"
+                </li>
+                <li>Click "Create an App"</li>
+                <li>Enter App Name: <strong>CodeClarity</strong></li>
+                <li>Copy the Redirect URL below and paste it:</li>
+              </ol>
+              <div class="mt-2 flex items-center gap-2">
+                <code
+                  class="flex-1 break-all rounded-control border bg-card px-2 py-1 text-xs text-foreground-strong"
                 >
-                  <Icon icon="solar:check-circle-bold" class="w-4 h-4" />
-                  Connected to ClickUp via OAuth
-                </div>
-
-                <!-- Workspace Selector -->
-                <div v-if="workspaces.length > 0" class="space-y-2">
-                  <Label for="workspace-oauth">Workspace</Label>
-                  <Select v-model="workspaceId">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select workspace" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem
-                        v-for="workspace in workspaces"
-                        :key="workspace.id"
-                        :value="workspace.id"
-                      >
-                        {{ workspace.name }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <!-- Space Selector / Create -->
-                <div v-if="workspaceId && !isLoadingSpaces" class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <Label for="space-oauth">Space</Label>
-                    <button
-                      v-if="!showCreateSpace"
-                      class="text-xs text-purple-600 hover:text-purple-700 font-medium"
-                      @click="showCreateSpace = true"
-                    >
-                      + Create new
-                    </button>
-                  </div>
-
-                  <!-- Create Space Input -->
-                  <div v-if="showCreateSpace" class="flex gap-2">
-                    <Input
-                      v-model="newSpaceName"
-                      placeholder="Enter space name"
-                      class="flex-1"
-                      @keyup.enter="createSpace"
-                    />
-                    <Button
-                      size="sm"
-                      :disabled="!newSpaceName.trim() || isCreatingSpace"
-                      @click="createSpace"
-                    >
-                      <Icon
-                        v-if="isCreatingSpace"
-                        icon="solar:spinner-outline"
-                        class="w-4 h-4 animate-spin"
-                      />
-                      <template v-else>Create</template>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      @click="
-                        showCreateSpace = false;
-                        newSpaceName = '';
-                      "
-                    >
-                      <Icon icon="solar:close-linear" class="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <!-- Space Dropdown -->
-                  <Select v-else-if="spaces.length > 0" v-model="spaceId">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select space" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem
-                        v-for="space in spaces"
-                        :key="space.id"
-                        :value="space.id"
-                      >
-                        {{ space.name }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <!-- Empty state -->
-                  <div
-                    v-else-if="!showCreateSpace"
-                    class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg"
-                  >
-                    No spaces found. Click "Create new" to add one.
-                  </div>
-                </div>
-
-                <!-- Loading Spaces -->
-                <div
-                  v-else-if="workspaceId && isLoadingSpaces"
-                  class="flex items-center gap-2 text-sm text-gray-500"
+                  {{ getOAuthRedirectUri() }}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="shrink-0 h-7 px-2"
+                  aria-label="Copy the redirect URL"
+                  @click="copyRedirectUri"
                 >
-                  <Icon
-                    icon="solar:spinner-outline"
-                    class="w-4 h-4 animate-spin"
-                  />
-                  Loading spaces...
-                </div>
-
-                <!-- Folder Selector / Create -->
-                <div v-if="spaceId && !isLoadingFolders" class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <Label for="folder-oauth">Folder (optional)</Label>
-                    <button
-                      v-if="!showCreateFolder"
-                      class="text-xs text-purple-600 hover:text-purple-700 font-medium"
-                      @click="showCreateFolder = true"
-                    >
-                      + Create new
-                    </button>
-                  </div>
-
-                  <!-- Create Folder Input -->
-                  <div v-if="showCreateFolder" class="flex gap-2">
-                    <Input
-                      v-model="newFolderName"
-                      placeholder="Enter folder name"
-                      class="flex-1"
-                      @keyup.enter="createFolder"
-                    />
-                    <Button
-                      size="sm"
-                      :disabled="!newFolderName.trim() || isCreatingFolder"
-                      @click="createFolder"
-                    >
-                      <Icon
-                        v-if="isCreatingFolder"
-                        icon="solar:spinner-outline"
-                        class="w-4 h-4 animate-spin"
-                      />
-                      <template v-else>Create</template>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      @click="
-                        showCreateFolder = false;
-                        newFolderName = '';
-                      "
-                    >
-                      <Icon icon="solar:close-linear" class="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <!-- Folder Dropdown -->
-                  <Select v-else-if="folders.length > 0" v-model="folderId">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select folder (or skip)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem
-                        v-for="folder in folders"
-                        :key="folder.id"
-                        :value="folder.id"
-                      >
-                        {{ folder.name }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <!-- Empty state with option to skip -->
-                  <p
-                    v-else-if="!showCreateFolder"
-                    class="text-xs text-gray-500"
-                  >
-                    No folders found. Create one or skip to create a list
-                    directly in the space.
-                  </p>
-                </div>
-
-                <!-- Loading Folders -->
-                <div
-                  v-else-if="spaceId && isLoadingFolders"
-                  class="flex items-center gap-2 text-sm text-gray-500"
-                >
-                  <Icon
-                    icon="solar:spinner-outline"
-                    class="w-4 h-4 animate-spin"
-                  />
-                  Loading folders...
-                </div>
-
-                <!-- List Selector / Create -->
-                <div
-                  v-if="
-                    (spaceId && !folderId && !isLoadingFolders) ||
-                    (folderId && !isLoadingLists)
-                  "
-                  class="space-y-2"
-                >
-                  <div class="flex items-center justify-between">
-                    <Label for="list-oauth">List</Label>
-                    <button
-                      v-if="!showCreateList"
-                      class="text-xs text-purple-600 hover:text-purple-700 font-medium"
-                      @click="showCreateList = true"
-                    >
-                      + Create new
-                    </button>
-                  </div>
-
-                  <!-- Create List Input -->
-                  <div v-if="showCreateList" class="flex gap-2">
-                    <Input
-                      v-model="newListName"
-                      placeholder="Enter list name"
-                      class="flex-1"
-                      @keyup.enter="createList"
-                    />
-                    <Button
-                      size="sm"
-                      :disabled="!newListName.trim() || isCreatingList"
-                      @click="createList"
-                    >
-                      <Icon
-                        v-if="isCreatingList"
-                        icon="solar:spinner-outline"
-                        class="w-4 h-4 animate-spin"
-                      />
-                      <template v-else>Create</template>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      @click="
-                        showCreateList = false;
-                        newListName = '';
-                      "
-                    >
-                      <Icon icon="solar:close-linear" class="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <!-- List Dropdown -->
-                  <Select v-else-if="lists.length > 0" v-model="listId">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select list" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem
-                        v-for="list in lists"
-                        :key="list.id"
-                        :value="list.id"
-                      >
-                        {{ list.name }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <!-- Empty state -->
-                  <div
-                    v-else-if="!showCreateList"
-                    class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg"
-                  >
-                    No lists found. Click "Create new" to add one.
-                  </div>
-
-                  <p class="text-xs text-gray-500">
-                    All synced tickets will be created as tasks in this list
-                  </p>
-                </div>
-
-                <!-- Loading Lists -->
-                <div
-                  v-else-if="folderId && isLoadingLists"
-                  class="flex items-center gap-2 text-sm text-gray-500"
-                >
-                  <Icon
-                    icon="solar:spinner-outline"
-                    class="w-4 h-4 animate-spin"
-                  />
-                  Loading lists...
-                </div>
-
-                <!-- Sync Options -->
-                <div
-                  v-if="listId"
-                  class="space-y-3 pt-4 border-t border-gray-200"
-                >
-                  <h4 class="text-sm font-medium text-gray-700">
-                    Sync Options
-                  </h4>
-
-                  <div class="flex items-center space-x-2">
-                    <Checkbox
-                      id="auto-sync-oauth"
-                      v-model:checked="autoSyncOnCreate"
-                    />
-                    <Label
-                      for="auto-sync-oauth"
-                      class="text-sm font-normal cursor-pointer"
-                    >
-                      Auto-sync new tickets to ClickUp
-                    </Label>
-                  </div>
-
-                  <div class="flex items-center space-x-2">
-                    <Checkbox
-                      id="sync-status-oauth"
-                      v-model:checked="syncStatusChanges"
-                    />
-                    <Label
-                      for="sync-status-oauth"
-                      class="text-sm font-normal cursor-pointer"
-                    >
-                      Sync status changes to ClickUp
-                    </Label>
-                  </div>
-                </div>
-              </template>
-
-              <!-- Test Result for OAuth -->
-              <div
-                v-if="testResult && authMethod === 'OAUTH'"
-                class="p-3 rounded-lg text-sm"
-                :class="{
-                  'bg-green-50 text-green-700': testResult.success,
-                  'bg-red-50 text-red-700': !testResult.success,
-                }"
-              >
-                <div class="flex items-center gap-2">
-                  <Icon
-                    v-if="testResult.success"
-                    icon="solar:check-circle-bold"
-                    class="w-4 h-4"
-                  />
-                  <Icon v-else icon="solar:close-circle-bold" class="w-4 h-4" />
-                  {{ testResult.message }}
-                </div>
+                  <Copy aria-hidden="true" class="size-4" />
+                </Button>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
 
-        <!-- Footer -->
-        <div
-          class="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50"
-        >
-          <Button variant="outline" @click="close">Cancel</Button>
-          <div class="flex items-center gap-2">
-            <Button
-              v-if="existingConfig"
-              variant="outline"
-              :disabled="isTesting"
-              @click="testConnection"
-            >
+            <!-- Connect Button -->
+            <div class="text-center py-4">
               <Icon
-                v-if="isTesting"
-                icon="solar:spinner-outline"
-                class="w-4 h-4 mr-1 animate-spin"
+                icon="simple-icons:clickup"
+                aria-hidden="true"
+                class="mx-auto mb-3 size-10 text-muted-foreground"
               />
-              Test Connection
-            </Button>
-            <Button :disabled="!canSave || isSaving" @click="saveConfiguration">
-              <Icon
-                v-if="isSaving"
-                icon="solar:spinner-outline"
-                class="w-4 h-4 mr-2 animate-spin"
-              />
-              {{ existingConfig ? "Save Changes" : "Connect" }}
-            </Button>
+              <p class="mb-4 text-sm text-muted-foreground">
+                Once you've created the app in ClickUp, click below to connect.
+              </p>
+              <Button :disabled="isConnectingOAuth" @click="startOAuthFlow">
+                <LoaderCircle
+                  v-if="isConnectingOAuth"
+                  aria-hidden="true"
+                  class="animate-spin motion-reduce:animate-none"
+                />
+
+                Connect to ClickUp
+              </Button>
+            </div>
           </div>
+
+          <!-- OAuth Connected - Show hierarchy selectors -->
+          <template v-else>
+            <div
+              class="flex items-center gap-2 rounded-control bg-success-subtle p-3 text-sm text-success"
+            >
+              <CircleCheck aria-hidden="true" class="size-4" />
+              Connected to ClickUp via OAuth
+            </div>
+
+            <!-- Workspace Selector -->
+            <div v-if="workspaces.length > 0" class="space-y-2">
+              <Label for="workspace-oauth">Workspace</Label>
+              <Select v-model="workspaceId">
+                <SelectTrigger id="workspace-oauth">
+                  <SelectValue placeholder="Select workspace" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="workspace in workspaces"
+                    :key="workspace.id"
+                    :value="workspace.id"
+                  >
+                    {{ workspace.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <!-- Space Selector / Create -->
+            <div v-if="workspaceId && !isLoadingSpaces" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <Label for="space-oauth">Space</Label>
+                <button
+                  v-if="!showCreateSpace"
+                  type="button"
+                  class="rounded-sm text-xs font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  @click="showCreateSpace = true"
+                >
+                  + Create new
+                </button>
+              </div>
+
+              <!-- Create Space Input -->
+              <div v-if="showCreateSpace" class="flex gap-2">
+                <Input
+                  v-model="newSpaceName"
+                  placeholder="Enter space name"
+                  aria-label="New space name"
+                  class="flex-1"
+                  @keyup.enter="createSpace"
+                />
+                <Button
+                  size="sm"
+                  :disabled="!newSpaceName.trim() || isCreatingSpace"
+                  @click="createSpace"
+                >
+                  <LoaderCircle
+                    v-if="isCreatingSpace"
+                    aria-hidden="true"
+                    class="animate-spin motion-reduce:animate-none"
+                  />
+                  <template v-else>Create</template>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label="Cancel"
+                  @click="
+                    showCreateSpace = false;
+                    newSpaceName = '';
+                  "
+                >
+                  <X aria-hidden="true" class="size-4" />
+                </Button>
+              </div>
+
+              <!-- Space Dropdown -->
+              <Select v-else-if="spaces.length > 0" v-model="spaceId">
+                <SelectTrigger id="space-oauth">
+                  <SelectValue placeholder="Select space" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="space in spaces"
+                    :key="space.id"
+                    :value="space.id"
+                  >
+                    {{ space.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <!-- Empty state -->
+              <div
+                v-else-if="!showCreateSpace"
+                class="rounded-control bg-muted p-3 text-sm text-muted-foreground"
+              >
+                No spaces found. Click "Create new" to add one.
+              </div>
+            </div>
+
+            <!-- Loading Spaces -->
+            <div
+              v-else-if="workspaceId && isLoadingSpaces"
+              role="status"
+              class="flex items-center gap-2 text-sm text-muted-foreground"
+            >
+              <LoaderCircle
+                aria-hidden="true"
+                class="size-4 animate-spin motion-reduce:animate-none"
+              />
+              Loading spaces...
+            </div>
+
+            <!-- Folder Selector / Create -->
+            <div v-if="spaceId && !isLoadingFolders" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <Label for="folder-oauth">Folder (optional)</Label>
+                <button
+                  v-if="!showCreateFolder"
+                  type="button"
+                  class="rounded-sm text-xs font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  @click="showCreateFolder = true"
+                >
+                  + Create new
+                </button>
+              </div>
+
+              <!-- Create Folder Input -->
+              <div v-if="showCreateFolder" class="flex gap-2">
+                <Input
+                  v-model="newFolderName"
+                  placeholder="Enter folder name"
+                  aria-label="New folder name"
+                  class="flex-1"
+                  @keyup.enter="createFolder"
+                />
+                <Button
+                  size="sm"
+                  :disabled="!newFolderName.trim() || isCreatingFolder"
+                  @click="createFolder"
+                >
+                  <LoaderCircle
+                    v-if="isCreatingFolder"
+                    aria-hidden="true"
+                    class="animate-spin motion-reduce:animate-none"
+                  />
+                  <template v-else>Create</template>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label="Cancel"
+                  @click="
+                    showCreateFolder = false;
+                    newFolderName = '';
+                  "
+                >
+                  <X aria-hidden="true" class="size-4" />
+                </Button>
+              </div>
+
+              <!-- Folder Dropdown -->
+              <Select v-else-if="folders.length > 0" v-model="folderId">
+                <SelectTrigger id="folder-oauth">
+                  <SelectValue placeholder="Select folder (or skip)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="folder in folders"
+                    :key="folder.id"
+                    :value="folder.id"
+                  >
+                    {{ folder.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <!-- Empty state with option to skip -->
+              <p
+                v-else-if="!showCreateFolder"
+                class="text-xs text-muted-foreground"
+              >
+                No folders found. Create one or skip to create a list directly
+                in the space.
+              </p>
+            </div>
+
+            <!-- Loading Folders -->
+            <div
+              v-else-if="spaceId && isLoadingFolders"
+              role="status"
+              class="flex items-center gap-2 text-sm text-muted-foreground"
+            >
+              <LoaderCircle
+                aria-hidden="true"
+                class="size-4 animate-spin motion-reduce:animate-none"
+              />
+              Loading folders...
+            </div>
+
+            <!-- List Selector / Create -->
+            <div
+              v-if="
+                (spaceId && !folderId && !isLoadingFolders) ||
+                (folderId && !isLoadingLists)
+              "
+              class="space-y-2"
+            >
+              <div class="flex items-center justify-between">
+                <Label for="list-oauth">List</Label>
+                <button
+                  v-if="!showCreateList"
+                  type="button"
+                  class="rounded-sm text-xs font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  @click="showCreateList = true"
+                >
+                  + Create new
+                </button>
+              </div>
+
+              <!-- Create List Input -->
+              <div v-if="showCreateList" class="flex gap-2">
+                <Input
+                  v-model="newListName"
+                  placeholder="Enter list name"
+                  aria-label="New list name"
+                  class="flex-1"
+                  @keyup.enter="createList"
+                />
+                <Button
+                  size="sm"
+                  :disabled="!newListName.trim() || isCreatingList"
+                  @click="createList"
+                >
+                  <LoaderCircle
+                    v-if="isCreatingList"
+                    aria-hidden="true"
+                    class="animate-spin motion-reduce:animate-none"
+                  />
+                  <template v-else>Create</template>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label="Cancel"
+                  @click="
+                    showCreateList = false;
+                    newListName = '';
+                  "
+                >
+                  <X aria-hidden="true" class="size-4" />
+                </Button>
+              </div>
+
+              <!-- List Dropdown -->
+              <Select v-else-if="lists.length > 0" v-model="listId">
+                <SelectTrigger id="list-oauth">
+                  <SelectValue placeholder="Select list" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="list in lists"
+                    :key="list.id"
+                    :value="list.id"
+                  >
+                    {{ list.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <!-- Empty state -->
+              <div
+                v-else-if="!showCreateList"
+                class="rounded-control bg-muted p-3 text-sm text-muted-foreground"
+              >
+                No lists found. Click "Create new" to add one.
+              </div>
+
+              <p class="text-xs text-muted-foreground">
+                All synced tickets will be created as tasks in this list
+              </p>
+            </div>
+
+            <!-- Loading Lists -->
+            <div
+              v-else-if="folderId && isLoadingLists"
+              role="status"
+              class="flex items-center gap-2 text-sm text-muted-foreground"
+            >
+              <LoaderCircle
+                aria-hidden="true"
+                class="size-4 animate-spin motion-reduce:animate-none"
+              />
+              Loading lists...
+            </div>
+
+            <!-- Sync Options -->
+            <div v-if="listId" class="space-y-3 border-t pt-4">
+              <h4 class="text-sm font-semibold text-foreground-strong">
+                Sync Options
+              </h4>
+
+              <div class="flex items-center space-x-2">
+                <Checkbox id="auto-sync-oauth" v-model="autoSyncOnCreate" />
+                <Label
+                  for="auto-sync-oauth"
+                  class="text-sm font-normal cursor-pointer"
+                >
+                  Auto-sync new tickets to ClickUp
+                </Label>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <Checkbox id="sync-status-oauth" v-model="syncStatusChanges" />
+                <Label
+                  for="sync-status-oauth"
+                  class="text-sm font-normal cursor-pointer"
+                >
+                  Sync status changes to ClickUp
+                </Label>
+              </div>
+            </div>
+          </template>
+
+          <!-- Test Result for OAuth -->
+          <div
+            v-if="testResult && authMethod === 'OAUTH'"
+            role="status"
+            class="rounded-control p-3 text-sm"
+            :class="{
+              'bg-success-subtle text-success': testResult.success,
+              'border border-danger text-danger': !testResult.success,
+            }"
+          >
+            <div class="flex items-center gap-2">
+              <CircleCheck
+                v-if="testResult.success"
+                aria-hidden="true"
+                class="size-4"
+              />
+              <CircleX v-else aria-hidden="true" class="size-4" />
+              {{ testResult.message }}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <DialogFooter class="sm:justify-between">
+        <Button variant="outline" @click="close">Cancel</Button>
+        <div class="flex items-center gap-2">
+          <Button
+            v-if="existingConfig"
+            variant="outline"
+            :disabled="isTesting"
+            @click="testConnection"
+          >
+            <LoaderCircle
+              v-if="isTesting"
+              aria-hidden="true"
+              class="animate-spin motion-reduce:animate-none"
+            />
+            Test Connection
+          </Button>
+          <Button :disabled="!canSave || isSaving" @click="saveConfiguration">
+            <LoaderCircle
+              v-if="isSaving"
+              aria-hidden="true"
+              class="animate-spin motion-reduce:animate-none"
+            />
+            {{ existingConfig ? "Save Changes" : "Connect" }}
+          </Button>
         </div>
-      </div>
-    </div>
-  </Teleport>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

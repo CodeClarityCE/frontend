@@ -26,6 +26,9 @@ vi.mock("@/codeclarity_components/projects/project.repository", () => ({
 
 vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
 
+// The real helpers, so the shadcn Input's v-model works.
+vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+
 // The global setup mocks BaseRepository without its error classes; the
 // component needs a real BusinessLogicError for its instanceof checks.
 vi.mock("@/utils/api/BaseRepository", () => ({
@@ -38,15 +41,6 @@ vi.mock("@/utils/api/BaseRepository", () => ({
       this.error_code = error_code;
       this.error_message = error_message;
     }
-  },
-}));
-
-vi.mock("@/base_components", () => ({
-  InfoCard: {
-    name: "InfoCard",
-    props: ["title", "description", "icon", "variant"],
-    template:
-      '<div data-testid="info-card" :data-title="title"><slot name="actions" /><slot /></div>',
   },
 }));
 
@@ -285,7 +279,7 @@ describe("BaseImportComponent manual import", () => {
     });
 
     await wrapper
-      .find('input[placeholder="https://github.com/username/repository"]')
+      .find('input[aria-describedby="manual-repository-hint"]')
       .setValue("https://github.com/octo/octo.github.io.git");
     await wrapper.find("form").trigger("submit");
 

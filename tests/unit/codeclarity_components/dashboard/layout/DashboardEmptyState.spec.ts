@@ -1,68 +1,48 @@
 import { mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import DashboardEmptyState from "@/codeclarity_components/dashboard/layout/DashboardEmptyState.vue";
 
+function mountState(props: Record<string, unknown>) {
+  return mount(DashboardEmptyState, {
+    props: { orgId: "org-1", ...props },
+    global: {
+      stubs: {
+        RouterLink: { props: ["to"], template: "<a><slot /></a>" },
+      },
+    },
+  });
+}
+
 describe("DashboardEmptyState", () => {
-  const defaultProps = {
-    isError: false,
-    hasIntegrations: false,
-    hasProjects: false,
-    orgId: "test-org-id",
-  };
+  it("offers to connect a VCS or upload a project when there is nothing yet", () => {
+    const wrapper = mountState({});
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+    expect(wrapper.find("h3").text()).toBe("Get started");
+    expect(wrapper.text()).toContain("Connect a VCS");
+    expect(wrapper.text()).toContain("Upload a project");
   });
 
-  it("should render successfully", () => {
-    const wrapper = mount(DashboardEmptyState, {
-      props: defaultProps,
-    });
-    expect(wrapper.exists()).toBe(true);
+  it("asks for a first project once a VCS is connected", () => {
+    const wrapper = mountState({ hasIntegrations: true });
+
+    expect(wrapper.find("h3").text()).toBe("Import your first project");
   });
 
-  it("should render different content based on error state", () => {
-    const wrapper = mount(DashboardEmptyState, {
-      props: { ...defaultProps, isError: true },
-    });
-    expect(wrapper.exists()).toBe(true);
+  it("asks for a first analysis once there are projects", () => {
+    const wrapper = mountState({ hasIntegrations: true, hasProjects: true });
+
+    expect(wrapper.find("h3").text()).toBe("Run your first analysis");
+    expect(wrapper.text()).toContain("Go to Projects");
   });
 
-  it("should render different content based on integrations state", () => {
-    const wrapper = mount(DashboardEmptyState, {
-      props: { ...defaultProps, hasIntegrations: true },
-    });
-    expect(wrapper.exists()).toBe(true);
-  });
+  it("offers to try again after an error", async () => {
+    const wrapper = mountState({ isError: true });
 
-  it("should render different content based on projects state", () => {
-    const wrapper = mount(DashboardEmptyState, {
-      props: { ...defaultProps, hasProjects: true },
-    });
-    expect(wrapper.exists()).toBe(true);
-  });
-
-  it("should handle all combinations of state props", () => {
-    const testCases = [
-      { isError: true, hasIntegrations: false, hasProjects: false },
-      { isError: false, hasIntegrations: true, hasProjects: false },
-      { isError: false, hasIntegrations: false, hasProjects: true },
-      { isError: false, hasIntegrations: true, hasProjects: true },
-    ];
-
-    testCases.forEach((testCase) => {
-      const wrapper = mount(DashboardEmptyState, {
-        props: { ...defaultProps, ...testCase },
-      });
-      expect(wrapper.exists()).toBe(true);
-    });
-  });
-
-  it("should accept and use orgId prop", () => {
-    const wrapper = mount(DashboardEmptyState, {
-      props: { ...defaultProps, orgId: "custom-org-id" },
-    });
-    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find("h3").text()).toBe(
+      "Unable to load the project overview",
+    );
+    await wrapper.find("button").trigger("click");
+    expect(wrapper.emitted("retry")).toHaveLength(1);
   });
 });

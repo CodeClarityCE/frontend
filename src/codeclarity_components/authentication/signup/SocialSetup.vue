@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
+import { CircleAlert, LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
-import { Form } from "vee-validate";
+import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
 import * as z from "zod";
 
-import FormInlineCheckboxField from "@/base_components/forms/FormInlineCheckboxField.vue";
-import FormTextField from "@/base_components/forms/FormTextField.vue";
-import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { RefreshToken } from "@/codeclarity_components/authentication/refresh_token.entity";
@@ -15,7 +13,16 @@ import { UserRepository } from "@/codeclarity_components/authentication/user.rep
 import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Button } from "@/shadcn/ui/button";
+import { Checkbox } from "@/shadcn/ui/checkbox";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shadcn/ui/form";
+import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -23,6 +30,10 @@ import {
   BusinessLogicError,
   ValidationError,
 } from "@/utils/api/BaseRepository";
+import { filterUndefined } from "@/utils/form/filterUndefined";
+
+import AuthLayout from "../layout/AuthLayout.vue";
+import TextLink from "../layout/TextLink.vue";
 
 // Props
 const props = defineProps<{
@@ -39,44 +50,38 @@ const authRepository: AuthRepository = new AuthRepository();
 
 // State
 const token = authStore.getToken;
-const loadingButtonRef: Ref<{
-  setLoading: (loading: boolean) => void;
-  setDisabled: (disabled: boolean) => void;
-} | null> = ref(null);
+const loading: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const tokenRefreshedAlready: Ref<boolean> = ref(false);
 const validationError: Ref<ValidationError | undefined> = ref();
 const errorNonRecoverable: Ref<boolean> = ref(false);
 
-// Form Data
-const formHandle: Ref<string> = ref("");
-const formFirstName: Ref<string> = ref("");
-const formLastName: Ref<string> = ref("");
-
 // Form Validation
-const formValidationSchema = toTypedSchema(
-  z.object({
-    "social_form[firstName]": z
-      .string()
-      .min(1, "A first name is required")
-      .max(25, "Too long"),
-    "social_form[lastName]": z
-      .string()
-      .min(1, "A last name is required")
-      .max(25, "Too long"),
-    "social_form[handle]": z
-      .string()
-      .min(5, "A handle is required")
-      .max(50, "Too long"),
-    "social_form[agreeTerms]": z
-      .boolean()
-      .refine(
-        (val) => val === true,
-        "You must accept our terms and conditions to continue",
-      ),
-  }),
-);
+const formSchema = z.object({
+  first_name: z.string().min(1, "A first name is required").max(25, "Too long"),
+  last_name: z.string().min(1, "A last name is required").max(25, "Too long"),
+  handle: z.string().min(5, "A handle is required").max(50, "Too long"),
+  agreeTerms: z
+    .boolean()
+    .default(false)
+    .refine(
+      (val) => val === true,
+      "You must accept our terms and conditions to continue",
+    ),
+});
+type FormValues = z.infer<typeof formSchema>;
+const { handleSubmit } = useForm<FormValues>({
+  validationSchema: toTypedSchema(formSchema),
+  initialValues: { agreeTerms: false },
+});
+
+const onSubmit = handleSubmit((values): void => {
+  void submit(values);
+});
+
+const providerName =
+  props.provider === SocialProvider.GITLAB ? "GitLab" : "GitHub";
 
 // Sanity Checks
 if (authStore.getAuthenticated) {
@@ -95,9 +100,8 @@ if (!token) {
 }
 
 // Methods
-async function submit(): Promise<void> {
-  loadingButtonRef.value?.setLoading(true);
-  loadingButtonRef.value?.setDisabled(true);
+async function submit(values: FormValues): Promise<void> {
+  loading.value = true;
 
   errorCode.value = undefined;
   validationError.value = undefined;
@@ -107,9 +111,9 @@ async function submit(): Promise<void> {
   try {
     await userRepository.completeSocialAccount({
       data: {
-        first_name: formFirstName.value,
-        last_name: formLastName.value,
-        handle: formHandle.value,
+        first_name: values.first_name,
+        last_name: values.last_name,
+        handle: values.handle,
       },
       bearerToken: token!,
       handleBusinessErrors: true,
@@ -159,13 +163,11 @@ async function submit(): Promise<void> {
       authStore.token = token.token;
       authStore.tokenExpiry = token.token_expiry;
       tokenRefreshedAlready.value = true;
-    } catch (err) {
-      console.error(err);
+    } catch {
       errorNonRecoverable.value = true;
     }
   } finally {
-    loadingButtonRef.value?.setLoading(false);
-    loadingButtonRef.value?.setDisabled(false);
+    loading.value = false;
   }
 }
 
@@ -176,121 +178,159 @@ function nonRecoverableErrorRedirect(): void {
 }
 </script>
 <template>
-  <div class="flex flex-col justify-center items-center my-20">
-    <div class="max-w-lg w-full flex flex-col">
-      <div class="flex flex-row gap-8">
-        <div v-if="props.provider === SocialProvider.GITLAB">
-          <Icon class="text-7xl" icon="devicon:gitlab" />
-        </div>
-        <div v-if="props.provider === SocialProvider.GITHUB">
-          <span class="text-black">
-            <Icon class="text-7xl" icon="simple-icons:github" />
-          </span>
-        </div>
-        <div class="pt-2 text-5xl font-extrabold text-gray-700">
-          Account setup
-        </div>
-      </div>
+  <AuthLayout>
+    <template #icon>
+      <Icon
+        v-if="props.provider === SocialProvider.GITLAB"
+        icon="devicon:gitlab"
+        role="img"
+        :aria-hidden="false"
+        aria-label="GitLab"
+        class="mb-2 size-12"
+      />
+      <Icon
+        v-else
+        icon="simple-icons:github"
+        role="img"
+        :aria-hidden="false"
+        aria-label="GitHub"
+        class="mb-2 size-12 text-foreground-strong"
+      />
+    </template>
+    <template #title>Finish setting up your account</template>
+    <template #description>
+      <template v-if="errorNonRecoverable">
+        We could not complete your {{ providerName }} sign in.
+      </template>
+      <template v-else>
+        You signed in with {{ providerName }}. Fill out the details below before
+        using the platform.
+      </template>
+    </template>
 
-      <div v-if="errorNonRecoverable" class="flex flex-col gap-7">
-        <div style="font-size: 1.5em">
-          <div>Whoops</div>
-          <div style="font-size: 0.8em">
-            Error code:
-            <span
-              style="font-family: &quot;Courier New&quot;, Courier, monospace"
-              >{{ errorCode }}</span
-            >
-          </div>
-        </div>
-        <div style="font-size: 1.2em">
-          We encountered some non-recoverable issue during the authentication.
-          Please click on the button below and try again. If this error
-          persists, then please contact the webmaster and provide them with the
-          error code listed above.
-        </div>
-        <div>
-          <Button @click="nonRecoverableErrorRedirect"> Okay </Button>
-        </div>
-      </div>
-
-      <div v-if="!errorNonRecoverable" class="text-gray-600 font-medium mb-3">
-        Before being able to use our platform, fill out the details below.
-      </div>
-
-      <div
-        v-if="!errorNonRecoverable"
-        style="display: flex; flex-direction: column; row-gap: 2rem"
-      >
-        <Alert v-if="errorCode">
-          <AlertDescription class="flex flex-row gap-2 items-center">
-            <Icon icon="material-symbols:error-outline" />
-            <div>
-              <div v-if="errorCode === APIErrors.HandleAlreadyExists">
-                A user with that handle already exists, choose a different
-                handle.
-              </div>
-              <div
-                v-else-if="errorCode === APIErrors.ValidationFailed"
-                style="white-space: break-spaces"
-              >
-                <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                {{ validationError!.toMessage("Invalid form:") }}
-              </div>
-              <div v-else>
-                An error occured during the processing of the request.
-              </div>
-            </div>
-          </AlertDescription>
-        </Alert>
-
-        <Form
-          class="flex flex-col gap-4"
-          name="social_form"
-          :validation-schema="formValidationSchema"
-          @submit="submit"
-        >
-          <div class="flex flex-row gap-4">
-            <FormTextField
-              v-model="formFirstName"
-              class="w-full"
-              :placeholder="'Enter your first name'"
-              :type="'text'"
-              :name="'social_form[firstName]'"
-            >
-              <template #name>First Name</template>
-            </FormTextField>
-
-            <FormTextField
-              v-model="formLastName"
-              class="w-full"
-              :placeholder="'Enter your last name'"
-              :type="'text'"
-              :name="'social_form[lastName]'"
-            >
-              <template #name>Last Name</template>
-            </FormTextField>
-          </div>
-
-          <FormTextField
-            v-model="formHandle"
-            :placeholder="'Enter your handle'"
-            :type="'text'"
-            :name="'social_form[handle]'"
-          >
-            <template #name>Handle</template>
-          </FormTextField>
-
-          <!-- Terms -->
-          <FormInlineCheckboxField :name="'social_form[agreeTerms]'">
-            <template #name>I agree to the terms and conditions</template>
-          </FormInlineCheckboxField>
-
-          <LoadingSubmitButton ref="loadingButtonRef"
-            >Complete account setup</LoadingSubmitButton
-          >
-        </Form>
-      </div>
+    <div v-if="errorNonRecoverable" class="flex flex-col gap-6">
+      <Alert variant="destructive">
+        <CircleAlert aria-hidden="true" />
+        <AlertDescription class="flex flex-col gap-2">
+          <p>
+            We encountered a non-recoverable issue during the authentication.
+            Please try again. If this error persists, contact the webmaster with
+            the error code below.
+          </p>
+          <p>
+            Error code: <code class="font-mono">{{ errorCode }}</code>
+          </p>
+        </AlertDescription>
+      </Alert>
+      <Button class="w-full" @click="nonRecoverableErrorRedirect">
+        Back to sign in
+      </Button>
     </div>
-  </div>
+
+    <template v-else>
+      <Alert v-if="error" variant="destructive" class="mb-6">
+        <CircleAlert aria-hidden="true" />
+        <AlertDescription>
+          <div v-if="errorCode === APIErrors.HandleAlreadyExists">
+            A user with that handle already exists, choose a different handle.
+          </div>
+          <div
+            v-else-if="errorCode === APIErrors.ValidationFailed"
+            class="whitespace-break-spaces"
+          >
+            {{ validationError!.toMessage("Invalid form:") }}
+          </div>
+          <div v-else>
+            An error occured during the processing of the request.
+          </div>
+        </AlertDescription>
+      </Alert>
+
+      <form v-if="!loading" class="flex flex-col gap-4" @submit="onSubmit">
+        <div class="grid grid-cols-2 gap-4">
+          <FormField v-slot="{ componentField }" name="first_name">
+            <FormItem>
+              <FormLabel>First name</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  autocomplete="given-name"
+                  placeholder="Enter your first name"
+                  v-bind="filterUndefined(componentField)"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+          <FormField v-slot="{ componentField }" name="last_name">
+            <FormItem>
+              <FormLabel>Last name</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  autocomplete="family-name"
+                  placeholder="Enter your last name"
+                  v-bind="filterUndefined(componentField)"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+        </div>
+        <FormField v-slot="{ componentField }" name="handle">
+          <FormItem>
+            <FormLabel>Handle</FormLabel>
+            <FormControl>
+              <Input
+                type="text"
+                autocomplete="username"
+                placeholder="Enter your handle"
+                v-bind="filterUndefined(componentField)"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField
+          v-slot="{ value, handleChange }"
+          type="checkbox"
+          name="agreeTerms"
+        >
+          <FormItem
+            class="flex flex-row items-start gap-x-3 space-y-0 rounded-control border border-border p-4"
+          >
+            <FormControl>
+              <Checkbox
+                :model-value="value"
+                @update:model-value="handleChange"
+              />
+            </FormControl>
+            <div class="space-y-2 leading-none">
+              <FormLabel class="leading-snug">
+                I agree to the
+                <TextLink :to="{ name: 'terms' }">Terms of service</TextLink>
+                and the
+                <TextLink :to="{ name: 'privacy' }">Privacy policy</TextLink>.
+              </FormLabel>
+              <FormMessage />
+            </div>
+          </FormItem>
+        </FormField>
+        <Button type="submit" class="mt-2 w-full">
+          Complete account setup
+        </Button>
+      </form>
+      <div
+        v-else
+        role="status"
+        class="flex flex-col items-center gap-2 py-8 text-muted-foreground"
+      >
+        <LoaderCircle
+          aria-hidden="true"
+          class="size-6 animate-spin motion-reduce:animate-none"
+        />
+        Setting up your account
+      </div>
+    </template>
+  </AuthLayout>
 </template>

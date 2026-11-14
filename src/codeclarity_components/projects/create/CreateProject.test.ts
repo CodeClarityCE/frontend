@@ -1,279 +1,133 @@
-import { mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRouter, createWebHistory } from "vue-router";
+import { fireEvent, render, screen, within } from "@testing-library/vue";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
 
 import CreateProject from "./CreateProject.vue";
 
-// Mock all dependencies
-vi.mock("@/stores/state", () => ({
-  useStateStore: vi.fn(() => ({
-    $reset: vi.fn(),
-    page: "projects",
-  })),
-}));
+const { getVCS } = vi.hoisted(() => ({ getVCS: vi.fn() }));
+const defaultOrg = ref({ id: "org-1", role: 0 });
 
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => ({
-    getUser: {
-      default_org: { id: "test-org-id" },
-    },
-    defaultOrg: { value: { id: "test-org-id" } },
-  })),
-}));
-
-// Mock storeToRefs with proper ref
-vi.mock("pinia", async () => {
-  const actual = await vi.importActual("pinia");
-  const { ref } = (await vi.importActual("vue")) as any;
-  return {
-    ...actual,
-    storeToRefs: vi.fn((_store) => ({
-      defaultOrg: ref({ id: "test-org-id" }),
-    })),
-  };
-});
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    getAuthenticated: true,
-    getToken: "test-token",
-  })),
+vi.mock("pinia", async () => ({
+  ...(await vi.importActual("pinia")),
+  storeToRefs: () => ({ defaultOrg }),
 }));
 
 vi.mock(
   "@/codeclarity_components/organizations/integrations/IntegrationsRepository",
   () => ({
     IntegrationsRepository: class {
-      getVCS = vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: "vcs-1",
-            integration_provider: "GITHUB",
-            invalid: false,
-          },
-        ],
-      });
+      getVCS = getVCS;
     },
   }),
 );
 
-// Mock child components
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BaseRepository: class {},
+  BusinessLogicError: class extends Error {},
+}));
+
+// The importers load repositories themselves; only which one opens matters here.
 vi.mock("./import/GithubImportComponent.vue", () => ({
-  default: {
-    name: "GithubImportComponent",
-    template: '<div data-testid="github-import">GitHub Import</div>',
-    props: ["integration"],
-  },
+  default: { name: "GithubImport", template: "<p>GitHub importer</p>" },
 }));
-
 vi.mock("./import/GitlabImportComponent.vue", () => ({
-  default: {
-    name: "GitlabImportComponent",
-    template: '<div data-testid="gitlab-import">GitLab Import</div>',
-    props: ["integration"],
-  },
+  default: { name: "GitlabImport", template: "<p>GitLab importer</p>" },
 }));
-
 vi.mock("./import/PopularGithubImportComponent.vue", () => ({
-  default: {
-    name: "PopularGithubImportComponent",
-    template: '<div data-testid="popular-github-import">Popular Import</div>',
-    props: ["integration"],
-  },
+  default: { name: "PopularImport", template: "<p>Popular importer</p>" },
 }));
-
+vi.mock("./import/LocalUploadComponent.vue", () => ({
+  default: { name: "LocalUpload", template: "<p>Upload form</p>" },
+}));
 vi.mock("./integrations/NoIntegration.vue", () => ({
-  default: {
-    name: "NoIntegration",
-    template: '<div data-testid="no-integration">No Integration</div>',
-    props: ["defaultOrg"],
-    emits: ["onRefresh"],
-  },
+  default: { name: "NoIntegration", template: "<p>No integration yet</p>" },
 }));
 
-vi.mock("./integrations/IntegrationsComponent.vue", () => ({
-  default: {
-    name: "IntegrationsComponent",
-    template: '<div data-testid="integrations">Integrations</div>',
-    props: ["vcsIntegrations"],
-    emits: ["onSelectedVCS", "onLocalUpload", "onPopularGithub"],
-  },
-}));
+function vcs(provider: string, invalid = false) {
+  return {
+    id: `${provider}-1`,
+    integration_provider: provider,
+    service_domain: `${provider.toLowerCase()}.com`,
+    invalid,
+  };
+}
 
-vi.mock("@/base_components", () => ({
-  PageHeader: {
-    name: "PageHeader",
-    template: '<div data-testid="page-header"></div>',
-    props: ["title", "description", "showLastUpdated", "showRefresh"],
-  },
-  InfoCard: {
-    name: "InfoCard",
-    template: '<div data-testid="info-card"><slot></slot></div>',
-    props: ["title", "description", "icon", "variant"],
-  },
-}));
-
-describe.skip("CreateProject", () => {
-  let wrapper: any;
-  let router: any;
-
+describe("CreateProject", () => {
   beforeEach(() => {
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [
-        { path: "/", component: { template: "<div></div>" } },
-        { path: "/projects", component: { template: "<div></div>" } },
-      ],
-    });
-    vi.clearAllMocks();
+    getVCS.mockReset();
+    defaultOrg.value = { id: "org-1", role: 0 };
+    getVCS.mockResolvedValue({ data: [vcs("GITHUB"), vcs("GITLAB")] });
   });
 
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
+  it("offers each valid integration, the popular list and the upload", async () => {
+    getVCS.mockResolvedValue({
+      data: [vcs("GITHUB"), vcs("GITLAB", true)],
+    });
+    render(CreateProject);
+
+    const methods = await screen.findByRole("list", {
+      name: "Import methods",
+    });
+    const buttons = within(methods).getAllByRole("button");
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]!.textContent).toMatch(/^\s*GitHub\s+Import from/);
+    expect(buttons[1]!.textContent).toMatch(/Popular on GitHub/);
+    expect(buttons[2]!.textContent).toMatch(/Upload an archive/);
   });
 
-  it("renders correctly", () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
+  it("opens the chosen importer and goes back to the methods", async () => {
+    render(CreateProject);
 
-    expect(wrapper.find("main").exists()).toBe(true);
-    expect(wrapper.find("main").classes()).toContain("min-h-screen");
-    expect(wrapper.find("main").classes()).toContain("bg-white");
-    expect(wrapper.find("main").classes()).toContain("p-6");
-  });
+    await fireEvent.click(await screen.findByText("GitLab"));
+    expect(
+      screen.getByRole("heading", { name: "GitLab repositories" }),
+    ).toBeTruthy();
+    expect(screen.getByText("GitLab importer")).toBeTruthy();
 
-  it("shows page header with correct props", async () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-    const pageHeader = wrapper.findComponent({ name: "PageHeader" });
-
-    expect(pageHeader.exists()).toBe(true);
-    expect(pageHeader.props().title).toBe("Import Project");
-    expect(pageHeader.props().description).toBe(
-      "Connect your repositories to start security analysis",
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Back to import methods" }),
     );
-    expect(pageHeader.props().showLastUpdated).toBe(false);
-    expect(pageHeader.props().showRefresh).toBe(false);
+    expect(screen.getByRole("list", { name: "Import methods" })).toBeTruthy();
   });
 
-  it("shows loading state initially", () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
+  it("opens the upload form", async () => {
+    render(CreateProject);
 
-    expect(wrapper.find('[data-testid="loading-state"]').exists()).toBe(false); // Should exist in actual implementation
+    await fireEvent.click(await screen.findByText("Upload an archive"));
+
+    expect(screen.getByText("Upload form")).toBeTruthy();
   });
 
-  it("handles VCS integration selection", async () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
+  it("explains what to do without any integration", async () => {
+    getVCS.mockResolvedValue({ data: [] });
+    render(CreateProject);
 
-    await wrapper.vm.$nextTick();
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await wrapper.vm.$nextTick();
-
-    const vcs = {
-      id: "test-vcs",
-      integration_provider: "GITHUB",
-    };
-
-    await wrapper.vm.onSelectedVCS(vcs);
-    expect(wrapper.vm.selectedVCS).toEqual(vcs);
+    expect(await screen.findByText("No integration yet")).toBeTruthy();
   });
 
-  it("refreshes integrations when requested", async () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
+  it("says when the integrations cannot be loaded and retries", async () => {
+    getVCS.mockRejectedValueOnce(new Error("down"));
+    render(CreateProject);
 
-    await wrapper.vm.$nextTick();
+    expect(
+      await screen.findByText(/The integrations could not be loaded/),
+    ).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 
-    const fetchSpy = vi.spyOn(wrapper.vm, "fetchVcsIntegrations");
-    await wrapper.vm.onIntegrationsRefresh();
-
-    expect(fetchSpy).toHaveBeenCalled();
+    expect(
+      await screen.findByRole("list", { name: "Import methods" }),
+    ).toBeTruthy();
   });
 
-  it("sets page state correctly", () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
+  it("lists the new organisation's integrations after switching", async () => {
+    getVCS.mockResolvedValue({ data: [vcs("GITHUB")] });
+    render(CreateProject);
+    expect(await screen.findByText("GitHub")).toBeTruthy();
 
-    // The state store should be reset and page set to 'projects'
-    expect(wrapper.vm.stateStore.page).toBe("projects");
-  });
+    getVCS.mockResolvedValue({ data: [vcs("GITLAB")] });
+    defaultOrg.value = { id: "org-2", role: 0 };
 
-  it("initializes VCS integrations on mount", async () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    // Wait for async fetchVcsIntegrations to complete
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(wrapper.vm.fetchVcsIntegrations).toHaveBeenCalled();
-  });
-
-  it("handles error state correctly", async () => {
-    // Mock error case - not used in this test but demonstrates error handling
-
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    // Manually trigger error state for testing
-    wrapper.vm.error = true;
-    wrapper.vm.errorCode = "NETWORK_ERROR";
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.vm.error).toBe(true);
-    expect(wrapper.vm.errorCode).toBe("NETWORK_ERROR");
-  });
-
-  it("handles single VCS auto-selection", async () => {
-    wrapper = mount(CreateProject, {
-      global: {
-        plugins: [router],
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    // Wait for component to process single VCS
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await wrapper.vm.$nextTick();
-
-    // With mocked single integration, it should auto-select
-    expect(wrapper.vm.selectedVCS).toBeDefined();
+    expect(await screen.findByText("GitLab")).toBeTruthy();
+    expect(screen.queryByText("GitHub")).toBeNull();
   });
 });

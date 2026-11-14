@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import VueMarkdown from "vue-markdown-render";
 
-import router from "@/router";
-import Button from "@/shadcn/ui/button/Button.vue";
+import DocumentPage from "./DocumentPage.vue";
 
 const data = `
 *Last updated: March 19, 2024*
@@ -93,26 +92,8 @@ If you have a question about any of these Terms, please **[contact our Support t
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-12">
-    <div class="text-3xl self-center">Terms of service</div>
-
+  <DocumentPage>
+    <template #title>Terms of service</template>
     <vue-markdown :source="data" :options="{ linkify: false }" />
-
-    <Button @click="router.back()">Go back</Button>
-  </div>
+  </DocumentPage>
 </template>
-
-<style scoped lang="scss">
-:deep(h1),
-:deep(h2) {
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  font-size: 2em;
-  font-weight: bold;
-}
-
-:deep(ol) {
-  list-style-type: decimal;
-  list-style-position: inside;
-}
-</style>

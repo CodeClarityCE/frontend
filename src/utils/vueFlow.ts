@@ -1,5 +1,4 @@
 import { type Edge, type Node, Position } from "@vue-flow/core";
-import * as d3 from "d3";
 
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 
@@ -26,21 +25,6 @@ export interface ConfigNode extends Node {
     configType: string;
     value: unknown;
   };
-}
-
-export function getColor(name: string): string {
-  const color = d3
-    .scaleSequential()
-    .domain([1, 10])
-    .interpolator(d3.interpolateViridis);
-
-  let code = 0;
-  for (let i = 0; i < name.length; i++) {
-    code += name.charCodeAt(i);
-  }
-  code = code % 10;
-
-  return color(code);
 }
 
 export function getWidth(): number {
@@ -77,9 +61,9 @@ export function createAnalyzerNodes(plugins: Plugin[]): {
       targetPosition: Position.Left,
       sourcePosition: Position.Right,
       style: {
-        backgroundColor: "black",
-        color: "white",
-        border: "1px solid #374151",
+        backgroundColor: "var(--surface-inverse)",
+        color: "var(--background)",
+        border: "1px solid var(--neutral)",
         borderRadius: "8px",
         padding: "10px",
         minWidth: "150px",
@@ -108,7 +92,7 @@ export function createAnalyzerNodes(plugins: Plugin[]): {
           sourceHandle: dependency, // The source handle ID equals the source plugin name
           targetHandle: dependency, // Connect to the target node's input handle for this dependency
           style: {
-            stroke: "black",
+            stroke: "var(--foreground-strong)",
             strokeWidth: 3,
           },
           type: "smoothstep",
@@ -145,7 +129,7 @@ export function createEdgesFromNodes(analyzerNodes: AnalyzerNode[]): Edge[] {
           sourceHandle: dependency, // The source handle ID equals the source plugin name
           targetHandle: dependency, // Connect to the target node's input handle for this dependency
           style: {
-            stroke: "black",
+            stroke: "var(--foreground-strong)",
             strokeWidth: 3,
           },
           type: "smoothstep",

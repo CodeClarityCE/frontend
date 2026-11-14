@@ -18,10 +18,10 @@ export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
  */
 export function getPackageManagerIcon(packageManager: PackageManager): string {
   const icons = {
-    npm: "logos:npm-icon",
-    yarn: "logos:yarn",
-    pnpm: "logos:pnpm",
-    bun: "logos:bun",
+    npm: "devicon:npm",
+    yarn: "devicon:yarn",
+    pnpm: "devicon:pnpm",
+    bun: "devicon:bun",
   };
   return icons[packageManager] || icons.yarn;
 }

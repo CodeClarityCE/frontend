@@ -1,10 +1,8 @@
-import { type ToastPluginApi, useToast } from "vue-toast-notification";
+import { toast } from "vue-sonner";
 
 import router from "@/router";
 
 import { APIErrors } from "./ApiErrors";
-
-import "vue-toast-notification/dist/theme-sugar.css";
 
 /**
  * @class BaseRepository
@@ -15,12 +13,9 @@ import "vue-toast-notification/dist/theme-sugar.css";
  */
 export class BaseRepository {
   private BASE_URL: string;
-  private toast: ToastPluginApi;
 
   constructor() {
-    // Initialize base URL and toast notification service
     this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
-    this.toast = useToast();
   }
 
   /**
@@ -63,20 +58,8 @@ export class BaseRepository {
     else return `${this.getBaseUrl()}/${relativeUrl}`;
   }
 
-  /**
-   * Get Request.
-   *
-   * @param {GetRequestOptions} options Get request options
-   * @param {string} options.url url
-   * @param {QueryParams|undefined} options.queryParams object that contains all the query params using key/value pairs
-   * @param {function(T)|undefined} options.success callback on success
-   * @param {function()|undefined} options.finalize callback on when request is finished (both on success and error)
-   * @param {function(BusinessLogicError)|undefined} [options.businessLogicError=this.defaultBusinessErrorHandler] callback on business logic errors (api errors). Default: defaultBusinessErrorHandler.
-   * @param {function(HttpError)|undefined} [options.httpError=this.defaultHttpErrorHandler] callback on http errors (protocol errors). Default: defaultHttpErrorHandler.
-   * @param {function(any)|undefined} [options.error=this.defaultErrorHandler] callback on network and marshalling/unmarshalling errors. Default: defaultErrorHandler.
-   * @param {string} options.defaultBusinessLogicErrorHandlerTextPrefix In case you want the default business error handler to handle the error but you wish to add some defined prefix to the error message it shows to users.
-   */
-  protected async getRequest<R>(options: GetRequestOptions): Promise<R> {
+  /** Send a GET with the query params, bearer token and extra headers. */
+  private async sendGet(options: GetRequestOptions): Promise<Response> {
     // Construct the url, including query parameters
     const url = new URL(options.url);
     this.attachSearchParams(url.searchParams, options.queryParams);
@@ -96,14 +79,24 @@ export class BaseRepository {
       }
     }
 
-    // Construct fetch options
-    const fetchOptions: RequestInit = {
-      method: "GET",
-      headers: headers,
-    };
+    return fetch(url.toString(), { method: "GET", headers });
+  }
 
-    // Send the request
-    const response = await fetch(url.toString(), fetchOptions);
+  /**
+   * Get Request.
+   *
+   * @param {GetRequestOptions} options Get request options
+   * @param {string} options.url url
+   * @param {QueryParams|undefined} options.queryParams object that contains all the query params using key/value pairs
+   * @param {function(T)|undefined} options.success callback on success
+   * @param {function()|undefined} options.finalize callback on when request is finished (both on success and error)
+   * @param {function(BusinessLogicError)|undefined} [options.businessLogicError=this.defaultBusinessErrorHandler] callback on business logic errors (api errors). Default: defaultBusinessErrorHandler.
+   * @param {function(HttpError)|undefined} [options.httpError=this.defaultHttpErrorHandler] callback on http errors (protocol errors). Default: defaultHttpErrorHandler.
+   * @param {function(any)|undefined} [options.error=this.defaultErrorHandler] callback on network and marshalling/unmarshalling errors. Default: defaultErrorHandler.
+   * @param {string} options.defaultBusinessLogicErrorHandlerTextPrefix In case you want the default business error handler to handle the error but you wish to add some defined prefix to the error message it shows to users.
+   */
+  protected async getRequest<R>(options: GetRequestOptions): Promise<R> {
+    const response = await this.sendGet(options);
     const result = (await response.json()) as R;
 
     // Check the response
@@ -124,6 +117,36 @@ export class BaseRepository {
           options.defaultBusinessLogicErrorHandlerTextPrefix,
       });
     }
+  }
+
+  /**
+   * Get Request for a file: same as getRequest, but resolves to the response
+   * body as a Blob (exports, downloads that need the bearer token).
+   * Error responses go through the usual error handling.
+   *
+   * @param {GetRequestOptions} options Get request options
+   */
+  protected async getBlobRequest(options: GetRequestOptions): Promise<Blob> {
+    const response = await this.sendGet(options);
+    if (response.ok) return await response.blob();
+
+    let responseBody: unknown;
+    try {
+      responseBody = await response.json();
+    } catch {
+      responseBody = undefined;
+    }
+    this.errorHandler({
+      request: {
+        status: response.status,
+        statusText: response.statusText,
+        responseBody,
+      },
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      defaultBusinessLogicErrorHandlerTextPrefix:
+        options.defaultBusinessLogicErrorHandlerTextPrefix,
+    });
   }
 
   /**
@@ -489,22 +512,17 @@ export class BaseRepository {
     if (defaultBusinessLogicErrorHandlerTextPrefix !== undefined) {
       prefix = defaultBusinessLogicErrorHandlerTextPrefix;
     }
-    this.toast.error(
+    toast.error(
       `${prefix} ErrorCode: ${business_logic_error.error_code}. Reason: ${business_logic_error.error_message}`,
-      { position: "bottom-right" },
     );
   }
 
   /**
    * Default http error handler that runs in case no http error handler was supplied by the user.
    */
-  private async defaultHttpErrorHandler(http_error: HttpError): Promise<void> {
-    console.error(http_error);
-    this.toast.error(
+  private async defaultHttpErrorHandler(_http_error: HttpError): Promise<void> {
+    toast.error(
       "Request failed to be processed. Please reload the page and try again.",
-      {
-        position: "bottom-right",
-      },
     );
   }
 }

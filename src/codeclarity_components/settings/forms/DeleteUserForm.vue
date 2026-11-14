@@ -1,13 +1,23 @@
 <script lang="ts" setup>
-import { vAutoAnimate } from "@formkit/auto-animate/vue";
+import { LoaderCircle, Trash2 } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
-import { toast } from "vue-sonner";
+import { ref } from "vue";
 import * as z from "zod";
 
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
+import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
-import DialogFooter from "@/shadcn/ui/dialog/DialogFooter.vue";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shadcn/ui/dialog";
 import {
   FormControl,
   FormField,
@@ -17,93 +27,102 @@ import {
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
-import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { errorToast, successToast } from "@/utils/toasts";
 
-const state = useStateStore();
 const authStore = useAuthStore();
-state.menu = "settingsAccount";
-
-const userRepository: UserRepository = new UserRepository();
-
 const userStore = useUserStore();
-const user = userStore.user;
+const userRepository = new UserRepository();
 
-// UPDATE INFO FORM
 const formSchema = z.object({
-  password_deletion: z.string().min(10).max(75),
+  password: z.string().min(1, "Enter your password"),
 });
 type FormValues = z.infer<typeof formSchema>;
 
 const form = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
+  initialValues: { password: "" },
 });
 
-const onSubmit = form.handleSubmit((values): void => {
-  void deleteAccount(values.password_deletion);
-});
+const open = ref(false);
+const submitting = ref(false);
 
-/*****************************************************************************/
-/*                                  API Calls                                */
-/*****************************************************************************/
-
-async function deleteAccount(password: string): Promise<void> {
-  if (authStore.getAuthenticated && authStore.getToken) {
-    try {
-      await userRepository.deleteUser({
-        userId: user?.id ?? "",
-        bearerToken: authStore.getToken,
-        handleBusinessErrors: true,
-        data: {
-          password: password,
-        },
-      });
-      toast.success("Password updated");
-    } catch (err) {
-      if (err instanceof BusinessLogicError) {
-        console.error(err);
-      }
-    }
-  }
+// Starts each opening of the dialog with an empty field.
+function onOpenChange(value: boolean): void {
+  open.value = value;
+  if (!value) form.resetForm({ values: { password: "" } });
 }
+
+const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+  const user = userStore.user;
+  if (!user || !authStore.getToken) return;
+  submitting.value = true;
+  try {
+    await userRepository.deleteUser({
+      userId: user.id,
+      data: { password: values.password },
+      bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
+    });
+    open.value = false;
+    successToast("Your account was deleted");
+    userStore.$reset();
+    authStore.$reset();
+    void router.push("/login");
+  } catch {
+    errorToast("Your account could not be deleted. Check your password.");
+  } finally {
+    submitting.value = false;
+  }
+});
 </script>
 
 <template>
-  <form class="space-y-6" @submit="onSubmit">
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-      <p class="text-sm text-red-800 font-medium">
-        This action is permanent and cannot be undone. Please enter your
-        password to confirm.
-      </p>
-    </div>
-
-    <FormField v-slot="{ componentField }" name="password_deletion">
-      <FormItem v-auto-animate>
-        <FormLabel class="text-sm font-semibold text-theme-black"
-          >Password Confirmation</FormLabel
-        >
-        <FormControl>
-          <Input
-            type="password"
-            placeholder="Enter your password to confirm deletion"
-            v-bind="filterUndefined(componentField)"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <DialogFooter class="flex gap-3 pt-4">
-      <Button
-        variant="destructive"
-        type="submit"
-        class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 transition-all duration-200 shadow-sm hover:shadow-md"
-      >
-        Delete My Account
+  <Dialog :open="open" @update:open="onOpenChange">
+    <DialogTrigger as-child>
+      <Button variant="destructive">
+        <Trash2 aria-hidden="true" />
+        Delete account
       </Button>
-    </DialogFooter>
-  </form>
+    </DialogTrigger>
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Delete your account?</DialogTitle>
+        <DialogDescription>
+          This permanently removes your account and everything in it. Enter your
+          password to confirm.
+        </DialogDescription>
+      </DialogHeader>
+      <form class="flex flex-col gap-6" novalidate @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="password">
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input
+                type="password"
+                autocomplete="current-password"
+                v-bind="filterUndefined(componentField)"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <DialogFooter class="gap-2">
+          <DialogClose as-child>
+            <Button type="button" variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button type="submit" variant="destructive" :disabled="submitting">
+            <LoaderCircle
+              v-if="submitting"
+              aria-hidden="true"
+              class="animate-spin motion-reduce:animate-none"
+            />
+            Delete my account
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>
 </template>

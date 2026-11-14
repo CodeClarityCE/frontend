@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { type Ref, ref } from "vue";
+import { ChevronDown, Download, LoaderCircle } from "@lucide/vue";
 
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -12,124 +11,52 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 
-const emit = defineEmits<{
-  export: [format: "csv" | "json" | "cyclonedx" | "html"];
-}>();
+import type { ExportFormat } from "./exports/sbomExportUtils";
 
-const isExporting: Ref<boolean> = ref(false);
-const exportProgress: Ref<string> = ref("");
+// A menu of SBOM download formats; the parent builds the file.
+defineProps<{ exporting?: boolean }>();
 
-const exportFormats = [
-  {
-    id: "csv",
-    name: "CSV",
-    description: "Comma-separated values",
-    icon: "solar:document-text-bold",
-    iconColor: "text-green-600",
-  },
-  {
-    id: "html",
-    name: "HTML Report",
-    description: "Interactive table with highlighting",
-    icon: "solar:palette-bold",
-    iconColor: "text-orange-600",
-  },
-  {
-    id: "json",
-    name: "JSON",
-    description: "JavaScript Object Notation",
-    icon: "solar:code-bold",
-    iconColor: "text-blue-600",
-  },
+const emit = defineEmits<{ export: [format: ExportFormat] }>();
+
+const FORMATS: { id: ExportFormat; name: string; description: string }[] = [
+  { id: "csv", name: "CSV", description: "Comma-separated values" },
+  { id: "html", name: "HTML report", description: "A table you can print" },
+  { id: "json", name: "JSON", description: "Every field, as JSON" },
   {
     id: "cyclonedx",
     name: "CycloneDX",
-    description: "Industry standard SBOM format",
-    icon: "solar:shield-check-bold",
-    iconColor: "text-purple-600",
+    description: "The industry standard SBOM format",
   },
-] as const;
-
-function handleExport(format: "csv" | "json" | "cyclonedx" | "html"): void {
-  isExporting.value = true;
-  exportProgress.value = "Preparing export...";
-  void emit("export", format);
-}
-
-function setExportProgress(progress: string): void {
-  exportProgress.value = progress;
-}
-
-function resetExportState(): void {
-  isExporting.value = false;
-  exportProgress.value = "";
-}
-
-defineExpose({
-  setExportProgress,
-  resetExportState,
-});
+];
 </script>
 
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
-      <Button
-        variant="outline"
-        class="w-full border-2 border-gray-200 hover:border-[#1dce79] hover:bg-[#1dce79]/5 text-gray-700 hover:text-[#1dce79] flex items-center gap-3 justify-start p-4 h-auto text-left transition-all"
-        :disabled="isExporting"
-      >
-        <div class="bg-gray-100 p-2 rounded-lg group-hover:bg-[#1dce79]/10">
-          <Icon
-            :icon="
-              isExporting ? 'solar:hourglass-line-bold' : 'solar:download-bold'
-            "
-            class="h-5 w-5"
-            :class="{ 'animate-spin': isExporting }"
-          />
-        </div>
-        <div class="flex-1">
-          <div class="font-semibold">
-            {{ isExporting ? "Exporting..." : "Export Report" }}
-          </div>
-          <div class="text-sm text-gray-500">
-            {{
-              isExporting
-                ? exportProgress || "Preparing your download"
-                : "Download detailed SBOM report"
-            }}
-          </div>
-        </div>
-        <Icon
-          icon="solar:alt-arrow-down-linear"
-          class="h-4 w-4 text-gray-400"
+      <Button variant="outline" :disabled="exporting">
+        <LoaderCircle
+          v-if="exporting"
+          aria-hidden="true"
+          class="size-4 animate-spin motion-reduce:animate-none"
         />
+        <Download v-else aria-hidden="true" class="size-4" />
+        {{ exporting ? "Exporting" : "Export SBOM" }}
+        <ChevronDown aria-hidden="true" class="size-4" />
       </Button>
     </DropdownMenuTrigger>
-
-    <DropdownMenuContent align="end" class="w-72 p-2" :side-offset="5">
-      <DropdownMenuLabel
-        class="text-sm font-semibold text-gray-700 px-2 py-1.5"
-      >
-        Choose Export Format
-      </DropdownMenuLabel>
-      <DropdownMenuSeparator class="my-2" />
-
+    <DropdownMenuContent align="end" class="w-64">
+      <DropdownMenuLabel>Export format</DropdownMenuLabel>
+      <DropdownMenuSeparator />
       <DropdownMenuItem
-        v-for="format in exportFormats"
+        v-for="format in FORMATS"
         :key="format.id"
-        class="flex items-start gap-3 p-3 cursor-pointer hover:bg-gray-50 rounded-md transition-colors"
-        @click="handleExport(format.id)"
+        class="flex flex-col items-start gap-0.5"
+        @select="emit('export', format.id)"
       >
-        <div :class="[format.iconColor, 'mt-0.5']">
-          <Icon :icon="format.icon" class="h-5 w-5" />
-        </div>
-        <div class="flex-1">
-          <div class="font-medium text-gray-900">{{ format.name }}</div>
-          <div class="text-xs text-gray-500 mt-0.5">
-            {{ format.description }}
-          </div>
-        </div>
+        <span class="font-medium">{{ format.name }}</span>
+        <span class="text-xs text-muted-foreground">{{
+          format.description
+        }}</span>
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

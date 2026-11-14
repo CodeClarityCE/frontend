@@ -1,0 +1,49 @@
+# Node image CI from the central workflows; see CodeClarityCE/.github.
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  node:
+    uses: CodeClarityCE/.github/.github/workflows/node-image.yml@v1
+    # Release jobs only; they run on main when CI_RELEASE is true.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    # Docker Hub login for the release; GitHub passes secrets only when named here.
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    with:
+      # Vitest in run mode; plain test:unit would watch.
+      test-command: pnpm test:unit:run
+
+  # The required check, kept here because called jobs show as "node / <job>".
+  # Fails if any needed job failed or was cancelled; skipped counts as success.
+  ci:
+    needs: [node]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Check job results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          if [[ " $RESULTS " == *" failure "* || " $RESULTS " == *" cancelled "* ]]; then
+            echo "::error::A needed job failed or was cancelled: $RESULTS"
+            exit 1
+          fi

@@ -14,20 +14,6 @@ vi.mock("@/stores/state", () => ({
 }));
 
 // Mock the async components with proper loading/error components
-vi.mock("@/base_components/utilities/ErrorComponent.vue", () => ({
-  default: {
-    name: "ErrorComponent",
-    template: '<div data-testid="error-component">Error</div>',
-  },
-}));
-
-vi.mock("@/base_components/ui/loaders/LoadingComponent.vue", () => ({
-  default: {
-    name: "LoadingComponent",
-    template: '<div data-testid="loading-component">Loading</div>',
-  },
-}));
-
 // Mock Vue's defineAsyncComponent to return sync components
 vi.mock("vue", async () => {
   const actual = await vi.importActual("vue");

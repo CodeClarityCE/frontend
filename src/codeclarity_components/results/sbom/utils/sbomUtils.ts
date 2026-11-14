@@ -3,7 +3,7 @@
  * Helper functions for SBOM data processing and calculations
  */
 
-import type { SbomStats } from "../../stats.entity";
+import type { AnalysisStats, SbomStats } from "../../stats.entity";
 
 export interface Dependency {
   name: string;
@@ -43,27 +43,32 @@ export function hasUpdate(dependency: Dependency): boolean {
   );
 }
 
+// An outdated dependency counts for less, so version lag alone stays above the Critical grades
+const OUTDATED_WEIGHT = 0.4;
+
 /**
  * Calculate health score from SBOM stats
  */
 export function calculateHealthScore(stats: SbomStats): number {
   const total = stats.number_of_dependencies ?? 1;
+  if (total <= 0) return 100;
+
   const outdated = stats.number_of_outdated_dependencies ?? 0;
   const deprecated = stats.number_of_deprecated_dependencies ?? 0;
   const unlicensed = stats.number_of_unlicensed_dependencies ?? 0;
 
-  const issues = outdated + deprecated + unlicensed;
+  const issues = outdated * OUTDATED_WEIGHT + deprecated + unlicensed;
   return Math.max(0, Math.round(((total - issues) / total) * 100));
 }
 
 /**
- * Calculate security issues count
+ * Count Security Issues as Vulnerability instances from the vulnerability stats.
+ * Returns null when the count is unknown, which must not read as zero.
  */
-export function calculateSecurityIssues(stats: SbomStats): number {
-  return (
-    (stats.number_of_deprecated_dependencies ?? 0) +
-    (stats.number_of_unlicensed_dependencies ?? 0)
-  );
+export function calculateSecurityIssues(
+  stats: Pick<AnalysisStats, "number_of_issues"> | null,
+): number | null {
+  return stats?.number_of_issues ?? null;
 }
 
 /**

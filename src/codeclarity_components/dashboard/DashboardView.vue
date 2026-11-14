@@ -1,32 +1,19 @@
 <script setup lang="ts">
-import { PageHeader } from "@/base_components";
-import { useStateStore } from "@/stores/state";
+import { RefreshCw } from "@lucide/vue";
+
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import { Button } from "@/shadcn/ui/button";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 
 import { useDashboardData } from "./composables/useDashboardData";
 import DashboardEmptyState from "./layout/DashboardEmptyState.vue";
 import DashboardCharts from "./sections/DashboardCharts.vue";
 import DashboardQuickStats from "./sections/DashboardQuickStats.vue";
-// import DashboardFooter from './layout/DashboardFooter.vue';
+import DashboardResearch from "./sections/DashboardResearch.vue";
 
-/**
- * DashboardView - Main dashboard entry point
- *
- * Consolidates the dashboard functionality by:
- * 1. Setting page state
- * 2. Getting data from composable
- * 3. Showing empty state if needed
- * 4. Otherwise rendering dashboard sections
- */
-
-// Set page state
-const state = useStateStore();
-state.$reset();
-state.page = "dashboard";
-
-// Get dashboard data
 const {
   activeIntegrationIds,
-  shouldShowEmptyState,
+  hasData,
   hasIntegrations,
   hasProjects,
   hasAnalyses,
@@ -38,29 +25,59 @@ const {
 </script>
 
 <template>
-  <div class="flex-1 space-y-4 p-8 pt-6">
-    <!-- Empty state: loading, error, or setup needed -->
-    <DashboardEmptyState
-      v-if="shouldShowEmptyState"
-      :is-error="hasError"
-      :has-integrations="hasIntegrations"
-      :has-projects="hasProjects"
-      :has-analyses="hasAnalyses"
-      :org-id="defaultOrg?.id"
-      @retry="refreshData"
-    />
+  <div class="flex flex-col gap-10 p-8 pt-6">
+    <PageHeading
+      description="Your Experiments first, then the security of your projects."
+    >
+      <BrandEmphasis>Dashboard</BrandEmphasis>
+    </PageHeading>
 
-    <!-- Main dashboard: header + stats + charts + sidebar -->
-    <div v-else class="space-y-8">
-      <PageHeader
-        title="Security Dashboard"
-        description="Monitor your organization's security posture and vulnerabilities"
-        :is-loading="isLoading"
-        @refresh="refreshData"
+    <DashboardResearch />
+
+    <section
+      aria-labelledby="dashboard-projects-heading"
+      class="flex flex-col gap-4"
+    >
+      <div class="flex items-center justify-between gap-4">
+        <h2
+          id="dashboard-projects-heading"
+          class="text-xl font-bold tracking-tight text-foreground-strong"
+        >
+          Projects
+        </h2>
+        <Button
+          v-if="hasData && !isLoading"
+          variant="outline"
+          size="sm"
+          @click="() => void refreshData()"
+        >
+          <RefreshCw aria-hidden="true" />
+          Refresh
+        </Button>
+      </div>
+
+      <div
+        v-if="isLoading"
+        role="status"
+        aria-label="Loading the project overview"
+        class="flex flex-col gap-6"
+      >
+        <Skeleton class="h-28 rounded-card" />
+        <Skeleton class="h-80 rounded-card" />
+      </div>
+      <DashboardEmptyState
+        v-else-if="hasError || !hasData"
+        :is-error="hasError"
+        :has-integrations="hasIntegrations"
+        :has-projects="hasProjects"
+        :has-analyses="hasAnalyses"
+        :org-id="defaultOrg?.id"
+        @retry="refreshData"
       />
-      <DashboardQuickStats :integration-ids="activeIntegrationIds" />
-      <DashboardCharts :integration-ids="activeIntegrationIds" />
-      <!-- <DashboardFooter /> -->
-    </div>
+      <template v-else>
+        <DashboardQuickStats :integration-ids="activeIntegrationIds" />
+        <DashboardCharts :integration-ids="activeIntegrationIds" />
+      </template>
+    </section>
   </div>
 </template>

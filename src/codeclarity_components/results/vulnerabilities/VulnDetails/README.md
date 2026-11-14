@@ -1,30 +1,27 @@
-# VulnDetails Components
+# VulnDetails
 
-This folder contains modular Vue components and types for displaying vulnerability details in the results view.
+The pieces of the vulnerability detail page. The page itself is `../VulnDetails.vue`.
 
 ## Components
 
-- `VulnSecurityAnalysis.vue`: Shows severity breakdown and recommendations.
-- `VulnReferences.vue`: Displays references for a vulnerability.
-- `VulnerabilitySeverities.vue`: Renders severity details and charts.
-- `VulnDetailsHeader.vue`: Header for vulnerability details.
-- `VulnDetailsLoader.vue`: Loader/skeleton for details view.
-- `VulnSummaryContent.vue`: Summary and content for a vulnerability.
+- `VulnDetailsHeader.vue`: affected versions of the dependency, and what each source says when they disagree.
+- `VulnDetailsLoader.vue`: skeleton shown while the vulnerability loads.
+- `VulnSummaryContent.vue`: description and weaknesses (CWE).
+- `VulnerabilitySeverities.vue`: CVSS scores and metrics, one tab per CVSS version.
+- `VulnReferences.vue`: links to advisories and other references.
 
 ## Types
 
-- `VulnDetails.types.ts`: TypeScript types for vulnerability details.
+- `VulnDetails.types.ts`: the `VulnerabilityDetails` model and its parts.
+- `VulnDetails.ts`: re-exports those types, with `VulnerabilityDetails` as the default export.
 
 ## Usage
 
-Import components or types from the index:
+`index.ts` exports the components and types:
 
 ```ts
-import { VulnSecurityAnalysis, VulnDetailsHeader } from "./VulnDetails";
+import {
+  VulnDetailsHeader,
+  type VulnerabilityDetails,
+} from "@/codeclarity_components/results/vulnerabilities/VulnDetails";
 ```
-
-## Contribution
-
-- Keep components focused and modular.
-- Add new components/types to the index.
-- Update this README with any changes.

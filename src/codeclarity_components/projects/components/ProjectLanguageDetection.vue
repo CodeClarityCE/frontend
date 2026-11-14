@@ -2,144 +2,72 @@
 import { Icon } from "@iconify/vue";
 import { onMounted, type Ref, ref } from "vue";
 
-import LanguageBadge from "@/base_components/ui/LanguageBadge.vue";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
-import Skeleton from "@/shadcn/ui/skeleton/Skeleton.vue";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
-import { useProjectsMainStore } from "@/stores/StateStore";
+import { useUserStore } from "@/stores/user";
 import {
   type DetectedLanguage,
   LanguageDetectionService,
 } from "@/utils/languageDetection";
 
-const props = defineProps<{
-  project: Project;
-  size?: "sm" | "md" | "lg";
-  variant?: "default" | "minimal";
-}>();
+// The languages found by the project's latest completed analysis.
+const props = defineProps<{ project: Project }>();
 
-// Stores
 const authStore = useAuthStore();
-const viewState = useProjectsMainStore();
-
-// State
-const detectedLanguages: Ref<DetectedLanguage[]> = ref([]);
-const loading: Ref<boolean> = ref(false);
-const error: Ref<boolean> = ref(false);
-
-// Service
+const userStore = useUserStore();
 const languageDetectionService = new LanguageDetectionService();
 
+const languages: Ref<DetectedLanguage[]> = ref([]);
+const loading = ref(false);
+const analysed = ref(false);
+const failed = ref(false);
+
 async function detectLanguages(): Promise<void> {
-  if (!authStore.getAuthenticated || !authStore.getToken || !viewState.orgId)
-    return;
-  if (!props.project.analyses || props.project.analyses.length === 0) return;
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !authStore.getToken) return;
 
-  // Get the most recent completed analysis
-  const recentAnalysis =
-    languageDetectionService.getMostRecentCompletedAnalysis(
-      props.project.analyses,
-    );
-  if (!recentAnalysis) return;
+  const recent = languageDetectionService.getMostRecentCompletedAnalysis(
+    props.project.analyses ?? [],
+  );
+  if (!recent) return;
 
+  analysed.value = true;
   loading.value = true;
-  error.value = false;
-
   try {
-    const languages = await languageDetectionService.detectProjectLanguages(
-      viewState.orgId,
+    languages.value = await languageDetectionService.detectProjectLanguages(
+      orgId,
       props.project.id,
-      recentAnalysis,
+      recent,
       authStore.getToken,
     );
-    detectedLanguages.value = languages;
-  } catch (err) {
-    console.error("Failed to detect languages:", err);
-    error.value = true;
+  } catch {
+    failed.value = true;
   } finally {
     loading.value = false;
   }
 }
 
-onMounted(() => {
-  void detectLanguages();
-});
+onMounted(() => void detectLanguages());
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
-    <!-- Loading state -->
-    <div v-if="loading" class="flex items-center gap-2">
-      <Skeleton
-        :class="{
-          'h-5 w-16': size === 'sm' || !size,
-          'h-6 w-20': size === 'md',
-          'h-7 w-24': size === 'lg',
-        }"
-      />
-      <Skeleton
-        :class="{
-          'h-5 w-12': size === 'sm' || !size,
-          'h-6 w-16': size === 'md',
-          'h-7 w-20': size === 'lg',
-        }"
-      />
-    </div>
-
-    <!-- Error state -->
-    <div v-else-if="error" class="flex items-center gap-1 text-gray-400">
-      <Icon
-        icon="solar:question-circle-linear"
-        :class="{
-          'h-3 w-3': size === 'sm' || !size,
-          'h-4 w-4': size === 'md',
-          'h-5 w-5': size === 'lg',
-        }"
-      />
-      <span
-        :class="{
-          'text-xs': size === 'sm' || !size,
-          'text-sm': size === 'md',
-          'text-base': size === 'lg',
-        }"
-      >
-        Unknown
-      </span>
-    </div>
-
-    <!-- No languages detected -->
-    <div
-      v-else-if="detectedLanguages.length === 0"
-      class="flex items-center gap-1 text-gray-400"
+  <span v-if="loading" role="status" aria-label="Detecting languages">
+    <Skeleton class="h-4 w-20" />
+  </span>
+  <span v-else-if="failed" class="text-muted-foreground">Unknown</span>
+  <span v-else-if="!analysed" class="text-muted-foreground">Not analysed</span>
+  <span v-else-if="languages.length === 0" class="text-muted-foreground">
+    None found
+  </span>
+  <span v-else class="flex flex-wrap items-center gap-3">
+    <span
+      v-for="language in languages"
+      :key="language.name"
+      class="inline-flex items-center gap-1.5"
     >
-      <Icon
-        icon="solar:code-square-linear"
-        :class="{
-          'h-3 w-3': size === 'sm' || !size,
-          'h-4 w-4': size === 'md',
-          'h-5 w-5': size === 'lg',
-        }"
-      />
-      <span
-        :class="{
-          'text-xs': size === 'sm' || !size,
-          'text-sm': size === 'md',
-          'text-base': size === 'lg',
-        }"
-      >
-        No analysis
-      </span>
-    </div>
-
-    <!-- Detected languages -->
-    <div v-else class="flex items-center gap-1.5">
-      <LanguageBadge
-        v-for="language in detectedLanguages"
-        :key="language.name"
-        :language="language"
-        :size="size"
-        :variant="variant"
-      />
-    </div>
-  </div>
+      <Icon :icon="language.icon" aria-hidden="true" class="size-4" />
+      {{ language.name }}
+    </span>
+  </span>
 </template>

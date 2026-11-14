@@ -1,46 +1,24 @@
 <script setup lang="ts">
-import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
-import TextLoader from "@/base_components/ui/loaders/TextLoader.vue";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 </script>
 
 <template>
-  <div class="loader-container">
-    <!-- Header skeleton -->
-    <div class="loader-header">
-      <BoxLoader :dimensions="{ width: '30%', height: '40px' }" />
-      <TextLoader style="max-width: 50%" />
+  <div
+    role="status"
+    aria-label="Loading the dependency"
+    class="flex flex-col gap-8"
+  >
+    <div class="flex flex-col gap-3">
+      <Skeleton class="h-9 w-1/3" />
+      <Skeleton class="h-5 w-1/4" />
     </div>
-
-    <!-- Summary bar skeleton -->
-    <BoxLoader :dimensions="{ width: '100%', height: '48px' }" />
-
-    <!-- Tab bar skeleton -->
-    <div class="loader-tabs">
-      <BoxLoader :dimensions="{ width: '100px', height: '32px' }" />
-      <BoxLoader :dimensions="{ width: '140px', height: '32px' }" />
-      <BoxLoader :dimensions="{ width: '80px', height: '32px' }" />
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <Skeleton v-for="i in 5" :key="i" class="h-24 rounded-card" />
     </div>
-
-    <!-- Tab content skeleton -->
-    <BoxLoader :dimensions="{ width: '100%', height: '400px' }" />
+    <div class="grid gap-6 lg:grid-cols-2">
+      <Skeleton class="h-56 rounded-card" />
+      <Skeleton class="h-56 rounded-card" />
+    </div>
+    <Skeleton class="h-96 rounded-card" />
   </div>
 </template>
-
-<style scoped>
-.loader-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.loader-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.loader-tabs {
-  display: flex;
-  gap: 0.5rem;
-}
-</style>

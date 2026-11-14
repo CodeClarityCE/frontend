@@ -47,7 +47,10 @@ export function useDashboardData(): {
   state.page = "home";
 
   // Simple reactive state
-  const isLoading = ref(false);
+  // Starts loading when it can, so the empty state never flashes first.
+  const isLoading = ref(
+    !!(defaultOrg?.value && auth.getAuthenticated && auth.getToken),
+  );
   const hasError = ref(false);
   const orgData = ref<OrganizationMetaData | null>(null);
   const integrations = ref<Integration[]>([]);
@@ -132,9 +135,8 @@ export function useDashboardData(): {
       ) {
         hasError.value = true;
       }
-    } catch (error) {
+    } catch {
       hasError.value = true;
-      console.error("Dashboard data loading failed:", error);
     } finally {
       isLoading.value = false;
     }

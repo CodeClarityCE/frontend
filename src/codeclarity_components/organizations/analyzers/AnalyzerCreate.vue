@@ -1,13 +1,10 @@
 <script lang="ts" setup>
-import { toTypedSchema } from "@vee-validate/zod";
+import { ArrowLeft, LoaderCircle } from "@lucide/vue";
 import type { Edge } from "@vue-flow/core";
-import { storeToRefs } from "pinia";
-import { Form } from "vee-validate";
 import { type Ref, ref } from "vue";
-import { useRoute } from "vue-router";
+import { RouterLink } from "vue-router";
 
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import { PluginRepository } from "@/codeclarity_components/organizations/analyzers/PluginRepository";
@@ -18,9 +15,15 @@ import {
 } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import router from "@/router";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/shadcn/ui/card";
 import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { errorToast, successToast } from "@/utils/toasts";
 import {
   type AnalyzerNode,
   type ConfigNode,
@@ -33,29 +36,20 @@ import type { AnalyzerTemplate } from "./AnalyzerTemplatesRepository";
 import AnalyzerFormFields from "./shared/AnalyzerFormFields.vue";
 import AnalyzerTemplateSelector from "./shared/AnalyzerTemplateSelector.vue";
 import { initializeDefaultNodes } from "./shared/analyzerUtils";
-import { analyzerValidationSchema } from "./shared/analyzerValidation";
+import { useAnalyzerForm } from "./shared/useAnalyzerForm";
 import WorkflowDesigner from "./shared/WorkflowDesigner.vue";
 
-const orgId: Ref<string> = ref("");
-const orgInfo: Ref<Organization | undefined> = ref();
+const props = defineProps<{
+  page?: string;
+  orgId: string;
+}>();
 
-// Repositories
-const analyzerRepo: AnalyzerRepository = new AnalyzerRepository();
-const pluginRepo: PluginRepository = new PluginRepository();
-
-// Store setup
-const userStore = useUserStore();
+const analyzerRepo = new AnalyzerRepository();
+const pluginRepo = new PluginRepository();
 const authStore = useAuthStore();
 
-const { defaultOrg } = storeToRefs(userStore);
-
-// Error Handling
-const error: Ref<boolean> = ref(false);
-const errorCode: Ref<string> = ref("");
-
-// Form Data
-const name: Ref<string> = ref("");
-const description: Ref<string> = ref("");
+const { name, description, shownErrors, isValid, submitted } =
+  useAnalyzerForm();
 const selectedTemplate: Ref<AnalyzerTemplate | null> = ref(null);
 const supportedLanguages: Ref<string[]> = ref(["javascript"]);
 const languageConfig: Ref<Record<string, { plugins: string[] }>> = ref({});
@@ -63,192 +57,149 @@ const logo: Ref<string> = ref("js");
 const plugins: Ref<Plugin[]> = ref([]);
 const nodes: Ref<(AnalyzerNode | ConfigNode)[]> = ref([]);
 const edges: Ref<Edge[]> = ref([]);
+const submitting = ref(false);
 
-// Form Validation
-const formValidationSchema = toTypedSchema(analyzerValidationSchema);
+const listRoute = {
+  name: "orgs",
+  params: { action: "manage", page: "analyzers", orgId: props.orgId },
+};
 
-function setOrgInfo(_orgInfo: Organization): void {
-  orgInfo.value = _orgInfo;
-  if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
+// Only admins manage analyzers; others go back to the organisation overview.
+function setOrgInfo(orgInfo: Organization): void {
+  if (!isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)) {
     void router.push({
-      name: "orgManage",
-      params: { page: "", orgId: _orgInfo.id },
+      name: "orgs",
+      params: { action: "manage", page: "main", orgId: orgInfo.id },
     });
   }
 }
 
-// Methods
+function setNodes(next: AnalyzerNode[]): void {
+  nodes.value = layoutNodes(next);
+  edges.value = createEdgesFromNodes(next);
+}
+
+// A template fills in the form and replaces the workflow.
 function onTemplateChanged(template: AnalyzerTemplate): void {
-  // Update form fields based on selected template
   name.value = template.name;
   description.value = template.description;
   supportedLanguages.value = [...template.supported_languages];
   languageConfig.value = { ...template.language_config };
   logo.value = template.logo;
-
-  // Update workflow nodes and edges based on template
-  if (template.steps && template.steps.length > 0) {
-    // Convert template steps to nodes
-    const templateNodes = initializeDefaultNodes(plugins.value, template.steps);
-    if (templateNodes.length > 0) {
-      nodes.value = templateNodes;
-      edges.value = createEdgesFromNodes(templateNodes);
-      nodes.value = layoutNodes(nodes.value);
-    }
-  }
+  const templateNodes = initializeDefaultNodes(plugins.value, template.steps);
+  if (templateNodes.length > 0) setNodes(templateNodes);
 }
 
 async function submit(): Promise<void> {
-  const arr = retrieveWorkflowSteps(nodes.value, edges.value);
+  submitted.value = true;
+  if (!isValid.value || !authStore.getToken || submitting.value) return;
 
+  submitting.value = true;
   try {
-    const resp = await analyzerRepo.createAnalyzer({
-      orgId: defaultOrg!.value!.id,
+    await analyzerRepo.createAnalyzer({
+      orgId: props.orgId,
       data: {
-        name: name.value,
-        description: description.value,
-        steps: arr,
+        name: name.value.trim(),
+        description: description.value.trim(),
+        steps: retrieveWorkflowSteps(nodes.value, edges.value),
         supported_languages: supportedLanguages.value,
         language_config: languageConfig.value,
         logo: logo.value,
       },
-      bearerToken: authStore.getToken ?? "",
+      bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
     });
-    console.error(resp);
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
+    successToast(`Created ${name.value.trim()}`);
+    void router.push(listRoute);
+  } catch {
+    errorToast("Failed to create the analyzer");
   } finally {
-    router.back();
+    submitting.value = false;
   }
 }
 
 async function init(): Promise<void> {
-  const route = useRoute();
-  const _orgId = route.params.orgId;
-
-  if (!_orgId) {
-    router.back();
-  }
-
-  if (!authStore.getToken) {
-    throw new Error("No default org selected");
-  }
-
-  if (typeof _orgId === "string") {
-    orgId.value = _orgId;
-  } else {
-    router.back();
-  }
-
+  if (!authStore.getToken) return;
   try {
     const resp = await pluginRepo.geAllPlugins({
       bearerToken: authStore.getToken,
     });
     plugins.value = resp.data;
-
-    // Initialize with default nodes
-    const defaultNodes = initializeDefaultNodes(plugins.value);
-
-    if (defaultNodes.length > 0) {
-      nodes.value = defaultNodes;
-      edges.value = createEdgesFromNodes(defaultNodes);
-      nodes.value = layoutNodes(nodes.value);
-    } else {
-      nodes.value = [];
-      edges.value = [];
-    }
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
-    }
+    setNodes(initializeDefaultNodes(plugins.value));
+  } catch {
+    errorToast("Failed to load the plugins");
   }
 }
 
 void init();
 </script>
 <template>
-  <div class="min-h-screen bg-slate-50">
-    <!-- Page Header -->
-    <HeaderItem
-      v-if="orgId"
-      :org-id="orgId"
-      @on-org-info="setOrgInfo($event)"
-    />
+  <div class="flex flex-col gap-8">
+    <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo" />
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Unified Analyzer Creation Card -->
-      <InfoCard
-        title="Create Analyzer"
-        description="Define your analyzer details and build the analysis workflow"
-        icon="solar:settings-bold"
-        variant="primary"
-        class="shadow-lg"
+    <div class="flex flex-col gap-3">
+      <RouterLink
+        :to="listRoute"
+        class="inline-flex w-fit items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <Form
-          id="form"
-          class="space-y-8"
-          :validation-schema="formValidationSchema"
-          @submit="submit"
-        >
-          <!-- Template Selection Section -->
+        <ArrowLeft aria-hidden="true" class="size-4" />
+        Analyzers
+      </RouterLink>
+      <PageHeading
+        description="Pick a template or start from scratch, then shape the workflow of plugins it runs."
+      >
+        New <BrandEmphasis>analyzer</BrandEmphasis>
+      </PageHeading>
+    </div>
+
+    <form class="flex flex-col gap-6" novalidate @submit.prevent="submit">
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h2 class="text-lg font-semibold text-foreground-strong">Details</h2>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-6">
           <AnalyzerTemplateSelector
             v-model:selected-template="selectedTemplate"
             @template-changed="onTemplateChanged"
           />
-
-          <!-- Basic Information Section -->
           <AnalyzerFormFields
             v-model:name="name"
             v-model:description="description"
-            v-model:supported-languages="supportedLanguages"
-            v-model:logo="logo"
+            :errors="shownErrors"
           />
+        </CardContent>
+      </Card>
 
-          <!-- Workflow Designer Section -->
+      <Card class="rounded-card shadow-card">
+        <CardHeader>
+          <h2 class="text-lg font-semibold text-foreground-strong">Workflow</h2>
+          <CardDescription>
+            Right-click the canvas to add a plugin. Select a plugin and press
+            Delete to remove it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <WorkflowDesigner
             v-model:nodes="nodes"
             v-model:edges="edges"
             :plugins="plugins"
           />
+        </CardContent>
+      </Card>
 
-          <!-- Security Note and Submit Buttons -->
-          <div class="space-y-4">
-            <div class="flex justify-end space-x-3">
-              <button
-                type="button"
-                class="px-4 py-2 border border-slate-300/60 text-theme-gray hover:bg-slate-50 rounded-lg transition-colors duration-200 font-medium"
-                @click="$router.back()"
-              >
-                Cancel
-              </button>
-              <LoadingSubmitButton
-                ref="loadingButtonRef"
-                class="px-6 py-2 bg-linear-to-r from-theme-primary to-green-600 hover:from-theme-primary/90 hover:to-green-600/90 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
-                <span>Create Analyzer</span>
-              </LoadingSubmitButton>
-            </div>
-          </div>
-        </Form>
-      </InfoCard>
-    </div>
+      <div class="flex justify-end gap-3">
+        <Button :as="RouterLink" :to="listRoute" variant="outline">
+          Cancel
+        </Button>
+        <Button type="submit" :disabled="submitting">
+          <LoaderCircle
+            v-if="submitting"
+            aria-hidden="true"
+            class="animate-spin motion-reduce:animate-none"
+          />
+          Create analyzer
+        </Button>
+      </div>
+    </form>
   </div>
 </template>

@@ -1,250 +1,213 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
-import { type Ref, ref, watch } from "vue";
+import { LogOut, Plus, Trash2 } from "@lucide/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
+import { onMounted, ref } from "vue";
+import { RouterLink } from "vue-router";
 
-import SearchBar from "@/base_components/filters/SearchBar.vue";
-import InfoCard from "@/base_components/ui/cards/InfoCard.vue";
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-import Pagination from "@/base_components/utilities/PaginationComponent.vue";
+import { DataTable } from "@/base_components/data-table";
+import {
+  BrandEmphasis,
+  OwlEmptyState,
+  PageHeading,
+} from "@/base_components/page";
+import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import type { OrganizationMembership } from "@/codeclarity_components/organizations/organization_membership.entity";
-import Button from "@/shadcn/ui/button/Button.vue";
+import OrgActionDialog from "@/codeclarity_components/organizations/subcomponents/OrgActionDialog.vue";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { formatDate } from "@/utils/dateUtils";
 
-import OrgListItem from "./ListItem.vue";
+/** The API's largest page; every membership is loaded so the table can sort and filter them all */
+const FETCH_PAGE_SIZE = 100;
 
-const search = ref("");
-const placeholder = "Search by organization name or role";
+const roleLabels: Record<MemberRole, string> = {
+  [MemberRole.OWNER]: "Owner",
+  [MemberRole.ADMIN]: "Admin",
+  [MemberRole.MODERATOR]: "Moderator",
+  [MemberRole.USER]: "Member",
+};
+
 const authStore = useAuthStore();
-const loading: Ref<boolean> = ref(true);
-const totalEntries: Ref<number> = ref(0);
-const totalPages: Ref<number> = ref(0);
-const currentPage: Ref<number> = ref(0);
-const entriesPerPage: Ref<number> = ref(10);
-const errorCode: Ref<string> = ref("");
-const error: Ref<boolean> = ref(false);
 const orgRepo = new OrgRepository();
-const memberships: Ref<OrganizationMembership[]> = ref([]);
 
-async function fetch(refresh = false): Promise<void> {
-  errorCode.value = "";
-  error.value = false;
-  if (authStore.getAuthenticated && authStore.getToken) {
-    if (!refresh) loading.value = true;
-    try {
-      const _memberships = await orgRepo.getMany({
+const memberships = ref<OrganizationMembership[]>([]);
+const loaded = ref(false);
+const hasError = ref(false);
+
+const dialogOpen = ref(false);
+const pending = ref<{
+  action: "leave" | "delete";
+  id: string;
+  name: string;
+} | null>(null);
+
+const columns: ColumnDef<OrganizationMembership, unknown>[] = [
+  { id: "name", accessorFn: (m) => m.organization.name, header: "Name" },
+  {
+    id: "role",
+    accessorFn: (m) => roleLabels[m.organization.role] ?? "Member",
+    header: "Your role",
+  },
+  {
+    id: "members",
+    accessorFn: (m) => m.organization.number_of_members,
+    header: "Members",
+    enableGlobalFilter: false,
+  },
+  {
+    id: "joined",
+    accessorFn: (m) => new Date(m.organization.joined_on).getTime(),
+    header: "Joined",
+    enableGlobalFilter: false,
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    enableSorting: false,
+    enableGlobalFilter: false,
+  },
+];
+
+async function load(): Promise<void> {
+  if (!authStore.getToken) return;
+  try {
+    const all: OrganizationMembership[] = [];
+    for (let page = 0; ; page++) {
+      const response = await orgRepo.getMany({
         bearerToken: authStore.getToken,
         handleBusinessErrors: true,
-        pagination: {
-          page: currentPage.value,
-          entries_per_page: entriesPerPage.value,
-        },
+        pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       });
-      memberships.value = _memberships.data;
-      totalEntries.value = _memberships.total_entries;
-      totalPages.value = _memberships.total_pages;
-    } catch (_error) {
-      error.value = true;
-      if (_error instanceof BusinessLogicError) {
-        errorCode.value = _error.error_code;
-      }
-    } finally {
-      if (!refresh) loading.value = false;
+      all.push(...response.data);
+      if (page + 1 >= response.total_pages) break;
     }
+    memberships.value = all;
+    hasError.value = false;
+  } catch {
+    hasError.value = true;
+  } finally {
+    loaded.value = true;
   }
 }
 
-function refresh(): void {
-  void fetch(true);
+function ask(action: "leave" | "delete", m: OrganizationMembership): void {
+  pending.value = { action, id: m.organization.id, name: m.organization.name };
+  dialogOpen.value = true;
 }
 
-watch([search, currentPage], async () => {
-  await fetch(true);
-});
-
-void fetch();
+onMounted(() => void load());
 </script>
+
 <template>
-  <div class="space-y-6">
-    <!-- Statistics Cards Row -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <StatCard
-        label="Total Organizations"
-        :value="totalEntries"
-        icon="solar:buildings-3-bold-duotone"
-        variant="primary"
-      />
-      <StatCard
-        label="Your Memberships"
-        :value="memberships.length"
-        icon="solar:users-group-rounded-bold-duotone"
-        variant="default"
-      />
-      <StatCard
-        label="Active Projects"
-        :value="24"
-        icon="solar:code-square-bold-duotone"
-        variant="success"
-        subtitle="All organizations"
-      />
-    </div>
+  <PageHeading
+    description="The organisations you belong to. Each one has its own projects, members and settings."
+  >
+    <BrandEmphasis>Organisations</BrandEmphasis>
+    <template #actions>
+      <Button
+        :as="RouterLink"
+        :to="{ name: 'orgs', params: { action: 'add' } }"
+      >
+        <Plus aria-hidden="true" />
+        New organisation
+      </Button>
+    </template>
+  </PageHeading>
 
-    <!-- Quick Actions Card -->
-    <InfoCard
-      title="Quick Actions"
-      description="Manage your organizations and create new ones"
-      icon="solar:widget-4-bold-duotone"
-      variant="primary"
+  <Alert v-if="hasError" variant="destructive">
+    <AlertDescription class="flex items-center justify-between gap-4">
+      The organisations could not be loaded.
+      <Button size="sm" variant="outline" @click="load()">Try again</Button>
+    </AlertDescription>
+  </Alert>
+
+  <OwlEmptyState
+    v-else-if="loaded && memberships.length === 0"
+    title="No organisations yet"
+    description="An organisation groups projects, members, integrations and policies."
+  >
+    <Button
+      :as="RouterLink"
+      :to="{ name: 'orgs', params: { action: 'add' } }"
+      arrow
     >
-      <template #actions>
+      Create an organisation
+    </Button>
+  </OwlEmptyState>
+
+  <DataTable
+    v-else
+    :columns="columns"
+    :data="memberships"
+    :loading="!loaded"
+    :row-key="(m: OrganizationMembership) => m.organization.id"
+    caption="Organisations"
+    filter-label="Filter organisations"
+    empty-text="No organisations match."
+    row-testid="org-row"
+  >
+    <template #cell-name="{ row }">
+      <div class="flex flex-col">
         <RouterLink
-          :to="{ name: 'orgs', params: { action: 'add', page: 'main' } }"
+          :to="{
+            name: 'orgs',
+            params: {
+              action: 'manage',
+              page: 'main',
+              orgId: row.organization.id,
+            },
+          }"
+          class="w-fit rounded-sm font-semibold text-foreground-strong underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <Button
-            class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-          >
-            <Icon icon="solar:add-circle-bold-duotone" class="h-4 w-4 mr-2" />
-            Create Organization
-          </Button>
+          {{ row.organization.name }}
         </RouterLink>
-      </template>
-      <div class="mt-4">
-        <p class="text-sm text-theme-gray">
-          Start by creating your first organization to manage projects, invite
-          team members, and set up security policies.
-        </p>
+        <span
+          v-if="row.organization.personal"
+          class="text-xs text-muted-foreground"
+        >
+          Personal
+        </span>
       </div>
-    </InfoCard>
-
-    <!-- Search Section -->
-    <InfoCard
-      title="Search Organizations"
-      description="Find organizations by name or your role"
-      icon="solar:magnifer-bold-duotone"
-    >
-      <div class="mt-4">
-        <SearchBar
-          v-model:search-key="search"
-          :placeholder="placeholder"
-          class="w-full"
-        />
-      </div>
-    </InfoCard>
-
-    <!-- Organizations List -->
-    <div v-if="!loading">
-      <Pagination
-        v-model:page="currentPage"
-        v-model:nmb-entries-showing="entriesPerPage"
-        v-model:nmb-entries-total="totalEntries"
-        v-model:total-pages="totalPages"
-      >
-        <template #content>
-          <!-- Empty State -->
-          <InfoCard
-            v-if="memberships.length === 0"
-            title="No organizations found"
-            description="You don't have any organizations yet or no organizations match your search"
-            icon="solar:buildings-3-bold-duotone"
-            variant="default"
-          >
-            <template #actions>
-              <RouterLink
-                :to="{ name: 'orgs', params: { action: 'add', page: 'main' } }"
-              >
-                <Button
-                  class="bg-theme-primary hover:bg-theme-primary-dark text-white"
-                >
-                  <Icon
-                    icon="solar:add-circle-bold-duotone"
-                    class="h-4 w-4 mr-2"
-                  />
-                  Create your first organization
-                </Button>
-              </RouterLink>
-            </template>
-            <div class="mt-4 text-center">
-              <div
-                class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <Icon
-                  icon="solar:buildings-3-bold-duotone"
-                  class="text-3xl text-gray-400"
-                />
-              </div>
-              <p class="text-theme-gray">
-                Organizations help you manage your projects, team members, and
-                security settings in one place.
-              </p>
-            </div>
-          </InfoCard>
-
-          <!-- Organizations Grid -->
-          <div
-            v-else
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          >
-            <OrgListItem
-              v-for="membership in memberships"
-              :key="membership.organization.id"
-              :membership="membership"
-              @refresh="refresh()"
-            />
-          </div>
-        </template>
-      </Pagination>
-    </div>
-
-    <!-- Loading State -->
-    <div
-      v-if="loading"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-    >
-      <div
-        v-for="i in 8"
-        :key="i"
-        class="bg-white border border-gray-200 rounded-lg p-6 animate-pulse shadow-sm"
-      >
-        <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div class="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div class="h-20 bg-gray-200 rounded mb-4"></div>
-        <div class="h-8 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <InfoCard
-      v-if="error"
-      title="Failed to load organizations"
-      description="We encountered an error while loading your organizations"
-      icon="solar:danger-triangle-bold-duotone"
-      variant="danger"
-    >
-      <template #actions>
+    </template>
+    <template #cell-members="{ row }">
+      <span class="tabular-nums">{{ row.organization.number_of_members }}</span>
+    </template>
+    <template #cell-joined="{ row }">
+      {{ formatDate(row.organization.joined_on, "MMM DD, YYYY") }}
+    </template>
+    <template #cell-actions="{ row }">
+      <div v-if="!row.organization.personal" class="flex gap-2">
         <Button
+          size="sm"
           variant="outline"
-          class="border-red-500 text-red-600 hover:bg-red-50"
-          @click="fetch()"
+          :aria-label="`Leave ${row.organization.name}`"
+          @click="ask('leave', row)"
         >
-          <Icon icon="solar:refresh-bold-duotone" class="h-4 w-4 mr-2" />
-          Try again
+          <LogOut aria-hidden="true" />
+          Leave
         </Button>
-      </template>
-      <div class="mt-4 text-center">
-        <div
-          class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        <Button
+          v-if="row.organization.role === MemberRole.OWNER"
+          size="sm"
+          variant="destructive"
+          :aria-label="`Delete ${row.organization.name}`"
+          @click="ask('delete', row)"
         >
-          <Icon
-            icon="solar:danger-triangle-bold-duotone"
-            class="text-3xl text-red-600"
-          />
-        </div>
-        <p class="text-theme-gray">
-          Please check your connection and try again. If the problem persists,
-          contact support.
-        </p>
+          <Trash2 aria-hidden="true" />
+          Delete
+        </Button>
       </div>
-    </InfoCard>
-  </div>
+    </template>
+  </DataTable>
+
+  <OrgActionDialog
+    v-if="pending"
+    v-model:open="dialogOpen"
+    :action="pending.action"
+    :org-id="pending.id"
+    :org-name="pending.name"
+    @done="load()"
+  />
 </template>

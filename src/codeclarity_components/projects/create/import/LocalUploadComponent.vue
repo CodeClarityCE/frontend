@@ -1,17 +1,16 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import { FileArchive, Upload, X } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { storeToRefs } from "pinia";
 import { useForm } from "vee-validate";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import * as z from "zod";
 
-import { InfoCard } from "@/base_components";
 import { FileRepository } from "@/codeclarity_components/file/file.repository";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import router from "@/router";
-import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
 import {
   Card,
   CardContent,
@@ -19,19 +18,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shadcn/ui/card";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/shadcn/ui/form";
-import Input from "@/shadcn/ui/input/Input.vue";
+import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
 import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { filterUndefined } from "@/utils/form/filterUndefined";
 import { errorToast, successToast } from "@/utils/toasts";
 
 // Repositories
@@ -57,12 +48,9 @@ const ALLOWED_EXTENSIONS = [".zip", ".tar.gz", ".tgz"];
 const formSchema = z.object({
   name: z
     .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name must be less than 100 characters"),
-  description: z
-    .string()
-    .max(500, "Description must be less than 500 characters")
-    .optional(),
+    .min(2, "A name of at least 2 characters is required")
+    .max(100, "At most 100 characters"),
+  description: z.string().max(500, "At most 500 characters").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -74,6 +62,11 @@ const form = useForm<FormValues>({
     description: "",
   },
 });
+const [name] = form.defineField("name");
+const [description] = form.defineField("description");
+const nameError = computed(() => form.errors.value.name);
+const descriptionError = computed(() => form.errors.value.description);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 // File validation
 function isValidFile(file: File): boolean {
@@ -188,7 +181,6 @@ const onSubmit = form.handleSubmit(async (values) => {
     // Navigate to projects list
     void router.push({ name: "projects" });
   } catch (err) {
-    console.error("Upload error:", err);
     uploadError.value =
       err instanceof Error
         ? err.message
@@ -199,207 +191,139 @@ const onSubmit = form.handleSubmit(async (values) => {
   }
 });
 
-// Open file picker
-function openFilePicker(): void {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ALLOWED_EXTENSIONS.join(",");
-  input.onchange = handleFileSelect;
-  input.click();
+// Clears the native input too, so the same file can be picked again.
+function removeFile(): void {
+  clearFile();
+  if (fileInput.value) fileInput.value.value = "";
 }
 </script>
 
 <template>
-  <main class="min-h-screen bg-white p-6">
-    <div class="space-y-8">
-      <!-- Info Card -->
-      <InfoCard
-        title="Upload Local Project"
-        description="Upload a ZIP or TAR.GZ archive of your project for security analysis"
-        icon="solar:upload-bold"
-        variant="primary"
-      >
-        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div class="flex items-start gap-3">
-            <Icon
-              icon="solar:info-circle-bold"
-              class="h-5 w-5 text-blue-600 mt-0.5"
-            />
-            <div>
-              <p class="font-medium text-blue-800 mb-1">Supported Formats</p>
-              <p class="text-sm text-blue-700">
-                Upload your project as a ZIP (.zip) or TAR.GZ (.tar.gz, .tgz)
-                archive. The archive should contain your project files including
-                package.json or composer.json.
-              </p>
-            </div>
-          </div>
-        </div>
-      </InfoCard>
-
-      <!-- Upload Form -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Details</CardTitle>
-          <CardDescription
-            >Enter the project name and upload your source code
-            archive</CardDescription
+  <Card>
+    <CardHeader>
+      <CardTitle>Project archive</CardTitle>
+      <CardDescription>
+        A ZIP (.zip) or TAR.GZ (.tar.gz, .tgz) archive of the project, with its
+        package.json or composer.json.
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <form class="flex max-w-2xl flex-col gap-6" novalidate @submit="onSubmit">
+        <div class="flex flex-col gap-2">
+          <Label for="upload-name">Name</Label>
+          <Input
+            id="upload-name"
+            v-model="name"
+            :disabled="isUploading"
+            :aria-invalid="nameError ? true : undefined"
+            :aria-describedby="nameError ? 'upload-name-error' : undefined"
+          />
+          <p
+            v-if="nameError"
+            id="upload-name-error"
+            class="text-sm text-destructive"
           >
-        </CardHeader>
-        <CardContent>
-          <form class="space-y-6" @submit="onSubmit">
-            <!-- Project Name -->
-            <FormField v-slot="{ componentField }" name="name">
-              <FormItem>
-                <FormLabel class="text-sm font-medium text-theme-black">
-                  Project Name <span class="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="My Awesome Project"
-                    v-bind="filterUndefined(componentField)"
-                    class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
-                    :disabled="isUploading"
-                  />
-                </FormControl>
-                <FormDescription class="text-xs text-theme-gray">
-                  A descriptive name for your project
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+            {{ nameError }}
+          </p>
+        </div>
 
-            <!-- Project Description -->
-            <FormField v-slot="{ componentField }" name="description">
-              <FormItem>
-                <FormLabel class="text-sm font-medium text-theme-black">
-                  Description
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="A brief description of your project"
-                    v-bind="filterUndefined(componentField)"
-                    class="border-gray-300 focus:ring-1 focus:ring-theme-primary focus:border-theme-primary"
-                    :disabled="isUploading"
-                  />
-                </FormControl>
-                <FormDescription class="text-xs text-theme-gray">
-                  Optional description for your project
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+        <div class="flex flex-col gap-2">
+          <Label for="upload-description">Description (optional)</Label>
+          <Input
+            id="upload-description"
+            v-model="description"
+            :disabled="isUploading"
+            :aria-invalid="descriptionError ? true : undefined"
+            :aria-describedby="
+              descriptionError ? 'upload-description-error' : undefined
+            "
+          />
+          <p
+            v-if="descriptionError"
+            id="upload-description-error"
+            class="text-sm text-destructive"
+          >
+            {{ descriptionError }}
+          </p>
+        </div>
 
-            <!-- File Drop Zone -->
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-theme-black">
-                Project Archive <span class="text-red-500">*</span>
-              </label>
-              <div
-                class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer"
-                :class="[
-                  isDragOver
-                    ? 'border-theme-primary bg-theme-primary/5'
-                    : 'border-gray-300 hover:border-gray-400',
-                  selectedFile ? 'border-green-500 bg-green-50' : '',
-                  isUploading ? 'opacity-50 cursor-not-allowed' : '',
-                ]"
-                @dragover="handleDragOver"
-                @dragleave="handleDragLeave"
-                @drop.prevent="handleDrop"
-                @click="!isUploading && !selectedFile && openFilePicker()"
-              >
-                <!-- No file selected -->
-                <div v-if="!selectedFile" class="space-y-4">
-                  <Icon
-                    icon="solar:upload-bold"
-                    class="h-12 w-12 mx-auto text-gray-400"
-                  />
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">
-                      Drag and drop your project archive here
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">or click to browse</p>
-                  </div>
-                  <p class="text-xs text-gray-400">Supported: ZIP, TAR.GZ</p>
-                </div>
-
-                <!-- File selected -->
-                <div v-else class="space-y-4">
-                  <Icon
-                    icon="solar:file-check-bold"
-                    class="h-12 w-12 mx-auto text-green-500"
-                  />
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">
-                      {{ selectedFile.name }}
-                    </p>
-                    <p class="text-xs text-gray-500">
-                      {{ formatFileSize(selectedFile.size) }}
-                    </p>
-                  </div>
-                  <Button
-                    v-if="!isUploading"
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    @click.stop="clearFile"
-                  >
-                    <Icon icon="solar:trash-bin-2-bold" class="h-4 w-4 mr-2" />
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Upload Progress -->
-            <div v-if="isUploading" class="space-y-2">
-              <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Uploading...</span>
-                <span class="text-theme-primary font-medium"
-                  >{{ uploadProgress }}%</span
-                >
-              </div>
-              <Progress :model-value="uploadProgress" class="h-2" />
-            </div>
-
-            <!-- Error Alert -->
-            <Alert v-if="uploadError" variant="destructive">
-              <Icon icon="solar:danger-triangle-bold" class="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{{ uploadError }}</AlertDescription>
-            </Alert>
-
-            <!-- Submit Button -->
-            <div class="flex gap-3 pt-4">
+        <div class="flex flex-col gap-2">
+          <Label for="upload-file">Archive</Label>
+          <div
+            class="flex flex-col items-center gap-3 rounded-card border-2 border-dashed p-8 text-center transition-colors duration-150 motion-reduce:transition-none"
+            :class="
+              isDragOver ? 'border-primary bg-brand-subtle' : 'border-border'
+            "
+            @dragover="handleDragOver"
+            @dragleave="handleDragLeave"
+            @drop.prevent="handleDrop"
+          >
+            <template v-if="!selectedFile">
+              <Upload aria-hidden="true" class="size-8 text-muted-foreground" />
+              <p class="text-sm text-muted-foreground">
+                Drop the archive here, or choose it.
+              </p>
+              <input
+                id="upload-file"
+                ref="fileInput"
+                type="file"
+                :accept="ALLOWED_EXTENSIONS.join(',')"
+                :disabled="isUploading"
+                class="text-sm file:mr-3 file:rounded-button file:border file:bg-card file:px-3 file:py-1.5 file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                @change="handleFileSelect"
+              />
+            </template>
+            <template v-else>
+              <FileArchive aria-hidden="true" class="size-8 text-success" />
+              <p class="text-sm font-medium text-foreground-strong">
+                {{ selectedFile.name }}
+              </p>
+              <p class="text-xs text-muted-foreground">
+                {{ formatFileSize(selectedFile.size) }}
+              </p>
               <Button
-                type="submit"
-                class="bg-theme-primary hover:bg-theme-primary/90 text-white"
-                :disabled="isUploading || !selectedFile"
-              >
-                <Icon
-                  v-if="isUploading"
-                  icon="solar:spinner-bold"
-                  class="h-4 w-4 mr-2 animate-spin"
-                />
-                <Icon v-else icon="solar:upload-bold" class="h-4 w-4 mr-2" />
-                {{ isUploading ? "Uploading..." : "Create Project & Upload" }}
-              </Button>
-              <Button
+                v-if="!isUploading"
                 type="button"
                 variant="outline"
-                class="border-gray-300 text-gray-700 hover:border-theme-primary hover:text-theme-primary"
-                :disabled="isUploading"
-                @click="router.back()"
+                size="sm"
+                @click="removeFile"
               >
-                Cancel
+                <X aria-hidden="true" />
+                Remove {{ selectedFile.name }}
               </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  </main>
+            </template>
+          </div>
+        </div>
+
+        <div v-if="isUploading" class="flex flex-col gap-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-muted-foreground">Uploading</span>
+            <span class="font-medium tabular-nums">{{ uploadProgress }}%</span>
+          </div>
+          <Progress
+            :model-value="uploadProgress"
+            aria-label="Upload progress"
+          />
+        </div>
+
+        <Alert v-if="uploadError" variant="destructive">
+          <AlertDescription>{{ uploadError }}</AlertDescription>
+        </Alert>
+
+        <div class="flex gap-3">
+          <Button type="submit" :disabled="isUploading || !selectedFile" arrow>
+            {{ isUploading ? "Uploading" : "Create project and upload" }}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            :disabled="isUploading"
+            @click="router.back()"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </CardContent>
+  </Card>
 </template>

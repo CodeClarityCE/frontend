@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { ArrowLeft, LoaderCircle } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
 import {
   IntegrationProvider,
   type VCS,
@@ -9,6 +11,7 @@ import {
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
+import { Card, CardContent } from "@/shadcn/ui/card";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -106,6 +109,13 @@ function errorFor(field: keyof FormErrors): string | undefined {
   return submitted.value ? errors.value[field] : undefined;
 }
 
+/** Links a field to its hint and its error, so screen readers announce both. */
+function describedBy(field: keyof FormErrors, hint?: string): string {
+  return [hint, errorFor(field) ? `dataset-${field}-error` : undefined]
+    .filter(Boolean)
+    .join(" ");
+}
+
 async function loadIntegrations(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken) return;
@@ -187,168 +197,219 @@ onMounted(() => void loadIntegrations());
 </script>
 
 <template>
-  <div class="space-y-8 max-w-3xl">
-    <div>
+  <div class="flex max-w-3xl flex-col gap-8">
+    <div class="flex flex-col gap-3">
       <RouterLink
         :to="{ name: 'datasets' }"
-        class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"
+        class="inline-flex w-fit items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+        <ArrowLeft aria-hidden="true" class="size-4" />
         Datasets
       </RouterLink>
-      <h1 class="text-4xl font-bold tracking-tight text-gray-900 mt-2">
-        New dataset
-      </h1>
-      <p class="text-gray-600 mt-2 text-lg">
-        Rank GitHub repositories by stars and keep the first ones whose root
-        commits a <code>package.json</code> and a lockfile
-        (<code>package-lock.json</code>, <code>yarn.lock</code>,
-        <code>pnpm-lock.yaml</code> or <code>npm-shrinkwrap.json</code>).
-      </p>
+      <PageHeading>
+        New <BrandEmphasis>Dataset</BrandEmphasis>
+        <template #description>
+          Rank GitHub repositories by stars and keep the first ones whose root
+          commits a <code class="font-mono text-sm">package.json</code> and a
+          lockfile (<code class="font-mono text-sm">package-lock.json</code>,
+          <code class="font-mono text-sm">yarn.lock</code>,
+          <code class="font-mono text-sm">pnpm-lock.yaml</code> or
+          <code class="font-mono text-sm">npm-shrinkwrap.json</code>).
+        </template>
+      </PageHeading>
     </div>
 
-    <form
-      class="bg-white rounded-xl border border-gray-200 p-6 space-y-6"
-      novalidate
-      @submit.prevent="submit"
-    >
-      <div class="space-y-2">
-        <Label for="dataset-name">Name</Label>
-        <Input
-          id="dataset-name"
-          v-model="name"
-          placeholder="top100-2026-10"
-          data-testid="dataset-name"
-        />
-        <p v-if="errorFor('name')" class="text-sm text-red-600">
-          {{ errorFor("name") }}
-        </p>
-      </div>
-
-      <div class="space-y-2">
-        <Label>GitHub integration</Label>
-        <p
-          v-if="!loadingIntegrations && integrations.length === 0"
-          class="text-sm text-gray-600"
-        >
-          No valid GitHub integration (an expired token counts as invalid).
-          <RouterLink
-            :to="{
-              name: 'orgs',
-              params: {
-                action: 'manage',
-                page: 'integrations',
-                orgId: userStore.getDefaultOrg?.id,
-              },
-            }"
-            class="underline"
-          >
-            Add one
-          </RouterLink>
-          to build datasets.
-        </p>
-        <Select v-else v-model="integrationId">
-          <SelectTrigger data-testid="dataset-integration">
-            <SelectValue placeholder="Select an integration" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="integration in integrations"
-              :key="integration.id"
-              :value="integration.id"
-            >
-              {{ integration.service_domain }} (added by
-              {{ integration.added_by }})
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <p class="text-sm text-gray-500">
-          Its token is used for every GitHub request of the build.
-        </p>
-        <p v-if="errorFor('integration')" class="text-sm text-red-600">
-          {{ errorFor("integration") }}
-        </p>
-      </div>
-
-      <div class="space-y-2">
-        <Label>Languages</Label>
-        <div class="flex gap-6">
-          <label
-            v-for="language in Object.values(DatasetLanguage)"
-            :key="language"
-            class="flex items-center gap-2 text-sm"
-          >
-            <Checkbox
-              v-model="languages[language]"
-              :data-testid="`dataset-language-${language}`"
+    <Card class="rounded-card shadow-card">
+      <CardContent class="pt-6">
+        <form class="flex flex-col gap-6" novalidate @submit.prevent="submit">
+          <div class="flex flex-col gap-2">
+            <Label for="dataset-name">Name</Label>
+            <Input
+              id="dataset-name"
+              v-model="name"
+              placeholder="top100-2026-10"
+              data-testid="dataset-name"
+              :aria-invalid="errorFor('name') ? true : undefined"
+              :aria-describedby="describedBy('name') || undefined"
             />
-            {{ language }}
-          </label>
-        </div>
-        <p v-if="errorFor('languages')" class="text-sm text-red-600">
-          {{ errorFor("languages") }}
-        </p>
-      </div>
+            <p
+              v-if="errorFor('name')"
+              id="dataset-name-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("name") }}
+            </p>
+          </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="space-y-2">
-          <Label for="dataset-limit">Repositories</Label>
-          <Input
-            id="dataset-limit"
-            v-model="limit"
-            type="number"
-            min="1"
-            :max="MAX_LIMIT"
-            data-testid="dataset-limit"
-          />
-          <p v-if="errorFor('limit')" class="text-sm text-red-600">
-            {{ errorFor("limit") }}
-          </p>
-        </div>
-        <div class="space-y-2">
-          <Label for="dataset-pages">Search pages per language</Label>
-          <Input
-            id="dataset-pages"
-            v-model="pages"
-            type="number"
-            min="1"
-            :max="MAX_PAGES"
-            data-testid="dataset-pages"
-          />
-          <p class="text-xs text-gray-500">100 candidates per page</p>
-          <p v-if="errorFor('pages')" class="text-sm text-red-600">
-            {{ errorFor("pages") }}
-          </p>
-        </div>
-        <div class="space-y-2">
-          <Label for="dataset-min-stars">Minimum stars</Label>
-          <Input
-            id="dataset-min-stars"
-            v-model="minStars"
-            type="number"
-            min="0"
-            data-testid="dataset-min-stars"
-          />
-          <p v-if="errorFor('minStars')" class="text-sm text-red-600">
-            {{ errorFor("minStars") }}
-          </p>
-        </div>
-      </div>
+          <div class="flex flex-col gap-2">
+            <Label for="dataset-integration">GitHub integration</Label>
+            <p
+              v-if="!loadingIntegrations && integrations.length === 0"
+              class="text-sm text-muted-foreground"
+            >
+              No valid GitHub integration (an expired token counts as invalid).
+              <TextLink
+                :to="{
+                  name: 'orgs',
+                  params: {
+                    action: 'manage',
+                    page: 'integrations',
+                    orgId: userStore.getDefaultOrg?.id,
+                  },
+                }"
+              >
+                Add one
+              </TextLink>
+              to build Datasets.
+            </p>
+            <Select v-else v-model="integrationId">
+              <SelectTrigger
+                id="dataset-integration"
+                data-testid="dataset-integration"
+                :aria-invalid="errorFor('integration') ? true : undefined"
+                :aria-describedby="
+                  describedBy('integration', 'dataset-integration-hint')
+                "
+              >
+                <SelectValue placeholder="Select an integration" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="integration in integrations"
+                  :key="integration.id"
+                  :value="integration.id"
+                >
+                  {{ integration.service_domain }} (added by
+                  {{ integration.added_by }})
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p
+              id="dataset-integration-hint"
+              class="text-sm text-muted-foreground"
+            >
+              Its token is used for every GitHub request of the build.
+            </p>
+            <p
+              v-if="errorFor('integration')"
+              id="dataset-integration-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("integration") }}
+            </p>
+          </div>
 
-      <div class="flex justify-end">
-        <Button
-          type="submit"
-          :disabled="submitting"
-          data-testid="dataset-submit"
-        >
-          <Icon
-            v-if="submitting"
-            icon="solar:loading-linear"
-            class="h-4 w-4 mr-2 animate-spin"
-          />
-          Build dataset
-        </Button>
-      </div>
-    </form>
+          <fieldset
+            class="flex flex-col gap-2"
+            :aria-describedby="describedBy('languages') || undefined"
+          >
+            <legend class="mb-2 text-sm font-medium leading-none">
+              Languages
+            </legend>
+            <div class="flex gap-6">
+              <label
+                v-for="language in Object.values(DatasetLanguage)"
+                :key="language"
+                class="flex items-center gap-2 text-sm"
+              >
+                <Checkbox
+                  v-model="languages[language]"
+                  :data-testid="`dataset-language-${language}`"
+                />
+                {{ language }}
+              </label>
+            </div>
+            <p
+              v-if="errorFor('languages')"
+              id="dataset-languages-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("languages") }}
+            </p>
+          </fieldset>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="flex flex-col gap-2">
+              <Label for="dataset-limit">Repositories</Label>
+              <Input
+                id="dataset-limit"
+                v-model="limit"
+                type="number"
+                min="1"
+                :max="MAX_LIMIT"
+                data-testid="dataset-limit"
+                :aria-invalid="errorFor('limit') ? true : undefined"
+                :aria-describedby="describedBy('limit') || undefined"
+              />
+              <p
+                v-if="errorFor('limit')"
+                id="dataset-limit-error"
+                class="text-sm text-destructive"
+              >
+                {{ errorFor("limit") }}
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <Label for="dataset-pages">Search pages per language</Label>
+              <Input
+                id="dataset-pages"
+                v-model="pages"
+                type="number"
+                min="1"
+                :max="MAX_PAGES"
+                data-testid="dataset-pages"
+                :aria-invalid="errorFor('pages') ? true : undefined"
+                :aria-describedby="describedBy('pages', 'dataset-pages-hint')"
+              />
+              <p id="dataset-pages-hint" class="text-xs text-muted-foreground">
+                100 candidates per page
+              </p>
+              <p
+                v-if="errorFor('pages')"
+                id="dataset-pages-error"
+                class="text-sm text-destructive"
+              >
+                {{ errorFor("pages") }}
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <Label for="dataset-min-stars">Minimum stars</Label>
+              <Input
+                id="dataset-min-stars"
+                v-model="minStars"
+                type="number"
+                min="0"
+                data-testid="dataset-min-stars"
+                :aria-invalid="errorFor('minStars') ? true : undefined"
+                :aria-describedby="describedBy('minStars') || undefined"
+              />
+              <p
+                v-if="errorFor('minStars')"
+                id="dataset-minStars-error"
+                class="text-sm text-destructive"
+              >
+                {{ errorFor("minStars") }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <Button
+              type="submit"
+              :disabled="submitting"
+              data-testid="dataset-submit"
+              arrow
+            >
+              <LoaderCircle
+                v-if="submitting"
+                aria-hidden="true"
+                class="animate-spin motion-reduce:animate-none"
+              />
+              Build Dataset
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   </div>
 </template>

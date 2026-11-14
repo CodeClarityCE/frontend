@@ -31,17 +31,19 @@ const mockAuthRepo = {
 };
 
 vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
-  AuthRepository: vi.fn().mockImplementation(() => mockAuthRepo),
+  AuthRepository: vi.fn().mockImplementation(function () {
+    return mockAuthRepo;
+  }),
 }));
 
 // Mock toast
-vi.mock("vue-toast-notification", () => ({
-  useToast: () => ({
+vi.mock("vue-sonner", () => ({
+  toast: {
     success: vi.fn(),
     error: vi.fn(),
     info: vi.fn(),
     warning: vi.fn(),
-  }),
+  },
 }));
 
 describe("Authentication Flow Integration", () => {

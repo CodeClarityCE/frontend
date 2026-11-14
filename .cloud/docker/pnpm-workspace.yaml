@@ -28,8 +28,4 @@ allowBuilds:
   msw: true
   vue-demi: true
   "@nestjs/core": false
-  "@percy/core": false
   "@scarf/scarf": false
-  # transitive under the already-blocked @percy/core; its postinstall only
-  # prints version-scheme warnings, so nothing needs it to run
-  protobufjs: false

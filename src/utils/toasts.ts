@@ -1,25 +1,11 @@
-import { useToast } from "vue-toast-notification";
+import { toast } from "vue-sonner";
 
-import "vue-toast-notification/dist/theme-sugar.css";
-
+// Shows a short success message in the app's sonner toaster.
 export function successToast(text: string): void {
-  const $toast = useToast();
-  const instance = $toast.success(text, {
-    position: "bottom-right",
-    onClick: (): void => {
-      instance.dismiss();
-    },
-    duration: 2000,
-  });
+  toast.success(text, { duration: 2000 });
 }
 
+// Shows a short error message in the app's sonner toaster.
 export function errorToast(text: string): void {
-  const $toast = useToast();
-  const instance = $toast.error(text, {
-    position: "bottom-right",
-    onClick: (): void => {
-      instance.dismiss();
-    },
-    duration: 2000,
-  });
+  toast.error(text, { duration: 2000 });
 }

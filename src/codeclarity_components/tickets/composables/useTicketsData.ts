@@ -1,58 +1,40 @@
 import { storeToRefs } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed, type ComputedRef, type Ref, ref, watch } from "vue";
 
 import { useAuthStore } from "@/stores/auth";
-import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
+import { errorToast } from "@/utils/toasts";
 
 import {
   type TicketDetails,
-  type TicketFilters,
   TicketPriority,
-  type TicketSortField,
   TicketStatus,
   type TicketSummary,
   type VulnerabilityDetailsReport,
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
 
+/** The API's largest page; every ticket is loaded so the table can sort and filter them all. */
+const FETCH_PAGE_SIZE = 100;
+
 export interface UseTicketsDataOptions {
   projectId?: string;
   autoLoad?: boolean;
 }
 
-/**
- * useTicketsData - Tickets data management composable
- *
- * Handles:
- * - Loading paginated tickets list
- * - Filtering and sorting
- * - CRUD operations
- * - Selected ticket detail view
- */
-export function useTicketsData(options: UseTicketsDataOptions = {}): {
-  tickets: import("vue").Ref<TicketSummary[]>;
-  isLoading: import("vue").Ref<boolean>;
-  hasError: import("vue").Ref<boolean>;
-  errorMessage: import("vue").Ref<string | null>;
-  hasTickets: import("vue").ComputedRef<boolean>;
-  isEmpty: import("vue").ComputedRef<boolean>;
-  currentPage: import("vue").Ref<number>;
-  entriesPerPage: import("vue").Ref<number>;
-  totalEntries: import("vue").Ref<number>;
-  totalPages: import("vue").Ref<number>;
-  sortKey: import("vue").Ref<TicketSortField>;
-  sortDirection: import("vue").Ref<"ASC" | "DESC">;
-  filters: import("vue").Ref<TicketFilters>;
-  selectedTicket: import("vue").Ref<TicketDetails | null>;
-  isLoadingDetail: import("vue").Ref<boolean>;
-  vulnerabilityDetails: import("vue").Ref<VulnerabilityDetailsReport | null>;
-  isLoadingVulnDetails: import("vue").Ref<boolean>;
-  viewMode: import("vue").Ref<"list" | "kanban">;
-  ticketsByStatus: import("vue").ComputedRef<
-    Record<TicketStatus, TicketSummary[]>
-  >;
-  quickStats: import("vue").ComputedRef<{
+export interface TicketsData {
+  tickets: Ref<TicketSummary[]>;
+  isLoading: Ref<boolean>;
+  loaded: Ref<boolean>;
+  hasError: Ref<boolean>;
+  isEmpty: ComputedRef<boolean>;
+  selectedTicket: Ref<TicketDetails | null>;
+  isLoadingDetail: Ref<boolean>;
+  vulnerabilityDetails: Ref<VulnerabilityDetailsReport | null>;
+  isLoadingVulnDetails: Ref<boolean>;
+  viewMode: Ref<"list" | "kanban">;
+  ticketsByStatus: ComputedRef<Record<TicketStatus, TicketSummary[]>>;
+  quickStats: ComputedRef<{
     total: number;
     open: number;
     inProgress: number;
@@ -60,84 +42,43 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
     high: number;
   }>;
   loadTickets: () => Promise<void>;
-  loadAllTickets: () => Promise<void>;
   loadTicketDetail: (ticketId: string) => Promise<void>;
-  loadVulnerabilityDetails: (ticketId: string) => Promise<void>;
   updateTicketStatus: (
     ticketId: string,
     newStatus: TicketStatus,
   ) => Promise<boolean>;
-  setFilters: (newFilters: TicketFilters) => void;
-  setSort: (key: TicketSortField, direction?: "ASC" | "DESC") => void;
-  goToPage: (page: number) => void;
-  setViewMode: (mode: "list" | "kanban") => void;
   clearSelectedTicket: () => void;
   refresh: () => void;
-  defaultOrg: import("vue").Ref<
-    | import("@/codeclarity_components/organizations/organization.entity").Organization
-    | undefined
-  >;
-} {
-  // Store setup
-  const state = useStateStore();
+}
+
+/** Loads every ticket of the organisation (or one project) and the selected ticket. */
+export function useTicketsData(
+  options: UseTicketsDataOptions = {},
+): TicketsData {
   const { defaultOrg } = storeToRefs(useUserStore());
   const auth = useAuthStore();
-
-  state.$reset();
-  state.page = "tickets";
-
-  // Repository
   const ticketsRepository = new TicketsRepository();
 
-  // ============================================
-  // Reactive State
-  // ============================================
-
-  // List state
   const tickets = ref<TicketSummary[]>([]);
   const isLoading = ref(false);
+  const loaded = ref(false);
   const hasError = ref(false);
-  const errorMessage = ref<string | null>(null);
 
-  // Pagination
-  const currentPage = ref(0);
-  const entriesPerPage = ref(20);
-  const totalEntries = ref(0);
-  const totalPages = ref(0);
-
-  // Sorting
-  const sortKey = ref<TicketSortField>("created_on");
-  const sortDirection = ref<"ASC" | "DESC">("DESC");
-
-  // Filters
-  const filters = ref<TicketFilters>({});
-
-  // Selected ticket
   const selectedTicket = ref<TicketDetails | null>(null);
   const isLoadingDetail = ref(false);
-
-  // Vulnerability details for selected ticket
   const vulnerabilityDetails = ref<VulnerabilityDetailsReport | null>(null);
   const isLoadingVulnDetails = ref(false);
 
-  // View mode (list or kanban)
   const viewMode = ref<"list" | "kanban">("list");
-
-  // ============================================
-  // Computed Properties
-  // ============================================
 
   const isReady = computed(
     () => defaultOrg?.value && auth.getAuthenticated && auth.getToken,
   );
 
-  const hasTickets = computed(() => tickets.value.length > 0);
-
   const isEmpty = computed(
-    () => !isLoading.value && !hasError.value && !hasTickets.value,
+    () => loaded.value && !hasError.value && tickets.value.length === 0,
   );
 
-  // Group tickets by status for Kanban view
   const ticketsByStatus = computed(() => {
     const grouped: Record<TicketStatus, TicketSummary[]> = {
       [TicketStatus.OPEN]: [],
@@ -146,17 +87,12 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
       [TicketStatus.CLOSED]: [],
       [TicketStatus.WONT_FIX]: [],
     };
-
     for (const ticket of tickets.value) {
-      if (grouped[ticket.status]) {
-        grouped[ticket.status].push(ticket);
-      }
+      grouped[ticket.status]?.push(ticket);
     }
-
     return grouped;
   });
 
-  // Quick stats from current data
   const quickStats = computed(() => ({
     total: tickets.value.length,
     open: tickets.value.filter((t) => t.status === TicketStatus.OPEN).length,
@@ -170,342 +106,154 @@ export function useTicketsData(options: UseTicketsDataOptions = {}): {
       .length,
   }));
 
-  // ============================================
-  // Actions
-  // ============================================
-
-  /**
-   * Load tickets list
-   */
-  async function loadTickets(): Promise<void> {
-    if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
-      return;
-    }
-
-    isLoading.value = true;
-    hasError.value = false;
-    errorMessage.value = null;
-
-    try {
+  async function fetchAll(
+    orgId: string,
+    token: string,
+  ): Promise<TicketSummary[]> {
+    const all: TicketSummary[] = [];
+    for (let page = 0; ; page++) {
+      const request = {
+        orgId,
+        bearerToken: token,
+        pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
+        sort: { sortKey: "created_on", sortDirection: "DESC" },
+        handleBusinessErrors: true,
+      };
       const response = options.projectId
         ? await ticketsRepository.getProjectTickets({
-            orgId: defaultOrg.value.id,
+            ...request,
             projectId: options.projectId,
-            bearerToken: auth.getToken,
-            pagination: {
-              page: currentPage.value,
-              entries_per_page: entriesPerPage.value,
-            },
-            sort: {
-              sortKey: sortKey.value,
-              sortDirection: sortDirection.value,
-            },
-            filters: filters.value,
-            handleBusinessErrors: true,
           })
-        : await ticketsRepository.getTickets({
-            orgId: defaultOrg.value.id,
-            bearerToken: auth.getToken,
-            pagination: {
-              page: currentPage.value,
-              entries_per_page: entriesPerPage.value,
-            },
-            sort: {
-              sortKey: sortKey.value,
-              sortDirection: sortDirection.value,
-            },
-            filters: filters.value,
-            handleBusinessErrors: true,
-          });
-
-      tickets.value = response.data;
-      totalEntries.value = response.total_entries;
-      totalPages.value = response.total_pages;
-    } catch (error) {
-      hasError.value = true;
-      errorMessage.value =
-        error instanceof Error ? error.message : "Failed to load tickets";
-      console.error("Failed to load tickets:", error);
-    } finally {
-      isLoading.value = false;
+        : await ticketsRepository.getTickets(request);
+      all.push(...response.data);
+      if (page + 1 >= response.total_pages) return all;
     }
   }
 
-  /**
-   * Load all tickets for Kanban view (no pagination limit)
-   */
-  async function loadAllTickets(): Promise<void> {
-    if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
-      return;
-    }
+  async function loadTickets(): Promise<void> {
+    const orgId = defaultOrg?.value?.id;
+    if (!auth.getAuthenticated || !orgId || !auth.getToken) return;
 
     isLoading.value = true;
-    hasError.value = false;
-
     try {
-      const response = await ticketsRepository.getTickets({
-        orgId: defaultOrg.value.id,
-        bearerToken: auth.getToken,
-        pagination: {
-          page: 0,
-          entries_per_page: 500, // Load more for Kanban
-        },
-        sort: {
-          sortKey: "priority",
-          sortDirection: "ASC", // Critical first
-        },
-        filters: {
-          ...filters.value,
-          // Exclude closed and won't fix from Kanban by default
-          status: filters.value.status ?? [
-            TicketStatus.OPEN,
-            TicketStatus.IN_PROGRESS,
-            TicketStatus.RESOLVED,
-          ],
-        },
-        handleBusinessErrors: true,
-      });
-
-      tickets.value = response.data;
-      totalEntries.value = response.total_entries;
-    } catch (error) {
+      tickets.value = await fetchAll(orgId, auth.getToken);
+      hasError.value = false;
+    } catch {
       hasError.value = true;
-      console.error("Failed to load tickets for Kanban:", error);
     } finally {
       isLoading.value = false;
+      loaded.value = true;
     }
   }
 
-  /**
-   * Load ticket details
-   */
   async function loadTicketDetail(ticketId: string): Promise<void> {
-    if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
-      return;
-    }
+    const orgId = defaultOrg?.value?.id;
+    if (!auth.getAuthenticated || !orgId || !auth.getToken) return;
 
     isLoadingDetail.value = true;
-
     try {
       const response = await ticketsRepository.getTicketById({
-        orgId: defaultOrg.value.id,
+        orgId,
         ticketId,
         bearerToken: auth.getToken,
         handleBusinessErrors: true,
       });
-
       selectedTicket.value = response.data;
-
-      // Auto-load vulnerability details if this is a vulnerability ticket
-      // The backend will use source_analysis if available, otherwise fall back to knowledge DB
+      // The API reads the source analysis, or the knowledge DB as a fallback.
       if (response.data.vulnerability_id) {
         void loadVulnerabilityDetails(ticketId);
       } else {
         vulnerabilityDetails.value = null;
       }
-    } catch (error) {
-      console.error("Failed to load ticket detail:", error);
+    } catch {
       selectedTicket.value = null;
       vulnerabilityDetails.value = null;
+      errorToast("Failed to load the ticket");
     } finally {
       isLoadingDetail.value = false;
     }
   }
 
-  /**
-   * Load vulnerability details for a ticket
-   */
   async function loadVulnerabilityDetails(ticketId: string): Promise<void> {
-    if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
-      return;
-    }
+    const orgId = defaultOrg?.value?.id;
+    if (!auth.getAuthenticated || !orgId || !auth.getToken) return;
 
     isLoadingVulnDetails.value = true;
-
     try {
       const response = await ticketsRepository.getVulnerabilityDetails({
-        orgId: defaultOrg.value.id,
+        orgId,
         ticketId,
         bearerToken: auth.getToken,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
         handleOtherErrors: true,
       });
-
       vulnerabilityDetails.value = response.data;
-    } catch (error) {
-      console.error("Failed to load vulnerability details:", error);
+    } catch {
       vulnerabilityDetails.value = null;
     } finally {
       isLoadingVulnDetails.value = false;
     }
   }
 
-  /**
-   * Update ticket status (for Kanban drag and drop)
-   */
   async function updateTicketStatus(
     ticketId: string,
     newStatus: TicketStatus,
   ): Promise<boolean> {
-    if (!auth.getAuthenticated || !defaultOrg?.value || !auth.getToken) {
-      return false;
-    }
+    const orgId = defaultOrg?.value?.id;
+    if (!auth.getAuthenticated || !orgId || !auth.getToken) return false;
 
     try {
       await ticketsRepository.updateTicket({
-        orgId: defaultOrg.value.id,
+        orgId,
         ticketId,
         bearerToken: auth.getToken,
         data: { status: newStatus },
         handleBusinessErrors: true,
       });
-
-      // Update local state
       const ticket = tickets.value.find((t) => t.id === ticketId);
-      if (ticket) {
-        ticket.status = newStatus;
-      }
-
+      if (ticket) ticket.status = newStatus;
       return true;
-    } catch (error) {
-      console.error("Failed to update ticket status:", error);
+    } catch {
+      errorToast("Failed to update the ticket status");
       return false;
     }
   }
 
-  /**
-   * Set filters and reload
-   */
-  function setFilters(newFilters: TicketFilters): void {
-    filters.value = newFilters;
-    currentPage.value = 0;
-    void loadTickets();
-  }
-
-  /**
-   * Set sort and reload
-   */
-  function setSort(
-    key: TicketSortField,
-    direction: "ASC" | "DESC" = "DESC",
-  ): void {
-    sortKey.value = key;
-    sortDirection.value = direction;
-    void loadTickets();
-  }
-
-  /**
-   * Go to page
-   */
-  function goToPage(page: number): void {
-    currentPage.value = page;
-    void loadTickets();
-  }
-
-  /**
-   * Switch view mode
-   */
-  function setViewMode(mode: "list" | "kanban"): void {
-    viewMode.value = mode;
-    if (mode === "kanban") {
-      void loadAllTickets();
-    } else {
-      void loadTickets();
-    }
-  }
-
-  /**
-   * Clear selected ticket
-   */
   function clearSelectedTicket(): void {
     selectedTicket.value = null;
     vulnerabilityDetails.value = null;
   }
 
-  /**
-   * Refresh data
-   */
   function refresh(): void {
-    if (viewMode.value === "kanban") {
-      void loadAllTickets();
-    } else {
-      void loadTickets();
-    }
+    void loadTickets();
   }
 
-  // ============================================
-  // Watchers
-  // ============================================
-
-  // Auto-load when ready
   watch(
     isReady,
     (ready) => {
-      if (ready && options.autoLoad !== false) {
-        void loadTickets();
-      }
+      if (ready && options.autoLoad !== false) void loadTickets();
     },
     { immediate: true },
   );
 
-  // ============================================
-  // Return
-  // ============================================
-
   return {
-    // List state
     tickets,
     isLoading,
+    loaded,
     hasError,
-    errorMessage,
-    hasTickets,
     isEmpty,
-
-    // Pagination
-    currentPage,
-    entriesPerPage,
-    totalEntries,
-    totalPages,
-
-    // Sorting
-    sortKey,
-    sortDirection,
-
-    // Filters
-    filters,
-
-    // Selected ticket
     selectedTicket,
     isLoadingDetail,
-
-    // Vulnerability details
     vulnerabilityDetails,
     isLoadingVulnDetails,
-
-    // View mode
     viewMode,
-
-    // Kanban helpers
     ticketsByStatus,
-
-    // Quick stats
     quickStats,
-
-    // Actions
     loadTickets,
-    loadAllTickets,
     loadTicketDetail,
-    loadVulnerabilityDetails,
     updateTicketStatus,
-    setFilters,
-    setSort,
-    goToPage,
-    setViewMode,
     clearSelectedTicket,
     refresh,
-
-    // Store refs
-    defaultOrg: defaultOrg!,
   };
 }

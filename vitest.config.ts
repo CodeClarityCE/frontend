@@ -7,6 +7,10 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: "jsdom",
+      // Chart export reads the token and chart role values from these files
+      css: {
+        include: [/base_components\/charts\/chart\.css/, /assets\/main\.css/],
+      },
       exclude: [...configDefaults.exclude, "e2e/*"],
       root: fileURLToPath(new URL("./", import.meta.url)),
       setupFiles: ["./tests/setup.ts"],

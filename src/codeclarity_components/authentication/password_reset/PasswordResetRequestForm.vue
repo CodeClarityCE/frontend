@@ -1,50 +1,62 @@
 <script lang="ts" setup>
-import { Icon } from "@iconify/vue";
+import { CircleAlert, LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
-import { Form } from "vee-validate";
+import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
 import * as z from "zod";
 
-import FormTextField from "@/base_components/forms/FormTextField.vue";
-import LoadingSubmitButton from "@/base_components/ui/loaders/LoadingSubmitButton.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
+import { cn } from "@/shadcn/lib/utils";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import { Button, buttonVariants } from "@/shadcn/ui/button";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shadcn/ui/form";
+import { Input } from "@/shadcn/ui/input";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import {
   BusinessLogicError,
   ValidationError,
 } from "@/utils/api/BaseRepository";
+import { filterUndefined } from "@/utils/form/filterUndefined";
+
+import AuthLayout from "../layout/AuthLayout.vue";
+import TextLink from "../layout/TextLink.vue";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
 
 // State
-const loadingButtonRef: Ref<{
-  setLoading: (loading: boolean) => void;
-  setDisabled: (disabled: boolean) => void;
-} | null> = ref(null);
+const loading: Ref<boolean> = ref(false);
 const success: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const validationError: Ref<ValidationError | undefined> = ref();
 
-// Form Data
-const formEmail: Ref<string> = ref("");
-
 // Form Validation
-const formValidationSchema = toTypedSchema(
-  z.object({
-    email: z
-      .string()
-      .min(1, "Please enter your email")
-      .email("Please enter a valid email"),
-  }),
-);
+const formSchema = z.object({
+  email: z
+    .string({ message: "Please enter your email" })
+    .trim()
+    .min(1, "Please enter your email")
+    .email("Please enter a valid email"),
+});
+type FormValues = z.infer<typeof formSchema>;
+const { handleSubmit } = useForm<FormValues>({
+  validationSchema: toTypedSchema(formSchema),
+});
+
+const onSubmit = handleSubmit((values): void => {
+  void submit(values);
+});
 
 // Methods
-async function submit(): Promise<void> {
-  loadingButtonRef.value?.setLoading(true);
-  loadingButtonRef.value?.setDisabled(true);
-
+async function submit(values: FormValues): Promise<void> {
+  loading.value = true;
   errorCode.value = undefined;
   success.value = false;
   error.value = false;
@@ -52,7 +64,7 @@ async function submit(): Promise<void> {
 
   try {
     await authRepository.requestPasswordReset({
-      data: { email: formEmail.value },
+      data: { email: values.email },
       handleBusinessErrors: true,
     });
 
@@ -67,84 +79,84 @@ async function submit(): Promise<void> {
       errorCode.value = _error.error_code;
     }
   } finally {
-    loadingButtonRef.value?.setLoading(false);
-    loadingButtonRef.value?.setDisabled(false);
+    loading.value = false;
   }
 }
 </script>
 <template>
-  <div class="flex flex-col justify-center items-center my-20">
-    <div v-if="!success" class="max-w-lg w-full flex flex-col">
-      <h2 class="text-3xl font-bold tracking-tight">Password Reset</h2>
+  <AuthLayout>
+    <template #title>
+      <template v-if="success">Check your email</template>
+      <template v-else>Reset your password</template>
+    </template>
+    <template #description>
+      <template v-if="success">
+        If an account is registered under that email, we sent it a link to
+        choose a new password.
+      </template>
+      <template v-else>
+        Enter the email of your account and we will send you a link to choose a
+        new password.
+      </template>
+    </template>
 
-      <div class="flex flex-col gap-8">
-        <div v-if="error">
-          <div class="mt-2">
-            <div class="text-destructive font-light">
-              <div class="flex flex-row items-center gap-2">
-                <Icon icon="material-symbols:error-outline" />
-                <div v-if="errorCode">
-                  <div
-                    v-if="errorCode === APIErrors.ValidationFailed"
-                    style="white-space: break-spaces"
-                  >
-                    <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-                    {{ validationError!.toMessage("Invalid form:") }}
-                  </div>
-                  <div v-else>
-                    An error occured during the processing of the request.
-                  </div>
-                </div>
-                <div v-else>
-                  An error occured during the processing of the request.
-                </div>
-              </div>
-            </div>
+    <div v-if="success" class="flex flex-col gap-6">
+      <p class="text-sm text-muted-foreground">
+        If you do not see the email, check your spam folder. The link is only
+        valid for 5 minutes.
+      </p>
+      <RouterLink
+        :to="{ name: 'login' }"
+        :class="cn(buttonVariants(), 'w-full')"
+      >
+        Back to sign in
+      </RouterLink>
+    </div>
+
+    <template v-else>
+      <Alert v-if="error" variant="destructive" class="mb-6">
+        <CircleAlert aria-hidden="true" />
+        <AlertDescription>
+          <div
+            v-if="errorCode === APIErrors.ValidationFailed"
+            class="whitespace-break-spaces"
+          >
+            {{ validationError!.toMessage("Invalid form:") }}
           </div>
-        </div>
+          <div v-else>
+            An error occured during the processing of the request.
+          </div>
+        </AlertDescription>
+      </Alert>
 
-        <Form
-          class="flex flex-col gap-4"
-          name="pasword_reset_request_form"
-          :validation-schema="formValidationSchema"
-          @submit="submit"
-        >
-          <FormTextField
-            v-model.trim="formEmail"
-            :placeholder="'Enter your email'"
-            :type="'email'"
-            :name="'email'"
-          >
-            <template #name>Email</template>
-          </FormTextField>
+      <form class="flex flex-col gap-4" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="email">
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input
+                type="text"
+                autocomplete="email"
+                placeholder="Enter your email"
+                v-bind="filterUndefined(componentField)"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <Button type="submit" class="mt-2 w-full" :disabled="loading">
+          <LoaderCircle
+            v-if="loading"
+            aria-hidden="true"
+            class="animate-spin motion-reduce:animate-none"
+          />
+          Send reset link
+        </Button>
+      </form>
+    </template>
 
-          <LoadingSubmitButton ref="loadingButtonRef"
-            >Request password reset</LoadingSubmitButton
-          >
-        </Form>
-      </div>
-    </div>
-
-    <div v-else class="max-w-md w-full flex flex-col gap-7">
-      <div>
-        <div class="text-4xl font-semibold mb-4 text-gray-700">Success</div>
-        <div class="text-gray-500 font-medium mb-4">
-          If a user is registered under that email, an email has been sent to
-          complete the password reset. Simply click on the link in the email and
-          supply your new password. If you dont see the email, check your
-          spam.<br /><br />Note: the link in the email is only valid for 5
-          minutes.
-        </div>
-      </div>
-      <div class="flex flex-col justify-between gap-4">
-        <RouterLink
-          class="rounded py-3 px-5 text-white shadow-md bg-theme-primary hover:bg-theme-primary-dark"
-          :to="{ name: 'login' }"
-          style="width: 100%"
-        >
-          Back to login
-        </RouterLink>
-      </div>
-    </div>
-  </div>
+    <template v-if="!success" #footer>
+      <TextLink :to="{ name: 'login' }">Back to sign in</TextLink>
+    </template>
+  </AuthLayout>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { LoaderCircle, Shield, ShieldCheck, ShieldPlus } from "@lucide/vue";
 import { ref } from "vue";
 
 import { useVulnerabilityPolicyActions } from "@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions";
@@ -61,14 +61,13 @@ const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
         class="gap-1"
         :disabled="isLoading"
       >
-        <Icon
+        <LoaderCircle
           v-if="isLoading"
-          icon="eos-icons:loading"
-          class="w-3 h-3 animate-spin"
+          aria-hidden="true"
+          class="size-3.5 animate-spin motion-reduce:animate-none"
         />
-        <Icon v-else icon="solar:shield-plus-linear" class="w-3 h-3" />
-        <span class="hidden sm:inline">Add to Policy</span>
-        <span class="sm:hidden">Policy</span>
+        <ShieldPlus v-else aria-hidden="true" class="size-3.5" />
+        Add to Policy
       </Button>
     </DropdownMenuTrigger>
 
@@ -78,7 +77,7 @@ const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
         class="cursor-pointer"
         @click="handleAddToDefaultPolicy"
       >
-        <Icon icon="solar:shield-check-linear" class="w-4 h-4 mr-2" />
+        <ShieldCheck aria-hidden="true" class="mr-2 size-4" />
         <span>Add to Default Policy</span>
       </DropdownMenuItem>
 
@@ -91,10 +90,12 @@ const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
         class="cursor-pointer"
         @click="handleAddToSpecificPolicy(policy.id)"
       >
-        <Icon icon="solar:shield-linear" class="w-4 h-4 mr-2" />
+        <Shield aria-hidden="true" class="mr-2 size-4" />
         <div class="flex-1 min-w-0">
           <div class="font-medium truncate">{{ policy.name }}</div>
-          <div v-if="policy.default" class="text-xs text-gray-500">Default</div>
+          <div v-if="policy.default" class="text-xs text-muted-foreground">
+            Default
+          </div>
         </div>
       </DropdownMenuItem>
 
@@ -103,7 +104,7 @@ const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
       <!-- No policies message -->
       <div
         v-if="availablePolicies.length === 0"
-        class="px-2 py-2 text-sm text-gray-500"
+        class="px-2 py-2 text-sm text-muted-foreground"
       >
         No policies available
       </div>

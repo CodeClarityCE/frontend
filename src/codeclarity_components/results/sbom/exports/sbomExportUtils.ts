@@ -4,6 +4,8 @@
 
 import type { License } from "@/codeclarity_components/results/graph.entity";
 
+export type ExportFormat = "csv" | "json" | "cyclonedx" | "html";
+
 export interface ExportDependency {
   name: string;
   version: string;
@@ -21,6 +23,33 @@ export interface ExportDependency {
 export interface ExportOptions {
   projectName: string;
   projectId: string;
+}
+
+const EXPORT_TOKENS = [
+  "background",
+  "foreground",
+  "foreground-strong",
+  "muted",
+  "muted-foreground",
+  "border",
+  "success",
+  "success-subtle",
+  "warning-subtle",
+  "danger",
+  "neutral",
+  "neutral-subtle",
+];
+
+// The page's colour tokens, copied into the report so it matches the app.
+function exportPalette(): string {
+  const style =
+    typeof document === "undefined"
+      ? null
+      : getComputedStyle(document.documentElement);
+  return EXPORT_TOKENS.map((name) => {
+    const value = style?.getPropertyValue(`--${name}`).trim();
+    return `            --${name}: ${value === undefined || value === "" ? "inherit" : value};`;
+  }).join("\n");
 }
 
 /**
@@ -201,30 +230,34 @@ export function convertToHTML(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SBOM Report - ${projectName}</title>
     <style>
+        :root {
+${exportPalette()}
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: var(--muted);
+            color: var(--foreground);
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
+            background-color: var(--background);
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         h1 {
-            color: #333;
+            color: var(--foreground-strong);
             margin-bottom: 10px;
         }
         .meta {
-            color: #666;
+            color: var(--muted-foreground);
             margin-bottom: 20px;
         }
         .summary {
-            background-color: #f8f9fa;
+            background-color: var(--muted);
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 30px;
@@ -239,25 +272,25 @@ export function convertToHTML(
             margin-top: 20px;
         }
         th {
-            background-color: #f0f0f0;
+            background-color: var(--muted);
             text-align: left;
             padding: 12px;
             font-weight: 600;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--border);
         }
         td {
             padding: 10px 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
         }
         tr:hover {
-            background-color: #f9f9f9;
+            background-color: var(--muted);
         }
         .highlight {
-            background-color: #fff3cd;
+            background-color: var(--warning-subtle);
             font-weight: 500;
         }
         .version-mismatch {
-            color: #d73502;
+            color: var(--danger);
             font-weight: 600;
         }
         .badge {
@@ -268,17 +301,17 @@ export function convertToHTML(
             font-weight: 500;
         }
         .badge-yes {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: var(--success-subtle);
+            color: var(--success);
         }
         .badge-no {
-            background-color: #f8f9fa;
-            color: #6c757d;
+            background-color: var(--neutral-subtle);
+            color: var(--neutral);
         }
         .legend {
             margin-top: 20px;
             padding: 10px;
-            background-color: #f8f9fa;
+            background-color: var(--muted);
             border-radius: 5px;
             font-size: 14px;
         }
@@ -292,13 +325,13 @@ export function convertToHTML(
             height: 12px;
             margin-right: 5px;
             vertical-align: middle;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
         }
         .group-header {
-            background-color: #e9ecef;
+            background-color: var(--muted);
             font-weight: 600;
             font-size: 14px;
-            color: #495057;
+            color: var(--foreground);
             text-transform: uppercase;
         }
     </style>
@@ -320,7 +353,7 @@ export function convertToHTML(
                 <strong>Production Dependencies:</strong> ${prodCount}
             </div>
             <div class="summary-stat">
-                <strong>Package.json Updates Needed:</strong> <span style="color: #d73502; font-weight: bold;">${packageJsonUpdatesCount}</span>
+                <strong>Package.json Updates Needed:</strong> <span style="color: var(--danger); font-weight: bold;">${packageJsonUpdatesCount}</span>
             </div>
             <div class="summary-stat">
                 <strong>Total Updates Available:</strong> ${totalUpdatesCount}
@@ -371,7 +404,7 @@ export function convertToHTML(
         <div class="legend">
             <strong>Legend:</strong>
             <div class="legend-item">
-                <span class="legend-box" style="background-color: #fff3cd;"></span>
+                <span class="legend-box" style="background-color: var(--warning-subtle);"></span>
                 Highlighted rows = Direct dependencies requiring package.json updates
             </div>
             <div class="legend-item" style="margin-top: 5px;">
@@ -390,7 +423,7 @@ function getUpdateInstructions(
   hasUpdate: boolean,
 ): string {
   if (needsPackageJsonUpdate) {
-    return '<strong style="color: #d73502;">Update package.json</strong>';
+    return '<strong style="color: var(--danger);">Update package.json</strong>';
   }
   if (hasUpdate) {
     return "Transitive - will update automatically";

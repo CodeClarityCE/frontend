@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { vAutoAnimate } from "@formkit/auto-animate/vue";
-import { Icon } from "@iconify/vue";
+import { CircleAlert, LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
@@ -10,7 +9,6 @@ import { AuthRepository } from "@/codeclarity_components/authentication/auth.rep
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import type { Token } from "@/codeclarity_components/authentication/token.entity";
 import router from "@/router";
-import { cn } from "@/shadcn/lib/utils";
 import Alert from "@/shadcn/ui/alert/Alert.vue";
 import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
 import { Button } from "@/shadcn/ui/button";
@@ -30,6 +28,8 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+
+import TextLink from "../layout/TextLink.vue";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -112,7 +112,7 @@ async function submit(values: {
 <template>
   <!-- Errors -->
   <Alert v-if="error" variant="destructive">
-    <Icon icon="material-symbols:error-outline" />
+    <CircleAlert aria-hidden="true" />
     <AlertDescription>
       <div v-if="errorCode">
         <div v-if="errorCode === APIErrors.InternalError">
@@ -148,46 +148,56 @@ async function submit(values: {
     </AlertDescription>
   </Alert>
 
-  <div :class="cn('grid gap-6', ($attrs['class'] as string) ?? '')">
-    <form
-      v-if="!loading"
-      class="flex flex-col gap-4"
-      :validation-schema="formSchema"
-      @submit="onSubmit"
-    >
-      <FormField v-slot="{ componentField }" name="email">
-        <FormItem v-auto-animate>
-          <FormLabel>Email*:</FormLabel>
-          <FormControl>
-            <Input
-              type="text"
-              placeholder="Enter your email"
-              v-bind="filterUndefined(componentField)"
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-      <FormField v-slot="{ componentField }" name="password">
-        <FormItem v-auto-animate>
-          <FormLabel>Password:</FormLabel>
-          <FormControl>
-            <Input
-              type="password"
-              placeholder="Enter your password"
-              v-bind="filterUndefined(componentField)"
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-      <Button type="submit" class="w-full"> Sign in </Button>
-    </form>
-    <div v-else class="flex flex-col items-center">
-      Connecting
-      <Icon icon="line-md:loading-twotone-loop" class="animate-spin"></Icon>
+  <form
+    v-if="!loading"
+    class="flex flex-col gap-4"
+    :class="{ 'mt-4': error }"
+    @submit="onSubmit"
+  >
+    <FormField v-slot="{ componentField }" name="email">
+      <FormItem>
+        <FormLabel>Email</FormLabel>
+        <FormControl>
+          <Input
+            type="text"
+            autocomplete="username"
+            placeholder="Enter your email"
+            v-bind="filterUndefined(componentField)"
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    </FormField>
+    <FormField v-slot="{ componentField }" name="password">
+      <FormItem>
+        <FormLabel>Password</FormLabel>
+        <FormControl>
+          <Input
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            v-bind="filterUndefined(componentField)"
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    </FormField>
+    <Button type="submit" class="mt-2 w-full">Sign in</Button>
+    <div class="text-center text-sm">
+      <TextLink :to="{ name: 'recoveryRequest' }">
+        Forgot your password?
+      </TextLink>
     </div>
-
-    <!-- <SSOAuth /> -->
+  </form>
+  <div
+    v-else
+    role="status"
+    class="flex flex-col items-center gap-2 py-8 text-muted-foreground"
+  >
+    <LoaderCircle
+      aria-hidden="true"
+      class="size-6 animate-spin motion-reduce:animate-none"
+    />
+    Connecting
   </div>
 </template>

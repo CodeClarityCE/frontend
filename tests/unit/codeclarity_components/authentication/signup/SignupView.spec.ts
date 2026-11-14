@@ -36,20 +36,6 @@ vi.mock(
   }),
 );
 
-vi.mock("@/base_components/ui/loaders/LoadingComponent.vue", () => ({
-  default: {
-    name: "LoadingComponent",
-    template: '<div class="loading">Loading...</div>',
-  },
-}));
-
-vi.mock("@/base_components/utilities/ErrorComponent.vue", () => ({
-  default: {
-    name: "ErrorComponent",
-    template: '<div class="error">Error</div>',
-  },
-}));
-
 // Mock window.location
 const mockLocation = {
   search: "",

@@ -1,55 +1,60 @@
 <script lang="ts">
-import { Icon } from "@iconify/vue";
-import { type Ref, ref, watch } from "vue";
-
-import SortableTable, {
-  type TableHeader,
-} from "@/base_components/data-display/tables/SortableTable.vue";
-import ActiveFilterBar from "@/base_components/filters/ActiveFilterBar.vue";
-import {
-  type ActiveFilter,
-  createNewFilterState,
-  type FilterConfig,
-  type FilterState,
-  FilterType,
-} from "@/base_components/filters/filterTypes";
-import SearchBar from "@/base_components/filters/SearchBar.vue";
-import FilterBox from "@/base_components/filters/UtilitiesFilters.vue";
-import BoxLoader from "@/base_components/ui/loaders/BoxLoader.vue";
-import Pagination from "@/base_components/utilities/PaginationComponent.vue";
 import {
   type GetRepositoriesRequestOptions,
   GetRepositoriesSortInterface,
 } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
+
+/** A server-side filter choice: its option key and its label. */
+export interface RepoFilterOption {
+  key: string;
+  label: string;
+}
+
+/** Per-source presentation tweaks; every field falls back to the classic list. */
+export interface RepoTableConfig {
+  /** Column the server sorts by while every page loads (default: created date). */
+  defaultSortKey?: GetRepositoriesSortInterface;
+  /** Language choices sent with the filters; the first is the default. */
+  languages?: RepoFilterOption[];
+  /** Show a Stars column instead of the created date. */
+  showStars?: boolean;
+}
+
+/** Option keys of the import state filter, as the API expects them. */
+export const ONLY_NOT_IMPORTED = "only_non_imported";
+export const ALL_REPOSITORIES = "imported_and_non_imported";
+
+export type { GetRepositoriesRequestOptions };
+</script>
+<script lang="ts" setup>
+import { Star } from "@lucide/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
+import { computed, type Ref, ref, watch } from "vue";
+
+import { DataTable } from "@/base_components/data-table";
+import { StatusBadge } from "@/base_components/page";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
-import router from "@/router";
-import { Badge } from "@/shadcn/ui/badge";
-import Button from "@/shadcn/ui/button/Button.vue";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
+import { Checkbox } from "@/shadcn/ui/checkbox";
+import { Label } from "@/shadcn/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
-import { formatDate } from "@/utils/dateUtils";
-import { debounce } from "@/utils/searchUtils";
 
-// Types
-/** Per-source presentation tweaks; every field falls back to the classic list. */
-export interface RepoTableConfig {
-  /** Column to sort by initially (default: created date). */
-  defaultSortKey?: GetRepositoriesSortInterface;
-  /** Rows per page (default 10). */
-  defaultEntriesPerPage?: number;
-  /** Extra filter categories merged into the Filters popover; their active
-   *  option keys travel with the other filters in `activeFilters`. */
-  extraFilters?: FilterConfig;
-  /** Show a Stars column (and the primary language) instead of the created date. */
-  showStars?: boolean;
-}
-</script>
-<script lang="ts" setup>
-// Props
+/** The API's largest page; every repository is loaded so the table can sort and filter them all */
+const FETCH_PAGE_SIZE = 100;
+
 const props = withDefaults(
   defineProps<{
     integration: string;
@@ -63,686 +68,316 @@ const props = withDefaults(
   { config: () => ({}), disabled: false },
 );
 
-// Emits
-const emit = defineEmits<{
-  (e: "onForceRefresh"): void;
-  (e: "onSelectedReposChange", selected: Repository[]): void;
-}>();
+const emit =
+  defineEmits<(e: "onSelectedReposChange", selected: Repository[]) => void>();
 
-// Table headers + sort definition
-const sortKey: Ref<string> = ref(
-  props.config.defaultSortKey ?? GetRepositoriesSortInterface.CREATED,
-);
-const sortDirection: Ref<SortDirection> = ref(SortDirection.DESC);
-const selectAll: Ref<boolean> = ref(false);
-
-const headers: TableHeader[] = [
-  { label: "", key: null },
-  {
-    label: "Repository",
-    key: GetRepositoriesSortInterface.FULLY_QUALIFIED_NAME,
-  },
-  { label: "Import State", key: GetRepositoriesSortInterface.IMPORTED },
-  { label: "Description", key: GetRepositoriesSortInterface.DESCRIPTION },
-  props.config.showStars
-    ? { label: "Stars", key: GetRepositoriesSortInterface.STARS }
-    : { label: "Created Date", key: GetRepositoriesSortInterface.CREATED },
-];
-
-// Filters
-// Reactive because the Filters popover edits it in place and emits nothing:
-// the watcher on its active filters below is what triggers a refetch.
-const filterState: Ref<FilterState> = ref(
-  createNewFilterState({
-    ImportState: {
-      name: "Import State",
-
-      type: FilterType.RADIO,
-      data: {
-        only_non_imported: {
-          title: "Only not already imported repos",
-          value: true,
-        },
-        imported_and_non_imported: {
-          title: "Both",
-          value: false,
-        },
-      },
-    },
-    ...(props.config.extraFilters ?? {}),
-  }),
-);
-
-// Stores
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-// State
-const placeholder = "Search repositories...";
-const error: Ref<boolean> = ref(false);
+const loading = ref(true);
+const error = ref(false);
 const errorCode: Ref<string | undefined> = ref();
-const loading: Ref<boolean> = ref(true);
-const repos: Ref<Repository[] | undefined> = ref();
-const page = ref(0);
-const entriesPerPage = ref(props.config.defaultEntriesPerPage ?? 10);
-const totalEntries = ref(0);
-const totalPages = ref(0);
-const searchKey = ref("");
-const activeFilters: Ref<string[]> = ref(
-  filterState.value.activeFilters.map((filter) => filter.option),
+const repos: Ref<Repository[]> = ref([]);
+const importFilter = ref(ONLY_NOT_IMPORTED);
+const languageFilter = ref(props.config.languages?.[0]?.key);
+const selectedIds = ref(new Set<string>());
+
+const activeFilters = computed(() =>
+  [importFilter.value, languageFilter.value].filter(
+    (filter): filter is string => filter !== undefined,
+  ),
 );
-const selectedRepos: Ref<Repository[]> = ref([]);
+const selectable = computed(() =>
+  repos.value.filter((repo) => !repo.imported_already),
+);
+const selectedRepos = computed(() =>
+  repos.value.filter((repo) => selectedIds.value.has(repo.id)),
+);
+const allSelected = computed(
+  () =>
+    selectable.value.length > 0 &&
+    selectable.value.every((repo) => selectedIds.value.has(repo.id)),
+);
+const INVALID_INTEGRATION = new Set<string>([
+  APIErrors.IntegrationInvalidToken,
+  APIErrors.FailedToRetrieveReposFromProvider,
+  APIErrors.IntegrationIntegrationTokenMissingPermissions,
+  APIErrors.IntegrationTokenExpired,
+  APIErrors.IntegrationTokenRetrievalFailed,
+]);
+const invalidIntegration = computed(() =>
+  INVALID_INTEGRATION.has(errorCode.value ?? ""),
+);
 
-// Watchers
-watch([activeFilters, repos], () => {
-  void updateSelectAllState();
-});
+const columns: ColumnDef<Repository, unknown>[] = [
+  {
+    id: "select",
+    header: "Select",
+    enableSorting: false,
+    enableGlobalFilter: false,
+  },
+  {
+    id: "repository",
+    accessorKey: "fully_qualified_name",
+    header: "Repository",
+  },
+  {
+    id: "imported",
+    accessorFn: (repo) => (repo.imported_already ? "Imported" : "Not imported"),
+    header: "Import state",
+  },
+  {
+    id: "description",
+    accessorFn: (repo) => repo.description ?? "",
+    header: "Description",
+    enableSorting: false,
+  },
+  props.config.showStars
+    ? {
+        id: "stars",
+        accessorFn: (repo) => repo.stargazers_count ?? 0,
+        header: "Stars",
+        enableGlobalFilter: false,
+      }
+    : {
+        id: "created",
+        accessorFn: (repo) => new Date(repo.created_at).getTime(),
+        header: "Created",
+        enableGlobalFilter: false,
+      },
+];
 
-// Methods
-async function updateSort(key: string | null): Promise<void> {
-  if (key == null) return;
-  if (key === sortKey.value) {
-    // If we select the same column then we reverse the direction
-    sortDirection.value =
-      sortDirection.value === SortDirection.ASC
-        ? SortDirection.DESC
-        : SortDirection.ASC;
-  } else {
-    // Default direction
-    sortDirection.value = SortDirection.DESC;
-  }
-  sortKey.value = key;
-  await fetchRepos(true);
+const initialSorting = [
+  { id: props.config.showStars ? "stars" : "created", desc: true },
+];
+
+function emitSelection(): void {
+  emit("onSelectedReposChange", selectedRepos.value);
 }
 
-watch([page, entriesPerPage], async () => {
-  await fetchRepos(true);
-});
+function toggle(repo: Repository, checked: boolean): void {
+  const next = new Set(selectedIds.value);
+  if (checked) next.add(repo.id);
+  else next.delete(repo.id);
+  selectedIds.value = next;
+  emitSelection();
+}
+
+function selectAll(checked: boolean): void {
+  selectedIds.value = new Set(
+    checked ? selectable.value.map((repo) => repo.id) : [],
+  );
+  emitSelection();
+}
+
+/** Clears the selection without telling the parent, which asked for it. */
+function clearSelection(): void {
+  selectedIds.value = new Set();
+}
 
 /**
- * Fetch the repos of the integration
- * @param refresh Whether it is a refresh, if no shows the loading skeleton
- * @param forceRefresh Whether it is a force refresh, if yes refetches the repos from the vcs provider
+ * Loads every page of repositories for the current filters.
+ * @param refresh keeps the table on screen instead of the skeleton
+ * @param forceRefresh asks the API to refetch from the VCS provider
  */
 async function fetchRepos(
   refresh = false,
   forceRefresh = false,
 ): Promise<void> {
-  if (!userStore.getDefaultOrg) return;
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  const orgId = userStore.getDefaultOrg?.id;
+  if (!orgId || !authStore.getAuthenticated || !authStore.getToken) return;
 
   error.value = false;
   errorCode.value = undefined;
-
   if (!refresh) loading.value = true;
   try {
-    const resp = await props.getRepos({
-      orgId: userStore.getDefaultOrg.id,
-      integrationId: props.integration,
-      forceRefresh: forceRefresh,
-      activeFilters: activeFilters.value,
-      pagination: {
-        page: page.value,
-        entries_per_page: entriesPerPage.value,
-      },
-      search: {
-        searchKey: searchKey.value,
-      },
-      bearerToken: authStore.getToken,
-      handleBusinessErrors: true,
-      sort: {
-        sortKey: sortKey.value,
-        sortDirection: sortDirection.value,
-      },
-    });
-    repos.value = resp.data;
-    totalEntries.value = resp.total_entries;
-    totalPages.value = resp.total_pages;
-  } catch (_err) {
-    error.value = true;
-    if (_err instanceof BusinessLogicError) {
-      errorCode.value = _err.error_code;
+    const all: Repository[] = [];
+    for (let page = 0; ; page++) {
+      const response = await props.getRepos({
+        orgId,
+        integrationId: props.integration,
+        // Refetching from the provider once is enough.
+        forceRefresh: forceRefresh && page === 0,
+        activeFilters: activeFilters.value,
+        pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
+        search: { searchKey: "" },
+        sort: {
+          sortKey:
+            props.config.defaultSortKey ?? GetRepositoriesSortInterface.CREATED,
+          sortDirection: SortDirection.DESC,
+        },
+        bearerToken: authStore.getToken,
+        handleBusinessErrors: true,
+      });
+      all.push(...response.data);
+      if (page + 1 >= response.total_pages) break;
     }
+    repos.value = all;
+    // Drop selected repositories the new list no longer has.
+    const ids = new Set(all.map((repo) => repo.id));
+    const kept = [...selectedIds.value].filter((id) => ids.has(id));
+    if (kept.length !== selectedIds.value.size) {
+      selectedIds.value = new Set(kept);
+      emitSelection();
+    }
+  } catch (err) {
+    error.value = true;
+    if (err instanceof BusinessLogicError) errorCode.value = err.error_code;
   } finally {
-    if (!refresh) loading.value = false;
+    loading.value = false;
   }
 }
 
-/**
- * Adds a repo selected by the user to the tally of selected repos and emits the new list
- * @param repo The selected repo
- */
-function selectRepo(repo: Repository): void {
-  const selectedReposIds = selectedRepos.value.map((x) => x.id);
+watch(activeFilters, () => void fetchRepos(true));
 
-  if (!selectedReposIds.includes(repo.id)) selectedRepos.value.push(repo);
-  else
-    selectedRepos.value = selectedRepos.value.filter((x) => x.id !== repo.id);
+void fetchRepos();
 
-  // Update select all checkbox state
-  void updateSelectAllState();
-  void emit("onSelectedReposChange", selectedRepos.value);
+defineExpose({ fetchRepos, clearSelection });
+
+function formatDay(date: Date): string {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
-
-function toggleSelectAll(): void {
-  if (selectAll.value) {
-    // Deselect all
-    selectedRepos.value = [];
-    selectAll.value = false;
-  } else {
-    // Select all non-imported repos (or all if showing both)
-    const availableRepos =
-      repos.value?.filter((repo) =>
-        activeFilters.value.includes("only_non_imported")
-          ? !repo.imported_already
-          : true,
-      ) ?? [];
-    selectedRepos.value = [...availableRepos];
-    selectAll.value = true;
-  }
-  void emit("onSelectedReposChange", selectedRepos.value);
-}
-
-function updateSelectAllState(): void {
-  const availableRepos =
-    repos.value?.filter((repo) =>
-      activeFilters.value.includes("only_non_imported")
-        ? !repo.imported_already
-        : true,
-    ) ?? [];
-
-  if (availableRepos.length === 0) {
-    selectAll.value = false;
-    return;
-  }
-
-  const selectedIds = selectedRepos.value.map((repo) => repo.id);
-  const allSelected = availableRepos.every((repo) =>
-    selectedIds.includes(repo.id),
-  );
-  selectAll.value = allSelected;
-}
-
-/**
- * When a change to the filters is made, update the state of active filters
- * and fetch the repos matching this filter
- * @param newActiveFilters List of active filters
- */
-async function setActiveFilters(
-  newActiveFilters: ActiveFilter[],
-): Promise<void> {
-  activeFilters.value = newActiveFilters.map(
-    (activeFilter: ActiveFilter) => activeFilter.option,
-  );
-  // A narrower result may not reach the current page, so start over. The page
-  // watcher fetches when the page changes; only fetch here when it does not.
-  if (page.value !== 0) {
-    page.value = 0;
-    return;
-  }
-  await fetchRepos(true);
-}
-
-watch(
-  () => filterState.value.activeFilters,
-  (newActiveFilters) => {
-    void setActiveFilters(newActiveFilters);
-  },
-);
-
-watch([searchKey], async () => {
-  debounce(async () => {
-    await fetchRepos(true);
-  }, 250);
-});
-
-/**
- * Clears the selected repos
- */
-function clearSelection(): void {
-  selectedRepos.value = [];
-}
-
-async function init(): Promise<void> {
-  await fetchRepos(false, false);
-}
-
-void init();
-
-defineExpose({
-  fetchRepos,
-  clearSelection,
-});
 </script>
 
 <template>
-  <!--------------------------------------------------------------------------->
-  <!--                            Loading skeleton                           -->
-  <!--------------------------------------------------------------------------->
-  <div v-if="loading">
-    <div class="flex flex-col gap-4">
-      <BoxLoader
-        v-for="i in 4"
-        :key="i"
-        :dimensions="{ width: '100%', height: '50px' }"
-      />
-    </div>
-  </div>
-
-  <!--------------------------------------------------------------------------->
-  <!--                             Fetch repos error                         -->
-  <!--------------------------------------------------------------------------->
-  <template v-else-if="error">
-    <div class="flex flex-row gap-2">
-      <Icon
-        class="text-5xl text-black"
-        icon="solar:confounded-square-outline"
-      ></Icon>
-      <div>
-        <div class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <div>Failed to fetch repositories from the integration</div>
-            <div v-if="errorCode" class="text-sm">
-              <div
-                v-if="
-                  errorCode === APIErrors.IntegrationInvalidToken ||
-                  errorCode === APIErrors.FailedToRetrieveReposFromProvider ||
-                  errorCode ==
-                    APIErrors.IntegrationIntegrationTokenMissingPermissions ||
-                  errorCode === APIErrors.IntegrationTokenExpired ||
-                  errorCode === APIErrors.IntegrationTokenRetrievalFailed
-                "
-              >
-                The integration is not valid. Please update the integration in
-                the organization page.
-              </div>
-              <div v-else>
-                We encountered an error while processing the request.
-              </div>
-            </div>
-            <div v-else class="text-sm">
-              <div>We encountered an error while processing the request.</div>
-            </div>
-          </div>
-          <div class="flex flex-row gap-2 flex-wrap items-center">
-            <Button @click="fetchRepos(false, true)"> Try again </Button>
-            <Button @click="router.back()"> Go back </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </template>
-
-  <template v-else-if="!error">
-    <!--------------------------------------------------------------------------->
-    <!--                             Search and Filter                         -->
-    <!--------------------------------------------------------------------------->
-
-    <div class="flex flex-col gap-4 w-full">
-      <div class="flex flex-row gap-2 items-center w-full">
-        <SearchBar
-          v-model:search-key="searchKey"
-          :placeholder="placeholder"
-          class="flex-1"
-        />
-
-        <FilterBox v-model:filter-state="filterState" />
-      </div>
-
-      <ActiveFilterBar v-model:filter-state="filterState" />
-    </div>
-
-    <!--------------------------------------------------------------------------->
-    <!--                              Paginated Repos                          -->
-    <!--------------------------------------------------------------------------->
-    <Pagination
-      v-model:page="page"
-      v-model:nmb-entries-showing="entriesPerPage"
-      v-model:nmb-entries-total="totalEntries"
-      v-model:total-pages="totalPages"
-    >
-      <template #content>
-        <div
-          v-if="totalEntries === 0 && searchKey !== ''"
-          class="flex flex-col items-center gap-4 py-16"
-        >
-          <Icon icon="lucide:search-x" class="text-6xl text-gray-300" />
-          <div class="text-lg text-gray-500">
-            No repositories match your search
-          </div>
-          <div class="text-sm text-gray-400">
-            Try adjusting your search terms or filters
-          </div>
-        </div>
-        <div
-          v-else-if="totalEntries === 0 && searchKey === ''"
-          class="flex flex-col items-center gap-4 py-16"
-        >
-          <Icon icon="octicon:repo-24" class="text-6xl text-gray-300" />
-          <div class="text-lg text-gray-500">No repositories found</div>
-          <div class="text-sm text-gray-400">
-            Try adjusting your filters or check your integration settings
-          </div>
-        </div>
-        <template v-else-if="totalEntries > 0">
-          <!-- No selectable repositories message -->
-          <div
-            v-if="
-              repos &&
-              repos.filter((repo: Repository) =>
-                activeFilters.includes('only_non_imported')
-                  ? !repo.imported_already
-                  : true,
-              ).length === 0
-            "
-            class="bg-green-50 border border-green-200 rounded-lg p-6 mb-4 text-center"
-          >
-            <Icon
-              icon="lucide:check-circle"
-              class="w-12 h-12 text-green-600 mx-auto mb-3"
-            />
-            <h3 class="font-semibold text-green-900 mb-2">
-              All repositories are already imported!
-            </h3>
-            <p class="text-green-700 text-sm">
-              All available repositories from this integration have been
-              successfully imported.
-            </p>
-          </div>
-
-          <!-- Select All Section - Only show if there are selectable repos -->
-          <div
-            v-else-if="
-              repos &&
-              repos.filter((repo: Repository) =>
-                activeFilters.includes('only_non_imported')
-                  ? !repo.imported_already
-                  : true,
-              ).length > 0
-            "
-            class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4"
-          >
-            <div class="flex items-center gap-3">
-              <input
-                v-model="selectAll"
-                type="checkbox"
-                :disabled="disabled"
-                class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                @click="toggleSelectAll()"
-              />
-              <div class="flex-1">
-                <div class="font-medium text-gray-700 text-sm">
-                  Select All Repositories
-                </div>
-                <div class="text-gray-600 text-xs mt-1">
-                  {{
-                    repos?.filter((repo: Repository) =>
-                      activeFilters.includes("only_non_imported")
-                        ? !repo.imported_already
-                        : true,
-                    ).length ?? 0
-                  }}
-                  repositories available for selection
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Selection Summary Bar -->
-          <div
-            v-if="selectedRepos.length > 0"
-            class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <Icon icon="lucide:check-circle-2" class="text-blue-600" />
-                <div>
-                  <div class="font-medium text-blue-900 text-sm">
-                    {{ selectedRepos.length }}
-                    {{
-                      selectedRepos.length === 1 ? "repository" : "repositories"
-                    }}
-                    selected
-                  </div>
-                  <div class="text-blue-700 text-xs mt-1">Ready for import</div>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                :disabled="disabled"
-                class="text-blue-700 border-blue-300 hover:bg-blue-100"
-                @click="
-                  selectedRepos = [];
-                  void updateSelectAllState();
-                "
-              >
-                Clear Selection
-              </Button>
-            </div>
-          </div>
-
-          <!-- Table Section -->
-          <div
-            class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
-          >
-            <SortableTable
-              :headers="headers"
-              :sort-key="sortKey"
-              :sort-direction="sortDirection"
-              class="w-full modern-table"
-              @on-sort-change="updateSort"
-            >
-              <template #data>
-                <!-- Repository Rows -->
-                <tr
-                  v-for="repo in repos"
-                  :key="repo.id"
-                  class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150"
-                  :class="{
-                    'bg-blue-50/30 border-blue-200': selectedRepos
-                      .map((x: Repository) => x.id)
-                      .includes(repo.id),
-                  }"
-                >
-                  <td class="p-4">
-                    <input
-                      type="checkbox"
-                      :checked="
-                        selectedRepos
-                          .map((x: Repository) => x.id)
-                          .includes(repo.id)
-                      "
-                      :disabled="disabled"
-                      class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                      @click="selectRepo(repo)"
-                    />
-                  </td>
-                  <td class="p-4">
-                    <div class="flex items-center gap-3">
-                      <Icon
-                        icon="octicon:repo-16"
-                        class="text-gray-600 text-lg shrink-0"
-                      />
-                      <div class="flex flex-col min-w-0">
-                        <div class="font-medium text-gray-900 truncate">
-                          {{ repo.fully_qualified_name }}
-                        </div>
-                        <div class="text-sm text-gray-500 mt-1">
-                          <span>{{ repo.visibility }}</span>
-                          <span v-if="repo.language">
-                            &middot; {{ repo.language }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="p-4">
-                    <Badge
-                      v-if="repo.imported_already"
-                      variant="default"
-                      class="bg-green-100 text-green-800 hover:bg-green-100"
-                    >
-                      <Icon icon="lucide:check-circle" class="w-3 h-3 mr-1" />
-                      Imported
-                    </Badge>
-                    <Badge
-                      v-else
-                      variant="secondary"
-                      class="bg-gray-100 text-gray-600 hover:bg-gray-100"
-                    >
-                      <Icon icon="lucide:clock" class="w-3 h-3 mr-1" />
-                      Not imported
-                    </Badge>
-                  </td>
-                  <td class="p-4">
-                    <div class="text-gray-700 text-sm line-clamp-2 max-w-md">
-                      {{ repo.description ?? "No description available" }}
-                    </div>
-                  </td>
-                  <td class="p-4">
-                    <div
-                      v-if="config.showStars"
-                      class="flex items-center gap-1 text-gray-700 text-sm"
-                      data-testid="repo-stars"
-                    >
-                      <Icon
-                        icon="lucide:star"
-                        class="w-4 h-4 text-yellow-500"
-                      />
-                      {{ (repo.stargazers_count ?? 0).toLocaleString() }}
-                    </div>
-                    <div v-else class="text-gray-600 text-sm">
-                      {{ formatDate(repo.created_at, "MMM DD, YYYY") }}
-                    </div>
-                  </td>
-                </tr>
-              </template>
-            </SortableTable>
-          </div>
+  <Alert v-if="error" variant="destructive">
+    <AlertDescription class="flex flex-col gap-3">
+      <p>
+        The repositories could not be loaded from the integration.
+        <template v-if="invalidIntegration">
+          The integration is no longer valid; update it in the organisation
+          settings.
         </template>
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        class="w-fit"
+        @click="fetchRepos(false, true)"
+      >
+        Try again
+      </Button>
+    </AlertDescription>
+  </Alert>
+
+  <div v-else class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-end gap-4">
+      <div class="flex flex-col gap-1.5">
+        <Label for="repo-import-state">Show</Label>
+        <Select v-model="importFilter" :disabled="loading || disabled">
+          <SelectTrigger id="repo-import-state" class="w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem :value="ONLY_NOT_IMPORTED">Not imported yet</SelectItem>
+            <SelectItem :value="ALL_REPOSITORIES">All repositories</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div v-if="config.languages?.length" class="flex flex-col gap-1.5">
+        <Label for="repo-language">Language</Label>
+        <Select v-model="languageFilter" :disabled="loading || disabled">
+          <SelectTrigger id="repo-language" class="w-72">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="language in config.languages"
+              :key="language.key"
+              :value="language.key"
+            >
+              {{ language.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div class="flex items-center gap-2 pb-2">
+        <Checkbox
+          id="repo-select-all"
+          :model-value="allSelected"
+          :disabled="disabled || selectable.length === 0"
+          @update:model-value="
+            (value: boolean | 'indeterminate') => selectAll(value === true)
+          "
+        />
+        <Label for="repo-select-all">
+          Select every repository not imported yet
+        </Label>
+      </div>
+      <p
+        class="ml-auto text-sm text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
+        {{ selectedRepos.length }}
+        {{ selectedRepos.length === 1 ? "repository" : "repositories" }}
+        selected
+      </p>
+    </div>
+
+    <DataTable
+      :columns="columns"
+      :data="repos"
+      :loading="loading"
+      :initial-sorting="initialSorting"
+      :row-key="(repo: Repository) => repo.id"
+      caption="Repositories"
+      filter-label="Filter repositories"
+      :empty-text="
+        selectable.length === 0 && repos.length > 0
+          ? 'Every repository is already imported.'
+          : 'No repositories found.'
+      "
+      row-testid="repo-row"
+    >
+      <template #cell-select="{ row }">
+        <Checkbox
+          :model-value="selectedIds.has(row.id)"
+          :disabled="disabled || row.imported_already"
+          :aria-label="`Select ${row.fully_qualified_name}`"
+          @update:model-value="
+            (value: boolean | 'indeterminate') => toggle(row, value === true)
+          "
+        />
       </template>
-    </Pagination>
-  </template>
+      <template #cell-repository="{ row }">
+        <div class="flex flex-col">
+          <span class="font-semibold text-foreground-strong">
+            {{ row.fully_qualified_name }}
+          </span>
+          <span class="text-xs capitalize text-muted-foreground">
+            {{ row.visibility
+            }}<template v-if="row.language"> · {{ row.language }}</template>
+          </span>
+        </div>
+      </template>
+      <template #cell-imported="{ row }">
+        <StatusBadge
+          :tone="row.imported_already ? 'success' : 'neutral'"
+          :label="row.imported_already ? 'Imported' : 'Not imported'"
+        />
+      </template>
+      <template #cell-description="{ row }">
+        <span class="line-clamp-2 max-w-md text-muted-foreground">
+          {{ row.description || "No description" }}
+        </span>
+      </template>
+      <template #cell-stars="{ row }">
+        <span
+          class="inline-flex items-center gap-1 tabular-nums"
+          data-testid="repo-stars"
+        >
+          <Star aria-hidden="true" class="size-4 text-muted-foreground" />
+          {{ (row.stargazers_count ?? 0).toLocaleString("en-US") }}
+        </span>
+      </template>
+      <template #cell-created="{ row }">
+        <span class="whitespace-nowrap">{{ formatDay(row.created_at) }}</span>
+      </template>
+    </DataTable>
+  </div>
 </template>
-
-<style scope lang="scss">
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-/* Modern table styling overrides */
-.modern-table {
-  border-radius: 0 !important;
-
-  /* Override header styling */
-  :deep(th) {
-    background-color: #f8fafc !important;
-    border-bottom: 2px solid #e2e8f0 !important;
-    padding: 12px 16px !important;
-    font-weight: 600 !important;
-    color: #374151 !important;
-    font-size: 13px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-  }
-
-  /* Override header content styling */
-  :deep(.header-sortable) {
-    height: auto !important;
-    padding: 0 !important;
-    background: none !important;
-    border: none !important;
-    font-weight: 600 !important;
-  }
-
-  /* Override active header styling */
-  :deep(.header-sortable-active) {
-    background-color: #e2e8f0 !important;
-  }
-
-  /* Override sort arrow colors */
-  :deep(.header-sortable > div:nth-child(2)) {
-    color: #6b7280 !important;
-  }
-
-  /* Override table body styling */
-  :deep(tbody tr) {
-    border-bottom: 1px solid #f1f5f9 !important;
-  }
-
-  :deep(tbody tr:hover) {
-    background-color: #f9fafb !important;
-  }
-
-  /* Remove default table borders */
-  :deep(.stylized_table_with_dividers th > div) {
-    border-bottom: none !important;
-  }
-
-  /* Override table cell padding */
-  :deep(tbody td) {
-    padding: 0 !important;
-  }
-}
-
-.general-bubble {
-  display: flex;
-  flex-direction: row;
-  column-gap: 5px;
-  padding: 7px;
-  padding-left: 12px;
-  padding-right: 12px;
-  border-radius: 15px;
-  width: fit-content;
-  font-weight: 400;
-  color: rgb(80, 80, 80);
-  text-align: center;
-  font-size: 0.9em;
-  background-color: #f4f8ff;
-  align-items: center;
-}
-
-.general-bubble-darker {
-  background-color: #ececec;
-}
-
-.general-bubble-slim {
-  padding-left: 9px;
-  padding-right: 9px;
-}
-
-.general-bubble-green {
-  background-color: #dbf5d2;
-  color: #69b751;
-}
-
-.general-bubble-blue {
-  background-color: #cfd3f7;
-  color: #292f75;
-}
-
-.general-bubble-yellow {
-  background-color: #eae793;
-  color: #87830b;
-}
-
-.general-bubble-orange {
-  background-color: #ecdea9;
-  color: #87740b;
-}
-
-.general-bubble-red {
-  background-color: #ffdcdc;
-  color: rgb(170, 109, 109);
-}
-
-.general-bubble-teal {
-  background-color: #9dccd0;
-  color: #015b63;
-}
-</style>

@@ -96,20 +96,6 @@ vi.mock("@/codeclarity_components/analyses/analysis.repository", () => ({
 }));
 
 // Mock child components
-vi.mock("@/base_components/ui/loaders/LoadingComponent.vue", () => ({
-  default: {
-    name: "LoadingComponent",
-    template: "<div>Loading...</div>",
-  },
-}));
-
-vi.mock("@/base_components/utilities/ErrorComponent.vue", () => ({
-  default: {
-    name: "ErrorComponent",
-    template: "<div>Error</div>",
-  },
-}));
-
 // Mock the lazily loaded result views.
 //
 // ResultsView declares these with defineAsyncComponent, and the loader's

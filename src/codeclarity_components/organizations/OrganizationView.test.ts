@@ -13,29 +13,6 @@ vi.mock("@/stores/state", () => ({
   useStateStore: () => mockStateStore,
 }));
 
-// Mock the async components with proper loading/error components
-vi.mock("@/base_components/utilities/ErrorComponent.vue", () => ({
-  default: {
-    name: "ErrorComponent",
-    template: '<div data-testid="error-component">Error</div>',
-  },
-}));
-
-vi.mock("@/base_components/ui/loaders/LoadingComponent.vue", () => ({
-  default: {
-    name: "LoadingComponent",
-    template: '<div data-testid="loading-component">Loading</div>',
-  },
-}));
-
-vi.mock("@/base_components/layout/PageHeader.vue", () => ({
-  default: {
-    name: "PageHeader",
-    template: '<div data-testid="page-header"></div>',
-    props: ["title", "description", "showLastUpdated", "showRefresh"],
-  },
-}));
-
 // Mock Vue's defineAsyncComponent to return sync components
 vi.mock("vue", async () => {
   const actual = await vi.importActual("vue");
@@ -43,7 +20,7 @@ vi.mock("vue", async () => {
     ...actual,
     defineAsyncComponent: (options: any) => {
       // Return the mock component directly based on the loader path
-      const loaderStr = options.loader?.toString();
+      const loaderStr = (options.loader ?? options)?.toString();
       if (loaderStr?.includes("OrganizationsList")) {
         return {
           name: "OrganizationsList",
@@ -211,14 +188,6 @@ describe("OrganizationView", () => {
     }
   });
 
-  it("renders correctly", () => {
-    wrapper = mount(OrganizationView);
-
-    expect(wrapper.find(".min-h-screen").exists()).toBe(true);
-    expect(wrapper.find(".bg-gray-50").exists()).toBe(true);
-    expect(wrapper.find(".max-w-7xl").exists()).toBe(true);
-  });
-
   it('shows OrganizationsList when action is "list" and no orgId', async () => {
     wrapper = mount(OrganizationView, {
       props: {
@@ -349,85 +318,6 @@ describe("OrganizationView", () => {
     expect(wrapper.html()).toContain("Organization Manage");
   });
 
-  it("displays correct page title for create organization", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "add",
-      },
-    });
-
-    expect(wrapper.vm.getPageTitle()).toBe("Create Organization");
-  });
-
-  it("displays correct page title for organizations list", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "list",
-      },
-    });
-
-    expect(wrapper.vm.getPageTitle()).toBe("Organizations");
-  });
-
-  it("displays correct page title for policies page", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        page: "policies",
-        orgId: "test-org-id",
-      },
-    });
-
-    expect(wrapper.vm.getPageTitle()).toBe("Organization Policies");
-  });
-
-  it("displays correct page title for members page", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        page: "members",
-        orgId: "test-org-id",
-      },
-    });
-
-    expect(wrapper.vm.getPageTitle()).toBe("Members");
-  });
-
-  it("displays correct page description for create organization", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "add",
-      },
-    });
-
-    expect(wrapper.vm.getPageDescription()).toBe(
-      "Create a new organization to manage your team and projects",
-    );
-  });
-
-  it("displays correct page description for organizations list", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "list",
-      },
-    });
-
-    expect(wrapper.vm.getPageDescription()).toBe(
-      "Monitor your organization's security posture and vulnerabilities",
-    );
-  });
-
-  it("displays correct page description for policies page", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        page: "policies",
-        orgId: "test-org-id",
-      },
-    });
-
-    expect(wrapper.vm.getPageDescription()).toBe(
-      "Configure security policies and compliance settings",
-    );
-  });
-
   it("initializes state store correctly", () => {
     wrapper = mount(OrganizationView);
 
@@ -463,28 +353,7 @@ describe("OrganizationView", () => {
       },
     });
 
-    expect(wrapper.vm.getPageTitle()).toBe("Organizations");
-    expect(wrapper.vm.getPageDescription()).toBe(
-      "Manage your organizations and security settings",
-    );
-  });
-
-  it("shows page header with correct props", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "list",
-      },
-    });
-
-    const pageHeader = wrapper.findComponent({ name: "PageHeader" });
-
-    expect(pageHeader.exists()).toBe(true);
-    expect(pageHeader.props().title).toBe("Organizations");
-    expect(pageHeader.props().description).toBe(
-      "Monitor your organization's security posture and vulnerabilities",
-    );
-    expect(pageHeader.props().showLastUpdated).toBe(false);
-    expect(pageHeader.props().showRefresh).toBe(false);
+    expect(wrapper.text()).toBe("");
   });
 
   it("passes correct props to child components", async () => {
@@ -505,5 +374,33 @@ describe("OrganizationView", () => {
       expect(manageMembersComponent.props().page).toBe("members");
       expect(manageMembersComponent.props().orgId).toBe("test-org-id");
     }
+  });
+  it("shows only the section the route asks for", () => {
+    wrapper = mount(OrganizationView, {
+      props: { page: "members", orgId: "test-org-id" },
+    });
+
+    expect(wrapper.text()).toBe("Manage Members");
+  });
+
+  // Each section owns its heading, so the view adds no title or description of its own.
+  it.each<[Record<string, string>, string]>([
+    [{ action: "add" }, "Create Organization"],
+    [{ action: "list" }, "Organizations List"],
+    [{ page: "policies", orgId: "test-org-id" }, "Policies"],
+    [{ page: "members", orgId: "test-org-id" }, "Manage Members"],
+    [{ page: "logs", orgId: "test-org-id" }, "Audit Logs"],
+    [{ page: "invites", orgId: "test-org-id" }, "Manage Invites"],
+    [{ page: "integrations", orgId: "test-org-id" }, "Integrations"],
+  ])("route %o shows only the section text %s", (props, text) => {
+    wrapper = mount(OrganizationView, { props });
+
+    expect(wrapper.text()).toBe(text);
+  });
+
+  it("renders no heading of its own", () => {
+    wrapper = mount(OrganizationView, { props: { action: "list" } });
+
+    expect(wrapper.find("h1, h2, [role=heading]").exists()).toBe(false);
   });
 });

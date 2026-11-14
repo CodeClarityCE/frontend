@@ -22,7 +22,7 @@ test.describe("SBOM results", () => {
       /Direct dependencies\s*3/,
     );
     await expect(numbers.getByRole("listitem").nth(3)).toHaveText(
-      /Security issues\s*3/,
+      /Vulnerabilities\s*3/,
     );
     await expect(tabs.rows("Dependencies")).toHaveCount(5);
     await expect(

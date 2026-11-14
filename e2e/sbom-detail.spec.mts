@@ -147,6 +147,7 @@ test.describe("SBOM counts", () => {
     const tabs = new ResultTabsPage(page);
     // One vulnerability hits two dependencies: 4 findings, 3 vulnerabilities.
     await tabs.signIn({
+      vulnFinder: true,
       vulnStats: { number_of_issues: 4, number_of_vulnerabilities: 3 },
     });
     await tabs.goto();

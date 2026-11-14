@@ -28,7 +28,9 @@ Core SBOM data processing utilities:
 
 Package manager-specific operations:
 
-- `generateUpdateCommands()` - Generate commands for npm/yarn/pnpm/bun
+- `toPackageManager()` - Map the SBOM's value to a known manager, or null
+- `generateUpdateCommands()` - Generate commands for npm/yarn/pnpm/bun/composer
+- `getManifestName()` - Get the manifest, package.json or composer.json
 - `getPackageManagerIcon()` - Get appropriate logo icons
 - `getLockfileName()` - Get correct lockfile name
 - `getInstallCommand()` - Get install command for package manager

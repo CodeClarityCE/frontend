@@ -362,6 +362,12 @@ export interface ResultTabsOptions {
   dependencies?: Record<string, unknown>[];
   licenses?: Record<string, unknown>[];
   codeql?: Record<string, unknown>[];
+  /** The SBOM workspaces answer, with its package managers. */
+  workspaces?: {
+    workspaces: string[];
+    package_manager: string;
+    package_managers?: Record<string, string>;
+  };
   /** Keeps the tab's main requests pending until the returned function runs. */
   hold?: boolean;
   /** Leaves the real clock: the fixed one stops menus moving focus. */
@@ -425,7 +431,11 @@ export class ResultTabsPage {
           return fulfil(route, { data: analysis });
         if (path === `${results}/sbom/workspaces`)
           return fulfil(route, {
-            data: { workspaces: ["."], package_manager: "NPM" },
+            data: options.workspaces ?? {
+              workspaces: ["."],
+              package_manager: "NPM",
+              package_managers: { ".": "NPM" },
+            },
           });
         if (path === `${results}/sbom/stats`) {
           await wait();

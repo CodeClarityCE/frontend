@@ -11,124 +11,128 @@ export interface PackageUpdate {
   isProd: boolean;
 }
 
-export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
+export type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "composer";
+
+interface ManagerInfo {
+  icon: string;
+  manifest: string;
+  lockfile: string;
+  install: string;
+  // Commands that add packages as production or development dependencies.
+  add: string;
+  addDev: string;
+  // Joins a package name and version range, e.g. "express@^5.0.1".
+  spec: (name: string, range: string) => string;
+  help: string;
+}
+
+const npmSpec = (name: string, range: string): string => `${name}@${range}`;
+
+const MANAGERS: Record<PackageManager, ManagerInfo> = {
+  npm: {
+    icon: "devicon:npm",
+    manifest: "package.json",
+    lockfile: "package-lock.json",
+    install: "npm install",
+    add: "npm install",
+    addDev: "npm install --save-dev",
+    spec: npmSpec,
+    help: "npm install writes the new ranges to package.json too.",
+  },
+  yarn: {
+    icon: "devicon:yarn",
+    manifest: "package.json",
+    lockfile: "yarn.lock",
+    install: "yarn install",
+    add: "yarn add",
+    addDev: "yarn add --dev",
+    spec: npmSpec,
+    help: "yarn add writes the new ranges to package.json too.",
+  },
+  pnpm: {
+    icon: "devicon:pnpm",
+    manifest: "package.json",
+    lockfile: "pnpm-lock.yaml",
+    install: "pnpm install",
+    add: "pnpm add",
+    addDev: "pnpm add --save-dev",
+    spec: npmSpec,
+    help: "pnpm add writes the new ranges to package.json too.",
+  },
+  bun: {
+    icon: "devicon:bun",
+    manifest: "package.json",
+    lockfile: "bun.lock",
+    install: "bun install",
+    add: "bun add",
+    addDev: "bun add --dev",
+    spec: npmSpec,
+    help: "bun add writes the new ranges to package.json too.",
+  },
+  composer: {
+    icon: "devicon:composer",
+    manifest: "composer.json",
+    lockfile: "composer.lock",
+    install: "composer update --lock",
+    add: "composer require",
+    addDev: "composer require --dev",
+    spec: (name, range) => `${name}:${range}`,
+    help: "composer require writes the new constraints to composer.json too.",
+  },
+};
 
 /**
- * Get package manager logo icon
+ * The package manager named by an SBOM, or null when it is not one we know
+ * (for example "multi-language").
  */
+export function toPackageManager(value?: string): PackageManager | null {
+  const name = value?.toLowerCase() ?? "";
+  return name in MANAGERS ? (name as PackageManager) : null;
+}
+
+/** Get package manager logo icon */
 export function getPackageManagerIcon(packageManager: PackageManager): string {
-  const icons = {
-    npm: "devicon:npm",
-    yarn: "devicon:yarn",
-    pnpm: "devicon:pnpm",
-    bun: "devicon:bun",
-  };
-  return icons[packageManager] || icons.yarn;
+  return MANAGERS[packageManager].icon;
 }
 
-/**
- * Get lockfile name for package manager
- */
+/** Get the manifest file the package manager reads, e.g. package.json */
+export function getManifestName(packageManager: PackageManager): string {
+  return MANAGERS[packageManager].manifest;
+}
+
+/** Get lockfile name for package manager */
 export function getLockfileName(packageManager: PackageManager): string {
-  const lockfiles = {
-    npm: "package-lock.json",
-    yarn: "yarn.lock",
-    pnpm: "pnpm-lock.yaml",
-    bun: "bun.lockb",
-  };
-  return lockfiles[packageManager] || lockfiles.yarn;
+  return MANAGERS[packageManager].lockfile;
 }
 
-/**
- * Get install command for package manager
- */
+/** Get the command that refreshes the lockfile after a manifest edit */
 export function getInstallCommand(packageManager: PackageManager): string {
-  const commands = {
-    npm: "npm install",
-    yarn: "yarn install",
-    pnpm: "pnpm install",
-    bun: "bun install",
-  };
-  return commands[packageManager] || commands.yarn;
+  return MANAGERS[packageManager].install;
 }
 
-/**
- * Generate update commands for a package manager
- */
+/** Generate update commands for a package manager */
 export function generateUpdateCommands(
   packageManager: PackageManager,
   updates: PackageUpdate[],
 ): string[] {
-  const commands: string[] = [];
+  const info = MANAGERS[packageManager];
+  const specs = (list: PackageUpdate[]): string =>
+    list.map((u) => info.spec(u.name, `^${u.latestVersion}`)).join(" ");
 
-  // Separate production and dev dependencies
   const prodUpdates = updates.filter((update) => update.isProd);
   const devUpdates = updates.filter((update) => update.isDev && !update.isProd);
 
-  // Generate production dependencies command
-  if (prodUpdates.length > 0) {
-    const prodPackages = prodUpdates
-      .map((update) => `${update.name}@^${update.latestVersion}`)
-      .join(" ");
-
-    switch (packageManager) {
-      case "npm":
-        commands.push(`npm install ${prodPackages}`);
-        break;
-      case "yarn":
-        commands.push(`yarn upgrade ${prodPackages}`);
-        break;
-      case "pnpm":
-        commands.push(`pnpm update ${prodPackages}`);
-        break;
-      case "bun":
-        commands.push(`bun update ${prodPackages}`);
-        break;
-      default:
-        // No-op for unknown package managers
-        break;
-    }
-  }
-
-  // Generate dev dependencies command
-  if (devUpdates.length > 0) {
-    const devPackages = devUpdates
-      .map((update) => `${update.name}@^${update.latestVersion}`)
-      .join(" ");
-
-    switch (packageManager) {
-      case "npm":
-        commands.push(`npm install --save-dev ${devPackages}`);
-        break;
-      case "yarn":
-        commands.push(`yarn upgrade ${devPackages}`);
-        break;
-      case "pnpm":
-        commands.push(`pnpm update ${devPackages}`);
-        break;
-      case "bun":
-        commands.push(`bun update ${devPackages}`);
-        break;
-      default:
-        // No-op for unknown package managers
-        break;
-    }
-  }
-
+  const commands: string[] = [];
+  if (prodUpdates.length > 0)
+    commands.push(`${info.add} ${specs(prodUpdates)}`);
+  if (devUpdates.length > 0)
+    commands.push(`${info.addDev} ${specs(devUpdates)}`);
   return commands;
 }
 
-/**
- * Get help text for package manager
- */
+/** Get help text for package manager */
 export function getPackageManagerHelpText(
   packageManager: PackageManager,
 ): string {
-  const helpTexts = {
-    npm: "NPM will install the exact versions specified, ensuring your dependencies are updated to the latest available versions.",
-    yarn: "Unlike yarn add, the yarn upgrade command will update packages even if current versions satisfy semver constraints.",
-    pnpm: "The pnpm update command will update packages to their latest versions, respecting the version ranges specified.",
-    bun: "Bun's bun update command efficiently updates packages to their latest compatible versions.",
-  };
-  return helpTexts[packageManager] || helpTexts.yarn;
+  return MANAGERS[packageManager].help;
 }

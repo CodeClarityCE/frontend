@@ -99,12 +99,19 @@ export class ShellPage {
   readonly sidebar: Locator;
   readonly nav: Locator;
   readonly palette: Locator;
+  /** The header shown below the sidebar breakpoint. */
+  readonly mobileHeader: Locator;
+  readonly navTrigger: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.sidebar = page.locator("[data-sidebar=sidebar]");
     this.nav = page.getByRole("navigation", { name: "Main" });
     this.palette = page.getByRole("dialog", { name: "Command palette" });
+    this.mobileHeader = page.getByRole("banner");
+    this.navTrigger = this.mobileHeader.getByRole("button", {
+      name: "Open navigation",
+    });
   }
 
   link(name: string): Locator {

@@ -202,6 +202,9 @@ describe("DatasetDetail", () => {
     await flushPromises();
 
     await wrapper.find('[data-testid="dataset-import"]').trigger("click");
+    await wrapper
+      .find('[data-testid="dataset-import-confirm"]')
+      .trigger("click");
     await flushPromises();
 
     expect(createProject).toHaveBeenCalledTimes(3);
@@ -236,6 +239,9 @@ describe("DatasetDetail", () => {
     await flushPromises();
 
     await wrapper.find('[data-testid="dataset-import"]').trigger("click");
+    await wrapper
+      .find('[data-testid="dataset-import-confirm"]')
+      .trigger("click");
     await flushPromises();
 
     expect(createProject).toHaveBeenCalledTimes(IMPORT_CONCURRENCY);

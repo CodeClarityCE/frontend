@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PanelLeft, Search } from "@lucide/vue";
+import { PanelLeft, Search, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { type RouteLocationRaw, RouterLink, useRoute } from "vue-router";
 
@@ -44,7 +44,7 @@ const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar();
 
 const expanded = computed(() => state.value === "expanded");
 
-// On a phone the same button closes the navigation drawer.
+// On a phone the same button closes the navigation drawer, with a close icon.
 const toggleLabel = computed(() => {
   if (isMobile.value) return "Close navigation";
   return expanded.value ? "Collapse sidebar" : "Expand sidebar";
@@ -129,7 +129,8 @@ const activeBar =
           :aria-expanded="isMobile ? undefined : expanded"
           @click="toggleSidebar"
         >
-          <PanelLeft class="size-4" aria-hidden="true" />
+          <X v-if="isMobile" class="size-4" aria-hidden="true" />
+          <PanelLeft v-else class="size-4" aria-hidden="true" />
         </button>
       </div>
       <OrgSwitcher />
@@ -242,6 +243,6 @@ const activeBar =
       <NotificationsDialog />
       <UserMenu />
     </SidebarFooter>
-    <SidebarRail />
+    <SidebarRail v-if="!isMobile" />
   </Sidebar>
 </template>

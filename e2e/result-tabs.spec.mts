@@ -2,7 +2,12 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { dependency, ResultTabsPage } from "./pages/result-tabs.page.mjs";
+import {
+  ANALYSIS,
+  dependency,
+  PROJECT,
+  ResultTabsPage,
+} from "./pages/result-tabs.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -195,13 +200,28 @@ test.describe("SBOM dependency details", () => {
     await tabs.gotoDetails();
     await expect(tabs.heading).toContainText("lodash");
 
-    const back = page.getByRole("button", { name: "Back to results" });
+    const back = page.getByRole("link", { name: "Back to results" });
     await back.focus();
     await expectVisibleFocus(back);
     await page.keyboard.press("Tab");
     await expectVisibleFocus(
       page.getByRole("link", { name: /npm \(opens in a new tab\)/ }),
     );
+  });
+
+  test("Back to results opens the analysis results when opened directly", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.gotoDetails();
+    await expect(tabs.heading).toContainText("lodash");
+
+    await page.getByRole("link", { name: "Back to results" }).click();
+    await expect(page).toHaveURL(
+      new RegExp(`/results\\?analysis_id=${ANALYSIS}&project_id=${PROJECT}$`),
+    );
+    await expect(tabs.heading).toHaveText("Results");
   });
 
   test("while loading, a skeleton stands in for the page", async ({ page }) => {
@@ -421,5 +441,48 @@ test.describe("CodeQL results", () => {
     await expect(page.getByText("No findings")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "codeql-empty");
+  });
+});
+
+test.describe("Selected results tab", () => {
+  test("is kept in the URL and restored on reload", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.goto("Licenses");
+    await expect(page).toHaveURL(/[?&]tab=license-finder(&|$)/);
+
+    await page.reload();
+    await expect(page.getByRole("tab", { name: "Licenses" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(tabs.rows("Licenses")).toHaveCount(3);
+  });
+
+  test("is restored on browser back from a detail page", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.goto("Licenses");
+    await page.getByRole("button", { name: "Details of MIT License" }).click();
+    await page.getByRole("link", { name: "lodash@4.17.20" }).click();
+    await expect(tabs.heading).toContainText("lodash");
+
+    await page.goBack();
+    await expect(page.getByRole("tab", { name: "Licenses" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  test("an unknown tab in the URL opens the first tab", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.shell.goto(
+      `/results?analysis_id=${ANALYSIS}&project_id=${PROJECT}&tab=nope`,
+    );
+    await expect(page.getByRole("tab", { name: "SBOM" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

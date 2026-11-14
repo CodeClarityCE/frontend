@@ -57,7 +57,7 @@ const notFound = ref(false);
 const importing = ref(false);
 const importProgress = ref({ done: 0, total: 0 });
 const importFailures = ref<FailedEntryImport[]>([]);
-const confirmingDelete = ref(false);
+const confirming = ref<"import" | "delete" | null>(null);
 const deleting = ref(false);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -93,6 +93,12 @@ const canImport = computed(
     dataset.value.entry_count > 0 &&
     dataset.value.integration_id !== null,
 );
+
+/** How many projects an import creates, in words */
+const importCountLabel = computed(() => {
+  const count = dataset.value?.entry_count ?? 0;
+  return `${count} ${count === 1 ? "project" : "projects"}`;
+});
 
 /** Only a READY dataset can be the cohort of an experiment */
 const canRunExperiment = computed(
@@ -185,6 +191,7 @@ async function importAsProjects(): Promise<void> {
   if (!orgId || !token || !integrationId || importing.value) return;
 
   importing.value = true;
+  confirming.value = null;
   importFailures.value = [];
   const failures: FailedEntryImport[] = [];
   let alreadyImported = 0;
@@ -257,7 +264,7 @@ async function deleteDataset(): Promise<void> {
     );
   } finally {
     deleting.value = false;
-    confirmingDelete.value = false;
+    confirming.value = null;
   }
 }
 
@@ -349,31 +356,41 @@ onUnmounted(() => clearTimeout(pollTimer));
             <FlaskConical aria-hidden="true" />
             Run Experiment
           </Button>
-          <Button
-            v-if="canImport"
-            variant="outline"
-            :disabled="importing"
-            data-testid="dataset-import"
-            @click="importAsProjects"
-          >
-            <FolderInput aria-hidden="true" />
-            Import as projects
-          </Button>
-          <Button
-            v-if="!confirmingDelete"
-            variant="outline"
-            :disabled="importing"
-            data-testid="dataset-delete"
-            @click="confirmingDelete = true"
-          >
-            {{
-              dataset.status === DatasetStatus.BUILDING
-                ? "Cancel build"
-                : "Delete"
-            }}
-          </Button>
+          <template v-if="confirming === null">
+            <Button
+              v-if="canImport"
+              variant="outline"
+              :disabled="importing"
+              data-testid="dataset-import"
+              @click="confirming = 'import'"
+            >
+              <FolderInput aria-hidden="true" />
+              Import as projects
+            </Button>
+            <Button
+              variant="outline"
+              :disabled="importing"
+              data-testid="dataset-delete"
+              @click="confirming = 'delete'"
+            >
+              {{
+                dataset.status === DatasetStatus.BUILDING
+                  ? "Cancel build"
+                  : "Delete"
+              }}
+            </Button>
+          </template>
           <template v-else>
             <Button
+              v-if="confirming === 'import'"
+              :disabled="importing"
+              data-testid="dataset-import-confirm"
+              @click="importAsProjects"
+            >
+              Import {{ importCountLabel }}
+            </Button>
+            <Button
+              v-else
               variant="destructive"
               :disabled="deleting"
               data-testid="dataset-delete-confirm"
@@ -381,12 +398,19 @@ onUnmounted(() => clearTimeout(pollTimer));
             >
               Confirm delete
             </Button>
-            <Button variant="outline" @click="confirmingDelete = false">
-              Keep
-            </Button>
+            <Button variant="outline" @click="confirming = null"> Keep </Button>
           </template>
         </template>
       </PageHeading>
+
+      <p
+        v-if="confirming === 'import'"
+        class="text-sm text-foreground"
+        data-testid="dataset-import-hint"
+      >
+        This creates {{ importCountLabel }}, one per repository. Repositories
+        imported before are skipped.
+      </p>
 
       <Alert v-if="dataset.status === DatasetStatus.BUILDING" role="status">
         <Info aria-hidden="true" class="size-4" />

@@ -36,6 +36,7 @@ import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { pageTitle } from "@/utils/page-title";
 
 // Helper functions to reduce complexity in beforeEach guard
 async function refreshTokenIfNeeded(
@@ -429,6 +430,10 @@ router.beforeEach(async (to) => {
   }
 
   return true;
+});
+
+router.afterEach((to) => {
+  document.title = pageTitle(to);
 });
 
 export default router;

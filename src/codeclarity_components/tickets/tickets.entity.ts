@@ -392,13 +392,14 @@ export const TicketTypeLabels: Record<TicketType, string> = {
   [TicketType.UPGRADE]: "Upgrade",
 };
 
-// Kanban columns, in board order.
+// Kanban columns, in board order: one per status, so the cards add up to the total.
 export const KanbanColumns: { status: TicketStatus; label: string }[] = [
-  { status: TicketStatus.OPEN, label: "Open" },
-  { status: TicketStatus.IN_PROGRESS, label: "In Progress" },
-  { status: TicketStatus.RESOLVED, label: "Resolved" },
-  { status: TicketStatus.CLOSED, label: "Closed" },
-];
+  TicketStatus.OPEN,
+  TicketStatus.IN_PROGRESS,
+  TicketStatus.RESOLVED,
+  TicketStatus.CLOSED,
+  TicketStatus.WONT_FIX,
+].map((status) => ({ status, label: TicketStatusLabels[status] }));
 
 // ============================================
 // Integration Types

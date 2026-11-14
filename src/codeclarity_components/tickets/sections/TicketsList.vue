@@ -34,7 +34,11 @@ const columns: ColumnDef<TicketSummary, unknown>[] = [
         .join(" "),
     header: "Ticket",
   },
-  { id: "status", accessorFn: statusLabel, header: "Status" },
+  {
+    id: "status",
+    accessorFn: (ticket) => TicketStatusLabels[ticket.status],
+    header: "Status",
+  },
   {
     id: "priority",
     accessorFn: (ticket) => TicketPriorityRank[ticket.priority],
@@ -49,10 +53,6 @@ const columns: ColumnDef<TicketSummary, unknown>[] = [
     enableGlobalFilter: false,
   },
 ];
-
-function statusLabel(ticket: TicketSummary): string {
-  return ticket.external_status ?? TicketStatusLabels[ticket.status];
-}
 </script>
 
 <template>
@@ -108,7 +108,7 @@ function statusLabel(ticket: TicketSummary): string {
     <template #cell-status="{ row }">
       <StatusBadge
         :tone="TicketStatusTones[row.status]"
-        :label="statusLabel(row)"
+        :label="TicketStatusLabels[row.status]"
       />
     </template>
     <template #cell-priority="{ row }">

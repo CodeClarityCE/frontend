@@ -567,6 +567,26 @@ test.describe("Add a Project", () => {
     expect(projects.writes).toEqual(["POST /org/org-123/projects"]);
   });
 
+  test("Cancel on the archive upload returns to the import methods", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await page.getByRole("button", { name: /Upload an archive/ }).click();
+    await expect(
+      page.getByRole("heading", { name: "Upload an archive" }).first(),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page).toHaveURL(/\/projects\/add$/);
+    await expect(
+      page.getByRole("heading", {
+        name: "Choose where the project comes from",
+      }),
+    ).toBeVisible();
+  });
+
   test("the archive upload checks the name and file type", async ({ page }) => {
     const projects = new ProjectsPage(page);
     await projects.signIn();

@@ -433,6 +433,12 @@ export interface ConnectionTestResult {
   };
 }
 
+/** Credentials typed in the setup dialog, sent per request and never saved by it. */
+export interface IntegrationCredentials {
+  api_key?: string;
+  access_token?: string;
+}
+
 export interface ConfigureClickUpRequest {
   auth_method: "API_KEY" | "OAUTH";
   api_key?: string;

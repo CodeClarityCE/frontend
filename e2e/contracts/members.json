@@ -1,0 +1,44 @@
+{
+  "endpoint": "GET /org/:org/members",
+  "response": {
+    "status_code": 200,
+    "status": "success",
+    "data": [
+      {
+        "role": 0,
+        "joined_on": "2026-11-14T17:47:42.412Z",
+        "user": {
+          "id": "8de53635-4bfb-4538-86c5-653c6c71fc6a",
+          "first_name": "John",
+          "last_name": "Doe",
+          "handle": "JohnDoe",
+          "email": "john.doe@codeclarity.io",
+          "social": false,
+          "social_register_type": null,
+          "setup_done": true,
+          "activated": true,
+          "avatar_url": null,
+          "created_on": "2024-10-18T10:09:52.066Z",
+          "registration_verified": true,
+          "setup_temporary_conf": null
+        },
+        "organization": {
+          "id": "1840157b-1ff0-4848-8039-9e27d513a4fe",
+          "name": "ui-audit-scratch",
+          "description": "Scratch org for the UI write-flow audit",
+          "color_scheme": "1",
+          "created_on": "2026-11-14T17:47:42.301Z",
+          "personal": false,
+          "auto_resolve_tickets": false
+        }
+      }
+    ],
+    "page": 0,
+    "entry_count": 0,
+    "entries_per_page": 0,
+    "total_entries": 0,
+    "total_pages": 0,
+    "matching_count": 0,
+    "filter_count": {}
+  }
+}

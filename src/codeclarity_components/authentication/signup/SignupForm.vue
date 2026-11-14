@@ -187,7 +187,7 @@ async function submit(values: {
           <FormMessage />
         </FormItem>
       </FormField>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField v-slot="{ componentField }" name="first_name">
           <FormItem>
             <FormLabel>First name</FormLabel>

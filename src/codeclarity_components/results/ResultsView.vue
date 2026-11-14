@@ -297,7 +297,10 @@ onBeforeMount(async () => {
         class="flex flex-col gap-6"
         @value-change="handleTabChange"
       >
-        <TabsList aria-label="Results" class="self-start">
+        <TabsList
+          aria-label="Results"
+          class="h-auto max-w-full flex-wrap justify-start self-start"
+        >
           <TabsTrigger v-if="tab['sbom']" value="sbom"> SBOM </TabsTrigger>
           <TabsTrigger v-if="tab['vuln-finder']" value="vuln-finder">
             Vulnerabilities

@@ -69,7 +69,7 @@ const onSubmit = form.handleSubmit(async (values): Promise<void> => {
 
 <template>
   <form class="flex flex-col gap-6" novalidate @submit="onSubmit">
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <FormField v-slot="{ componentField }" name="first_name">
         <FormItem>
           <FormLabel>First name</FormLabel>

@@ -189,7 +189,7 @@ function afterAction(): void {
         >
           Settings
         </h2>
-        <ul class="grid grid-cols-2 gap-4 xl:grid-cols-3">
+        <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <li v-for="link in settingsLinks" :key="link.label">
             <RouterLink
               :to="link.to"

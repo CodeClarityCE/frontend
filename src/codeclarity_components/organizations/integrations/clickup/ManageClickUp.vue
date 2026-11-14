@@ -145,7 +145,7 @@ onMounted(() => void fetchClickUpConfig());
       v-if="loading"
       role="status"
       aria-label="Loading the ClickUp integration"
-      class="grid grid-cols-2 gap-6"
+      class="grid grid-cols-1 gap-6 lg:grid-cols-2"
     >
       <Skeleton class="h-64 rounded-card" />
       <Skeleton class="h-64 rounded-card" />
@@ -180,7 +180,7 @@ onMounted(() => void fetchClickUpConfig());
       </CardContent>
     </Card>
 
-    <div v-else class="grid grid-cols-2 items-start gap-6">
+    <div v-else class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       <Card class="rounded-card shadow-card">
         <CardHeader>
           <h3 class="text-lg font-semibold leading-none text-foreground-strong">

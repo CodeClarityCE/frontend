@@ -193,7 +193,7 @@ onMounted(() => {
       <ul
         v-if="loaded"
         aria-label="Ticket numbers"
-        class="grid grid-cols-4 gap-4"
+        class="grid grid-cols-2 gap-4 lg:grid-cols-4"
       >
         <StatTile label="Total" :value="quickStats.total" />
         <StatTile label="Open" :value="quickStats.open" />

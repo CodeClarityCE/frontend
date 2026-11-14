@@ -430,7 +430,7 @@ const choiceClass =
     </OwlEmptyState>
 
     <Card v-else class="rounded-card shadow-card">
-      <CardContent class="flex items-center gap-4 pt-6">
+      <CardContent class="flex flex-wrap items-center gap-4 pt-6">
         <Icon
           v-if="project?.type === IntegrationProvider.GITHUB"
           icon="simple-icons:github"
@@ -448,7 +448,7 @@ const choiceClass =
           aria-hidden="true"
           class="size-6 text-foreground-strong"
         />
-        <div class="flex min-w-0 flex-1 flex-col">
+        <div class="flex min-w-0 flex-1 basis-48 flex-col">
           <template v-if="project">
             <span class="truncate font-semibold text-foreground-strong">
               {{ project.name }}
@@ -612,7 +612,7 @@ const choiceClass =
               <template v-else>The code the analysis reads.</template>
             </CardDescription>
           </CardHeader>
-          <CardContent class="grid grid-cols-2 gap-4">
+          <CardContent class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-2">
               <Label for="analysis-branch">Branch</Label>
               <Input
@@ -659,7 +659,7 @@ const choiceClass =
               Optional rules that shape the results.
             </CardDescription>
           </CardHeader>
-          <CardContent class="grid grid-cols-2 gap-6">
+          <CardContent class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <SelectVulnerabilityPolicy
               v-if="hasVuln"
               v-model:selected_vulnerability_policy="vulnerabilityPolicy"

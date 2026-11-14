@@ -271,7 +271,10 @@ void load();
   <div class="flex flex-col gap-8">
     <HeaderItem v-if="orgId" :org-id="orgId" @on-org-info="setOrgInfo" />
 
-    <ul aria-label="Integration health" class="grid grid-cols-4 gap-4">
+    <ul
+      aria-label="Integration health"
+      class="grid grid-cols-2 gap-4 lg:grid-cols-4"
+    >
       <StatTile label="Healthy" :value="counts.healthy" />
       <StatTile label="Expiring soon" :value="counts.expiring" />
       <StatTile label="Invalid or expired" :value="counts.invalid" />

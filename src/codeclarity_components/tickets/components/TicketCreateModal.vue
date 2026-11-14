@@ -293,7 +293,7 @@ function viewExistingTicket(): void {
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="ticket-priority">Priority</Label>
             <Select v-model="priority" :disabled="isLoading">

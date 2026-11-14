@@ -9,9 +9,9 @@ import PublicPageLayout from "./PublicPageLayout.vue";
 <template>
   <PublicPageLayout>
     <div
-      class="mx-auto flex max-w-5xl items-center justify-center gap-16 py-12"
+      class="mx-auto flex max-w-5xl flex-col-reverse items-center justify-center gap-10 py-12 md:flex-row md:gap-16"
     >
-      <div class="flex max-w-xl flex-col gap-6">
+      <div class="flex min-w-0 max-w-xl flex-col gap-6">
         <p
           class="text-8xl font-black leading-none tracking-tight text-muted-foreground"
         >
@@ -24,7 +24,7 @@ import PublicPageLayout from "./PublicPageLayout.vue";
           Our owl searched every branch, but the page you are looking for does
           not exist or has been moved.
         </p>
-        <div class="flex gap-3">
+        <div class="flex flex-wrap gap-3">
           <Button @click="router.back()">Go back</Button>
           <RouterLink to="/" :class="buttonVariants({ variant: 'outline' })">
             Go to the dashboard
@@ -34,7 +34,7 @@ import PublicPageLayout from "./PublicPageLayout.vue";
       <img
         src="@/assets/images/logos/logo-green.svg"
         alt="The CodeClarity owl"
-        class="h-72 w-auto shrink-0"
+        class="h-40 w-auto shrink-0 md:h-72"
       />
     </div>
   </PublicPageLayout>

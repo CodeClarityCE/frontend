@@ -4,12 +4,14 @@ import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
 import {
   type Edge,
+  type FitViewParams,
   type Node,
   type NodeMouseEvent,
+  useVueFlow,
   VueFlow,
 } from "@vue-flow/core";
 import { MiniMap } from "@vue-flow/minimap";
-import { type Component, markRaw, onMounted, ref } from "vue";
+import { type Component, markRaw, onMounted, ref, useId } from "vue";
 
 import DependencyNodeComponent from "@/base_components/ui/flow/DependencyNode.vue";
 import { Skeleton } from "@/shadcn/ui/skeleton";
@@ -42,6 +44,27 @@ const nodes = ref<Node<DependencyNodeData>[]>([]);
 const edges = ref<Edge[]>([]);
 const loading = ref(true);
 const failed = ref(false);
+
+const canvas = ref<HTMLElement | null>(null);
+const showMinimap = ref(true);
+const fitViewParams = ref<FitViewParams>({ padding: "24px" });
+
+// Fits the graph beside the minimap, so the minimap covers no node.
+const flowId = `dependency-graph-${useId()}`;
+const { fitView, onNodesInitialized } = useVueFlow(flowId);
+const MINIMAP_SPACE = "240px";
+onNodesInitialized(() => {
+  showMinimap.value = (canvas.value?.clientWidth ?? 0) >= 640;
+  fitViewParams.value = {
+    padding: {
+      top: "24px",
+      bottom: "24px",
+      left: "24px",
+      right: showMinimap.value ? MINIMAP_SPACE : "24px",
+    },
+  };
+  void fitView(fitViewParams.value);
+});
 
 const resultsRepository = new ResultsRepository();
 const userStore = useUserStore();
@@ -137,25 +160,30 @@ const LEGEND = [
       </li>
     </ul>
     <div
+      ref="canvas"
       class="h-[600px] overflow-hidden rounded-card border bg-background"
       role="group"
       :aria-label="`Dependency graph of ${dependency.name}: ${nodes.length} packages on the paths from the project root`"
     >
       <VueFlow
+        :id="flowId"
         :nodes="nodes"
         :edges="edges"
         :node-types="nodeTypes"
         :default-viewport="{ zoom: 0.75 }"
         :min-zoom="0.05"
         :max-zoom="2"
-        fit-view-on-init
         :nodes-draggable="false"
         :nodes-connectable="false"
         class="size-full"
         @node-click="onNodeClick"
       >
         <Background pattern-color="var(--border)" :gap="20" />
-        <Controls position="top-right" :show-interactive="false">
+        <Controls
+          position="top-right"
+          :show-interactive="false"
+          :fit-view-params="fitViewParams"
+        >
           <template #icon-zoom-in>
             <Plus aria-hidden="true" class="size-3" />
             <span class="sr-only">Zoom in</span>
@@ -169,7 +197,7 @@ const LEGEND = [
             <span class="sr-only">Fit the graph to the view</span>
           </template>
         </Controls>
-        <MiniMap />
+        <MiniMap v-if="showMinimap" />
       </VueFlow>
     </div>
   </div>

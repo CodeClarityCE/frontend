@@ -159,6 +159,8 @@ async function submit(values: FormValues): Promise<void> {
     try {
       const token: RefreshToken = await authRepository.refresh({
         data: { refresh_token: authStore.getRefreshToken },
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       authStore.token = token.token;
       authStore.tokenExpiry = token.token_expiry;

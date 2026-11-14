@@ -87,6 +87,8 @@ async function submit(): Promise<void> {
         integrationId: updateId,
         bearerToken: authStore.getToken,
         data,
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       successToast("Updated the GitLab integration");
     } else {
@@ -94,6 +96,8 @@ async function submit(): Promise<void> {
         orgId,
         bearerToken: authStore.getToken,
         data,
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       successToast("Added the GitLab integration");
     }

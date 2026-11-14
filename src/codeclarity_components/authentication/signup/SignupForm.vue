@@ -66,7 +66,13 @@ const formSchema = z
       .min(10, "At least 10 characters")
       .max(75, "At most 75 characters"),
     plainPasswordConfirm: z.string().min(1, "Confirm your password"),
-    agreeTerms: z.boolean().default(false),
+    agreeTerms: z
+      .boolean()
+      .default(false)
+      .refine(
+        (val) => val === true,
+        "You must accept our terms and conditions to continue",
+      ),
   })
   .refine((values) => values.plainPassword === values.plainPasswordConfirm, {
     message: "The passwords do not match",
@@ -88,12 +94,6 @@ const { handleSubmit } = useForm<FormValues>({
 
 const onSubmit = handleSubmit((values): void => {
   if (loading.value) return;
-  if (values.agreeTerms === false) {
-    toast.warning("You must agree to our terms and conditions to continue", {
-      description: "Please check the box to continue",
-    });
-    return;
-  }
   void submit(values);
 });
 

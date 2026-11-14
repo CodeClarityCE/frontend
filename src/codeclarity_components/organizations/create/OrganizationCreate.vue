@@ -20,7 +20,6 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
@@ -31,15 +30,18 @@ const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
 const submitting = ref(false);
 
+// The maximum lengths match the API's limits.
 const formSchema = z.object({
   name: z
     .string({ required_error: "A name is required" })
     .trim()
-    .min(2, { message: "At least 2 characters" }),
+    .min(2, { message: "At least 2 characters" })
+    .max(50, { message: "At most 50 characters" }),
   description: z
     .string({ required_error: "A description is required" })
     .trim()
-    .min(2, { message: "At least 2 characters" }),
+    .min(2, { message: "At least 2 characters" })
+    .max(250, { message: "At most 250 characters" }),
 });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -60,18 +62,15 @@ const submitForm = form.handleSubmit(async (values) => {
         color_scheme: "1",
       },
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast(`Created ${values.name}`);
     void router.push({
       name: "orgs",
       params: { action: "manage", page: "main", orgId: created.id },
     });
-  } catch (error) {
-    errorToast(
-      error instanceof BusinessLogicError
-        ? `The organisation could not be created: ${error.error_message}`
-        : "The organisation could not be created",
-    );
+  } catch {
+    errorToast("The organisation could not be created");
   } finally {
     submitting.value = false;
   }

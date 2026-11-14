@@ -48,6 +48,8 @@ async function loadTemplates(): Promise<void> {
   try {
     const response = await templatesRepo.getTemplates({
       bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     templates.value = response.data;
   } catch {

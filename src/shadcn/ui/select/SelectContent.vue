@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { SelectContentEmits, SelectContentProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
+import { type HTMLAttributes, nextTick, onBeforeUnmount, watch } from "vue";
 import { reactiveOmit } from "@vueuse/core";
 import {
+  injectSelectRootContext,
   SelectContent,
   SelectPortal,
   SelectViewport,
@@ -26,6 +27,29 @@ const emits = defineEmits<SelectContentEmits>();
 const delegatedProps = reactiveOmit(props, "class");
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+// Reka hides the rest of the page with aria-hidden while the list is open but
+// leaves it focusable; making it inert too keeps assistive tech and focus in step.
+const root = injectSelectRootContext();
+let madeInert: Element[] = [];
+
+function releaseInert(): void {
+  madeInert.forEach((el) => el.removeAttribute("inert"));
+  madeInert = [];
+}
+
+watch(root.open, async (open) => {
+  releaseInert();
+  if (!open) return;
+  await nextTick();
+  if (!root.open.value) return;
+  madeInert = [...document.querySelectorAll("[data-aria-hidden]")].filter(
+    (el) => !el.hasAttribute("inert"),
+  );
+  madeInert.forEach((el) => el.setAttribute("inert", ""));
+});
+
+onBeforeUnmount(releaseInert);
 </script>
 
 <template>

@@ -21,7 +21,7 @@ export function sbomDependency(
     deprecated: false,
     deprecated_message: "",
     outdated: false,
-    licenses: [{ id: "MIT" }],
+    license: "MIT",
     ...overrides,
   } as unknown as Dependency;
 }

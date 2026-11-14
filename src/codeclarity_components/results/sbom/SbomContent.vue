@@ -39,8 +39,8 @@ import SbomExportMenu from "./SbomExportMenu.vue";
 import SbomTable from "./SbomTable.vue";
 import {
   calculateHealthScore,
-  calculateSecurityIssues,
   convertToPackageUpdates,
+  countVulnerabilities,
   getDirectDependenciesNeedingUpdates,
 } from "./utils/sbomUtils";
 
@@ -184,12 +184,15 @@ const directTotal = computed(
 const healthGrade = computed(() =>
   scoreToGrade(calculateHealthScore(stats.value)),
 );
-const securityIssues = computed(() =>
-  calculateSecurityIssues(vulnerabilityStats.value),
+const vulnerabilityCount = computed(() =>
+  countVulnerabilities(vulnerabilityStats.value),
 );
-const securityHint = computed(() => {
-  if (securityIssues.value === null) return "Vulnerability data unavailable";
-  return securityIssues.value === 0 ? "No issues found" : "Requires attention";
+const vulnerabilityHint = computed(() => {
+  if (vulnerabilityCount.value === null)
+    return "Vulnerability data unavailable";
+  return vulnerabilityCount.value === 0
+    ? "None found"
+    : "See the vulnerabilities tab";
 });
 
 const healthFactors = computed(() => [
@@ -372,9 +375,9 @@ const LINK =
           :hint="getGradeSubtitle(healthGrade, 'health')"
         />
         <StatTile
-          label="Security issues"
-          :value="securityIssues ?? '-'"
-          :hint="securityHint"
+          label="Vulnerabilities"
+          :value="vulnerabilityCount ?? '-'"
+          :hint="vulnerabilityHint"
         />
       </ul>
 
@@ -388,8 +391,8 @@ const LINK =
         <PopoverContent align="start" class="w-80 text-sm">
           <p class="mb-2">
             Deprecated and unlicensed dependencies lower the grade most;
-            outdated ones count for less. Vulnerabilities are counted under
-            security issues.
+            outdated ones count for less. Vulnerabilities do not change the
+            grade.
           </p>
           <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
             <dt class="font-medium">A+ or A</dt>

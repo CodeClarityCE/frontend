@@ -191,7 +191,9 @@ test.describe("Create an organisation", () => {
     await expectScreenshots(page, "orgs-create-errors");
   });
 
-  test("creates it and opens its overview", async ({ page }) => {
+  test("a double click creates it once and opens its overview", async ({
+    page,
+  }) => {
     const orgs = new OrgSettingsPage(page);
     await orgs.signIn();
     await orgs.gotoCreate();
@@ -200,7 +202,7 @@ test.describe("Create an organisation", () => {
     await page
       .getByRole("textbox", { name: "Description" })
       .fill("Ecosystem studies");
-    await page.getByRole("button", { name: "Create organisation" }).click();
+    await page.getByRole("button", { name: "Create organisation" }).dblclick();
 
     await expect(page).toHaveURL(/\/orgs\/manage\/main\/org-new\/?$/);
     expect(orgs.created).toEqual([

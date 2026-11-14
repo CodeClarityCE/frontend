@@ -164,6 +164,39 @@ test.describe("Projects list", () => {
     await expect(page).toHaveURL(/\/results\?analysis_id=a-1&project_id=p-1$/);
   });
 
+  test("a failed latest analysis still links to the last completed results", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({
+      projects: [
+        project("p-1", "example/web-frontend", {
+          analyses: [
+            analysis("a-old", "completed", {
+              created_on: "2026-10-01T09:00:00Z",
+            }),
+            analysis("a-new", "failure", {
+              created_on: "2026-11-02T09:00:00Z",
+            }),
+            analysis("a-mid", "completed", {
+              created_on: "2026-10-15T09:00:00Z",
+            }),
+          ],
+        }),
+      ],
+    });
+    await projects.gotoList();
+
+    await projects
+      .row("web-frontend")
+      .getByRole("link", { name: "Results of example/web-frontend" })
+      .click();
+
+    await expect(page).toHaveURL(
+      /\/results\?analysis_id=a-mid&project_id=p-1$/,
+    );
+  });
+
   test("a scheduled analysis shows its runs", async ({ page }) => {
     const projects = new ProjectsPage(page);
     await projects.signIn({

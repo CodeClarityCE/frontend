@@ -166,9 +166,10 @@ function schedulePoll(): void {
   }
 }
 
+// Links to the newest completed analysis, even when a later one failed.
 function resultsLink(project: Project): Record<string, unknown> | undefined {
-  const analysis = latest(project);
-  if (!analysis || !isFinished(analysis)) return undefined;
+  const analysis = byNewest(project.analyses).find(isFinished);
+  if (!analysis) return undefined;
   const query: Record<string, string | number> = {
     analysis_id: analysis.id,
     project_id: project.id,

@@ -100,11 +100,29 @@ const importProgressPercent = computed(() =>
       ),
 );
 
+// A web address with a host, like https://github.com/owner/repository.
+function isWebUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "https:" || url.protocol === "http:") &&
+      url.hostname.includes(".")
+    );
+  } catch {
+    return false;
+  }
+}
+
 const formSchema = z.object({
   repository: z
     .string({ required_error: "A repository URL is required" })
-    .min(2, "A repository URL is required")
-    .max(150, "At most 150 characters"),
+    .trim()
+    .min(1, "A repository URL is required")
+    .max(150, "At most 150 characters")
+    .refine(
+      isWebUrl,
+      "Enter the full URL, like https://github.com/owner/repository",
+    ),
 });
 type FormValues = z.infer<typeof formSchema>;
 

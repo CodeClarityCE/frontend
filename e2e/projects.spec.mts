@@ -805,6 +805,60 @@ test.describe("Add a Project", () => {
       page.getByRole("list", { name: "Import methods" }),
     ).toBeVisible();
   });
+
+  test("the URL import rejects text that is not a URL next to the field", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await page.getByTestId("github-card").click();
+    const field = page.getByLabel("Repository URL");
+
+    for (const value of ["   ", "not a url", "github.com/example/tools"]) {
+      await field.fill(value);
+      await page.getByRole("button", { name: "Import repository" }).click();
+      await expect(field).toHaveAttribute("aria-invalid", "true");
+      await expect(field).toHaveAccessibleDescription(
+        /A repository URL is required|Enter the full URL/,
+      );
+    }
+    expect(projects.writes).toEqual([]);
+
+    await field.fill("  https://github.com/example/tools  ");
+    await expect(field).not.toHaveAttribute("aria-invalid", "true");
+    await page.getByRole("button", { name: "Import repository" }).click();
+    await expect(page).toHaveURL(/\/projects$/);
+    expect(projects.writes).toEqual(["POST /org/org-123/projects"]);
+  });
+
+  test("the archive upload rejects a name of only spaces next to the field", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await page.getByRole("button", { name: /Upload an archive/ }).click();
+
+    await page.getByLabel("Name").fill("     ");
+    await page.getByLabel("Archive", { exact: true }).setInputFiles({
+      name: "shop.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.from("PK"),
+    });
+    await page
+      .getByRole("button", { name: "Create project and upload" })
+      .click();
+
+    await expect(page.getByLabel("Name")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    await expect(page.getByLabel("Name")).toHaveAccessibleDescription(
+      "A name of at least 2 characters is required",
+    );
+    expect(projects.writes).toEqual([]);
+  });
 });
 
 function repoWithStars(name: string, stars: number): Record<string, unknown> {

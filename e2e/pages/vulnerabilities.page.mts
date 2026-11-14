@@ -243,6 +243,7 @@ function paginated(
     total_pages: Math.max(1, Math.ceil(total / perPage)),
     matching_count: total,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }

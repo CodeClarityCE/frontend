@@ -1,0 +1,33 @@
+{
+  "endpoint": "GET /org/:org/projects/:project/tickets",
+  "response": {
+    "status_code": 200,
+    "status": "success",
+    "data": [
+      {
+        "id": "96db1c74-3532-4926-bc70-c5f513808bfa",
+        "title": "CVE-2020-7720: node-forge",
+        "status": "RESOLVED",
+        "priority": "CRITICAL",
+        "type": "VULNERABILITY",
+        "vulnerability_id": "CVE-2020-7720",
+        "affected_package": "node-forge",
+        "severity_score": 9.8,
+        "severity_class": "CRITICAL",
+        "created_on": "2026-11-14T18:44:30.921Z",
+        "updated_on": "2026-11-14T18:45:40.092Z",
+        "project_id": "2e49a288-72f7-41cb-9663-99c13d53e880",
+        "project_name": "audit-vuln-js",
+        "has_external_links": false,
+        "external_status": "complete"
+      }
+    ],
+    "page": 0,
+    "entry_count": 1,
+    "entries_per_page": 100,
+    "total_entries": 1,
+    "total_pages": 1,
+    "matching_count": 1,
+    "filter_count": {}
+  }
+}

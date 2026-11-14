@@ -57,7 +57,7 @@ test.describe("Research section", () => {
 
     const items = dashboard.list("Recently finished").getByRole("listitem");
     await expect(items).toHaveCount(3);
-    await expect(items.nth(0)).toContainText("Licence drift");
+    await expect(items.nth(0)).toContainText("License drift");
     await expect(items.nth(0)).toContainText("Completed");
     await expect(items.nth(0)).toContainText("Ended Nov 1, 2026");
     await expect(items.nth(1)).toContainText("Fix lag study");
@@ -76,7 +76,7 @@ test.describe("Research section", () => {
       .list("Recent Published results")
       .getByRole("listitem");
     await expect(items).toHaveText([
-      /Licence drift\s*Metric version 1, published Nov 2, 2026 by Jane Roe\s*Frozen/,
+      /License drift\s*Metric version 1, published Nov 2, 2026 by Jane Roe\s*Frozen/,
       /Fix lag study\s*Metric version 2, published Oct 20, 2026 by John Doe\s*Frozen/,
       /Fix lag study\s*Metric version 1, published Oct 7, 2026\s*Frozen/,
     ]);
@@ -181,7 +181,7 @@ test.describe("Project overview", () => {
     );
   });
 
-  test("draws exposure, licences and impact on the shared charts", async ({
+  test("draws exposure, licenses and impact on the shared charts", async ({
     page,
   }) => {
     const dashboard = new DashboardPage(page);
@@ -205,9 +205,9 @@ test.describe("Project overview", () => {
       "2 Critical",
     );
 
-    const licences = dashboard.chart("Dependencies by licence");
-    await expect(licences.getByRole("img")).toHaveCount(3);
-    await expect(licences.getByRole("img").first()).toHaveAccessibleName(
+    const licenses = dashboard.chart("Dependencies by license");
+    await expect(licenses.getByRole("img")).toHaveCount(3);
+    await expect(licenses.getByRole("img").first()).toHaveAccessibleName(
       "MIT: 40 dependencies (70%)",
     );
 
@@ -311,7 +311,7 @@ test.describe("Project overview", () => {
       dashboard.projects.getByRole("heading", { name: /first analysis/ }),
     ).toHaveCount(0);
     await expect(
-      dashboard.chart("Dependencies by licence").getByRole("img"),
+      dashboard.chart("Dependencies by license").getByRole("img"),
     ).toHaveCount(3);
 
     fail.length = 0;
@@ -364,7 +364,7 @@ test.describe("Project overview", () => {
 
     for (const label of [
       "vulnerability exposure",
-      "licences",
+      "licenses",
       "impact analysis",
       "ticket statistics",
     ]) {
@@ -424,14 +424,14 @@ test.describe("Project overview", () => {
       dashboard.projects.getByRole("list", { name: "Tickets by state" }),
     ).toBeVisible();
     await expect(dashboard.list("Recent Published results")).toBeVisible();
-    await expect(dashboard.chart("Dependencies by licence")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
 
     const repeated = [...dashboard.requests].filter(([, n]) => n > 1);
     expect(repeated).toEqual([]);
 
     dashboard.requests.clear();
     await dashboard.projects.getByRole("button", { name: "Refresh" }).click();
-    await expect(dashboard.chart("Dependencies by licence")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
     await expect(
       dashboard.projects.getByRole("list", { name: "Tickets by state" }),
     ).toBeVisible();
@@ -460,7 +460,7 @@ test.describe("Project overview", () => {
     await dashboard.goto();
 
     for (const name of [
-      "Dependencies by licence",
+      "Dependencies by license",
       "Summed severity of vulnerabilities by week",
     ]) {
       const chart = dashboard.chart(name);
@@ -544,10 +544,10 @@ test.describe("Whole page", () => {
     for (const target of [
       link("Experiments in progress", "Upstream leverage"),
       link("Experiments in progress", "Residence time 2026"),
-      link("Recently finished", "Licence drift"),
+      link("Recently finished", "License drift"),
       link("Recently finished", "Fix lag study"),
       link("Recently finished", "Broken cohort"),
-      link("Recent Published results", "Licence drift"),
+      link("Recent Published results", "License drift"),
       link("Recent Published results", "Fix lag study"),
       link("Recent Published results", "Fix lag study", 1),
       dashboard.projects.getByRole("button", { name: "Refresh" }),
@@ -566,7 +566,7 @@ test.describe("Whole page", () => {
     await dashboard.goto();
 
     const mit = dashboard
-      .chart("Dependencies by licence")
+      .chart("Dependencies by license")
       .getByRole("img", { name: /^MIT/ });
     await mit.focus();
     await expectVisibleFocus(mit);
@@ -580,7 +580,7 @@ test.describe("Whole page", () => {
     await dashboard.signIn();
     await dashboard.goto();
     await expect(dashboard.list("Recent Published results")).toBeVisible();
-    await expect(dashboard.chart("Dependencies by licence")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
     await expect(
       dashboard.chart("Summed severity of vulnerabilities by week"),
     ).toBeVisible();

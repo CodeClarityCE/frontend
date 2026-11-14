@@ -72,7 +72,7 @@ const descriptions: Record<string, { text: string; icon: LucideIcon }> = {
     icon: SlidersHorizontal,
   },
   Policies: {
-    text: "Licence and vulnerability rules for analyses",
+    text: "License and vulnerability rules for analyses",
     icon: FileText,
   },
   "Audit logs": {
@@ -114,7 +114,7 @@ const faqs = [
   {
     question: "What are policies?",
     answer:
-      "Rules the analyzers apply, such as licences to allow or block and vulnerabilities to flag.",
+      "Rules the analyzers apply, such as licenses to allow or block and vulnerabilities to flag.",
   },
   {
     question: "How do I add people?",

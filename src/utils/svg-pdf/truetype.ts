@@ -110,7 +110,7 @@ export function parseTrueType(bytes: Uint8Array): TrueTypeFont {
   const hmtx = table(tables, "hmtx");
   const os2 = table(tables, "OS/2");
   if (view.getUint16(os2 + 8) & 0x0002) {
-    throw new Error("Font licence does not allow embedding");
+    throw new Error("Font license does not allow embedding");
   }
   const metrics = view.getUint16(hhea + 34);
   const lookup = format4Lookup(view, unicodeCmap(view, table(tables, "cmap")));

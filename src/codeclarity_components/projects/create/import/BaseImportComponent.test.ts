@@ -178,7 +178,7 @@ describe("BaseImportComponent bulk import", () => {
       }),
     );
     expect(successToast).toHaveBeenCalledWith(
-      "Succesfully imported 10 repositories",
+      "Successfully imported 10 repositories",
     );
     expect(errorToast).not.toHaveBeenCalled();
     expect(router.push).toHaveBeenCalledWith({ name: "projects" });
@@ -227,7 +227,7 @@ describe("BaseImportComponent bulk import", () => {
 
     expect(createProject).toHaveBeenCalledTimes(10);
     expect(successToast).toHaveBeenCalledWith(
-      "Succesfully imported 9 repositories",
+      "Successfully imported 9 repositories",
     );
     expect(errorToast).toHaveBeenCalledWith("Failed to import 1 repositories");
     expect(router.push).not.toHaveBeenCalled();

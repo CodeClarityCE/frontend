@@ -16,7 +16,7 @@ export const IMPORT_CONCURRENCY = 4;
  */
 export function getImportErrorMessage(err: unknown): string {
   if (!(err instanceof BusinessLogicError)) {
-    return "An error occured during the project import.";
+    return "An error occurred during the project import.";
   }
 
   if (err.error_code === APIErrors.AlreadyExists) {
@@ -27,7 +27,7 @@ export function getImportErrorMessage(err: unknown): string {
     err.error_code === APIErrors.InternalError ||
     err.error_code === APIErrors.EntityNotFound
   ) {
-    return "An error occured during the project import.";
+    return "An error occurred during the project import.";
   }
 
   if (err.error_code === APIErrors.NotAuthorized) {
@@ -41,5 +41,5 @@ export function getImportErrorMessage(err: unknown): string {
     return "The repository could not be resolved through the integration (rate limit or invalid token).";
   }
 
-  return "An error occured during the project import.";
+  return "An error occurred during the project import.";
 }

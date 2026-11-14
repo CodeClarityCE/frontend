@@ -95,8 +95,8 @@ const sample = [
   },
   {
     id: "a-2",
-    name: "Licences only",
-    description: "Checks licences",
+    name: "Licenses only",
+    description: "Checks licenses",
     created_on: "2025-02-10T10:00:00Z",
     steps: [[{ name: "license-finder" }]],
   },
@@ -139,7 +139,7 @@ describe("AnalyzersList", () => {
     const text = document.querySelector("table")?.textContent ?? "";
     expect(text).toContain("Default analyzer");
     expect(text).toContain("2 stages");
-    expect(text).toContain("Licences only");
+    expect(text).toContain("Licenses only");
     expect(text).toContain("1 stage");
   });
 
@@ -169,16 +169,16 @@ describe("AnalyzersList", () => {
     await flushPromises();
 
     expect(document.querySelector("table")?.textContent).toContain(
-      "Licences only",
+      "Licenses only",
     );
   });
 
   it("deletes an analyzer after confirmation", async () => {
     await render();
 
-    button("Delete Licences only")?.click();
+    button("Delete Licenses only")?.click();
     await flushPromises();
-    expect(document.body.textContent).toContain("Delete Licences only?");
+    expect(document.body.textContent).toContain("Delete Licenses only?");
 
     button("Delete analyzer")?.click();
     await flushPromises();
@@ -186,19 +186,19 @@ describe("AnalyzersList", () => {
     expect(deleteAnalyzer).toHaveBeenCalledWith(
       expect.objectContaining({ orgId: "org-1", analyzer_id: "a-2" }),
     );
-    expect(successToast).toHaveBeenCalledWith("Deleted Licences only");
+    expect(successToast).toHaveBeenCalledWith("Deleted Licenses only");
   });
 
   it("tells the user when a delete fails", async () => {
     deleteAnalyzer.mockRejectedValueOnce(new Error("boom"));
     await render();
 
-    button("Delete Licences only")?.click();
+    button("Delete Licenses only")?.click();
     await flushPromises();
     button("Delete analyzer")?.click();
     await flushPromises();
 
-    expect(errorToast).toHaveBeenCalledWith("Failed to delete Licences only");
+    expect(errorToast).toHaveBeenCalledWith("Failed to delete Licenses only");
   });
 
   it("sends members who are not admins back to the overview", async () => {

@@ -31,7 +31,7 @@ export const sampleExperiments = [
     run_count: 200,
     run_counts: { pending: 200, done: 0, failed: 0, skipped: 0 },
   }),
-  experiment("exp-5", "Licence drift", "COMPLETED", {
+  experiment("exp-5", "License drift", "COMPLETED", {
     created_on: "2026-10-30T09:00:00Z",
     ended_on: "2026-11-01T09:00:00Z",
   }),

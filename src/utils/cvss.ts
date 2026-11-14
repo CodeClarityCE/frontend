@@ -42,8 +42,8 @@ const cvssV2_fields_map = {
       description:
         "This metric measures the complexity of the attack required to exploit the vulnerability once an attacker has gained access to the target system. For example, consider a buffer overflow in an Internet service: once the target system is located, the attacker can launch an exploit at will. Other vulnerabilities, however, may require additional steps in order to be exploited. For example, a vulnerability in an email client is only exploited after the user downloads and opens a tainted attachment.",
       value_descriptions: {
-        H: "Specialized conditions exists for the attack that make it hard to be exploited, such as having to have elevated privileges, employing social engineering, emplying a vulnerable configuration or having a race condition.",
-        M: "Additional conditions exists for the attack that make it harder to be exploited, such having a non-default configuration, employing social engineering, or required reconnaissance to grather information.",
+        H: "Specialized conditions exists for the attack that make it hard to be exploited, such as having to have elevated privileges, employing social engineering, employing a vulnerable configuration or having a race condition.",
+        M: "Additional conditions exists for the attack that make it harder to be exploited, such having a non-default configuration, employing social engineering, or required reconnaissance to gather information.",
         L: "Specialized access conditions or extenuating circumstances do not exist, making the vulnerability 'easy' to exploit. This implies that the attack can be performed manually and requires little skill or additional information gathering, the vulnerable configuration is in wide-spread use or the system is available to large number of users.",
       },
     },
@@ -160,7 +160,7 @@ const cvssV2_fields_map = {
     values: ["TRUE", "FALSE"],
     text: {
       description:
-        "This metric defines whether or not user interaction is required for the successfull exploitation of the vulnerability.",
+        "This metric defines whether or not user interaction is required for the successful exploitation of the vulnerability.",
       value_descriptions: {
         T: "User interaction is required for exploitation. The attacker relies on User Interaction by another person to perform actions required to exploit the vulnerability (e.g., using social engineering techniques to trick a legitimate user into opening a malicious document).",
         F: "No user interaction is required for exploitation.",

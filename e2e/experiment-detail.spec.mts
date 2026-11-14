@@ -14,6 +14,26 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("Experiment progress", () => {
+  test("with no known creator, the summary ends without a stray space", async ({
+    page,
+  }) => {
+    const detail = new ExperimentDetailPage(page);
+    await detail.signIn({
+      experiment: experiment("exp-1", "Fix lag study", "COMPLETED", {
+        created_by_name: null,
+      }),
+      published: [{ ...samplePublishedVersion, published_by_name: null }],
+    });
+    await detail.goto();
+
+    await expect(page.getByText(/retries per failed run/)).not.toContainText(
+      /\s\./,
+    );
+    await expect(page.getByText(/These numbers are frozen/)).not.toContainText(
+      /\s\./,
+    );
+  });
+
   test("counts done, failed, skipped and pending runs in words", async ({
     page,
   }) => {

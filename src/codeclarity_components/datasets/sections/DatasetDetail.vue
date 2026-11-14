@@ -338,10 +338,8 @@ onUnmounted(() => clearTimeout(pollTimer));
           {{ dataset.params.languages.join(" / ") }} repositories with more than
           {{ dataset.params.min_stars }} stars,
           {{ dataset.params.pages }} search page(s) per language. Created
-          {{
-            formatShortDate(dataset.created_on, { time: true, fallback: "-" })
-          }}
-          <template v-if="dataset.created_by_name">
+          {{ formatShortDate(dataset.created_on, { time: true, fallback: "-" })
+          }}<template v-if="dataset.created_by_name">
             by {{ dataset.created_by_name }}</template
           >.
         </template>

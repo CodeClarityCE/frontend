@@ -29,7 +29,7 @@ describe("DashboardCharts", () => {
       "Vulnerability exposure",
       "Vulnerabilities summary",
       "Tickets",
-      "Open source licences",
+      "Open source licenses",
       "Impact analysis",
     ]);
   });

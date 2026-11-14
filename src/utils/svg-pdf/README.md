@@ -25,7 +25,7 @@ Text is set in Type0 fonts with a ToUnicode map, so labels stay selectable and s
 | `fonts/LiberationSans-Bold.ttf`    | `788abee4c806d660e8aee46689dd8540cd4bb98da03dcc9d171ce3efd99a9173` |
 
 - **Version and source:** Liberation Sans 2.1.5, from `liberation-fonts-ttf-2.1.5.tar.gz` (SHA-256 `7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0`), attached to the 2.1.5 release of github.com/liberationfonts/liberation-fonts.
-- **Licence:** SIL Open Font License 1.1 (`fonts/LICENSE`). The OS/2 `fsType` is 0, so embedding is allowed.
+- **License:** SIL Open Font License 1.1 (`fonts/LICENSE`). The OS/2 `fsType` is 0, so embedding is allowed.
 - **Why this font:** its metrics match Arial and Helvetica, the figure SVG's font family, so PDF text takes the same space as in the SVG and PNG exports.
 - **How fonts load:** they are fetched on the first PDF export only (`load-fonts.ts`), not bundled into page code.
 

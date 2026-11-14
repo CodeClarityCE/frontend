@@ -219,7 +219,7 @@ onUnmounted(() => clearTimeout(pollTimer));
 
 <template>
   <PageHeading
-    description="Repositories and uploads you analyse for vulnerabilities, licences and outdated dependencies."
+    description="Repositories and uploads you analyse for vulnerabilities, licenses and outdated dependencies."
   >
     <BrandEmphasis>Projects</BrandEmphasis>
     <template #actions>

@@ -101,7 +101,10 @@ describe("PasswordResetForm", () => {
       },
       handleBusinessErrors: true,
     });
-    expect(wrapper.find('a[href="login"]').text()).toBe("Back to sign in");
+    // The logo links to login too, so look among every login link.
+    expect(wrapper.findAll('a[href="login"]').map((a) => a.text())).toContain(
+      "Back to sign in",
+    );
   });
 
   it("does not submit passwords that do not match", async () => {

@@ -495,8 +495,8 @@ onUnmounted(() => clearTimeout(pollTimer));
             class="rounded-sm font-semibold text-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >{{ experiment.dataset_name }}</RouterLink
           >, {{ experiment.retries }} retries per failed run. Created
-          {{ formatExperimentDate(experiment.created_on) }}
-          <template v-if="experiment.created_by_name">
+          {{ formatExperimentDate(experiment.created_on)
+          }}<template v-if="experiment.created_by_name">
             by {{ experiment.created_by_name }}</template
           >.
           <span class="mt-1 block text-sm">
@@ -685,8 +685,8 @@ onUnmounted(() => clearTimeout(pollTimer));
                 >
                   Published results, metric version
                   {{ selectedVersion.metric_version }}, published
-                  {{ formatExperimentDate(selectedVersion.published_on) }}
-                  <template v-if="selectedVersion.published_by_name">
+                  {{ formatExperimentDate(selectedVersion.published_on)
+                  }}<template v-if="selectedVersion.published_by_name">
                     by {{ selectedVersion.published_by_name }}</template
                   >. These numbers are frozen under metric version
                   {{ selectedVersion.metric_version }} and will not change.

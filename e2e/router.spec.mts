@@ -261,3 +261,54 @@ test.describe("Unactivated accounts", () => {
     );
   });
 });
+
+test.describe("Document titles", () => {
+  for (const { path, title } of [
+    { path: "/login", title: "Sign in | CodeClarity" },
+    { path: "/signup", title: "Sign up | CodeClarity" },
+    { path: "/password_reset_request", title: "Reset password | CodeClarity" },
+    { path: "/terms", title: "Terms of service | CodeClarity" },
+    { path: "/privacy", title: "Privacy policy | CodeClarity" },
+    { path: "/404", title: "Page not found | CodeClarity" },
+  ]) {
+    test(`signed out, ${path} is titled "${title}"`, async ({ page }) => {
+      await page.goto(path);
+      await expect(page).toHaveTitle(title);
+    });
+  }
+
+  for (const { path, title } of [
+    { path: "/", title: "Dashboard | CodeClarity" },
+    { path: "/projects", title: "Projects | CodeClarity" },
+    { path: "/projects/add", title: "Add a Project | CodeClarity" },
+    { path: "/datasets", title: "Datasets | CodeClarity" },
+    { path: "/experiments/add", title: "New Experiment | CodeClarity" },
+    { path: "/tickets", title: "Tickets | CodeClarity" },
+    { path: "/settings/account", title: "Account settings | CodeClarity" },
+    { path: "/orgs/list", title: "Organisations | CodeClarity" },
+    {
+      path: "/orgs/manage/members/org-123",
+      title: "Members | CodeClarity",
+    },
+    {
+      path: "/orgs/manage/policies/org-123",
+      title: "Policies | CodeClarity",
+    },
+  ]) {
+    test(`signed in, ${path} is titled "${title}"`, async ({ page }) => {
+      const shell = new ShellPage(page);
+      await shell.signIn();
+      await shell.goto(path);
+      await expect(page).toHaveTitle(title);
+    });
+  }
+
+  test("the title follows client-side navigation", async ({ page }) => {
+    const shell = new ShellPage(page);
+    await shell.signIn();
+    await shell.goto("/datasets");
+    await expect(page).toHaveTitle("Datasets | CodeClarity");
+    await shell.link("Projects").click();
+    await expect(page).toHaveTitle("Projects | CodeClarity");
+  });
+});

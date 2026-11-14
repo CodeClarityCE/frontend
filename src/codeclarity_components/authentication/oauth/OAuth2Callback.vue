@@ -217,7 +217,7 @@ onMounted(async () => {
                 : "the events leading up to this problem"
             }}.
           </p>
-          <p v-else>An error occured during the processing of the request.</p>
+          <p v-else>An error occurred during the processing of the request.</p>
           <p v-if="errorCode">
             Error code: <code class="font-mono">{{ errorCode }}</code>
           </p>

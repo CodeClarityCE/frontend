@@ -111,6 +111,8 @@ export class DatasetsPage {
   readonly heading: Locator;
   readonly table: Locator;
   readonly filter: Locator;
+  /** Every request the page sent that changes data, as "METHOD path". */
+  readonly writes: string[] = [];
 
   constructor(page: Page) {
     this.page = page;
@@ -153,6 +155,13 @@ export class DatasetsPage {
       }
       await wait();
       return fulfil(route, { data: options.detail ?? sampleDatasets[0] });
+    });
+    await this.page.route(`**/api/org/${ORG}/projects**`, (route) => {
+      const request = route.request();
+      if (request.method() === "GET") return fulfil(route, paginated([]));
+      const path = new URL(request.url()).pathname.replace(/^\/api/, "");
+      this.writes.push(`${request.method()} ${path}`);
+      return fulfil(route, { id: `p-${this.writes.length}` });
     });
     await this.page.route(
       `**/api/org/${ORG}/integrations/vcs**`,

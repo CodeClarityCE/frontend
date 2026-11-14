@@ -49,9 +49,10 @@ const ALLOWED_EXTENSIONS = [".zip", ".tar.gz", ".tgz"];
 const formSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(2, "A name of at least 2 characters is required")
     .max(100, "At most 100 characters"),
-  description: z.string().max(500, "At most 500 characters").optional(),
+  description: z.string().trim().max(500, "At most 500 characters").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;

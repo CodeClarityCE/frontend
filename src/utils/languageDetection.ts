@@ -21,6 +21,9 @@ export const SUPPORTED_LANGUAGES: Record<string, DetectedLanguage> = {
   },
 };
 
+// Languages per completed analysis; its results never change, so each is fetched once.
+const detectedByAnalysis = new Map<string, Promise<DetectedLanguage[]>>();
+
 export class LanguageDetectionService {
   private resultsRepository: ResultsRepository;
 
@@ -81,7 +84,27 @@ export class LanguageDetectionService {
    * Detects languages in a project by checking which SBOM plugins produced results
    * with actual dependencies (not just empty results)
    */
-  async detectProjectLanguages(
+  detectProjectLanguages(
+    orgId: string,
+    projectId: string,
+    analysis: Analysis,
+    bearerToken: string,
+  ): Promise<DetectedLanguage[]> {
+    const cached = detectedByAnalysis.get(analysis.id);
+    if (cached) return cached;
+    const detection = this.fetchProjectLanguages(
+      orgId,
+      projectId,
+      analysis,
+      bearerToken,
+    );
+    detectedByAnalysis.set(analysis.id, detection);
+    // A failed detection may be retried later.
+    detection.catch(() => detectedByAnalysis.delete(analysis.id));
+    return detection;
+  }
+
+  private async fetchProjectLanguages(
     orgId: string,
     projectId: string,
     analysis: Analysis,

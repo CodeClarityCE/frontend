@@ -347,6 +347,28 @@ test.describe("App shell on a phone", () => {
     await expect(shell.navTrigger).toHaveAttribute("aria-expanded", "false");
   });
 
+  test("the drawer has a close button and no desktop collapse controls", async ({
+    page,
+  }) => {
+    // Up to the sidebar breakpoint, where the desktop rail used to show.
+    for (const width of [390, 700]) {
+      await page.setViewportSize({ width, height: 844 });
+      await shell.navTrigger.tap();
+      await expect(shell.nav).toBeVisible();
+
+      const drawer = page.locator('[data-mobile="true"]');
+      await expect(
+        drawer.getByRole("button", { name: /sidebar/i }),
+      ).toHaveCount(0);
+      const close = drawer.getByRole("button", { name: "Close navigation" });
+      await expect(close.locator("svg.lucide-x")).toBeVisible();
+      await expect(close.locator("svg.lucide-panel-left")).toHaveCount(0);
+
+      await close.tap();
+      await expect(shell.nav).toBeHidden();
+    }
+  });
+
   test("the navigation closes after following a link", async ({ page }) => {
     await shell.navTrigger.tap();
     await shell.link("Experiments").tap();

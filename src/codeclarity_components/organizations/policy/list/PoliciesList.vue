@@ -69,8 +69,8 @@ onBeforeMount(() => void loadPolicies());
 </script>
 <template>
   <section aria-labelledby="license-policies-title" class="flex flex-col gap-6">
-    <div class="flex items-start justify-between gap-6">
-      <div class="flex flex-col gap-1">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+      <div class="flex min-w-0 flex-1 basis-80 flex-col gap-1">
         <h2
           id="license-policies-title"
           class="text-xl font-semibold text-foreground-strong"

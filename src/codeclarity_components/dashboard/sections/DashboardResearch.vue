@@ -87,7 +87,7 @@ const linkClass =
       v-if="!loaded"
       role="status"
       aria-label="Loading Research"
-      class="grid gap-6 lg:grid-cols-2"
+      class="grid grid-cols-1 gap-6 lg:grid-cols-2"
     >
       <Skeleton class="h-40 rounded-card lg:col-span-2" />
       <Skeleton class="h-56 rounded-card" />
@@ -117,7 +117,7 @@ const linkClass =
       </Button>
     </OwlEmptyState>
 
-    <div v-else class="grid gap-6 lg:grid-cols-2">
+    <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card class="rounded-card shadow-card lg:col-span-2">
         <CardHeader>
           <CardTitle id="dashboard-in-progress" class="text-base">

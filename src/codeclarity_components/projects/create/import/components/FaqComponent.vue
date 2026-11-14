@@ -36,7 +36,7 @@ const questions = [
       <CardDescription>Answers to the usual import problems.</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-6">
-      <dl class="grid grid-cols-3 gap-6">
+      <dl class="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div v-for="item in questions" :key="item.question">
           <dt class="font-semibold text-foreground-strong">
             {{ item.question }}

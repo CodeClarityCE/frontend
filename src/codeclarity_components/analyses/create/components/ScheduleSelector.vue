@@ -105,7 +105,7 @@ const summary = computed(() => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="flex flex-col gap-2">
         <Label for="analysis-schedule">Runs</Label>
         <Select

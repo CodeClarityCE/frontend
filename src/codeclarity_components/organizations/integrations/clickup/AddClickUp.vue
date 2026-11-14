@@ -57,7 +57,7 @@ if (!orgId) router.back();
       Connect ClickUp
     </h2>
 
-    <div class="grid grid-cols-2 items-start gap-6">
+    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       <Card class="rounded-card shadow-card">
         <CardHeader>
           <h3 class="text-lg font-semibold leading-none text-foreground-strong">

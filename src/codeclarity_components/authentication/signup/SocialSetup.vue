@@ -249,7 +249,7 @@ function nonRecoverableErrorRedirect(): void {
       </Alert>
 
       <form v-if="!loading" class="flex flex-col gap-4" @submit="onSubmit">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField v-slot="{ componentField }" name="first_name">
             <FormItem>
               <FormLabel>First name</FormLabel>

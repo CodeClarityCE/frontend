@@ -466,7 +466,10 @@ onUnmounted(() => clearTimeout(pollTimer));
         class="flex flex-col gap-4"
         data-testid="dataset-stats"
       >
-        <ul aria-label="Build numbers" class="grid grid-cols-4 gap-4">
+        <ul
+          aria-label="Build numbers"
+          class="grid grid-cols-2 gap-4 lg:grid-cols-4"
+        >
           <StatTile
             label="Selected"
             :value="`${dataset.stats.selected} / ${dataset.params.limit}`"
@@ -551,7 +554,7 @@ onUnmounted(() => clearTimeout(pollTimer));
         <Skeleton class="h-9 w-72" />
         <Skeleton class="h-5 w-[32rem]" />
       </div>
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Skeleton v-for="tile in 4" :key="tile" class="h-24 rounded-card" />
       </div>
       <Skeleton class="h-80 rounded-card" />

@@ -271,7 +271,7 @@ onUnmounted(() => clearTimeout(pollTimer));
     <ul
       v-if="loaded"
       aria-label="Project overview"
-      class="grid grid-cols-4 gap-4"
+      class="grid grid-cols-2 gap-4 lg:grid-cols-4"
     >
       <StatTile label="Projects" :value="projects.length" />
       <StatTile

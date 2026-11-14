@@ -328,7 +328,7 @@ onMounted(() => void loadIntegrations());
             </p>
           </fieldset>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div class="flex flex-col gap-2">
               <Label for="dataset-limit">Repositories</Label>
               <Input

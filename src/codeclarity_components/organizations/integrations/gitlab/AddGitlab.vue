@@ -160,7 +160,7 @@ if (!orgId) router.back();
       </CardContent>
     </Card>
 
-    <div v-else class="grid grid-cols-2 items-start gap-6">
+    <div v-else class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       <TokenIntegrationForm
         v-model:token="token"
         title="Personal access token"

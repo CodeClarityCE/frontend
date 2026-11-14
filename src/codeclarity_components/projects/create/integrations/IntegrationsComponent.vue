@@ -44,7 +44,7 @@ const choice =
   "flex h-full w-full flex-col items-start gap-3 rounded-card border bg-card p-5 text-left shadow-card transition-colors duration-150 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none";
 </script>
 <template>
-  <ul aria-label="Import methods" class="grid grid-cols-4 gap-4">
+  <ul aria-label="Import methods" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
     <li v-for="vcs in valid" :key="vcs.id">
       <button
         type="button"

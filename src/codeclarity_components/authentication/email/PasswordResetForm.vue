@@ -6,6 +6,7 @@ import { onMounted, type Ref, ref } from "vue";
 import * as z from "zod";
 
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
+import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
 import router from "@/router";
 import { cn } from "@/shadcn/lib/utils";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
@@ -108,7 +109,7 @@ onMounted(() => {
   const _userIdHash = searchParams.get("userid");
 
   if (!_token || !_userIdHash) {
-    void router.push("/login");
+    void router.replace(loginRoute({ notice: "reset_link_invalid" }));
     return;
   }
 

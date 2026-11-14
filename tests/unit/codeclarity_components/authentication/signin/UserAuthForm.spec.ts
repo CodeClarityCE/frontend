@@ -87,6 +87,8 @@ vi.mock("@/utils/api/BaseRepository", async (importOriginal) => {
 vi.mock("@/router", () => ({
   default: {
     push: vi.fn(),
+    replace: vi.fn(),
+    currentRoute: { value: { query: {} } },
   },
 }));
 
@@ -389,7 +391,7 @@ describe("UserAuthForm.vue", () => {
       );
     });
 
-    it("handles account not activated and redirects to trial", async () => {
+    it("handles account not activated and returns to login with a notice", async () => {
       const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
       mockAuthRepository.authenticate.mockRejectedValue(
         new BusinessLogicError("AccountNotActivated", "Account not activated"),
@@ -400,7 +402,10 @@ describe("UserAuthForm.vue", () => {
       await flushPromises();
 
       const { default: router } = await import("@/router");
-      expect(router.push).toHaveBeenCalledWith("/trial");
+      expect(router.replace).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "not_activated" },
+      });
     });
 
     it("handles generic errors", async () => {

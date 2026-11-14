@@ -21,8 +21,9 @@ test.describe("SBOM results", () => {
     await expect(numbers.getByRole("listitem").nth(1)).toHaveText(
       /Direct dependencies\s*3/,
     );
+    // The fixture analysis has no vulnerability plugin, so no count is asked for.
     await expect(numbers.getByRole("listitem").nth(3)).toHaveText(
-      /Security issues\s*3/,
+      /Security issues\s*-/,
     );
     await expect(tabs.rows("Dependencies")).toHaveCount(5);
     await expect(

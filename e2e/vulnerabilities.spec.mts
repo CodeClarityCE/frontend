@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
+  affected,
   finding,
   sampleDetails,
   VulnerabilitiesPage,
@@ -68,6 +69,51 @@ test.describe("Vulnerability results", () => {
     await expect(page).toHaveURL(
       /\/results\/vulnerabilities_details\?.*finding_id=CVE-2024-0001/,
     );
+  });
+
+  test("patch status is unknown without a patching result, and the AI assessment only shows with a score", async ({
+    page,
+  }) => {
+    const known = [
+      finding("CVE-2024-0011", "critical", "lodash", {
+        Affected: [affected("lodash", { PatchType: "FULL" })],
+        VLAI: [{ Source: "NVD", Score: "Critical", Confidence: 0.87 }],
+      }),
+      finding("CVE-2024-0012", "high", "express", {
+        Affected: [affected("express", { PatchType: "NONE" })],
+      }),
+      finding("CVE-2024-0013", "medium", "axios"),
+    ];
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn({ findings: known });
+    await vulns.gotoResults();
+    await expect(vulns.cards).toHaveCount(3);
+    for (const card of await vulns.cards.all()) {
+      await card.getByRole("button", { name: "Show more" }).click();
+    }
+
+    await expect(vulns.cards.nth(0)).toContainText("lodash Patchable");
+    await expect(vulns.cards.nth(0)).toContainText(
+      "AI assessmentNVD: Critical, 87% confident",
+    );
+    await expect(vulns.cards.nth(1)).toContainText("express Not patchable");
+    await expect(vulns.cards.nth(2)).toContainText(
+      "axios Patch status unknown",
+    );
+    await expect(vulns.cards.nth(1)).not.toContainText("AI assessment");
+    await expect(vulns.cards.nth(2)).not.toContainText("AI assessment");
+    await expect(page.getByText("Not patchable")).toHaveCount(1);
+
+    await page.getByRole("tab", { name: "Table" }).click();
+    await expect(vulns.rows()).toHaveCount(3);
+    await expect(vulns.rows().nth(0)).toContainText("Patchable");
+    await expect(vulns.rows().nth(0)).toContainText(
+      "AI (NVD): Critical, 87% confident",
+    );
+    await expect(vulns.rows().nth(1)).toContainText("Not patchable");
+    await expect(vulns.rows().nth(2)).toContainText("Patch status unknown");
+    await expect(vulns.rows().nth(1)).not.toContainText("AI (");
+    await expect(vulns.rows().nth(2)).not.toContainText("AI (");
   });
 
   test("search asks the server for matching vulnerabilities", async ({

@@ -7,6 +7,7 @@ import CreateTicketButton from "@/codeclarity_components/tickets/components/Crea
 
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import {
+  aiAssessments,
   detailsRoute,
   findingSignals,
   formatPercent,
@@ -110,7 +111,7 @@ function rowKey(finding: VulnerabilityMerged): string {
       <div class="flex flex-col items-start gap-1">
         <SeverityBadge :score="row.Severity?.Severity" />
         <span
-          v-for="vlai in row.VLAI ?? []"
+          v-for="vlai in aiAssessments(row.VLAI)"
           :key="vlai.Source"
           class="whitespace-nowrap text-xs text-muted-foreground"
         >

@@ -112,7 +112,8 @@ The e2e specs mock the API with fixtures in `e2e/pages/*.page.mts`.
 It needs no running stack.
 
 To refresh the captured responses, start the dev stack with a seeded user and an
-organisation that has a license policy, then run from this directory:
+organisation that has a license policy and a project with an analysis (a failed
+one is preferred), then run from this directory:
 
 ```sh
 node e2e/contracts/capture.mts

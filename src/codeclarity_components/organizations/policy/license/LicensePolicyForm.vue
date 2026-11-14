@@ -97,6 +97,21 @@ function toggleLicense(id: string, on: boolean): void {
   setFieldValue("licenses", [...next]);
 }
 
+const licenseFilter = ref("");
+
+// Exact identifier or name matches come first, then the rest in list order.
+const orderedLicenses = computed(() => {
+  const term = licenseFilter.value.trim().toLowerCase();
+  if (term === "") return licenses.value;
+  const exact = (license: License): boolean =>
+    license.licenseId?.toLowerCase() === term ||
+    license.name?.toLowerCase() === term;
+  return [
+    ...licenses.value.filter(exact),
+    ...licenses.value.filter((license) => !exact(license)),
+  ];
+});
+
 const columns: ColumnDef<License, unknown>[] = [
   {
     id: "include",
@@ -321,8 +336,9 @@ onBeforeMount(() => {
                     {{ selected.size === 1 ? "license" : "licenses" }} picked
                   </p>
                   <DataTable
+                    v-model:filter="licenseFilter"
                     :columns="columns"
-                    :data="licenses"
+                    :data="orderedLicenses"
                     :loading="loadingLicenses"
                     :row-key="(license: License) => license.licenseId"
                     :page-size="10"

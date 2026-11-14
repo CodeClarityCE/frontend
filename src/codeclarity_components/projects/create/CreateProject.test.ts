@@ -5,12 +5,11 @@ import { ref } from "vue";
 import CreateProject from "./CreateProject.vue";
 
 const { getVCS } = vi.hoisted(() => ({ getVCS: vi.fn() }));
+const defaultOrg = ref({ id: "org-1", role: 0 });
 
 vi.mock("pinia", async () => ({
   ...(await vi.importActual("pinia")),
-  storeToRefs: () => ({
-    defaultOrg: ref({ id: "org-1", role: 0 }),
-  }),
+  storeToRefs: () => ({ defaultOrg }),
 }));
 
 vi.mock(
@@ -56,6 +55,7 @@ function vcs(provider: string, invalid = false) {
 describe("CreateProject", () => {
   beforeEach(() => {
     getVCS.mockReset();
+    defaultOrg.value = { id: "org-1", role: 0 };
     getVCS.mockResolvedValue({ data: [vcs("GITHUB"), vcs("GITLAB")] });
   });
 
@@ -117,5 +117,17 @@ describe("CreateProject", () => {
     expect(
       await screen.findByRole("list", { name: "Import methods" }),
     ).toBeTruthy();
+  });
+
+  it("lists the new organisation's integrations after switching", async () => {
+    getVCS.mockResolvedValue({ data: [vcs("GITHUB")] });
+    render(CreateProject);
+    expect(await screen.findByText("GitHub")).toBeTruthy();
+
+    getVCS.mockResolvedValue({ data: [vcs("GITLAB")] });
+    defaultOrg.value = { id: "org-2", role: 0 };
+
+    expect(await screen.findByText("GitLab")).toBeTruthy();
+    expect(screen.queryByText("GitHub")).toBeNull();
   });
 });

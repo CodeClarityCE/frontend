@@ -63,18 +63,21 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
   <div
     v-else
-    class="group peer text-sidebar-foreground hidden md:block"
+    class="group peer text-sidebar-foreground hidden md:flex"
     data-slot="sidebar"
     :data-state="state"
     :data-collapsible="state === 'collapsed' ? collapsible : ''"
     :data-variant="variant"
     :data-side="side"
   >
-    <!-- This is what handles the sidebar gap on desktop  -->
+    <!-- This is what handles the sidebar gap on desktop. It is painted like the
+    sidebar so the column reaches the bottom of long pages. -->
     <div
       :class="
         cn(
           'relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
+          variant === 'sidebar' &&
+            'bg-sidebar border-sidebar-border group-data-[side=left]:border-r group-data-[side=right]:border-l group-data-[collapsible=offcanvas]:border-0',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
           variant === 'floating' || variant === 'inset'

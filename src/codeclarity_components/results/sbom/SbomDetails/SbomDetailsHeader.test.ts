@@ -28,7 +28,7 @@ describe("SbomDetailsHeader", () => {
       },
       {
         name: "GitHub (opens in a new tab)",
-        href: "https://github.com/lodash/lodash.git",
+        href: "https://github.com/lodash/lodash",
         target: "_blank",
       },
     ]);

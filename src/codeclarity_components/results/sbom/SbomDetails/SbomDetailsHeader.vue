@@ -5,6 +5,8 @@ import { computed } from "vue";
 
 import { type DependencyDetails } from "@/codeclarity_components/results/sbom/SbomDetails/SbomDetails";
 
+import { repositoryWebUrl } from "./repositoryUrl";
+
 // Links to the package registry and source repository of a dependency.
 const props = defineProps<{ dependency: DependencyDetails }>();
 
@@ -39,11 +41,12 @@ const links = computed((): PackageLink[] => {
       logo: "simple-icons:packagist",
     });
   }
-  if (source?.Type === "git") {
-    const href = source.Url.replace("git+", "");
-    if (source.Url.includes("github"))
+  const href = source?.Type === "git" ? repositoryWebUrl(source.Url) : null;
+  if (href) {
+    const host = new URL(href).hostname;
+    if (host === "github.com" || host.endsWith(".github.com"))
       list.push({ label: "GitHub", href, logo: "simple-icons:github" });
-    else if (source.Url.includes("gitlab"))
+    else if (host.includes("gitlab"))
       list.push({ label: "GitLab", href, logo: "simple-icons:gitlab" });
   }
   return list;

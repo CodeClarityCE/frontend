@@ -449,3 +449,18 @@
 @utility animate-collapsible-up {
   animation: collapsible-up 0.2s ease-in-out;
 }
+
+/* Reduced motion: decorative animations and transitions finish at once, so
+   state changes (open, close, collapse) still happen, just without motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

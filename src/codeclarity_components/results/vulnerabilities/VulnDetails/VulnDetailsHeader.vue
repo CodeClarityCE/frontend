@@ -1,256 +1,212 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { Info, TriangleAlert } from "@lucide/vue";
 import { computed, ref } from "vue";
 
-import type PositionedModalVue from "@/base_components/ui/modals/PositionedModal.vue";
 import type { VulnerabilityDetails } from "@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shadcn/ui/dialog";
+import { formatDate } from "@/utils/dateUtils";
 
 const MAX_VERSIONS_LENGTH = 200;
 
 const props = defineProps<{
   finding: VulnerabilityDetails;
-  versionsModalRef: typeof PositionedModalVue;
 }>();
 
 const versionsExpanded = ref(false);
+const versionInfo = computed(
+  () => props.finding.vulnerability_info.version_info,
+);
 
-const affectedVersionsString = computed(() => {
-  return (
-    props.finding.vulnerability_info.version_info.affected_versions_string ?? ""
-  );
+const affectedVersionsString = computed(
+  () => versionInfo.value.affected_versions_string ?? "",
+);
+const isVersionsTruncated = computed(
+  () => affectedVersionsString.value.length > MAX_VERSIONS_LENGTH,
+);
+const displayedVersions = computed(() =>
+  !isVersionsTruncated.value || versionsExpanded.value
+    ? affectedVersionsString.value
+    : `${affectedVersionsString.value.slice(0, MAX_VERSIONS_LENGTH)}...`,
+);
+
+const comparison = computed(() => versionInfo.value.source_comparison);
+const sourcesAgree = computed(
+  () => !comparison.value || comparison.value.agree,
+);
+
+// What each source says about the installed version, when they disagree.
+const sourceViews = computed(() => {
+  const c = comparison.value;
+  if (!c) return [];
+  return [
+    { name: "NVD", reason: c.nvdReason, versions: c.nvdAllVersions },
+    { name: "OSV", reason: c.osvReason, versions: c.osvAllVersions },
+    { name: "GCVE", reason: c.gcveReason, versions: c.gcveAllVersions },
+  ].filter((view) => view.reason);
 });
 
-const isVersionsTruncated = computed(() => {
-  return affectedVersionsString.value.length > MAX_VERSIONS_LENGTH;
+const imprecise = computed(() => {
+  const value = affectedVersionsString.value.toLowerCase().trim();
+  return value === "*" || value === "all versions";
 });
 
-const displayedVersions = computed(() => {
-  if (!isVersionsTruncated.value || versionsExpanded.value) {
-    return affectedVersionsString.value;
-  }
-  return `${affectedVersionsString.value.slice(0, MAX_VERSIONS_LENGTH)}…`;
-});
+const versions = computed(() => versionInfo.value.versions ?? []);
+const notAffected = computed(() =>
+  versions.value.filter((v) => v.status === "not_affected"),
+);
+const affected = computed(() =>
+  versions.value.filter((v) => v.status === "affected"),
+);
 </script>
 
 <template>
-  <div class="header flex flex-col gap-5 bg-white shadow-md rounded-lg p-6">
-    <!--------------------------------------------------------------------------->
-    <!--                           Vulnerability id                            -->
-    <!--------------------------------------------------------------------------->
-    <div class="text-3xl font-black text-gray-800">
-      <div>{{ finding.vulnerability_info.vulnerability_id }}</div>
-    </div>
-
-    <!--------------------------------------------------------------------------->
-    <!--                      Vulnerability type in library                    -->
-    <!--------------------------------------------------------------------------->
-    <div class="text-3xl my-1 text-gray-700">
-      <span v-if="finding.weaknesses.length > 0">{{
-        finding.weaknesses[0]?.name
-      }}</span>
-      in
-      <span class="font-black text-theme-primary">
-        {{
-          finding.dependency_info?.name + "@" + finding.dependency_info?.version
-        }}
-      </span>
-    </div>
-
-    <!--------------------------------------------------------------------------->
-    <!--                      Affected and patched versions                    -->
-    <!--------------------------------------------------------------------------->
-    <div class="text-gray-600">
-      <!--------------------------------------------------------------------------->
-      <!--                              Affected versions                        -->
-      <!--------------------------------------------------------------------------->
-      <!-- Show simple version when sources agree -->
-      <div
-        v-if="
-          !finding.vulnerability_info.version_info.source_comparison ||
-          finding.vulnerability_info.version_info.source_comparison.agree
-        "
-      >
-        <span class="font-black">
+  <div class="flex flex-col gap-4">
+    <div v-if="sourcesAgree" class="flex flex-col items-start gap-2">
+      <p>
+        <span class="font-semibold text-foreground-strong">
           Affected versions of {{ finding.dependency_info?.name }}:
         </span>
         {{ displayedVersions }}
-        <button
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <Button
           v-if="isVersionsTruncated"
-          class="ml-1 text-xs font-medium text-theme-primary hover:underline cursor-pointer"
+          variant="link"
+          size="sm"
+          class="h-auto px-0"
+          :aria-expanded="versionsExpanded"
           @click="versionsExpanded = !versionsExpanded"
         >
-          {{ versionsExpanded ? "show less" : "show more" }}
-        </button>
+          {{ versionsExpanded ? "Show fewer versions" : "Show all versions" }}
+        </Button>
         <span
-          v-if="
-            finding.vulnerability_info.version_info.affected_versions_source
-          "
-          class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+          v-if="versionInfo.affected_versions_source"
+          class="rounded-control bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
         >
-          source:
-          {{ finding.vulnerability_info.version_info.affected_versions_source }}
-        </span>
-      </div>
-      <!-- Show detailed breakdown when sources disagree -->
-      <div v-else class="space-y-3">
-        <div
-          class="flex gap-2 items-center text-orange-600 bg-orange-50 p-3 rounded-lg border-l-4 border-orange-400"
-        >
-          <Icon icon="tabler:alert-triangle-filled" class="text-lg"></Icon>
-          <span class="font-black"
-            >Vulnerability sources disagree on your version</span
-          >
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 ml-2">
-          <!-- NVD Source -->
-          <div
-            v-if="
-              finding.vulnerability_info.version_info.source_comparison
-                .nvdReason
-            "
-            class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400"
-          >
-            <div class="flex items-center gap-2 mb-3">
-              <Icon icon="tabler:database" class="text-blue-600"></Icon>
-              <span class="font-bold text-blue-800">NVD says:</span>
-            </div>
-            <div class="text-sm text-blue-700 leading-relaxed mb-3">
-              {{
-                finding.vulnerability_info.version_info.source_comparison
-                  .nvdReason
-              }}
-            </div>
-
-            <!-- Expandable technical details -->
-            <details class="mt-2">
-              <summary
-                class="cursor-pointer text-xs text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View all affected versions
-              </summary>
-              <div
-                class="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-800 font-mono whitespace-pre-line"
-              >
-                {{
-                  finding.vulnerability_info.version_info.source_comparison.nvdAllVersions?.replace(
-                    /, /g,
-                    ",\n",
-                  ) ?? ""
-                }}
-              </div>
-            </details>
-          </div>
-
-          <!-- OSV Source -->
-          <div
-            v-if="
-              finding.vulnerability_info.version_info.source_comparison
-                .osvReason
-            "
-            class="bg-green-50 p-4 rounded-lg border-l-4 border-green-400"
-          >
-            <div class="flex items-center gap-2 mb-3">
-              <Icon icon="tabler:shield-check" class="text-green-600"></Icon>
-              <span class="font-bold text-green-800">OSV says:</span>
-            </div>
-            <div class="text-sm text-green-700 leading-relaxed mb-3">
-              {{
-                finding.vulnerability_info.version_info.source_comparison
-                  .osvReason
-              }}
-            </div>
-
-            <!-- Expandable technical details -->
-            <details class="mt-2">
-              <summary
-                class="cursor-pointer text-xs text-green-600 hover:text-green-800 font-medium"
-              >
-                View all affected versions
-              </summary>
-              <div
-                class="mt-2 p-2 bg-green-100 rounded text-xs text-green-800 font-mono whitespace-pre-line"
-              >
-                {{
-                  finding.vulnerability_info.version_info.source_comparison.osvAllVersions?.replace(
-                    /, /g,
-                    ",\n",
-                  ) ?? ""
-                }}
-              </div>
-            </details>
-          </div>
-
-          <!-- GCVE Source -->
-          <div
-            v-if="
-              finding.vulnerability_info.version_info.source_comparison
-                .gcveReason
-            "
-            class="bg-violet-50 p-4 rounded-lg border-l-4 border-violet-400"
-          >
-            <div class="flex items-center gap-2 mb-3">
-              <Icon icon="tabler:certificate" class="text-violet-600"></Icon>
-              <span class="font-bold text-violet-800">GCVE says:</span>
-            </div>
-            <div class="text-sm text-violet-700 leading-relaxed mb-3">
-              {{
-                finding.vulnerability_info.version_info.source_comparison
-                  .gcveReason
-              }}
-            </div>
-
-            <!-- Expandable technical details -->
-            <details class="mt-2">
-              <summary
-                class="cursor-pointer text-xs text-violet-600 hover:text-violet-800 font-medium"
-              >
-                View all affected versions
-              </summary>
-              <div
-                class="mt-2 p-2 bg-violet-100 rounded text-xs text-violet-800 font-mono whitespace-pre-line"
-              >
-                {{
-                  finding.vulnerability_info.version_info.source_comparison.gcveAllVersions?.replace(
-                    /, /g,
-                    ",\n",
-                  ) ?? ""
-                }}
-              </div>
-            </details>
-          </div>
-        </div>
-
-        <div class="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
-          <div class="flex items-center gap-2 mb-1">
-            <Icon icon="tabler:info-circle" class="text-yellow-600"></Icon>
-            <span class="font-semibold text-yellow-800">Recommendation</span>
-          </div>
-          <div class="text-sm text-yellow-700">
-            Since sources disagree on your version
-            <strong>{{ finding.dependency_info?.version }}</strong
-            >, review the explanations above and check the official advisory
-            links to determine your actual risk.
-          </div>
-        </div>
-      </div>
-      <div
-        v-if="
-          finding.vulnerability_info.version_info.affected_versions_string ===
-            '*' ||
-          finding.vulnerability_info.version_info.affected_versions_string
-            ?.toLowerCase()
-            .trim() === 'all versions'
-        "
-        class="flex gap-1 items-center text-orange-600 bg-orange-50 p-2 rounded-lg mt-2"
-      >
-        <Icon icon="tabler:alert-triangle-filled" class="shrink-0"></Icon>
-        <span>
-          The affected version information is imprecise ("all versions"). This
-          may be a false positive — check the official advisory links for
-          accurate version ranges.
+          Source: {{ versionInfo.affected_versions_source }}
         </span>
       </div>
     </div>
+
+    <div v-else class="flex flex-col gap-4">
+      <p
+        class="flex items-center gap-2 rounded-control bg-warning-subtle p-3 font-semibold text-warning"
+      >
+        <TriangleAlert aria-hidden="true" class="size-4 shrink-0" />
+        Vulnerability sources disagree on your version
+      </p>
+      <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <li
+          v-for="view in sourceViews"
+          :key="view.name"
+          class="flex flex-col gap-2 rounded-card border p-4"
+        >
+          <h3 class="font-semibold text-foreground-strong">
+            {{ view.name }} says
+          </h3>
+          <p class="text-sm">{{ view.reason }}</p>
+          <details class="text-sm">
+            <summary
+              class="cursor-pointer rounded-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              All affected versions from {{ view.name }}
+            </summary>
+            <p
+              class="mt-2 whitespace-pre-line rounded-control bg-muted p-2 font-mono text-xs"
+            >
+              {{ view.versions?.replace(/, /g, ",\n") ?? "" }}
+            </p>
+          </details>
+        </li>
+      </ul>
+      <p class="flex items-start gap-2 rounded-control bg-muted p-3 text-sm">
+        <Info aria-hidden="true" class="mt-0.5 size-4 shrink-0" />
+        <span>
+          Since sources disagree on your version
+          <strong>{{ finding.dependency_info?.version }}</strong
+          >, review the explanations above and check the official advisory links
+          to determine your actual risk.
+        </span>
+      </p>
+    </div>
+
+    <p
+      v-if="imprecise"
+      class="flex items-start gap-2 rounded-control bg-warning-subtle p-3 text-sm text-warning"
+    >
+      <TriangleAlert aria-hidden="true" class="mt-0.5 size-4 shrink-0" />
+      The affected version information is imprecise ("all versions"). This may
+      be a false positive. Check the official advisory links for accurate
+      version ranges.
+    </p>
+
+    <Dialog v-if="versions.length > 0">
+      <DialogTrigger as-child>
+        <Button variant="outline" size="sm" class="self-start">
+          Compare versions
+        </Button>
+      </DialogTrigger>
+      <DialogContent class="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Dependency versions</DialogTitle>
+          <DialogDescription>
+            Which versions are known to be affected by the vulnerability and
+            which are not.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="grid max-h-[50vh] gap-6 overflow-y-auto sm:grid-cols-2">
+          <section>
+            <h3 class="mb-2 font-semibold text-success">Not affected</h3>
+            <ul class="flex flex-col gap-1 text-sm">
+              <li
+                v-for="v in notAffected"
+                :key="v.version"
+                class="flex justify-between gap-4"
+              >
+                <span>{{ v.version }}</span>
+                <span class="text-muted-foreground">{{
+                  formatDate(v.release, "LL")
+                }}</span>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h3 class="mb-2 font-semibold text-danger">Affected</h3>
+            <ul class="flex flex-col gap-1 text-sm">
+              <li
+                v-for="v in affected"
+                :key="v.version"
+                class="flex justify-between gap-4"
+                :class="
+                  v.version === finding.dependency_info?.version
+                    ? 'font-bold text-foreground-strong'
+                    : ''
+                "
+              >
+                <span>
+                  {{ v.version }}
+                  <span
+                    v-if="v.version === finding.dependency_info?.version"
+                    class="font-normal"
+                    >(installed)</span
+                  >
+                </span>
+                <span class="text-muted-foreground">{{
+                  formatDate(v.release, "LL")
+                }}</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

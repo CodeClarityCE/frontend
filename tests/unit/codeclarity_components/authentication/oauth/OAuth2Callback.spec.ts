@@ -146,22 +146,6 @@ describe("OAuth2Callback", () => {
   });
 
   describe("Component Structure", () => {
-    it("should render the main container", async () => {
-      const wrapper = mount(OAuth2Callback, {
-        props: {
-          provider: SocialProvider.GITLAB,
-        },
-      });
-
-      const container = wrapper.find(".oauth-status-wrapper");
-      expect(container.exists()).toBe(true);
-      expect(container.classes()).toContain("flex");
-      expect(container.classes()).toContain("flex-col");
-      expect(container.classes()).toContain("items-center");
-      expect(container.classes()).toContain("justify-center");
-      expect(container.classes()).toContain("h-screen");
-    });
-
     it("should render GitLab icon when provider is GitLab", async () => {
       const wrapper = mount(OAuth2Callback, {
         props: {
@@ -191,9 +175,9 @@ describe("OAuth2Callback", () => {
         },
       });
 
-      const loadingIcon = wrapper.find('[data-icon="tabler:loader-2"]');
-      expect(loadingIcon.exists()).toBe(true);
-      expect(loadingIcon.classes()).toContain("animate-spin");
+      expect(wrapper.find('[role="status"]').text()).toContain(
+        "Signing you in with GitLab",
+      );
     });
   });
 
@@ -437,7 +421,7 @@ describe("OAuth2Callback", () => {
       await nextTick(); // Wait for onMounted async operations
 
       const errorMessage = wrapper.text();
-      expect(errorMessage).toContain("Whoops");
+      expect(errorMessage).toContain("sign in failed");
       expect(errorMessage).toContain("non-recoverable issue");
     });
 

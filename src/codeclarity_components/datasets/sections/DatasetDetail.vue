@@ -1,22 +1,28 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { ArrowLeft, FlaskConical, FolderInput, Info } from "@lucide/vue";
+import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
-import { PaginationComponent } from "@/base_components";
+import { DataTable } from "@/base_components/data-table";
+import { BrandEmphasis, PageHeading, StatTile } from "@/base_components/page";
 import {
   getImportErrorMessage,
   IMPORT_CONCURRENCY,
 } from "@/codeclarity_components/projects/create/import/projectImport";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import router from "@/router";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
+import { Card, CardContent } from "@/shadcn/ui/card";
 import { Progress } from "@/shadcn/ui/progress";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { runWithConcurrency } from "@/utils/concurrency";
+import { formatShortDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
@@ -25,16 +31,14 @@ import {
   DatasetRejectionLabels,
   type DatasetStats,
   DatasetStatus,
-  DatasetStatusColors,
-  DatasetStatusLabels,
 } from "../dataset.entity";
 import { DatasetsRepository } from "../datasets.repository";
+import DatasetStatusBadge from "../DatasetStatusBadge.vue";
 
 /** How often the dataset is reloaded while it builds */
 const POLL_INTERVAL_MS = 5000;
-const ENTRIES_PER_PAGE = 100;
-/** Page size used to fetch every entry before an import */
-const IMPORT_FETCH_PAGE_SIZE = 500;
+/** The API's largest page; every entry is loaded so the table can sort and filter them all */
+const FETCH_PAGE_SIZE = 500;
 
 interface FailedEntryImport {
   entry: DatasetEntry;
@@ -49,8 +53,6 @@ const projectRepository = new ProjectRepository();
 
 const dataset = ref<Dataset | null>(null);
 const entries = ref<DatasetEntry[]>([]);
-const entriesPage = ref(0);
-const entriesTotalPages = ref(0);
 const notFound = ref(false);
 const importing = ref(false);
 const importProgress = ref({ done: 0, total: 0 });
@@ -148,26 +150,10 @@ async function loadEntries(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || !datasetId.value) return;
   try {
-    const response = await datasetsRepository.getDatasetEntries({
-      orgId,
-      datasetId: datasetId.value,
-      pagination: {
-        page: entriesPage.value,
-        entries_per_page: ENTRIES_PER_PAGE,
-      },
-      bearerToken: auth.getToken,
-      handleBusinessErrors: true,
-    });
-    entries.value = response.data;
-    entriesTotalPages.value = response.total_pages;
+    entries.value = await fetchAllEntries(orgId, auth.getToken);
   } catch {
     errorToast("Failed to load the dataset repositories");
   }
-}
-
-function goToEntriesPage(page: number): void {
-  entriesPage.value = page;
-  void loadEntries();
 }
 
 async function fetchAllEntries(
@@ -179,7 +165,7 @@ async function fetchAllEntries(
     const response = await datasetsRepository.getDatasetEntries({
       orgId,
       datasetId: datasetId.value,
-      pagination: { page, entries_per_page: IMPORT_FETCH_PAGE_SIZE },
+      pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       bearerToken: token,
       handleBusinessErrors: true,
     });
@@ -275,85 +261,102 @@ async function deleteDataset(): Promise<void> {
   }
 }
 
-function formatDate(date: Date | null): string {
+function formatDay(date: Date | null): string {
   if (!date) return "-";
-  return new Date(date).toLocaleString("en-US", {
+  return new Date(date).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
+  });
+}
+
+function formatTime(date: Date | null): string | undefined {
+  if (!date) return undefined;
+  return new Date(date).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
 }
+
+const entryColumns: ColumnDef<DatasetEntry, unknown>[] = [
+  {
+    id: "rank",
+    accessorKey: "rank",
+    header: "Rank",
+    enableGlobalFilter: false,
+  },
+  { id: "repository", accessorKey: "full_name", header: "Repository" },
+  {
+    id: "stars",
+    accessorKey: "stars",
+    header: "Stars",
+    enableGlobalFilter: false,
+  },
+  { id: "branch", accessorKey: "default_branch", header: "Branch" },
+  {
+    id: "lockfiles",
+    accessorFn: (entry) => entry.lockfiles.join(", "),
+    header: "Lockfiles",
+    enableSorting: false,
+  },
+];
 
 onMounted(() => void loadDataset());
 onUnmounted(() => clearTimeout(pollTimer));
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="flex flex-col gap-8">
     <RouterLink
       :to="{ name: 'datasets' }"
-      class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"
+      class="inline-flex w-fit items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+      <ArrowLeft aria-hidden="true" class="size-4" />
       Datasets
     </RouterLink>
 
-    <div v-if="notFound" class="text-center py-20">
-      <h3 class="text-lg font-semibold text-gray-900">Dataset not found</h3>
-    </div>
+    <PageHeading v-if="notFound">Dataset not found</PageHeading>
 
     <template v-else-if="dataset">
-      <div
-        class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
-      >
-        <div>
-          <div class="flex items-center gap-3">
-            <h1 class="text-4xl font-bold tracking-tight text-gray-900">
-              {{ dataset.name }}
-            </h1>
-            <span
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold"
-              :class="DatasetStatusColors[dataset.status]"
-              data-testid="dataset-status"
-            >
-              <Icon
-                v-if="dataset.status === DatasetStatus.BUILDING"
-                icon="solar:loading-linear"
-                class="h-3 w-3 animate-spin"
-              />
-              {{ DatasetStatusLabels[dataset.status] }}
-            </span>
-          </div>
-          <p class="text-gray-600 mt-2">
-            Top {{ dataset.params.limit }}
-            {{ dataset.params.languages.join(" / ") }} repositories with more
-            than {{ dataset.params.min_stars }} stars,
-            {{ dataset.params.pages }} search page(s) per language. Created
-            {{ formatDate(dataset.created_on) }}
-            <template v-if="dataset.created_by_name">
-              by {{ dataset.created_by_name }}</template
-            >.
-          </p>
-        </div>
-        <div class="flex items-center gap-2">
+      <PageHeading>
+        <BrandEmphasis>{{ dataset.name }}</BrandEmphasis>
+        <template #badge>
+          <DatasetStatusBadge
+            :status="dataset.status"
+            data-testid="dataset-status"
+          />
+        </template>
+        <template #description>
+          Top {{ dataset.params.limit }}
+          {{ dataset.params.languages.join(" / ") }} repositories with more than
+          {{ dataset.params.min_stars }} stars,
+          {{ dataset.params.pages }} search page(s) per language. Created
+          {{
+            formatShortDate(dataset.created_on, { time: true, fallback: "-" })
+          }}
+          <template v-if="dataset.created_by_name">
+            by {{ dataset.created_by_name }}</template
+          >.
+        </template>
+        <template #actions>
           <Button
             v-if="canRunExperiment"
             :disabled="importing"
             data-testid="dataset-run-experiment"
+            arrow
             @click="runExperiment"
           >
-            <Icon icon="solar:test-tube-linear" class="h-4 w-4 mr-2" />
-            Run experiment
+            <FlaskConical aria-hidden="true" />
+            Run Experiment
           </Button>
           <Button
             v-if="canImport"
+            variant="outline"
             :disabled="importing"
             data-testid="dataset-import"
             @click="importAsProjects"
           >
-            <Icon icon="solar:import-linear" class="h-4 w-4 mr-2" />
+            <FolderInput aria-hidden="true" />
             Import as projects
           </Button>
           <Button
@@ -382,137 +385,152 @@ onUnmounted(() => clearTimeout(pollTimer));
               Keep
             </Button>
           </template>
-        </div>
-      </div>
+        </template>
+      </PageHeading>
 
-      <div
-        v-if="dataset.status === DatasetStatus.BUILDING"
-        class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900"
-      >
-        Searching GitHub and checking each candidate's root files. This takes a
-        few minutes, and pauses by itself if the GitHub rate limit is reached.
-      </div>
+      <Alert v-if="dataset.status === DatasetStatus.BUILDING" role="status">
+        <Info aria-hidden="true" class="size-4" />
+        <AlertDescription>
+          Searching GitHub and checking each candidate's root files. This takes
+          a few minutes, and pauses by itself if the GitHub rate limit is
+          reached.
+        </AlertDescription>
+      </Alert>
 
-      <div
+      <Alert
         v-if="dataset.status === DatasetStatus.FAILED"
-        class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-900"
+        variant="destructive"
         data-testid="dataset-error"
       >
-        The build failed: {{ dataset.error ?? "unknown error" }}
-      </div>
+        <AlertDescription>
+          The build failed: {{ dataset.error ?? "unknown error" }}
+        </AlertDescription>
+      </Alert>
 
-      <div
+      <Card
         v-if="importing || importProgress.total > 0"
-        class="bg-white rounded-xl border border-gray-200 p-4 space-y-2"
+        class="rounded-card shadow-card"
       >
-        <div class="flex justify-between text-sm text-gray-700">
-          <span>{{
-            importing ? "Importing projects" : "Import finished"
-          }}</span>
-          <span>{{ importProgress.done }} / {{ importProgress.total }}</span>
-        </div>
-        <Progress :model-value="importProgressPercent" />
-        <ul
-          v-if="importFailures.length > 0"
-          class="text-sm text-red-700 space-y-1 pt-2"
-          data-testid="dataset-import-failures"
-        >
-          <li v-for="failure in importFailures" :key="failure.entry.id">
-            #{{ failure.entry.rank + 1 }} {{ failure.entry.full_name }}:
-            {{ failure.reason }}
-          </li>
-        </ul>
-      </div>
+        <CardContent class="flex flex-col gap-2 pt-6">
+          <div class="flex justify-between text-sm text-foreground">
+            <span id="dataset-import-label">{{
+              importing ? "Importing projects" : "Import finished"
+            }}</span>
+            <span class="tabular-nums"
+              >{{ importProgress.done }} / {{ importProgress.total }}</span
+            >
+          </div>
+          <Progress
+            :model-value="importProgressPercent"
+            aria-labelledby="dataset-import-label"
+          />
+          <ul
+            v-if="importFailures.length > 0"
+            class="flex flex-col gap-1 pt-2 text-sm text-destructive"
+            data-testid="dataset-import-failures"
+          >
+            <li v-for="failure in importFailures" :key="failure.entry.id">
+              #{{ failure.entry.rank + 1 }} {{ failure.entry.full_name }}:
+              {{ failure.reason }}
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
 
       <div
         v-if="dataset.stats"
-        class="grid grid-cols-2 sm:grid-cols-4 gap-4"
+        class="flex flex-col gap-4"
         data-testid="dataset-stats"
       >
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Selected</p>
-          <p class="text-xl font-semibold">
-            {{ dataset.stats.selected }} / {{ dataset.params.limit }}
-          </p>
-        </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Candidates</p>
-          <p class="text-xl font-semibold">{{ dataset.stats.candidates }}</p>
-        </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Probed</p>
-          <p class="text-xl font-semibold">{{ dataset.stats.probed }}</p>
-        </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">Built</p>
-          <p class="text-base font-semibold">
-            {{ formatDate(dataset.built_on) }}
-          </p>
-        </div>
+        <ul aria-label="Build numbers" class="grid grid-cols-4 gap-4">
+          <StatTile
+            label="Selected"
+            :value="`${dataset.stats.selected} / ${dataset.params.limit}`"
+          />
+          <StatTile label="Candidates" :value="dataset.stats.candidates" />
+          <StatTile label="Probed" :value="dataset.stats.probed" />
+          <StatTile
+            label="Built"
+            :value="formatDay(dataset.built_on)"
+            :hint="formatTime(dataset.built_on)"
+          />
+        </ul>
         <div
           v-if="rejections.length > 0"
-          class="col-span-2 sm:col-span-4 bg-white rounded-lg border border-gray-200 p-4"
+          class="rounded-card border bg-card p-4 shadow-card"
         >
-          <p class="text-sm text-gray-500 mb-2">Left out while probing</p>
-          <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-700">
+          <h2 class="mb-2 text-sm text-muted-foreground">
+            Left out while probing
+          </h2>
+          <p class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-foreground">
             <span v-for="rejection in rejections" :key="rejection.key">
               {{ rejection.label }}: <strong>{{ rejection.count }}</strong>
             </span>
-          </div>
+          </p>
         </div>
       </div>
 
-      <div
-        v-if="entries.length > 0"
-        class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+      <section
+        v-if="dataset.status === DatasetStatus.READY"
+        class="flex flex-col gap-4"
+        aria-labelledby="dataset-entries-heading"
       >
-        <div
-          class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
+        <h2
+          id="dataset-entries-heading"
+          class="text-xl font-bold tracking-tight text-foreground-strong"
         >
-          <div class="col-span-1">Rank</div>
-          <div class="col-span-4">Repository</div>
-          <div class="col-span-2">Stars</div>
-          <div class="col-span-2">Branch</div>
-          <div class="col-span-3">Lockfiles</div>
-        </div>
-        <div
-          v-for="entry in entries"
-          :key="entry.id"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
-          data-testid="dataset-entry"
+          Repositories
+        </h2>
+        <DataTable
+          :columns="entryColumns"
+          :data="entries"
+          :row-key="(entry: DatasetEntry) => entry.id"
+          caption="Dataset entries"
+          filter-label="Filter repositories"
+          empty-text="No repositories match."
+          row-testid="dataset-entry"
         >
-          <div class="lg:col-span-1 text-gray-500">#{{ entry.rank + 1 }}</div>
-          <div class="lg:col-span-4">
+          <template #cell-rank="{ row }">
+            <span class="tabular-nums text-muted-foreground"
+              >#{{ row.rank + 1 }}</span
+            >
+          </template>
+          <template #cell-repository="{ row }">
             <a
-              :href="entry.git_url"
+              :href="row.git_url"
               target="_blank"
               rel="noopener noreferrer"
-              class="font-medium text-gray-900 hover:underline"
+              class="rounded-sm font-semibold text-foreground-strong underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              {{ entry.full_name }}
+              {{ row.full_name }}
             </a>
-            <span v-if="entry.language" class="text-gray-500">
-              · {{ entry.language }}</span
+            <span v-if="row.language" class="text-muted-foreground">
+              · {{ row.language }}</span
             >
-          </div>
-          <div class="lg:col-span-2 text-gray-700">
-            {{ entry.stars.toLocaleString("en-US") }}
-          </div>
-          <div class="lg:col-span-2 text-gray-700">
-            {{ entry.default_branch }}
-          </div>
-          <div class="lg:col-span-3 text-gray-700">
-            {{ entry.lockfiles.join(", ") }}
-          </div>
-        </div>
-      </div>
-
-      <PaginationComponent
-        v-if="entriesTotalPages > 1"
-        :current-page="entriesPage"
-        :total-pages="entriesTotalPages"
-        @page-change="goToEntriesPage"
-      />
+          </template>
+          <template #cell-stars="{ row }">
+            <span class="tabular-nums">{{
+              row.stars.toLocaleString("en-US")
+            }}</span>
+          </template>
+        </DataTable>
+      </section>
     </template>
+
+    <div
+      v-else
+      role="status"
+      aria-label="Loading the Dataset"
+      class="flex flex-col gap-8"
+    >
+      <div class="flex flex-col gap-3">
+        <Skeleton class="h-9 w-72" />
+        <Skeleton class="h-5 w-[32rem]" />
+      </div>
+      <div class="grid grid-cols-4 gap-4">
+        <Skeleton v-for="tile in 4" :key="tile" class="h-24 rounded-card" />
+      </div>
+      <Skeleton class="h-80 rounded-card" />
+    </div>
   </div>
 </template>

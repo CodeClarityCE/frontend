@@ -53,10 +53,6 @@ vi.mock("vue-router", () => ({
   useRoute: () => ({ query: { id: "ds-1" } }),
 }));
 
-vi.mock("@/base_components", () => ({
-  PaginationComponent: { template: "<div />" },
-}));
-
 vi.mock("@/shadcn/ui/progress", () => ({
   Progress: {
     props: ["modelValue"],

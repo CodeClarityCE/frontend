@@ -5,41 +5,15 @@ import {
   defineAsyncComponent,
 } from "vue";
 
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
-
-const OrgIntegrationsList = defineAsyncComponent({
-  loader: (() => import("./IntegrationsList.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
-
-const OrgIntegrationCreate = defineAsyncComponent({
-  loader: (() => import("./IntegrationCreate.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
-
-const OrgIntegrationEdit = defineAsyncComponent({
-  loader: (() => import("./IntegrationEdit.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
+const OrgIntegrationsList = defineAsyncComponent(
+  (() => import("./IntegrationsList.vue")) as AsyncComponentLoader,
+) as Component;
+const OrgIntegrationCreate = defineAsyncComponent(
+  (() => import("./IntegrationCreate.vue")) as AsyncComponentLoader,
+) as Component;
+const OrgIntegrationEdit = defineAsyncComponent(
+  (() => import("./IntegrationEdit.vue")) as AsyncComponentLoader,
+) as Component;
 
 defineProps<{
   page: string;

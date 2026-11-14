@@ -21,7 +21,6 @@
     "test:accessibility": "vitest run tests/integration/accessibility",
     "test:performance": "vitest run tests/performance",
     "test:integration": "vitest run tests/integration",
-    "test:visual": "percy exec -- playwright test --project=chromium",
     "test:size": "size-limit",
     "test:all": "run-s test:unit:run test:e2e test:size",
     "test:quick": "vitest run --changed origin/develop",
@@ -32,7 +31,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@formkit/auto-animate": "0.10.1",
     "@lucide/vue": "1.69.0",
     "@tanstack/vue-table": "8.21.3",
     "@vee-validate/zod": "4.15.1",
@@ -58,15 +56,14 @@
     "vue-markdown-render": "3.0.0",
     "vue-router": "5.4.0",
     "vue-sonner": "2.0.9",
-    "vue-toast-notification": "3.1.3",
     "zod": "3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@iconify-json/devicon": "1.2.79",
+    "@iconify-json/simple-icons": "1.2.102",
+    "@iconify/utils": "3.1.7",
     "@iconify/vue": "5.0.5",
-    "@percy/cli": "1.32.12",
-    "@percy/client": "1.32.12",
-    "@percy/config": "1.32.12",
     "@playwright/test": "1.65.0",
     "@size-limit/preset-app": "14.3.0",
     "@stryker-mutator/core": "10.1.1",
@@ -105,7 +102,6 @@
     "npm-run-all": "4.1.5",
     "postcss": "8.5.32",
     "prettier": "3.9.10",
-    "sass": "1.107.1",
     "size-limit": "14.3.0",
     "start-server-and-test": "3.0.13",
     "tailwindcss": "4.3.4",

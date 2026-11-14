@@ -8,6 +8,8 @@ import {
   IsString,
 } from "class-validator";
 
+import type { StatusTone } from "@/base_components/page";
+
 // ============================================
 // Enums
 // ============================================
@@ -340,12 +342,13 @@ export const TicketStatusLabels: Record<TicketStatus, string> = {
   [TicketStatus.WONT_FIX]: "Won't Fix",
 };
 
-export const TicketStatusColors: Record<TicketStatus, string> = {
-  [TicketStatus.OPEN]: "bg-blue-100 text-blue-800",
-  [TicketStatus.IN_PROGRESS]: "bg-yellow-100 text-yellow-800",
-  [TicketStatus.RESOLVED]: "bg-green-100 text-green-800",
-  [TicketStatus.CLOSED]: "bg-gray-100 text-gray-800",
-  [TicketStatus.WONT_FIX]: "bg-gray-100 text-gray-600",
+// Status colours from the shared status set; the label always carries the meaning.
+export const TicketStatusTones: Record<TicketStatus, StatusTone> = {
+  [TicketStatus.OPEN]: "warning",
+  [TicketStatus.IN_PROGRESS]: "neutral",
+  [TicketStatus.RESOLVED]: "success",
+  [TicketStatus.CLOSED]: "neutral",
+  [TicketStatus.WONT_FIX]: "neutral",
 };
 
 export const TicketPriorityLabels: Record<TicketPriority, string> = {
@@ -355,11 +358,21 @@ export const TicketPriorityLabels: Record<TicketPriority, string> = {
   [TicketPriority.LOW]: "Low",
 };
 
+// Priority uses the severity scale, as a solid fill with light text.
 export const TicketPriorityColors: Record<TicketPriority, string> = {
-  [TicketPriority.CRITICAL]: "bg-red-100 text-red-800",
-  [TicketPriority.HIGH]: "bg-orange-100 text-orange-800",
-  [TicketPriority.MEDIUM]: "bg-yellow-100 text-yellow-800",
-  [TicketPriority.LOW]: "bg-green-100 text-green-800",
+  [TicketPriority.CRITICAL]:
+    "bg-severity-critical text-severity-critical-foreground",
+  [TicketPriority.HIGH]: "bg-severity-high text-severity-high-foreground",
+  [TicketPriority.MEDIUM]: "bg-severity-medium text-severity-medium-foreground",
+  [TicketPriority.LOW]: "bg-severity-low text-severity-low-foreground",
+};
+
+// Sorts priorities from the most urgent (0) to the least.
+export const TicketPriorityRank: Record<TicketPriority, number> = {
+  [TicketPriority.CRITICAL]: 0,
+  [TicketPriority.HIGH]: 1,
+  [TicketPriority.MEDIUM]: 2,
+  [TicketPriority.LOW]: 3,
 };
 
 export const TicketTypeLabels: Record<TicketType, string> = {
@@ -368,30 +381,12 @@ export const TicketTypeLabels: Record<TicketType, string> = {
   [TicketType.UPGRADE]: "Upgrade",
 };
 
-export const TicketTypeColors: Record<TicketType, string> = {
-  [TicketType.VULNERABILITY]: "bg-red-50 text-red-700",
-  [TicketType.LICENSE]: "bg-purple-50 text-purple-700",
-  [TicketType.UPGRADE]: "bg-blue-50 text-blue-700",
-};
-
-// Kanban columns configuration
-export const KanbanColumns: {
-  status: TicketStatus;
-  label: string;
-  color: string;
-}[] = [
-  { status: TicketStatus.OPEN, label: "Open", color: "border-blue-400" },
-  {
-    status: TicketStatus.IN_PROGRESS,
-    label: "In Progress",
-    color: "border-yellow-400",
-  },
-  {
-    status: TicketStatus.RESOLVED,
-    label: "Resolved",
-    color: "border-green-400",
-  },
-  { status: TicketStatus.CLOSED, label: "Closed", color: "border-gray-400" },
+// Kanban columns, in board order.
+export const KanbanColumns: { status: TicketStatus; label: string }[] = [
+  { status: TicketStatus.OPEN, label: "Open" },
+  { status: TicketStatus.IN_PROGRESS, label: "In Progress" },
+  { status: TicketStatus.RESOLVED, label: "Resolved" },
+  { status: TicketStatus.CLOSED, label: "Closed" },
 ];
 
 // ============================================

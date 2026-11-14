@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
-import ChartExport from "../charts/ChartExport.vue";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+
+import { AS_OF_APPROXIMATION, excluded } from "../charts/experiment-caption";
 import LoadOverTimeChart from "../charts/LoadOverTimeChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import type { LoadRow } from "../experiment.entity";
@@ -31,7 +33,7 @@ const plotted = computed(() => ({
   ]),
 }));
 
-const figureCaption = computed<FigureCaption>(() => {
+const figureCaption = computed<ChartCaption>(() => {
   const counts = props.rows
     .filter((r) => r.hindsight !== null)
     .map((r) => r.projects);
@@ -48,19 +50,24 @@ const figureCaption = computed<FigureCaption>(() => {
       "grid dates",
       "without a done snapshot",
     ),
-    asOf: true,
+    notes: [AS_OF_APPROXIMATION],
   };
 });
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-2"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-load"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Load over time</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Load over time
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Vulnerability instances per grid date, summed over the projects with a
         done snapshot. Hindsight counts every advisory known today; as-of drops
         advisories published after the grid date (HEAD uses the experiment's end
@@ -80,5 +87,5 @@ const figureCaption = computed<FigureCaption>(() => {
     <ChartExport name="load-over-time" :data="plotted" :caption="figureCaption">
       <LoadOverTimeChart :rows="rows" :caption="TITLE" />
     </ChartExport>
-  </div>
+  </section>
 </template>

@@ -7,7 +7,7 @@ import KnowledgeStatusNotice from "./KnowledgeStatusNotice.vue";
 vi.unmock("@/utils/api/BaseRepository");
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 const toast = vi.hoisted(() => ({ error: vi.fn() }));
-vi.mock("vue-toast-notification", () => ({ useToast: () => toast }));
+vi.mock("vue-sonner", () => ({ toast }));
 const auth = vi.hoisted(() => ({ getAuthenticated: true, getToken: "token" }));
 vi.mock("@/stores/auth", () => ({ useAuthStore: () => auth }));
 vi.mock("@/stores/user", () => ({
@@ -108,7 +108,6 @@ describe("KnowledgeStatusNotice", () => {
     auth.getAuthenticated = true;
     toast.error.mockClear();
     vi.stubGlobal("fetch", vi.fn());
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -138,14 +137,15 @@ describe("KnowledgeStatusNotice", () => {
     expect((await mountNotice()).text()).toBe("");
   });
 
-  it("shows nothing and warns when the status request fails", async () => {
+  it("shows nothing and no error when the status request fails", async () => {
     respondWith({}, 500);
+    const warn = vi.spyOn(console, "warn");
 
     const wrapper = await mountNotice();
 
     expect(wrapper.text()).toBe("");
     expect(toast.error).not.toHaveBeenCalled();
-    expect(console.warn).toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it("shows nothing when the network is down", async () => {

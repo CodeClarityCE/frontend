@@ -1,545 +1,212 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { defineComponent, h, onMounted } from "vue";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
+import router from "@/router";
+import { errorToast, successToast } from "@/utils/toasts";
 
 import AnalyzersList from "./AnalyzersList.vue";
 
-// Mock router
-vi.mock("@/router", () => ({
-  default: {
-    push: vi.fn(),
-    go: vi.fn(),
-  },
-}));
-
-// Mock auth store
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    getAuthenticated: true,
-    getToken: "test-token",
-  })),
-}));
-
-// Mock BaseRepository to avoid dependency issues
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class MockBaseRepository {
-    constructor() {}
-  },
-  BusinessLogicError: class MockBusinessLogicError extends Error {
-    constructor(public error_code: string) {
-      super();
-    }
-  },
-}));
-
-// Mock analyzer repository
-const mockAnalyzerRepo = {
+const { getAnalyzers, deleteAnalyzer, orgInfo } = vi.hoisted(() => ({
   getAnalyzers: vi.fn(),
   deleteAnalyzer: vi.fn(),
-};
+  orgInfo: { current: {} },
+}));
+
+vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
+
+vi.mock("@/stores/auth", () => ({
+  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
+}));
+
+vi.mock("@/utils/toasts", () => ({
+  successToast: vi.fn(),
+  errorToast: vi.fn(),
+}));
+
+// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
+vi.mock("@/shadcn/ui/input", () => ({
+  Input: defineComponent({
+    props: { modelValue: { type: String, default: "" } },
+    emits: ["update:modelValue"],
+    setup(props, { emit, attrs }) {
+      return () =>
+        h("input", {
+          ...attrs,
+          value: props.modelValue,
+          onInput: (e: Event) =>
+            emit("update:modelValue", (e.target as HTMLInputElement).value),
+        });
+    },
+  }),
+}));
+
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BaseRepository: class {},
+  BusinessLogicError: class BusinessLogicError extends Error {},
+}));
 
 vi.mock(
   "@/codeclarity_components/organizations/analyzers/AnalyzerRepository",
   () => ({
-    AnalyzerRepository: vi.fn().mockImplementation(() => mockAnalyzerRepo),
+    AnalyzerRepository: class {
+      getAnalyzers = getAnalyzers;
+      deleteAnalyzer = deleteAnalyzer;
+    },
   }),
 );
 
-// Mock child components
+// The header reports the organisation, as the real one does once loaded.
 vi.mock(
   "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
   () => ({
-    default: {
-      name: "HeaderItem",
-      template: '<div data-testid="header-item"></div>',
-      props: ["orgId"],
+    default: defineComponent({
       emits: ["onOrgInfo"],
-    },
+      setup(_, { emit }) {
+        onMounted(() => emit("onOrgInfo", orgInfo.current));
+        return () => h("div", "Organisation header");
+      },
+    }),
   }),
 );
 
-vi.mock("@/base_components/ui/loaders/BoxLoader.vue", () => ({
-  default: {
-    name: "BoxLoader",
-    template: '<div data-testid="box-loader"></div>',
-    props: ["dimensions"],
+vi.mock("vue-router", async () => {
+  const actual =
+    await vi.importActual<typeof import("vue-router")>("vue-router");
+  return {
+    ...actual,
+    RouterLink: defineComponent({
+      props: { to: { type: Object, required: true } },
+      setup(_, { slots, attrs }) {
+        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
+      },
+    }),
+  };
+});
+
+const sample = [
+  {
+    id: "a-1",
+    name: "Default analyzer",
+    description: "SBOM and vulnerabilities",
+    created_on: "2025-01-10T10:00:00Z",
+    steps: [[{ name: "js-sbom" }], [{ name: "vuln-finder" }]],
   },
-}));
-
-vi.mock("@/base_components/ui/cards/InfoCard.vue", () => ({
-  default: {
-    name: "InfoCard",
-    template:
-      '<div data-testid="info-card">{{ title }}<slot></slot><slot name="actions"></slot></div>',
-    props: ["title", "description", "icon", "variant"],
+  {
+    id: "a-2",
+    name: "Licences only",
+    description: "Checks licences",
+    created_on: "2025-02-10T10:00:00Z",
+    steps: [[{ name: "license-finder" }]],
   },
-}));
+];
 
-vi.mock("@/base_components/ui/cards/StatCard.vue", () => ({
-  default: {
-    name: "StatCard",
-    template: '<div data-testid="stat-card"></div>',
-    props: ["label", "value", "icon", "variant", "subtitle", "subtitleIcon"],
-  },
-}));
+let wrapper: VueWrapper | undefined;
 
-vi.mock("@/shadcn/ui/button/Button.vue", () => ({
-  default: {
-    name: "Button",
-    template: '<button data-testid="button"><slot></slot></button>',
-    props: ["variant", "size"],
-  },
-}));
+async function render(): Promise<void> {
+  wrapper = mount(AnalyzersList, {
+    props: { orgId: "org-1" },
+    attachTo: document.body,
+  });
+  await flushPromises();
+}
 
-// Mock Dialog components
-vi.mock("@/shadcn/ui/dialog/Dialog.vue", () => ({
-  default: {
-    name: "Dialog",
-    template: '<div data-testid="dialog"><slot></slot></div>',
-  },
-}));
+function button(name: string): HTMLElement | undefined {
+  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
+    (el) =>
+      el.getAttribute("aria-label") === name || el.textContent?.trim() === name,
+  );
+}
 
-vi.mock("@/shadcn/ui/dialog/DialogTrigger.vue", () => ({
-  default: {
-    name: "DialogTrigger",
-    template: '<div data-testid="dialog-trigger"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/dialog/DialogContent.vue", () => ({
-  default: {
-    name: "DialogContent",
-    template: '<div data-testid="dialog-content"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/dialog/DialogHeader.vue", () => ({
-  default: {
-    name: "DialogHeader",
-    template: '<div data-testid="dialog-header"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/dialog/DialogTitle.vue", () => ({
-  default: {
-    name: "DialogTitle",
-    template: '<div data-testid="dialog-title"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/dialog/DialogDescription.vue", () => ({
-  default: {
-    name: "DialogDescription",
-    template: '<div data-testid="dialog-description"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/dialog/DialogFooter.vue", () => ({
-  default: {
-    name: "DialogFooter",
-    template: '<div data-testid="dialog-footer"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/dialog/DialogClose.vue", () => ({
-  default: {
-    name: "DialogClose",
-    template: '<div data-testid="dialog-close"><slot></slot></div>',
-  },
-}));
-
-vi.mock("@iconify/vue", () => ({
-  Icon: {
-    name: "Icon",
-    template: '<span data-testid="icon"></span>',
-    props: ["icon"],
-  },
-}));
-
-// Mock RouterLink
-const MockRouterLink = {
-  name: "RouterLink",
-  template: '<a data-testid="router-link"><slot></slot></a>',
-  props: ["to"],
-};
-
-describe.skip("AnalyzersList", () => {
-  let wrapper: any;
-
-  const mockAnalyzers = [
-    {
-      id: "analyzer-1",
-      name: "CodeQL Analyzer",
-      description: "Static analysis for security vulnerabilities",
-      type: "SAST",
-      enabled: true,
-    },
-    {
-      id: "analyzer-2",
-      name: "Dependency Check",
-      description: "Check for vulnerable dependencies",
-      type: "SCA",
-      enabled: false,
-    },
-  ];
-
+describe("AnalyzersList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockAnalyzerRepo.getAnalyzers.mockResolvedValue({
-      data: mockAnalyzers,
-    });
-    mockAnalyzerRepo.deleteAnalyzer.mockResolvedValue({});
+    orgInfo.current = { id: "org-1", role: MemberRole.ADMIN };
+    getAnalyzers.mockResolvedValue({ data: sample });
+    deleteAnalyzer.mockResolvedValue({});
   });
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
+    wrapper?.unmount();
+    wrapper = undefined;
+    document.body.innerHTML = "";
   });
 
-  it("renders correctly", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("lists each analyzer with its stage count", async () => {
+    await render();
 
-    expect(wrapper.find('[data-testid="header-item"]').exists()).toBe(true);
+    const text = document.querySelector("table")?.textContent ?? "";
+    expect(text).toContain("Default analyzer");
+    expect(text).toContain("2 stages");
+    expect(text).toContain("Licences only");
+    expect(text).toContain("1 stage");
   });
 
-  it("shows HeaderItem with correct orgId", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("offers a New analyzer link", async () => {
+    await render();
 
-    const headerItem = wrapper.findComponent({ name: "HeaderItem" });
-    expect(headerItem.exists()).toBe(true);
-    expect(headerItem.props().orgId).toBe("test-org-id");
+    expect(button("New analyzer")).toBeDefined();
   });
 
-  it("shows loading state when loading is true", async () => {
-    // Mock getAnalyzers to delay response so we can test loading state
-    mockAnalyzerRepo.getAnalyzers.mockReturnValue(
-      new Promise((resolve) =>
-        setTimeout(() => resolve({ data: mockAnalyzers }), 100),
-      ),
+  it("shows an empty state when there are no analyzers", async () => {
+    getAnalyzers.mockResolvedValue({ data: [] });
+    await render();
+
+    expect(document.body.textContent).toContain("No analyzers yet");
+    expect(button("Create an analyzer")).toBeDefined();
+  });
+
+  it("says the analyzers could not be loaded and offers a retry", async () => {
+    getAnalyzers.mockRejectedValueOnce(new Error("boom"));
+    await render();
+
+    expect(document.body.textContent).toContain(
+      "The analyzers could not be loaded.",
     );
 
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+    button("Try again")?.click();
+    await flushPromises();
 
-    // Set org info to trigger the UI to show
-    wrapper.vm.setOrgInfo({ id: "test-org", role: MemberRole.ADMIN });
-    await wrapper.vm.$nextTick();
-
-    // Should show loading state while fetching
-    const boxLoaders = wrapper.findAllComponents({ name: "BoxLoader" });
-    expect(boxLoaders.length).toBeGreaterThan(0);
-  });
-
-  it("displays analyzers when data is loaded", async () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    // Set org info and wait for async operations to complete
-    wrapper.vm.setOrgInfo({ id: "test-org", role: MemberRole.ADMIN });
-    await wrapper.vm.$nextTick();
-
-    // Wait for the API call to complete
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Analyzer Workflows");
-  });
-
-  it("shows error state when error is true", async () => {
-    // Mock getAnalyzers to reject with an error
-    mockAnalyzerRepo.getAnalyzers.mockRejectedValue(new Error("Network error"));
-
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    // Set org info and wait for async operations
-    wrapper.vm.setOrgInfo({ id: "test-org", role: MemberRole.ADMIN });
-    await wrapper.vm.$nextTick();
-
-    // Wait for the API call to fail
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain(
-      "We encountered an error while processing the request",
+    expect(document.querySelector("table")?.textContent).toContain(
+      "Licences only",
     );
   });
 
-  it("fetches analyzers on mount", async () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("deletes an analyzer after confirmation", async () => {
+    await render();
 
-    // Wait for async operations
-    await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    button("Delete Licences only")?.click();
+    await flushPromises();
+    expect(document.body.textContent).toContain("Delete Licences only?");
 
-    expect(mockAnalyzerRepo.getAnalyzers).toHaveBeenCalledWith({
-      orgId: "test-org-id",
-      bearerToken: "test-token",
-      handleBusinessErrors: true,
-      page: 0,
-      entries_per_page: 0,
-      search_key: "",
-    });
+    button("Delete analyzer")?.click();
+    await flushPromises();
+
+    expect(deleteAnalyzer).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "org-1", analyzer_id: "a-2" }),
+    );
+    expect(successToast).toHaveBeenCalledWith("Deleted Licences only");
   });
 
-  it("redirects unauthorized users", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("tells the user when a delete fails", async () => {
+    deleteAnalyzer.mockRejectedValueOnce(new Error("boom"));
+    await render();
 
-    const orgInfo = {
-      id: "test-org",
-      role: MemberRole.USER,
-    };
+    button("Delete Licences only")?.click();
+    await flushPromises();
+    button("Delete analyzer")?.click();
+    await flushPromises();
 
-    wrapper.vm.setOrgInfo(orgInfo);
-
-    // Verify router.push was called for unauthorized redirect
+    expect(errorToast).toHaveBeenCalledWith("Failed to delete Licences only");
   });
 
-  it("allows access for admin users", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
+  it("sends members who are not admins back to the overview", async () => {
+    orgInfo.current = { id: "org-1", role: MemberRole.USER };
+    await render();
 
-    const orgInfo = {
-      id: "test-org",
-      role: MemberRole.ADMIN,
-    };
-
-    wrapper.vm.setOrgInfo(orgInfo);
-
-    // Admin users should have access without redirect
-    expect(wrapper.vm.orgInfo).toEqual(orgInfo);
-  });
-
-  it("handles delete analyzer", async () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    await wrapper.vm.deleteAnalyzer("analyzer-1");
-
-    expect(mockAnalyzerRepo.deleteAnalyzer).toHaveBeenCalledWith({
-      orgId: "test-org-id",
-      analyzer_id: "analyzer-1",
-      bearerToken: "test-token",
-      handleBusinessErrors: true,
-    });
-    // Verify page reload happens after delete
-  });
-
-  it("handles refresh action", async () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    const fetchSpy = vi.spyOn(wrapper.vm, "fetchAnalyzers");
-    await wrapper.vm.fetchAnalyzers(true);
-
-    expect(fetchSpy).toHaveBeenCalledWith(true);
-  });
-
-  it("shows no analyzers state when empty", async () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loading = false;
-    wrapper.vm.error = false;
-    wrapper.vm.analyzers = [];
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("No analyzers configured");
-  });
-
-  it("displays analyzer statistics", async () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    wrapper.vm.orgInfo = { id: "test-org", role: MemberRole.ADMIN };
-    wrapper.vm.loading = false;
-    wrapper.vm.error = false;
-    wrapper.vm.analyzers = mockAnalyzers;
-
-    await wrapper.vm.$nextTick();
-
-    const statCards = wrapper.findAllComponents({ name: "StatCard" });
-    expect(statCards.length).toBeGreaterThan(0);
-  });
-
-  it("handles business logic errors correctly", async () => {
-    const mockError = new Error("Network error") as any;
-    mockError.error_code = "NETWORK_ERROR";
-    mockAnalyzerRepo.getAnalyzers.mockRejectedValue(mockError);
-
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(wrapper.vm.error).toBe(true);
-  });
-
-  it("initializes with correct default values", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    expect(wrapper.vm.analyzers).toEqual([]);
-    expect(wrapper.vm.loading).toBe(false);
-    expect(wrapper.vm.error).toBe(false);
-    expect(wrapper.vm.errorCode).toBeUndefined();
-  });
-
-  it("accepts optional props correctly", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-        page: "test-page",
-        action: "test-action",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    expect(wrapper.props().orgId).toBe("test-org-id");
-    expect(wrapper.props().page).toBe("test-page");
-    expect(wrapper.props().action).toBe("test-action");
-  });
-
-  it("handles missing optional props", () => {
-    wrapper = mount(AnalyzersList, {
-      props: {
-        orgId: "test-org-id",
-      },
-      global: {
-        components: {
-          RouterLink: MockRouterLink,
-        },
-      },
-    });
-
-    expect(wrapper.props().page).toBeUndefined();
-    expect(wrapper.props().action).toBeUndefined();
-    expect(wrapper.exists()).toBe(true);
+    expect(router.push).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "orgs" }),
+    );
   });
 });

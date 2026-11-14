@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
   formatInterval,
   formatNumber,
@@ -10,9 +10,11 @@ import {
   gridLineData,
   type GridLineSeries,
   plural,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
-import GridLineChart from "../charts/GridLineChart.vue";
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+import GridLineChart from "@/base_components/charts/GridLineChart.vue";
+
+import { excluded } from "../charts/experiment-caption";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import type {
   ConfidenceInterval,
@@ -131,7 +133,7 @@ function describeShare(index: number): string {
 
 const overall = computed(() => props.leverage.overall);
 
-const clearCaption = computed<FigureCaption>(() => {
+const clearCaption = computed<ChartCaption>(() => {
   const last = clear.value.at(-1);
   return {
     description: CLEAR_TITLE,
@@ -145,7 +147,7 @@ const clearCaption = computed<FigureCaption>(() => {
   };
 });
 
-const shareCaption = computed<FigureCaption>(() => {
+const shareCaption = computed<ChartCaption>(() => {
   const { fixes, unknown } = overall.value;
   return {
     description: SHARE_TITLE,
@@ -168,16 +170,21 @@ const unknownNote = computed(() => {
   const verb = unknown === 1 ? "has" : "have";
   return `${formatNumber(unknown)} of ${plural(fixes, "fix", "fixes")} ${verb} an unknown kind (no probe outcome after the fix) and ${unknown === 1 ? "is" : "are"} left out of the share.`;
 });
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-4"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-upstream-leverage"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Upstream leverage over time</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Upstream leverage over time
+      </h3>
+      <p class="text-sm text-muted-foreground">
         How few packages carry most vulnerability instances at each grid date,
         and how much remediation came from upstream: fixes where a vulnerable
         transitive dependency left the tree.
@@ -186,10 +193,10 @@ const unknownNote = computed(() => {
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div data-testid="leverage-packages-to-clear">
-        <h4 class="text-sm font-medium text-gray-900 mb-1">
+        <h4 class="text-sm font-medium text-foreground-strong mb-1">
           Packages to clear instances
         </h4>
-        <p class="text-xs text-gray-500 mb-1">
+        <p class="text-xs text-muted-foreground mb-1">
           The fewest packages whose fixes would clear 50% and 80% of the
           instances in done snapshots at each grid date.
         </p>
@@ -219,14 +226,14 @@ const unknownNote = computed(() => {
         </ChartExport>
       </div>
       <div data-testid="leverage-transitive-share">
-        <h4 class="text-sm font-medium text-gray-900 mb-1">
+        <h4 class="text-sm font-medium text-foreground-strong mb-1">
           Fixes removed transitively
         </h4>
-        <p class="text-xs text-gray-700 mb-1">
+        <p class="text-xs text-foreground mb-1">
           {{ summary }}
           <template v-if="unknownNote">{{ unknownNote }}</template>
         </p>
-        <p v-if="intervals.length === 0" class="text-sm text-gray-500">
+        <p v-if="intervals.length === 0" class="text-sm text-muted-foreground">
           No grid intervals yet.
         </p>
         <ChartExport
@@ -249,7 +256,7 @@ const unknownNote = computed(() => {
         </ChartExport>
         <p
           v-if="overall.snapshot_precision_share !== null"
-          class="text-xs text-gray-500 mt-1"
+          class="text-xs text-muted-foreground mt-1"
         >
           {{
             formatShareWithInterval(
@@ -262,5 +269,5 @@ const unknownNote = computed(() => {
         </p>
       </div>
     </div>
-  </div>
+  </section>
 </template>

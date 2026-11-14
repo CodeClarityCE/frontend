@@ -13,22 +13,18 @@ defineProps<{
     :options="{ linkify: false }"
   />
 </template>
-<style scoped lang="scss">
-.short_listing_description :deep(h1),
-.short_listing_description :deep(h2),
-.short_listing_description :deep(h3),
-.short_listing_description :deep(h4),
-.short_listing_description :deep(h5) {
-  color: #535353;
+<style scoped>
+.short_listing_description :deep(:is(h1, h2, h3, h4, h5)) {
+  color: var(--foreground-strong);
   font-weight: 500;
 }
 
-:deep(pre) {
-  background-color: #202531;
-  padding: 30px;
-  border-radius: 4px;
-  color: white;
-  font-size: 0.8rem !important;
-  overflow-x: scroll;
+.short_listing_description :deep(pre) {
+  background-color: var(--surface-inverse);
+  color: var(--background);
+  padding: 1.5rem;
+  border-radius: var(--radius-control-size);
+  font-size: 0.8rem;
+  overflow-x: auto;
 }
 </style>

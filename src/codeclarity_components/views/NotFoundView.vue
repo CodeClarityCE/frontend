@@ -1,87 +1,41 @@
 <script setup lang="ts">
+import BrandEmphasis from "@/base_components/page/BrandEmphasis.vue";
 import router from "@/router";
-import { Button } from "@/shadcn/ui/button";
+import { Button, buttonVariants } from "@/shadcn/ui/button";
+
+import PublicPageLayout from "./PublicPageLayout.vue";
 </script>
 
 <template>
-  <main class="p-12">
-    <div class="notfound-wrapper">
-      <div class="left-side">
-        <div class="text-wrapper">
-          <div class="header">404</div>
-          <div class="subheader">Page not found</div>
-          <div class="details">
-            The page you are looking for does not exist or has been removed.
-          </div>
-        </div>
-        <div class="links">
-          <Button @click="router.back()">Get me back</Button>
+  <PublicPageLayout>
+    <div
+      class="mx-auto flex max-w-5xl items-center justify-center gap-16 py-12"
+    >
+      <div class="flex max-w-xl flex-col gap-6">
+        <p
+          class="text-8xl font-black leading-none tracking-tight text-muted-foreground"
+        >
+          404
+        </p>
+        <h1 class="text-4xl font-bold tracking-tight text-foreground-strong">
+          Page <BrandEmphasis>not found</BrandEmphasis>
+        </h1>
+        <p class="text-lg text-muted-foreground">
+          Our owl searched every branch, but the page you are looking for does
+          not exist or has been moved.
+        </p>
+        <div class="flex gap-3">
+          <Button @click="router.back()">Go back</Button>
+          <RouterLink to="/" :class="buttonVariants({ variant: 'outline' })">
+            Go to the dashboard
+          </RouterLink>
         </div>
       </div>
-
       <img
-        class="error-logo"
-        src="/src/assets/images/others/logo_side_wise_error.png"
+        src="@/assets/images/logos/logo-green.svg"
+        alt="The CodeClarity owl"
+        class="h-72 w-auto shrink-0"
       />
     </div>
-  </main>
+  </PublicPageLayout>
 </template>
-
-<style scoped lang="scss">
-.notfound-wrapper {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  // align-items: center;
-  margin-top: 10vh;
-  width: 100%;
-  height: 100%;
-  row-gap: 2rem;
-}
-
-.notfound-wrapper .left-side {
-  height: 30rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.notfound-wrapper .error-logo {
-  height: 30rem;
-  grow: 0;
-}
-
-.notfound-wrapper .text-wrapper {
-  display: flex;
-  flex-direction: column;
-  row-gap: 2rem;
-  color: #acacac;
-  font-weight: 900;
-}
-
-.notfound-wrapper .header {
-  font-size: 16rem;
-  line-height: 13rem;
-}
-
-.notfound-wrapper .subheader {
-  font-size: 4rem;
-}
-
-.notfound-wrapper .details {
-  font-size: 1.5rem;
-  max-width: 40rem;
-  color: acacac;
-}
-
-.notfound-wrapper > .text-wrapper > .header {
-  margin-bottom: -4.5rem;
-}
-
-.notfound-wrapper button {
-  font-size: 1.5rem;
-  font-weight: 900;
-  // border: 3px solid $accent;
-  // border-radius: 0px;
-}
-</style>

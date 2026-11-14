@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
-import { excluded, type FigureCaption } from "../charts/chart-caption";
+import type { ChartCaption } from "@/base_components/charts/chart-caption";
 import {
   formatDays,
   formatShareWithInterval,
-  lagChartData,
-  type LagChartRow,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+
+import { excluded } from "../charts/experiment-caption";
+import { lagChartData, type LagChartRow } from "../charts/experiment-format";
 import LagStripChart from "../charts/LagStripChart.vue";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
@@ -90,7 +91,7 @@ const counts = computed(() => {
     : `${fixes}.`;
 });
 
-function figureCaption(description: string): FigureCaption {
+function figureCaption(description: string): ChartCaption {
   const { fixes, overall } = props.fixLag;
   return {
     description,
@@ -109,23 +110,28 @@ function describe(row: LagChartRow, lag: number): string {
   const when = lag < 0 ? "before" : "after";
   return `${row.label}: fixed ${formatDays(lag)} ${when} disclosure`;
 }
+
+const headingId = useId();
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-xl border border-gray-200 p-4 space-y-4"
+  <section
+    class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+    :aria-labelledby="headingId"
     data-testid="experiment-fix-lag"
   >
     <div>
-      <h3 class="font-semibold text-gray-900">Fix lag</h3>
-      <p class="text-sm text-gray-500">
+      <h3 :id="headingId" class="font-semibold text-foreground-strong">
+        Fix lag
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Days from an advisory's disclosure to the fix. Below zero, the project
         fixed it before the advisory was published. Each dot is one fix; the
         band spans the middle half and the tick marks the median.
       </p>
     </div>
 
-    <p class="text-sm text-gray-700">
+    <p class="text-sm text-foreground">
       {{ counts }}
       <template v-if="snapshotShare">
         {{ snapshotShare }} dated only to a snapshot interval, using the later
@@ -134,12 +140,14 @@ function describe(row: LagChartRow, lag: number): string {
       </template>
     </p>
 
-    <p v-if="fixLag.overall.n === 0" class="text-sm text-gray-500">
+    <p v-if="fixLag.overall.n === 0" class="text-sm text-muted-foreground">
       No fixes with a disclosure date yet.
     </p>
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div data-testid="fix-lag-by-severity">
-        <h4 class="text-sm font-medium text-gray-900 mb-1">By severity</h4>
+        <h4 class="text-sm font-medium text-foreground-strong mb-1">
+          By severity
+        </h4>
         <OpenAsFigure
           :definition="{
             metric: 'fix_lag',
@@ -165,7 +173,9 @@ function describe(row: LagChartRow, lag: number): string {
         </ChartExport>
       </div>
       <div data-testid="fix-lag-by-kind">
-        <h4 class="text-sm font-medium text-gray-900 mb-1">By fix kind</h4>
+        <h4 class="text-sm font-medium text-foreground-strong mb-1">
+          By fix kind
+        </h4>
         <ChartExport
           name="fix-lag-by-kind"
           :data="lagChartData(byKind, 'lag_days')"
@@ -183,5 +193,5 @@ function describe(row: LagChartRow, lag: number): string {
         </ChartExport>
       </div>
     </div>
-  </div>
+  </section>
 </template>

@@ -23,7 +23,7 @@ interface ExpandedNode extends GraphDependency {
  * Convert a flat array of GraphDependency into Vue Flow nodes and edges
  * using D3's tree layout for position computation.
  *
- * Preserves the deduplication/pruning logic from the original TreeChart.vue:
+ * Keeps the deduplication and pruning rules:
  * - Creates unique node instances for each parent-child relationship
  * - Marks duplicate nodes at deeper levels as "pruned"
  * - Never prunes the target dependency
@@ -40,7 +40,7 @@ export function layoutDependencyGraph(
   const nodeMap = new Map<string, GraphDependency>();
   data.forEach((node) => nodeMap.set(node.id, node));
 
-  // 2. Expand nodes — create unique instances for each parent-child relationship
+  // 2. Expand nodes: one instance for each parent-child relationship
   const expandedNodes: ExpandedNode[] = [];
   const processedRelationships = new Set<string>();
 
@@ -104,8 +104,8 @@ export function layoutDependencyGraph(
         }
         return null;
       })(updatedNodes);
-  } catch (e) {
-    console.error("Failed to stratify dependency graph:", e);
+  } catch {
+    // A graph that is not a tree draws as empty.
     return { nodes: [], edges: [] };
   }
 
@@ -219,9 +219,10 @@ export function layoutDependencyGraph(
       source: sourceId,
       target: targetId,
       type: "smoothstep",
-      animated: isTargetPath,
+      // Width and colour mark the path to the target; no motion in data views.
+      animated: false,
       style: {
-        stroke: isTargetPath ? "#f59e0b" : "#94a3b8",
+        stroke: isTargetPath ? "var(--warning)" : "var(--muted-foreground)",
         strokeWidth: isTargetPath ? 3 : 1.5,
         opacity: isTargetPath ? 0.9 : 0.5,
       },

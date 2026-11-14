@@ -1,14 +1,10 @@
 import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import SearchBar from "@/base_components/filters/SearchBar.vue";
+import { DataTable } from "@/base_components/data-table";
 import UserAuthForm from "@/codeclarity_components/authentication/signin/UserAuthForm.vue";
-import DataTable from "@/codeclarity_components/results/sbom/table/DataTable.vue";
 
 import {
-  detectMemoryLeaks,
-  FPSMonitor,
-  measureComponentPerformance,
   measureUpdatePerformance,
   PERFORMANCE_BENCHMARKS,
   PerformanceTestSuite,
@@ -19,122 +15,17 @@ import {
 
 // Import components to test
 
+// A plain input stands in for a small component.
+const PlainInput = {
+  props: ["placeholder"],
+  template: '<input :placeholder="placeholder" />',
+};
+
 describe.skip("Component Performance Tests", () => {
   let performanceSuite: PerformanceTestSuite;
 
   beforeEach(() => {
     performanceSuite = new PerformanceTestSuite();
-  });
-
-  describe("SearchBar Performance", () => {
-    it("should render within performance budget", async () => {
-      const metrics = await measureComponentPerformance(() => {
-        return mount(SearchBar, {
-          props: {
-            placeholder: "Search...",
-          },
-          global: {
-            stubs: {
-              Icon: true,
-            },
-          },
-        });
-      });
-
-      expect(metrics.renderTime).toBeLessThan(
-        PERFORMANCE_BENCHMARKS.renderTime.good,
-      );
-      expect(metrics.mountTime).toBeLessThan(
-        PERFORMANCE_BENCHMARKS.mountTime.good,
-      );
-    });
-
-    it("should handle rapid typing efficiently", async () => {
-      const wrapper = mount(SearchBar, {
-        props: {
-          placeholder: "Search...",
-        },
-        global: {
-          stubs: {
-            Icon: true,
-          },
-        },
-      });
-
-      const input = wrapper.find("input");
-
-      const updateTime = await measureUpdatePerformance(wrapper, async () => {
-        // Simulate rapid typing
-        await input.setValue("t");
-        await input.setValue("te");
-        await input.setValue("tes");
-        await input.setValue("test");
-      });
-
-      expect(updateTime).toBeLessThan(PERFORMANCE_BENCHMARKS.updateTime.good);
-
-      wrapper.unmount();
-    });
-
-    it("should not have memory leaks during intensive usage", async () => {
-      const leakTest = await detectMemoryLeaks(() => {
-        const wrapper = mount(SearchBar, {
-          props: {
-            placeholder: "Search...",
-          },
-          global: {
-            stubs: {
-              Icon: true,
-            },
-          },
-        });
-
-        // Simulate user interaction
-        const input = wrapper.find("input");
-        input.setValue("test search");
-        input.trigger("input");
-
-        return wrapper;
-      }, 15);
-
-      expect(leakTest.hasLeak).toBe(false);
-
-      // Memory growth should be minimal (< 1MB)
-      expect(leakTest.memoryGrowth).toBeLessThan(1024 * 1024);
-    });
-
-    it("should maintain FPS during animations", async () => {
-      const wrapper = mount(SearchBar, {
-        props: {
-          placeholder: "Search with animations...",
-        },
-        global: {
-          stubs: {
-            Icon: true,
-          },
-        },
-      });
-
-      const fpsMonitor = new FPSMonitor();
-      fpsMonitor.start();
-
-      const input = wrapper.find("input");
-
-      // Simulate user interactions that might trigger animations
-      for (let i = 0; i < 10; i++) {
-        await input.trigger("focus");
-        await input.setValue(`search ${i}`);
-        await input.trigger("blur");
-        await new Promise((resolve) => setTimeout(resolve, 16)); // ~60fps
-      }
-
-      const averageFPS = fpsMonitor.stop();
-
-      // Should maintain at least 30 FPS
-      expect(averageFPS).toBeGreaterThan(30);
-
-      wrapper.unmount();
-    });
   });
 
   describe("DataTable Performance", () => {
@@ -161,6 +52,7 @@ describe.skip("Component Performance Tests", () => {
         () => {
           return mount(DataTable, {
             props: {
+              caption: "Items",
               columns: mockColumns,
               data: createMockData(10),
             },
@@ -192,6 +84,7 @@ describe.skip("Component Performance Tests", () => {
         () => {
           return mount(DataTable, {
             props: {
+              caption: "Items",
               columns: mockColumns,
               data: createMockData(100),
             },
@@ -221,6 +114,7 @@ describe.skip("Component Performance Tests", () => {
         (dataSize) =>
           mount(DataTable, {
             props: {
+              caption: "Items",
               columns: mockColumns,
               data: createMockData(dataSize),
             },
@@ -250,6 +144,7 @@ describe.skip("Component Performance Tests", () => {
     it("should handle sorting performance", async () => {
       const wrapper = mount(DataTable, {
         props: {
+          caption: "Items",
           columns: mockColumns,
           data: createMockData(200),
         },
@@ -282,6 +177,7 @@ describe.skip("Component Performance Tests", () => {
     it("should handle filtering performance", async () => {
       const wrapper = mount(DataTable, {
         props: {
+          caption: "Items",
           columns: mockColumns,
           data: createMockData(300),
         },
@@ -309,6 +205,7 @@ describe.skip("Component Performance Tests", () => {
       await performanceSuite.runMemoryLeakTest("DataTable", () => {
         return mount(DataTable, {
           props: {
+            caption: "Items",
             columns: mockColumns,
             data: createMockData(100),
           },
@@ -418,8 +315,8 @@ describe.skip("Component Performance Tests", () => {
   describe("Performance Test Suite Results", () => {
     it("should generate comprehensive performance report", async () => {
       // Run a few quick tests
-      await performanceSuite.runTest("SearchBar", "Quick Test", () => {
-        return mount(SearchBar, {
+      await performanceSuite.runTest("PlainInput", "Quick Test", () => {
+        return mount(PlainInput, {
           props: { placeholder: "Test" },
           global: { stubs: { Icon: true } },
         });
@@ -488,7 +385,7 @@ describe.skip("Component Performance Tests", () => {
 
       // Create and destroy components
       for (let i = 0; i < iterations; i++) {
-        const wrapper = mount(SearchBar, {
+        const wrapper = mount(PlainInput, {
           props: { placeholder: "Test" },
           global: { stubs: { Icon: true } },
         });

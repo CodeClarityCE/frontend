@@ -1,33 +1,7 @@
 <script lang="ts" setup>
-import {
-  type AsyncComponentLoader,
-  type Component,
-  defineAsyncComponent,
-} from "vue";
-
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import { useStateStore } from "@/stores/state";
 
-import type PasswordResetRequestFormComponent from "./PasswordResetRequestForm.vue";
-
-const loader: AsyncComponentLoader<
-  typeof PasswordResetRequestFormComponent
-> = async () =>
-  (await import("./PasswordResetRequestForm.vue")) as {
-    default: typeof PasswordResetRequestFormComponent;
-  };
-
-const PasswordResetRequestForm: Component = defineAsyncComponent({
-  loader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
+import PasswordResetRequestForm from "./PasswordResetRequestForm.vue";
 
 const state = useStateStore();
 state.$reset();
@@ -37,7 +11,5 @@ state.publicPage = true;
 </script>
 
 <template>
-  <main class="p-12">
-    <PasswordResetRequestForm></PasswordResetRequestForm>
-  </main>
+  <PasswordResetRequestForm />
 </template>

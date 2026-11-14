@@ -1,38 +1,25 @@
 <script setup lang="ts">
-import {
-  type AsyncComponentLoader,
-  type Component,
-  defineAsyncComponent,
-} from "vue";
+import { type Component, defineAsyncComponent } from "vue";
 import { RouterView, useRoute } from "vue-router";
 
-import LoadingComponent from "@/base_components/ui/loaders/LoadingComponent.vue";
-import ErrorComponent from "@/base_components/utilities/ErrorComponent.vue";
 import { Toaster } from "@/shadcn/ui/sonner";
 import { useAuthStore } from "@/stores/auth";
 
 import "vue-sonner/style.css";
 
-const HeaderComponent = defineAsyncComponent({
-  loader: (() =>
-    import("@/codeclarity_components/header/HeaderComponent.vue")) as AsyncComponentLoader,
-  loadingComponent: LoadingComponent as Component,
-  // Delay before showing the loading component. Default: 200ms.
-  delay: 200,
-  errorComponent: ErrorComponent as Component,
-  // The error component will be displayed if a timeout is
-  // provided and exceeded. Default: Infinity.
-  timeout: 3000,
-}) as Component;
+// Loaded on demand so its entity decorators run after main.ts sets up reflect-metadata.
+const AppShell = defineAsyncComponent(
+  () => import("@/codeclarity_components/shell/AppShell.vue"),
+) as Component;
 
 const authStore = useAuthStore();
 const route = useRoute();
 </script>
 
 <template>
-  <HeaderComponent v-if="authStore.getAuthenticated"></HeaderComponent>
-  <div>
+  <AppShell v-if="authStore.getAuthenticated">
     <RouterView :key="route.fullPath" />
-  </div>
+  </AppShell>
+  <RouterView v-else :key="route.fullPath" />
   <Toaster />
 </template>

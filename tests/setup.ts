@@ -35,7 +35,7 @@ import { getPiniaMock, resetPiniaMock } from "./test-utils/setup.js";
 import "@testing-library/jest-dom/vitest";
 
 // Suppress known Zod v4 cleanup errors during test teardown
-// These occur when components using Zod schemas and @formkit/auto-animate are unmounted
+// These occur when components using Zod schemas are unmounted
 process.on("unhandledRejection", (reason: unknown) => {
   const message = reason instanceof Error ? reason.message : String(reason);
   if (message.includes("_zod") || message.includes("Closing rpc while")) {
@@ -115,18 +115,16 @@ global.IntersectionObserver =
 // Mock matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(
-    (query: string): MediaQueryList => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }),
-  ),
+  value: vi.fn().mockImplementation((query: string): MediaQueryList => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
 // Mock scrollTo
@@ -135,7 +133,7 @@ Object.defineProperty(window, "scrollTo", {
   value: vi.fn(),
 });
 
-// Mock requestAnimationFrame for auto-animate library
+// Mock requestAnimationFrame for components that animate
 global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback): number => {
   cb(0);
   return 0;
@@ -148,7 +146,7 @@ if (typeof Element !== "undefined") {
   Element.prototype.scrollIntoView = vi.fn();
 }
 
-// Mock Web Animations API for auto-animate
+// Mock the Web Animations API, which jsdom lacks
 if (typeof Element !== "undefined") {
   Element.prototype.animate = vi.fn().mockReturnValue({
     cancel: vi.fn(),
@@ -472,6 +470,30 @@ vi.mock("@vueuse/core", () => ({
 
 // Mock @lucide/vue icons
 vi.mock("@lucide/vue", () => ({
+  CalendarDays: {
+    name: "CalendarDays",
+    template: '<svg data-testid="calendar-days-icon"><path/></svg>',
+  },
+  ChevronRight: {
+    name: "ChevronRight",
+    template: '<svg data-testid="chevron-right-icon"><path/></svg>',
+  },
+  CircleCheck: {
+    name: "CircleCheck",
+    template: '<svg data-testid="circle-check-icon"><path/></svg>',
+  },
+  Copy: {
+    name: "Copy",
+    template: '<svg data-testid="copy-icon"><path/></svg>',
+  },
+  Maximize: {
+    name: "Maximize",
+    template: '<svg data-testid="maximize-icon"><path/></svg>',
+  },
+  Minus: {
+    name: "Minus",
+    template: '<svg data-testid="minus-icon"><path/></svg>',
+  },
   Search: {
     name: "Search",
     template: '<svg data-testid="search-icon"><path/></svg>',
@@ -524,5 +546,153 @@ vi.mock("@lucide/vue", () => ({
   ExternalLink: {
     name: "ExternalLink",
     template: '<svg data-testid="external-link-icon"><path/></svg>',
+  },
+  CircleAlert: {
+    name: "CircleAlert",
+    template: '<svg data-testid="circle-alert-icon"><path/></svg>',
+  },
+  LoaderCircle: {
+    name: "LoaderCircle",
+    template: '<svg data-testid="loader-circle-icon"><path/></svg>',
+  },
+  ArrowRight: {
+    name: "ArrowRight",
+    template: '<svg data-testid="arrow-right-icon"><path/></svg>',
+  },
+  ArrowLeft: {
+    name: "ArrowLeft",
+    template: '<svg data-testid="arrow-left-icon"><path/></svg>',
+  },
+  ArrowUp: {
+    name: "ArrowUp",
+    template: '<svg data-testid="arrow-up-icon"><path/></svg>',
+  },
+  ArrowDown: {
+    name: "ArrowDown",
+    template: '<svg data-testid="arrow-down-icon"><path/></svg>',
+  },
+  ArrowUpDown: {
+    name: "ArrowUpDown",
+    template: '<svg data-testid="arrow-up-down-icon"><path/></svg>',
+  },
+  FlaskConical: {
+    name: "FlaskConical",
+    template: '<svg data-testid="flask-conical-icon"><path/></svg>',
+  },
+  FolderInput: {
+    name: "FolderInput",
+    template: '<svg data-testid="folder-input-icon"><path/></svg>',
+  },
+  ChevronLeftIcon: {
+    name: "ChevronLeftIcon",
+    template: '<svg data-testid="chevron-left-icon-icon"><path/></svg>',
+  },
+  ChevronRightIcon: {
+    name: "ChevronRightIcon",
+    template: '<svg data-testid="chevron-right-icon-icon"><path/></svg>',
+  },
+  MoreHorizontal: {
+    name: "MoreHorizontal",
+    template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
+  },
+  Star: {
+    name: "Star",
+    template: '<svg data-testid="star-icon"><path/></svg>',
+  },
+  Upload: {
+    name: "Upload",
+    template: '<svg data-testid="upload-icon"><path/></svg>',
+  },
+  RefreshCw: {
+    name: "RefreshCw",
+    template: '<svg data-testid="refresh-cw-icon"><path/></svg>',
+  },
+  FolderArchive: {
+    name: "FolderArchive",
+    template: '<svg data-testid="folder-archive-icon"><path/></svg>',
+  },
+  Trash2: {
+    name: "Trash2",
+    template: '<svg data-testid="trash-2-icon"><path/></svg>',
+  },
+  Pencil: {
+    name: "Pencil",
+    template: '<svg data-testid="pencil-icon"><path/></svg>',
+  },
+  ScrollText: {
+    name: "ScrollText",
+    template: '<svg data-testid="scroll-text-icon"><path/></svg>',
+  },
+  UserMinus: {
+    name: "UserMinus",
+    template: '<svg data-testid="user-minus-icon"><path/></svg>',
+  },
+  UserPlus: {
+    name: "UserPlus",
+    template: '<svg data-testid="user-plus-icon"><path/></svg>',
+  },
+  Download: {
+    name: "Download",
+    template: '<svg data-testid="download-icon"><path/></svg>',
+  },
+  Lock: {
+    name: "Lock",
+    template: '<svg data-testid="lock-icon"><path/></svg>',
+  },
+  TriangleAlert: {
+    name: "TriangleAlert",
+    template: '<svg data-testid="triangle-alert-icon"><path/></svg>',
+  },
+  ListFilter: {
+    name: "ListFilter",
+    template: '<svg data-testid="list-filter-icon"><path/></svg>',
+  },
+  History: {
+    name: "History",
+    template: '<svg data-testid="history-icon"><path/></svg>',
+  },
+  BookOpen: {
+    name: "BookOpen",
+    template: '<svg data-testid="book-open-icon"><path/></svg>',
+  },
+  Mail: {
+    name: "Mail",
+    template: '<svg data-testid="mail-icon"><path/></svg>',
+  },
+  Ticket: {
+    name: "Ticket",
+    template: '<svg data-testid="ticket-icon"><path/></svg>',
+  },
+  Eye: {
+    name: "Eye",
+    template: '<svg data-testid="eye-icon"><path/></svg>',
+  },
+  FileArchive: {
+    name: "FileArchive",
+    template: '<svg data-testid="file-archive-icon"><path/></svg>',
+  },
+  Globe: {
+    name: "Globe",
+    template: '<svg data-testid="globe-icon"><path/></svg>',
+  },
+  Shield: {
+    name: "Shield",
+    template: '<svg data-testid="shield-icon"><path/></svg>',
+  },
+  ShieldCheck: {
+    name: "ShieldCheck",
+    template: '<svg data-testid="shield-check-icon"><path/></svg>',
+  },
+  ShieldPlus: {
+    name: "ShieldPlus",
+    template: '<svg data-testid="shield-plus-icon"><path/></svg>',
+  },
+  FolderPlus: {
+    name: "FolderPlus",
+    template: '<svg data-testid="folder-plus-icon"><path/></svg>',
+  },
+  Play: {
+    name: "Play",
+    template: '<svg data-testid="play-icon"><path/></svg>',
   },
 }));

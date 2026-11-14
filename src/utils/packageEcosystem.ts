@@ -22,8 +22,9 @@ export enum PackageEcosystem {
   UNKNOWN = "unknown",
 }
 
-// Extended interface that includes the legacy type field for backwards compatibility
-export interface EcosystemInfoExtended extends EcosystemInfo {
+// The shared type plus the legacy type field. Brand colours are left out:
+// logos carry their own, and the UI colours come from tokens.
+export interface EcosystemInfoExtended extends Omit<EcosystemInfo, "color"> {
   type: PackageEcosystem;
 }
 
@@ -36,7 +37,6 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     packageManagerPattern: "(npm|yarn|pnpm|bun)",
     defaultPackageManager: "npm",
     icon: "devicon:javascript",
-    color: "#F7DF1E",
     website: "https://www.npmjs.com",
     purlType: "npm",
     registryUrl: "https://registry.npmjs.org",
@@ -50,7 +50,6 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     packageManagerPattern: "composer",
     defaultPackageManager: "composer",
     icon: "devicon:php",
-    color: "#777BB4",
     website: "https://packagist.org",
     purlType: "composer",
     registryUrl: "https://packagist.org",
@@ -64,7 +63,6 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     packageManagerPattern: "(pip|poetry|pipenv|conda)",
     defaultPackageManager: "pip",
     icon: "devicon:python",
-    color: "#3776AB",
     website: "https://pypi.org",
     purlType: "pypi",
     registryUrl: "https://pypi.org/simple",
@@ -78,7 +76,6 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     packageManagerPattern: "cargo",
     defaultPackageManager: "cargo",
     icon: "devicon:rust",
-    color: "#000000",
     website: "https://crates.io",
     purlType: "cargo",
     registryUrl: "https://crates.io",
@@ -92,7 +89,6 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     packageManagerPattern: "(maven|gradle|sbt)",
     defaultPackageManager: "maven",
     icon: "devicon:maven",
-    color: "#C71A36",
     website: "https://mvnrepository.com",
     purlType: "maven",
     registryUrl: "https://repo1.maven.org/maven2",
@@ -106,7 +102,6 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     packageManagerPattern: "(dotnet|nuget|paket)",
     defaultPackageManager: "dotnet",
     icon: "devicon:nuget",
-    color: "#004880",
     website: "https://www.nuget.org",
     purlType: "nuget",
     registryUrl: "https://api.nuget.org/v3/index.json",
@@ -119,8 +114,7 @@ export const ECOSYSTEMS: Record<PackageEcosystem, EcosystemInfoExtended> = {
     language: "Unknown",
     packageManagerPattern: "",
     defaultPackageManager: "",
-    icon: "solar:question-circle-linear",
-    color: "#6B7280",
+    icon: "",
     website: "",
     purlType: "",
     registryUrl: "",
@@ -138,24 +132,14 @@ export class EcosystemDetector {
       return ECOSYSTEMS[PackageEcosystem.UNKNOWN];
     }
 
-    try {
-      // Extract the type from PURL
-      const purlParts = purl.split("/");
-      const typeWithPrefix = purlParts[0]; // "pkg:type"
-      const type = typeWithPrefix?.split(":")[1]; // "type"
-
-      // Find ecosystem by PURL type
-      for (const ecosystem of Object.values(ECOSYSTEMS)) {
-        if (ecosystem.purlType === type) {
-          return ecosystem;
-        }
+    // "pkg:type/..." gives the PURL type
+    const type = purl.split("/")[0]?.split(":")[1];
+    for (const ecosystem of Object.values(ECOSYSTEMS)) {
+      if (ecosystem.purlType === type) {
+        return ecosystem;
       }
-
-      return ECOSYSTEMS[PackageEcosystem.UNKNOWN];
-    } catch (error) {
-      console.warn("Failed to parse PURL:", purl, error);
-      return ECOSYSTEMS[PackageEcosystem.UNKNOWN];
     }
+    return ECOSYSTEMS[PackageEcosystem.UNKNOWN];
   }
 
   /**
@@ -280,7 +264,7 @@ export class EcosystemMetadataExtractor {
    */
   static extractMetadata(
     dependency: Dependency,
-    ecosystem: EcosystemInfo,
+    ecosystem: Pick<EcosystemInfo, "ecosystem">,
   ): Record<string, unknown> {
     // Use ecosystem name instead of type since shared EcosystemInfo doesn't have type
     switch (ecosystem.ecosystem) {

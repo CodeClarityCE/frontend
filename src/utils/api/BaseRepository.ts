@@ -1,10 +1,8 @@
-import { type ToastPluginApi, useToast } from "vue-toast-notification";
+import { toast } from "vue-sonner";
 
 import router from "@/router";
 
 import { APIErrors } from "./ApiErrors";
-
-import "vue-toast-notification/dist/theme-sugar.css";
 
 /**
  * @class BaseRepository
@@ -15,12 +13,9 @@ import "vue-toast-notification/dist/theme-sugar.css";
  */
 export class BaseRepository {
   private BASE_URL: string;
-  private toast: ToastPluginApi;
 
   constructor() {
-    // Initialize base URL and toast notification service
     this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
-    this.toast = useToast();
   }
 
   /**
@@ -517,22 +512,17 @@ export class BaseRepository {
     if (defaultBusinessLogicErrorHandlerTextPrefix !== undefined) {
       prefix = defaultBusinessLogicErrorHandlerTextPrefix;
     }
-    this.toast.error(
+    toast.error(
       `${prefix} ErrorCode: ${business_logic_error.error_code}. Reason: ${business_logic_error.error_message}`,
-      { position: "bottom-right" },
     );
   }
 
   /**
    * Default http error handler that runs in case no http error handler was supplied by the user.
    */
-  private async defaultHttpErrorHandler(http_error: HttpError): Promise<void> {
-    console.error(http_error);
-    this.toast.error(
+  private async defaultHttpErrorHandler(_http_error: HttpError): Promise<void> {
+    toast.error(
       "Request failed to be processed. Please reload the page and try again.",
-      {
-        position: "bottom-right",
-      },
     );
   }
 }

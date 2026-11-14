@@ -1,0 +1,27 @@
+/* Applied to every screenshot so captures do not change between runs. */
+
+/* Hide dynamic content that changes between runs */
+[data-screenshot-hide] {
+  visibility: hidden !important;
+}
+
+/* Stop animations and transitions */
+*,
+*::before,
+*::after {
+  animation-duration: 0ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0ms !important;
+  transition-delay: 0ms !important;
+}
+
+/* Hide scrollbars */
+::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Hide loading states */
+.loading,
+.spinner {
+  display: none !important;
+}

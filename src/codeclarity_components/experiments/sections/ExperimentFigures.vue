@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, ref, watch } from "vue";
 
+import {
+  type ChartCaption,
+  PAGE_EXCLUSIONS,
+} from "@/base_components/charts/chart-caption";
+import type {
+  ChartData,
+  CsvValue,
+} from "@/base_components/charts/chart-export";
+import {
+  formatNumber,
+  type GridLineSeries,
+  type StepSeries,
+} from "@/base_components/charts/chart-format";
+import ChartExport from "@/base_components/charts/ChartExport.vue";
+import ColumnChart from "@/base_components/charts/ColumnChart.vue";
+import GridLineChart from "@/base_components/charts/GridLineChart.vue";
+import StepChart from "@/base_components/charts/StepChart.vue";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -18,20 +35,10 @@ import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import {
-  type FigureCaption,
+  AS_OF_APPROXIMATION,
   gridCoverageOf,
-  SNAPSHOT_COVERAGE,
-} from "../charts/chart-caption";
-import type { ChartData, CsvValue } from "../charts/chart-export";
-import {
-  formatNumber,
-  type GridLineSeries,
-  type StepSeries,
-} from "../charts/chart-format";
-import ChartExport from "../charts/ChartExport.vue";
-import FigureBarChart from "../charts/FigureBarChart.vue";
-import FigureStepChart from "../charts/FigureStepChart.vue";
-import GridLineChart from "../charts/GridLineChart.vue";
+  snapshotExclusions,
+} from "../charts/experiment-caption";
 import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 import {
   definitionKey,
@@ -57,15 +64,15 @@ const props = defineProps<{
 }>();
 
 provide(
-  SNAPSHOT_COVERAGE,
-  computed(() => gridCoverageOf(props.gridCoverage)),
+  PAGE_EXCLUSIONS,
+  computed(() => snapshotExclusions(gridCoverageOf(props.gridCoverage))),
 );
 
 /** A select's value for "nothing chosen": Select items cannot be empty */
 const NONE = "none";
 
 /** Severities in colour-slot order, so a class keeps its colour */
-/** Series colours defined in experiment-chart.css; more groups reuse them */
+/** Series colours defined in chart.css; more groups reuse them */
 const SERIES_TOKENS = 6;
 
 const SEVERITY_SLOTS = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"];
@@ -278,7 +285,7 @@ const exportName = computed(() => {
   return slug || (metric.value?.id ?? "figure");
 });
 
-const figureCaption = computed<FigureCaption>(() => {
+const figureCaption = computed<ChartCaption>(() => {
   const data = preview.value;
   const description = [
     `${metric.value?.label ?? "Figure"}: ${data?.y_title ?? ""} by ${data?.x_title ?? ""}`,
@@ -289,9 +296,11 @@ const figureCaption = computed<FigureCaption>(() => {
     description,
     n: data?.caption?.n ?? "Sample size not reported",
     exclusions: data?.caption?.exclusions ?? [],
-    asOf:
+    notes:
       definition.value?.filters.view === "as_of" ||
-      (data?.series ?? []).some((series) => series.key === "as_of"),
+      (data?.series ?? []).some((series) => series.key === "as_of")
+        ? [AS_OF_APPROXIMATION]
+        : [],
     unpublished: tiedVersion.value === null,
     ...(tiedVersion.value === null ? {} : { metricVersion: tiedVersion.value }),
   };
@@ -512,18 +521,27 @@ onMounted(() => void loadFigures());
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-testid="figures">
-    <div class="space-y-4">
-      <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+  <div class="grid grid-cols-3 gap-6" data-testid="figures">
+    <div class="flex flex-col gap-4">
+      <section
+        class="flex flex-col gap-4 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+        aria-labelledby="figure-composer-heading"
+      >
+        <h3
+          id="figure-composer-heading"
+          class="font-semibold text-foreground-strong"
+        >
+          Figure
+        </h3>
         <div v-if="catalog" class="space-y-4">
           <div class="space-y-2">
-            <Label>Metric</Label>
+            <Label for="figure-metric">Metric</Label>
             <Select
               :model-value="metricId"
               data-testid="figure-metric"
               @update:model-value="selectMetric(String($event))"
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="figure-metric"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem
                   v-for="item in catalog.metrics"
@@ -538,9 +556,11 @@ onMounted(() => void loadFigures());
 
           <template v-if="metric">
             <div class="space-y-2">
-              <Label>Chart form</Label>
+              <Label for="figure-chart-form">Chart form</Label>
               <Select v-model="chartForm" data-testid="figure-chart-form">
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="figure-chart-form"
+                  ><SelectValue
+                /></SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     v-for="item in metric.chart_forms"
@@ -554,9 +574,11 @@ onMounted(() => void loadFigures());
             </div>
 
             <div v-if="groupOptions.length > 0" class="space-y-2">
-              <Label>Group by</Label>
+              <Label for="figure-group-by">Group by</Label>
               <Select v-model="groupBy" data-testid="figure-group-by">
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="figure-group-by"
+                  ><SelectValue
+                /></SelectTrigger>
                 <SelectContent>
                   <SelectItem :value="NONE">No grouping</SelectItem>
                   <SelectItem
@@ -575,10 +597,13 @@ onMounted(() => void loadFigures());
               :key="filter.id"
               class="space-y-2"
             >
-              <Label>{{ filter.label }}</Label>
+              <Label :for="`figure-filter-${filter.id}`">{{
+                filter.label
+              }}</Label>
               <template v-if="filter.kind === 'date_range'">
                 <div class="flex gap-2">
                   <Input
+                    :id="`figure-filter-${filter.id}`"
                     type="date"
                     aria-label="From"
                     :model-value="rangeEnd(filter.id, 0)"
@@ -599,7 +624,7 @@ onMounted(() => void loadFigures());
                 </div>
                 <p
                   v-if="isReversedRange(filter)"
-                  class="text-sm text-red-600"
+                  class="text-sm text-destructive"
                   data-testid="figure-date-error"
                 >
                   The start date must not be after the end date.
@@ -611,7 +636,9 @@ onMounted(() => void loadFigures());
                 :data-testid="`figure-filter-${filter.id}`"
                 @update:model-value="filterValues[filter.id] = String($event)"
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger :id="`figure-filter-${filter.id}`"
+                  ><SelectValue
+                /></SelectTrigger>
                 <SelectContent>
                   <SelectItem :value="NONE">No filter</SelectItem>
                   <SelectItem
@@ -640,9 +667,9 @@ onMounted(() => void loadFigures());
             v-if="openFigureId && publishedVersions.length > 0"
             class="space-y-2"
           >
-            <Label>Published results version</Label>
+            <Label for="figure-version">Published results version</Label>
             <Select v-model="chosenVersion" data-testid="figure-version">
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="figure-version"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem :value="NONE">Draft, not tied</SelectItem>
                 <SelectItem
@@ -663,7 +690,7 @@ onMounted(() => void loadFigures());
             >
               Move Figure to this version
             </Button>
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-muted-foreground">
               A tied Figure keeps its numbers until you move it.
             </p>
           </div>
@@ -686,20 +713,24 @@ onMounted(() => void loadFigures());
             </Button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <ul class="space-y-2" data-testid="figure-list">
+      <ul
+        aria-label="Saved Figures"
+        class="flex flex-col gap-2"
+        data-testid="figure-list"
+      >
         <li
           v-for="figure in figures"
           :key="figure.id"
-          class="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-2"
+          class="flex items-center justify-between gap-2 rounded-card border bg-card p-3 text-card-foreground shadow-card"
           data-testid="figure-item"
         >
-          <span class="text-sm font-medium text-gray-900 truncate">
+          <span class="truncate text-sm font-medium text-foreground-strong">
             {{ figure.name }}
             <span
               v-if="figure.metric_version != null"
-              class="text-xs font-normal text-gray-500"
+              class="text-xs font-normal text-muted-foreground"
               data-testid="figure-tied"
             >
               (version {{ figure.metric_version }})
@@ -737,12 +768,13 @@ onMounted(() => void loadFigures());
       </ul>
     </div>
 
-    <div
-      class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4"
+    <section
+      class="col-span-2 flex flex-col gap-2 rounded-card border bg-card p-4 text-card-foreground shadow-card"
+      aria-label="Preview"
       data-testid="figure-preview"
     >
       <template v-if="preview && preview.labels.length > 0">
-        <h3 class="font-semibold text-gray-900 mb-2">
+        <h3 class="font-semibold text-foreground-strong">
           {{ metric?.label }}
         </h3>
         <ChartExport
@@ -750,14 +782,14 @@ onMounted(() => void loadFigures());
           :data="plotted"
           :caption="figureCaption"
         >
-          <FigureStepChart
+          <StepChart
             v-if="censoredAt"
             :labels="preview.labels"
             :series="stepSeries"
             :caption="`${metric?.label}: ${preview.y_title} by ${preview.x_title}`"
             :x-title="preview.x_title"
           />
-          <FigureBarChart
+          <ColumnChart
             v-else-if="form?.mark === 'bar'"
             :labels="preview.labels"
             :series="chartSeries"
@@ -779,11 +811,11 @@ onMounted(() => void loadFigures());
             :points-only="form?.mark === 'point'"
           />
         </ChartExport>
-        <p v-if="censoredAt" class="text-sm text-gray-600 mt-2">
+        <p v-if="censoredAt" class="text-sm text-muted-foreground">
           {{ preview.y_title }}, with 95% confidence bands. Open exposures are
           censored at HEAD ({{ censoredAt }}).
         </p>
-        <p v-if="hasErrorBars" class="text-sm text-gray-600 mt-2">
+        <p v-if="hasErrorBars" class="text-sm text-muted-foreground">
           Error bars show the 95% Wilson interval of each share, in the axis's
           units.
         </p>
@@ -793,7 +825,7 @@ onMounted(() => void loadFigures());
         :experiment-id="experimentId"
         data-testid="figure-preview-loading"
       />
-      <p v-else class="text-sm text-gray-600">No data to plot yet.</p>
-    </div>
+      <p v-else class="text-sm text-muted-foreground">No data to plot yet.</p>
+    </section>
   </div>
 </template>

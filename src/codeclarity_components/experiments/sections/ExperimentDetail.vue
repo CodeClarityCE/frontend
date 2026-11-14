@@ -1,12 +1,44 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import {
+  ArrowLeft,
+  CircleAlert,
+  Download,
+  LoaderCircle,
+  Lock,
+} from "@lucide/vue";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { PaginationComponent } from "@/base_components";
+import DataTablePagination from "@/base_components/data-table/DataTablePagination.vue";
+import {
+  BrandEmphasis,
+  FrozenBadge,
+  PageHeading,
+  StatusBadge,
+} from "@/base_components/page";
 import router from "@/router";
+import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
+import { Card, CardContent } from "@/shadcn/ui/card";
+import { Label } from "@/shadcn/ui/label";
 import { Progress } from "@/shadcn/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { Skeleton } from "@/shadcn/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shadcn/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
@@ -22,11 +54,10 @@ import {
   type ExperimentExportFile,
   type ExperimentResults as ExperimentResultsData,
   type ExperimentRun,
-  ExperimentRunStatusColors,
+  ExperimentRunStatus,
   ExperimentRunStatusLabels,
+  ExperimentRunStatusTones,
   ExperimentStatus,
-  ExperimentStatusColors,
-  ExperimentStatusLabels,
   finishedRunCount,
   formatExperimentDate,
   isExperimentActive,
@@ -37,6 +68,7 @@ import type {
   FigureDefinition,
 } from "../experiment-figure.entity";
 import { ExperimentsRepository } from "../experiments.repository";
+import ExperimentStatusBadge from "../ExperimentStatusBadge.vue";
 import { SELECTED_PUBLISHED_VERSION } from "../published-version";
 
 import ExperimentFigures from "./ExperimentFigures.vue";
@@ -46,6 +78,13 @@ import ExperimentResults from "./ExperimentResults.vue";
 /** How often the experiment is reloaded while it may still change */
 const POLL_INTERVAL_MS = 10_000;
 const RUNS_PER_PAGE = 100;
+/** Run states in the order the progress lists them */
+const RUN_STATES = [
+  ExperimentRunStatus.DONE,
+  ExperimentRunStatus.FAILED,
+  ExperimentRunStatus.SKIPPED,
+  ExperimentRunStatus.PENDING,
+] as const;
 /** Length of the abbreviated commit SHA shown in the coverage table */
 const SHORT_SHA_LENGTH = 7;
 
@@ -58,6 +97,7 @@ const experiment = ref<Experiment | null>(null);
 const runs = ref<ExperimentRun[]>([]);
 const runsPage = ref(0);
 const runsTotalPages = ref(0);
+const runsTotal = ref(0);
 const notFound = ref(false);
 /** Which destructive action waits for a second click, if any */
 const confirming = ref<"cancel" | "delete" | "publish" | null>(null);
@@ -237,8 +277,8 @@ async function loadResults(): Promise<void> {
   }
 }
 
-function pickVersion(event: Event): void {
-  pickedMetricVersion.value = Number((event.target as HTMLSelectElement).value);
+function pickVersion(value: unknown): void {
+  pickedMetricVersion.value = Number(value);
   void loadResults();
 }
 
@@ -309,6 +349,7 @@ async function loadRuns(): Promise<void> {
     });
     runs.value = response.data;
     runsTotalPages.value = response.total_pages;
+    runsTotal.value = response.total_entries;
   } catch {
     errorToast("Failed to load the experiment runs");
   }
@@ -419,73 +460,58 @@ onUnmounted(() => clearTimeout(pollTimer));
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="flex flex-col gap-8">
     <RouterLink
       :to="{ name: 'experiments' }"
-      class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"
+      class="inline-flex w-fit items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
-      <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+      <ArrowLeft aria-hidden="true" class="size-4" />
       Experiments
     </RouterLink>
 
-    <div v-if="notFound" class="text-center py-20">
-      <h3 class="text-lg font-semibold text-gray-900">Experiment not found</h3>
-    </div>
+    <PageHeading v-if="notFound">Experiment not found</PageHeading>
 
     <template v-else-if="experiment">
-      <div
-        class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
-      >
-        <div>
-          <div class="flex items-center gap-3">
-            <h1 class="text-4xl font-bold tracking-tight text-gray-900">
-              {{ experiment.name }}
-            </h1>
-            <span
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold"
-              :class="ExperimentStatusColors[experiment.status]"
-              data-testid="experiment-status"
-            >
-              <Icon
-                v-if="isActive"
-                icon="solar:loading-linear"
-                class="h-3 w-3 animate-spin"
-              />
-              {{ ExperimentStatusLabels[experiment.status] }}
-            </span>
-          </div>
-          <p class="text-gray-600 mt-2">
-            Analyzer
-            <strong>{{ experiment.analyzer_name ?? "(deleted)" }}</strong>
-            over dataset
-            <RouterLink
-              :to="{
-                name: 'datasets',
-                params: { page: 'detail' },
-                query: { id: experiment.dataset_id },
-              }"
-              class="font-medium underline"
-              >{{ experiment.dataset_name }}</RouterLink
-            >, {{ experiment.retries }} retries per failed run. Created
-            {{ formatExperimentDate(experiment.created_on) }}
-            <template v-if="experiment.created_by_name">
-              by {{ experiment.created_by_name }}</template
-            >.
-          </p>
-          <p class="text-sm text-gray-500 mt-1">
+      <PageHeading>
+        <BrandEmphasis>{{ experiment.name }}</BrandEmphasis>
+        <template #badge>
+          <ExperimentStatusBadge
+            :status="experiment.status"
+            data-testid="experiment-status"
+          />
+        </template>
+        <template #description>
+          Analyzer
+          <strong class="font-semibold text-foreground">{{
+            experiment.analyzer_name ?? "(deleted)"
+          }}</strong>
+          over Dataset
+          <RouterLink
+            :to="{
+              name: 'datasets',
+              params: { page: 'detail' },
+              query: { id: experiment.dataset_id },
+            }"
+            class="rounded-sm font-semibold text-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >{{ experiment.dataset_name }}</RouterLink
+          >, {{ experiment.retries }} retries per failed run. Created
+          {{ formatExperimentDate(experiment.created_on) }}
+          <template v-if="experiment.created_by_name">
+            by {{ experiment.created_by_name }}</template
+          >.
+          <span class="mt-1 block text-sm">
             Started {{ formatExperimentDate(experiment.started_on) }}, ended
             {{ formatExperimentDate(experiment.ended_on) }}
-          </p>
-          <p
+          </span>
+          <span
             v-if="experiment.analysis_budget != null"
-            class="text-sm text-gray-500"
+            class="block text-sm"
             data-testid="experiment-budget"
+            >Analysis budget:
+            {{ experiment.analysis_budget.toLocaleString() }} analyses.</span
           >
-            Analysis budget:
-            {{ experiment.analysis_budget.toLocaleString() }} analyses.
-          </p>
-        </div>
-        <div class="flex items-center gap-2">
+        </template>
+        <template #actions>
           <template v-if="confirming === null">
             <Button
               v-if="isActive"
@@ -493,13 +519,14 @@ onUnmounted(() => clearTimeout(pollTimer));
               data-testid="experiment-cancel"
               @click="confirming = 'cancel'"
             >
-              Cancel experiment
+              Cancel Experiment
             </Button>
             <Button
               v-if="canPublish"
               data-testid="experiment-publish"
               @click="confirming = 'publish'"
             >
+              <Lock aria-hidden="true" />
               Publish
             </Button>
             <Button
@@ -540,12 +567,12 @@ onUnmounted(() => clearTimeout(pollTimer));
             </Button>
             <Button variant="outline" @click="confirming = null"> Keep </Button>
           </template>
-        </div>
-      </div>
+        </template>
+      </PageHeading>
 
       <p
         v-if="confirming === 'cancel'"
-        class="text-sm text-gray-600"
+        class="text-sm text-foreground"
         data-testid="experiment-cancel-hint"
       >
         Analyses already submitted finish and are still counted; runs not
@@ -553,56 +580,79 @@ onUnmounted(() => clearTimeout(pollTimer));
       </p>
       <p
         v-if="confirming === 'publish'"
-        class="text-sm text-gray-600"
+        class="text-sm text-foreground"
         data-testid="experiment-publish-hint"
       >
         Publishing is one-way: these results are frozen under the current metric
         version so they can be cited. It cannot be undone, and a published
-        experiment cannot be deleted.
+        Experiment cannot be deleted.
       </p>
       <p
         v-if="confirming === 'delete'"
-        class="text-sm text-gray-600"
+        class="text-sm text-foreground"
         data-testid="experiment-delete-hint"
       >
-        Deletes the experiment and its results. Projects and analyses are kept.
+        Deletes the Experiment and its results. Projects and analyses are kept.
       </p>
 
-      <div
+      <Alert
         v-if="experiment.status === ExperimentStatus.FAILED"
-        class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-900"
+        variant="destructive"
         data-testid="experiment-error"
       >
-        The experiment failed: {{ experiment.error ?? "unknown error" }}
-      </div>
+        <CircleAlert aria-hidden="true" class="size-4" />
+        <AlertDescription>
+          The Experiment failed: {{ experiment.error ?? "unknown error" }}
+        </AlertDescription>
+      </Alert>
 
-      <div
-        class="bg-white rounded-xl border border-gray-200 p-4 space-y-2"
-        data-testid="experiment-progress"
-      >
-        <div class="flex justify-between text-sm text-gray-700">
-          <span>Finished runs</span>
-          <span>{{ finishedRuns }} / {{ experiment.run_count }}</span>
-        </div>
-        <Progress :model-value="progressPercent" />
-        <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-700">
-          <span
-            >Done: <strong>{{ experiment.run_counts.done }}</strong></span
+      <Card class="rounded-card shadow-card">
+        <CardContent class="pt-6">
+          <section
+            class="flex flex-col gap-3"
+            aria-labelledby="experiment-progress-heading"
+            data-testid="experiment-progress"
           >
-          <span
-            >Failed: <strong>{{ experiment.run_counts.failed }}</strong></span
-          >
-          <span
-            >Skipped: <strong>{{ experiment.run_counts.skipped }}</strong></span
-          >
-          <span
-            >Pending: <strong>{{ experiment.run_counts.pending }}</strong></span
-          >
-        </div>
-      </div>
+            <div class="flex items-baseline justify-between text-sm">
+              <h2
+                id="experiment-progress-heading"
+                class="font-semibold text-foreground-strong"
+              >
+                Progress
+              </h2>
+              <span class="tabular-nums text-foreground"
+                ><span id="experiment-progress-label">Finished runs</span>
+                {{ finishedRuns }} / {{ experiment.run_count }}</span
+              >
+            </div>
+            <Progress
+              :model-value="progressPercent"
+              aria-labelledby="experiment-progress-label"
+            />
+            <ul
+              aria-label="Runs by state"
+              class="flex flex-wrap gap-x-6 gap-y-2"
+            >
+              <li
+                v-for="state in RUN_STATES"
+                :key="state"
+                class="flex items-center gap-2 text-sm"
+              >
+                <StatusBadge
+                  :tone="ExperimentRunStatusTones[state]"
+                  :label="ExperimentRunStatusLabels[state]"
+                />
+                <span class="font-semibold tabular-nums text-foreground-strong">
+                  {{ experiment.run_counts[state] }}
+                </span>
+              </li>
+            </ul>
+          </section>
+        </CardContent>
+      </Card>
 
-      <Tabs v-model="activeTab" class="space-y-6">
-        <TabsList>
+      <Tabs v-model="activeTab" class="flex flex-col gap-6">
+        <TabsList class="w-fit">
           <TabsTrigger value="results" data-testid="experiment-tab-results">
             Results
           </TabsTrigger>
@@ -611,16 +661,26 @@ onUnmounted(() => clearTimeout(pollTimer));
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="results" class="space-y-8">
-          <section class="space-y-4" data-testid="experiment-results">
-            <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-            >
-              <div>
-                <h2 class="text-2xl font-semibold text-gray-900">Results</h2>
+        <TabsContent value="results" class="flex flex-col gap-8">
+          <section
+            class="flex flex-col gap-4"
+            aria-labelledby="experiment-results-heading"
+            data-testid="experiment-results"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                  <h2
+                    id="experiment-results-heading"
+                    class="text-xl font-bold tracking-tight text-foreground-strong"
+                  >
+                    Results
+                  </h2>
+                  <FrozenBadge v-if="selectedVersion" />
+                </div>
                 <p
                   v-if="selectedVersion"
-                  class="text-sm text-gray-600"
+                  class="max-w-3xl text-sm text-foreground"
                   data-testid="experiment-published-version"
                 >
                   Published results, metric version
@@ -628,37 +688,45 @@ onUnmounted(() => clearTimeout(pollTimer));
                   {{ formatExperimentDate(selectedVersion.published_on) }}
                   <template v-if="selectedVersion.published_by_name">
                     by {{ selectedVersion.published_by_name }}</template
-                  >.
+                  >. These numbers are frozen under metric version
+                  {{ selectedVersion.metric_version }} and will not change.
                 </p>
-                <label
-                  v-if="selectedVersion"
-                  class="mt-2 flex items-center gap-2 text-sm text-gray-600"
-                >
-                  Version
-                  <select
-                    class="border border-gray-300 rounded-md bg-white px-2 py-1 text-sm text-gray-900"
+                <div v-if="selectedVersion" class="flex items-center gap-2">
+                  <Label for="experiment-version" class="text-sm">
+                    Version
+                  </Label>
+                  <Select
+                    :model-value="String(selectedVersion.metric_version)"
                     data-testid="experiment-version-select"
-                    :value="selectedVersion.metric_version"
-                    @change="pickVersion"
+                    @update:model-value="pickVersion"
                   >
-                    <option
-                      v-for="version in publishedVersions"
-                      :key="version.metric_version"
-                      :value="version.metric_version"
-                    >
-                      Metric version {{ version.metric_version }}
-                    </option>
-                  </select>
-                </label>
+                    <SelectTrigger id="experiment-version" class="h-8 w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="version in publishedVersions"
+                        :key="version.metric_version"
+                        :value="String(version.metric_version)"
+                      >
+                        Metric version {{ version.metric_version }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <p
                   v-if="selectedVersion?.package_checksum"
-                  class="text-xs text-gray-500 break-all"
+                  class="break-all text-xs text-muted-foreground"
                   data-testid="experiment-package-checksum"
                 >
                   Package SHA-256: {{ selectedVersion.package_checksum }}
                 </p>
               </div>
-              <div class="flex flex-wrap gap-2">
+              <div
+                class="flex max-w-xl flex-wrap justify-end gap-2"
+                role="group"
+                aria-label="Downloads"
+              >
                 <Button
                   v-for="file in EXPERIMENT_EXPORT_FILES"
                   :key="file"
@@ -668,15 +736,12 @@ onUnmounted(() => clearTimeout(pollTimer));
                   :data-testid="`export-${file}`"
                   @click="downloadExport(file)"
                 >
-                  <Icon
-                    :icon="
-                      exporting === file
-                        ? 'solar:loading-linear'
-                        : 'solar:download-linear'
-                    "
-                    class="h-4 w-4 mr-1"
-                    :class="{ 'animate-spin': exporting === file }"
+                  <LoaderCircle
+                    v-if="exporting === file"
+                    aria-hidden="true"
+                    class="animate-spin motion-reduce:animate-none"
                   />
+                  <Download v-else aria-hidden="true" />
                   {{ file }}
                 </Button>
                 <Button
@@ -687,15 +752,12 @@ onUnmounted(() => clearTimeout(pollTimer));
                   data-testid="export-package"
                   @click="downloadPackage(selectedVersion.metric_version)"
                 >
-                  <Icon
-                    :icon="
-                      exporting === 'package'
-                        ? 'solar:loading-linear'
-                        : 'solar:download-linear'
-                    "
-                    class="h-4 w-4 mr-1"
-                    :class="{ 'animate-spin': exporting === 'package' }"
+                  <LoaderCircle
+                    v-if="exporting === 'package'"
+                    aria-hidden="true"
+                    class="animate-spin motion-reduce:animate-none"
                   />
+                  <Download v-else aria-hidden="true" />
                   Replication package
                 </Button>
               </div>
@@ -707,7 +769,7 @@ onUnmounted(() => clearTimeout(pollTimer));
             />
             <p
               v-else-if="experiment.run_counts.done === 0"
-              class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-sm text-gray-600"
+              class="rounded-card border border-dashed bg-muted p-6 text-sm text-muted-foreground"
               data-testid="experiment-results-empty"
             >
               Results appear once the first run is done.
@@ -719,97 +781,111 @@ onUnmounted(() => clearTimeout(pollTimer));
             />
           </section>
 
-          <div
+          <section
             v-if="runs.length > 0"
-            class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+            class="flex flex-col gap-4"
+            aria-labelledby="experiment-runs-heading"
           >
-            <div
-              class="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <h2
+              id="experiment-runs-heading"
+              class="text-xl font-bold tracking-tight text-foreground-strong"
             >
-              <div class="col-span-1">Rank</div>
-              <div class="col-span-3">Repository</div>
-              <div class="col-span-1">Snapshot</div>
-              <div class="col-span-2">State</div>
-              <div class="col-span-2">Error</div>
-              <div class="col-span-2">Commit</div>
-              <div class="col-span-1">Analysis</div>
+              Runs
+            </h2>
+            <div class="rounded-card border bg-card shadow-card">
+              <Table>
+                <TableCaption class="sr-only">Experiment runs</TableCaption>
+                <TableHeader>
+                  <TableRow class="hover:bg-transparent">
+                    <TableHead class="w-16 pl-4">Rank</TableHead>
+                    <TableHead>Repository</TableHead>
+                    <TableHead>Snapshot</TableHead>
+                    <TableHead>State</TableHead>
+                    <TableHead>Error</TableHead>
+                    <TableHead>Commit</TableHead>
+                    <TableHead class="pr-4">Analysis</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
+                    v-for="run in runs"
+                    :key="run.id"
+                    data-testid="experiment-run"
+                  >
+                    <TableCell class="pl-4 tabular-nums text-muted-foreground">
+                      #{{ run.entry.rank + 1 }}
+                    </TableCell>
+                    <TableCell>
+                      <a
+                        :href="run.entry.git_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="rounded-sm font-semibold text-foreground-strong underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        {{ run.entry.full_name }}
+                      </a>
+                    </TableCell>
+                    <TableCell
+                      class="whitespace-nowrap font-mono text-foreground"
+                      data-testid="experiment-run-snapshot"
+                    >
+                      {{ snapshotLabel(run.grid_date) }}
+                    </TableCell>
+                    <TableCell class="whitespace-nowrap">
+                      <StatusBadge
+                        :tone="ExperimentRunStatusTones[run.status]"
+                        :label="ExperimentRunStatusLabels[run.status]"
+                      />
+                      <span
+                        v-if="run.attempts > 1"
+                        class="ml-2 text-xs text-muted-foreground"
+                      >
+                        {{ run.attempts }} attempts
+                      </span>
+                    </TableCell>
+                    <TableCell class="break-words text-foreground">
+                      {{ run.error ?? "" }}
+                    </TableCell>
+                    <TableCell
+                      class="whitespace-nowrap font-mono text-foreground"
+                      :title="run.commit_hash ?? undefined"
+                    >
+                      {{ shortSha(run.commit_hash) }}
+                      <span
+                        v-if="run.branch"
+                        class="font-sans text-muted-foreground"
+                      >
+                        ({{ run.branch }})</span
+                      >
+                    </TableCell>
+                    <TableCell class="pr-4">
+                      <RouterLink
+                        v-if="run.analysis_id && run.project_id"
+                        :to="{
+                          name: 'results',
+                          query: {
+                            analysis_id: run.analysis_id,
+                            project_id: run.project_id,
+                          },
+                        }"
+                        class="rounded-sm font-semibold text-foreground-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        data-testid="run-analysis"
+                      >
+                        Open
+                      </RouterLink>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
-            <div
-              v-for="run in runs"
-              :key="run.id"
-              class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 text-sm"
-              data-testid="experiment-run"
-            >
-              <div class="lg:col-span-1 text-gray-500">
-                #{{ run.entry.rank + 1 }}
-              </div>
-              <div class="lg:col-span-3">
-                <a
-                  :href="run.entry.git_url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="font-medium text-gray-900 hover:underline"
-                >
-                  {{ run.entry.full_name }}
-                </a>
-              </div>
-              <div
-                class="lg:col-span-1 text-gray-700 whitespace-nowrap"
-                data-testid="experiment-run-snapshot"
-              >
-                {{ snapshotLabel(run.grid_date) }}
-              </div>
-              <div class="lg:col-span-2">
-                <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
-                  :class="ExperimentRunStatusColors[run.status]"
-                >
-                  {{ ExperimentRunStatusLabels[run.status] }}
-                </span>
-                <span
-                  v-if="run.attempts > 1"
-                  class="text-xs text-gray-500 ml-1"
-                >
-                  {{ run.attempts }} attempts
-                </span>
-              </div>
-              <div class="lg:col-span-2 text-gray-700 break-words">
-                {{ run.error ?? "" }}
-              </div>
-              <div
-                class="lg:col-span-2 font-mono text-gray-700"
-                :title="run.commit_hash ?? undefined"
-              >
-                {{ shortSha(run.commit_hash) }}
-                <span v-if="run.branch" class="font-sans text-gray-500">
-                  ({{ run.branch }})</span
-                >
-              </div>
-              <div class="lg:col-span-1">
-                <RouterLink
-                  v-if="run.analysis_id && run.project_id"
-                  :to="{
-                    name: 'results',
-                    query: {
-                      analysis_id: run.analysis_id,
-                      project_id: run.project_id,
-                    },
-                  }"
-                  class="text-gray-900 underline"
-                  data-testid="run-analysis"
-                >
-                  Open
-                </RouterLink>
-              </div>
-            </div>
-          </div>
-
-          <PaginationComponent
-            v-if="runsTotalPages > 1"
-            :current-page="runsPage"
-            :total-pages="runsTotalPages"
-            @page-change="goToRunsPage"
-          />
+            <DataTablePagination
+              v-if="runsTotalPages > 1"
+              :page-index="runsPage"
+              :page-size="RUNS_PER_PAGE"
+              :total="runsTotal"
+              @update:page-index="goToRunsPage"
+            />
+          </section>
         </TabsContent>
 
         <TabsContent value="figures">
@@ -823,5 +899,19 @@ onUnmounted(() => clearTimeout(pollTimer));
         </TabsContent>
       </Tabs>
     </template>
+
+    <div
+      v-else
+      role="status"
+      aria-label="Loading the Experiment"
+      class="flex flex-col gap-8"
+    >
+      <div class="flex flex-col gap-3">
+        <Skeleton class="h-9 w-72" />
+        <Skeleton class="h-5 w-[32rem]" />
+      </div>
+      <Skeleton class="h-28 rounded-card" />
+      <Skeleton class="h-80 rounded-card" />
+    </div>
   </div>
 </template>

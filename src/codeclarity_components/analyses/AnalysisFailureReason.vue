@@ -15,7 +15,7 @@ const failed = computed(
 <template>
   <p
     v-if="failed"
-    class="text-xs text-red-700 break-words"
+    class="break-words text-xs text-danger"
     data-testid="analysis-failure-reason"
   >
     {{

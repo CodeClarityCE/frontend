@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { ArrowLeft, LoaderCircle } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
+import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
 import {
   type Dataset,
   DatasetStatus,
@@ -12,6 +14,7 @@ import type { Analyzer } from "@/codeclarity_components/organizations/analyzers/
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
+import { Card, CardContent } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -174,6 +177,13 @@ function errorFor(field: keyof FormErrors): string | undefined {
   return submitted.value ? errors.value[field] : undefined;
 }
 
+/** Links a field to its hint and its error, so screen readers announce both. */
+function describedBy(field: keyof FormErrors, hint?: string): string {
+  return [hint, errorFor(field) ? `experiment-${field}-error` : undefined]
+    .filter(Boolean)
+    .join(" ");
+}
+
 /** Every page: a READY dataset (or the preselected one) may be past the first. */
 async function loadDatasets(orgId: string, token: string): Promise<void> {
   try {
@@ -302,223 +312,293 @@ onMounted(() => void load());
 </script>
 
 <template>
-  <div class="space-y-8 max-w-3xl">
-    <div>
+  <div class="flex max-w-3xl flex-col gap-8">
+    <div class="flex flex-col gap-3">
       <RouterLink
         :to="{ name: 'experiments' }"
-        class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"
+        class="inline-flex w-fit items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
+        <ArrowLeft aria-hidden="true" class="size-4" />
         Experiments
       </RouterLink>
-      <h1 class="text-4xl font-bold tracking-tight text-gray-900 mt-2">
-        New experiment
-      </h1>
-      <p class="text-gray-600 mt-2 text-lg">
-        Run one analyzer over every repository of a dataset at each date of a
-        snapshot grid and at HEAD, each pinned to a default branch commit.
-      </p>
+      <PageHeading
+        description="Run one analyzer over every repository of a Dataset at each date of a snapshot grid and at HEAD, each pinned to a default branch commit."
+      >
+        New <BrandEmphasis>Experiment</BrandEmphasis>
+      </PageHeading>
     </div>
 
-    <form
-      class="bg-white rounded-xl border border-gray-200 p-6 space-y-6"
-      novalidate
-      @submit.prevent="submit"
-    >
-      <div class="space-y-2">
-        <Label for="experiment-name">Name</Label>
-        <Input
-          id="experiment-name"
-          v-model="name"
-          placeholder="top100-head-2026-11"
-          data-testid="experiment-name"
-        />
-        <p v-if="errorFor('name')" class="text-sm text-red-600">
-          {{ errorFor("name") }}
-        </p>
-      </div>
-
-      <div class="space-y-2">
-        <Label>Dataset</Label>
-        <p
-          v-if="!loading && datasets.length === 0"
-          class="text-sm text-gray-600"
-        >
-          No ready dataset.
-          <RouterLink
-            :to="{ name: 'datasets', params: { page: 'add' } }"
-            class="underline"
-          >
-            Build one
-          </RouterLink>
-          first.
-        </p>
-        <Select v-else v-model="datasetId" data-testid="experiment-dataset">
-          <SelectTrigger>
-            <SelectValue placeholder="Select a dataset" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="dataset in datasets"
-              :key="dataset.id"
-              :value="dataset.id"
+    <Card class="rounded-card shadow-card">
+      <CardContent class="pt-6">
+        <form class="flex flex-col gap-6" novalidate @submit.prevent="submit">
+          <div class="flex flex-col gap-2">
+            <Label for="experiment-name">Name</Label>
+            <Input
+              id="experiment-name"
+              v-model="name"
+              placeholder="top100-head-2026-11"
+              data-testid="experiment-name"
+              :aria-invalid="errorFor('name') ? true : undefined"
+              :aria-describedby="describedBy('name') || undefined"
+            />
+            <p
+              v-if="errorFor('name')"
+              id="experiment-name-error"
+              class="text-sm text-destructive"
             >
-              {{ dataset.name }} ({{ dataset.entry_count }} repositories)
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <p v-if="errorFor('dataset')" class="text-sm text-red-600">
-          {{ errorFor("dataset") }}
-        </p>
-      </div>
+              {{ errorFor("name") }}
+            </p>
+          </div>
 
-      <div class="space-y-2">
-        <Label>Analyzer</Label>
-        <p
-          v-if="!loading && analyzers.length === 0"
-          class="text-sm text-gray-600"
-        >
-          No analyzer runs both js-sbom and vuln-finder.
-        </p>
-        <Select v-else v-model="analyzerId" data-testid="experiment-analyzer">
-          <SelectTrigger>
-            <SelectValue placeholder="Select an analyzer" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="analyzer in analyzers"
-              :key="analyzer.id"
-              :value="analyzer.id"
+          <div class="flex flex-col gap-2">
+            <Label for="experiment-dataset">Dataset</Label>
+            <p
+              v-if="!loading && datasets.length === 0"
+              class="text-sm text-muted-foreground"
             >
-              {{ analyzer.name }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <p class="text-sm text-gray-500">
-          Only analyzers that run js-sbom and vuln-finder are listed.
-        </p>
-        <p v-if="errorFor('analyzer')" class="text-sm text-red-600">
-          {{ errorFor("analyzer") }}
-        </p>
-      </div>
-
-      <div class="space-y-2 max-w-xs">
-        <Label for="experiment-retries">Retries per failed run</Label>
-        <Input
-          id="experiment-retries"
-          v-model="retries"
-          type="number"
-          min="0"
-          :max="MAX_RETRIES"
-          data-testid="experiment-retries"
-        />
-        <p class="text-xs text-gray-500">
-          A failed analysis is retried on the same commit.
-        </p>
-        <p v-if="errorFor('retries')" class="text-sm text-red-600">
-          {{ errorFor("retries") }}
-        </p>
-      </div>
-
-      <div class="space-y-2">
-        <Label>Snapshot grid</Label>
-        <div class="flex flex-wrap gap-4">
-          <div class="space-y-1 w-40">
-            <Select
-              v-model="gridInterval"
-              data-testid="experiment-grid-interval"
-            >
-              <SelectTrigger>
-                <SelectValue />
+              No ready Dataset.
+              <TextLink :to="{ name: 'datasets', params: { page: 'add' } }">
+                Build one
+              </TextLink>
+              first.
+            </p>
+            <Select v-else v-model="datasetId" data-testid="experiment-dataset">
+              <SelectTrigger
+                id="experiment-dataset"
+                :aria-invalid="errorFor('dataset') ? true : undefined"
+                :aria-describedby="describedBy('dataset') || undefined"
+              >
+                <SelectValue placeholder="Select a Dataset" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem
-                  v-for="interval in Object.values(GridInterval)"
-                  :key="interval"
-                  :value="interval"
+                  v-for="dataset in datasets"
+                  :key="dataset.id"
+                  :value="dataset.id"
                 >
-                  {{ GridIntervalLabels[interval] }}
+                  {{ dataset.name }} ({{ dataset.entry_count }} repositories)
                 </SelectItem>
               </SelectContent>
             </Select>
+            <p
+              v-if="errorFor('dataset')"
+              id="experiment-dataset-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("dataset") }}
+            </p>
           </div>
-          <div class="space-y-1 w-40">
+
+          <div class="flex flex-col gap-2">
+            <Label for="experiment-analyzer">Analyzer</Label>
+            <p
+              v-if="!loading && analyzers.length === 0"
+              class="text-sm text-muted-foreground"
+            >
+              No analyzer runs both js-sbom and vuln-finder.
+            </p>
+            <Select
+              v-else
+              v-model="analyzerId"
+              data-testid="experiment-analyzer"
+            >
+              <SelectTrigger
+                id="experiment-analyzer"
+                :aria-invalid="errorFor('analyzer') ? true : undefined"
+                :aria-describedby="
+                  describedBy('analyzer', 'experiment-analyzer-hint')
+                "
+              >
+                <SelectValue placeholder="Select an analyzer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="analyzer in analyzers"
+                  :key="analyzer.id"
+                  :value="analyzer.id"
+                >
+                  {{ analyzer.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p
+              id="experiment-analyzer-hint"
+              class="text-sm text-muted-foreground"
+            >
+              Only analyzers that run js-sbom and vuln-finder are listed.
+            </p>
+            <p
+              v-if="errorFor('analyzer')"
+              id="experiment-analyzer-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("analyzer") }}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <Label for="experiment-retries">Retries per failed run</Label>
             <Input
-              id="experiment-grid-count"
-              v-model="gridCount"
+              id="experiment-retries"
+              v-model="retries"
+              class="max-w-xs"
               type="number"
               min="0"
-              :max="MAX_GRID_COUNT"
-              aria-label="Grid dates before HEAD"
-              data-testid="experiment-grid-count"
+              :max="MAX_RETRIES"
+              data-testid="experiment-retries"
+              :aria-invalid="errorFor('retries') ? true : undefined"
+              :aria-describedby="
+                describedBy('retries', 'experiment-retries-hint')
+              "
             />
+            <p
+              id="experiment-retries-hint"
+              class="text-sm text-muted-foreground"
+            >
+              A failed analysis is retried on the same commit.
+            </p>
+            <p
+              v-if="errorFor('retries')"
+              id="experiment-retries-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("retries") }}
+            </p>
           </div>
-        </div>
-        <p class="text-xs text-gray-500">
-          Grid dates before HEAD, stepped back from today. 0 analyses HEAD only.
-          The grid is frozen once the experiment is created.
-        </p>
-        <p v-if="errorFor('gridCount')" class="text-sm text-red-600">
-          {{ errorFor("gridCount") }}
-        </p>
-      </div>
 
-      <div class="space-y-2 max-w-xs">
-        <Label for="experiment-budget">Analysis budget (optional)</Label>
-        <Input
-          id="experiment-budget"
-          v-model="budget"
-          type="number"
-          min="1"
-          :max="MAX_ANALYSIS_BUDGET"
-          placeholder="No budget"
-          data-testid="experiment-budget"
-        />
-        <p class="text-xs text-gray-500">
-          Caps the analyses the experiment submits, snapshots and fix probes
-          alike. Once spent, no further fix probe runs; snapshots are never cut.
-          Fixes are probed before introductions. Frozen at creation.
-        </p>
-        <p
-          v-if="budgetNote"
-          class="text-xs text-gray-700"
-          data-testid="experiment-budget-note"
-        >
-          {{ budgetNote }}
-        </p>
-        <p v-if="errorFor('budget')" class="text-sm text-red-600">
-          {{ errorFor("budget") }}
-        </p>
-      </div>
+          <fieldset
+            class="flex flex-col gap-2"
+            aria-describedby="experiment-grid-hint"
+          >
+            <legend class="mb-2 text-sm font-medium leading-none">
+              Snapshot grid
+            </legend>
+            <div class="flex flex-wrap gap-4">
+              <div class="flex w-40 flex-col gap-2">
+                <Label for="experiment-grid-interval" class="font-normal">
+                  Grid interval
+                </Label>
+                <Select
+                  v-model="gridInterval"
+                  data-testid="experiment-grid-interval"
+                >
+                  <SelectTrigger id="experiment-grid-interval">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="interval in Object.values(GridInterval)"
+                      :key="interval"
+                      :value="interval"
+                    >
+                      {{ GridIntervalLabels[interval] }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div class="flex w-48 flex-col gap-2">
+                <Label for="experiment-grid-count" class="font-normal">
+                  Grid dates before HEAD
+                </Label>
+                <Input
+                  id="experiment-grid-count"
+                  v-model="gridCount"
+                  type="number"
+                  min="0"
+                  :max="MAX_GRID_COUNT"
+                  data-testid="experiment-grid-count"
+                  :aria-invalid="errorFor('gridCount') ? true : undefined"
+                  :aria-describedby="describedBy('gridCount') || undefined"
+                />
+              </div>
+            </div>
+            <p id="experiment-grid-hint" class="text-sm text-muted-foreground">
+              Grid dates are stepped back from today. 0 analyses HEAD only. The
+              grid is frozen once the Experiment is created.
+            </p>
+            <p
+              v-if="errorFor('gridCount')"
+              id="experiment-gridCount-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("gridCount") }}
+            </p>
+          </fieldset>
 
-      <p
-        v-if="estimate !== null"
-        class="text-sm text-gray-700"
-        data-testid="experiment-estimate"
-      >
-        Estimated {{ estimate.probes === null ? "at least " : ""
-        }}{{ estimate.total.toLocaleString() }} analyses:
-        {{ estimate.snapshots.toLocaleString() }} snapshots ({{
-          estimate.gridDates
-        }}
-        grid {{ estimate.gridDates === 1 ? "date" : "dates" }} including HEAD)
-        and {{ probesText(estimate.probes) }}.
-      </p>
+          <div class="flex flex-col gap-2">
+            <Label for="experiment-budget">Analysis budget (optional)</Label>
+            <Input
+              id="experiment-budget"
+              v-model="budget"
+              class="max-w-xs"
+              type="number"
+              min="1"
+              :max="MAX_ANALYSIS_BUDGET"
+              placeholder="No budget"
+              data-testid="experiment-budget"
+              :aria-invalid="errorFor('budget') ? true : undefined"
+              :aria-describedby="
+                describedBy('budget', 'experiment-budget-hint')
+              "
+            />
+            <p
+              id="experiment-budget-hint"
+              class="text-sm text-muted-foreground"
+            >
+              Caps the analyses the Experiment submits, snapshots and fix probes
+              alike. Once spent, no further fix probe runs; snapshots are never
+              cut. Fixes are probed before introductions. Frozen at creation.
+            </p>
+            <p
+              v-if="budgetNote"
+              class="text-sm text-foreground"
+              aria-live="polite"
+              data-testid="experiment-budget-note"
+            >
+              {{ budgetNote }}
+            </p>
+            <p
+              v-if="errorFor('budget')"
+              id="experiment-budget-error"
+              class="text-sm text-destructive"
+            >
+              {{ errorFor("budget") }}
+            </p>
+          </div>
 
-      <div class="flex justify-end">
-        <Button
-          type="submit"
-          :disabled="submitting"
-          data-testid="experiment-submit"
-        >
-          <Icon
-            v-if="submitting"
-            icon="solar:loading-linear"
-            class="h-4 w-4 mr-2 animate-spin"
-          />
-          Start experiment
-        </Button>
-      </div>
-    </form>
+          <div aria-live="polite">
+            <p
+              v-if="estimate !== null"
+              class="rounded-control bg-muted px-4 py-3 text-sm text-foreground"
+              data-testid="experiment-estimate"
+            >
+              Estimated {{ estimate.probes === null ? "at least " : ""
+              }}{{ estimate.total.toLocaleString() }} analyses:
+              {{ estimate.snapshots.toLocaleString() }} snapshots ({{
+                estimate.gridDates
+              }}
+              grid {{ estimate.gridDates === 1 ? "date" : "dates" }} including
+              HEAD) and {{ probesText(estimate.probes) }}.
+            </p>
+          </div>
+
+          <div class="flex justify-end">
+            <Button
+              type="submit"
+              :disabled="submitting"
+              data-testid="experiment-submit"
+              arrow
+            >
+              <LoaderCircle
+                v-if="submitting"
+                aria-hidden="true"
+                class="animate-spin motion-reduce:animate-none"
+              />
+              Start Experiment
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   </div>
 </template>

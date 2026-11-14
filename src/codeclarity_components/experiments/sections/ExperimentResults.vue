@@ -1,20 +1,33 @@
 <script setup lang="ts">
+import { TriangleAlert } from "@lucide/vue";
 import { computed, provide } from "vue";
 
-import StatCard from "@/base_components/ui/cards/StatCard.vue";
-
 import {
-  gridCoverageOf,
+  PAGE_EXCLUSIONS,
   RESULT_MARKS,
-  SNAPSHOT_COVERAGE,
-} from "../charts/chart-caption";
+} from "@/base_components/charts/chart-caption";
 import {
   formatBracketInterval,
   formatInterval,
   formatPValue,
   formatShare,
   formatShareWithInterval,
-} from "../charts/chart-format";
+} from "@/base_components/charts/chart-format";
+import { StatTile, StatusBadge } from "@/base_components/page";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shadcn/ui/table";
+
+import {
+  gridCoverageOf,
+  snapshotExclusions,
+} from "../charts/experiment-caption";
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import {
   type BootstrapInterval,
@@ -30,6 +43,11 @@ import ExperimentProbes from "./ExperimentProbes.vue";
 import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
 import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
+
+/** Classes of a result block and its heading */
+const CARD =
+  "flex flex-col gap-3 rounded-card border bg-card p-4 text-card-foreground shadow-card";
+const HEADING = "font-semibold text-foreground-strong";
 
 const props = defineProps<{
   results: ExperimentResults;
@@ -97,7 +115,10 @@ const knowledgeSources = computed(() => {
 const gridCoverage = computed(() =>
   gridCoverageOf(props.results.grid_coverage ?? []),
 );
-provide(SNAPSHOT_COVERAGE, gridCoverage);
+provide(
+  PAGE_EXCLUSIONS,
+  computed(() => snapshotExclusions(gridCoverage.value)),
+);
 provide(
   RESULT_MARKS,
   computed(() =>
@@ -190,108 +211,121 @@ const analyzerSteps = computed(() =>
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div
+  <div class="flex flex-col gap-6">
+    <Alert
       v-if="provenance.knowledge_changed"
-      class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 text-sm text-yellow-900"
+      class="border-warning bg-warning-subtle text-warning"
       data-testid="experiment-knowledge-changed"
     >
-      <strong>Knowledge changed during the experiment.</strong> The
-      vulnerability sources were updated between its start and end, so runs
-      analysed early and late were matched against different data.
-    </div>
+      <TriangleAlert aria-hidden="true" class="size-4 !text-warning" />
+      <AlertTitle>Knowledge changed during the Experiment.</AlertTitle>
+      <AlertDescription>
+        The vulnerability sources were updated between its start and end, so
+        runs analysed early and late were matched against different data.
+      </AlertDescription>
+    </Alert>
 
-    <div
+    <section
       v-if="gridCoverage.length > 0"
-      class="bg-white rounded-xl border border-gray-200 p-4 overflow-x-auto"
+      :class="CARD"
+      aria-labelledby="results-grid-coverage-heading"
     >
-      <h3 class="font-semibold text-gray-900 mb-2">Coverage per grid date</h3>
-      <p class="text-sm text-gray-500 mb-2">
+      <h3 id="results-grid-coverage-heading" :class="HEADING">
+        Coverage per grid date
+      </h3>
+      <p class="text-sm text-muted-foreground">
         Empty runs are done but had no lockfile yet at that date.
       </p>
       <p
         v-if="anyMixedKnowledge"
-        class="text-sm text-yellow-800 mb-2"
+        class="text-sm text-warning"
         data-testid="grid-mixed-knowledge-note"
       >
         Dates marked mixed knowledge had runs matched against different
         vulnerability data: the knowledge was updated while they ran.
       </p>
-      <table class="w-full text-sm" data-testid="experiment-grid-coverage">
-        <thead class="text-left text-gray-500">
-          <tr>
-            <th class="font-medium">Grid date</th>
-            <th class="font-medium text-right">Done</th>
-            <th class="font-medium text-right">Empty</th>
-            <th class="font-medium text-right">Failed</th>
-            <th class="font-medium text-right">Skipped</th>
-            <th class="font-medium text-right">Pending</th>
-          </tr>
-        </thead>
-        <tbody class="text-gray-700">
-          <tr
+      <Table data-testid="experiment-grid-coverage">
+        <TableHeader>
+          <TableRow class="hover:bg-transparent">
+            <TableHead>Grid date</TableHead>
+            <TableHead class="text-right">Done</TableHead>
+            <TableHead class="text-right">Empty</TableHead>
+            <TableHead class="text-right">Failed</TableHead>
+            <TableHead class="text-right">Skipped</TableHead>
+            <TableHead class="text-right">Pending</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody class="tabular-nums">
+          <TableRow
             v-for="row in gridCoverage"
             :key="row.grid_date ?? 'HEAD'"
             data-testid="grid-coverage-row"
           >
-            <td class="font-mono">
+            <TableCell class="font-mono">
               {{ row.grid_date ?? "HEAD" }}
-              <span
+              <StatusBadge
                 v-if="row.mixed_knowledge"
-                class="ml-2 font-sans text-xs rounded bg-yellow-100 text-yellow-900 px-1.5 py-0.5"
+                class="ml-2 font-sans"
+                tone="warning"
+                label="mixed knowledge"
                 data-testid="grid-mixed-knowledge"
-                >mixed knowledge</span
-              >
-            </td>
-            <td class="text-right">{{ count(row.done) }}</td>
-            <td class="text-right">{{ count(row.empty) }}</td>
-            <td class="text-right">{{ count(row.failed) }}</td>
-            <td class="text-right">{{ count(row.skipped) }}</td>
-            <td class="text-right">{{ count(row.pending) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              />
+            </TableCell>
+            <TableCell class="text-right">{{ count(row.done) }}</TableCell>
+            <TableCell class="text-right">{{ count(row.empty) }}</TableCell>
+            <TableCell class="text-right">{{ count(row.failed) }}</TableCell>
+            <TableCell class="text-right">{{ count(row.skipped) }}</TableCell>
+            <TableCell class="text-right">{{ count(row.pending) }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </section>
 
-    <section class="space-y-4" data-testid="experiment-head-results">
+    <section
+      class="flex flex-col gap-4"
+      aria-labelledby="results-head-heading"
+      data-testid="experiment-head-results"
+    >
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">At HEAD</h3>
-        <p class="text-sm text-gray-500">
+        <h3
+          id="results-head-heading"
+          class="text-lg font-semibold text-foreground-strong"
+        >
+          At HEAD
+        </h3>
+        <p class="text-sm text-muted-foreground">
           The blocks below are computed on the HEAD snapshot of every entry.
         </p>
       </div>
 
-      <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      <ul
+        aria-label="Numbers at HEAD"
+        class="grid grid-cols-2 gap-4 xl:grid-cols-4"
         data-testid="experiment-headline"
       >
-        <StatCard
+        <StatTile
           label="Affected projects"
           :value="`${headline.n_affected} / ${headline.n_projects}`"
-          icon="solar:shield-warning-linear"
-          :subtitle="
+          :hint="
             formatShareWithInterval(
               headline.affected_share,
               headlineIntervals?.affected_share,
             )
           "
         />
-        <StatCard
+        <StatTile
           label="Vulnerability instances"
           :value="count(headline.instances)"
-          icon="solar:bug-linear"
         />
-        <StatCard
+        <StatTile
           label="Vulnerable packages"
           :value="count(headline.distinct_vuln_packages)"
-          icon="solar:box-linear"
-          subtitle="distinct"
+          hint="distinct"
         />
-        <StatCard
+        <StatTile
           label="Load per project"
           :value="`${count(headline.load_median)} / ${decimal(headline.load_mean, 1)} / ${count(headline.load_max)}`"
-          icon="solar:chart-square-linear"
-          :subtitle="
+          :hint="
             withInterval(
               'median / mean / max instances',
               bootstrap?.headline.load_median
@@ -300,128 +334,134 @@ const analyzerSteps = computed(() =>
             )
           "
         />
-        <StatCard
+        <StatTile
           label="Gini by package"
           :value="decimal(headline.gini_pkg)"
-          icon="solar:pie-chart-2-linear"
-          :subtitle="
+          :hint="
             withInterval(
               `top 10 packages: ${formatShareWithInterval(headline.top10_pkg_share, headlineIntervals?.top10_pkg_share)}`,
               cardInterval(bootstrap?.headline.gini_pkg, fixedThree),
             )
           "
         />
-        <StatCard
+        <StatTile
           label="Gini by project"
           :value="decimal(headline.gini_proj)"
-          icon="solar:pie-chart-2-linear"
-          :subtitle="
+          :hint="
             withInterval(
               `top 10 projects: ${formatShareWithInterval(headline.top10_proj_share, headlineIntervals?.top10_proj_share)}`,
               cardInterval(bootstrap?.headline.gini_proj, fixedThree),
             )
           "
         />
-        <StatCard
+        <StatTile
           label="Packages to clear"
           :value="`${headline.pkgs_clear_50} / ${headline.pkgs_clear_80} / ${headline.pkgs_clear_90}`"
-          icon="solar:broom-linear"
-          subtitle="50% / 80% / 90% of instances"
+          hint="50% / 80% / 90% of instances"
         />
-        <StatCard
+        <StatTile
           label="High + critical"
           :value="formatShare(headline.high_critical_share)"
-          icon="solar:danger-triangle-linear"
-          :subtitle="highCriticalSubtitle"
+          :hint="highCriticalSubtitle"
         />
-      </div>
+      </ul>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div
-          class="bg-white rounded-xl border border-gray-200 p-4"
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <section
+          :class="CARD"
+          aria-labelledby="results-coverage-heading"
           data-testid="experiment-coverage"
         >
-          <h3 class="font-semibold text-gray-900 mb-2">Coverage</h3>
-          <p class="text-sm text-gray-700">
+          <h4 id="results-coverage-heading" :class="HEADING">Coverage</h4>
+          <p class="text-sm text-foreground">
             {{ coverage.attempted }} of {{ coverage.runs }} runs attempted:
             {{ coverage.done }} done, {{ coverage.failed }} failed,
             {{ coverage.skipped }} skipped, {{ coverage.pending }} pending.
           </p>
           <template v-if="failureReasons.length > 0">
-            <p class="text-sm text-gray-500 mt-3">Failure reasons</p>
-            <ul class="text-sm text-gray-700">
+            <p class="text-sm text-muted-foreground">Failure reasons</p>
+            <ul class="text-sm text-foreground">
               <li v-for="reason in failureReasons" :key="reason.key">
                 {{ reason.key }}: <strong>{{ reason.count }}</strong>
               </li>
             </ul>
           </template>
           <template v-if="skipReasons.length > 0">
-            <p class="text-sm text-gray-500 mt-3">Skip reasons</p>
-            <ul class="text-sm text-gray-700">
+            <p class="text-sm text-muted-foreground">Skip reasons</p>
+            <ul class="text-sm text-foreground">
               <li v-for="reason in skipReasons" :key="reason.key">
                 {{ reason.key }}: <strong>{{ reason.count }}</strong>
               </li>
             </ul>
           </template>
-        </div>
+        </section>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 class="font-semibold text-gray-900 mb-2">Severity mix</h3>
-          <OpenAsFigure
-            :definition="{
-              metric: 'severity_mix',
-              chart_form: 'bar',
-              group_by: null,
-              filters: {},
-            }"
-          />
-          <table class="w-full text-sm" data-testid="experiment-severity">
-            <thead class="text-left text-gray-500">
-              <tr>
-                <th class="font-medium">Severity</th>
-                <th class="font-medium text-right">Instances</th>
-                <th class="font-medium text-right">Share</th>
-                <th class="font-medium text-right">95% CI</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-700">
-              <tr v-for="row in severityRows" :key="row.severity">
-                <td>{{ row.severity }}</td>
-                <td class="text-right">{{ count(row.count) }}</td>
-                <td class="text-right">{{ formatShare(row.share) }}</td>
-                <td class="text-right">{{ formatInterval(row.interval) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <section :class="CARD" aria-labelledby="results-severity-heading">
+          <div class="flex items-center justify-between gap-2">
+            <h4 id="results-severity-heading" :class="HEADING">Severity mix</h4>
+            <OpenAsFigure
+              :definition="{
+                metric: 'severity_mix',
+                chart_form: 'bar',
+                group_by: null,
+                filters: {},
+              }"
+            />
+          </div>
+          <Table data-testid="experiment-severity">
+            <TableHeader>
+              <TableRow class="hover:bg-transparent">
+                <TableHead>Severity</TableHead>
+                <TableHead class="text-right">Instances</TableHead>
+                <TableHead class="text-right">Share</TableHead>
+                <TableHead class="text-right">95% CI</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody class="tabular-nums">
+              <TableRow v-for="row in severityRows" :key="row.severity">
+                <TableCell>{{ row.severity }}</TableCell>
+                <TableCell class="text-right">{{ count(row.count) }}</TableCell>
+                <TableCell class="text-right">{{
+                  formatShare(row.share)
+                }}</TableCell>
+                <TableCell class="text-right">{{
+                  formatInterval(row.interval)
+                }}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </section>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 class="font-semibold text-gray-900 mb-2">
+        <section :class="CARD" aria-labelledby="results-packages-heading">
+          <h4 id="results-packages-heading" :class="HEADING">
             Most widespread packages
-          </h3>
-          <table class="w-full text-sm" data-testid="experiment-top-packages">
-            <thead class="text-left text-gray-500">
-              <tr>
-                <th class="font-medium">Package</th>
-                <th class="font-medium text-right">Projects affected</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-700">
-              <tr v-for="[name, projects] in headline.top_packages" :key="name">
-                <td class="font-mono">{{ name }}</td>
-                <td class="text-right">{{ projects }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          </h4>
+          <Table data-testid="experiment-top-packages">
+            <TableHeader>
+              <TableRow class="hover:bg-transparent">
+                <TableHead>Package</TableHead>
+                <TableHead class="text-right">Projects affected</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody class="tabular-nums">
+              <TableRow
+                v-for="[name, projects] in headline.top_packages"
+                :key="name"
+              >
+                <TableCell class="font-mono">{{ name }}</TableCell>
+                <TableCell class="text-right">{{ projects }}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </section>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 class="font-semibold text-gray-900 mb-2">EPSS</h3>
+        <section :class="CARD" aria-labelledby="results-epss-heading">
+          <h4 id="results-epss-heading" :class="HEADING">EPSS</h4>
           <dl
-            class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700"
+            class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-foreground"
             data-testid="experiment-epss"
           >
-            <dt class="text-gray-500">Instances with a score</dt>
+            <dt class="text-muted-foreground">Instances with a score</dt>
             <dd class="text-right">
               {{
                 formatShareWithInterval(
@@ -430,100 +470,123 @@ const analyzerSteps = computed(() =>
                 )
               }}
             </dd>
-            <dt class="text-gray-500">Median / p90</dt>
+            <dt class="text-muted-foreground">Median / p90</dt>
             <dd class="text-right">
               {{ decimal(results.epss.median, 4) }}
-              <span v-if="bootstrap?.epss_median" class="text-gray-500">
+              <span v-if="bootstrap?.epss_median" class="text-muted-foreground">
                 {{ formatBracketInterval(bootstrap.epss_median, fixedFour) }}
               </span>
               / {{ decimal(results.epss.p90, 4) }}
             </dd>
-            <dt class="text-gray-500">Above 10% / 50%</dt>
+            <dt class="text-muted-foreground">Above 10% / 50%</dt>
             <dd class="text-right">
               {{ count(results.epss.over_10pct) }} /
               {{ count(results.epss.over_50pct) }}
             </dd>
-            <dt class="text-gray-500">Missing, CVE / not CVE</dt>
+            <dt class="text-muted-foreground">Missing, CVE / not CVE</dt>
             <dd class="text-right">
               {{ count(results.epss.missing_cve) }} /
               {{ count(results.epss.missing_non_cve) }}
             </dd>
           </dl>
-        </div>
+        </section>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 class="font-semibold text-gray-900 mb-2">Match flags</h3>
-          <table class="w-full text-sm" data-testid="experiment-match-flags">
-            <tbody class="text-gray-700">
-              <tr v-for="row in matchFlags" :key="row.key">
-                <td class="font-mono">{{ row.key }}</td>
-                <td class="text-right">{{ count(row.count) }}</td>
-                <td class="text-right">{{ formatShare(row.share) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <section :class="CARD" aria-labelledby="results-match-flags-heading">
+          <h4 id="results-match-flags-heading" :class="HEADING">Match flags</h4>
+          <Table data-testid="experiment-match-flags">
+            <TableHeader class="sr-only">
+              <TableRow>
+                <TableHead>Flag</TableHead>
+                <TableHead>Instances</TableHead>
+                <TableHead>Share</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody class="tabular-nums">
+              <TableRow v-for="row in matchFlags" :key="row.key">
+                <TableCell class="font-mono">{{ row.key }}</TableCell>
+                <TableCell class="text-right">{{ count(row.count) }}</TableCell>
+                <TableCell class="text-right">{{
+                  formatShare(row.share)
+                }}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </section>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 class="font-semibold text-gray-900 mb-2">Winning source</h3>
-          <table class="w-full text-sm" data-testid="experiment-winning-source">
-            <tbody class="text-gray-700">
-              <tr v-for="row in winningSources" :key="row.key">
-                <td>{{ row.key }}</td>
-                <td class="text-right">{{ count(row.count) }}</td>
-                <td class="text-right">{{ formatShare(row.share) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <section :class="CARD" aria-labelledby="results-winning-source-heading">
+          <h4 id="results-winning-source-heading" :class="HEADING">
+            Winning source
+          </h4>
+          <Table data-testid="experiment-winning-source">
+            <TableHeader class="sr-only">
+              <TableRow>
+                <TableHead>Source</TableHead>
+                <TableHead>Instances</TableHead>
+                <TableHead>Share</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody class="tabular-nums">
+              <TableRow v-for="row in winningSources" :key="row.key">
+                <TableCell>{{ row.key }}</TableCell>
+                <TableCell class="text-right">{{ count(row.count) }}</TableCell>
+                <TableCell class="text-right">{{
+                  formatShare(row.share)
+                }}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </section>
 
-        <div
-          class="bg-white rounded-xl border border-gray-200 p-4"
+        <section
+          :class="CARD"
+          aria-labelledby="results-rqc-heading"
           data-testid="experiment-rqc"
         >
-          <h3 class="font-semibold text-gray-900 mb-2">Stars vs load</h3>
-          <OpenAsFigure
-            :definition="{
-              metric: 'stars_vs_load',
-              chart_form: 'scatter',
-              group_by: null,
-              filters: {},
-            }"
-          />
-          <p class="text-sm text-gray-700">
+          <div class="flex items-center justify-between gap-2">
+            <h4 id="results-rqc-heading" :class="HEADING">Stars vs load</h4>
+            <OpenAsFigure
+              :definition="{
+                metric: 'stars_vs_load',
+                chart_form: 'scatter',
+                group_by: null,
+                filters: {},
+              }"
+            />
+          </div>
+          <p class="text-sm text-foreground">
             Spearman rho between star rank and vulnerability load:
             <strong>{{ decimal(results.rqc.spearman_rho) }}</strong> (two-sided
             {{ formatPValue(results.rqc.p) }}, n = {{ results.rqc.n }}).
           </p>
           <p
             v-if="results.rqc.excluded_zero_dep_projects > 0"
-            class="text-sm text-gray-500 mt-1"
+            class="text-sm text-muted-foreground"
           >
             {{ results.rqc.excluded_zero_dep_projects }} projects without
             dependencies left out.
           </p>
-        </div>
+        </section>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4">
-          <h3 class="font-semibold text-gray-900 mb-2">By package manager</h3>
-          <table class="w-full text-sm" data-testid="experiment-rqd">
-            <thead class="text-left text-gray-500">
-              <tr>
-                <th class="font-medium">Manager</th>
-                <th class="font-medium text-right">Projects</th>
-                <th class="font-medium text-right">Median deps</th>
-                <th class="font-medium text-right">Median vulns</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-700">
-              <tr v-for="row in results.rqd" :key="row.package_manager">
-                <td>{{ row.package_manager }}</td>
-                <td class="text-right">{{ row.projects }}</td>
-                <td class="text-right">
+        <section :class="CARD" aria-labelledby="results-rqd-heading">
+          <h4 id="results-rqd-heading" :class="HEADING">By package manager</h4>
+          <Table data-testid="experiment-rqd">
+            <TableHeader>
+              <TableRow class="hover:bg-transparent">
+                <TableHead>Manager</TableHead>
+                <TableHead class="text-right">Projects</TableHead>
+                <TableHead class="text-right">Median deps</TableHead>
+                <TableHead class="text-right">Median vulns</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody class="tabular-nums">
+              <TableRow v-for="row in results.rqd" :key="row.package_manager">
+                <TableCell>{{ row.package_manager }}</TableCell>
+                <TableCell class="text-right">{{ row.projects }}</TableCell>
+                <TableCell class="text-right">
                   {{ count(row.med_deps) }}
                   <span
                     v-if="bootstrap?.rqd[row.package_manager]?.med_deps"
-                    class="text-gray-500"
+                    class="text-muted-foreground"
                   >
                     {{
                       formatBracketInterval(
@@ -532,12 +595,12 @@ const analyzerSteps = computed(() =>
                       )
                     }}
                   </span>
-                </td>
-                <td class="text-right">
+                </TableCell>
+                <TableCell class="text-right">
                   {{ count(row.med_vulns) }}
                   <span
                     v-if="bootstrap?.rqd[row.package_manager]?.med_vulns"
-                    class="text-gray-500"
+                    class="text-muted-foreground"
                   >
                     {{
                       formatBracketInterval(
@@ -546,51 +609,53 @@ const analyzerSteps = computed(() =>
                       )
                     }}
                   </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </section>
       </div>
 
-      <div
-        class="bg-white rounded-xl border border-gray-200 p-4 overflow-x-auto"
-      >
-        <h3 class="font-semibold text-gray-900 mb-2">Sweep</h3>
-        <table class="w-full text-sm" data-testid="experiment-sweep">
-          <thead class="text-left text-gray-500">
-            <tr>
-              <th class="font-medium">Subset</th>
-              <th class="font-medium text-right">Affected</th>
-              <th class="font-medium text-right">Instances</th>
-              <th class="font-medium text-right">Packages</th>
-              <th class="font-medium text-right">Load median / mean</th>
-              <th class="font-medium text-right">High + critical</th>
-              <th class="font-medium text-right">Gini pkg / proj</th>
-              <th class="font-medium text-right">Clear 50 / 80 / 90</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-700">
-            <tr v-for="{ row, intervals } in sweepRows" :key="row.subset">
-              <td>{{ SweepSubsetLabels[row.subset] ?? row.subset }}</td>
-              <td class="text-right">
+      <section :class="CARD" aria-labelledby="results-sweep-heading">
+        <h4 id="results-sweep-heading" :class="HEADING">Sweep</h4>
+        <Table data-testid="experiment-sweep">
+          <TableHeader>
+            <TableRow class="hover:bg-transparent">
+              <TableHead>Subset</TableHead>
+              <TableHead class="text-right">Affected</TableHead>
+              <TableHead class="text-right">Instances</TableHead>
+              <TableHead class="text-right">Packages</TableHead>
+              <TableHead class="text-right">Load median / mean</TableHead>
+              <TableHead class="text-right">High + critical</TableHead>
+              <TableHead class="text-right">Gini pkg / proj</TableHead>
+              <TableHead class="text-right">Clear 50 / 80 / 90</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody class="tabular-nums">
+            <TableRow v-for="{ row, intervals } in sweepRows" :key="row.subset">
+              <TableCell>{{
+                SweepSubsetLabels[row.subset] ?? row.subset
+              }}</TableCell>
+              <TableCell class="text-right">
                 {{ row.n_affected }} / {{ row.n_projects }}
                 <div
                   v-if="intervals?.affected_share"
-                  class="text-xs text-gray-500"
+                  class="text-xs text-muted-foreground"
                 >
                   95% CI {{ formatInterval(intervals.affected_share) }}
                 </div>
-              </td>
-              <td class="text-right">{{ count(row.instances) }}</td>
-              <td class="text-right">
+              </TableCell>
+              <TableCell class="text-right">{{
+                count(row.instances)
+              }}</TableCell>
+              <TableCell class="text-right">
                 {{ count(row.distinct_vuln_packages) }}
-              </td>
-              <td class="text-right">
+              </TableCell>
+              <TableCell class="text-right">
                 {{ count(row.load_median) }}
                 <span
                   v-if="bootstrap?.sweep[row.subset]?.load_median"
-                  class="text-gray-500"
+                  class="text-muted-foreground"
                 >
                   {{
                     formatBracketInterval(
@@ -600,21 +665,21 @@ const analyzerSteps = computed(() =>
                   }}
                 </span>
                 / {{ decimal(row.load_mean, 1) }}
-              </td>
-              <td class="text-right">
+              </TableCell>
+              <TableCell class="text-right">
                 {{ formatShare(row.high_critical_share) }}
                 <div
                   v-if="intervals?.high_critical_share"
-                  class="text-xs text-gray-500"
+                  class="text-xs text-muted-foreground"
                 >
                   95% CI {{ formatInterval(intervals.high_critical_share) }}
                 </div>
-              </td>
-              <td class="text-right">
+              </TableCell>
+              <TableCell class="text-right">
                 {{ decimal(row.gini_pkg) }}
                 <span
                   v-if="bootstrap?.sweep[row.subset]?.gini_pkg"
-                  class="text-gray-500"
+                  class="text-muted-foreground"
                 >
                   {{
                     formatBracketInterval(
@@ -626,7 +691,7 @@ const analyzerSteps = computed(() =>
                 / {{ decimal(row.gini_proj) }}
                 <span
                   v-if="bootstrap?.sweep[row.subset]?.gini_proj"
-                  class="text-gray-500"
+                  class="text-muted-foreground"
                 >
                   {{
                     formatBracketInterval(
@@ -635,15 +700,15 @@ const analyzerSteps = computed(() =>
                     )
                   }}
                 </span>
-              </td>
-              <td class="text-right">
+              </TableCell>
+              <TableCell class="text-right">
                 {{ row.pkgs_clear_50 }} / {{ row.pkgs_clear_80 }} /
                 {{ row.pkgs_clear_90 }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </section>
     </section>
 
     <ExperimentFixLag
@@ -684,38 +749,39 @@ const analyzerSteps = computed(() =>
 
     <ExperimentLoad v-if="loadOverTime" :rows="loadOverTime" />
 
-    <div
-      class="bg-white rounded-xl border border-gray-200 p-4"
+    <section
+      :class="CARD"
+      aria-labelledby="results-provenance-heading"
       data-testid="experiment-provenance"
     >
-      <h3 class="font-semibold text-gray-900 mb-2">Provenance</h3>
+      <h3 id="results-provenance-heading" :class="HEADING">Provenance</h3>
       <dl
-        class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm text-gray-700"
+        class="grid grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm text-foreground"
       >
-        <dt class="text-gray-500">Analyzer steps</dt>
+        <dt class="text-muted-foreground">Analyzer steps</dt>
         <dd>
-          <ol v-if="analyzerSteps.length > 0" class="list-decimal ml-4">
+          <ol v-if="analyzerSteps.length > 0" class="ml-4 list-decimal">
             <li v-for="(stage, index) in analyzerSteps" :key="index">
               {{ stage }}
             </li>
           </ol>
           <span v-else>-</span>
         </dd>
-        <dt class="text-gray-500">API version</dt>
+        <dt class="text-muted-foreground">API version</dt>
         <dd>{{ provenance.api_version ?? "-" }}</dd>
-        <dt class="text-gray-500">Created</dt>
+        <dt class="text-muted-foreground">Created</dt>
         <dd>
           {{ formatExperimentDate(provenance.created_on) }}
           <template v-if="provenance.created_by">
             by {{ provenance.created_by }}</template
           >
         </dd>
-        <dt class="text-gray-500">Started / ended</dt>
+        <dt class="text-muted-foreground">Started / ended</dt>
         <dd>
           {{ formatExperimentDate(provenance.started_on) }} /
           {{ formatExperimentDate(provenance.ended_on) }}
         </dd>
-        <dt class="text-gray-500">Knowledge sources, start / end</dt>
+        <dt class="text-muted-foreground">Knowledge sources, start / end</dt>
         <dd>
           <ul v-if="knowledgeSources.length > 0">
             <li
@@ -728,13 +794,13 @@ const analyzerSteps = computed(() =>
           </ul>
           <span v-else>-</span>
         </dd>
-        <dt class="text-gray-500">EPSS rows, start / end</dt>
+        <dt class="text-muted-foreground">EPSS rows, start / end</dt>
         <dd>
           {{ count(provenance.knowledge_start?.epss_rows ?? null) }} /
           {{ count(provenance.knowledge_end?.epss_rows ?? null) }}
         </dd>
         <template v-if="provenance.bootstrap">
-          <dt class="text-gray-500">Intervals</dt>
+          <dt class="text-muted-foreground">Intervals</dt>
           <dd>
             {{ provenance.bootstrap.confidence * 100 }}%
             {{ provenance.bootstrap.method }},
@@ -743,6 +809,6 @@ const analyzerSteps = computed(() =>
           </dd>
         </template>
       </dl>
-    </div>
+    </section>
   </div>
 </template>

@@ -25,7 +25,13 @@ async function call(path: string, token?: string): Promise<unknown> {
   return response.json();
 }
 
-type List = { data: { id: string; organization?: { id: string } }[] };
+type List = {
+  data: {
+    id: string;
+    organization?: { id: string };
+    analyses?: { id: string; status: string }[];
+  }[];
+};
 
 const auth = (await call("/auth/authenticate")) as { data: { token: string } };
 const token = auth.data.token;
@@ -53,6 +59,27 @@ if (!org || !policy) {
   throw new Error("No organisation has a license policy: create one first.");
 }
 
+// Picks an analysis to read back, preferring a failed one.
+let failedPath: string | undefined;
+let anyPath: string | undefined;
+for (const id of orgIds) {
+  const projects = (await call(
+    `/org/${id}/projects?page=0&entries_per_page=50`,
+    token,
+  )) as List;
+  for (const project of projects.data) {
+    for (const analysis of project.analyses ?? []) {
+      const path = `/org/${id}/projects/${project.id}/analyses/${analysis.id}`;
+      anyPath ??= path;
+      if (analysis.status === "failure") failedPath ??= path;
+    }
+  }
+}
+const analysisPath = failedPath ?? anyPath;
+if (!analysisPath) {
+  throw new Error("No project has an analysis: run one first.");
+}
+
 const captures: Record<string, [string, string]> = {
   "organization-list": ["GET /org", "/org?page=0&entries_per_page=50"],
   members: [
@@ -62,6 +89,10 @@ const captures: Record<string, [string, string]> = {
   "license-policy": [
     "GET /org/:org/policies/license_policy/:policy",
     `/org/${org}/policies/license_policy/${policy}`,
+  ],
+  analysis: [
+    "GET /org/:org/projects/:project/analyses/:analysis",
+    analysisPath,
   ],
 };
 

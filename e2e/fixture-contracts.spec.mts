@@ -1,11 +1,17 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import analysis from "./contracts/analysis.json" with { type: "json" };
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
 import organizationList from "./contracts/organization-list.json" with { type: "json" };
 import { shapeDiff } from "./helpers/shape.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
+import {
+  ANALYSIS,
+  PROJECT,
+  ResultsStatusPage,
+} from "./pages/results-status.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
 // Proves the shape check reports drift, on inline values only.
@@ -85,6 +91,13 @@ const contracts = [
     path: "/api/org/org-123/policies/license_policy/lp-1",
     signIn: (page: Page) => new OrgPoliciesPage(page).signIn(),
     drift: "#131",
+  },
+  {
+    name: "single analysis",
+    capture: analysis,
+    path: `/api/org/org-123/projects/${PROJECT}/analyses/${ANALYSIS}`,
+    signIn: (page: Page) => new ResultsStatusPage(page).signIn(),
+    drift: undefined,
   },
 ];
 

@@ -1,0 +1,82 @@
+{
+  "endpoint": "GET /org/:org/projects/:project/analyses/:analysis",
+  "response": {
+    "status_code": 200,
+    "status": "success",
+    "data": {
+      "id": "c6d8c6c7-a1ba-4f7e-af7f-3df7f41098c9",
+      "created_on": "2026-11-14T20:20:14.798Z",
+      "status": "failure",
+      "steps": [
+        [
+          {
+            "Name": "js-sbom",
+            "Config": {
+              "branch": {
+                "name": "branch",
+                "type": "string",
+                "required": true,
+                "description": "The branch you want to analyze"
+              },
+              "commit_id": {
+                "name": "commit_id",
+                "type": "string",
+                "required": false,
+                "description": "An optional commit id to analyze"
+              }
+            },
+            "Result": {
+              "sbomKey": "19b28ccc-e6d5-4f9b-8013-cfd2cdae2dbc",
+              "failure_reason": "the project source could not be found"
+            },
+            "Status": "failure",
+            "Version": "v0.0.27-alpha",
+            "Ended_on": "2026-11-14T20:20:14.851227709Z",
+            "Started_on": "2026-11-14T20:20:14.848821084Z"
+          }
+        ],
+        [
+          {
+            "Name": "vuln-finder",
+            "Config": {
+              "vulnerabilityPolicy": {
+                "name": "Vulnerability Policy",
+                "type": "Array<string>",
+                "required": false,
+                "description": "A list of vulnerabilities that are blacklisted in the project"
+              }
+            },
+            "Result": null,
+            "Status": "",
+            "Version": "v0.0.27-alpha",
+            "Ended_on": "",
+            "Started_on": ""
+          },
+          {
+            "Name": "license-finder",
+            "Config": {
+              "licensePolicy": {
+                "name": "License Policy",
+                "type": "Array<string>",
+                "required": true,
+                "description": "A list of licenses that are disallowed in the project"
+              }
+            },
+            "Result": null,
+            "Status": "",
+            "Version": "v0.0.20-alpha",
+            "Ended_on": "",
+            "Started_on": ""
+          }
+        ]
+      ],
+      "branch": "main",
+      "tag": null,
+      "failure_reason": "js-sbom failed: the project source could not be found",
+      "schedule_type": "once",
+      "next_scheduled_run": null,
+      "is_active": true,
+      "last_scheduled_run": null
+    }
+  }
+}

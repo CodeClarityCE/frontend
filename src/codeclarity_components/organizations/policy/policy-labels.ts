@@ -12,6 +12,11 @@ export interface Policy {
   content: string[];
 }
 
+/** Whether a type says if the policy allows or blocks, rather than its kind. */
+export function isAllowOrBlock(type: string): boolean {
+  return type === "WHITELIST" || type === "BLACKLIST";
+}
+
 /** Policy types in words: a whitelist allows, a blacklist blocks. */
 export function policyTypeLabel(type: string): string {
   if (type === "WHITELIST") return "Allow list";

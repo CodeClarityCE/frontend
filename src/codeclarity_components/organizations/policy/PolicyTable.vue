@@ -17,6 +17,7 @@ const props = defineProps<{
   // What the content column counts, like "Licenses".
   contentLabel: string;
   loading?: boolean;
+  canEdit?: boolean;
   canDelete?: boolean;
 }>();
 
@@ -94,6 +95,7 @@ const columns: ColumnDef<TPolicy, unknown>[] = [
     <template #cell-actions="{ row }">
       <div class="flex items-center gap-1">
         <Button
+          v-if="canEdit"
           variant="ghost"
           size="icon-sm"
           :aria-label="`Edit ${row.name}`"

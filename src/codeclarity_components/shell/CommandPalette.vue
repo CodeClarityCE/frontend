@@ -14,6 +14,10 @@ import { type RouteLocationRaw, useRouter } from "vue-router";
 
 import { DatasetsRepository } from "@/codeclarity_components/datasets/datasets.repository";
 import { ExperimentsRepository } from "@/codeclarity_components/experiments/experiments.repository";
+import {
+  isMemberRoleGreaterOrEqualTo,
+  MemberRole,
+} from "@/codeclarity_components/organizations/organization.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import {
   CommandDialog,
@@ -76,7 +80,11 @@ function pages(): Action[] {
 }
 
 function actions(): Action[] {
-  const orgId = userStore.getDefaultOrg?.id;
+  const org = userStore.getDefaultOrg;
+  const orgId = org?.id;
+  // Only admins can open the analyzer form.
+  const admin =
+    !!org && isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN);
   return [
     {
       id: "create-dataset",
@@ -96,15 +104,19 @@ function actions(): Action[] {
       icon: Plus,
       to: { name: "projects", params: { page: "add" } },
     },
-    {
-      id: "create-analyzer",
-      label: "Create an analyzer",
-      icon: Settings2,
-      to: {
-        name: "orgs",
-        params: { action: "add", page: "analyzers", orgId },
-      },
-    },
+    ...(admin
+      ? [
+          {
+            id: "create-analyzer",
+            label: "Create an analyzer",
+            icon: Settings2,
+            to: {
+              name: "orgs",
+              params: { action: "add", page: "analyzers", orgId },
+            },
+          },
+        ]
+      : []),
   ];
 }
 

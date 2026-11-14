@@ -34,11 +34,11 @@
       }
     ],
     "page": 0,
-    "entry_count": 0,
-    "entries_per_page": 0,
-    "total_entries": 0,
-    "total_pages": 0,
-    "matching_count": 0,
+    "entry_count": 1,
+    "entries_per_page": 50,
+    "total_entries": 1,
+    "total_pages": 1,
+    "matching_count": 1,
     "filter_count": {}
   }
 }

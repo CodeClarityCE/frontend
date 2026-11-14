@@ -4,15 +4,21 @@ import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { analyzer, OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 
-// Three stages, a plugin option and saved state that a save must keep as is.
+// Three stages with plugin options that a save must keep as is.
 const configuredAnalyzer = analyzer("an-3", "Patched audit", {
   steps: [
     [
       {
         name: "js-sbom",
         version: "1.0.0",
-        config: { branch: "main" },
-        persistant_config: { cache: true },
+        config: {
+          branch: {
+            name: "branch",
+            type: "string",
+            required: true,
+            description: "The branch you want to analyze",
+          },
+        },
       },
     ],
     [
@@ -20,7 +26,6 @@ const configuredAnalyzer = analyzer("an-3", "Patched audit", {
         name: "vuln-finder",
         version: "0.9.0",
         config: {},
-        persistant_config: {},
       },
     ],
     [
@@ -28,7 +33,6 @@ const configuredAnalyzer = analyzer("an-3", "Patched audit", {
         name: "js-patching",
         version: "1.0.0",
         config: {},
-        persistant_config: {},
       },
     ],
   ],

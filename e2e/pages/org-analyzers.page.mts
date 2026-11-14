@@ -4,7 +4,7 @@ import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
 
-/** An analyzer as the API returns it. */
+/** An analyzer as the API returns it (GET /org/:org/analyzers/:id). */
 export function analyzer(
   id: string,
   name: string,
@@ -15,14 +15,12 @@ export function analyzer(
     name,
     description: `${name} workflow for JavaScript projects`,
     created_on: "2026-10-01T09:00:00Z",
-    created_by: { id: "u-1", handle: "john", first_name: "John" },
     steps: [
       [
         {
           name: "js-sbom",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
       [
@@ -30,11 +28,12 @@ export function analyzer(
           name: "vuln-finder",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
     ],
-    organization_id: ORG,
+    supported_languages: ["javascript"],
+    language_config: { javascript: { plugins: ["js-sbom", "vuln-finder"] } },
+    logo: "js",
     ...overrides,
   };
 }
@@ -49,7 +48,6 @@ export const sampleAnalyzers = [
           name: "js-sbom",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
     ],

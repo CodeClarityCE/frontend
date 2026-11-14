@@ -73,6 +73,27 @@ test.describe("Organisation policies list", () => {
     await expect(rows.nth(1)).toContainText("Test fixtures only");
   });
 
+  test("the selected tab is kept in the URL and restored on reload", async ({
+    page,
+  }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoList();
+
+    await policies.tab("Vulnerability policies").click();
+    await expect(page).toHaveURL(/[?&]tab=vulnerability(&|$)/);
+
+    await page.reload();
+    await expect(policies.tab("Vulnerability policies")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(policies.rows("Vulnerability policies")).toHaveCount(2);
+
+    await policies.tab("License policies").click();
+    await expect(page).toHaveURL(/[?&]tab=license(&|$)/);
+  });
+
   test("an organisation with no license policies sees the owl and a first step", async ({
     page,
   }) => {

@@ -8,6 +8,7 @@ import {
   onBeforeMount,
   type Ref,
   ref,
+  watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -160,9 +161,25 @@ async function init(): Promise<void> {
   }
   if (first) {
     default_tab.value = first;
-    current_tab.value = first;
+    current_tab.value = tabFromUrl() ?? first;
   }
 }
+
+// The tab named in the URL, when the analysis has it.
+function tabFromUrl(): string | null {
+  const wanted = route.query.tab;
+  if (typeof wanted !== "string" || !(wanted in tab.value)) return null;
+  return tab.value[wanted as keyof typeof tab.value] ? wanted : null;
+}
+
+// Back and forward between tabs of the same analysis keep the page mounted.
+watch(
+  () => route.query.tab,
+  () => {
+    const wanted = tabFromUrl();
+    if (wanted) current_tab.value = wanted;
+  },
+);
 
 async function getProject(projectID: string): Promise<void> {
   let res: DataResponse<Project>;
@@ -219,16 +236,12 @@ async function getAnalysis(
   }
 }
 
-// Function to handle tab value changes while preserving run_index
-function handleTabChange(newTab: string): void {
+// Stores the selected tab in the URL, keeping the other query parameters.
+function handleTabChange(value: string | number): void {
+  const newTab = String(value);
   current_tab.value = newTab;
-
-  // Update URL to maintain run_index parameter when switching tabs
-  const currentQuery = { ...route.query };
-  void router.replace({
-    name: route.name,
-    query: currentQuery, // This preserves all query parameters including run_index
-  });
+  if (route.query.tab === newTab) return;
+  void router.replace({ query: { ...route.query, tab: newTab } });
 }
 
 onBeforeMount(async () => {
@@ -292,10 +305,10 @@ onBeforeMount(async () => {
       </Alert>
       <Tabs
         v-if="!failed && hasTabs"
-        v-model="current_tab"
+        :model-value="current_tab"
         :default-value="default_tab"
         class="flex flex-col gap-6"
-        @value-change="handleTabChange"
+        @update:model-value="handleTabChange"
       >
         <TabsList aria-label="Results" class="self-start">
           <TabsTrigger v-if="tab['sbom']" value="sbom"> SBOM </TabsTrigger>

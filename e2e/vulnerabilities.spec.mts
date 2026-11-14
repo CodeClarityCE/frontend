@@ -4,7 +4,9 @@ import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   affected,
+  ANALYSIS,
   finding,
+  PROJECT,
   sampleDetails,
   VulnerabilitiesPage,
 } from "./pages/vulnerabilities.page.mjs";
@@ -339,6 +341,21 @@ test.describe("Vulnerability details", () => {
     await expect(open).toBeFocused();
   });
 
+  test("Back to results opens the analysis results when opened directly", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoDetails();
+    await expect(vulns.heading).toContainText("CVE-2024-0001");
+
+    await page.getByRole("link", { name: "Back to results" }).click();
+    await expect(page).toHaveURL(
+      new RegExp(`/results\\?analysis_id=${ANALYSIS}&project_id=${PROJECT}$`),
+    );
+    await expect(vulns.heading).toHaveText("Results");
+  });
+
   test("Tab moves from Back to the page actions with visible focus", async ({
     page,
   }) => {
@@ -347,7 +364,7 @@ test.describe("Vulnerability details", () => {
     await vulns.gotoDetails();
     await expect(vulns.heading).toContainText("CVE-2024-0001");
 
-    const back = page.getByRole("button", { name: "Back to results" });
+    const back = page.getByRole("link", { name: "Back to results" });
     await back.focus();
     await expectVisibleFocus(back);
     await page.keyboard.press("Tab");
@@ -425,7 +442,7 @@ test.describe("Tickets from vulnerability results", () => {
           type: "VULNERABILITY",
           vulnerability_id: "CVE-2024-0002",
           created_on: "2026-10-01T09:00:00Z",
-          project_id: "proj-1",
+          project_id: PROJECT,
           project_name: "web-frontend",
           has_external_links: false,
         },

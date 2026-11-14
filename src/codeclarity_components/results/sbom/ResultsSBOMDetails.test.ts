@@ -5,6 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 import ResultsSBOMDetails from "./ResultsSBOMDetails.vue";
 import { dependency } from "./SbomDetails/dependency.fixture";
 
+const ANALYSIS = "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e";
+const PROJECT = "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69";
+
 const repo = vi.hoisted(() => ({ getDependency: vi.fn() }));
 vi.mock("@/codeclarity_components/results/results.repository", () => ({
   ResultsRepository: class {
@@ -22,8 +25,8 @@ vi.mock("vue-router", async (importOriginal) => ({
   useRoute: () => ({
     params: {},
     query: {
-      analysis_id: "a-1",
-      project_id: "p-1",
+      analysis_id: "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e",
+      project_id: "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69",
       package_id: "lodash@4.17.20",
     },
   }),
@@ -40,11 +43,9 @@ describe("ResultsSBOMDetails", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /lodash/ }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /Back to results/ }),
-    ).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Back to results/ })).toBeTruthy();
     expect(repo.getDependency).toHaveBeenCalledWith(
-      expect.objectContaining({ analysisId: "a-1", projectId: "p-1" }),
+      expect.objectContaining({ analysisId: ANALYSIS, projectId: PROJECT }),
     );
   });
 });

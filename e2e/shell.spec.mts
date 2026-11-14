@@ -304,3 +304,66 @@ test.describe("App shell accessibility and look", () => {
     await expectScreenshots(page, "palette");
   });
 });
+
+test.describe("App shell on a phone", () => {
+  let shell: ShellPage;
+
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test.beforeEach(async ({ page }) => {
+    shell = new ShellPage(page);
+    await shell.signIn();
+    await page.goto("/datasets");
+  });
+
+  test("a header with a navigation trigger is shown and the sidebar starts closed", async () => {
+    await expect(shell.mobileHeader).toBeVisible();
+    await expect(shell.navTrigger).toBeVisible();
+    await expect(shell.navTrigger).toHaveAttribute("aria-expanded", "false");
+    await expect(shell.nav).toBeHidden();
+  });
+
+  test("the trigger opens the navigation and the close button closes it", async ({
+    page,
+  }) => {
+    await shell.navTrigger.tap();
+
+    await expect(shell.nav).toBeVisible();
+    await expect(shell.link("Datasets")).toBeVisible();
+
+    await page.getByRole("button", { name: "Close navigation" }).tap();
+
+    await expect(shell.nav).toBeHidden();
+    await expect(shell.navTrigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("the navigation closes after following a link", async ({ page }) => {
+    await shell.navTrigger.tap();
+    await shell.link("Experiments").tap();
+
+    await expect(page).toHaveURL(/\/experiments$/);
+    await expect(shell.nav).toBeHidden();
+  });
+
+  test("logout is reachable by touch", async ({ page }) => {
+    await shell.navTrigger.tap();
+    await page.getByRole("button", { name: /account menu/ }).tap();
+    await page.getByRole("menuitem", { name: "Log out" }).tap();
+
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(shell.navTrigger).toBeHidden();
+  });
+
+  test("the header fits the viewport and the open navigation passes axe", async ({
+    page,
+  }) => {
+    const width = await page.evaluate(
+      () => document.documentElement.scrollWidth,
+    );
+    expect(width).toBeLessThanOrEqual(390);
+
+    await shell.navTrigger.tap();
+    await expect(shell.nav).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+});

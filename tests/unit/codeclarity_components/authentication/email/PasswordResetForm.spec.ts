@@ -67,7 +67,10 @@ describe("PasswordResetForm", () => {
   it("sends the user back to sign in without a token", async () => {
     mountAt("?userid=u1");
     await flushPromises();
-    expect(router.push).toHaveBeenCalledWith("/login");
+    expect(router.replace).toHaveBeenCalledWith({
+      name: "login",
+      query: { notice: "reset_link_invalid" },
+    });
   });
 
   it("resets the password with the link's token", async () => {

@@ -353,6 +353,121 @@ test.describe("Projects list", () => {
     await axe(page);
     await expectScreenshots(page, "projects-analyses-dialog");
   });
+
+  test("the filter matches the source as shown and ignores surrounding spaces", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoList();
+    await expect(projects.rows()).toHaveCount(3);
+
+    await projects.filter.fill("upload");
+    await expect(projects.rows()).toHaveCount(1);
+    await expect(projects.rows()).toContainText("Local archive");
+
+    await projects.filter.fill("  api-server  ");
+    await expect(projects.rows()).toHaveCount(1);
+    await expect(projects.rows()).toContainText("example/api-server");
+  });
+
+  test("the languages column tells never analysed, failed and running apart", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({
+      projects: [
+        project("p-1", "example/never"),
+        project("p-2", "example/broken", {
+          analyses: [analysis("a-2", "failure")],
+        }),
+        project("p-3", "example/busy", {
+          analyses: [analysis("a-3", "started")],
+        }),
+        project("p-4", "example/waiting", {
+          analyses: [analysis("a-4", "requested")],
+        }),
+      ],
+    });
+    await projects.gotoList();
+    const languages = (name: string) =>
+      projects.row(name).getByRole("cell").nth(2);
+
+    await expect(languages("example/never")).toHaveText("Not analysed");
+    await expect(languages("example/broken")).toHaveText("Analysis failed");
+    await expect(languages("example/busy")).toHaveText("Analysis running");
+    await expect(languages("example/waiting")).toHaveText("Analysis queued");
+  });
+
+  test("sorting, paging and filtering do not fetch the languages again", async ({
+    page,
+  }) => {
+    const many = Array.from({ length: 25 }, (_, i) =>
+      project(`p-${i}`, `org/repo-${String(i).padStart(2, "0")}`, {
+        analyses: [analysis(`a-${i}`, "completed")],
+      }),
+    );
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ projects: many });
+    const fetched: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/result") {
+        fetched.push(request.url());
+      }
+    });
+    await projects.gotoList();
+    await expect(projects.rows().first()).toContainText("JavaScript");
+
+    await projects.sortButton("Project").click();
+    await projects.sortButton("Project").click();
+    await projects.pagination().getByRole("button", { name: "Page 2" }).click();
+    await expect(projects.rows()).toHaveCount(5);
+    await expect(projects.rows().first()).toContainText("JavaScript");
+    await projects.pagination().getByRole("button", { name: "Page 1" }).click();
+    await projects.filter.fill("repo-0");
+    await projects.filter.fill("");
+    await expect(projects.rows().first()).toContainText("JavaScript");
+
+    expect(fetched.length).toBeGreaterThan(0);
+    expect(fetched.length).toBe(new Set(fetched).size);
+  });
+
+  test("row actions line up whether or not a project has results", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoList();
+    await expect(projects.rows()).toHaveCount(3);
+
+    const lefts: number[] = [];
+    for (const name of [
+      "example/web-frontend",
+      "example/api-server",
+      "Local archive",
+    ]) {
+      const box = await page
+        .getByRole("button", { name: `Delete ${name}` })
+        .boundingBox();
+      lefts.push(Math.round(box?.x ?? -1));
+    }
+    expect(new Set(lefts).size).toBe(1);
+  });
+
+  test("deleting a project with no analyses does not mention 0 analyses", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoList();
+
+    await page.getByRole("button", { name: "Delete Local archive" }).click();
+    const confirm = page.getByRole("dialog", { name: "Delete Local archive?" });
+    await expect(confirm).toContainText(
+      "The project is deleted. It has no analyses. This cannot be undone.",
+    );
+    await expect(confirm).not.toContainText("0 analyses");
+  });
 });
 
 function projects_one(): Record<string, unknown> {

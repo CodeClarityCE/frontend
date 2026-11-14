@@ -88,8 +88,9 @@ const table = useVueTable({
     get sorting() {
       return sorting.value;
     },
+    // Spaces around the typed filter are ignored.
     get globalFilter() {
-      return globalFilter.value;
+      return globalFilter.value.trim();
     },
     get pagination() {
       return pagination.value;

@@ -5,17 +5,24 @@ import { ShellPage } from "./shell.page.mjs";
 const ORG = "org-123";
 export const PROJECT_ID = "proj-1";
 
-function paginated(data: unknown[]): Record<string, unknown> {
+/** One page of `all`, sized like the API: 10 by default, at most 100. */
+function paginated(all: unknown[], url: string): Record<string, unknown> {
+  const query = new URL(url).searchParams;
+  const page = Number(query.get("page") ?? 0);
+  const asked = Number(query.get("entries_per_page") ?? 0);
+  const size = asked > 0 ? Math.min(asked, 100) : 10;
+  const data = all.slice(page * size, (page + 1) * size);
   return {
-    data,
-    page: 0,
-    entry_count: data.length,
-    entries_per_page: 0,
-    total_entries: data.length,
-    total_pages: 1,
-    matching_count: data.length,
-    filter_count: {},
+    status_code: 200,
     status: "success",
+    data,
+    page,
+    entry_count: data.length,
+    entries_per_page: size,
+    total_entries: all.length,
+    total_pages: Math.ceil(all.length / size),
+    matching_count: all.length,
+    filter_count: {},
   };
 }
 
@@ -32,7 +39,7 @@ const project = {
   organization_id: ORG,
 };
 
-function analyzer(
+export function analyzer(
   id: string,
   name: string,
   description: string,
@@ -75,29 +82,45 @@ export const sampleAnalyzers = [
   analyzer("an-php", "PHP", "SBOM, vulnerabilities and licenses for Composer"),
 ];
 
-const vulnerabilityPolicies = [
+export const vulnerabilityPolicies = [
   {
     id: "vp-1",
     name: "Ignore disputed",
     description: "CVEs the team disputed",
-    policy_type: "BLACKLIST",
+    policy_type: "VULNERABILITY_POLICY",
     default: false,
     created_on: "2025-01-01T00:00:00Z",
+    created_by: "",
     content: ["CVE-2024-0001", "CVE-2024-0002"],
   },
 ];
 
-const licensePolicies = [
+export const licensePolicies = [
   {
     id: "lp-1",
     name: "No copyleft",
     description: "Strong copyleft is not allowed",
-    policy_type: "BLACKLIST",
+    policy_type: "LICENSE_POLICY",
     default: true,
     created_on: "2025-01-01T00:00:00Z",
+    created_by: "",
     content: ["GPL-3.0", "AGPL-3.0"],
   },
 ];
+
+const serverError = {
+  status_code: 500,
+  status: "failure",
+  error_code: "InternalError",
+  error_message: "We encountered a problem while processing your request.",
+};
+
+const notFound = {
+  status_code: 404,
+  status: "failure",
+  error_code: "EntityNotFound",
+  error_message: "Not found",
+};
 
 /** The new Analysis page, with its API mocked. */
 export class AnalysesPage {
@@ -118,13 +141,19 @@ export class AnalysesPage {
   /**
    * Signs in and answers the project, analyzer and policy endpoints.
    * `hold` keeps the analyzer list pending until the returned function runs.
+   * `project` answers the project with a 404 ("missing") or a 500 ("error"),
+   * and `analyzersError` answers the analyzer list with a 500.
    */
   async signIn(
     options: {
       analyzers?: unknown[];
       policies?: boolean;
+      vulnerabilityPolicies?: unknown[];
+      licensePolicies?: unknown[];
       createError?: Record<string, unknown>;
       hold?: boolean;
+      project?: "missing" | "error";
+      analyzersError?: boolean;
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -139,7 +168,12 @@ export class AnalysesPage {
       const path = new URL(route.request().url()).pathname;
       if (path.endsWith("/analyzers")) {
         if (options.hold) await held;
-        return route.fulfill({ json: paginated(analyzers) });
+        if (options.analyzersError) {
+          return route.fulfill({ status: 500, json: serverError });
+        }
+        return route.fulfill({
+          json: paginated(analyzers, route.request().url()),
+        });
       }
       const id = path.split("/").pop();
       const found = analyzers.find(
@@ -151,13 +185,23 @@ export class AnalysesPage {
       `**/api/org/${ORG}/policies/vulnerability_policy**`,
       (route) =>
         route.fulfill({
-          json: paginated(withPolicies ? vulnerabilityPolicies : []),
+          json: paginated(
+            withPolicies
+              ? (options.vulnerabilityPolicies ?? vulnerabilityPolicies)
+              : [],
+            route.request().url(),
+          ),
         }),
     );
     await this.page.route(
       `**/api/org/${ORG}/policies/license_policy**`,
       (route) =>
-        route.fulfill({ json: paginated(withPolicies ? licensePolicies : []) }),
+        route.fulfill({
+          json: paginated(
+            withPolicies ? (options.licensePolicies ?? licensePolicies) : [],
+            route.request().url(),
+          ),
+        }),
     );
     await this.page.route(
       `**/api/org/${ORG}/projects/${PROJECT_ID}**`,
@@ -170,14 +214,22 @@ export class AnalysesPage {
           }
           return route.fulfill({ json: { id: "an-new" } });
         }
+        if (options.project === "missing") {
+          return route.fulfill({ status: 404, json: notFound });
+        }
+        if (options.project === "error") {
+          return route.fulfill({ status: 500, json: serverError });
+        }
         return route.fulfill({ json: { data: project } });
       },
     );
     return release;
   }
 
-  async goto(): Promise<void> {
-    await this.shell.goto(`/analyses/add?id=${PROJECT_ID}`);
+  async goto(projectId: string | null = PROJECT_ID): Promise<void> {
+    await this.shell.goto(
+      projectId === null ? "/analyses/add" : `/analyses/add?id=${projectId}`,
+    );
   }
 
   analyzer(name: string): Locator {

@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="TPolicy extends Policy">
 import { Pencil, Trash2 } from "@lucide/vue";
 import type { ColumnDef } from "@tanstack/vue-table";
+import { computed } from "vue";
 
 import { DataTable } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
@@ -8,7 +9,12 @@ import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import { formatShortDate } from "@/utils/dateUtils";
 
-import { type Policy, policyTypeLabel, policyTypeTone } from "./policy-labels";
+import {
+  isAllowOrBlock,
+  type Policy,
+  policyTypeLabel,
+  policyTypeTone,
+} from "./policy-labels";
 
 // A license or vulnerability policy list, with edit and optional delete per row.
 const props = defineProps<{
@@ -23,37 +29,61 @@ const props = defineProps<{
 
 defineEmits<{ edit: [policy: TPolicy]; delete: [policy: TPolicy] }>();
 
-const columns: ColumnDef<TPolicy, unknown>[] = [
+// Type and author columns show only once the server returns those values
+const showType = computed(
+  () =>
+    props.policies.length > 0 &&
+    props.policies.every((policy) => isAllowOrBlock(policy.policy_type)),
+);
+const showAuthor = computed(() =>
+  props.policies.some((policy) => !!policy.created_by),
+);
+
+const columns = computed<ColumnDef<TPolicy, unknown>[]>(() => [
   { id: "name", accessorKey: "name", header: "Name" },
-  {
-    id: "type",
-    accessorFn: (policy) => policyTypeLabel(policy.policy_type),
-    header: "Type",
-  },
+  ...(showType.value
+    ? [
+        {
+          id: "type",
+          accessorFn: (policy: TPolicy) => policyTypeLabel(policy.policy_type),
+          header: "Type",
+        },
+      ]
+    : []),
   {
     id: "content",
     accessorFn: (policy) => policy.content?.length ?? 0,
     header: props.contentLabel,
     enableGlobalFilter: false,
   },
-  {
-    id: "created_by",
-    accessorFn: (policy) => policy.created_by ?? "Unknown",
-    header: "Created by",
-  },
+  ...(showAuthor.value
+    ? [
+        {
+          id: "created_by",
+          accessorFn: (policy: TPolicy) =>
+            policy.created_by?.length ? policy.created_by : "Unknown",
+          header: "Created by",
+        },
+      ]
+    : []),
   {
     id: "created_on",
     accessorFn: (policy) => new Date(policy.created_on).getTime(),
     header: "Created",
     enableGlobalFilter: false,
   },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    enableGlobalFilter: false,
-  },
-];
+  // Roles that may not change policies get no actions column.
+  ...(props.canEdit || props.canDelete
+    ? [
+        {
+          id: "actions",
+          header: "Actions",
+          enableSorting: false,
+          enableGlobalFilter: false,
+        },
+      ]
+    : []),
+]);
 </script>
 
 <template>

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
+import { licensePolicy, OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 
 // The organisation header (HeaderItem) still shows a white-on-green badge.
 
@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("Organisation policies list", () => {
-  test("lists the license policies with their type in words", async ({
+  test("lists the license policies without the type and author the server does not store", async ({
     page,
   }) => {
     const policies = new OrgPoliciesPage(page);
@@ -23,7 +23,34 @@ test.describe("Organisation policies list", () => {
     await expect(rows).toHaveCount(2);
     await expect(rows.first()).toContainText("Permissive only");
     await expect(rows.first()).toContainText("Default");
+    const table = policies.table("License policies");
+    await expect(table).not.toContainText("LICENSE_POLICY");
+    await expect(table.getByRole("columnheader")).toHaveText([
+      "Name",
+      "Licenses",
+      "Created",
+      "Actions",
+    ]);
+  });
+
+  test("the type and author columns appear once the server returns them", async ({
+    page,
+  }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn({
+      licensePolicies: [
+        licensePolicy("lp-1", "Permissive only", {
+          policy_type: "WHITELIST",
+          created_by: "john.doe@codeclarity.io",
+        }),
+        licensePolicy("lp-2", "No copyleft", { policy_type: "BLACKLIST" }),
+      ],
+    });
+    await policies.gotoList();
+
+    const rows = policies.rows("License policies");
     await expect(rows.first()).toContainText("Allow list");
+    await expect(rows.first()).toContainText("john.doe@codeclarity.io");
     await expect(rows.nth(1)).toContainText("Block list");
   });
 
@@ -119,9 +146,7 @@ test.describe("Organisation policies list", () => {
       page.getByRole("link", { name: "New license policy" }),
       page.getByRole("searchbox", { name: "Filter license policies" }),
       table.getByRole("button", { name: "Name" }),
-      table.getByRole("button", { name: "Type" }),
       table.getByRole("button", { name: "Licenses" }),
-      table.getByRole("button", { name: "Created by" }),
       table.getByRole("button", { name: "Created", exact: true }),
       table.getByRole("button", { name: "Edit Permissive only" }),
     ]) {
@@ -206,16 +231,49 @@ test.describe("License policy form", () => {
     ]);
   });
 
-  test("editing loads the saved policy into the form", async ({ page }) => {
+  test("editing loads the saved policy into the form without errors", async ({
+    page,
+  }) => {
     const policies = new OrgPoliciesPage(page);
     await policies.signIn();
     await policies.gotoEditLicense("lp-1");
 
     await expect(policies.heading).toHaveText("Edit license policy");
-    await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(
-      "Permissive only",
-    );
+    const name = page.getByRole("textbox", { name: "Name" });
+    await expect(name).toHaveValue("Permissive only");
+    await expect(name).toBeEnabled();
+    await expect(
+      page.getByRole("textbox", { name: "Description (optional)" }),
+    ).toHaveValue("Permissive only for every project");
+    await expect(
+      page.getByRole("checkbox", { name: "Make this the default policy" }),
+    ).toBeChecked();
     await expect(page.getByText("2 licenses picked")).toBeVisible();
+    await expect(
+      page.getByRole("checkbox", { name: "Include MIT" }),
+    ).toBeChecked();
+
+    await expect(name).not.toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByText("Pick a policy type")).toHaveCount(0);
+    await expect(page.getByText("Pick at least one license")).toHaveCount(0);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+  });
+
+  test("editing an unknown policy says so and disables the form", async ({
+    page,
+  }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoEditLicense("missing");
+
+    await expect(
+      page.getByText("The license policy could not be loaded."),
+    ).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Name" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Save policy" }),
+    ).toBeDisabled();
+    expect(policies.writes).toEqual([]);
   });
 
   test("Tab moves through the form in order with visible focus", async ({

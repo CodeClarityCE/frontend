@@ -2,14 +2,21 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import CurrentVulns from "@/codeclarity_components/dashboard/charts/CurrentVulns.vue";
+import { useDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
+import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
 
-const { getRecentVulns } = vi.hoisted(() => ({ getRecentVulns: vi.fn() }));
+const getRecentVulns = vi.fn<() => Promise<{ data: LatestVulns }>>();
 
-vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
-  DashboardRepository: class {
-    getRecentVulns = getRecentVulns;
-  },
-}));
+// Mounts the card on a shared request, sent once as the dashboard does.
+async function mountCard(): Promise<ReturnType<typeof mount>> {
+  const request = useDashboardRequest(
+    async () => (await getRecentVulns()).data,
+  );
+  void request.run();
+  const wrapper = mount(CurrentVulns, { props: { request } });
+  await flushPromises();
+  return wrapper;
+}
 
 const recent = {
   data: {
@@ -37,8 +44,7 @@ describe("CurrentVulns", () => {
 
   it("counts vulnerabilities by severity and lists the most severe first", async () => {
     getRecentVulns.mockResolvedValue(recent);
-    const wrapper = mount(CurrentVulns, { props: { integrationIds: [] } });
-    await flushPromises();
+    const wrapper = await mountCard();
 
     const counts = wrapper.find('[aria-label="Vulnerabilities by severity"]');
     expect(
@@ -62,8 +68,7 @@ describe("CurrentVulns", () => {
     getRecentVulns.mockResolvedValue({
       data: { vulns: {}, severity_count: [] },
     });
-    const wrapper = mount(CurrentVulns, { props: { integrationIds: [] } });
-    await flushPromises();
+    const wrapper = await mountCard();
 
     expect(wrapper.text()).toContain("No vulnerabilities found.");
   });
@@ -71,8 +76,7 @@ describe("CurrentVulns", () => {
   it("offers to try again after a failed load", async () => {
     getRecentVulns.mockRejectedValueOnce(new Error("down"));
     getRecentVulns.mockResolvedValueOnce(recent);
-    const wrapper = mount(CurrentVulns, { props: { integrationIds: [] } });
-    await flushPromises();
+    const wrapper = await mountCard();
 
     expect(wrapper.find('[role="alert"]').text()).toContain(
       "The vulnerabilities summary could not be loaded.",

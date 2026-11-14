@@ -15,7 +15,7 @@ const linkClass =
   <a
     v-if="href"
     :href="href"
-    target="_blank"
+    :target="href.startsWith('mailto:') ? undefined : '_blank'"
     rel="noopener noreferrer"
     :class="linkClass"
   >

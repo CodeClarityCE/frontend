@@ -28,6 +28,7 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { serverFeatures } from "@/utils/server-features";
 
 import TextLink from "../layout/TextLink.vue";
 
@@ -183,7 +184,7 @@ async function submit(values: {
       </FormItem>
     </FormField>
     <Button type="submit" class="mt-2 w-full">Sign in</Button>
-    <div class="text-center text-sm">
+    <div v-if="serverFeatures.passwordReset" class="text-center text-sm">
       <TextLink :to="{ name: 'recoveryRequest' }">
         Forgot your password?
       </TextLink>

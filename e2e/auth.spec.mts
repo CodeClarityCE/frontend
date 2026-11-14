@@ -139,10 +139,10 @@ test.describe("Authentication E2E Tests", () => {
       ).toBeVisible();
     });
 
-    test("links to password recovery", async ({ page }) => {
+    test("offers no password reset while the server cannot send one", async () => {
       await authPage.goto();
-      await authPage.forgotPasswordLink.click();
-      await expect(page).toHaveURL(/\/password_reset_request$/);
+      await authPage.expectFormVisible();
+      await expect(authPage.forgotPasswordLink).toHaveCount(0);
     });
 
     test("links to sign up", async ({ page }) => {
@@ -159,7 +159,6 @@ test.describe("Authentication E2E Tests", () => {
       for (const control of [
         authPage.passwordInput,
         authPage.loginButton,
-        authPage.forgotPasswordLink,
         authPage.signupLink,
       ]) {
         await page.keyboard.press("Tab");

@@ -24,9 +24,11 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { serverFeatures } from "@/utils/server-features";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
+import PasswordResetUnavailable from "../password_reset/PasswordResetUnavailable.vue";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -117,7 +119,8 @@ onMounted(() => {
 });
 </script>
 <template>
-  <AuthLayout>
+  <PasswordResetUnavailable v-if="!serverFeatures.passwordReset" />
+  <AuthLayout v-else>
     <template #title>
       <template v-if="success">Password updated</template>
       <template

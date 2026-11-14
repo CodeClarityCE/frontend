@@ -38,7 +38,7 @@ state.publicPage = false;
                 <AccordionContent class="text-muted-foreground">
                   Software Composition Analysis finds the open source components
                   in your project, then reports their known vulnerabilities and
-                  licences.
+                  licenses.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="q1">
@@ -104,10 +104,10 @@ state.publicPage = false;
                   error rectified then please contact us via the form below, and
                   make sure to select 'False positive report' as the Subject.
                   Provide us with the approximate analysis start time, the
-                  project name and organization name on which the error occured.
-                  Additionally, provide us with the vulnerability identifier
-                  (CVE or other). Lastly, tell us why you believe this
-                  vulnerability does not affect your particular project.
+                  project name and organization name on which the error
+                  occurred. Additionally, provide us with the vulnerability
+                  identifier (CVE or other). Lastly, tell us why you believe
+                  this vulnerability does not affect your particular project.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="q7">

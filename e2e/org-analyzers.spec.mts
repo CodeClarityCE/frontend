@@ -55,11 +55,11 @@ test.describe("Organisation analyzers list", () => {
     await expect(analyzers.heading).toHaveText("Analyzers");
     await expect(analyzers.rows()).toHaveCount(2);
     await expect(analyzers.row("Default analyzer")).toContainText("2 stages");
-    await expect(analyzers.row("Licence audit")).toContainText("1 stage");
+    await expect(analyzers.row("License audit")).toContainText("1 stage");
 
     await analyzers
-      .row("Licence audit")
-      .getByRole("link", { name: "Edit Licence audit" })
+      .row("License audit")
+      .getByRole("link", { name: "Edit License audit" })
       .click();
 
     await expect(page).toHaveURL(
@@ -75,11 +75,11 @@ test.describe("Organisation analyzers list", () => {
     await analyzers.gotoList();
 
     await analyzers
-      .row("Licence audit")
-      .getByRole("button", { name: "Delete Licence audit" })
+      .row("License audit")
+      .getByRole("button", { name: "Delete License audit" })
       .click();
 
-    const dialog = page.getByRole("dialog", { name: "Delete Licence audit?" });
+    const dialog = page.getByRole("dialog", { name: "Delete License audit?" });
     await expect(dialog).toBeVisible();
     const confirm = dialog.getByRole("button", { name: "Delete analyzer" });
     const cancel = dialog.getByRole("button", { name: "Cancel" });
@@ -95,15 +95,15 @@ test.describe("Organisation analyzers list", () => {
     expect(analyzers.deleted).toEqual([]);
 
     await analyzers
-      .row("Licence audit")
-      .getByRole("button", { name: "Delete Licence audit" })
+      .row("License audit")
+      .getByRole("button", { name: "Delete License audit" })
       .click();
     await confirm.click();
 
     await expect(dialog).toHaveCount(0);
     expect(analyzers.deleted).toEqual(["an-2"]);
     await expect(analyzers.rows()).toHaveCount(1);
-    await expect(page.getByText("Deleted Licence audit")).toBeVisible();
+    await expect(page.getByText("Deleted License audit")).toBeVisible();
   });
 
   test("an organisation with no analyzers sees the owl and Create an analyzer", async ({
@@ -311,7 +311,7 @@ test.describe("Analyzer workflow rules", () => {
     await analyzers.signIn({
       templates: [
         {
-          name: "JavaScript licences",
+          name: "JavaScript licenses",
           description: "SBOM and license scan for JavaScript projects",
           supported_languages: ["javascript"],
           language_config: {
@@ -324,7 +324,7 @@ test.describe("Analyzer workflow rules", () => {
     });
     await analyzers.gotoCreate();
 
-    await page.getByRole("radio", { name: /JavaScript licences/ }).check();
+    await page.getByRole("radio", { name: /JavaScript licenses/ }).check();
     await expect(analyzers.workflowNodes()).toContainText([
       "js-sbom",
       "license-finder",
@@ -346,14 +346,14 @@ test.describe("Edit analyzer", () => {
     await analyzers.gotoEdit("an-2");
 
     await expect(analyzers.heading).toHaveText("Edit analyzer");
-    await expect(page.getByLabel("Name")).toHaveValue("Licence audit");
+    await expect(page.getByLabel("Name")).toHaveValue("License audit");
 
-    await page.getByLabel("Name").fill("Licence review");
+    await page.getByLabel("Name").fill("License review");
     await page.getByRole("button", { name: "Save changes" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/manage\/analyzers\/org-123/);
     expect(analyzers.updated).toEqual([
-      expect.objectContaining({ name: "Licence review" }),
+      expect.objectContaining({ name: "License review" }),
     ]);
   });
 

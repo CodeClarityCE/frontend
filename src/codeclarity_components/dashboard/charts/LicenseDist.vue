@@ -21,8 +21,8 @@ const dashboardRepository = new DashboardRepository();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-/** [licence, dependencies], most used first */
-const licences: Ref<[string, number][]> = ref([]);
+/** [license, dependencies], most used first */
+const licenses: Ref<[string, number][]> = ref([]);
 const error = ref(false);
 const loading = ref(true);
 
@@ -40,7 +40,7 @@ async function fetch(): Promise<void> {
       handleBusinessErrors: true,
       integrationIds: props.integrationIds,
     });
-    licences.value = Object.entries(resp.data)
+    licenses.value = Object.entries(resp.data)
       .map(([name, count]): [string, number] => [name, count ?? 0])
       .sort((a, b) => b[1] - a[1]);
   } catch {
@@ -52,9 +52,9 @@ async function fetch(): Promise<void> {
 void fetch();
 
 const total = computed(() =>
-  licences.value.reduce((sum, [, count]) => sum + count, 0),
+  licenses.value.reduce((sum, [, count]) => sum + count, 0),
 );
-const values = computed(() => licences.value.map(([, count]) => count));
+const values = computed(() => licenses.value.map(([, count]) => count));
 const series = computed(() => [
   {
     key: "dependencies",
@@ -65,7 +65,7 @@ const series = computed(() => [
 ]);
 
 function describe(index: number): string {
-  const [name, count] = licences.value[index] ?? ["", 0];
+  const [name, count] = licenses.value[index] ?? ["", 0];
   const share = total.value === 0 ? 0 : Math.round((count / total.value) * 100);
   return `${name}: ${count} ${count === 1 ? "dependency" : "dependencies"} (${share}%)`;
 }
@@ -73,20 +73,20 @@ function describe(index: number): string {
 
 <template>
   <CardState
-    label="licences"
+    label="licenses"
     :loading="loading"
     :error="error"
-    :empty="licences.length === 0"
+    :empty="licenses.length === 0"
     @retry="() => void fetch()"
   >
     <ColumnChart
-      :labels="licences.map(([name]) => name)"
+      :labels="licenses.map(([name]) => name)"
       :series="series"
       :y-max="Math.max(...values, 1)"
       :format-y="(value) => String(value)"
       :describe="describe"
-      caption="Dependencies by licence"
-      x-title="Licence"
+      caption="Dependencies by license"
+      x-title="License"
       integer
     />
   </CardState>

@@ -60,8 +60,8 @@ defineProps<{
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Open source licences</CardTitle>
-        <CardDescription>Licences across your dependencies</CardDescription>
+        <CardTitle class="text-base">Open source licenses</CardTitle>
+        <CardDescription>Licenses across your dependencies</CardDescription>
       </CardHeader>
       <CardContent>
         <LicenseDist :integration-ids="integrationIds" />

@@ -382,7 +382,7 @@ export interface ResultTabsOptions {
   realClock?: boolean;
 }
 
-/** The SBOM, licence, patch and CodeQL result tabs, with their API mocked. */
+/** The SBOM, license, patch and CodeQL result tabs, with their API mocked. */
 export class ResultTabsPage {
   readonly page: Page;
   readonly shell: ShellPage;

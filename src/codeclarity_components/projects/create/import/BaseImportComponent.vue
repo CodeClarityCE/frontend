@@ -218,7 +218,7 @@ async function importProjectsBulk(): Promise<void> {
   const nmbFailedImports = Object.keys(_reposFailedToImport).length;
   const nmbImported = repos.length - nmbFailedImports;
   if (nmbImported > 0) {
-    successToast(`Succesfully imported ${nmbImported} repositories`);
+    successToast(`Successfully imported ${nmbImported} repositories`);
   }
   if (nmbFailedImports > 0) {
     void errorToast(`Failed to import ${nmbFailedImports} repositories`);

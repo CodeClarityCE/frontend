@@ -40,7 +40,7 @@ export function analyzer(
 
 export const sampleAnalyzers = [
   analyzer("an-1", "Default analyzer"),
-  analyzer("an-2", "Licence audit", {
+  analyzer("an-2", "License audit", {
     created_on: "2026-11-02T09:00:00Z",
     steps: [
       [
@@ -79,7 +79,7 @@ export const samplePlugins = [
   },
   {
     name: "license-finder",
-    description: "Finds licences in the SBOM",
+    description: "Finds licenses in the SBOM",
     version: "1.0.0",
     depends_on: ["js-sbom", "php-sbom"],
     config: {},

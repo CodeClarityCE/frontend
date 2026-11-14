@@ -69,7 +69,7 @@ const sample = [
   {
     id: "p-1",
     name: "No copyleft",
-    description: "Blocks GPL licences",
+    description: "Blocks GPL licenses",
     policy_type: "BLACKLIST",
     default: true,
     created_by: "Jane",

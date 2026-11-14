@@ -163,7 +163,7 @@ onMounted(() => {
         password reset and follow the link in the new email.
       </p>
       <p v-else class="text-sm">
-        An error occured during the processing of the request.
+        An error occurred during the processing of the request.
       </p>
       <RouterLink
         :to="{ name: 'recoveryRequest' }"
@@ -187,7 +187,7 @@ onMounted(() => {
             Passwords do not match.
           </div>
           <div v-else>
-            An error occured during the processing of the request.
+            An error occurred during the processing of the request.
           </div>
         </AlertDescription>
       </Alert>

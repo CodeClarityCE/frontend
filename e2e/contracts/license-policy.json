@@ -1,0 +1,8 @@
+{
+  "endpoint": "GET /org/:org/policies/license_policy/:policy",
+  "response": {
+    "status_code": 200,
+    "status": "success",
+    "data": {}
+  }
+}

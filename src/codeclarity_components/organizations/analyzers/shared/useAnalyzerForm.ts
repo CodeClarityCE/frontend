@@ -26,6 +26,8 @@ export function useAnalyzerForm(): {
       analyzerValidationRules;
     if (name.value.trim().length < nameRule.minLength) {
       result.name = nameRule.errorMessage;
+    } else if (name.value.trim().length > nameRule.maxLength) {
+      result.name = nameRule.maxLengthMessage;
     }
     if (description.value.trim().length < descriptionRule.minLength) {
       result.description = descriptionRule.errorMessage;

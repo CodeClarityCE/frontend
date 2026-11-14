@@ -185,7 +185,10 @@ function addRoute(provider: IntegrationProvider): RouteLocationRaw {
 
 function setOrgInfo(org: Organization): void {
   if (!isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN)) {
-    void router.push({ name: "orgs", params: { page: "", orgId: org.id } });
+    void router.replace({
+      name: "orgs",
+      params: { action: "manage", page: "main", orgId: org.id },
+    });
   }
 }
 

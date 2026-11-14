@@ -152,6 +152,13 @@ export class OrgIntegrationsPage {
     await this.shell.goto(`/orgs/add/integrations/${ORG}?provider=${provider}`);
   }
 
+  /** The address the "Replace token" action leads to. */
+  async gotoReplace(provider: "GITHUB" | "GITLAB", id: string): Promise<void> {
+    await this.shell.goto(
+      `/orgs/add/integrations/${ORG}?provider=${provider}&update=${id}`,
+    );
+  }
+
   async gotoManage(provider: "GITHUB" | "GITLAB", id: string): Promise<void> {
     await this.shell.goto(
       `/orgs/edit/integrations/${ORG}?provider=${provider}&integrationId=${id}`,

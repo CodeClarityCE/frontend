@@ -59,14 +59,13 @@ const versionStatus = computed((): { tone: StatusTone; label: string } => {
   return { tone: "neutral", label: `Update available (${latest_version})` };
 });
 
+// Worded like the installed version's release time, so the two agree.
 const age = computed(() => {
-  if (!props.dependency.release_date) return "Unknown";
-  const days = calculateDateDifference(
-    new Date(),
-    props.dependency.release_date,
-    "days",
+  if (!isValidDate(props.dependency.release_date)) return "Unknown";
+  return formatRelativeTime(props.dependency.release_date).replace(
+    / ago$/,
+    " old",
   );
-  return `${humanDays(days)} old`;
 });
 
 const ENGINE_LOGOS: Record<string, string> = {

@@ -25,6 +25,7 @@ import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { serverFeatures } from "@/utils/server-features";
 
 import TextLink from "../layout/TextLink.vue";
 
@@ -183,7 +184,7 @@ async function submit(values: {
       Sign in
     </Button>
     <p v-if="loading" role="status" class="sr-only">Connecting</p>
-    <div class="text-center text-sm">
+    <div v-if="serverFeatures.passwordReset" class="text-center text-sm">
       <TextLink :to="{ name: 'recoveryRequest' }">
         Forgot your password?
       </TextLink>

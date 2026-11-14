@@ -61,7 +61,7 @@ export function dependency(
     deprecated: false,
     deprecated_message: "",
     outdated: false,
-    licenses: [{ id: "MIT" }],
+    license: "MIT",
     release: "2024-05-01T00:00:00Z",
     ...overrides,
   };
@@ -362,6 +362,18 @@ export interface ResultTabsOptions {
   dependencies?: Record<string, unknown>[];
   licenses?: Record<string, unknown>[];
   codeql?: Record<string, unknown>[];
+  /** The SBOM workspaces answer, with its package managers. */
+  workspaces?: {
+    workspaces: string[];
+    package_manager: string;
+    package_managers?: Record<string, string>;
+  };
+  /** The dependency details answer, merged over the lodash sample. */
+  details?: Record<string, unknown>;
+  /** The dependency graph answer. */
+  graph?: Record<string, unknown>[];
+  /** The vulnerability stats answer. */
+  vulnStats?: Record<string, unknown>;
   /** Keeps the tab's main requests pending until the returned function runs. */
   hold?: boolean;
   /** Leaves the real clock: the fixed one stops menus moving focus. */
@@ -425,7 +437,11 @@ export class ResultTabsPage {
           return fulfil(route, { data: analysis });
         if (path === `${results}/sbom/workspaces`)
           return fulfil(route, {
-            data: { workspaces: ["."], package_manager: "NPM" },
+            data: options.workspaces ?? {
+              workspaces: ["."],
+              package_manager: "NPM",
+              package_managers: { ".": "NPM" },
+            },
           });
         if (path === `${results}/sbom/stats`) {
           await wait();
@@ -437,12 +453,14 @@ export class ResultTabsPage {
           return fulfil(route, paginated(deps, page, perPage));
         if (path === `${results}/sbom/dependency`) {
           await wait();
-          return fulfil(route, { data: sampleDetails });
+          return fulfil(route, {
+            data: { ...sampleDetails, ...options.details },
+          });
         }
         if (path === `${results}/sbom/dependency/graph`)
-          return fulfil(route, { data: graph });
+          return fulfil(route, { data: options.graph ?? graph });
         if (path === `${results}/vulnerabilities/stats`)
-          return fulfil(route, { data: vulnStats });
+          return fulfil(route, { data: options.vulnStats ?? vulnStats });
         if (path === `${results}/licenses`) {
           await wait();
           return fulfil(

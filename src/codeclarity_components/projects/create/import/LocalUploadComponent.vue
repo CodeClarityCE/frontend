@@ -24,7 +24,7 @@ import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { guardSubmit } from "@/utils/form/guardSubmit";
-import { errorToast, successToast } from "@/utils/toasts";
+import { successToast } from "@/utils/toasts";
 
 // Cancel hands control back to the import method picker.
 const emit = defineEmits<{ cancel: [] }>();
@@ -100,6 +100,8 @@ function handleFileSelect(event: Event): void {
       uploadError.value =
         "Invalid file type. Please upload a ZIP or TAR.GZ archive.";
       selectedFile.value = null;
+      // Drop the rejected file so the input does not still show it.
+      input.value = "";
     }
   }
 }
@@ -154,6 +156,7 @@ const submitForm = form.handleSubmit(async (values) => {
   isUploading.value = true;
   uploadProgress.value = 0;
   uploadError.value = null;
+  let projectCreated = false;
 
   try {
     // Step 1: Create the FILE project
@@ -165,9 +168,11 @@ const submitForm = form.handleSubmit(async (values) => {
       },
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
 
     const projectId = projectResponse.id;
+    projectCreated = true;
 
     // Step 2: Upload the file
     await fileRepo.uploadFile({
@@ -184,12 +189,10 @@ const submitForm = form.handleSubmit(async (values) => {
 
     // Navigate to projects list
     void router.push({ name: "projects" });
-  } catch (err) {
-    uploadError.value =
-      err instanceof Error
-        ? err.message
-        : "Failed to create project or upload file.";
-    errorToast("Failed to create project or upload file.");
+  } catch {
+    uploadError.value = projectCreated
+      ? "The project was created, but the archive could not be uploaded."
+      : "The project could not be created. Please try again.";
   } finally {
     isUploading.value = false;
   }

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type Ref, ref } from "vue";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import {
@@ -8,37 +9,34 @@ import {
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
+import OrgNotFound from "@/codeclarity_components/organizations/subcomponents/OrgNotFound.vue";
 import router from "@/router";
 
 import OrgIntegrationAddClickUp from "./clickup/AddClickUp.vue";
 import OrgIntegrationAddGithub from "./github/AddGithub.vue";
 import OrgIntegrationAddGitlab from "./gitlab/AddGitlab.vue";
 
-const provider: Ref<IntegrationProvider> = ref(IntegrationProvider.GITHUB);
-
-// Props
 defineProps<{
   orgId: string;
   page: string;
 }>();
 
-const orgInfo: Ref<Organization | undefined> = ref();
+const route = useRoute();
+// Without a provider the GitHub form opens.
+const provider = computed(() =>
+  typeof route.query.provider === "string"
+    ? route.query.provider
+    : IntegrationProvider.GITHUB,
+);
 
-function setOrgInfo(_orgInfo: Organization): void {
-  orgInfo.value = _orgInfo;
-  if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-    void router.push({
+// Only admins add integrations; others go to the organisation overview.
+function setOrgInfo(orgInfo: Organization): void {
+  if (!isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)) {
+    void router.replace({
       name: "orgs",
-      params: { page: "", orgId: _orgInfo.id },
+      params: { action: "manage", page: "main", orgId: orgInfo.id },
     });
   }
-}
-
-const providerQuery = new URLSearchParams(window.location.search).get(
-  "provider",
-);
-if (providerQuery) {
-  provider.value = providerQuery as IntegrationProvider;
 }
 </script>
 <template>
@@ -53,11 +51,17 @@ if (providerQuery) {
         v-if="provider === IntegrationProvider.GITHUB"
       ></OrgIntegrationAddGithub>
       <OrgIntegrationAddGitlab
-        v-if="provider === IntegrationProvider.GITLAB"
+        v-else-if="provider === IntegrationProvider.GITLAB"
       ></OrgIntegrationAddGitlab>
       <OrgIntegrationAddClickUp
-        v-if="provider === IntegrationProvider.CLICKUP"
+        v-else-if="provider === IntegrationProvider.CLICKUP"
       ></OrgIntegrationAddClickUp>
+      <OrgNotFound
+        v-else
+        :org-id="orgId"
+        subject="Integration"
+        description="CodeClarity has no integration of this kind."
+      />
     </div>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnDef } from "@tanstack/vue-table";
+import { computed } from "vue";
 
 import { DataTable } from "@/base_components/data-table";
 import { StatusBadge, type StatusTone } from "@/base_components/page";
@@ -32,6 +33,15 @@ function updateStatus(dep: Dependency): UpdateStatus | null {
     return { label: "Minor update", tone: "neutral" };
   return { label: "Patch update", tone: "neutral" };
 }
+
+// By name, so the table reads A to Z when no column is sorted.
+const rows = computed(() =>
+  [...props.dependencies].sort(
+    (a, b) =>
+      (a.name ?? "").localeCompare(b.name ?? "") ||
+      (a.version ?? "").localeCompare(b.version ?? ""),
+  ),
+);
 
 function isDirect(dep: Dependency): boolean {
   return dep.is_direct_count > 0 || dep.is_direct;
@@ -104,7 +114,7 @@ function detailsRoute(dep: Dependency): Record<string, unknown> {
     </h3>
     <DataTable
       :columns="columns"
-      :data="dependencies"
+      :data="rows"
       :row-key="rowKey"
       :initial-sorting="[{ id: 'name', desc: false }]"
       caption="Dependencies"

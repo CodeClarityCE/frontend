@@ -92,7 +92,7 @@ let wrapper: VueWrapper | undefined;
 
 async function render(): Promise<void> {
   wrapper = mount(PoliciesList, {
-    props: { page: "policy", orgId: "org-1" },
+    props: { page: "policy", orgId: "org-1", canManage: true },
     attachTo: document.body,
   });
   await flushPromises();

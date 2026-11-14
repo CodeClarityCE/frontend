@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, type Ref, ref } from "vue";
+import { computed, onMounted, type Ref, ref, watch } from "vue";
 
 import EcosystemBadge from "@/base_components/ui/EcosystemBadge.vue";
 import {
@@ -137,6 +137,16 @@ function detectAvailableEcosystems(): void {
   availableEcosystems.value = ecosystems;
 }
 
+// Emits the selected workspace's package manager, else the analysis one.
+function emitPackageManager(): void {
+  const manager =
+    workspaces.value.package_managers?.[selected_workspace.value] ??
+    workspaces.value.package_manager;
+  if (manager) void emit("package-manager-loaded", manager);
+}
+
+watch(selected_workspace, emitPackageManager);
+
 async function getSbomWorkspaces(): Promise<void> {
   if (!userStore.getDefaultOrg) return;
   if (!(authStore.getAuthenticated && authStore.getToken)) return;
@@ -149,11 +159,7 @@ async function getSbomWorkspaces(): Promise<void> {
       handleBusinessErrors: true,
     });
     workspaces.value = res.data;
-
-    // Emit package manager information
-    if (res.data.package_manager) {
-      void emit("package-manager-loaded", res.data.package_manager);
-    }
+    emitPackageManager();
   } catch {
     error.value = true;
   }

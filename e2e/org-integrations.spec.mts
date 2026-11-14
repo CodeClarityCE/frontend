@@ -176,6 +176,57 @@ test.describe("Managing an integration", () => {
   });
 });
 
+test.describe("Replacing a token", () => {
+  test("GitHub offers to replace its token", async ({ page }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoManage("GITHUB", "gh-1");
+
+    await expect(
+      page.getByRole("link", { name: "Replace token" }),
+    ).toBeVisible();
+  });
+
+  test("GitLab says replacing is unavailable and how to use a new token", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoManage("GITLAB", "gl-1");
+
+    await expect(
+      page.getByRole("heading", { name: "GitLab integration" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Replace token" })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByText(
+        "Replacing a GitLab token is not available yet. To use a new token, delete this integration and connect GitLab again.",
+      ),
+    ).toBeVisible();
+    await expect(page.getByText(/"Replace token"/)).toHaveCount(0);
+  });
+
+  test("the GitLab replace address shows the same message instead of a form", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoReplace("GITLAB", "gl-1");
+
+    await expect(
+      page.getByRole("heading", {
+        name: "Replacing a GitLab token is not available",
+      }),
+    ).toBeVisible();
+    await expect(page.getByLabel("GitLab personal access token")).toHaveCount(
+      0,
+    );
+    await expectNoAxeViolations(page);
+  });
+});
+
 test.describe("Integrations accessibility and looks", () => {
   test("the list passes axe (WCAG 2.2 AA)", async ({ page }) => {
     const integrations = new OrgIntegrationsPage(page);

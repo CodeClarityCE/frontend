@@ -126,7 +126,7 @@ export function orgSettingsSubItems(
     ...(team ? [members, invites] : []),
     ...(admin ? [integrations, analyzers] : []),
     policies,
-    logs,
+    ...(moderator ? [logs] : []),
   ];
 }
 

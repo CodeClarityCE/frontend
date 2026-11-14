@@ -6,6 +6,8 @@ import type { Organization } from "@/codeclarity_components/organizations/organi
 interface UserStoreState {
   user?: AuthenticatedUser;
   defaultOrg?: Organization;
+  // The organisation whose settings pages are open, which may not be the default one.
+  viewedOrg?: Organization;
 }
 
 export const useUserStore = defineStore("user", {
@@ -13,6 +15,7 @@ export const useUserStore = defineStore("user", {
     return {
       user: undefined,
       defaultOrg: undefined,
+      viewedOrg: undefined,
     };
   },
 
@@ -23,6 +26,9 @@ export const useUserStore = defineStore("user", {
     getDefaultOrg(state: UserStoreState) {
       return state.defaultOrg;
     },
+    getViewedOrg(state: UserStoreState) {
+      return state.viewedOrg;
+    },
   },
 
   actions: {
@@ -32,6 +38,9 @@ export const useUserStore = defineStore("user", {
     setDefaultOrg: function (defaultOrg: Organization) {
       this.defaultOrg = defaultOrg;
       if (this.user) this.user.default_org.id = defaultOrg.id;
+    },
+    setViewedOrg: function (org: Organization) {
+      this.viewedOrg = org;
     },
   },
 });

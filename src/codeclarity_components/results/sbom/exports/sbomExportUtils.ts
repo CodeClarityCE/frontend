@@ -2,7 +2,7 @@
  * Utility functions for exporting SBOM data in various formats
  */
 
-import type { License } from "@/codeclarity_components/results/graph.entity";
+import { hasUpdate } from "../utils/sbomUtils";
 
 export type ExportFormat = "csv" | "json" | "cyclonedx" | "html";
 
@@ -17,7 +17,9 @@ export interface ExportDependency {
   outdated?: boolean;
   deprecated?: boolean;
   purl?: string;
-  licenses?: License[];
+  // An SPDX expression, e.g. "MIT" or "(BSD-3-Clause OR GPL-2.0)"
+  license?: string;
+  ecosystem?: string;
 }
 
 export interface ExportOptions {
@@ -431,8 +433,61 @@ function getUpdateInstructions(
   return "Up to date";
 }
 
+const PURL_TYPES: Record<string, string> = {
+  npm: "npm",
+  packagist: "composer",
+  pypi: "pypi",
+  cargo: "cargo",
+};
+
+// The dependency's package URL, built from its name when the API sent none.
+function packageUrl(dep: ExportDependency): string {
+  if (dep.purl) return dep.purl;
+  const type = PURL_TYPES[dep.ecosystem ?? "npm"] ?? "generic";
+  const path = dep.name.split("/").map(encodeURIComponent).join("/");
+  return `pkg:${type}/${path}@${encodeURIComponent(dep.version)}`;
+}
+
+const SPDX_ID = /^[A-Za-z0-9.+-]+$/;
+
+// Whether the text reads as an SPDX expression: ids joined by AND, OR or WITH.
+function isSpdxExpression(text: string): boolean {
+  const tokens = text.replace(/[()]/g, " $& ").trim().split(/\s+/);
+  let depth = 0;
+  let wantId = true;
+  for (const token of tokens) {
+    switch (token) {
+      case "(":
+        if (!wantId) return false;
+        depth++;
+        break;
+      case ")":
+        if (wantId || --depth < 0) return false;
+        break;
+      case "AND":
+      case "OR":
+      case "WITH":
+        if (wantId) return false;
+        wantId = true;
+        break;
+      default:
+        if (!wantId || !SPDX_ID.test(token)) return false;
+        wantId = false;
+    }
+  }
+  return depth === 0 && !wantId;
+}
+
+function cycloneDxLicenses(license: string | undefined): object[] | undefined {
+  const text = license?.trim();
+  if (!text) return undefined;
+  return isSpdxExpression(text)
+    ? [{ expression: text }]
+    : [{ license: { name: text } }];
+}
+
 /**
- * Converts dependencies to CycloneDX format
+ * Converts dependencies to CycloneDX 1.4 JSON
  */
 export function convertToCycloneDX(
   dependencies: ExportDependency[],
@@ -446,42 +501,34 @@ export function convertToCycloneDX(
     version: 1,
     metadata: {
       timestamp: new Date().toISOString(),
-      tools: [
-        {
-          vendor: "CodeClarity",
-          name: "CodeClarity SBOM Generator",
-          version: "1.0.0",
-        },
-      ],
+      tools: [{ vendor: "CodeClarity", name: "CodeClarity" }],
       component: {
         type: "application",
-        name: options.projectName ?? options.projectId,
-        version: "1.0.0",
+        name: options.projectName || options.projectId,
       },
     },
-    components: sortedDeps.map((dep) => ({
-      type: "library",
-      "bom-ref": dep.purl ?? `pkg:generic/${dep.name}@${dep.version}`,
-      name: dep.name,
-      version: dep.version,
-      purl: dep.purl,
-      licenses:
-        dep.licenses && dep.licenses.length > 0
-          ? dep.licenses.map((license: License) => ({
-              license: {
-                id: license.id ?? license.name ?? "UNKNOWN",
-              },
-            }))
-          : [],
-      properties: [
-        {
-          name: "codeclarity:is_direct",
-          value: String(dep.is_direct_count > 0 || dep.is_direct),
-        },
-        { name: "codeclarity:is_deprecated", value: String(dep.deprecated) },
-        { name: "codeclarity:is_outdated", value: String(dep.outdated) },
-      ],
-    })),
+    components: sortedDeps.map((dep) => {
+      const purl = packageUrl(dep);
+      return {
+        type: "library",
+        "bom-ref": purl,
+        name: dep.name,
+        version: dep.version,
+        purl,
+        licenses: cycloneDxLicenses(dep.license),
+        properties: [
+          {
+            name: "codeclarity:is_direct",
+            value: String(dep.is_direct_count > 0 || !!dep.is_direct),
+          },
+          {
+            name: "codeclarity:is_deprecated",
+            value: String(!!dep.deprecated),
+          },
+          { name: "codeclarity:is_outdated", value: String(hasUpdate(dep)) },
+        ],
+      };
+    }),
   };
 
   return JSON.stringify(cycloneDX, null, 2);

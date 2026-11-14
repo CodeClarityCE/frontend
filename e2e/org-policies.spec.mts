@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { licensePolicy, OrgPoliciesPage } from "./pages/org-policies.page.mjs";
+import {
+  license,
+  licensePolicy,
+  OrgPoliciesPage,
+} from "./pages/org-policies.page.mjs";
 
 // The organisation header (HeaderItem) still shows a white-on-green badge.
 
@@ -250,6 +254,25 @@ test.describe("License policy form", () => {
     expect(policies.writes).toEqual([
       "POST /org/org-123/policies/license_policy",
     ]);
+  });
+
+  test("filtering the licenses puts exact matches first", async ({ page }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn({
+      licenses: [
+        license("MIT-0", "MIT No Attribution"),
+        license("MIT-CMU", "CMU License"),
+        license("Apache-2.0", "Apache License 2.0"),
+        license("MIT", "MIT License"),
+      ],
+    });
+    await policies.gotoCreateLicense();
+
+    await page.getByRole("searchbox", { name: "Filter licenses" }).fill("mit");
+
+    const rows = policies.rows("Licenses");
+    await expect(rows).toHaveCount(3);
+    await expect(rows.first()).toContainText("MIT License");
   });
 
   test("editing loads the saved policy into the form without errors", async ({

@@ -26,6 +26,7 @@ import {
   type ExternalLink,
   type ExternalTicketProvider,
   type IntegrationConfigSummary,
+  type IntegrationCredentials,
   type IntegrationHierarchyItem,
   type SyncFromExternalResult,
   type SyncResult,
@@ -122,10 +123,17 @@ export interface TestIntegrationRequestOptions extends AuthRepoMethodGetRequestO
   provider: ExternalTicketProvider;
 }
 
+export interface VerifyIntegrationRequestOptions extends AuthRepoMethodPostRequestOptions<IntegrationCredentials> {
+  orgId: string;
+  provider: ExternalTicketProvider;
+}
+
 export interface GetHierarchyRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   provider: ExternalTicketProvider;
   parentId?: string;
+  /** Unsaved credentials to use instead of the saved ones. */
+  credentials?: IntegrationCredentials | undefined;
 }
 
 export interface CreateHierarchyItemRequestOptions extends AuthRepoMethodPostRequestOptions<{
@@ -134,6 +142,23 @@ export interface CreateHierarchyItemRequestOptions extends AuthRepoMethodPostReq
   orgId: string;
   provider: ExternalTicketProvider;
   parentId: string;
+  /** Unsaved credentials to use instead of the saved ones. */
+  credentials?: IntegrationCredentials | undefined;
+}
+
+// Sends unsaved credentials as headers, so the API uses them without storing them.
+function credentialHeaders(
+  credentials: IntegrationCredentials | undefined,
+): Headers | undefined {
+  if (!credentials?.api_key && !credentials?.access_token) return undefined;
+  const headers = new Headers();
+  if (credentials.api_key) {
+    headers.append("x-integration-api-key", credentials.api_key);
+  }
+  if (credentials.access_token) {
+    headers.append("x-integration-access-token", credentials.access_token);
+  }
+  return headers;
 }
 
 export interface SyncTicketRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -615,6 +640,32 @@ export class TicketsRepository extends BaseRepository {
   }
 
   /**
+   * Check credentials without saving them
+   */
+  async verifyIntegration(
+    options: VerifyIntegrationRequestOptions,
+  ): Promise<DataResponse<ConnectionTestResult>> {
+    const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/${options.provider}/verify`;
+
+    const response = await this.postRequest<
+      DataResponse<ConnectionTestResult>,
+      IntegrationCredentials
+    >({
+      bearerToken: options.bearerToken,
+      data: options.data,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<ConnectionTestResult>>(
+      response,
+      DataResponse<ConnectionTestResult>,
+    );
+  }
+
+  /**
    * Test an integration connection
    */
   async testIntegration(
@@ -651,6 +702,7 @@ export class TicketsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<IntegrationHierarchyItem[]>
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -675,6 +727,7 @@ export class TicketsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<IntegrationHierarchyItem[]>
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -699,6 +752,7 @@ export class TicketsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<IntegrationHierarchyItem[]>
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -723,6 +777,7 @@ export class TicketsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<IntegrationHierarchyItem[]>
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -752,6 +807,7 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem>,
       { name: string }
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
@@ -778,6 +834,7 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem>,
       { name: string }
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
@@ -804,6 +861,7 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem>,
       { name: string }
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
@@ -830,6 +888,7 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem>,
       { name: string }
     >({
+      headers: credentialHeaders(options.credentials),
       bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),

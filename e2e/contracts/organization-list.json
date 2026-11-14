@@ -103,12 +103,12 @@
         }
       }
     ],
-    "page": 1,
-    "entry_count": 1,
-    "entries_per_page": 1,
-    "total_entries": 1,
+    "page": 0,
+    "entry_count": 2,
+    "entries_per_page": 50,
+    "total_entries": 2,
     "total_pages": 1,
-    "matching_count": 1,
+    "matching_count": 2,
     "filter_count": {}
   }
 }

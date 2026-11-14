@@ -70,15 +70,15 @@ const policyType = computed(() =>
   props.page.includes("vulnerability") ? "vulnerability" : "license",
 );
 
-// Only admins may add or edit policies; others go back to the list.
+// Only admins add or edit policies; others see the list without those actions.
+const canManage = ref(false);
+
 function checkRole(org: Organization): void {
-  if (
-    isForm.value &&
-    !isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN)
-  ) {
+  canManage.value = isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN);
+  if (isForm.value && !canManage.value) {
     void router.replace({
       name: "orgs",
-      params: { action: "manage", page: "policies", orgId: props.orgId },
+      params: { action: "manage", page: "main", orgId: props.orgId },
     });
   }
 }
@@ -102,10 +102,18 @@ function checkRole(org: Organization): void {
           >
         </TabsList>
         <TabsContent value="license" class="mt-0">
-          <LicensePoliciesList :page="page" :org-id="orgId" />
+          <LicensePoliciesList
+            :page="page"
+            :org-id="orgId"
+            :can-manage="canManage"
+          />
         </TabsContent>
         <TabsContent value="vulnerability" class="mt-0">
-          <VulnerabilityPolicyList :page="page" :org-id="orgId" />
+          <VulnerabilityPolicyList
+            :page="page"
+            :org-id="orgId"
+            :can-manage="canManage"
+          />
         </TabsContent>
       </Tabs>
     </template>

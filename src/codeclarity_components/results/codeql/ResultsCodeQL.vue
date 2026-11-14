@@ -71,6 +71,8 @@ async function load(): Promise<void> {
       type: "codeql",
       bearerToken: authStore.getToken ?? "",
       runIndex: props.runIndex,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     if (request !== latestRequest) return;
     createdOn.value = res.data.created_on;

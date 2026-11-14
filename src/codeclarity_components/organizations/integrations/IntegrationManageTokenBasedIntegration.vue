@@ -31,7 +31,8 @@ import { integrationHealth } from "./integration-status";
 const props = defineProps<{
   name: string;
   integration?: AccessTokenBasedIntegration;
-  updateRoute: RouteLocationRaw;
+  // Left out when the server cannot replace this provider's token.
+  updateRoute?: RouteLocationRaw | undefined;
   loading?: boolean;
   error?: boolean;
   errorCode?: string;
@@ -44,6 +45,8 @@ const emit = defineEmits<{
 }>();
 
 const confirmOpen = ref(false);
+
+const canReplace = computed(() => props.updateRoute !== undefined);
 
 const health = computed(() =>
   props.integration ? integrationHealth(props.integration) : undefined,
@@ -106,9 +109,13 @@ const errorText = computed(() => {
       >
         <TriangleAlert aria-hidden="true" class="size-4" />
         <AlertTitle>The token expires soon</AlertTitle>
-        <AlertDescription>
+        <AlertDescription v-if="canReplace">
           Replace it with "Replace token" before it expires, or analyses of its
           repositories stop.
+        </AlertDescription>
+        <AlertDescription v-else>
+          Before it expires, delete this integration and connect {{ name }}
+          again with a new token, or analyses of its repositories stop.
         </AlertDescription>
       </Alert>
 
@@ -157,10 +164,19 @@ const errorText = computed(() => {
           </h3>
         </CardHeader>
         <CardContent class="flex flex-wrap gap-3">
-          <Button :as="RouterLink" :to="updateRoute" variant="outline">
+          <Button
+            v-if="updateRoute"
+            :as="RouterLink"
+            :to="updateRoute"
+            variant="outline"
+          >
             <RefreshCw aria-hidden="true" />
             Replace token
           </Button>
+          <p v-else class="w-full text-sm text-muted-foreground">
+            Replacing a {{ name }} token is not available yet. To use a new
+            token, delete this integration and connect {{ name }} again.
+          </p>
           <slot name="extra-action" />
           <Button variant="destructive" @click="confirmOpen = true">
             <Trash2 aria-hidden="true" />
@@ -206,8 +222,12 @@ const errorText = computed(() => {
                 <dl class="flex flex-col gap-3">
                   <div>
                     <dt class="font-medium">The token is invalid or expired</dt>
-                    <dd class="text-muted-foreground">
+                    <dd v-if="canReplace" class="text-muted-foreground">
                       Create a new token and add it with "Replace token".
+                    </dd>
+                    <dd v-else class="text-muted-foreground">
+                      Create a new token, delete this integration and connect
+                      {{ name }} again with it.
                     </dd>
                   </div>
                   <div>

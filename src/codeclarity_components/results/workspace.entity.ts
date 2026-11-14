@@ -6,4 +6,7 @@ export class WorkspacesOutput {
 
   @IsNotEmpty()
   package_manager!: string;
+
+  // Package manager of each workspace; older APIs leave it out.
+  package_managers?: Record<string, string>;
 }

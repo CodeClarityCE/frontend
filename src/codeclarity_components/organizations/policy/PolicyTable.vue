@@ -23,6 +23,7 @@ const props = defineProps<{
   // What the content column counts, like "Licenses".
   contentLabel: string;
   loading?: boolean;
+  canEdit?: boolean;
   canDelete?: boolean;
 }>();
 
@@ -71,12 +72,17 @@ const columns = computed<ColumnDef<TPolicy, unknown>[]>(() => [
     header: "Created",
     enableGlobalFilter: false,
   },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    enableGlobalFilter: false,
-  },
+  // Roles that may not change policies get no actions column.
+  ...(props.canEdit || props.canDelete
+    ? [
+        {
+          id: "actions",
+          header: "Actions",
+          enableSorting: false,
+          enableGlobalFilter: false,
+        },
+      ]
+    : []),
 ]);
 </script>
 
@@ -119,6 +125,7 @@ const columns = computed<ColumnDef<TPolicy, unknown>[]>(() => [
     <template #cell-actions="{ row }">
       <div class="flex items-center gap-1">
         <Button
+          v-if="canEdit"
           variant="ghost"
           size="icon-sm"
           :aria-label="`Edit ${row.name}`"

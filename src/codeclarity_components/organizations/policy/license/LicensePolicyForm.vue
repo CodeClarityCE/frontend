@@ -57,6 +57,9 @@ const licenses = ref<License[]>([]);
 const loadingLicenses = ref(true);
 const submitting = ref(false);
 const failure = ref("");
+// An edit form stays disabled until its policy has loaded
+const policyLoaded = ref(false);
+const formDisabled = computed(() => isEdit.value && !policyLoaded.value);
 
 const formSchema = z.object({
   name: z
@@ -104,7 +107,7 @@ const listRoute = computed(() => ({
 }));
 
 const onSubmit = handleSubmit(async (form): Promise<void> => {
-  if (!authStore.getToken || submitting.value) return;
+  if (!authStore.getToken || submitting.value || formDisabled.value) return;
   submitting.value = true;
   failure.value = "";
   const data = {
@@ -158,7 +161,11 @@ async function loadLicenses(): Promise<void> {
 }
 
 async function loadPolicy(): Promise<void> {
-  if (!isEdit.value || !policyId.value || !authStore.getToken) return;
+  if (!isEdit.value || !authStore.getToken) return;
+  if (!policyId.value) {
+    failure.value = "The license policy could not be loaded.";
+    return;
+  }
   try {
     const response = await licensePolicyRepository.getLicensePolicy({
       orgId: props.orgId,
@@ -167,13 +174,17 @@ async function loadPolicy(): Promise<void> {
       handleBusinessErrors: true,
     });
     const policy = response.data;
-    setValues({
-      name: policy.name,
-      description: policy.description ?? "",
-      type: policy.policy_type,
-      isDefault: policy.default,
-      licenses: policy.content ?? [],
-    });
+    // The server keeps no allow or block type, so that field stays to pick
+    setValues(
+      {
+        name: policy.name,
+        description: policy.description ?? "",
+        isDefault: policy.default,
+        licenses: policy.content ?? [],
+      },
+      false,
+    );
+    policyLoaded.value = true;
   } catch {
     failure.value = "The license policy could not be loaded.";
   }
@@ -213,126 +224,131 @@ onBeforeMount(() => {
 
     <Card class="rounded-card shadow-card">
       <CardContent class="pt-6">
-        <form class="flex flex-col gap-6" novalidate @submit="onSubmit">
-          <FormField v-slot="{ componentField }" name="name">
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Permissive licenses only"
-                  v-bind="filterUndefined(componentField)"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField v-slot="{ componentField }" name="description">
-            <FormItem>
-              <FormLabel>Description (optional)</FormLabel>
-              <FormControl>
-                <Textarea rows="2" v-bind="filterUndefined(componentField)" />
-              </FormControl>
-              <FormDescription>
-                Tell your team what this policy is for.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField v-slot="{ componentField }" name="type">
-            <FormItem>
-              <FormLabel>Type</FormLabel>
-              <Select v-bind="filterUndefined(componentField)">
-                <FormControl>
-                  <SelectTrigger class="max-w-sm">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem :value="LicensePolicyType.WHITELIST">
-                    {{ policyTypeLabel(LicensePolicyType.WHITELIST) }}: only the
-                    picked licenses
-                  </SelectItem>
-                  <SelectItem :value="LicensePolicyType.BLACKLIST">
-                    {{ policyTypeLabel(LicensePolicyType.BLACKLIST) }}: every
-                    license but the picked ones
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField
-            v-slot="{ value, handleChange }"
-            type="checkbox"
-            name="isDefault"
+        <form novalidate @submit="onSubmit">
+          <fieldset
+            class="flex min-w-0 flex-col gap-6"
+            :disabled="formDisabled"
           >
-            <FormItem class="flex flex-row items-start gap-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  :model-value="value"
-                  @update:model-value="handleChange"
-                />
-              </FormControl>
-              <div class="flex flex-col gap-1">
-                <FormLabel>Make this the default policy</FormLabel>
+            <FormField v-slot="{ componentField }" name="name">
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Permissive licenses only"
+                    v-bind="filterUndefined(componentField)"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ componentField }" name="description">
+              <FormItem>
+                <FormLabel>Description (optional)</FormLabel>
+                <FormControl>
+                  <Textarea rows="2" v-bind="filterUndefined(componentField)" />
+                </FormControl>
                 <FormDescription>
-                  New projects in this organisation use it.
+                  Tell your team what this policy is for.
                 </FormDescription>
-              </div>
-            </FormItem>
-          </FormField>
+                <FormMessage />
+              </FormItem>
+            </FormField>
 
-          <FormField name="licenses">
-            <FormItem>
-              <fieldset class="flex flex-col gap-3">
-                <legend class="text-sm font-medium leading-none">
-                  Licenses
-                </legend>
-                <p role="status" class="text-sm text-muted-foreground">
-                  {{ selected.size }}
-                  {{ selected.size === 1 ? "license" : "licenses" }} picked
-                </p>
-                <DataTable
-                  :columns="columns"
-                  :data="licenses"
-                  :loading="loadingLicenses"
-                  :row-key="(license: License) => license.licenseId"
-                  :page-size="10"
-                  caption="Licenses"
-                  filter-label="Filter licenses"
-                  empty-text="No licenses match."
-                >
-                  <template #cell-include="{ row }">
-                    <Checkbox
-                      :model-value="selected.has(row.licenseId)"
-                      :aria-label="`Include ${row.licenseId}`"
-                      @update:model-value="
-                        toggleLicense(row.licenseId, $event === true)
-                      "
-                    />
-                  </template>
-                </DataTable>
-              </fieldset>
-              <FormMessage />
-            </FormItem>
-          </FormField>
+            <FormField v-slot="{ componentField }" name="type">
+              <FormItem>
+                <FormLabel>Type</FormLabel>
+                <Select v-bind="filterUndefined(componentField)">
+                  <FormControl>
+                    <SelectTrigger class="max-w-sm">
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem :value="LicensePolicyType.WHITELIST">
+                      {{ policyTypeLabel(LicensePolicyType.WHITELIST) }}: only
+                      the picked licenses
+                    </SelectItem>
+                    <SelectItem :value="LicensePolicyType.BLACKLIST">
+                      {{ policyTypeLabel(LicensePolicyType.BLACKLIST) }}: every
+                      license but the picked ones
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            </FormField>
 
-          <div class="flex justify-end gap-3">
-            <Button variant="outline" :as="RouterLink" :to="listRoute">
-              Cancel
-            </Button>
-            <Button type="submit" :disabled="submitting">
-              <LoaderCircle
-                v-if="submitting"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
-              {{ isEdit ? "Save policy" : "Create policy" }}
-            </Button>
-          </div>
+            <FormField
+              v-slot="{ value, handleChange }"
+              type="checkbox"
+              name="isDefault"
+            >
+              <FormItem class="flex flex-row items-start gap-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    :model-value="value"
+                    @update:model-value="handleChange"
+                  />
+                </FormControl>
+                <div class="flex flex-col gap-1">
+                  <FormLabel>Make this the default policy</FormLabel>
+                  <FormDescription>
+                    New projects in this organisation use it.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            </FormField>
+
+            <FormField name="licenses">
+              <FormItem>
+                <fieldset class="flex flex-col gap-3">
+                  <legend class="text-sm font-medium leading-none">
+                    Licenses
+                  </legend>
+                  <p role="status" class="text-sm text-muted-foreground">
+                    {{ selected.size }}
+                    {{ selected.size === 1 ? "license" : "licenses" }} picked
+                  </p>
+                  <DataTable
+                    :columns="columns"
+                    :data="licenses"
+                    :loading="loadingLicenses"
+                    :row-key="(license: License) => license.licenseId"
+                    :page-size="10"
+                    caption="Licenses"
+                    filter-label="Filter licenses"
+                    empty-text="No licenses match."
+                  >
+                    <template #cell-include="{ row }">
+                      <Checkbox
+                        :model-value="selected.has(row.licenseId)"
+                        :aria-label="`Include ${row.licenseId}`"
+                        @update:model-value="
+                          toggleLicense(row.licenseId, $event === true)
+                        "
+                      />
+                    </template>
+                  </DataTable>
+                </fieldset>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <div class="flex justify-end gap-3">
+              <Button variant="outline" :as="RouterLink" :to="listRoute">
+                Cancel
+              </Button>
+              <Button type="submit" :disabled="submitting || formDisabled">
+                <LoaderCircle
+                  v-if="submitting"
+                  aria-hidden="true"
+                  class="animate-spin motion-reduce:animate-none"
+                />
+                {{ isEdit ? "Save policy" : "Create policy" }}
+              </Button>
+            </div>
+          </fieldset>
         </form>
       </CardContent>
     </Card>

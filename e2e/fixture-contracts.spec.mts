@@ -84,7 +84,6 @@ const contracts = [
     capture: licensePolicy,
     path: "/api/org/org-123/policies/license_policy/lp-1",
     signIn: (page: Page) => new OrgPoliciesPage(page).signIn(),
-    drift: "#131",
   },
 ];
 

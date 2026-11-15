@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, provide, ref, useId } from "vue";
 
+import { NativeSelect } from "@/shadcn/ui/native-select";
 import { saveBlob } from "@/utils/download";
 import { svgToPdf } from "@/utils/svg-pdf";
 import { loadPdfFonts } from "@/utils/svg-pdf/load-fonts";
@@ -125,10 +126,11 @@ const BUTTON =
     <div class="flex flex-wrap items-center gap-2 mt-1">
       <label class="text-xs text-muted-foreground">
         Width
-        <select
+        <NativeSelect
           v-model="preset"
           data-testid="export-preset"
-          class="text-xs border border-input rounded-control bg-background text-foreground"
+          wrapper-class="inline-block align-middle"
+          class="h-7 bg-background py-0 pl-2 pr-7 text-xs text-foreground"
         >
           <option
             v-for="(option, key) in EXPORT_PRESETS"
@@ -137,7 +139,7 @@ const BUTTON =
           >
             {{ option.label }}
           </option>
-        </select>
+        </NativeSelect>
       </label>
       <button
         type="button"

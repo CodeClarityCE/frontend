@@ -51,14 +51,14 @@ export function pluginsToAdd(
   return added;
 }
 
-/** Why a workflow of these plugins cannot be saved, or null when it can. */
+/** Why an analyzer of these plugins cannot be saved, or null when it can. */
 export function workflowProblem(plugins: Plugin[]): string | null {
-  if (plugins.length === 0) return "Add at least one plugin to the workflow.";
+  if (plugins.length === 0) return "Add at least one plugin to the analyzer.";
   const present = new Set(plugins.map((p) => p.name));
   for (const plugin of plugins) {
     const missing = missingDependencies(plugin, present);
     if (missing.length > 0) {
-      return `${plugin.name} needs ${missing.join(" and ")}. Add ${missing.length > 1 ? "them" : "it"} to the workflow.`;
+      return `${plugin.name} needs ${missing.join(" and ")}. Add ${missing.length > 1 ? "them" : "it"} to the analyzer.`;
     }
   }
   return null;

@@ -91,7 +91,7 @@ test.describe("Organisations list", () => {
       name: "Delete Test Organization",
     });
     await trigger.click();
-    const dialog = page.getByRole("dialog", {
+    const dialog = page.getByRole("alertdialog", {
       name: "Delete Test Organization?",
     });
     await expect(dialog).toBeVisible();
@@ -297,7 +297,7 @@ test.describe("Organisation overview", () => {
 
     const trigger = page.getByRole("button", { name: "Leave organisation" });
     await trigger.click();
-    const dialog = page.getByRole("dialog", {
+    const dialog = page.getByRole("alertdialog", {
       name: "Leave Test Organization?",
     });
     await expect(dialog).toBeVisible();
@@ -319,7 +319,7 @@ test.describe("Organisation overview", () => {
 
     await page.getByRole("button", { name: "Leave organisation" }).click();
     await page
-      .getByRole("dialog")
+      .getByRole("alertdialog")
       .getByRole("button", { name: "Leave organisation" })
       .click();
 
@@ -380,7 +380,7 @@ test.describe("Organisation overview", () => {
     await expectScreenshots(page, "org-overview");
 
     await page.getByRole("button", { name: "Delete organisation" }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
     // Measure contrast once the dialog has finished fading in.
     await page.evaluate(() =>
       Promise.all(document.getAnimations().map((a) => a.finished)),

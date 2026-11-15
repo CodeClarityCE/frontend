@@ -93,22 +93,17 @@ test.describe("Organisation members", () => {
     expect(members.deleted).toEqual(["/api/org/org-123/members/u-bob"]);
   });
 
-  test("a member's audit logs open filtered to them", async ({ page }) => {
+  test("member rows link to no audit logs, which cannot be read yet", async ({
+    page,
+  }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoMembers();
+    await expect(members.rows()).toHaveCount(3);
 
-    await members
-      .row("Alice Martin")
-      .getByRole("link", { name: "Audit logs of Alice Martin" })
-      .click();
-
-    await expect(page).toHaveURL(
-      /\/orgs\/manage\/logs\/org-123\/?\?search=alice(@|%40)example\.com$/,
-    );
-    await expect(members.heading).toHaveText("Audit logs");
-    await expect(members.rows()).toHaveCount(1);
-    await expect(members.rows()).toContainText("Removed eve@example.com");
+    await expect(
+      page.getByRole("link", { name: /^Audit logs of/ }),
+    ).toHaveCount(0);
   });
 
   test("a failed load says so and offers to try again", async ({ page }) => {
@@ -152,37 +147,24 @@ test.describe("Organisation members", () => {
 });
 
 test.describe("Organisation audit logs", () => {
-  test("lists every entry, newest first, with severity in words", async ({
-    page,
-  }) => {
+  test("says plainly that audit logs cannot be read yet", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoLogs();
 
     await expect(members.heading).toHaveText("Audit logs");
-    await expect(members.rows()).toHaveCount(3);
-    await expect(members.rows().first()).toContainText("Project create");
-    await expect(members.rows().first()).toContainText("Low");
-    await expect(members.row("Removed eve@example.com")).toContainText("High");
-    await expect(members.row("Updated Default analyzer")).toContainText(
-      "Medium",
-    );
-    await expect(members.row("Updated Default analyzer")).toContainText(
-      "No longer a member",
-    );
+    await expect(
+      page.getByText("Reading audit logs is not available yet."),
+    ).toBeVisible();
+    await expect(page.getByRole("table")).toHaveCount(0);
   });
 
-  test("entries for one member can be widened to everyone", async ({
-    page,
-  }) => {
+  test("a moderator is sent back to the overview", async ({ page }) => {
     const members = new OrgMembersPage(page);
-    await members.signIn();
-    await members.gotoLogs("alice@example.com");
+    await members.signIn({ org: { role: 2 } });
+    await members.gotoLogs();
 
-    await expect(members.rows()).toHaveCount(1);
-    await page.getByRole("link", { name: "Show everyone" }).click();
-
-    await expect(members.rows()).toHaveCount(3);
+    await expect(page).toHaveURL(/\/orgs\/manage\/main\/org-123\/?$/);
   });
 });
 
@@ -331,7 +313,11 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
       if (view === "members") await members.gotoMembers();
       if (view === "invites") await members.gotoInvites();
       if (view === "logs") await members.gotoLogs();
-      await expect(members.rows().first()).toBeVisible();
+      if (view === "logs") {
+        await expect(page.getByText(/not available yet/)).toBeVisible();
+      } else {
+        await expect(members.rows().first()).toBeVisible();
+      }
 
       await expectNoAxeViolations(page);
       await expectScreenshots(page, `org-${view}`);

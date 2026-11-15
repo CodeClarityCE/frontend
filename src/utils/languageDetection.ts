@@ -4,6 +4,7 @@ import {
 } from "@/codeclarity_components/analyses/analysis.entity";
 import type { Result } from "@/codeclarity_components/results/result.entity";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
+import { useUserStore } from "@/stores/user";
 
 import type { DetectedLanguage as SharedDetectedLanguage } from "./ecosystem-shared";
 
@@ -23,6 +24,16 @@ export const SUPPORTED_LANGUAGES: Record<string, DetectedLanguage> = {
 
 // Languages per completed analysis; its results never change, so each is fetched once.
 const detectedByAnalysis = new Map<string, Promise<DetectedLanguage[]>>();
+// The user the cache belongs to; another user starts with an empty cache.
+let cacheOwner: string | undefined;
+
+function cacheFor(userId: string | undefined): typeof detectedByAnalysis {
+  if (userId !== cacheOwner) {
+    detectedByAnalysis.clear();
+    cacheOwner = userId;
+  }
+  return detectedByAnalysis;
+}
 
 export class LanguageDetectionService {
   private resultsRepository: ResultsRepository;
@@ -90,7 +101,8 @@ export class LanguageDetectionService {
     analysis: Analysis,
     bearerToken: string,
   ): Promise<DetectedLanguage[]> {
-    const cached = detectedByAnalysis.get(analysis.id);
+    const cache = cacheFor(useUserStore().getUser?.id);
+    const cached = cache.get(analysis.id);
     if (cached) return cached;
     const detection = this.fetchProjectLanguages(
       orgId,
@@ -98,9 +110,9 @@ export class LanguageDetectionService {
       analysis,
       bearerToken,
     );
-    detectedByAnalysis.set(analysis.id, detection);
+    cache.set(analysis.id, detection);
     // A failed detection may be retried later.
-    detection.catch(() => detectedByAnalysis.delete(analysis.id));
+    detection.catch(() => cache.delete(analysis.id));
     return detection;
   }
 

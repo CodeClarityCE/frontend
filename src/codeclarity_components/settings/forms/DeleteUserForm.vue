@@ -29,7 +29,7 @@ import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
-import { guardSubmit } from "@/utils/form/guardSubmit";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -56,7 +56,7 @@ function onOpenChange(value: boolean): void {
   if (!value) form.resetForm({ values: { password: "" } });
 }
 
-const submitForm = form.handleSubmit(async (values): Promise<void> => {
+const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
   if (!user || !authStore.getToken) return;
   submitting.value = true;
@@ -79,9 +79,6 @@ const submitForm = form.handleSubmit(async (values): Promise<void> => {
     submitting.value = false;
   }
 });
-
-// Ignored while a submit is already running
-const onSubmit = guardSubmit(isSubmitting, submitForm);
 </script>
 
 <template>

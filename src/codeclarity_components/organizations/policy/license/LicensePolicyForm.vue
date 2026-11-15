@@ -35,7 +35,7 @@ import {
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
-import { guardSubmit } from "@/utils/form/guardSubmit";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { successToast } from "@/utils/toasts";
 
 import { LicensePolicyType } from "../license_policy.entity";
@@ -128,48 +128,48 @@ const listRoute = computed(() => ({
   params: { action: "manage", page: "policies", orgId: props.orgId },
 }));
 
-const submitForm = handleSubmit(async (form): Promise<void> => {
-  if (!authStore.getToken || submitting.value || formDisabled.value) return;
-  submitting.value = true;
-  failure.value = "";
-  const data = {
-    name: form.name,
-    description: form.description,
-    type: form.type,
-    licenses: form.licenses,
-    default: form.isDefault,
-  };
-  try {
-    if (isEdit.value) {
-      await licensePolicyRepository.updatePolicy({
-        orgId: props.orgId,
-        policyId: policyId.value,
-        data,
-        bearerToken: authStore.getToken,
-        handleBusinessErrors: true,
-      });
-      successToast("License policy saved");
-    } else {
-      await licensePolicyRepository.createPolicy({
-        orgId: props.orgId,
-        data,
-        bearerToken: authStore.getToken,
-        handleBusinessErrors: true,
-      });
-      successToast("License policy created");
+const onSubmit = guardFormSubmit(
+  { handleSubmit, isSubmitting, values },
+  async (form): Promise<void> => {
+    if (!authStore.getToken || submitting.value || formDisabled.value) return;
+    submitting.value = true;
+    failure.value = "";
+    const data = {
+      name: form.name,
+      description: form.description,
+      type: form.type,
+      licenses: form.licenses,
+      default: form.isDefault,
+    };
+    try {
+      if (isEdit.value) {
+        await licensePolicyRepository.updatePolicy({
+          orgId: props.orgId,
+          policyId: policyId.value,
+          data,
+          bearerToken: authStore.getToken,
+          handleBusinessErrors: true,
+        });
+        successToast("License policy saved");
+      } else {
+        await licensePolicyRepository.createPolicy({
+          orgId: props.orgId,
+          data,
+          bearerToken: authStore.getToken,
+          handleBusinessErrors: true,
+        });
+        successToast("License policy created");
+      }
+      void router.push(listRoute.value);
+    } catch {
+      failure.value = isEdit.value
+        ? "The license policy could not be saved."
+        : "The license policy could not be created.";
+    } finally {
+      submitting.value = false;
     }
-    void router.push(listRoute.value);
-  } catch {
-    failure.value = isEdit.value
-      ? "The license policy could not be saved."
-      : "The license policy could not be created.";
-  } finally {
-    submitting.value = false;
-  }
-});
-
-// Ignored while a submit is already running
-const onSubmit = guardSubmit(isSubmitting, submitForm);
+  },
+);
 
 async function loadLicenses(): Promise<void> {
   try {

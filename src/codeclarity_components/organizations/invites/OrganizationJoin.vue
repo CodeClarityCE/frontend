@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Building2, CircleAlert, LoaderCircle } from "@lucide/vue";
+import { Building2, CircleAlert } from "@lucide/vue";
 import { computed, onMounted, type Ref, ref } from "vue";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent } from "@/shadcn/ui/card";
 import { Skeleton } from "@/shadcn/ui/skeleton";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -252,11 +253,7 @@ async function joinOrg(): Promise<void> {
               arrow
               @click="joinOrg"
             >
-              <LoaderCircle
-                v-if="joining"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="joining" />
               {{ joinFailed ? "Try again" : "Join organisation" }}
             </Button>
             <Button variant="outline" @click="router.back()">

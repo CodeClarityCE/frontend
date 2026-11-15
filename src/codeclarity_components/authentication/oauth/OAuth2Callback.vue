@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { onMounted, ref } from "vue";
 
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
@@ -11,6 +11,7 @@ import { SocialProvider } from "@/codeclarity_components/organizations/integrati
 import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -194,10 +195,7 @@ onMounted(async () => {
       role="status"
       class="flex flex-col items-center gap-2 py-6 text-muted-foreground"
     >
-      <LoaderCircle
-        aria-hidden="true"
-        class="size-6 animate-spin motion-reduce:animate-none"
-      />
+      <Spinner class="size-6" />
       Signing you in with {{ providerName }}
     </div>
 

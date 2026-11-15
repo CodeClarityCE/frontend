@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { LoaderCircle, PlugZap, Settings, Trash2 } from "@lucide/vue";
+import { PlugZap, Settings, Trash2 } from "@lucide/vue";
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
@@ -22,6 +22,7 @@ import {
   CardHeader,
 } from "@/shadcn/ui/card";
 import { Skeleton } from "@/shadcn/ui/skeleton";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { errorToast, successToast } from "@/utils/toasts";
 
@@ -234,11 +235,7 @@ onMounted(() => void fetchClickUpConfig());
             :disabled="isTesting"
             @click="testConnection"
           >
-            <LoaderCircle
-              v-if="isTesting"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="isTesting" />
             <PlugZap v-else aria-hidden="true" />
             Test connection
           </Button>

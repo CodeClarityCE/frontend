@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, LogOut, Trash2 } from "@lucide/vue";
+import { LogOut, Trash2 } from "@lucide/vue";
 import { ref } from "vue";
 
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -98,11 +99,7 @@ async function confirm(): Promise<void> {
       <DialogFooter class="gap-2">
         <Button variant="outline" @click="open = false">Cancel</Button>
         <Button variant="destructive" :disabled="busy" @click="confirm">
-          <LoaderCircle
-            v-if="busy"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="busy" />
           <Trash2 v-else-if="action === 'delete'" aria-hidden="true" />
           <LogOut v-else aria-hidden="true" />
           {{

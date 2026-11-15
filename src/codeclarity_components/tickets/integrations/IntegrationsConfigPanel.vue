@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import {
-  Check,
-  LoaderCircle,
-  Plug,
-  RefreshCw,
-  Settings,
-  Trash2,
-  X,
-} from "@lucide/vue";
+import { Check, Plug, RefreshCw, Settings, Trash2, X } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 
 import { StatusBadge } from "@/base_components/page";
 import DeleteIntegrationDialog from "@/codeclarity_components/organizations/integrations/DeleteIntegrationDialog.vue";
 import { Button } from "@/shadcn/ui/button";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { errorToast, successToast } from "@/utils/toasts";
@@ -205,10 +198,7 @@ onMounted(() => {
       role="status"
       class="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground"
     >
-      <LoaderCircle
-        aria-hidden="true"
-        class="size-4 animate-spin motion-reduce:animate-none"
-      />
+      <Spinner />
       Loading integrations
     </div>
 
@@ -295,11 +285,7 @@ onMounted(() => {
               :disabled="testingProvider === providerInfo.provider"
               @click="testConnection(providerInfo.provider)"
             >
-              <LoaderCircle
-                v-if="testingProvider === providerInfo.provider"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="testingProvider === providerInfo.provider" />
               <Plug v-else aria-hidden="true" />
               Test
             </Button>
@@ -317,11 +303,7 @@ onMounted(() => {
               :disabled="deletingProvider === providerInfo.provider"
               @click="pendingDisconnect = providerInfo.provider"
             >
-              <LoaderCircle
-                v-if="deletingProvider === providerInfo.provider"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="deletingProvider === providerInfo.provider" />
               <Trash2 v-else aria-hidden="true" />
               Disconnect
             </Button>

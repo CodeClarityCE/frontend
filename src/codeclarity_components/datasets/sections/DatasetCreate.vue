@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, LoaderCircle } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -402,11 +403,7 @@ onMounted(() => void loadIntegrations());
               data-testid="dataset-submit"
               arrow
             >
-              <LoaderCircle
-                v-if="submitting"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="submitting" />
               Build Dataset
             </Button>
           </div>

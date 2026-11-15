@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ArrowLeft, LoaderCircle } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
@@ -25,6 +25,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
@@ -355,11 +356,7 @@ onBeforeMount(() => {
                 type="submit"
                 :disabled="submitting || isSubmitting || formDisabled"
               >
-                <LoaderCircle
-                  v-if="submitting"
-                  aria-hidden="true"
-                  class="animate-spin motion-reduce:animate-none"
-                />
+                <Spinner v-if="submitting" />
                 {{ isEdit ? "Save policy" : "Create policy" }}
               </Button>
             </div>

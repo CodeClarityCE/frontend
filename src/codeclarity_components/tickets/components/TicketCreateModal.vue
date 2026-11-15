@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Eye, LoaderCircle, Plus, Ticket } from "@lucide/vue";
+import { Eye, Plus, Ticket } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
@@ -237,10 +238,7 @@ function viewExistingTicket(): void {
         role="status"
         class="flex items-center gap-2 text-sm text-muted-foreground"
       >
-        <LoaderCircle
-          aria-hidden="true"
-          class="size-4 animate-spin motion-reduce:animate-none"
-        />
+        <Spinner />
         Checking for existing tickets
       </p>
 
@@ -367,11 +365,7 @@ function viewExistingTicket(): void {
           Cancel
         </Button>
         <Button :disabled="isLoading || !title.trim()" @click="handleSubmit">
-          <LoaderCircle
-            v-if="isLoading"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="isLoading" />
           <Plus v-else aria-hidden="true" />
           {{ isLoading ? "Creating..." : "Create Ticket" }}
         </Button>

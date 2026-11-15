@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { CircleCheck, CircleX, Copy, Info, LoaderCircle, X } from "@lucide/vue";
+import { CircleCheck, CircleX, Copy, Info, X } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
@@ -718,11 +719,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                 :disabled="!canFetchWorkspaces || isLoadingWorkspaces"
                 @click="fetchWorkspaces"
               >
-                <LoaderCircle
-                  v-if="isLoadingWorkspaces"
-                  aria-hidden="true"
-                  class="animate-spin motion-reduce:animate-none"
-                />
+                <Spinner v-if="isLoadingWorkspaces" />
                 Verify
               </Button>
             </div>
@@ -918,11 +915,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                 Once you've created the app in ClickUp, click below to connect.
               </p>
               <Button :disabled="isConnectingOAuth" @click="startOAuthFlow">
-                <LoaderCircle
-                  v-if="isConnectingOAuth"
-                  aria-hidden="true"
-                  class="animate-spin motion-reduce:animate-none"
-                />
+                <Spinner v-if="isConnectingOAuth" />
 
                 Connect to ClickUp
               </Button>
@@ -985,11 +978,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                   :disabled="!newSpaceName.trim() || isCreatingSpace"
                   @click="createSpace"
                 >
-                  <LoaderCircle
-                    v-if="isCreatingSpace"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="isCreatingSpace" />
                   <template v-else>Create</template>
                 </Button>
                 <Button
@@ -1036,10 +1025,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               role="status"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <LoaderCircle
-                aria-hidden="true"
-                class="size-4 animate-spin motion-reduce:animate-none"
-              />
+              <Spinner />
               Loading spaces...
             </div>
 
@@ -1071,11 +1057,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                   :disabled="!newFolderName.trim() || isCreatingFolder"
                   @click="createFolder"
                 >
-                  <LoaderCircle
-                    v-if="isCreatingFolder"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="isCreatingFolder" />
                   <template v-else>Create</template>
                 </Button>
                 <Button
@@ -1123,10 +1105,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               role="status"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <LoaderCircle
-                aria-hidden="true"
-                class="size-4 animate-spin motion-reduce:animate-none"
-              />
+              <Spinner />
               Loading folders...
             </div>
 
@@ -1164,11 +1143,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                   :disabled="!newListName.trim() || isCreatingList"
                   @click="createList"
                 >
-                  <LoaderCircle
-                    v-if="isCreatingList"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="isCreatingList" />
                   <template v-else>Create</template>
                 </Button>
                 <Button
@@ -1219,10 +1194,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               role="status"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <LoaderCircle
-                aria-hidden="true"
-                class="size-4 animate-spin motion-reduce:animate-none"
-              />
+              <Spinner />
               Loading lists...
             </div>
 
@@ -1286,19 +1258,11 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
             :disabled="isTesting"
             @click="testConnection"
           >
-            <LoaderCircle
-              v-if="isTesting"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="isTesting" />
             Test Connection
           </Button>
           <Button :disabled="!canSave || isSaving" @click="saveConfiguration">
-            <LoaderCircle
-              v-if="isSaving"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="isSaving" />
             {{ existingConfig ? "Save Changes" : "Connect" }}
           </Button>
         </div>

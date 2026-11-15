@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ArrowLeft, LoaderCircle } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import type { Edge } from "@vue-flow/core";
 import { computed, type Ref, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
@@ -24,6 +24,7 @@ import {
   CardDescription,
   CardHeader,
 } from "@/shadcn/ui/card";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { errorToast, successToast } from "@/utils/toasts";
 import {
@@ -217,11 +218,7 @@ void init();
             Cancel
           </Button>
           <Button type="submit" :disabled="submitting || !savedSteps">
-            <LoaderCircle
-              v-if="submitting"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="submitting" />
             Save changes
           </Button>
         </div>

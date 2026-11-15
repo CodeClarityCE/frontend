@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle } from "@lucide/vue";
+import { Spinner } from "@/shadcn/ui/spinner";
 
 import type { StatusTone } from "./status-tone";
 
@@ -19,11 +19,7 @@ const toneClass: Record<StatusTone, string> = {
     class="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold"
     :class="toneClass[tone]"
   >
-    <LoaderCircle
-      v-if="busy"
-      aria-hidden="true"
-      class="size-3 animate-spin motion-reduce:animate-none"
-    />
+    <Spinner v-if="busy" class="size-3" />
     {{ label }}
   </span>
 </template>

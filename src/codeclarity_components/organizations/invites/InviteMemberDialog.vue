@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, Send } from "@lucide/vue";
+import { Send } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -173,11 +174,7 @@ async function submit(): Promise<void> {
       <DialogFooter class="gap-2">
         <Button variant="outline" @click="open = false">Cancel</Button>
         <Button type="submit" form="invite-member-form" :disabled="busy">
-          <LoaderCircle
-            v-if="busy"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="busy" />
           <Send v-else aria-hidden="true" />
           Send invitation
         </Button>

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
@@ -16,6 +15,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -136,11 +136,7 @@ const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
     </div>
     <div class="flex justify-end">
       <Button type="submit" :disabled="submitting">
-        <LoaderCircle
-          v-if="submitting"
-          aria-hidden="true"
-          class="animate-spin motion-reduce:animate-none"
-        />
+        <Spinner v-if="submitting" />
         Change password
       </Button>
     </div>

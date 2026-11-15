@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { onMounted, type Ref, ref } from "vue";
@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import {
   BusinessLogicError,
@@ -222,11 +223,7 @@ onMounted(() => {
           </FormItem>
         </FormField>
         <Button type="submit" class="mt-2 w-full" :disabled="loading">
-          <LoaderCircle
-            v-if="loading"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="loading" />
           Update password
         </Button>
       </form>

@@ -47,7 +47,10 @@ async function signInWithFailingDatasets(page: Page): Promise<void> {
     if (url.endsWith("/auth/user")) {
       return route.fulfill({
         json: {
-          data: { ...user, default_org: { id: org.id, name: org.name } },
+          data: {
+            ...user,
+            default_org: { ...user.default_org, id: org.id, name: org.name },
+          },
         },
       });
     }

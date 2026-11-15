@@ -5,15 +5,6 @@ import { seedAuthStore } from "./helpers/auth-store.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
-// The fixture user with the types the login form checks.
-const signedInUser = {
-  ...user,
-  social: false,
-  setup_done: true,
-  activated: true,
-  default_org: { id: "org-123", name: "Test Organization" },
-};
-
 const defaultOrg = {
   id: "org-123",
   name: "Test Organization",
@@ -112,7 +103,7 @@ test.describe("Deep links through login", () => {
         });
       }
       if (path.endsWith("/auth/user")) {
-        return route.fulfill({ json: { data: signedInUser } });
+        return route.fulfill({ json: { data: user } });
       }
       if (path.endsWith("/org/org-123")) {
         return route.fulfill({ json: { data: defaultOrg } });
@@ -160,7 +151,7 @@ test.describe("Deep links through login", () => {
         });
       }
       if (path.endsWith("/auth/user")) {
-        return route.fulfill({ json: { data: signedInUser } });
+        return route.fulfill({ json: { data: user } });
       }
       if (path.endsWith("/org/org-123")) {
         return route.fulfill({ json: { data: defaultOrg } });

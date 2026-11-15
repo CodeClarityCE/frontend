@@ -109,6 +109,7 @@ if (!analysisPath) {
 
 const captures: Record<string, [string, string]> = {
   ...ticketPaths,
+  "auth-user": ["GET /auth/user", "/auth/user"],
   "organization-list": ["GET /org", "/org?page=0&entries_per_page=50"],
   members: [
     "GET /org/:org/members",

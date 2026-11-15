@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import analysis from "./contracts/analysis.json" with { type: "json" };
+import authUser from "./contracts/auth-user.json" with { type: "json" };
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
 import licensePolicyList from "./contracts/license-policy-list.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
@@ -78,6 +79,12 @@ async function served(page: Page, path: string): Promise<unknown> {
 // Each fixture a page object serves must have the shape of a response captured
 // from the real API. Recapture with `node e2e/contracts/capture.mts`.
 const contracts = [
+  {
+    name: "signed-in user",
+    capture: authUser,
+    path: "/api/auth/user",
+    signIn: (page: Page) => new ShellPage(page).signIn(),
+  },
   {
     name: "organization list",
     capture: organizationList,

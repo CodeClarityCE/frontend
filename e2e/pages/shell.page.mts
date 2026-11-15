@@ -3,7 +3,7 @@ import { type Locator, type Page } from "@playwright/test";
 import { orgListRow } from "../fixtures/memberships.mjs";
 import user from "../fixtures/user.json" with { type: "json" };
 
-const org = {
+export const org = {
   id: "org-123",
   name: "Test Organization",
   color_scheme: "1",
@@ -145,7 +145,12 @@ export class ShellPage {
       if (path === "/auth/user") {
         return route.fulfill({
           json: {
-            data: { ...user, default_org: { id: org.id, name: org.name } },
+            status_code: 200,
+            status: "success",
+            data: {
+              ...user,
+              default_org: { ...user.default_org, id: org.id, name: org.name },
+            },
           },
         });
       }

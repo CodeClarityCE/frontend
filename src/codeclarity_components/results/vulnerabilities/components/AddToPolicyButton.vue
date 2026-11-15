@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, Shield, ShieldCheck, ShieldPlus } from "@lucide/vue";
+import { Shield, ShieldCheck, ShieldPlus } from "@lucide/vue";
 import { ref } from "vue";
 
 import { useVulnerabilityPolicyActions } from "@/codeclarity_components/organizations/policy/vulnerability/useVulnerabilityPolicyActions";
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import { Spinner } from "@/shadcn/ui/spinner";
 
 interface Props {
   vulnerabilityId: string;
@@ -61,11 +62,7 @@ const handleAddToSpecificPolicy = async (policyId: string): Promise<void> => {
         class="gap-1"
         :disabled="isLoading"
       >
-        <LoaderCircle
-          v-if="isLoading"
-          aria-hidden="true"
-          class="size-3.5 animate-spin motion-reduce:animate-none"
-        />
+        <Spinner v-if="isLoading" class="size-3.5" />
         <ShieldPlus v-else aria-hidden="true" class="size-3.5" />
         Add to Policy
       </Button>

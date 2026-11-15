@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  ArrowLeft,
-  CircleAlert,
-  Download,
-  LoaderCircle,
-  Lock,
-} from "@lucide/vue";
+import { ArrowLeft, CircleAlert, Download, Lock } from "@lucide/vue";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
@@ -30,6 +24,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Skeleton } from "@/shadcn/ui/skeleton";
+import { Spinner } from "@/shadcn/ui/spinner";
 import {
   Table,
   TableBody,
@@ -736,11 +731,7 @@ onUnmounted(() => clearTimeout(pollTimer));
                   :data-testid="`export-${file}`"
                   @click="downloadExport(file)"
                 >
-                  <LoaderCircle
-                    v-if="exporting === file"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="exporting === file" />
                   <Download v-else aria-hidden="true" />
                   {{ file }}
                 </Button>
@@ -752,11 +743,7 @@ onUnmounted(() => clearTimeout(pollTimer));
                   data-testid="export-package"
                   @click="downloadPackage(selectedVersion.metric_version)"
                 >
-                  <LoaderCircle
-                    v-if="exporting === 'package'"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="exporting === 'package'" />
                   <Download v-else aria-hidden="true" />
                   Replication package
                 </Button>

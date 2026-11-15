@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, Trash2 } from "@lucide/vue";
+import { Trash2 } from "@lucide/vue";
 
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { Spinner } from "@/shadcn/ui/spinner";
 
 // Asks before an integration is deleted; the parent does the deletion on confirm.
 withDefaults(
@@ -45,11 +46,7 @@ const emit = defineEmits<{ confirm: [] }>();
       <DialogFooter class="gap-2">
         <Button variant="outline" @click="open = false">Cancel</Button>
         <Button variant="destructive" :disabled="busy" @click="emit('confirm')">
-          <LoaderCircle
-            v-if="busy"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="busy" />
           <Trash2 v-else aria-hidden="true" />
           {{ verb === "Disconnect" ? "Disconnect" : "Delete integration" }}
         </Button>

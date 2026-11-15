@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -295,11 +296,7 @@ async function submit(values: {
         </FormItem>
       </FormField>
       <Button type="submit" class="mt-2 w-full" :disabled="loading">
-        <LoaderCircle
-          v-if="loading"
-          aria-hidden="true"
-          class="animate-spin motion-reduce:animate-none"
-        />
+        <Spinner v-if="loading" />
         Create account
       </Button>
       <p v-if="loading" role="status" class="sr-only">Creating your account</p>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, LoaderCircle, ShieldCheck } from "@lucide/vue";
+import { CircleAlert, ShieldCheck } from "@lucide/vue";
 import { computed, ref } from "vue";
 
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
@@ -12,6 +12,7 @@ import {
 } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
+import { Spinner } from "@/shadcn/ui/spinner";
 
 // The token field and submit button shared by the GitHub and GitLab forms.
 const props = defineProps<{
@@ -93,11 +94,7 @@ defineExpose({ submitted });
         <slot name="fields" :submitted="submitted" />
 
         <Button type="submit" :disabled="busy" class="self-start">
-          <LoaderCircle
-            v-if="busy"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="busy" />
           {{ submitLabel }}
         </Button>
 

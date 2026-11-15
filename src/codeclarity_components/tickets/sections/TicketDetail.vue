@@ -7,7 +7,6 @@ import {
   CircleCheck,
   CircleX,
   Link,
-  LoaderCircle,
   Play,
   RefreshCw,
   Unlink,
@@ -39,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/shadcn/ui/sheet";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { formatShortDate } from "@/utils/dateUtils";
@@ -485,10 +485,7 @@ onMounted(() => {
           role="status"
           class="flex items-center gap-2 rounded-card bg-muted p-4 text-sm text-muted-foreground"
         >
-          <LoaderCircle
-            aria-hidden="true"
-            class="size-4 animate-spin motion-reduce:animate-none"
-          />
+          <Spinner />
           Loading vulnerability details
         </div>
 
@@ -793,11 +790,7 @@ onMounted(() => {
         <DropdownMenu v-if="availableSyncProviders.length > 0">
           <DropdownMenuTrigger as-child>
             <Button variant="outline" :disabled="isSyncing">
-              <LoaderCircle
-                v-if="isSyncing"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="isSyncing" />
               <Link v-else aria-hidden="true" />
               Sync
               <ChevronDown aria-hidden="true" />

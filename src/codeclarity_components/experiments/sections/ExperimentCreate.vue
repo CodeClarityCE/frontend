@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, LoaderCircle } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -589,11 +590,7 @@ onMounted(() => void load());
               data-testid="experiment-submit"
               arrow
             >
-              <LoaderCircle
-                v-if="submitting"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="submitting" />
               Start Experiment
             </Button>
           </div>

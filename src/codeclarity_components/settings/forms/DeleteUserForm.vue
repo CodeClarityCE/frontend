@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { LoaderCircle, Trash2 } from "@lucide/vue";
+import { Trash2 } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
@@ -120,11 +121,7 @@ const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
             variant="destructive"
             :disabled="submitting || isSubmitting"
           >
-            <LoaderCircle
-              v-if="submitting"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="submitting" />
             Delete my account
           </Button>
         </DialogFooter>

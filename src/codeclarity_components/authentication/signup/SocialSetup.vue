@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -327,10 +328,7 @@ function nonRecoverableErrorRedirect(): void {
         role="status"
         class="flex flex-col items-center gap-2 py-8 text-muted-foreground"
       >
-        <LoaderCircle
-          aria-hidden="true"
-          class="size-6 animate-spin motion-reduce:animate-none"
-        />
+        <Spinner class="size-6" />
         Setting up your account
       </div>
     </template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ChevronDown, Download, LoaderCircle } from "@lucide/vue";
+import { ChevronDown, Download } from "@lucide/vue";
 
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import { Spinner } from "@/shadcn/ui/spinner";
 
 import type { ExportFormat } from "./exports/sbomExportUtils";
 
@@ -34,11 +35,7 @@ const FORMATS: { id: ExportFormat; name: string; description: string }[] = [
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <Button variant="outline" :disabled="exporting">
-        <LoaderCircle
-          v-if="exporting"
-          aria-hidden="true"
-          class="size-4 animate-spin motion-reduce:animate-none"
-        />
+        <Spinner v-if="exporting" />
         <Download v-else aria-hidden="true" class="size-4" />
         {{ exporting ? "Exporting" : "Export SBOM" }}
         <ChevronDown aria-hidden="true" class="size-4" />

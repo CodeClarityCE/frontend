@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AcceptableValue } from "reka-ui";
 import { computed, ref, useId } from "vue";
 
 import type { ChartCaption } from "@/base_components/charts/chart-caption";
@@ -9,6 +10,7 @@ import {
 } from "@/base_components/charts/chart-format";
 import ChartExport from "@/base_components/charts/ChartExport.vue";
 import ChartTable from "@/base_components/charts/ChartTable.vue";
+import { ToggleGroup, ToggleGroupItem } from "@/shadcn/ui/toggle-group";
 
 import OpenAsFigure from "../charts/OpenAsFigure.vue";
 import SurvivalChart from "../charts/SurvivalChart.vue";
@@ -36,6 +38,11 @@ const groups = computed(() => [
 ]);
 
 const selectedKey = ref("all");
+
+// Clicking the active group emits no value; keep it selected.
+function selectGroup(value: AcceptableValue | AcceptableValue[]): void {
+  if (typeof value === "string" && value) selectedKey.value = value;
+}
 const selected = computed(
   () =>
     groups.value.find((g) => g.key === selectedKey.value) ??
@@ -150,24 +157,25 @@ const headingId = useId();
       No exposures yet.
     </p>
     <template v-else>
-      <div class="flex flex-wrap gap-2" role="group" aria-label="Severity">
-        <button
+      <ToggleGroup
+        type="single"
+        :roving-focus="false"
+        aria-label="Severity"
+        :spacing="2"
+        class="w-auto flex-wrap"
+        :model-value="selected.key"
+        @update:model-value="selectGroup"
+      >
+        <ToggleGroupItem
           v-for="group in groups"
           :key="group.key"
-          type="button"
+          :value="group.key"
           data-testid="survival-group"
-          :aria-pressed="group.key === selected.key ? 'true' : 'false'"
-          class="rounded-full border px-3 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          :class="
-            group.key === selected.key
-              ? 'border-foreground-strong bg-foreground-strong text-background'
-              : 'border-border text-foreground hover:bg-muted'
-          "
-          @click="selectedKey = group.key"
+          class="h-auto min-w-0 rounded-full border border-border px-3 py-1 text-xs font-normal text-foreground hover:bg-muted hover:text-foreground focus-visible:ring-offset-2 data-[state=on]:border-foreground-strong data-[state=on]:bg-foreground-strong data-[state=on]:text-background"
         >
           {{ labelOf(group) }}
-        </button>
-      </div>
+        </ToggleGroupItem>
+      </ToggleGroup>
 
       <p class="text-sm text-foreground">{{ medianText }}</p>
 

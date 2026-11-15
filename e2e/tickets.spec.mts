@@ -348,8 +348,6 @@ test.describe("Ticket integrations", () => {
           enabled: true,
           created_on: "2026-01-01T00:00:00Z",
           has_config: true,
-          workspace_name: "Security",
-          list_name: "Remediation",
         },
       ],
     });
@@ -357,7 +355,7 @@ test.describe("Ticket integrations", () => {
     await page.getByRole("button", { name: "Integrations" }).click();
     const dialog = page.getByRole("dialog", { name: "Ticket integrations" });
     await expect(dialog).toContainText("Connected");
-    await expect(dialog).toContainText("Workspace: Security");
+    await expect(dialog).not.toContainText("Workspace");
 
     await axe(page);
     await expectScreenshots(page, "tickets-integrations");

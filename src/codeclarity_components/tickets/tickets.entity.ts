@@ -412,10 +412,6 @@ export interface IntegrationConfigSummary {
   created_on: Date;
   updated_on?: Date;
   has_config: boolean;
-  workspace_name?: string;
-  list_name?: string;
-  auto_sync_on_create?: boolean;
-  sync_status_changes?: boolean;
 }
 
 export interface IntegrationHierarchyItem {

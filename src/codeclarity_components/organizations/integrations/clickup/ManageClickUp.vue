@@ -196,14 +196,6 @@ onMounted(() => void fetchClickUpConfig());
                 :label="clickUpConfig.enabled ? 'Connected' : 'Disabled'"
               />
             </dd>
-            <dt class="text-muted-foreground">Workspace</dt>
-            <dd>{{ clickUpConfig.workspace_name ?? "Not set" }}</dd>
-            <dt class="text-muted-foreground">List</dt>
-            <dd>{{ clickUpConfig.list_name ?? "Not set" }}</dd>
-            <dt class="text-muted-foreground">Create tasks for new tickets</dt>
-            <dd>{{ clickUpConfig.auto_sync_on_create ? "On" : "Off" }}</dd>
-            <dt class="text-muted-foreground">Sync status changes</dt>
-            <dd>{{ clickUpConfig.sync_status_changes ? "On" : "Off" }}</dd>
           </dl>
 
           <p

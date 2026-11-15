@@ -120,7 +120,7 @@ const rows = computed<Row[]>(() => {
     id: config.id,
     name: "ClickUp",
     logo: logos[IntegrationProvider.CLICKUP] ?? "",
-    host: config.workspace_name ?? "ClickUp workspace",
+    host: "ClickUp workspace",
     kind: "Ticketing",
     tone: config.enabled ? "success" : "neutral",
     status: config.enabled ? "Connected" : "Disabled",

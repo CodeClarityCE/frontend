@@ -215,6 +215,14 @@ export function aiAssessments(vlai: VLAI[] | null | undefined): VLAI[] {
   });
 }
 
+// A finding's identity: the API sends no id, so its vulnerability and affected packages.
+export function findingKey(finding: VulnerabilityMerged): string {
+  const affected = (finding.Affected ?? [])
+    .map((a) => `${a.AffectedDependency}@${a.AffectedVersion}`)
+    .join(",");
+  return `${finding.Vulnerability}|${affected}`;
+}
+
 // What a new ticket needs to know about a finding.
 export function ticketVulnerability(finding: VulnerabilityMerged): {
   vulnerability_id: string;

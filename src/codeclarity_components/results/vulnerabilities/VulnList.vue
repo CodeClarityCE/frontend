@@ -13,6 +13,7 @@ import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import {
   aiAssessments,
   detailsRoute,
+  findingKey,
   findingSignals,
   formatPercent,
   impacts,
@@ -77,13 +78,13 @@ function cweUrl(id: string): string {
 
   <ul v-else aria-label="Vulnerabilities" class="flex flex-col gap-3">
     <li
-      v-for="finding in findings"
-      :key="finding.Id"
+      v-for="(finding, index) in findings"
+      :key="findingKey(finding)"
       data-testid="vulnerability-card"
       class="rounded-card border bg-card text-card-foreground shadow-card"
     >
       <article
-        :aria-labelledby="`vuln-${finding.Id}`"
+        :aria-labelledby="`vuln-${index}`"
         class="flex flex-col gap-3 p-4"
       >
         <div class="flex flex-wrap items-start gap-3">
@@ -91,7 +92,7 @@ function cweUrl(id: string): string {
           <div class="flex min-w-0 flex-1 flex-col gap-1">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
               <h3
-                :id="`vuln-${finding.Id}`"
+                :id="`vuln-${index}`"
                 class="text-lg font-bold tracking-tight"
               >
                 <RouterLink
@@ -165,22 +166,22 @@ function cweUrl(id: string): string {
             variant="ghost"
             size="sm"
             class="ml-auto"
-            :aria-expanded="expanded.has(finding.Id)"
-            :aria-controls="`vuln-more-${finding.Id}`"
-            @click="toggle(finding.Id)"
+            :aria-expanded="expanded.has(findingKey(finding))"
+            :aria-controls="`vuln-more-${index}`"
+            @click="toggle(findingKey(finding))"
           >
-            {{ expanded.has(finding.Id) ? "Show less" : "Show more" }}
+            {{ expanded.has(findingKey(finding)) ? "Show less" : "Show more" }}
             <ChevronDown
               aria-hidden="true"
               class="size-4 transition-transform motion-reduce:transition-none"
-              :class="expanded.has(finding.Id) ? 'rotate-180' : ''"
+              :class="expanded.has(findingKey(finding)) ? 'rotate-180' : ''"
             />
           </Button>
         </div>
 
         <div
-          v-if="expanded.has(finding.Id)"
-          :id="`vuln-more-${finding.Id}`"
+          v-if="expanded.has(findingKey(finding))"
+          :id="`vuln-more-${index}`"
           class="flex flex-col gap-4 border-t pt-4 text-sm"
         >
           <ul

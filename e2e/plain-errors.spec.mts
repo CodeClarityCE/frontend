@@ -154,6 +154,26 @@ test.describe("One plain error per failure", () => {
     await expect.poll(() => orgs.created.length).toBe(1);
   });
 
+  test("a refused organisation submit does not send values typed after the click", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoCreate();
+
+    const name = page.getByRole("textbox", { name: "Name" });
+    const description = page.getByRole("textbox", { name: "Description" });
+    await name.fill("n".repeat(51));
+    await description.fill("d".repeat(251));
+    await page.getByRole("button", { name: "Create organisation" }).click();
+    await name.fill("n".repeat(50));
+    await description.fill("d".repeat(250));
+
+    await expect(name).not.toHaveAccessibleDescription(/At most/);
+    await page.waitForTimeout(500);
+    expect(orgs.created).toEqual([]);
+  });
+
   test("a rejected create shows a plain message without the server's reason", async ({
     page,
   }) => {

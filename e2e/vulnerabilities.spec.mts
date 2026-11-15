@@ -73,6 +73,27 @@ test.describe("Vulnerability results", () => {
     );
   });
 
+  test("Show more opens only its own card", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+
+    await vulns.cards
+      .first()
+      .getByRole("button", { name: "Show more" })
+      .click();
+
+    await expect(
+      vulns.cards.first().getByRole("button", { name: "Show less" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Show less" })).toHaveCount(
+      1,
+    );
+    await expect(page.getByRole("button", { name: "Show more" })).toHaveCount(
+      3,
+    );
+  });
+
   test("patch status is unknown without a patching result, and the AI assessment only shows with a score", async ({
     page,
   }) => {

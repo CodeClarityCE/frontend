@@ -26,6 +26,7 @@ import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
@@ -79,7 +80,11 @@ const formSchema = z
     path: ["plainPasswordConfirm"],
   });
 type FormValues = z.infer<typeof formSchema>;
-const { handleSubmit } = useForm<FormValues>({
+const {
+  handleSubmit,
+  isSubmitting,
+  values: formValues,
+} = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
   initialValues: {
     email: "",
@@ -92,10 +97,13 @@ const { handleSubmit } = useForm<FormValues>({
   },
 });
 
-const onSubmit = handleSubmit((values): void => {
-  if (loading.value) return;
-  void submit(values);
-});
+const onSubmit = guardFormSubmit(
+  { handleSubmit, isSubmitting, values: formValues },
+  (values): void => {
+    if (loading.value) return;
+    void submit(values);
+  },
+);
 
 // Sanity Checks
 // In case the user is logged in and visits this page, redirect them

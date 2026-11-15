@@ -44,10 +44,6 @@ export const clickUp = {
   enabled: true,
   created_on: "2026-02-01T09:00:00Z",
   has_config: true,
-  workspace_name: "Security team",
-  list_name: "Vulnerabilities",
-  auto_sync_on_create: true,
-  sync_status_changes: false,
 };
 
 function paginated(data: unknown[]): Record<string, unknown> {
@@ -159,7 +155,10 @@ export class OrgIntegrationsPage {
     );
   }
 
-  async gotoManage(provider: "GITHUB" | "GITLAB", id: string): Promise<void> {
+  async gotoManage(
+    provider: "GITHUB" | "GITLAB" | "CLICKUP",
+    id: string,
+  ): Promise<void> {
     await this.shell.goto(
       `/orgs/edit/integrations/${ORG}?provider=${provider}&integrationId=${id}`,
     );

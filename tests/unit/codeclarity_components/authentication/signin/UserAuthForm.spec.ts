@@ -174,6 +174,8 @@ vi.mock("@/shadcn/ui/alert/AlertDescription.vue", () => ({
 // Mock vee-validate
 vi.mock("vee-validate", () => ({
   useForm: () => ({
+    isSubmitting: { value: false },
+    values: {},
     handleSubmit:
       (fn: (values: { email: string; password: string }) => void) =>
       (e: Event) => {

@@ -449,6 +449,23 @@ test.describe("Organisation settings in the sidebar", () => {
     await expect(orgs.orgNav).toHaveCount(0);
   });
 
+  test("a moderator sees no Audit logs, which need an admin", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn({
+      org: organization(ORG, "Test Organization", { role: 2 }),
+    });
+    await orgs.gotoOverview();
+
+    await expect(orgs.orgNav.getByRole("link")).toHaveText([
+      "Overview",
+      "Members",
+      "Invites",
+      "Policies",
+    ]);
+  });
+
   test("a personal organisation has no Members or Invites", async ({
     page,
   }) => {

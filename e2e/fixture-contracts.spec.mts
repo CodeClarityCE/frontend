@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import analysis from "./contracts/analysis.json" with { type: "json" };
+import authUser from "./contracts/auth-user.json" with { type: "json" };
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
 import licensePolicyList from "./contracts/license-policy-list.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
@@ -26,8 +27,8 @@ test.describe("Shape check", () => {
   test("passes when the fixture has the captured shape", () => {
     expect(
       shapeDiff(
-        { data: [{ id: "a", tags: ["x"], owner: { name: "n" } }], total: 1 },
-        { data: [{ id: "b", tags: [], owner: { name: "m" } }], total: 9 },
+        { data: [{ id: "a", tags: [], owner: { name: "n" } }], total: 1 },
+        { data: [{ id: "b", tags: ["x"], owner: { name: "m" } }], total: 9 },
       ),
     ).toEqual([]);
   });
@@ -59,10 +60,51 @@ test.describe("Shape check", () => {
     ).toEqual(["$.data[1].name: fixture has it, the API does not return it"]);
   });
 
-  test("treats null as matching any type", () => {
+  test("reports a value where the API returned null, and the reverse", () => {
     expect(
       shapeDiff({ avatar: "a.png", ttl: null }, { avatar: null, ttl: "t" }),
+    ).toEqual([
+      "$.avatar: fixture is string, the API returns null",
+      "$.ttl: fixture is null, the API returns string",
+    ]);
+  });
+
+  test("passes when both are null", () => {
+    expect(shapeDiff({ avatar: null }, { avatar: null })).toEqual([]);
+  });
+
+  test("reports fixture items the API returned none of", () => {
+    expect(shapeDiff({ links: [{ url: "u" }] }, { links: [] })).toEqual([
+      "$.links: the API returned an empty array, so its items are unchecked",
+    ]);
+  });
+
+  test("checks only the type of a record's value", () => {
+    const rules = { records: ["$.config"] };
+    expect(
+      shapeDiff({ config: {} }, { config: { branch: "x" } }, rules),
     ).toEqual([]);
+    expect(shapeDiff({ config: [] }, { config: {} }, rules)).toEqual([
+      "$.config: fixture is array, the API returns object",
+    ]);
+  });
+
+  test("accepts null or no items only at the paths a contract lists", () => {
+    const allowed = { nullable: ["$.data[].avatar", "$.data[].links"] };
+    expect(
+      shapeDiff(
+        { data: [{ avatar: null, links: [{ url: "u" }] }] },
+        { data: [{ avatar: "a.png", links: [] }] },
+        allowed,
+      ),
+    ).toEqual([]);
+    expect(
+      shapeDiff(
+        { data: [{ avatar: 1, links: [] }] },
+        { data: [{ avatar: "a.png", links: [] }] },
+        allowed,
+      ),
+    ).toEqual(["$.data[0].avatar: fixture is number, the API returns string"]);
   });
 });
 
@@ -78,6 +120,12 @@ async function served(page: Page, path: string): Promise<unknown> {
 // Each fixture a page object serves must have the shape of a response captured
 // from the real API. Recapture with `node e2e/contracts/capture.mts`.
 const contracts = [
+  {
+    name: "signed-in user",
+    capture: authUser,
+    path: "/api/auth/user",
+    signIn: (page: Page) => new ShellPage(page).signIn(),
+  },
   {
     name: "organization list",
     capture: organizationList,
@@ -107,6 +155,15 @@ const contracts = [
     capture: ticketDetail,
     path: "/api/org/org-123/tickets/t-1",
     signIn: (page: Page) => new TicketsPage(page).signIn(),
+    // Set only for some tickets. No dev ticket has external links (they need
+    // a ClickUp sync), so their items stay unchecked.
+    rules: {
+      nullable: [
+        "$.data.external_status",
+        "$.data.recommended_version",
+        "$.data.resolved_on",
+      ],
+    },
   },
   {
     name: "project tickets",
@@ -131,6 +188,11 @@ const contracts = [
     path: `/api/org/org-123/projects/${PROJECT}/analyses/${ANALYSIS}`,
     signIn: (page: Page) => new ResultsStatusPage(page).signIn(),
     drift: undefined,
+    // A step has no result until it ends, and its config is the plugin's own.
+    rules: {
+      nullable: ["$.data.steps[][].Result"],
+      records: ["$.data.steps[][].Config"],
+    },
   },
 ];
 
@@ -146,7 +208,9 @@ test.describe("Fixture contracts", () => {
       );
       await contract.signIn(page);
       const fixture = await served(page, contract.path);
-      expect(shapeDiff(fixture, contract.capture.response)).toEqual([]);
+      expect(
+        shapeDiff(fixture, contract.capture.response, contract.rules),
+      ).toEqual([]);
     });
   }
 });

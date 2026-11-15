@@ -21,7 +21,7 @@ import { Input } from "@/shadcn/ui/input";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
-import { guardSubmit } from "@/utils/form/guardSubmit";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import { OrgRepository } from "../organization.repository";
@@ -50,7 +50,8 @@ const form = useForm<FormValues>({
 });
 const isSubmitting = form.isSubmitting;
 
-const submitForm = form.handleSubmit(async (values) => {
+// Ignored while a submit is already running
+const onSubmit = guardFormSubmit(form, async (values) => {
   if (submitting.value) return;
   submitting.value = true;
   try {
@@ -75,9 +76,6 @@ const submitForm = form.handleSubmit(async (values) => {
     submitting.value = false;
   }
 });
-
-// Ignored while a submit is already running
-const onSubmit = guardSubmit(isSubmitting, submitForm);
 </script>
 <template>
   <div class="flex max-w-3xl flex-col gap-8">

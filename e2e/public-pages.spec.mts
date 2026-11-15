@@ -4,6 +4,7 @@ import user from "./fixtures/user.json" with { type: "json" };
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { seedAuthStore } from "./helpers/auth-store.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { org } from "./pages/shell.page.mjs";
 
 test.describe("Not found page", () => {
   test("an unknown address lands on the owl's not found page", async ({
@@ -144,6 +145,9 @@ test.describe("Help page", () => {
     await page.route("**/api/**", (route) => {
       if (route.request().url().endsWith("/auth/user")) {
         return route.fulfill({ json: { data: user } });
+      }
+      if (route.request().url().endsWith(`/org/${org.id}`)) {
+        return route.fulfill({ json: { data: org } });
       }
       return route.fulfill({
         json: {

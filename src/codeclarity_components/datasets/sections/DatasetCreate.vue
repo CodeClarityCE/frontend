@@ -125,6 +125,7 @@ async function loadIntegrations(): Promise<void> {
       pagination: { page: 0, entries_per_page: 100 },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     // An expired token is not flagged invalid by the API, but GitHub rejects it
     const now = Date.now();
@@ -167,6 +168,7 @@ async function submit(): Promise<void> {
       },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Dataset created, building in the background");
     void router.push({

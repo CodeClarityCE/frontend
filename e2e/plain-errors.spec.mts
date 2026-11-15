@@ -1,5 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { AnalysesPage } from "./pages/analyses.page.mjs";
+import { DatasetsPage } from "./pages/datasets.page.mjs";
+import { ExperimentsPage } from "./pages/experiments.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import { OrgSettingsPage } from "./pages/org-settings.page.mjs";
@@ -154,6 +157,26 @@ test.describe("One plain error per failure", () => {
     await expect.poll(() => orgs.created.length).toBe(1);
   });
 
+  test("a refused organisation submit does not send values typed after the click", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoCreate();
+
+    const name = page.getByRole("textbox", { name: "Name" });
+    const description = page.getByRole("textbox", { name: "Description" });
+    await name.fill("n".repeat(51));
+    await description.fill("d".repeat(251));
+    await page.getByRole("button", { name: "Create organisation" }).click();
+    await name.fill("n".repeat(50));
+    await description.fill("d".repeat(250));
+
+    await expect(name).not.toHaveAccessibleDescription(/At most/);
+    await page.waitForTimeout(500);
+    expect(orgs.created).toEqual([]);
+  });
+
   test("a rejected create shows a plain message without the server's reason", async ({
     page,
   }) => {
@@ -249,5 +272,90 @@ test.describe("One plain error per failure", () => {
     );
     await expect(page.getByText(/Disk quota|Upload failed/)).toHaveCount(0);
     expect(await shown()).toEqual([]);
+  });
+
+  for (const [kind, body] of [
+    ["a server error", businessError(500, "InternalError", "Pool exhausted.")],
+    ["a gateway error", { status: 502, json: { message: "Bad gateway" } }],
+  ] as const) {
+    test(`a Datasets list that fails with ${kind} says so once, inline`, async ({
+      page,
+    }) => {
+      const shown = await recordToasts(page);
+      const datasets = new DatasetsPage(page);
+      await datasets.signIn();
+      await page.route(/\/api\/org\/org-123\/datasets(\?|$)/, (route) =>
+        route.fulfill(body),
+      );
+      await datasets.gotoList();
+
+      await expect(
+        page.getByText("The Datasets could not be loaded."),
+      ).toBeVisible();
+      expect(await shown()).toEqual([]);
+    });
+
+    test(`an Experiments list that fails with ${kind} says so once, inline`, async ({
+      page,
+    }) => {
+      const shown = await recordToasts(page);
+      const experiments = new ExperimentsPage(page);
+      await experiments.signIn();
+      await page.route(/\/api\/org\/org-123\/experiments(\?|$)/, (route) =>
+        route.fulfill(body),
+      );
+      await experiments.gotoList();
+
+      await expect(
+        page.getByText("The Experiments could not be loaded."),
+      ).toBeVisible();
+      expect(await shown()).toEqual([]);
+    });
+  }
+
+  test("an analysis the server fails to start says so in plain words", async ({
+    page,
+  }) => {
+    const analyses = new AnalysesPage(page);
+    await analyses.signIn({
+      createError: {
+        status_code: 500,
+        status: "failure",
+        error_code: "InternalError",
+        error_message: "relation analysis_x does not exist",
+      },
+    });
+    await analyses.goto();
+
+    await analyses.analyzer("JavaScript Analyzer").click();
+    await analyses.submit.click();
+
+    await expect(page.getByRole("alert")).toContainText(
+      "The analysis could not be started. Please try again.",
+    );
+    await expect(page.getByText(/relation analysis_x/)).toHaveCount(0);
+  });
+
+  test("an analysis missing a plugin option shows the server's plain reason", async ({
+    page,
+  }) => {
+    const analyses = new AnalysesPage(page);
+    await analyses.signIn({
+      createError: {
+        status_code: 400,
+        status: "failure",
+        error_code: "AnaylzerMissingConfigAttribute",
+        error_message:
+          'The plugin "license-finder" needs the option "licensePolicy", which is missing.',
+      },
+    });
+    await analyses.goto();
+
+    await analyses.analyzer("JavaScript Analyzer").click();
+    await analyses.submit.click();
+
+    await expect(page.getByRole("alert")).toContainText(
+      'The plugin "license-finder" needs the option "licensePolicy", which is missing.',
+    );
   });
 });

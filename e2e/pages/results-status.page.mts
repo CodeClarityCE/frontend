@@ -15,12 +15,12 @@ export function step(
 ): Record<string, unknown> {
   return {
     Name: name,
-    Config: null,
+    Config: {},
     Result: null,
     Status: status,
     Version: "v1.0.0",
     Started_on: "2026-11-01T09:00:00Z",
-    Ended_on: status === "success" ? "2026-11-01T09:00:04Z" : null,
+    Ended_on: status === "success" ? "2026-11-01T09:00:04Z" : "",
   };
 }
 

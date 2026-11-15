@@ -23,7 +23,7 @@ import { Label } from "@/shadcn/ui/label";
 import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { guardSubmit } from "@/utils/form/guardSubmit";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { successToast } from "@/utils/toasts";
 
 // Cancel hands control back to the import method picker.
@@ -138,7 +138,7 @@ function clearFile(): void {
   uploadError.value = null;
 }
 
-const submitForm = form.handleSubmit(async (values) => {
+const onSubmit = guardFormSubmit(form, async (values) => {
   if (!selectedFile.value) {
     uploadError.value = "Please select a file to upload.";
     return;
@@ -198,9 +198,6 @@ const submitForm = form.handleSubmit(async (values) => {
     isUploading.value = false;
   }
 });
-
-// Ignored while a submit is already running
-const onSubmit = guardSubmit(isSubmitting, submitForm);
 
 // Clears the native input too, so the same file can be picked again.
 function removeFile(): void {

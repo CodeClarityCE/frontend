@@ -76,8 +76,8 @@ export function finding(
   dependency: string,
   overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
+  // Shaped like the API's findings, which carry no Id.
   return {
-    Id: `f-${id}`,
     Vulnerability: id,
     Sources: ["NVD"],
     Description: `A ${level} flaw in ${dependency} lets an attacker run code.`,

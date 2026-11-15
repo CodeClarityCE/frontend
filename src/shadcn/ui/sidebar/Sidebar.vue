@@ -70,8 +70,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
     :data-variant="variant"
     :data-side="side"
   >
-    <!-- This is what handles the sidebar gap on desktop. It is painted like the
-    sidebar so the column reaches the bottom of long pages. -->
+    <!-- The desktop sidebar column, painted to reach the bottom of long pages. -->
     <div
       :class="
         cn(

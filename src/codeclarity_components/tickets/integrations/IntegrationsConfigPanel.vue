@@ -255,18 +255,6 @@ onMounted(() => {
             <p class="text-sm text-muted-foreground">
               {{ providerInfo.description }}
             </p>
-            <div
-              v-if="getIntegration(providerInfo.provider)"
-              class="text-xs text-muted-foreground"
-            >
-              <p v-if="getIntegration(providerInfo.provider)?.workspace_name">
-                Workspace:
-                {{ getIntegration(providerInfo.provider)?.workspace_name }}
-              </p>
-              <p v-if="getIntegration(providerInfo.provider)?.list_name">
-                List: {{ getIntegration(providerInfo.provider)?.list_name }}
-              </p>
-            </div>
             <p
               v-if="getTestResult(providerInfo.provider)"
               role="status"

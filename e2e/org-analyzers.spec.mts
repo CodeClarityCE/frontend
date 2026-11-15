@@ -248,7 +248,7 @@ test.describe("Analyzer workflow rules", () => {
     await page.getByRole("button", { name: "Create analyzer" }).click();
 
     await expect(page.getByRole("alert")).toHaveText(
-      "Add at least one plugin to the workflow.",
+      "Add at least one plugin to the analyzer.",
     );
     expect(analyzers.created).toEqual([]);
   });
@@ -266,7 +266,7 @@ test.describe("Analyzer workflow rules", () => {
     await page.getByRole("button", { name: "Create analyzer" }).click();
 
     await expect(page.getByRole("alert")).toHaveText(
-      "vuln-finder needs js-sbom or php-sbom. Add it to the workflow.",
+      "vuln-finder needs js-sbom or php-sbom. Add it to the analyzer.",
     );
     expect(analyzers.created).toEqual([]);
   });
@@ -370,7 +370,7 @@ test.describe("Edit analyzer", () => {
     await page.getByRole("button", { name: "Save changes" }).click();
 
     await expect(page.getByRole("alert")).toHaveText(
-      "Add at least one plugin to the workflow.",
+      "Add at least one plugin to the analyzer.",
     );
     expect(analyzers.updated).toEqual([]);
   });

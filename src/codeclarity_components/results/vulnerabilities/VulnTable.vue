@@ -9,6 +9,7 @@ import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import {
   aiAssessments,
   detailsRoute,
+  findingKey,
   findingSignals,
   formatPercent,
   impacts,
@@ -71,7 +72,7 @@ const columns: ColumnDef<VulnerabilityMerged, unknown>[] = [
 ];
 
 function rowKey(finding: VulnerabilityMerged): string {
-  return finding.Id;
+  return findingKey(finding);
 }
 </script>
 

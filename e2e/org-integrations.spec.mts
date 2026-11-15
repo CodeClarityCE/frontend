@@ -176,6 +176,27 @@ test.describe("Managing an integration", () => {
   });
 });
 
+test.describe("Managing ClickUp", () => {
+  test("shows only what the server returns about the connection", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoManage("CLICKUP", "cu-1");
+
+    const status = page.locator("dl").filter({ hasText: "Connection" });
+    await expect(status).toContainText("Connected");
+    for (const label of [
+      "Workspace",
+      "List",
+      "Create tasks for new tickets",
+      "Sync status changes",
+    ]) {
+      await expect(status.getByText(label, { exact: true })).toHaveCount(0);
+    }
+  });
+});
+
 test.describe("Replacing a token", () => {
   test("GitHub offers to replace its token", async ({ page }) => {
     const integrations = new OrgIntegrationsPage(page);

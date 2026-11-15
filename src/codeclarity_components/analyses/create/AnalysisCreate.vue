@@ -111,7 +111,7 @@ const schedule = ref<ScheduleData>({
 
 const submitted = ref(false);
 const submitting = ref(false);
-const failure = ref<{ code?: string; message?: string }>();
+const failure = ref<{ code: string; message: string }>();
 
 function displayName(item: Analyzer): string {
   return item.name === "JS" ? "JavaScript Analyzer" : item.name;
@@ -355,6 +355,7 @@ async function submit(): Promise<void> {
       projectId,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data,
     });
     toast.success("Analysis started", {
@@ -362,12 +363,29 @@ async function submit(): Promise<void> {
     });
     void router.push({ name: "projects" });
   } catch (err) {
-    failure.value =
-      err instanceof BusinessLogicError
-        ? { code: err.error_code, message: err.error_message }
-        : { message: "The analysis could not be started." };
+    const code = err instanceof BusinessLogicError ? err.error_code : "";
+    failure.value = { code, message: startError(err) };
   } finally {
     submitting.value = false;
+  }
+}
+
+// Plain words for why the start failed; the server's reason is shown only
+// where it is written for users.
+function startError(err: unknown): string {
+  if (!(err instanceof BusinessLogicError)) {
+    return "The analysis could not be started. Please try again.";
+  }
+  switch (err.error_code) {
+    case APIErrors.AnaylzerMissingConfigAttribute:
+      return err.error_message;
+    case APIErrors.NotAuthorized:
+      return "Your role does not allow starting analyses in this organisation.";
+    case APIErrors.EntityNotFound:
+    case APIErrors.AnalyzerDoesNotExist:
+      return "The project or analyzer no longer exists. Reload the page and try again.";
+    default:
+      return "The analysis could not be started. Please try again.";
   }
 }
 
@@ -480,7 +498,7 @@ const choiceClass =
           scheduled analysis first, or run this one once.
         </template>
         <template v-else>
-          {{ failure.message ?? failure.code }}
+          {{ failure.message }}
         </template>
       </AlertDescription>
     </Alert>

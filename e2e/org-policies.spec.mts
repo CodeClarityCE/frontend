@@ -215,15 +215,16 @@ test.describe("License policy form", () => {
     const name = page.getByRole("textbox", { name: "Name" });
     await expect(name).toHaveAttribute("aria-invalid", "true");
     await expect(name).toHaveAccessibleDescription(/A name is required/);
-    await expect(page.getByText("Pick a policy type")).toBeVisible();
     await expect(page.getByText("Pick at least one license")).toBeVisible();
+    // The server stores no allow or block type, so the form does not ask.
+    await expect(page.getByRole("combobox", { name: "Type" })).toHaveCount(0);
     expect(policies.writes).toEqual([]);
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "org-policies-create-errors");
   });
 
-  test("creates an allow list from the picked licenses, once on a double click", async ({
+  test("creates a policy flagging the picked licenses, once on a double click", async ({
     page,
   }) => {
     const policies = new OrgPoliciesPage(page);
@@ -231,8 +232,9 @@ test.describe("License policy form", () => {
     await policies.gotoCreateLicense();
 
     await page.getByRole("textbox", { name: "Name" }).fill("Permissive only");
-    await page.getByRole("combobox", { name: "Type" }).click();
-    await page.getByRole("option", { name: /Allow list/ }).click();
+    await expect(
+      page.getByText("Projects that use a picked license are flagged."),
+    ).toBeVisible();
     await page.getByRole("searchbox", { name: "Filter licenses" }).fill("MIT");
     await page.getByRole("checkbox", { name: "Include MIT" }).click();
     await expect(page.getByText("1 license picked")).toBeVisible();
@@ -246,7 +248,7 @@ test.describe("License policy form", () => {
 
     expect((await posted).postDataJSON()).toMatchObject({
       name: "Permissive only",
-      type: "WHITELIST",
+      type: "BLACKLIST",
       licenses: ["MIT"],
       default: false,
     });
@@ -298,9 +300,22 @@ test.describe("License policy form", () => {
     ).toBeChecked();
 
     await expect(name).not.toHaveAttribute("aria-invalid", "true");
-    await expect(page.getByText("Pick a policy type")).toHaveCount(0);
     await expect(page.getByText("Pick at least one license")).toHaveCount(0);
     await expect(page.getByRole("alert")).toHaveCount(0);
+  });
+
+  test("saving an edited policy needs nothing refilled", async ({ page }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoEditLicense("lp-1");
+    const name = page.getByRole("textbox", { name: "Name" });
+    await expect(name).toHaveValue("Permissive only");
+
+    await name.fill("Permissive licenses");
+    await page.getByRole("button", { name: "Save policy" }).click();
+
+    await expect.poll(() => policies.writes).toHaveLength(1);
+    expect(policies.writes[0]).toMatch(/^PATCH .*\/license_policy\/lp-1$/);
   });
 
   test("editing an unknown policy says so and disables the form", async ({
@@ -338,7 +353,6 @@ test.describe("License policy form", () => {
     for (const target of [
       page.getByRole("textbox", { name: "Name" }),
       page.getByRole("textbox", { name: "Description (optional)" }),
-      page.getByRole("combobox", { name: "Type" }),
       page.getByRole("checkbox", { name: "Make this the default policy" }),
       page.getByRole("searchbox", { name: "Filter licenses" }),
       page.getByRole("button", { name: "Identifier" }),

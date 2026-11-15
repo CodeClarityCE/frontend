@@ -25,13 +25,6 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shadcn/ui/select";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
@@ -40,7 +33,6 @@ import { successToast } from "@/utils/toasts";
 
 import { LicensePolicyType } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
-import { policyTypeLabel } from "../policy-labels";
 
 const props = defineProps<{ orgId: string; mode?: string }>();
 
@@ -70,9 +62,6 @@ const formSchema = z.object({
     .min(5, "At least 5 characters")
     .max(200, "At most 200 characters"),
   description: z.string().max(200, "At most 200 characters").default(""),
-  type: z.nativeEnum(LicensePolicyType, {
-    errorMap: () => ({ message: "Pick a policy type" }),
-  }),
   isDefault: z.boolean().default(false),
   licenses: z.string().array().min(1, "Pick at least one license"),
 });
@@ -137,7 +126,8 @@ const onSubmit = guardFormSubmit(
     const data = {
       name: form.name,
       description: form.description,
-      type: form.type,
+      // Analyses flag the picked licenses; the server stores no type.
+      type: LicensePolicyType.BLACKLIST,
       licenses: form.licenses,
       default: form.isDefault,
     };
@@ -199,7 +189,6 @@ async function loadPolicy(): Promise<void> {
       handleBusinessErrors: true,
     });
     const policy = response.data;
-    // The server keeps no allow or block type, so that field stays to pick
     setValues(
       {
         name: policy.name,
@@ -232,7 +221,7 @@ onBeforeMount(() => {
         Policies
       </RouterLink>
       <PageHeading
-        description="Allow only the licenses you pick, or block them and accept every other one."
+        description="Pick the licenses your projects should not use."
       >
         <template v-if="isEdit">
           Edit <BrandEmphasis>license policy</BrandEmphasis>
@@ -259,7 +248,7 @@ onBeforeMount(() => {
                 <FormLabel>Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Permissive licenses only"
+                    placeholder="No copyleft licenses"
                     v-bind="filterUndefined(componentField)"
                   />
                 </FormControl>
@@ -276,30 +265,6 @@ onBeforeMount(() => {
                 <FormDescription>
                   Tell your team what this policy is for.
                 </FormDescription>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-
-            <FormField v-slot="{ componentField }" name="type">
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select v-bind="filterUndefined(componentField)">
-                  <FormControl>
-                    <SelectTrigger class="max-w-sm">
-                      <SelectValue placeholder="Select a type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem :value="LicensePolicyType.WHITELIST">
-                      {{ policyTypeLabel(LicensePolicyType.WHITELIST) }}: only
-                      the picked licenses
-                    </SelectItem>
-                    <SelectItem :value="LicensePolicyType.BLACKLIST">
-                      {{ policyTypeLabel(LicensePolicyType.BLACKLIST) }}: every
-                      license but the picked ones
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             </FormField>
@@ -331,6 +296,9 @@ onBeforeMount(() => {
                   <legend class="text-sm font-medium leading-none">
                     Licenses
                   </legend>
+                  <p class="text-sm text-muted-foreground">
+                    Projects that use a picked license are flagged.
+                  </p>
                   <p role="status" class="text-sm text-muted-foreground">
                     {{ selected.size }}
                     {{ selected.size === 1 ? "license" : "licenses" }} picked

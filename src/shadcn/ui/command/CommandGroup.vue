@@ -2,9 +2,9 @@
 import type { ListboxGroupProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import { cn } from "@/shadcn/lib/utils";
 import { ListboxGroup, ListboxGroupLabel, useId } from "reka-ui";
 import { computed, onMounted, onUnmounted } from "vue";
-import { cn } from "@/shadcn/lib/utils";
 import { provideCommandGroupContext, useCommand } from ".";
 
 const props = defineProps<
@@ -36,16 +36,13 @@ onUnmounted(() => {
   <ListboxGroup
     v-bind="delegatedProps"
     :id="id"
-    :class="
-      cn(
-        'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
-        props.class,
-      )
-    "
+    data-slot="command-group"
+    :class="cn('text-foreground overflow-hidden p-1', props.class)"
     :hidden="isRender ? undefined : true"
   >
     <ListboxGroupLabel
       v-if="heading"
+      data-slot="command-group-heading"
       class="px-2 py-1.5 text-xs font-medium text-muted-foreground"
     >
       {{ heading }}

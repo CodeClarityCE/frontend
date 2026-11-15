@@ -27,7 +27,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/shadcn/ui/command";
-import { DialogDescription, DialogTitle } from "@/shadcn/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
@@ -186,12 +185,11 @@ function go(to: RouteLocationRaw): void {
 </script>
 
 <template>
-  <CommandDialog v-model:open="open">
-    <DialogTitle class="sr-only">Command palette</DialogTitle>
-    <DialogDescription class="sr-only">
-      Search pages, Datasets, Experiments and Projects, then press Enter to go
-      there.
-    </DialogDescription>
+  <CommandDialog
+    v-model:open="open"
+    title="Command palette"
+    description="Search pages, Datasets, Experiments and Projects, then press Enter to go there."
+  >
     <CommandInput
       placeholder="Search pages, Datasets, Experiments, Projects..."
       aria-label="Search"

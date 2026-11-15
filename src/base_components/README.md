@@ -2,6 +2,8 @@
 
 Shared components for every page. Build new screens from these and the shadcn components in `@/shadcn/ui`. Import each one from its own path; there is no barrel.
 
+The shadcn components are our own fork; see `src/shadcn/README.md` before changing or refreshing them.
+
 ## Directory Structure
 
 ```

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { PaginationEllipsisProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { reactiveOmit } from "@vueuse/core";
 import { MoreHorizontal } from "@lucide/vue";
-import { PaginationEllipsis } from "reka-ui";
+import { reactiveOmit } from "@vueuse/core";
 import { cn } from "@/shadcn/lib/utils";
+import { PaginationEllipsis } from "reka-ui";
 
 const props = defineProps<
   PaginationEllipsisProps & { class?: HTMLAttributes["class"] }

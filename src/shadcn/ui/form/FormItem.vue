@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue";
+import { cn } from "@/shadcn/lib/utils";
 import { useId } from "reka-ui";
 import { provide } from "vue";
-import { cn } from "@/shadcn/lib/utils";
 import { FORM_ITEM_INJECTION_KEY } from "./injectionKeys";
 
 const props = defineProps<{
@@ -14,7 +14,7 @@ provide(FORM_ITEM_INJECTION_KEY, id);
 </script>
 
 <template>
-  <div :class="cn('space-y-2', props.class)">
+  <div data-slot="form-item" :class="cn('space-y-2', props.class)">
     <slot />
   </div>
 </template>

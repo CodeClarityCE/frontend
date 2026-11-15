@@ -72,6 +72,29 @@ test.describe("Authentication E2E Tests", () => {
         }),
       );
 
+    test("a double click on Sign in sends one request", async ({ page }) => {
+      let sent = 0;
+      await page.route("**/api/auth/authenticate", (route) => {
+        sent++;
+        return route.fulfill({
+          status: 400,
+          json: {
+            status_code: 400,
+            status: "failure",
+            error_code: "WrongCredentials",
+            error_message: "Rejected",
+          },
+        });
+      });
+      await authPage.goto();
+      await authPage.emailInput.fill("john.doe@codeclarity.io");
+      await authPage.passwordInput.fill("WrongPassword123!");
+      await authPage.loginButton.dblclick();
+
+      await expect(page.getByRole("alert")).toBeVisible();
+      expect(sent).toBe(1);
+    });
+
     test("keeps the email and says the credentials are wrong", async ({
       page,
     }) => {
@@ -309,6 +332,38 @@ test.describe("Sign up", () => {
     await expect(field(page, "Last name")).toHaveValue("Doe");
     await expect(field(page, "Handle")).toHaveValue("janedoe");
     await expect(page.getByRole("checkbox")).toBeChecked();
+  });
+
+  test("a double click on Create account sends one request", async ({
+    page,
+  }) => {
+    let sent = 0;
+    await page.route("**/api/auth/register", (route) => {
+      sent++;
+      return route.fulfill({
+        status: 409,
+        json: {
+          status_code: 409,
+          status: "failure",
+          error_code: "EmailAlreadyExists",
+          error_message: "Exists",
+        },
+      });
+    });
+    await page.goto("/signup");
+    await field(page, "Email").fill("jane@example.com");
+    await field(page, "First name").fill("Jane");
+    await field(page, "Last name").fill("Doe");
+    await field(page, "Handle").fill("janedoe");
+    await field(page, "Password", { exact: true }).fill("ThisIs4Str0ng!");
+    await field(page, "Confirm password").fill("ThisIs4Str0ng!");
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Create account" }).dblclick();
+
+    await expect(page.locator('div[role="alert"]')).toContainText(
+      "An account with this email already exists",
+    );
+    expect(sent).toBe(1);
   });
 
   test("explains each field in plain words", async ({ page }) => {

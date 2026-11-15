@@ -18,6 +18,7 @@ import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -42,7 +43,7 @@ const form = useForm<FormValues>({
 
 const submitting = ref(false);
 
-const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
   if (!user || !authStore.getToken) return;
   submitting.value = true;

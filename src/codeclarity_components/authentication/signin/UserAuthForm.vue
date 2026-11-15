@@ -25,6 +25,7 @@ import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { serverFeatures } from "@/utils/server-features";
 
 import TextLink from "../layout/TextLink.vue";
@@ -50,15 +51,22 @@ const formSchema = z.object({
   password: z.string().min(1, "Enter your password"),
 });
 type FormValues = z.infer<typeof formSchema>;
-const { handleSubmit } = useForm<FormValues>({
+const {
+  handleSubmit,
+  isSubmitting,
+  values: formValues,
+} = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
   initialValues: { email: "", password: "" },
 });
 
-const onSubmit = handleSubmit((values): void => {
-  if (loading.value) return;
-  void submit(values);
-});
+const onSubmit = guardFormSubmit(
+  { handleSubmit, isSubmitting, values: formValues },
+  (values): void => {
+    if (loading.value) return;
+    void submit(values);
+  },
+);
 
 // Stores
 const userStore = useUserStore();

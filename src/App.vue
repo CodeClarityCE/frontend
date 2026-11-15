@@ -2,6 +2,7 @@
 import { type Component, defineAsyncComponent } from "vue";
 import { RouterView, useRoute } from "vue-router";
 
+import { usesLoggedOutLayout, viewKey } from "@/router";
 import { Toaster } from "@/shadcn/ui/sonner";
 import { useAuthStore } from "@/stores/auth";
 
@@ -17,9 +18,9 @@ const route = useRoute();
 </script>
 
 <template>
-  <AppShell v-if="authStore.getAuthenticated">
-    <RouterView :key="route.fullPath" />
+  <AppShell v-if="authStore.getAuthenticated && !usesLoggedOutLayout(route)">
+    <RouterView :key="viewKey(route)" />
   </AppShell>
-  <RouterView v-else :key="route.fullPath" />
+  <RouterView v-else :key="viewKey(route)" />
   <Toaster />
 </template>

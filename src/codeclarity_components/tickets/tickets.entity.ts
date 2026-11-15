@@ -288,6 +288,17 @@ export interface CheckDuplicateRequest {
   vulnerability_id: string;
 }
 
+// The finding a ticket is created from.
+export interface VulnerabilityData {
+  vulnerability_id: string;
+  severity_score?: number;
+  severity_class?: string;
+  affected_package?: string;
+  affected_version?: string;
+  description?: string;
+  recommended_version?: string;
+}
+
 // ============================================
 // Response Types
 // ============================================
@@ -381,13 +392,14 @@ export const TicketTypeLabels: Record<TicketType, string> = {
   [TicketType.UPGRADE]: "Upgrade",
 };
 
-// Kanban columns, in board order.
+// Kanban columns, in board order: one per status, so the cards add up to the total.
 export const KanbanColumns: { status: TicketStatus; label: string }[] = [
-  { status: TicketStatus.OPEN, label: "Open" },
-  { status: TicketStatus.IN_PROGRESS, label: "In Progress" },
-  { status: TicketStatus.RESOLVED, label: "Resolved" },
-  { status: TicketStatus.CLOSED, label: "Closed" },
-];
+  TicketStatus.OPEN,
+  TicketStatus.IN_PROGRESS,
+  TicketStatus.RESOLVED,
+  TicketStatus.CLOSED,
+  TicketStatus.WONT_FIX,
+].map((status) => ({ status, label: TicketStatusLabels[status] }));
 
 // ============================================
 // Integration Types
@@ -400,10 +412,6 @@ export interface IntegrationConfigSummary {
   created_on: Date;
   updated_on?: Date;
   has_config: boolean;
-  workspace_name?: string;
-  list_name?: string;
-  auto_sync_on_create?: boolean;
-  sync_status_changes?: boolean;
 }
 
 export interface IntegrationHierarchyItem {
@@ -419,6 +427,12 @@ export interface ConnectionTestResult {
     name: string;
     email?: string;
   };
+}
+
+/** Credentials typed in the setup dialog, sent per request and never saved by it. */
+export interface IntegrationCredentials {
+  api_key?: string;
+  access_token?: string;
 }
 
 export interface ConfigureClickUpRequest {

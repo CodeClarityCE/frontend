@@ -14,6 +14,8 @@ import {
 import type { ScheduleData, ScheduleType } from "./schedule";
 
 const schedule = defineModel<ScheduleData>({ required: true });
+// Why the first run cannot be saved, if it cannot.
+const props = defineProps<{ error?: string }>();
 
 const options: { value: ScheduleType; label: string }[] = [
   { value: "once", label: "Once, right away" },
@@ -63,11 +65,14 @@ function setType(value: unknown): void {
   };
 }
 
+// A cleared date or time leaves no first run, rather than the old one.
 function setDateTime(): void {
-  if (!date.value || !time.value) return;
   schedule.value = {
     ...schedule.value,
-    next_scheduled_run: new Date(`${date.value}T${time.value}`),
+    next_scheduled_run:
+      date.value && time.value
+        ? new Date(`${date.value}T${time.value}`)
+        : undefined,
   };
 }
 
@@ -84,22 +89,23 @@ function onTime(value: string | number): void {
 const summary = computed(() => {
   const next = schedule.value.next_scheduled_run;
   if (!recurring.value) return "Runs once, as soon as you start it.";
-  const from = next
-    ? ` from ${next.toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      })}`
-    : "";
+  const from =
+    next && !Number.isNaN(next.getTime())
+      ? ` from ${next.toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })}`
+      : "";
   return `Runs ${schedule.value.schedule_type}${from}.`;
 });
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="flex flex-col gap-2">
         <Label for="analysis-schedule">Runs</Label>
         <Select
@@ -125,6 +131,10 @@ const summary = computed(() => {
           <Label for="analysis-first-date">First run date</Label>
           <Input
             id="analysis-first-date"
+            :aria-invalid="props.error ? true : undefined"
+            :aria-describedby="
+              props.error ? 'analysis-first-run-error' : undefined
+            "
             type="date"
             :model-value="date"
             :min="today"
@@ -135,6 +145,10 @@ const summary = computed(() => {
           <Label for="analysis-first-time">First run time</Label>
           <Input
             id="analysis-first-time"
+            :aria-invalid="props.error ? true : undefined"
+            :aria-describedby="
+              props.error ? 'analysis-first-run-error' : undefined
+            "
             type="time"
             :model-value="time"
             @update:model-value="onTime"
@@ -142,6 +156,13 @@ const summary = computed(() => {
         </div>
       </template>
     </div>
+    <p
+      v-if="recurring && props.error"
+      id="analysis-first-run-error"
+      class="text-sm text-destructive"
+    >
+      {{ props.error }}
+    </p>
     <p class="text-sm text-muted-foreground" aria-live="polite">
       {{ summary }}
     </p>

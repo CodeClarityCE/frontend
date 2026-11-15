@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
 import {
   Card,
   CardContent,
@@ -12,13 +13,18 @@ import ExposureOverview from "../charts/ExposureOverview.vue";
 import LicenseDist from "../charts/LicenseDist.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
+import type { DashboardRequest } from "../composables/useDashboardRequest";
 
 // The project overview's charts and summaries, one card each.
-defineProps<{ integrationIds: string[] }>();
+defineProps<{
+  integrationIds: string[];
+  /** Shared with the project numbers, so it is requested once */
+  recentVulns: DashboardRequest<LatestVulns>;
+}>();
 </script>
 
 <template>
-  <div class="grid gap-6 lg:grid-cols-2">
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <Card class="rounded-card shadow-card lg:col-span-2">
       <CardHeader>
         <CardTitle class="text-base">Vulnerability exposure</CardTitle>
@@ -38,7 +44,7 @@ defineProps<{ integrationIds: string[] }>();
         >
       </CardHeader>
       <CardContent>
-        <CurrentVulns :integration-ids="integrationIds" />
+        <CurrentVulns :request="recentVulns" />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">
@@ -54,8 +60,8 @@ defineProps<{ integrationIds: string[] }>();
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Open source licences</CardTitle>
-        <CardDescription>Licences across your dependencies</CardDescription>
+        <CardTitle class="text-base">Open source licenses</CardTitle>
+        <CardDescription>Licenses across your dependencies</CardDescription>
       </CardHeader>
       <CardContent>
         <LicenseDist :integration-ids="integrationIds" />

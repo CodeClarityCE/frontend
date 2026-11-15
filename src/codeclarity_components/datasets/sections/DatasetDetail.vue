@@ -57,7 +57,7 @@ const notFound = ref(false);
 const importing = ref(false);
 const importProgress = ref({ done: 0, total: 0 });
 const importFailures = ref<FailedEntryImport[]>([]);
-const confirmingDelete = ref(false);
+const confirming = ref<"import" | "delete" | null>(null);
 const deleting = ref(false);
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -94,6 +94,12 @@ const canImport = computed(
     dataset.value.integration_id !== null,
 );
 
+/** How many projects an import creates, in words */
+const importCountLabel = computed(() => {
+  const count = dataset.value?.entry_count ?? 0;
+  return `${count} ${count === 1 ? "project" : "projects"}`;
+});
+
 /** Only a READY dataset can be the cohort of an experiment */
 const canRunExperiment = computed(
   () =>
@@ -120,6 +126,7 @@ async function loadDataset(): Promise<void> {
       datasetId: datasetId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     dataset.value = response.data;
     notFound.value = false;
@@ -168,6 +175,7 @@ async function fetchAllEntries(
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       bearerToken: token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     all.push(...response.data);
     if (page + 1 >= response.total_pages) return all;
@@ -185,6 +193,7 @@ async function importAsProjects(): Promise<void> {
   if (!orgId || !token || !integrationId || importing.value) return;
 
   importing.value = true;
+  confirming.value = null;
   importFailures.value = [];
   const failures: FailedEntryImport[] = [];
   let alreadyImported = 0;
@@ -198,6 +207,7 @@ async function importAsProjects(): Promise<void> {
           data: { integration_id: integrationId, url: entry.git_url },
           bearerToken: token,
           handleBusinessErrors: true,
+          handleHTTPErrors: true,
         });
       } catch (err) {
         if (
@@ -245,6 +255,7 @@ async function deleteDataset(): Promise<void> {
       datasetId: datasetId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Dataset deleted");
     void router.push({ name: "datasets" });
@@ -257,7 +268,7 @@ async function deleteDataset(): Promise<void> {
     );
   } finally {
     deleting.value = false;
-    confirmingDelete.value = false;
+    confirming.value = null;
   }
 }
 
@@ -331,10 +342,8 @@ onUnmounted(() => clearTimeout(pollTimer));
           {{ dataset.params.languages.join(" / ") }} repositories with more than
           {{ dataset.params.min_stars }} stars,
           {{ dataset.params.pages }} search page(s) per language. Created
-          {{
-            formatShortDate(dataset.created_on, { time: true, fallback: "-" })
-          }}
-          <template v-if="dataset.created_by_name">
+          {{ formatShortDate(dataset.created_on, { time: true, fallback: "-" })
+          }}<template v-if="dataset.created_by_name">
             by {{ dataset.created_by_name }}</template
           >.
         </template>
@@ -349,31 +358,41 @@ onUnmounted(() => clearTimeout(pollTimer));
             <FlaskConical aria-hidden="true" />
             Run Experiment
           </Button>
-          <Button
-            v-if="canImport"
-            variant="outline"
-            :disabled="importing"
-            data-testid="dataset-import"
-            @click="importAsProjects"
-          >
-            <FolderInput aria-hidden="true" />
-            Import as projects
-          </Button>
-          <Button
-            v-if="!confirmingDelete"
-            variant="outline"
-            :disabled="importing"
-            data-testid="dataset-delete"
-            @click="confirmingDelete = true"
-          >
-            {{
-              dataset.status === DatasetStatus.BUILDING
-                ? "Cancel build"
-                : "Delete"
-            }}
-          </Button>
+          <template v-if="confirming === null">
+            <Button
+              v-if="canImport"
+              variant="outline"
+              :disabled="importing"
+              data-testid="dataset-import"
+              @click="confirming = 'import'"
+            >
+              <FolderInput aria-hidden="true" />
+              Import as projects
+            </Button>
+            <Button
+              variant="outline"
+              :disabled="importing"
+              data-testid="dataset-delete"
+              @click="confirming = 'delete'"
+            >
+              {{
+                dataset.status === DatasetStatus.BUILDING
+                  ? "Cancel build"
+                  : "Delete"
+              }}
+            </Button>
+          </template>
           <template v-else>
             <Button
+              v-if="confirming === 'import'"
+              :disabled="importing"
+              data-testid="dataset-import-confirm"
+              @click="importAsProjects"
+            >
+              Import {{ importCountLabel }}
+            </Button>
+            <Button
+              v-else
               variant="destructive"
               :disabled="deleting"
               data-testid="dataset-delete-confirm"
@@ -381,12 +400,19 @@ onUnmounted(() => clearTimeout(pollTimer));
             >
               Confirm delete
             </Button>
-            <Button variant="outline" @click="confirmingDelete = false">
-              Keep
-            </Button>
+            <Button variant="outline" @click="confirming = null"> Keep </Button>
           </template>
         </template>
       </PageHeading>
+
+      <p
+        v-if="confirming === 'import'"
+        class="text-sm text-foreground"
+        data-testid="dataset-import-hint"
+      >
+        This creates {{ importCountLabel }}, one per repository. Repositories
+        imported before are skipped.
+      </p>
 
       <Alert v-if="dataset.status === DatasetStatus.BUILDING" role="status">
         <Info aria-hidden="true" class="size-4" />
@@ -442,7 +468,10 @@ onUnmounted(() => clearTimeout(pollTimer));
         class="flex flex-col gap-4"
         data-testid="dataset-stats"
       >
-        <ul aria-label="Build numbers" class="grid grid-cols-4 gap-4">
+        <ul
+          aria-label="Build numbers"
+          class="grid grid-cols-2 gap-4 lg:grid-cols-4"
+        >
           <StatTile
             label="Selected"
             :value="`${dataset.stats.selected} / ${dataset.params.limit}`"
@@ -527,7 +556,7 @@ onUnmounted(() => clearTimeout(pollTimer));
         <Skeleton class="h-9 w-72" />
         <Skeleton class="h-5 w-[32rem]" />
       </div>
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Skeleton v-for="tile in 4" :key="tile" class="h-24 rounded-card" />
       </div>
       <Skeleton class="h-80 rounded-card" />

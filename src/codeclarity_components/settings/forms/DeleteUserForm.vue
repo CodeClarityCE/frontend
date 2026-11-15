@@ -29,6 +29,7 @@ import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -47,6 +48,7 @@ const form = useForm<FormValues>({
 
 const open = ref(false);
 const submitting = ref(false);
+const isSubmitting = form.isSubmitting;
 
 // Starts each opening of the dialog with an empty field.
 function onOpenChange(value: boolean): void {
@@ -54,7 +56,7 @@ function onOpenChange(value: boolean): void {
   if (!value) form.resetForm({ values: { password: "" } });
 }
 
-const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
   if (!user || !authStore.getToken) return;
   submitting.value = true;
@@ -113,7 +115,11 @@ const onSubmit = form.handleSubmit(async (values): Promise<void> => {
           <DialogClose as-child>
             <Button type="button" variant="outline">Cancel</Button>
           </DialogClose>
-          <Button type="submit" variant="destructive" :disabled="submitting">
+          <Button
+            type="submit"
+            variant="destructive"
+            :disabled="submitting || isSubmitting"
+          >
             <LoaderCircle
               v-if="submitting"
               aria-hidden="true"

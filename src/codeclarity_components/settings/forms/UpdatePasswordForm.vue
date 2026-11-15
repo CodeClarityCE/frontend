@@ -21,6 +21,7 @@ import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -67,7 +68,7 @@ function failureMessage(err: unknown): string {
   return "The password could not be changed. Check your current password.";
 }
 
-const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
   if (!user || !authStore.getToken) return;
   submitting.value = true;
@@ -104,7 +105,7 @@ const onSubmit = form.handleSubmit(async (values): Promise<void> => {
         <FormMessage />
       </FormItem>
     </FormField>
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <FormField v-slot="{ componentField }" name="password">
         <FormItem>
           <FormLabel>New password</FormLabel>

@@ -2,7 +2,14 @@
 import { line, scaleLinear } from "d3";
 import { computed, ref } from "vue";
 
-import { type GridLineSeries, TOP_PADDING, xTickCount } from "./chart-format";
+import {
+  type GridLineSeries,
+  insideX,
+  LABEL_GAP,
+  labelWidth,
+  TOP_PADDING,
+  xTickCount,
+} from "./chart-format";
 import { useChartWidth } from "./chart-layout";
 import ChartTable from "./ChartTable.vue";
 import ChartTooltip from "./ChartTooltip.vue";
@@ -12,6 +19,8 @@ import "./chart.css";
 const props = defineProps<{
   /** One per point along x, e.g. grid dates with HEAD last */
   labels: string[];
+  /** Shorter x axis labels, labels when not given */
+  axisLabels?: string[];
   series: GridLineSeries[];
   /** Top of the y range before rounding */
   yMax: number;
@@ -24,6 +33,8 @@ const props = defineProps<{
   caption: string;
   /** Header of the table's first column */
   xTitle: string;
+  /** Counts: y labels only at whole numbers */
+  integer?: boolean;
   /** More table columns after the series, one value per label */
   extraColumns?: { label: string; values: string[] }[];
   /** Draw every point without a joining line */
@@ -63,15 +74,33 @@ const y = computed(() =>
     .range([baseline, TOP_PADDING]),
 );
 
-const yTicks = computed(() => y.value.ticks(4));
+const yTicks = computed(() =>
+  y.value.ticks(4).filter((tick) => !props.integer || Number.isInteger(tick)),
+);
+
+const xLabels = computed(() => props.axisLabels ?? props.labels);
+
+/** How many steps along x the widest label needs to stay clear of the next */
+const labelSteps = computed(
+  () =>
+    (Math.max(0, ...xLabels.value.map(labelWidth)) + LABEL_GAP) /
+    Math.max(step.value, 1),
+);
 
 /** About six evenly spaced labels, always including the last. */
 const xTicks = computed(() => {
   const n = props.labels.length;
-  const every = Math.max(1, Math.ceil(n / xTickCount(chartWidth.value)));
+  const every = Math.max(
+    1,
+    Math.ceil(n / xTickCount(chartWidth.value)),
+    Math.ceil(labelSteps.value),
+  );
   const ticks = props.labels
     .map((_, i) => i)
-    .filter((i) => i % every === 0 && n - 1 - i >= every / 2);
+    .filter(
+      (i) =>
+        i % every === 0 && n - 1 - i >= Math.max(every / 2, labelSteps.value),
+    );
   return n ? [...ticks, n - 1] : [];
 });
 
@@ -181,13 +210,13 @@ function formatCell(value: number | null): string {
         <text
           v-for="i in xTicks"
           :key="`x-${i}`"
-          :x="xOf(i)"
+          :x="insideX(xOf(i), xLabels[i] ?? '', chartWidth)"
           :y="baseline + 16"
           text-anchor="middle"
           font-size="11"
           fill="var(--viz-text-muted)"
         >
-          {{ labels[i] }}
+          {{ xLabels[i] }}
         </text>
         <line
           v-if="active !== null"

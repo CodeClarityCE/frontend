@@ -4,7 +4,7 @@ import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
 
-/** A license policy as the API returns it. */
+/** A license policy as the API list returns it: no allow or block type, no author. */
 export function licensePolicy(
   id: string,
   name: string,
@@ -14,16 +14,16 @@ export function licensePolicy(
     id,
     name,
     description: `${name} for every project`,
-    policy_type: "WHITELIST",
+    policy_type: "LICENSE_POLICY",
     default: false,
-    created_by: "John Doe",
+    created_by: "",
     created_on: "2026-10-01T09:00:00Z",
     content: ["MIT", "Apache-2.0"],
     ...overrides,
   };
 }
 
-/** A vulnerability policy as the API returns it. */
+/** A vulnerability policy as the API list returns it: no author. */
 export function vulnerabilityPolicy(
   id: string,
   name: string,
@@ -33,9 +33,9 @@ export function vulnerabilityPolicy(
     id,
     name,
     description: `${name} excluded from results`,
-    policy_type: "BLACKLIST",
+    policy_type: "VULNERABILITY_POLICY",
     default: false,
-    created_by: "John Doe",
+    created_by: "",
     created_on: "2026-10-02T09:00:00Z",
     content: ["CVE-2024-0001", "CVE-2024-0002"],
     ...overrides,
@@ -66,10 +66,7 @@ export function license(id: string, name: string): Record<string, unknown> {
 
 export const sampleLicensePolicies = [
   licensePolicy("lp-1", "Permissive only", { default: true }),
-  licensePolicy("lp-2", "No copyleft", {
-    policy_type: "BLACKLIST",
-    content: ["GPL-3.0-only"],
-  }),
+  licensePolicy("lp-2", "No copyleft", { content: ["GPL-3.0-only"] }),
 ];
 
 export const sampleVulnerabilityPolicies = [
@@ -142,7 +139,12 @@ export class OrgPoliciesPage {
         kind === "license_policy" ? licensePolicies : vulnerabilityPolicies;
       if (id) {
         const found = (list as { id: string }[]).find((p) => p.id === id);
-        return fulfil(route, { data: found });
+        if (!found) return route.fulfill({ status: 404, json: notFound });
+        return fulfil(route, {
+          data: found,
+          status_code: 200,
+          status: "success",
+        });
       }
       return fulfil(route, paginated(list));
     });
@@ -179,6 +181,13 @@ export class OrgPoliciesPage {
     return this.table(tableName).locator("tbody tr");
   }
 }
+
+const notFound = {
+  status_code: 404,
+  status: "failure",
+  error_code: "EntityNotFound",
+  error_message: "The requested entity could not be found.",
+};
 
 function fulfil(route: Route, json: unknown): Promise<void> {
   return route.fulfill({ json });

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ArrowLeft } from "@lucide/vue";
 import { computed, type Ref, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 
 import { PageHeading, SeverityBadge, StatTile } from "@/base_components/page";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
@@ -13,6 +13,8 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { SeverityLevel } from "@/utils/severity";
 
+import ResultsNotFound from "../components/ResultsNotFound.vue";
+import { isNotFound, resultsRoute } from "../result-errors";
 import { detailsRoute } from "../vulnerabilities/vuln-format";
 
 import SbomDependencyGraph from "./SbomDetails/SbomDependencyGraph.vue";
@@ -31,7 +33,6 @@ const props = withDefaults(
   { showBack: false, runIndex: null },
 );
 
-const router = useRouter();
 const route = useRoute();
 const resultsRepository = new ResultsRepository();
 const userStore = useUserStore();
@@ -39,15 +40,22 @@ const authStore = useAuthStore();
 
 const loading = ref(true);
 const failed = ref(false);
+const notFound = ref(false);
 const dependency: Ref<DependencyDetails> = ref(new DependencyDetails());
+const backTo = resultsRoute(props.analysisID, props.projectID, props.runIndex);
+const hasIds = props.analysisID !== "" && props.projectID !== "";
 
 async function getDependency(): Promise<void> {
   const packageId = route.query.package_id ?? null;
   const org = userStore.getDefaultOrg;
   const token = authStore.getToken;
+  if (typeof packageId !== "string" || !packageId || !hasIds) {
+    notFound.value = true;
+    loading.value = false;
+    return;
+  }
   try {
-    if (typeof packageId !== "string" || !org || !token)
-      throw new Error("Missing dependency, organisation or token");
+    if (!org || !token) throw new Error("Missing organisation or token");
     const res = await resultsRepository.getDependency({
       orgId: org.id,
       projectId: props.projectID,
@@ -59,8 +67,10 @@ async function getDependency(): Promise<void> {
       handleBusinessErrors: true,
     });
     dependency.value = res.data;
-  } catch {
-    failed.value = true;
+  } catch (error) {
+    if (isNotFound(error, [props.projectID, props.analysisID]))
+      notFound.value = true;
+    else failed.value = true;
   } finally {
     loading.value = false;
   }
@@ -130,14 +140,21 @@ const LINK =
 
 <template>
   <div class="flex flex-col gap-8">
-    <div v-if="showBack">
-      <Button variant="ghost" size="sm" @click="router.back()">
+    <div v-if="showBack && !notFound && backTo">
+      <Button variant="ghost" size="sm" :as="RouterLink" :to="backTo">
         <ArrowLeft aria-hidden="true" class="size-4" />
         Back to results
       </Button>
     </div>
 
     <SbomDetailsLoader v-if="loading" />
+
+    <ResultsNotFound
+      v-else-if="notFound"
+      title="Dependency not found"
+      description="This analysis has no such dependency, or you do not have access to it."
+      :results="backTo"
+    />
 
     <Alert v-else-if="failed" variant="destructive">
       <AlertTitle>Could not load this dependency</AlertTitle>

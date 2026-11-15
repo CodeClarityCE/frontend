@@ -3,8 +3,8 @@ import { expect, type Locator, type Page, type Route } from "@playwright/test";
 import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
-export const PROJECT = "proj-1";
-export const ANALYSIS = "an-1";
+export const PROJECT = "3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601";
+export const ANALYSIS = "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02";
 
 const project = {
   id: PROJECT,
@@ -61,7 +61,7 @@ export function dependency(
     deprecated: false,
     deprecated_message: "",
     outdated: false,
-    licenses: [{ id: "MIT" }],
+    license: "MIT",
     release: "2024-05-01T00:00:00Z",
     ...overrides,
   };
@@ -362,13 +362,27 @@ export interface ResultTabsOptions {
   dependencies?: Record<string, unknown>[];
   licenses?: Record<string, unknown>[];
   codeql?: Record<string, unknown>[];
+  /** The SBOM workspaces answer, with its package managers. */
+  workspaces?: {
+    workspaces: string[];
+    package_manager: string;
+    package_managers?: Record<string, string>;
+  };
+  /** The dependency details answer, merged over the lodash sample. */
+  details?: Record<string, unknown>;
+  /** The dependency graph answer. */
+  graph?: Record<string, unknown>[];
+  /** The vulnerability stats answer. */
+  vulnStats?: Record<string, unknown>;
+  /** Adds a successful vuln-finder step, so the SBOM asks for vulnerability stats. */
+  vulnFinder?: boolean;
   /** Keeps the tab's main requests pending until the returned function runs. */
   hold?: boolean;
   /** Leaves the real clock: the fixed one stops menus moving focus. */
   realClock?: boolean;
 }
 
-/** The SBOM, licence, patch and CodeQL result tabs, with their API mocked. */
+/** The SBOM, license, patch and CodeQL result tabs, with their API mocked. */
 export class ResultTabsPage {
   readonly page: Page;
   readonly shell: ShellPage;
@@ -422,10 +436,21 @@ export class ResultTabsPage {
         const perPage = Number(url.searchParams.get("entries_per_page") ?? 20);
         if (path === base) return fulfil(route, { data: project });
         if (path === `${base}/analyses/${ANALYSIS}`)
-          return fulfil(route, { data: analysis });
+          return fulfil(route, {
+            data: options.vulnFinder
+              ? {
+                  ...analysis,
+                  steps: [...analysis.steps, [step("vuln-finder")]],
+                }
+              : analysis,
+          });
         if (path === `${results}/sbom/workspaces`)
           return fulfil(route, {
-            data: { workspaces: ["."], package_manager: "NPM" },
+            data: options.workspaces ?? {
+              workspaces: ["."],
+              package_manager: "NPM",
+              package_managers: { ".": "NPM" },
+            },
           });
         if (path === `${results}/sbom/stats`) {
           await wait();
@@ -437,12 +462,14 @@ export class ResultTabsPage {
           return fulfil(route, paginated(deps, page, perPage));
         if (path === `${results}/sbom/dependency`) {
           await wait();
-          return fulfil(route, { data: sampleDetails });
+          return fulfil(route, {
+            data: { ...sampleDetails, ...options.details },
+          });
         }
         if (path === `${results}/sbom/dependency/graph`)
-          return fulfil(route, { data: graph });
+          return fulfil(route, { data: options.graph ?? graph });
         if (path === `${results}/vulnerabilities/stats`)
-          return fulfil(route, { data: vulnStats });
+          return fulfil(route, { data: options.vulnStats ?? vulnStats });
         if (path === `${results}/licenses`) {
           await wait();
           return fulfil(

@@ -29,18 +29,9 @@ import {
   TicketPriorityLabels,
   TicketType,
   TicketTypeLabels,
+  type VulnerabilityData,
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
-
-export interface VulnerabilityData {
-  vulnerability_id: string;
-  severity_score?: number;
-  severity_class?: string;
-  affected_package?: string;
-  affected_version?: string;
-  description?: string;
-  recommended_version?: string;
-}
 
 const props = defineProps<{
   projectId: string;
@@ -115,6 +106,8 @@ async function checkDuplicate(): Promise<void> {
     const response = await ticketsRepository.checkDuplicate({
       orgId,
       bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data: {
         project_id: props.projectId,
         vulnerability_id: props.vulnerability.vulnerability_id,
@@ -155,6 +148,8 @@ async function handleSubmit(): Promise<void> {
     const result = await ticketsRepository.createTicket({
       orgId,
       bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data: {
         title: title.value,
         description: description.value,
@@ -298,7 +293,7 @@ function viewExistingTicket(): void {
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="ticket-priority">Priority</Label>
             <Select v-model="priority" :disabled="isLoading">

@@ -16,7 +16,7 @@ const toneClass: Record<StatusTone, string> = {
 
 <template>
   <span
-    class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+    class="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold"
     :class="toneClass[tone]"
   >
     <LoaderCircle

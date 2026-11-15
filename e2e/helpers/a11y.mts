@@ -50,6 +50,18 @@ function describe(violation: AxeViolation): string {
   return `  ${violation.id} (${violation.impact ?? "n/a"}): ${violation.help}\n${targets}`;
 }
 
+// Waits for finite animations, such as a dialog opening, so axe sees final colours and sizes.
+export async function waitForAnimations(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
+}
+
 /**
  * Runs axe-core with the WCAG 2.2 AA tags and fails on any violation.
  * `known` lists rules the page still breaks; it fails if one of them is fixed,
@@ -60,6 +72,7 @@ export async function expectNoAxeViolations(
   options: { known?: KnownViolation[] } = {},
 ): Promise<void> {
   const known = options.known ?? [];
+  await waitForAnimations(page);
   await page.addScriptTag({ path: axePath });
   const { violations } = await page.evaluate(
     (tags) =>
@@ -100,6 +113,9 @@ export async function expectVisibleFocus(
 ): Promise<void> {
   await expect(locator).toBeFocused({ timeout: options.timeout });
   const page = locator.page();
+  // Measure where the element ends up, not mid-animation.
+  await waitForAnimations(page);
+  await locator.scrollIntoViewIfNeeded();
   const box = await locator.boundingBox();
   if (!box) {
     throw new Error("Element has no box, so it has no visible focus indicator");

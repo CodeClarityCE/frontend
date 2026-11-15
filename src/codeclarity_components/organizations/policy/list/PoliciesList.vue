@@ -7,7 +7,7 @@ import { OwlEmptyState, StatTile } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { serverFeatures } from "@/utils/server-features";
 
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
@@ -16,6 +16,8 @@ import PolicyTable from "../PolicyTable.vue";
 const props = defineProps<{
   page: string;
   orgId: string;
+  // Only admins get the create, edit and delete actions.
+  canManage?: boolean;
 }>();
 
 const licensePolicyRepository = new LicensePolicyRepository();
@@ -48,11 +50,9 @@ async function loadPolicies(): Promise<void> {
       search_key: "",
     });
     policies.value = response.data ?? [];
-  } catch (err) {
-    error.value =
-      err instanceof BusinessLogicError && err.error_message
-        ? err.error_message
-        : "The license policies could not be loaded.";
+  } catch {
+    // The server's reason can be a raw request path, so it is not shown
+    error.value = "The license policies could not be loaded.";
   } finally {
     loaded.value = true;
   }
@@ -70,8 +70,8 @@ onBeforeMount(() => void loadPolicies());
 </script>
 <template>
   <section aria-labelledby="license-policies-title" class="flex flex-col gap-6">
-    <div class="flex items-start justify-between gap-6">
-      <div class="flex flex-col gap-1">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+      <div class="flex min-w-0 flex-1 basis-80 flex-col gap-1">
         <h2
           id="license-policies-title"
           class="text-xl font-semibold text-foreground-strong"
@@ -82,7 +82,7 @@ onBeforeMount(() => void loadPolicies());
           Allow or block licenses in the projects of this organisation.
         </p>
       </div>
-      <Button :as="RouterLink" :to="createRoute">
+      <Button v-if="canManage" :as="RouterLink" :to="createRoute">
         <Plus aria-hidden="true" />
         New license policy
       </Button>
@@ -106,7 +106,7 @@ onBeforeMount(() => void loadPolicies());
       title="No license policies yet"
       description="A license policy flags dependencies whose license your organisation does not accept."
     >
-      <Button :as="RouterLink" :to="createRoute" arrow>
+      <Button v-if="canManage" :as="RouterLink" :to="createRoute" arrow>
         Create a license policy
       </Button>
     </OwlEmptyState>
@@ -117,6 +117,7 @@ onBeforeMount(() => void loadPolicies());
       :loading="!loaded"
       caption="License policies"
       content-label="Licenses"
+      :can-edit="canManage && serverFeatures.licensePolicyChanges"
       @edit="handleEdit"
     />
   </section>

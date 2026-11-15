@@ -72,7 +72,7 @@ const descriptions: Record<string, { text: string; icon: LucideIcon }> = {
     icon: SlidersHorizontal,
   },
   Policies: {
-    text: "Licence and vulnerability rules for analyses",
+    text: "License and vulnerability rules for analyses",
     icon: FileText,
   },
   "Audit logs": {
@@ -114,7 +114,7 @@ const faqs = [
   {
     question: "What are policies?",
     answer:
-      "Rules the analyzers apply, such as licences to allow or block and vulnerabilities to flag.",
+      "Rules the analyzers apply, such as licenses to allow or block and vulnerabilities to flag.",
   },
   {
     question: "How do I add people?",
@@ -189,7 +189,7 @@ function afterAction(): void {
         >
           Settings
         </h2>
-        <ul class="grid grid-cols-2 gap-4 xl:grid-cols-3">
+        <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <li v-for="link in settingsLinks" :key="link.label">
             <RouterLink
               :to="link.to"

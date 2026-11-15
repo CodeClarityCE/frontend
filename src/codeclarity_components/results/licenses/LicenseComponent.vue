@@ -83,7 +83,7 @@ function dependencyRoute(dep: string): Record<string, unknown> {
 }
 
 const LINK =
-  "inline-flex items-center gap-1 rounded-sm font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex min-h-6 items-center gap-1 rounded-sm font-medium text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 </script>
 
 <template>

@@ -7,11 +7,16 @@ import router from "@/router";
 
 import ManageMembers from "./ManageMembers.vue";
 
-const { getOrgMembers, revokeMembership, orgInfo } = vi.hoisted(() => ({
-  getOrgMembers: vi.fn(),
-  revokeMembership: vi.fn(),
-  orgInfo: { current: {} },
-}));
+const { getOrgMembers, revokeMembership, orgInfo, features } = vi.hoisted(
+  () => ({
+    getOrgMembers: vi.fn(),
+    revokeMembership: vi.fn(),
+    orgInfo: { current: {} },
+    features: { memberRemoval: false },
+  }),
+);
+
+vi.mock("@/utils/server-features", () => ({ serverFeatures: features }));
 
 vi.mock("@/router", () => ({ default: { back: vi.fn(), push: vi.fn() } }));
 
@@ -102,13 +107,16 @@ function member(
   extra: object = {},
 ): object {
   return {
-    id,
-    first_name: first,
-    last_name: "Doe",
-    handle: first.toLowerCase(),
-    email: `${first.toLowerCase()}@example.com`,
     role,
     joined_on: "2025-01-10T10:00:00Z",
+    user: {
+      id,
+      first_name: first,
+      last_name: "Doe",
+      handle: first.toLowerCase(),
+      email: `${first.toLowerCase()}@example.com`,
+    },
+    organization: { id: "org-1", name: "Org" },
     ...extra,
   };
 }
@@ -141,6 +149,7 @@ function button(name: string): HTMLElement | undefined {
 describe("ManageMembers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    features.memberRemoval = false;
     orgInfo.current = {
       id: "org-1",
       role: MemberRole.ADMIN,
@@ -279,7 +288,15 @@ describe("ManageMembers", () => {
     expect(router.back).toHaveBeenCalled();
   });
 
+  it("offers no Remove while the server cannot remove members", async () => {
+    await render();
+
+    expect(button("Remove Bob Doe")).toBeUndefined();
+    expect(document.body.textContent).not.toContain("Actions");
+  });
+
   it("offers Remove for lower roles but never for yourself", async () => {
+    features.memberRemoval = true;
     await render();
 
     expect(button("Remove Bob Doe")).toBeDefined();
@@ -288,6 +305,7 @@ describe("ManageMembers", () => {
   });
 
   it("removes a member after confirming and reloads the list", async () => {
+    features.memberRemoval = true;
     revokeMembership.mockResolvedValue(undefined);
     await render();
 

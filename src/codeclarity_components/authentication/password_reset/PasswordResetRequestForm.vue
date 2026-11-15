@@ -124,7 +124,7 @@ async function submit(values: FormValues): Promise<void> {
             {{ validationError!.toMessage("Invalid form:") }}
           </div>
           <div v-else>
-            An error occured during the processing of the request.
+            An error occurred during the processing of the request.
           </div>
         </AlertDescription>
       </Alert>

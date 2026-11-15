@@ -16,6 +16,7 @@ import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity
 import AnalysisFailureReason from "@/codeclarity_components/analyses/AnalysisFailureReason.vue";
 import ProjectLanguageDetection from "@/codeclarity_components/projects/components/ProjectLanguageDetection.vue";
 import ProjectSource from "@/codeclarity_components/projects/components/ProjectSource.vue";
+import { sourceLabel } from "@/codeclarity_components/projects/components/source-label";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import {
   ProjectRepository,
@@ -80,7 +81,12 @@ function latest(project: Project): Analysis | undefined {
 
 const columns: ColumnDef<Project, unknown>[] = [
   { id: "name", accessorKey: "name", header: "Project" },
-  { id: "source", accessorKey: "type", header: "Source" },
+  {
+    id: "source",
+    // Sorts and filters by the label the column shows.
+    accessorFn: (project) => sourceLabel(project.type),
+    header: "Source",
+  },
   {
     id: "languages",
     header: "Languages",
@@ -166,9 +172,10 @@ function schedulePoll(): void {
   }
 }
 
+// Links to the newest completed analysis, even when a later one failed.
 function resultsLink(project: Project): Record<string, unknown> | undefined {
-  const analysis = latest(project);
-  if (!analysis || !isFinished(analysis)) return undefined;
+  const analysis = byNewest(project.analyses).find(isFinished);
+  if (!analysis) return undefined;
   const query: Record<string, string | number> = {
     analysis_id: analysis.id,
     project_id: project.id,
@@ -212,7 +219,7 @@ onUnmounted(() => clearTimeout(pollTimer));
 
 <template>
   <PageHeading
-    description="Repositories and uploads you analyse for vulnerabilities, licences and outdated dependencies."
+    description="Repositories and uploads you analyse for vulnerabilities, licenses and outdated dependencies."
   >
     <BrandEmphasis>Projects</BrandEmphasis>
     <template #actions>
@@ -264,7 +271,7 @@ onUnmounted(() => clearTimeout(pollTimer));
     <ul
       v-if="loaded"
       aria-label="Project overview"
-      class="grid grid-cols-4 gap-4"
+      class="grid grid-cols-2 gap-4 lg:grid-cols-4"
     >
       <StatTile label="Projects" :value="projects.length" />
       <StatTile
@@ -356,6 +363,17 @@ onUnmounted(() => clearTimeout(pollTimer));
           >
             Results
           </Button>
+          <!-- Holds the Results space so Delete lines up across rows. -->
+          <Button
+            v-else
+            as="span"
+            variant="ghost"
+            size="sm"
+            class="invisible"
+            aria-hidden="true"
+          >
+            Results
+          </Button>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -384,11 +402,12 @@ onUnmounted(() => clearTimeout(pollTimer));
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Delete {{ toDelete?.name }}?</DialogTitle>
-        <DialogDescription>
-          The project, its
-          {{ toDelete?.analyses?.length ?? 0 }}
-          {{ toDelete?.analyses?.length === 1 ? "analysis" : "analyses" }} and
-          every result, SBOM and report are deleted. This cannot be undone.
+        <DialogDescription v-if="toDelete?.analyses?.length">
+          The project, its {{ analysesCount(toDelete) }} and every result, SBOM
+          and report are deleted. This cannot be undone.
+        </DialogDescription>
+        <DialogDescription v-else>
+          The project is deleted. It has no analyses. This cannot be undone.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>

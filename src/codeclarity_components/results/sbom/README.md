@@ -20,7 +20,7 @@ The SBOM (Software Bill of Materials) component provides a comprehensive view of
 Core SBOM data processing utilities:
 
 - `calculateHealthScore()` - Health score from deprecated, unlicensed and (at a lower weight) outdated dependencies
-- `calculateSecurityIssues()` - Vulnerability instance count from the vulnerability stats, or null when unknown
+- `countVulnerabilities()` - Distinct vulnerability count from the vulnerability stats, as on the vulnerabilities tab, or null when unknown
 - `getDirectDependenciesNeedingUpdates()` - Filter actionable dependencies
 - `convertToPackageUpdates()` - Transform data for the modal
 
@@ -28,7 +28,9 @@ Core SBOM data processing utilities:
 
 Package manager-specific operations:
 
-- `generateUpdateCommands()` - Generate commands for npm/yarn/pnpm/bun
+- `toPackageManager()` - Map the SBOM's value to a known manager, or null
+- `generateUpdateCommands()` - Generate commands for npm/yarn/pnpm/bun/composer
+- `getManifestName()` - Get the manifest, package.json or composer.json
 - `getPackageManagerIcon()` - Get appropriate logo icons
 - `getLockfileName()` - Get correct lockfile name
 - `getInstallCommand()` - Get install command for package manager
@@ -66,7 +68,7 @@ Export functionality:
 ### 4. Health Metrics
 
 - Health score based on outdated/deprecated/unlicensed dependencies
-- Security issues count
+- Vulnerability count
 - Direct vs transitive dependency breakdown
 
 ## Usage Examples

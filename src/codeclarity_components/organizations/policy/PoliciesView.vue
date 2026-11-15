@@ -5,7 +5,9 @@ import {
   computed,
   defineAsyncComponent,
   ref,
+  watch,
 } from "vue";
+import { useRoute } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import {
@@ -38,8 +40,25 @@ const props = defineProps<{
   action?: string;
 }>();
 
-const activeTab = ref(
-  props.page === "vulnerability-policy" ? "vulnerability" : "license",
+const route = useRoute();
+
+// The selected tab lives in the URL; the vulnerability policy page opens on its tab.
+function tabFromUrl(): string {
+  const tab = route.query.tab;
+  if (tab === "license" || tab === "vulnerability") return tab;
+  return props.page === "vulnerability-policy" ? "vulnerability" : "license";
+}
+
+const activeTab = ref(tabFromUrl());
+watch(activeTab, (tab) => {
+  if (route.query.tab !== tab)
+    void router.replace({ query: { ...route.query, tab } });
+});
+watch(
+  () => route.query.tab,
+  () => {
+    activeTab.value = tabFromUrl();
+  },
 );
 
 // The list shows both kinds in tabs; add and edit open one kind's form.
@@ -51,15 +70,15 @@ const policyType = computed(() =>
   props.page.includes("vulnerability") ? "vulnerability" : "license",
 );
 
-// Only admins may add or edit policies; others go back to the list.
+// Only admins add or edit policies; others see the list without those actions.
+const canManage = ref(false);
+
 function checkRole(org: Organization): void {
-  if (
-    isForm.value &&
-    !isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN)
-  ) {
+  canManage.value = isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN);
+  if (isForm.value && !canManage.value) {
     void router.replace({
       name: "orgs",
-      params: { action: "manage", page: "policies", orgId: props.orgId },
+      params: { action: "manage", page: "main", orgId: props.orgId },
     });
   }
 }
@@ -83,10 +102,18 @@ function checkRole(org: Organization): void {
           >
         </TabsList>
         <TabsContent value="license" class="mt-0">
-          <LicensePoliciesList :page="page" :org-id="orgId" />
+          <LicensePoliciesList
+            :page="page"
+            :org-id="orgId"
+            :can-manage="canManage"
+          />
         </TabsContent>
         <TabsContent value="vulnerability" class="mt-0">
-          <VulnerabilityPolicyList :page="page" :org-id="orgId" />
+          <VulnerabilityPolicyList
+            :page="page"
+            :org-id="orgId"
+            :can-manage="canManage"
+          />
         </TabsContent>
       </Tabs>
     </template>

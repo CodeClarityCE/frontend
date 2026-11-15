@@ -5,9 +5,13 @@ import PasswordResetForm from "@/codeclarity_components/authentication/email/Pas
 import router from "@/router";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
-const { resetPassword } = vi.hoisted(() => ({
+const { resetPassword, serverFeatures } = vi.hoisted(() => ({
   resetPassword: vi.fn(),
+  // The form is covered as if the server supported password reset.
+  serverFeatures: { passwordReset: true, gitlabTokenReplacement: false },
 }));
+
+vi.mock("@/utils/server-features", () => ({ serverFeatures }));
 
 vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
   AuthRepository: class {
@@ -55,6 +59,16 @@ describe("PasswordResetForm", () => {
 
   afterEach(() => {
     window.history.replaceState({}, "", "/");
+    serverFeatures.passwordReset = true;
+  });
+
+  it("says password reset is unavailable while the server lacks it", async () => {
+    serverFeatures.passwordReset = false;
+    const wrapper = mountAt("?token=t1&userid=u1");
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Password reset is not available");
+    expect(wrapper.find("form").exists()).toBe(false);
   });
 
   it("asks for the new password twice", () => {
@@ -67,7 +81,10 @@ describe("PasswordResetForm", () => {
   it("sends the user back to sign in without a token", async () => {
     mountAt("?userid=u1");
     await flushPromises();
-    expect(router.push).toHaveBeenCalledWith("/login");
+    expect(router.replace).toHaveBeenCalledWith({
+      name: "login",
+      query: { notice: "reset_link_invalid" },
+    });
   });
 
   it("resets the password with the link's token", async () => {
@@ -84,7 +101,10 @@ describe("PasswordResetForm", () => {
       },
       handleBusinessErrors: true,
     });
-    expect(wrapper.find('a[href="login"]').text()).toBe("Back to sign in");
+    // The logo links to login too, so look among every login link.
+    expect(wrapper.findAll('a[href="login"]').map((a) => a.text())).toContain(
+      "Back to sign in",
+    );
   });
 
   it("does not submit passwords that do not match", async () => {

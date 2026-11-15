@@ -1,8 +1,42 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
+import { analyzer, OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
+
+// Three stages with plugin options that a save must keep as is.
+const configuredAnalyzer = analyzer("an-3", "Patched audit", {
+  steps: [
+    [
+      {
+        name: "js-sbom",
+        version: "1.0.0",
+        config: {
+          branch: {
+            name: "branch",
+            type: "string",
+            required: true,
+            description: "The branch you want to analyze",
+          },
+        },
+      },
+    ],
+    [
+      {
+        name: "vuln-finder",
+        version: "0.9.0",
+        config: {},
+      },
+    ],
+    [
+      {
+        name: "js-patching",
+        version: "1.0.0",
+        config: {},
+      },
+    ],
+  ],
+});
 
 // The organisation header (HeaderItem) still has a green badge with white text.
 
@@ -21,11 +55,11 @@ test.describe("Organisation analyzers list", () => {
     await expect(analyzers.heading).toHaveText("Analyzers");
     await expect(analyzers.rows()).toHaveCount(2);
     await expect(analyzers.row("Default analyzer")).toContainText("2 stages");
-    await expect(analyzers.row("Licence audit")).toContainText("1 stage");
+    await expect(analyzers.row("License audit")).toContainText("1 stage");
 
     await analyzers
-      .row("Licence audit")
-      .getByRole("link", { name: "Edit Licence audit" })
+      .row("License audit")
+      .getByRole("link", { name: "Edit License audit" })
       .click();
 
     await expect(page).toHaveURL(
@@ -41,11 +75,11 @@ test.describe("Organisation analyzers list", () => {
     await analyzers.gotoList();
 
     await analyzers
-      .row("Licence audit")
-      .getByRole("button", { name: "Delete Licence audit" })
+      .row("License audit")
+      .getByRole("button", { name: "Delete License audit" })
       .click();
 
-    const dialog = page.getByRole("dialog", { name: "Delete Licence audit?" });
+    const dialog = page.getByRole("dialog", { name: "Delete License audit?" });
     await expect(dialog).toBeVisible();
     const confirm = dialog.getByRole("button", { name: "Delete analyzer" });
     const cancel = dialog.getByRole("button", { name: "Cancel" });
@@ -61,15 +95,15 @@ test.describe("Organisation analyzers list", () => {
     expect(analyzers.deleted).toEqual([]);
 
     await analyzers
-      .row("Licence audit")
-      .getByRole("button", { name: "Delete Licence audit" })
+      .row("License audit")
+      .getByRole("button", { name: "Delete License audit" })
       .click();
     await confirm.click();
 
     await expect(dialog).toHaveCount(0);
     expect(analyzers.deleted).toEqual(["an-2"]);
     await expect(analyzers.rows()).toHaveCount(1);
-    await expect(page.getByText("Deleted Licence audit")).toBeVisible();
+    await expect(page.getByText("Deleted License audit")).toBeVisible();
   });
 
   test("an organisation with no analyzers sees the owl and Create an analyzer", async ({
@@ -150,6 +184,161 @@ test.describe("New analyzer", () => {
   });
 });
 
+test.describe("Analyzer workflow rules", () => {
+  async function fillDetails(page: Page): Promise<void> {
+    await page.getByLabel("Name").fill("JS audit");
+    await page.getByLabel("Description").fill("Audits JavaScript projects");
+  }
+
+  test("adding a plugin that needs an SBOM adds no second SBOM plugin", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoCreate();
+    await expect(analyzers.workflowNodes()).toHaveCount(2);
+
+    await analyzers.addPlugin("license-finder");
+
+    await expect(analyzers.workflowNodes()).toHaveCount(3);
+    await expect(analyzers.workflowNode("php-sbom")).toHaveCount(0);
+  });
+
+  test("adding a plugin to an empty workflow adds one SBOM plugin and its other dependencies", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoCreate();
+    await expect(analyzers.workflowNodes()).toHaveCount(2);
+    await analyzers.removePlugin("vuln-finder");
+    await analyzers.removePlugin("js-sbom");
+
+    await analyzers.addPlugin("js-patching");
+
+    await expect(analyzers.workflowNodes()).toHaveCount(3);
+    await expect(analyzers.workflowNodes()).toContainText([
+      "js-sbom",
+      "vuln-finder",
+      "js-patching",
+    ]);
+    await fillDetails(page);
+    await page.getByRole("button", { name: "Create analyzer" }).click();
+    await expect(page).toHaveURL(/\/orgs\/manage\/analyzers\/org-123/);
+    expect(analyzers.created).toEqual([
+      expect.objectContaining({
+        steps: [
+          [expect.objectContaining({ name: "js-sbom" })],
+          [expect.objectContaining({ name: "vuln-finder" })],
+          [expect.objectContaining({ name: "js-patching" })],
+        ],
+      }),
+    ]);
+  });
+
+  test("an analyzer with no plugins cannot be saved", async ({ page }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoCreate();
+    await expect(analyzers.workflowNodes()).toHaveCount(2);
+    await analyzers.removePlugin("vuln-finder");
+    await analyzers.removePlugin("js-sbom");
+    await fillDetails(page);
+
+    await page.getByRole("button", { name: "Create analyzer" }).click();
+
+    await expect(page.getByRole("alert")).toHaveText(
+      "Add at least one plugin to the analyzer.",
+    );
+    expect(analyzers.created).toEqual([]);
+  });
+
+  test("a plugin whose dependency is missing blocks saving, naming the plugin", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoCreate();
+    await expect(analyzers.workflowNodes()).toHaveCount(2);
+    await analyzers.removePlugin("js-sbom");
+    await fillDetails(page);
+
+    await page.getByRole("button", { name: "Create analyzer" }).click();
+
+    await expect(page.getByRole("alert")).toHaveText(
+      "vuln-finder needs js-sbom or php-sbom. Add it to the analyzer.",
+    );
+    expect(analyzers.created).toEqual([]);
+  });
+
+  test("a name longer than 25 characters is refused before saving", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoCreate();
+    await fillDetails(page);
+    await page.getByLabel("Name").fill("A".repeat(26));
+
+    await page.getByRole("button", { name: "Create analyzer" }).click();
+
+    await expect(page.getByLabel("Name")).toHaveAccessibleDescription(
+      "Please enter a name of at most 25 characters",
+    );
+    expect(analyzers.created).toEqual([]);
+  });
+
+  test("the add-plugin menu says when no plugins are installed and closes on Escape", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({ plugins: [] });
+    await analyzers.gotoCreate();
+
+    await analyzers.openAddPluginMenu();
+    await expect(analyzers.addPluginMenu()).toContainText(
+      "No plugins are installed",
+    );
+
+    await page.keyboard.press("Escape");
+    await expect(analyzers.addPluginMenu()).toHaveCount(0);
+  });
+
+  test("going back to Custom after a template shows the Custom plugins", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({
+      templates: [
+        {
+          name: "JavaScript licenses",
+          description: "SBOM and license scan for JavaScript projects",
+          supported_languages: ["javascript"],
+          language_config: {
+            javascript: { plugins: ["js-sbom", "license-finder"] },
+          },
+          logo: "js",
+          steps: [[{ name: "js-sbom" }], [{ name: "license-finder" }]],
+        },
+      ],
+    });
+    await analyzers.gotoCreate();
+
+    await page.getByRole("radio", { name: /JavaScript licenses/ }).check();
+    await expect(analyzers.workflowNodes()).toContainText([
+      "js-sbom",
+      "license-finder",
+    ]);
+
+    await page.getByRole("radio", { name: /Custom/ }).check();
+    await expect(analyzers.workflowNodes()).toHaveCount(2);
+    await expect(analyzers.workflowNodes()).toContainText([
+      "js-sbom",
+      "vuln-finder",
+    ]);
+  });
+});
+
 test.describe("Edit analyzer", () => {
   test("loads the analyzer and saves a new name", async ({ page }) => {
     const analyzers = new OrgAnalyzersPage(page);
@@ -157,15 +346,109 @@ test.describe("Edit analyzer", () => {
     await analyzers.gotoEdit("an-2");
 
     await expect(analyzers.heading).toHaveText("Edit analyzer");
-    await expect(page.getByLabel("Name")).toHaveValue("Licence audit");
+    await expect(page.getByLabel("Name")).toHaveValue("License audit");
 
-    await page.getByLabel("Name").fill("Licence review");
+    await page.getByLabel("Name").fill("License review");
     await page.getByRole("button", { name: "Save changes" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/manage\/analyzers\/org-123/);
     expect(analyzers.updated).toEqual([
-      expect.objectContaining({ name: "Licence review" }),
+      expect.objectContaining({ name: "License review" }),
     ]);
+  });
+
+  test("an analyzer saved with no plugins cannot be saved again as is", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({
+      analyzers: [analyzer("an-4", "Empty audit", { steps: [] })],
+    });
+    await analyzers.gotoEdit("an-4");
+    await expect(page.getByLabel("Name")).toHaveValue("Empty audit");
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    await expect(page.getByRole("alert")).toHaveText(
+      "Add at least one plugin to the analyzer.",
+    );
+    expect(analyzers.updated).toEqual([]);
+  });
+
+  test("shows the saved steps, not every installed plugin", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoEdit("an-2");
+
+    await expect(analyzers.workflowNodes()).toHaveCount(1);
+    await expect(analyzers.workflowNodes()).toContainText(["js-sbom"]);
+    await expect(page.getByText("1 plugins")).toBeVisible();
+  });
+
+  test("saving without changes sends the steps that were loaded", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({ analyzers: [configuredAnalyzer] });
+    await analyzers.gotoEdit("an-3");
+    await expect(page.getByLabel("Name")).toHaveValue("Patched audit");
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    await expect(page).toHaveURL(/\/orgs\/manage\/analyzers\/org-123/);
+    expect(analyzers.updated).toEqual([
+      {
+        name: "Patched audit",
+        description: "Patched audit workflow for JavaScript projects",
+        steps: configuredAnalyzer.steps,
+      },
+    ]);
+  });
+
+  test("renaming keeps the stages after a reload", async ({ page }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({ analyzers: [configuredAnalyzer] });
+    await analyzers.gotoEdit("an-3");
+    await expect(page.getByLabel("Name")).toHaveValue("Patched audit");
+
+    await page.getByLabel("Name").fill("Patched review");
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(analyzers.row("Patched review")).toContainText("3 stages");
+
+    await analyzers.gotoEdit("an-3");
+    await expect(page.getByLabel("Name")).toHaveValue("Patched review");
+    await expect(analyzers.workflowNodes()).toHaveCount(3);
+    await expect(analyzers.workflowNodes()).toContainText([
+      "js-sbom",
+      "vuln-finder",
+      "js-patching",
+    ]);
+  });
+
+  test("the canvas opens with every node in view", async ({ page }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({ analyzers: [configuredAnalyzer] });
+    await analyzers.gotoEdit("an-3");
+    await expect(analyzers.workflowNodes()).toHaveCount(3);
+
+    await expect(async () => {
+      const canvas = await analyzers.canvas().boundingBox();
+      expect(canvas).not.toBeNull();
+      for (const node of await analyzers.workflowNodes().all()) {
+        const box = await node.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(canvas!.x);
+        expect(box!.y).toBeGreaterThanOrEqual(canvas!.y);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(
+          canvas!.x + canvas!.width,
+        );
+        expect(box!.y + box!.height).toBeLessThanOrEqual(
+          canvas!.y + canvas!.height,
+        );
+      }
+    }).toPass({ timeout: 5000 });
   });
 });
 
@@ -231,6 +514,8 @@ test.describe("Analyzers accessibility and look", () => {
     await expect(analyzers.rows()).toHaveCount(2);
     await expectScreenshots(page, "org-analyzers");
 
+    // The canvas fits itself to the width it opens at.
+    await page.setViewportSize({ width: 1280, height: 1024 });
     await analyzers.gotoCreate();
     await expect(page.getByRole("radio")).toHaveCount(2);
     await expect(page.getByText("js-sbom")).toBeVisible();

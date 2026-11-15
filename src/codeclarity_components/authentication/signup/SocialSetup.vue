@@ -159,6 +159,8 @@ async function submit(values: FormValues): Promise<void> {
     try {
       const token: RefreshToken = await authRepository.refresh({
         data: { refresh_token: authStore.getRefreshToken },
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       authStore.token = token.token;
       authStore.tokenExpiry = token.token_expiry;
@@ -241,13 +243,13 @@ function nonRecoverableErrorRedirect(): void {
             {{ validationError!.toMessage("Invalid form:") }}
           </div>
           <div v-else>
-            An error occured during the processing of the request.
+            An error occurred during the processing of the request.
           </div>
         </AlertDescription>
       </Alert>
 
       <form v-if="!loading" class="flex flex-col gap-4" @submit="onSubmit">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField v-slot="{ componentField }" name="first_name">
             <FormItem>
               <FormLabel>First name</FormLabel>

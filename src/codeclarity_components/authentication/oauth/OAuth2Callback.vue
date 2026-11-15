@@ -5,6 +5,7 @@ import { onMounted, ref } from "vue";
 
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
+import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
 import type { Token } from "@/codeclarity_components/authentication/token.entity";
 import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import router from "@/router";
@@ -50,7 +51,7 @@ async function finalizeAutentication(): Promise<void> {
   const code = searchParams.get("code");
 
   if (!state || !code) {
-    void router.push("/login");
+    void router.push(loginRoute({ notice: "oauth_failed" }));
     return;
   }
 
@@ -58,7 +59,7 @@ async function finalizeAutentication(): Promise<void> {
     props.provider !== SocialProvider.GITLAB &&
     props.provider !== SocialProvider.GITHUB
   ) {
-    void router.push("/login");
+    void router.push(loginRoute({ notice: "oauth_failed" }));
     return;
   }
 
@@ -70,7 +71,7 @@ async function finalizeAutentication(): Promise<void> {
     authStore.getSocialAuthState === undefined ||
     authStore.getSocialAuthState !== state
   ) {
-    void router.push("/login");
+    void router.push(loginRoute({ notice: "oauth_failed" }));
     return;
   } else {
     authStore.socialAuthState = undefined;
@@ -91,7 +92,7 @@ async function finalizeAutentication(): Promise<void> {
         handleBusinessErrors: true,
       });
     } else {
-      void router.push("/login");
+      void router.push(loginRoute({ notice: "oauth_failed" }));
       return;
     }
 
@@ -118,7 +119,7 @@ async function finalizeAutentication(): Promise<void> {
           query: { provider: SocialProvider.GITHUB },
         });
       } else {
-        void router.push("/login");
+        void router.push(loginRoute({ notice: "oauth_failed" }));
       }
       return;
     } else {
@@ -131,7 +132,8 @@ async function finalizeAutentication(): Promise<void> {
     error.value = true;
     if (_error instanceof BusinessLogicError) {
       if (_error.error_code === "AccountNotActivated") {
-        void router.push("/trial");
+        void router.push(loginRoute({ notice: "not_activated" }));
+        return;
       }
       errorCode.value = _error.error_code;
       if (
@@ -154,7 +156,7 @@ async function finalizeAutentication(): Promise<void> {
 function nonRecoverableErrorRedirect(): void {
   authStore.$reset();
   userStore.$reset();
-  void router.push("/login");
+  void router.push(loginRoute());
 }
 
 // Lifecycle
@@ -215,7 +217,7 @@ onMounted(async () => {
                 : "the events leading up to this problem"
             }}.
           </p>
-          <p v-else>An error occured during the processing of the request.</p>
+          <p v-else>An error occurred during the processing of the request.</p>
           <p v-if="errorCode">
             Error code: <code class="font-mono">{{ errorCode }}</code>
           </p>

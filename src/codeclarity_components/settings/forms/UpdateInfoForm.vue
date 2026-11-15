@@ -18,6 +18,7 @@ import { Input } from "@/shadcn/ui/input";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -42,7 +43,7 @@ const form = useForm<FormValues>({
 
 const submitting = ref(false);
 
-const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
   if (!user || !authStore.getToken) return;
   submitting.value = true;
@@ -69,7 +70,7 @@ const onSubmit = form.handleSubmit(async (values): Promise<void> => {
 
 <template>
   <form class="flex flex-col gap-6" novalidate @submit="onSubmit">
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <FormField v-slot="{ componentField }" name="first_name">
         <FormItem>
           <FormLabel>First name</FormLabel>

@@ -1,0 +1,17 @@
+{
+  "endpoint": "GET /org/:org/policies/license_policy/:policy",
+  "response": {
+    "status_code": 200,
+    "status": "success",
+    "data": {
+      "id": "4372c482-e847-4031-af6e-959874ca2760",
+      "name": "audit-license-policy",
+      "description": "Blocks MIT for the audit",
+      "default": false,
+      "content": ["MIT"],
+      "created_on": "2026-11-14T18:01:39.377Z",
+      "created_by": "john.doe@codeclarity.io",
+      "policy_type": "LICENSE_POLICY"
+    }
+  }
+}

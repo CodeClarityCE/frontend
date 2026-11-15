@@ -130,7 +130,7 @@ void fetchVcsIntegrations();
     v-if="loading"
     role="status"
     aria-label="Loading the import methods"
-    class="grid grid-cols-4 gap-4"
+    class="grid grid-cols-2 gap-4 lg:grid-cols-4"
   >
     <Skeleton v-for="i in 4" :key="i" class="h-32 rounded-card" />
   </div>
@@ -210,7 +210,7 @@ void fetchVcsIntegrations();
       </p>
     </div>
 
-    <LocalUploadComponent v-if="showLocalUpload" />
+    <LocalUploadComponent v-if="showLocalUpload" @cancel="goBackToSelection" />
     <PopularGithubImportComponent
       v-else-if="popularGithub && selectedVCS"
       :integration="selectedVCS.id"

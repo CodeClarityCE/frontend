@@ -50,7 +50,10 @@ describe("PasswordResetRequestForm", () => {
     });
     expect(wrapper.find("h1").text()).toBe("Reset your password");
     expect(wrapper.find("button[type=submit]").text()).toBe("Send reset link");
-    expect(wrapper.find('a[href="login"]').text()).toBe("Back to sign in");
+    // The logo links to login too, so look among every login link.
+    expect(wrapper.findAll('a[href="login"]').map((a) => a.text())).toContain(
+      "Back to sign in",
+    );
   });
 
   it("sends the reset request and confirms it", async () => {
@@ -81,7 +84,7 @@ describe("PasswordResetRequestForm", () => {
     const wrapper = await submitEmail("john.doe@codeclarity.io");
     await vi.waitFor(() =>
       expect(wrapper.find('[role="alert"]').text()).toContain(
-        "An error occured during the processing of the request.",
+        "An error occurred during the processing of the request.",
       ),
     );
     expect(wrapper.find("form").exists()).toBe(true);

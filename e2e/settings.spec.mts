@@ -52,6 +52,21 @@ test.describe("Account settings", () => {
     );
   });
 
+  test("a double click on Save changes sends the name once", async ({
+    page,
+  }) => {
+    const settings = new SettingsPage(page);
+    await settings.signIn();
+    await settings.goto();
+    const section = settings.section("Personal information");
+
+    await section.getByLabel("First name").fill("Jane");
+    await section.getByRole("button", { name: "Save changes" }).dblclick();
+
+    await expect(page.getByText("Your name was updated")).toBeVisible();
+    expect(settings.sent.filter((r) => r.method === "PATCH")).toHaveLength(1);
+  });
+
   test("a name that is too short is flagged on its field", async ({ page }) => {
     const settings = new SettingsPage(page);
     await settings.signIn();
@@ -122,6 +137,23 @@ test.describe("Account settings", () => {
         },
       }),
     );
+  });
+
+  test("a double click on Change password sends it once", async ({ page }) => {
+    const settings = new SettingsPage(page);
+    await settings.signIn();
+    await settings.goto();
+    const section = settings.section("Password");
+
+    await section.getByLabel("Current password").fill(PASSWORD);
+    await section
+      .getByLabel("New password", { exact: true })
+      .fill(NEW_PASSWORD);
+    await section.getByLabel("Confirm new password").fill(NEW_PASSWORD);
+    await section.getByRole("button", { name: "Change password" }).dblclick();
+
+    await expect(page.getByText("Your password was changed")).toBeVisible();
+    expect(settings.sent.filter((r) => r.method === "PATCH")).toHaveLength(1);
   });
 
   test("a rejected password change says why", async ({ page }) => {

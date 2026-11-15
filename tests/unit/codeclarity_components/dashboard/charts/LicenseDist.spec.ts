@@ -14,18 +14,18 @@ vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
 describe("LicenseDist", () => {
   beforeEach(() => getLicenseDist.mockReset());
 
-  it("charts licences from the most used, with counts and shares", async () => {
+  it("charts licenses from the most used, with counts and shares", async () => {
     getLicenseDist.mockResolvedValue({ data: { ISC: 1, MIT: 3 } });
     const wrapper = mount(LicenseDist, { props: { integrationIds: [] } });
     await flushPromises();
 
-    const chart = wrapper.find('[aria-label="Dependencies by licence"]');
+    const chart = wrapper.find('[aria-label="Dependencies by license"]');
     expect(
       chart.findAll('[role="img"]').map((c) => c.attributes("aria-label")),
     ).toEqual(["MIT: 3 dependencies (75%)", "ISC: 1 dependency (25%)"]);
   });
 
-  it("says when no licence is known", async () => {
+  it("says when no license is known", async () => {
     getLicenseDist.mockResolvedValue({ data: {} });
     const wrapper = mount(LicenseDist, { props: { integrationIds: [] } });
     await flushPromises();

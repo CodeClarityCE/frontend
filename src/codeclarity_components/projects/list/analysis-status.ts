@@ -109,5 +109,8 @@ export function stepDuration(stage: AnalysisStage): string {
     new Date(stage.Ended_on).getTime() - new Date(stage.Started_on).getTime();
   if (ms < 1000) return `${Math.round(ms)} ms`;
   if (ms < 60_000) return `${(ms / 1000).toFixed(1)} s`;
-  return `${Math.round(ms / 1000)} s`;
+  const seconds = Math.round(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return rest === 0 ? `${minutes} min` : `${minutes} min ${rest} s`;
 }

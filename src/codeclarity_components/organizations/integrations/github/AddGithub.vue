@@ -62,6 +62,8 @@ async function submit(): Promise<void> {
         integrationId: updateId,
         bearerToken: authStore.getToken,
         data,
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       successToast("Updated the GitHub integration");
     } else {
@@ -69,6 +71,8 @@ async function submit(): Promise<void> {
         orgId,
         bearerToken: authStore.getToken,
         data,
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       successToast("Added the GitHub integration");
     }
@@ -100,7 +104,7 @@ if (!orgId) router.back();
       {{ title }}
     </h2>
 
-    <div class="grid grid-cols-2 items-start gap-6">
+    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       <TokenIntegrationForm
         v-model:token="token"
         title="Personal access token"

@@ -27,6 +27,16 @@ const executedSbomPlugins = computed(() =>
       .map((result) => result.Name),
   ),
 );
+
+const hasVulnerabilities = computed(() =>
+  props.analysis.steps.some((step) =>
+    step.some(
+      (result) =>
+        result.Name === "vuln-finder" &&
+        result.Status === AnalysisStatus.SUCCESS,
+    ),
+  ),
+);
 </script>
 
 <template>
@@ -35,5 +45,6 @@ const executedSbomPlugins = computed(() =>
     :project-i-d="project.id"
     :project-name="project.name"
     :executed-sbom-plugins="executedSbomPlugins"
+    :has-vulnerabilities="hasVulnerabilities"
   />
 </template>

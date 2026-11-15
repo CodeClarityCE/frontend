@@ -7,7 +7,7 @@ import { type SeverityInfoByWeek } from "@/codeclarity_components/dashboard/dash
 import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { formatDateRange, getWeekRange } from "@/utils/dateUtils";
+import { formatDate, formatDateRange, getWeekRange } from "@/utils/dateUtils";
 import type { SeverityLevel } from "@/utils/severity";
 
 import CardState from "../layout/CardState.vue";
@@ -58,12 +58,21 @@ function weekLabel(week: SeverityInfoByWeek): string {
     week.week_number.year,
   );
   if (start.getFullYear() !== end.getFullYear()) {
-    return formatDateRange(start, end, "MMM DD, YY");
+    return formatDateRange(start, end, "MMM DD, YYYY");
   }
   return `${formatDateRange(start, end, "MMM DD")}, ${end.getFullYear()}`;
 }
 
 const labels = computed(() => data.value.map(weekLabel));
+/** The Monday of each week, short enough to label every point */
+const axisLabels = computed(() =>
+  data.value.map((week) =>
+    formatDate(
+      getWeekRange(week.week_number.week, week.week_number.year).start,
+      "MMM DD",
+    ),
+  ),
+);
 const summed = computed(() =>
   data.value.map((week) => Math.round(week.summed_severity)),
 );
@@ -110,12 +119,14 @@ const weeks = computed(() =>
     <div class="grid gap-6 xl:grid-cols-[1fr_auto]">
       <GridLineChart
         :labels="labels"
+        :axis-labels="axisLabels"
         :series="series"
         :y-max="Math.max(...summed, 1)"
         :format-y="(value) => String(Math.round(value))"
         :describe="describe"
         caption="Summed severity of vulnerabilities by week"
         x-title="Week"
+        integer
       />
       <div class="flex flex-col gap-2">
         <h4

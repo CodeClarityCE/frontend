@@ -24,8 +24,15 @@ export class Analyzer {
   @IsDefined()
   steps!: Stage[][];
 
-  @IsDefined()
-  organization_id!: string;
+  @IsOptional()
+  supported_languages?: string[];
+
+  // Plugins to run for each language
+  @IsOptional()
+  language_config?: Record<string, { plugins: string[] }>;
+
+  @IsOptional()
+  logo?: string;
 }
 
 /********************************************/

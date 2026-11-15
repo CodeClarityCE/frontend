@@ -10,13 +10,14 @@ import {
   X,
 } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import { StatusBadge } from "@/base_components/page";
+import DeleteIntegrationDialog from "@/codeclarity_components/organizations/integrations/DeleteIntegrationDialog.vue";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { errorToast } from "@/utils/toasts";
+import { errorToast, successToast } from "@/utils/toasts";
 
 import {
   type ConnectionTestResult,
@@ -28,6 +29,7 @@ import {
 import { TicketsRepository } from "../tickets.repository";
 
 import ClickUpConfigModal from "./ClickUpConfigModal.vue";
+import { connectionFailureText } from "./connection-test";
 
 const { defaultOrg } = storeToRefs(useUserStore());
 const auth = useAuthStore();
@@ -43,6 +45,14 @@ const testResults = ref<Map<ExternalTicketProvider, ConnectionTestResult>>(
 );
 const showClickUpModal = ref(false);
 const deletingProvider = ref<ExternalTicketProvider | null>(null);
+// Provider waiting for the user to confirm the disconnect.
+const pendingDisconnect = ref<ExternalTicketProvider | null>(null);
+const disconnectOpen = computed({
+  get: () => pendingDisconnect.value !== null,
+  set: (open: boolean) => {
+    if (!open) pendingDisconnect.value = null;
+  },
+});
 
 // Available providers that can be configured
 const availableProviders = [
@@ -116,11 +126,10 @@ async function testConnection(provider: ExternalTicketProvider): Promise<void> {
   }
 }
 
-async function deleteIntegration(
-  provider: ExternalTicketProvider,
-): Promise<void> {
+async function confirmDisconnect(): Promise<void> {
+  const provider = pendingDisconnect.value;
   const orgId = defaultOrg?.value?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!provider || !orgId || !auth.getToken) return;
 
   deletingProvider.value = provider;
   try {
@@ -133,6 +142,8 @@ async function deleteIntegration(
       handleOtherErrors: true,
     });
     testResults.value.delete(provider);
+    pendingDisconnect.value = null;
+    successToast(`Disconnected ${ExternalProviderLabels[provider]}`);
     await loadIntegrations();
   } catch {
     errorToast("Failed to disconnect the integration");
@@ -244,18 +255,6 @@ onMounted(() => {
             <p class="text-sm text-muted-foreground">
               {{ providerInfo.description }}
             </p>
-            <div
-              v-if="getIntegration(providerInfo.provider)"
-              class="text-xs text-muted-foreground"
-            >
-              <p v-if="getIntegration(providerInfo.provider)?.workspace_name">
-                Workspace:
-                {{ getIntegration(providerInfo.provider)?.workspace_name }}
-              </p>
-              <p v-if="getIntegration(providerInfo.provider)?.list_name">
-                List: {{ getIntegration(providerInfo.provider)?.list_name }}
-              </p>
-            </div>
             <p
               v-if="getTestResult(providerInfo.provider)"
               role="status"
@@ -280,7 +279,9 @@ onMounted(() => {
                 }}
               </template>
               <template v-else>
-                {{ getTestResult(providerInfo.provider)?.error }}
+                {{
+                  connectionFailureText(getTestResult(providerInfo.provider))
+                }}
               </template>
             </p>
           </div>
@@ -314,7 +315,7 @@ onMounted(() => {
               variant="destructive"
               size="sm"
               :disabled="deletingProvider === providerInfo.provider"
-              @click="deleteIntegration(providerInfo.provider)"
+              @click="pendingDisconnect = providerInfo.provider"
             >
               <LoaderCircle
                 v-if="deletingProvider === providerInfo.provider"
@@ -341,6 +342,14 @@ onMounted(() => {
       :existing-config="getIntegration(ExternalTicketProvider.CLICKUP)"
       @close="showClickUpModal = false"
       @configured="handleClickUpConfigured"
+    />
+    <DeleteIntegrationDialog
+      v-model:open="disconnectOpen"
+      verb="Disconnect"
+      :name="pendingDisconnect ? ExternalProviderLabels[pendingDisconnect] : ''"
+      description="Tickets stop syncing to it. Tasks already created there stay."
+      :busy="deletingProvider !== null"
+      @confirm="confirmDisconnect"
     />
   </div>
 </template>

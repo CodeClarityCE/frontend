@@ -1,8 +1,9 @@
 import { type Locator, type Page } from "@playwright/test";
 
+import { orgListRow } from "../fixtures/memberships.mjs";
 import user from "../fixtures/user.json" with { type: "json" };
 
-const org = {
+export const org = {
   id: "org-123",
   name: "Test Organization",
   color_scheme: "1",
@@ -27,6 +28,7 @@ function paginated(data: unknown[]): Record<string, unknown> {
     total_pages: 1,
     matching_count: data.length,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }
@@ -99,12 +101,19 @@ export class ShellPage {
   readonly sidebar: Locator;
   readonly nav: Locator;
   readonly palette: Locator;
+  /** The header shown below the sidebar breakpoint. */
+  readonly mobileHeader: Locator;
+  readonly navTrigger: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.sidebar = page.locator("[data-sidebar=sidebar]");
     this.nav = page.getByRole("navigation", { name: "Main" });
     this.palette = page.getByRole("dialog", { name: "Command palette" });
+    this.mobileHeader = page.getByRole("banner");
+    this.navTrigger = this.mobileHeader.getByRole("button", {
+      name: "Open navigation",
+    });
   }
 
   link(name: string): Locator {
@@ -136,7 +145,12 @@ export class ShellPage {
       if (path === "/auth/user") {
         return route.fulfill({
           json: {
-            data: { ...user, default_org: { id: org.id, name: org.name } },
+            status_code: 200,
+            status: "success",
+            data: {
+              ...user,
+              default_org: { ...user.default_org, id: org.id, name: org.name },
+            },
           },
         });
       }
@@ -148,13 +162,7 @@ export class ShellPage {
       }
       if (path === "/org") {
         return route.fulfill({
-          json: paginated(
-            [org, otherOrg].map((o) => ({
-              joined_on: o.joined_on,
-              organization: o,
-              role: 0,
-            })),
-          ),
+          json: paginated([org, otherOrg].map(orgListRow)),
         });
       }
       if (path === `/org/${org.id}/datasets`) {

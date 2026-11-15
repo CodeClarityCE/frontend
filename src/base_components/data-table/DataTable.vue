@@ -88,8 +88,9 @@ const table = useVueTable({
     get sorting() {
       return sorting.value;
     },
+    // Stray spaces around a search must not hide matches.
     get globalFilter() {
-      return globalFilter.value;
+      return globalFilter.value.trim();
     },
     get pagination() {
       return pagination.value;

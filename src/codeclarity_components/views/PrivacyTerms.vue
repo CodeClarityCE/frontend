@@ -164,7 +164,8 @@ import DocumentPage from "./DocumentPage.vue";
         données dans ce dispositif, vous pouvez contacter notre DPO.
         <ul>
           <li>
-            Contacter notre DPO par voie électronique : dpo@codeclarity.io
+            Contacter notre DPO par voie électronique :
+            <a href="mailto:dpo@codeclarity.io">dpo@codeclarity.io</a>
           </li>
         </ul>
       </span>

@@ -87,6 +87,8 @@ vi.mock("@/utils/api/BaseRepository", async (importOriginal) => {
 vi.mock("@/router", () => ({
   default: {
     push: vi.fn(),
+    replace: vi.fn(),
+    currentRoute: { value: { query: {} } },
   },
 }));
 
@@ -172,6 +174,8 @@ vi.mock("@/shadcn/ui/alert/AlertDescription.vue", () => ({
 // Mock vee-validate
 vi.mock("vee-validate", () => ({
   useForm: () => ({
+    isSubmitting: { value: false },
+    values: {},
     handleSubmit:
       (fn: (values: { email: string; password: string }) => void) =>
       (e: Event) => {
@@ -277,11 +281,13 @@ describe("UserAuthForm.vue", () => {
       expect(mockAuthRepository.authenticate).toHaveBeenCalledWith({
         data: { email: "test@example.com", password: "password123" },
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
 
       expect(mockAuthRepository.getAuthenticatedUser).toHaveBeenCalledWith({
         bearerToken: "test-token",
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
 
       expect(mockAuthStore.setToken).toHaveBeenCalledWith("test-token");
@@ -308,7 +314,9 @@ describe("UserAuthForm.vue", () => {
       await form.trigger("submit");
       await nextTick();
 
-      expect(wrapper.find(".flex.flex-col.items-center").exists()).toBe(true);
+      expect(
+        wrapper.find('button[type="submit"]').attributes("disabled"),
+      ).toBeDefined();
       expect(wrapper.text()).toContain("Connecting");
       expect(wrapper.find(".animate-spin").exists()).toBe(true);
     });
@@ -331,7 +339,7 @@ describe("UserAuthForm.vue", () => {
       const alert = wrapper.find(".alert");
       expect(alert.exists()).toBe(true);
       expect(alert.classes()).toContain("destructive");
-      expect(wrapper.text()).toContain("Wrong credentials.");
+      expect(wrapper.text()).toContain("The email or password is incorrect.");
     });
 
     it("handles registration not verified error", async () => {
@@ -366,7 +374,7 @@ describe("UserAuthForm.vue", () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain(
-        "To connected using your Social account",
+        "This account signs in with GitHub or GitLab, so it has no password.",
       );
     });
 
@@ -380,10 +388,12 @@ describe("UserAuthForm.vue", () => {
       await form.trigger("submit");
       await flushPromises();
 
-      expect(wrapper.text()).toContain("Invalid form: Validation error");
+      expect(wrapper.text()).toContain(
+        "Something went wrong while signing you in. Please try again.",
+      );
     });
 
-    it("handles account not activated and redirects to trial", async () => {
+    it("handles account not activated and returns to login with a notice", async () => {
       const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
       mockAuthRepository.authenticate.mockRejectedValue(
         new BusinessLogicError("AccountNotActivated", "Account not activated"),
@@ -394,7 +404,10 @@ describe("UserAuthForm.vue", () => {
       await flushPromises();
 
       const { default: router } = await import("@/router");
-      expect(router.push).toHaveBeenCalledWith("/trial");
+      expect(router.replace).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "not_activated" },
+      });
     });
 
     it("handles generic errors", async () => {
@@ -407,7 +420,7 @@ describe("UserAuthForm.vue", () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain(
-        "An error occured during the processing of the request",
+        "Something went wrong while signing you in. Please try again.",
       );
     });
   });

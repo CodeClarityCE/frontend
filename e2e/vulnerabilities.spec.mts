@@ -2,7 +2,14 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { finding, VulnerabilitiesPage } from "./pages/vulnerabilities.page.mjs";
+import {
+  affected,
+  ANALYSIS,
+  finding,
+  PROJECT,
+  sampleDetails,
+  VulnerabilitiesPage,
+} from "./pages/vulnerabilities.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -64,6 +71,72 @@ test.describe("Vulnerability results", () => {
     await expect(page).toHaveURL(
       /\/results\/vulnerabilities_details\?.*finding_id=CVE-2024-0001/,
     );
+  });
+
+  test("Show more opens only its own card", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+
+    await vulns.cards
+      .first()
+      .getByRole("button", { name: "Show more" })
+      .click();
+
+    await expect(
+      vulns.cards.first().getByRole("button", { name: "Show less" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Show less" })).toHaveCount(
+      1,
+    );
+    await expect(page.getByRole("button", { name: "Show more" })).toHaveCount(
+      3,
+    );
+  });
+
+  test("patch status is unknown without a patching result, and the AI assessment only shows with a score", async ({
+    page,
+  }) => {
+    const known = [
+      finding("CVE-2024-0011", "critical", "lodash", {
+        Affected: [affected("lodash", { PatchType: "FULL" })],
+        VLAI: [{ Source: "NVD", Score: "Critical", Confidence: 0.87 }],
+      }),
+      finding("CVE-2024-0012", "high", "express", {
+        Affected: [affected("express", { PatchType: "NONE" })],
+      }),
+      finding("CVE-2024-0013", "medium", "axios"),
+    ];
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn({ findings: known });
+    await vulns.gotoResults();
+    await expect(vulns.cards).toHaveCount(3);
+    for (const card of await vulns.cards.all()) {
+      await card.getByRole("button", { name: "Show more" }).click();
+    }
+
+    await expect(vulns.cards.nth(0)).toContainText("lodash Patchable");
+    await expect(vulns.cards.nth(0)).toContainText(
+      "AI assessmentNVD: Critical, 87% confident",
+    );
+    await expect(vulns.cards.nth(1)).toContainText("express Not patchable");
+    await expect(vulns.cards.nth(2)).toContainText(
+      "axios Patch status unknown",
+    );
+    await expect(vulns.cards.nth(1)).not.toContainText("AI assessment");
+    await expect(vulns.cards.nth(2)).not.toContainText("AI assessment");
+    await expect(page.getByText("Not patchable")).toHaveCount(1);
+
+    await page.getByRole("tab", { name: "Table" }).click();
+    await expect(vulns.rows()).toHaveCount(3);
+    await expect(vulns.rows().nth(0)).toContainText("Patchable");
+    await expect(vulns.rows().nth(0)).toContainText(
+      "AI (NVD): Critical, 87% confident",
+    );
+    await expect(vulns.rows().nth(1)).toContainText("Not patchable");
+    await expect(vulns.rows().nth(2)).toContainText("Patch status unknown");
+    await expect(vulns.rows().nth(1)).not.toContainText("AI (");
+    await expect(vulns.rows().nth(2)).not.toContainText("AI (");
   });
 
   test("search asks the server for matching vulnerabilities", async ({
@@ -289,6 +362,21 @@ test.describe("Vulnerability details", () => {
     await expect(open).toBeFocused();
   });
 
+  test("Back to results opens the analysis results when opened directly", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoDetails();
+    await expect(vulns.heading).toContainText("CVE-2024-0001");
+
+    await page.getByRole("link", { name: "Back to results" }).click();
+    await expect(page).toHaveURL(
+      new RegExp(`/results\\?analysis_id=${ANALYSIS}&project_id=${PROJECT}$`),
+    );
+    await expect(vulns.heading).toHaveText("Results");
+  });
+
   test("Tab moves from Back to the page actions with visible focus", async ({
     page,
   }) => {
@@ -297,7 +385,7 @@ test.describe("Vulnerability details", () => {
     await vulns.gotoDetails();
     await expect(vulns.heading).toContainText("CVE-2024-0001");
 
-    const back = page.getByRole("button", { name: "Back to results" });
+    const back = page.getByRole("link", { name: "Back to results" });
     await back.focus();
     await expectVisibleFocus(back);
     await page.keyboard.press("Tab");
@@ -332,5 +420,87 @@ test.describe("Vulnerability details", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "vulnerability-details");
+  });
+});
+
+test.describe("Tickets from vulnerability results", () => {
+  test("creating a ticket confirms it and the finding then links to it", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+    const card = vulns.cards.first();
+
+    await card.getByRole("button", { name: "Create Ticket" }).click();
+    const dialog = page.getByRole("dialog", { name: "Create Ticket" });
+    await dialog.getByRole("button", { name: "Create Ticket" }).click();
+
+    await expect(
+      page
+        .getByRole("region", { name: /Notifications/ })
+        .getByText("Ticket created"),
+    ).toBeVisible();
+    await expect(dialog).toHaveCount(0);
+    expect(vulns.createdTickets).toHaveLength(1);
+    await expect(
+      card.getByRole("button", { name: "Create Ticket" }),
+    ).toHaveCount(0);
+    await expect(
+      card.getByRole("link", { name: "View ticket" }),
+    ).toHaveAttribute("href", "/tickets?ticket_id=t-new-1");
+  });
+
+  test("a finding that already has a ticket links to it", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn({
+      tickets: [
+        {
+          id: "t-9",
+          title: "CVE-2024-0002: express",
+          status: "OPEN",
+          priority: "HIGH",
+          type: "VULNERABILITY",
+          vulnerability_id: "CVE-2024-0002",
+          created_on: "2026-10-01T09:00:00Z",
+          project_id: PROJECT,
+          project_name: "web-frontend",
+          has_external_links: false,
+        },
+      ],
+    });
+    await vulns.gotoResults();
+
+    await expect(
+      vulns.cards.nth(1).getByRole("link", { name: "View ticket" }),
+    ).toHaveAttribute("href", "/tickets?ticket_id=t-9");
+    await expect(
+      vulns.cards.first().getByRole("button", { name: "Create Ticket" }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("Vulnerability details references", () => {
+  test("lists each reference once", async ({ page }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    const advisory = { url: "https://example.com/advisory", tags: ["Patch"] };
+    await vulns.signIn({
+      details: {
+        ...sampleDetails,
+        references: [
+          advisory,
+          { url: "https://example.com/other", tags: [] },
+          advisory,
+        ],
+      },
+    });
+    await vulns.gotoDetails();
+
+    await expect(
+      page.getByRole("link", { name: /example\.com\/advisory/ }),
+    ).toHaveCount(1);
+    await expect(
+      page.getByRole("link", { name: /example\.com\/other/ }),
+    ).toHaveCount(1);
   });
 });

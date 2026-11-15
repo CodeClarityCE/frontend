@@ -186,6 +186,11 @@ function rowKey(license: License): string {
           :hint="`${count((l) => l.unable_to_infer)} need review`"
         />
       </ul>
+      <p v-if="!loading" class="text-sm text-muted-foreground">
+        A dependency under a license expression such as "MIT OR GPL-2.0" is
+        listed under each license it names. It counts as copyleft if any of them
+        is, even when an OR lets you pick a permissive one.
+      </p>
 
       <DataTable
         :columns="columns"

@@ -18,10 +18,11 @@ import {
   generateUpdateCommands,
   getInstallCommand,
   getLockfileName,
+  getManifestName,
   getPackageManagerHelpText,
   getPackageManagerIcon,
-  type PackageManager,
   type PackageUpdate,
+  toPackageManager,
 } from "./utils/packageManagerUtils";
 
 const props = defineProps<{
@@ -42,21 +43,28 @@ const productionUpdates = computed(() =>
 const developmentUpdates = computed(() =>
   props.updates.filter((update) => update.isDev && !update.isProd),
 );
-const manager = computed(
-  () => (props.packageManager?.toLowerCase() ?? "yarn") as PackageManager,
-);
+// Null when the SBOM names no package manager we have commands for.
+const manager = computed(() => toPackageManager(props.packageManager));
 const updateCommands = computed(() =>
-  generateUpdateCommands(manager.value, props.updates),
+  manager.value ? generateUpdateCommands(manager.value, props.updates) : [],
 );
+const manifest = computed(() =>
+  manager.value ? getManifestName(manager.value) : "package.json",
+);
+const isComposer = computed(() => manager.value === "composer");
 
 const packageJsonSnippet = computed((): string => {
   const snippet: Record<string, Record<string, string>> = {};
   const entries = (list: PackageUpdate[]): Record<string, string> =>
     Object.fromEntries(list.map((u) => [u.name, `^${u.latestVersion}`]));
   if (productionUpdates.value.length > 0)
-    snippet.dependencies = entries(productionUpdates.value);
+    snippet[isComposer.value ? "require" : "dependencies"] = entries(
+      productionUpdates.value,
+    );
   if (developmentUpdates.value.length > 0)
-    snippet.devDependencies = entries(developmentUpdates.value);
+    snippet[isComposer.value ? "require-dev" : "devDependencies"] = entries(
+      developmentUpdates.value,
+    );
   return JSON.stringify(snippet, null, 2);
 });
 
@@ -84,7 +92,7 @@ function copy(content: string): void {
           {{ updates.length }} direct
           {{ updates.length === 1 ? "dependency has" : "dependencies have" }}
           a newer version<span v-if="projectName"> in {{ projectName }}</span
-          >. Run the commands or edit package.json by hand.
+          >. Run the commands or edit {{ manifest }} by hand.
         </DialogDescription>
       </DialogHeader>
 
@@ -120,15 +128,17 @@ function copy(content: string): void {
               class="flex items-center gap-2 font-semibold text-foreground-strong"
             >
               <Icon
+                v-if="manager"
                 :icon="getPackageManagerIcon(manager)"
                 aria-hidden="true"
                 class="size-4"
               />
-              {{ manager }} commands
+              {{ manager ?? "Update" }} commands
             </h3>
             <Button
               variant="outline"
               size="sm"
+              :disabled="updateCommands.length === 0"
               @click="copy(updateCommands.join('\n'))"
             >
               <Copy aria-hidden="true" class="size-4" />
@@ -136,18 +146,26 @@ function copy(content: string): void {
             </Button>
           </div>
           <pre
+            v-if="updateCommands.length > 0"
+            aria-label="Update commands"
             class="overflow-x-auto rounded-control bg-muted p-3 font-mono text-xs"
             >{{ updateCommands.join("\n") }}</pre>
+          <p v-else class="text-muted-foreground">
+            CodeClarity could not tell which package manager this workspace
+            uses, so it has no commands to give. Edit {{ manifest }} by hand,
+            then run your package manager's install command.
+          </p>
         </section>
 
         <section class="flex flex-col gap-2">
           <div class="flex items-center justify-between gap-4">
             <h3 class="font-semibold text-foreground-strong">
-              package.json changes
+              {{ manifest }} changes
             </h3>
             <Button
               variant="outline"
               size="sm"
+              :disabled="updates.length === 0"
               @click="copy(packageJsonSnippet)"
             >
               <Copy aria-hidden="true" class="size-4" />
@@ -157,8 +175,8 @@ function copy(content: string): void {
           <pre
             class="overflow-x-auto rounded-control bg-muted p-3 font-mono text-xs"
             >{{ packageJsonSnippet }}</pre>
-          <p class="text-muted-foreground">
-            Merge it into package.json, then run
+          <p v-if="manager" class="text-muted-foreground">
+            Merge it into {{ manifest }}, then run
             <code class="rounded-sm bg-muted px-1 font-mono">{{
               getInstallCommand(manager)
             }}</code>
@@ -167,6 +185,7 @@ function copy(content: string): void {
         </section>
 
         <section
+          v-if="manager"
           class="flex flex-col gap-1 rounded-control bg-warning-subtle p-3 text-warning"
         >
           <h3 class="font-semibold">Keep the lockfile</h3>

@@ -2,15 +2,16 @@
 import type { ListboxRootEmits, ListboxRootProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import { cn } from "@/shadcn/lib/utils";
 import { ListboxRoot, useFilter, useForwardPropsEmits } from "reka-ui";
 import { reactive, ref, watch } from "vue";
-import { cn } from "@/shadcn/lib/utils";
 import { provideCommandContext } from ".";
 
 const props = withDefaults(
   defineProps<ListboxRootProps & { class?: HTMLAttributes["class"] }>(),
   {
     modelValue: "",
+    highlightOnHover: true,
   },
 );
 
@@ -83,10 +84,11 @@ provideCommandContext({
 
 <template>
   <ListboxRoot
+    data-slot="command"
     v-bind="forwarded"
     :class="
       cn(
-        'flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground',
+        'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
         props.class,
       )
     "

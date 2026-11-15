@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { reactiveOmit } from "@vueuse/core";
 import { Check } from "@lucide/vue";
-import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui";
+import { reactiveOmit } from "@vueuse/core";
 import { cn } from "@/shadcn/lib/utils";
+import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui";
 
 const props = defineProps<
   CheckboxRootProps & { class?: HTMLAttributes["class"] }
@@ -18,6 +18,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 <template>
   <CheckboxRoot
+    v-slot="slotProps"
+    data-slot="checkbox"
     v-bind="forwarded"
     :class="
       cn(
@@ -26,8 +28,11 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       )
     "
   >
-    <CheckboxIndicator class="grid place-content-center text-current">
-      <slot>
+    <CheckboxIndicator
+      data-slot="checkbox-indicator"
+      class="grid place-content-center text-current transition-none"
+    >
+      <slot v-bind="slotProps">
         <Check class="h-4 w-4" />
       </slot>
     </CheckboxIndicator>

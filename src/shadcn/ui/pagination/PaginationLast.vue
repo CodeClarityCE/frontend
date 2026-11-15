@@ -2,10 +2,10 @@
 import type { PaginationLastProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import type { ButtonVariants } from "@/shadcn/ui/button";
-import { reactiveOmit } from "@vueuse/core";
 import { ChevronRightIcon } from "@lucide/vue";
-import { PaginationLast, useForwardProps } from "reka-ui";
+import { reactiveOmit } from "@vueuse/core";
 import { cn } from "@/shadcn/lib/utils";
+import { PaginationLast, useForwardProps } from "reka-ui";
 import { buttonVariants } from "@/shadcn/ui/button";
 
 const props = withDefaults(

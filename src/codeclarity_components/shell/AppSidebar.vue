@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 import { type RouteLocationRaw, RouterLink, useRoute } from "vue-router";
 
 import logo from "@/assets/images/logos/logo-green.svg";
+import { Kbd } from "@/shadcn/ui/kbd";
 import {
   Sidebar,
   SidebarContent,
@@ -143,9 +144,9 @@ const activeBar =
           >
             <Search aria-hidden="true" />
             <span>Search</span>
-            <kbd
-              class="ml-auto rounded border border-sidebar-border px-1.5 font-mono text-xs group-data-[collapsible=icon]:hidden"
-              >{{ shortcutLabel }}</kbd
+            <Kbd
+              class="ml-auto h-auto min-w-0 rounded border border-sidebar-border bg-transparent px-1.5 font-mono font-normal text-current group-data-[collapsible=icon]:hidden"
+              >{{ shortcutLabel }}</Kbd
             >
           </SidebarMenuButton>
         </SidebarMenuItem>

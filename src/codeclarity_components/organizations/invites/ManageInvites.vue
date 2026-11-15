@@ -20,6 +20,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate, formatRelativeTime } from "@/utils/dateUtils";
+import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import ConfirmDestructiveDialog from "../members/ConfirmDestructiveDialog.vue";
@@ -94,12 +95,17 @@ const columns: ColumnDef<Invitation, unknown>[] = [
     header: "Expires",
     enableGlobalFilter: false,
   },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    enableGlobalFilter: false,
-  },
+  // Shown only once the server can resend or revoke an invitation.
+  ...(serverFeatures.invitationResend || serverFeatures.invitationRevoke
+    ? [
+        {
+          id: "actions",
+          header: "Actions",
+          enableSorting: false,
+          enableGlobalFilter: false,
+        },
+      ]
+    : []),
 ];
 
 function inviterName(i: Invitation): string {
@@ -299,6 +305,7 @@ onMounted(() => void load());
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
           <Button
+            v-if="serverFeatures.invitationResend"
             variant="outline"
             size="sm"
             :disabled="resending === row.id"
@@ -316,7 +323,7 @@ onMounted(() => void load());
             Resend
           </Button>
           <Button
-            v-if="canRevoke(row)"
+            v-if="serverFeatures.invitationRevoke && canRevoke(row)"
             variant="destructive"
             size="sm"
             :aria-label="`Revoke the invitation to ${row.user_email}`"

@@ -52,45 +52,18 @@ test.describe("Organisation members", () => {
     ]);
   });
 
-  test("removing a member asks first in a dialog that keeps focus", async ({
+  test("member rows offer no remove action, which the server cannot do yet", async ({
     page,
   }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoMembers();
+    await expect(members.rows()).toHaveCount(3);
 
-    // Nobody can remove themselves.
+    await expect(page.getByRole("button", { name: /^Remove/ })).toHaveCount(0);
     await expect(
-      members.row("John Doe").getByRole("button", { name: /Remove/ }),
+      members.table.getByRole("columnheader", { name: "Actions" }),
     ).toHaveCount(0);
-
-    await members
-      .row("Bob Keller")
-      .getByRole("button", { name: "Remove Bob Keller" })
-      .click();
-    const dialog = page.getByRole("dialog", {
-      name: "Remove Bob Keller from the organisation?",
-    });
-    await expect(dialog).toBeVisible();
-    for (let i = 0; i < 4; i++) {
-      await page.keyboard.press("Tab");
-      await expect(dialog.locator(":focus")).toHaveCount(1);
-    }
-
-    await page.keyboard.press("Escape");
-    await expect(dialog).toHaveCount(0);
-    expect(members.deleted).toEqual([]);
-
-    await members
-      .row("Bob Keller")
-      .getByRole("button", { name: "Remove Bob Keller" })
-      .click();
-    await dialog.getByRole("button", { name: "Remove member" }).click();
-
-    await expect(dialog).toHaveCount(0);
-    await expect(members.rows()).toHaveCount(2);
-    await expect(members.row("Bob Keller")).toHaveCount(0);
-    expect(members.deleted).toEqual(["/api/org/org-123/members/u-bob"]);
   });
 
   test("member rows link to no audit logs, which cannot be read yet", async ({
@@ -228,39 +201,20 @@ test.describe("Organisation invitations", () => {
     ).toBeVisible();
   });
 
-  test("revoking asks first, resending sends again", async ({ page }) => {
+  test("invitations offer no resend or revoke, which the server cannot do yet", async ({
+    page,
+  }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoInvites();
+    await expect(members.rows()).toHaveCount(2);
 
-    await members
-      .row("dave@example.com")
-      .getByRole("button", {
-        name: "Resend the invitation to dave@example.com",
-      })
-      .click();
-    await expect
-      .poll(() => members.resent)
-      .toEqual(["/api/org/org-123/invitations/inv-2/resend"]);
-
-    await members
-      .row("carol@example.com")
-      .getByRole("button", {
-        name: "Revoke the invitation to carol@example.com",
-      })
-      .click();
-    const dialog = page.getByRole("dialog", {
-      name: "Revoke the invitation to carol@example.com?",
-    });
-    for (let i = 0; i < 4; i++) {
-      await page.keyboard.press("Tab");
-      await expect(dialog.locator(":focus")).toHaveCount(1);
-    }
-    await dialog.getByRole("button", { name: "Revoke invitation" }).click();
-
-    await expect(dialog).toHaveCount(0);
-    await expect(members.rows()).toHaveCount(1);
-    expect(members.deleted).toEqual(["/api/org/org-123/invitations/inv-1"]);
+    await expect(
+      page.getByRole("button", { name: /^(Resend|Revoke) the invitation/ }),
+    ).toHaveCount(0);
+    await expect(
+      members.table.getByRole("columnheader", { name: "Actions" }),
+    ).toHaveCount(0);
   });
 
   test("with no open invitations the page says so", async ({ page }) => {
@@ -276,7 +230,7 @@ test.describe("Organisation invitations", () => {
 });
 
 test.describe("Organisation members, invitations and logs: keyboard, axe and screenshots", () => {
-  test("Tab reaches the filter, sort buttons and row actions with visible focus", async ({
+  test("Tab reaches the filter and sort buttons with visible focus", async ({
     page,
   }) => {
     const members = new OrgMembersPage(page);
@@ -288,20 +242,6 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
     await expectVisibleFocus(members.filter);
     await page.keyboard.press("Tab");
     await expectVisibleFocus(members.sortButton("Member"));
-
-    const remove = members
-      .row("Bob Keller")
-      .getByRole("button", { name: "Remove Bob Keller" });
-    await remove.focus();
-    await expectVisibleFocus(remove);
-    await page.keyboard.press("Enter");
-    await expect(
-      page.getByRole("dialog", {
-        name: "Remove Bob Keller from the organisation?",
-      }),
-    ).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(remove).toBeFocused();
   });
 
   for (const view of ["members", "invites", "logs"] as const) {

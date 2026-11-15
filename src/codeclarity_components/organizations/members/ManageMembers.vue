@@ -23,6 +23,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate } from "@/utils/dateUtils";
+import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import ConfirmDestructiveDialog from "./ConfirmDestructiveDialog.vue";
@@ -79,12 +80,17 @@ const columns: ColumnDef<OrganizationMembership, unknown>[] = [
     header: "Joined",
     enableGlobalFilter: false,
   },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    enableGlobalFilter: false,
-  },
+  // Shown only once the server can remove a member.
+  ...(serverFeatures.memberRemoval
+    ? [
+        {
+          id: "actions",
+          header: "Actions",
+          enableSorting: false,
+          enableGlobalFilter: false,
+        },
+      ]
+    : []),
 ];
 
 function fullName(m: OrganizationMembership): string {
@@ -96,7 +102,9 @@ function isSelf(m: OrganizationMembership): boolean {
 }
 
 function canRemove(m: OrganizationMembership): boolean {
-  if (!orgInfo.value || isSelf(m)) return false;
+  if (!serverFeatures.memberRemoval || !orgInfo.value || isSelf(m)) {
+    return false;
+  }
   return isMemberRoleGreaterThan(orgInfo.value.role, m.role);
 }
 

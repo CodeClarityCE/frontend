@@ -4,10 +4,13 @@ import { defineComponent, h } from "vue";
 
 import PoliciesList from "./PoliciesList.vue";
 
-const { getLicensePolicies, push } = vi.hoisted(() => ({
+const { getLicensePolicies, push, features } = vi.hoisted(() => ({
   getLicensePolicies: vi.fn(),
   push: vi.fn(),
+  features: { licensePolicyChanges: false },
 }));
+
+vi.mock("@/utils/server-features", () => ({ serverFeatures: features }));
 
 vi.mock("@/stores/auth", () => ({
   useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
@@ -115,6 +118,7 @@ function tile(label: string): string {
 describe("PoliciesList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    features.licensePolicyChanges = false;
     getLicensePolicies.mockResolvedValue({ data: sample });
   });
 
@@ -157,7 +161,14 @@ describe("PoliciesList", () => {
     );
   });
 
+  it("offers no Edit while the server cannot change a policy", async () => {
+    await render();
+
+    expect(button("Edit Strict")).toBeUndefined();
+  });
+
   it("opens the editor for a policy", async () => {
+    features.licensePolicyChanges = true;
     await render();
 
     button("Edit Strict")?.click();

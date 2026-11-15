@@ -33,8 +33,11 @@ test.describe("Organisation policies list", () => {
       "Name",
       "Licenses",
       "Created",
-      "Actions",
     ]);
+    // The server cannot change or delete a license policy yet.
+    await expect(
+      table.getByRole("button", { name: /^(Edit|Delete) / }),
+    ).toHaveCount(0);
   });
 
   test("the type and author columns appear once the server returns them", async ({
@@ -173,16 +176,10 @@ test.describe("Organisation policies list", () => {
       table.getByRole("button", { name: "Name" }),
       table.getByRole("button", { name: "Licenses" }),
       table.getByRole("button", { name: "Created", exact: true }),
-      table.getByRole("button", { name: "Edit Permissive only" }),
     ]) {
       await page.keyboard.press("Tab");
       await expectVisibleFocus(target);
     }
-
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(
-      /\/orgs\/edit\/policy\/org-123\/?\?policyId=lp-1$/,
-    );
   });
 
   test("passes axe and matches the screenshots", async ({ page }) => {
@@ -277,17 +274,20 @@ test.describe("License policy form", () => {
     await expect(rows.first()).toContainText("MIT License");
   });
 
-  test("editing loads the saved policy into the form without errors", async ({
+  test("an edit link shows the saved policy and says it cannot be changed yet", async ({
     page,
   }) => {
     const policies = new OrgPoliciesPage(page);
     await policies.signIn();
     await policies.gotoEditLicense("lp-1");
 
-    await expect(policies.heading).toHaveText("Edit license policy");
+    await expect(policies.heading).toHaveText("License policy");
+    await expect(
+      page.getByText("Changing a license policy is not available yet."),
+    ).toBeVisible();
     const name = page.getByRole("textbox", { name: "Name" });
     await expect(name).toHaveValue("Permissive only");
-    await expect(name).toBeEnabled();
+    await expect(name).toBeDisabled();
     await expect(
       page.getByRole("textbox", { name: "Description (optional)" }),
     ).toHaveValue("Permissive only for every project");
@@ -298,24 +298,10 @@ test.describe("License policy form", () => {
     await expect(
       page.getByRole("checkbox", { name: "Include MIT" }),
     ).toBeChecked();
-
-    await expect(name).not.toHaveAttribute("aria-invalid", "true");
-    await expect(page.getByText("Pick at least one license")).toHaveCount(0);
-    await expect(page.getByRole("alert")).toHaveCount(0);
-  });
-
-  test("saving an edited policy needs nothing refilled", async ({ page }) => {
-    const policies = new OrgPoliciesPage(page);
-    await policies.signIn();
-    await policies.gotoEditLicense("lp-1");
-    const name = page.getByRole("textbox", { name: "Name" });
-    await expect(name).toHaveValue("Permissive only");
-
-    await name.fill("Permissive licenses");
-    await page.getByRole("button", { name: "Save policy" }).click();
-
-    await expect.poll(() => policies.writes).toHaveLength(1);
-    expect(policies.writes[0]).toMatch(/^PATCH .*\/license_policy\/lp-1$/);
+    await expect(page.getByRole("button", { name: "Save policy" })).toHaveCount(
+      0,
+    );
+    expect(policies.writes).toEqual([]);
   });
 
   test("editing an unknown policy says so and disables the form", async ({
@@ -329,9 +315,9 @@ test.describe("License policy form", () => {
       page.getByText("The license policy could not be loaded."),
     ).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Name" })).toBeDisabled();
-    await expect(
-      page.getByRole("button", { name: "Save policy" }),
-    ).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Save policy" })).toHaveCount(
+      0,
+    );
     expect(policies.writes).toEqual([]);
   });
 

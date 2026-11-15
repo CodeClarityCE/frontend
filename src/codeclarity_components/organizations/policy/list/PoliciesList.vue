@@ -7,6 +7,7 @@ import { OwlEmptyState, StatTile } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
+import { serverFeatures } from "@/utils/server-features";
 
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
@@ -116,7 +117,7 @@ onBeforeMount(() => void loadPolicies());
       :loading="!loaded"
       caption="License policies"
       content-label="Licenses"
-      :can-edit="canManage"
+      :can-edit="canManage && serverFeatures.licensePolicyChanges"
       @edit="handleEdit"
     />
   </section>

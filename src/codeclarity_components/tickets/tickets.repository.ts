@@ -639,9 +639,7 @@ export class TicketsRepository extends BaseRepository {
     return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
   }
 
-  /**
-   * Check credentials without saving them
-   */
+  /** Checks credentials without saving them. */
   async verifyIntegration(
     options: VerifyIntegrationRequestOptions,
   ): Promise<DataResponse<ConnectionTestResult>> {

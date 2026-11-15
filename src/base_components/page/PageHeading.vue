@@ -1,7 +1,6 @@
 <script setup lang="ts">
-// A page title with optional description and actions. Wrap key words of the
-// title in BrandEmphasis to give them the green mark. The actions wrap below
-// the title when there is no room beside it.
+// A page title with an optional description and actions.
+// Wrap key words in BrandEmphasis to give them the green mark.
 defineProps<{ description?: string }>();
 </script>
 

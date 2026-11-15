@@ -443,30 +443,37 @@ vi.mock("@/router", () => ({
 }));
 
 // Mock @vueuse/core
-vi.mock("@vueuse/core", () => ({
-  useCurrentElement: () => ({ value: null }),
-  useElementSize: () => ({ width: 0, height: 0 }),
-  useResizeObserver: vi.fn(),
-  useIntersectionObserver: vi.fn(),
-  useEventListener: vi.fn(),
-  useDebounceFn: vi.fn(),
-  useThrottleFn: vi.fn(),
-  useLocalStorage: vi.fn(() => ({ value: null })),
-  useSessionStorage: vi.fn(() => ({ value: null })),
-  useToggle: vi.fn(() => [false, vi.fn()]),
-  useVModel: vi.fn(),
-  watchEffect: vi.fn(),
-  watch: vi.fn(),
-  computed: vi.fn(),
-  ref: vi.fn(),
-  reactive: vi.fn(),
-  reactiveOmit: (obj: Record<string, unknown>, ...keys: string[]) => {
-    const result = { ...obj };
-    keys.forEach((key) => delete result[key]);
-    return result;
-  },
-  watchDeep: vi.fn(),
-}));
+vi.mock("@vueuse/core", async () => {
+  const { reactive, toRef } = await import("vue");
+  return {
+    useCurrentElement: () => ({ value: null }),
+    useElementSize: () => ({ width: 0, height: 0 }),
+    useResizeObserver: vi.fn(),
+    useIntersectionObserver: vi.fn(),
+    useEventListener: vi.fn(),
+    useDebounceFn: vi.fn(),
+    useThrottleFn: vi.fn(),
+    useLocalStorage: vi.fn(() => ({ value: null })),
+    useSessionStorage: vi.fn(() => ({ value: null })),
+    useToggle: vi.fn(() => [false, vi.fn()]),
+    useVModel: vi.fn(),
+    watchEffect: vi.fn(),
+    watch: vi.fn(),
+    computed: vi.fn(),
+    ref: vi.fn(),
+    reactive: vi.fn(),
+    // Stays reactive like the real one, so shadcn wrappers pass prop changes on.
+    reactiveOmit: (obj: Record<string, unknown>, ...keys: string[]) =>
+      reactive(
+        Object.fromEntries(
+          Object.keys(obj)
+            .filter((key) => !keys.includes(key))
+            .map((key) => [key, toRef(obj, key)]),
+        ),
+      ),
+    watchDeep: vi.fn(),
+  };
+});
 
 // Mock @lucide/vue icons
 vi.mock("@lucide/vue", () => ({

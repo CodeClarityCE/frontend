@@ -126,6 +126,7 @@ async function loadDataset(): Promise<void> {
       datasetId: datasetId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     dataset.value = response.data;
     notFound.value = false;
@@ -174,6 +175,7 @@ async function fetchAllEntries(
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       bearerToken: token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     all.push(...response.data);
     if (page + 1 >= response.total_pages) return all;
@@ -205,6 +207,7 @@ async function importAsProjects(): Promise<void> {
           data: { integration_id: integrationId, url: entry.git_url },
           bearerToken: token,
           handleBusinessErrors: true,
+          handleHTTPErrors: true,
         });
       } catch (err) {
         if (
@@ -252,6 +255,7 @@ async function deleteDataset(): Promise<void> {
       datasetId: datasetId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Dataset deleted");
     void router.push({ name: "datasets" });

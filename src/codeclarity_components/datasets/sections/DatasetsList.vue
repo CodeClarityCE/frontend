@@ -15,7 +15,6 @@ import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { formatShortDate } from "@/utils/dateUtils";
-import { errorToast } from "@/utils/toasts";
 
 import { type Dataset, DatasetStatus } from "../dataset.entity";
 import { DatasetsRepository } from "../datasets.repository";
@@ -71,6 +70,7 @@ async function fetchAll(orgId: string, token: string): Promise<Dataset[]> {
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       bearerToken: token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     all.push(...response.data);
     if (page + 1 >= response.total_pages) return all;
@@ -85,8 +85,8 @@ async function load(): Promise<void> {
     datasets.value = await fetchAll(orgId, auth.getToken);
     hasError.value = false;
   } catch {
+    // The page shows the error inline, so no toast repeats it.
     hasError.value = true;
-    errorToast("Failed to load the datasets");
   } finally {
     loaded.value = true;
     schedulePoll();

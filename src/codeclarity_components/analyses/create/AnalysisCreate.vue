@@ -117,6 +117,14 @@ function displayName(item: Analyzer): string {
   return item.name === "JS" ? "JavaScript Analyzer" : item.name;
 }
 
+// Why the analyzer cannot run on this instance, or nothing when it can.
+function unavailableReason(item: Analyzer): string | undefined {
+  const availability = item.availability;
+  return availability && availability.state !== "available"
+    ? availability.message
+    : undefined;
+}
+
 function plugins(item: Analyzer | undefined): Stage[] {
   return item?.steps.flat() ?? [];
 }
@@ -378,6 +386,7 @@ function startError(err: unknown): string {
   }
   switch (err.error_code) {
     case APIErrors.AnaylzerMissingConfigAttribute:
+    case APIErrors.AnalyzerUnavailable:
       return err.error_message;
     case APIErrors.NotAuthorized:
       return "Your role does not allow starting analyses in this organisation.";
@@ -568,15 +577,35 @@ const choiceClass =
                 <label
                   v-for="item in analyzers"
                   :key="item.id"
-                  :class="choiceClass"
+                  :data-analyzer="item.id"
+                  :class="[
+                    choiceClass,
+                    unavailableReason(item) && 'cursor-not-allowed opacity-70',
+                  ]"
                 >
-                  <RadioGroupItem :value="item.id" :class="radioClass" />
+                  <RadioGroupItem
+                    :value="item.id"
+                    :class="radioClass"
+                    :disabled="!!unavailableReason(item)"
+                    :aria-describedby="
+                      unavailableReason(item)
+                        ? `analysis-analyzer-${item.id}-unavailable`
+                        : undefined
+                    "
+                  />
                   <span class="flex flex-col gap-0.5">
                     <span class="font-semibold text-foreground-strong">
                       {{ displayName(item) }}
                     </span>
                     <span class="text-sm text-muted-foreground">
                       {{ item.description }}
+                    </span>
+                    <span
+                      v-if="unavailableReason(item)"
+                      :id="`analysis-analyzer-${item.id}-unavailable`"
+                      class="text-sm font-medium text-foreground-strong"
+                    >
+                      Unavailable: {{ unavailableReason(item) }}
                     </span>
                   </span>
                 </label>

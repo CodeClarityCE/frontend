@@ -33,7 +33,15 @@ export class Analyzer {
 
   @IsOptional()
   logo?: string;
+
+  // Whether it can run on this instance, and why not
+  @IsOptional()
+  availability?: AnalyzerAvailability;
 }
+
+export type AnalyzerAvailability =
+  | { state: "available" }
+  | { state: "off"; components: string[]; message: string };
 
 /********************************************/
 /*                Other types               */

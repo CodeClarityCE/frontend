@@ -194,6 +194,12 @@ defineExpose({ fetchAnalyzers, orgInfo });
           <span class="text-xs text-muted-foreground">
             {{ row.description }}
           </span>
+          <span
+            v-if="row.availability && row.availability.state !== 'available'"
+            class="text-xs font-medium text-foreground-strong"
+          >
+            Unavailable: {{ row.availability.message }}
+          </span>
         </div>
       </template>
       <template #cell-stages="{ row }">

@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { ArrowLeft, ExternalLink, FolderArchive, Plus } from "@lucide/vue";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { RouterLink } from "vue-router";
 import { toast } from "vue-sonner";
 
@@ -12,9 +19,10 @@ import {
 } from "@/base_components/page";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
-import type {
-  Analyzer,
-  Stage,
+import {
+  type Analyzer,
+  type Stage,
+  unavailableLabel,
 } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
@@ -277,6 +285,30 @@ async function loadAnalyzers(orgId: string, token: string): Promise<void> {
     analyzersLoaded.value = true;
   }
 }
+
+// While a plugin is down, the list is fetched again so it frees up by itself.
+const RECHECK_DOWN_MS = 30_000;
+let recheckTimer: ReturnType<typeof setTimeout> | undefined;
+
+function scheduleRecheck(): void {
+  clearTimeout(recheckTimer);
+  recheckTimer = undefined;
+  if (!analyzers.value.some((item) => item.availability?.state === "down")) {
+    return;
+  }
+  recheckTimer = setTimeout(() => {
+    const orgId = user.defaultOrg?.id;
+    if (!orgId || !auth.getToken) return;
+    fetchAllAnalyzers(orgId, auth.getToken)
+      .then((fresh) => {
+        analyzers.value = fresh;
+      })
+      .catch(() => scheduleRecheck());
+  }, RECHECK_DOWN_MS);
+}
+
+watch(analyzers, scheduleRecheck);
+onBeforeUnmount(() => clearTimeout(recheckTimer));
 
 // The list holds no plugin options, so the chosen analyzer is fetched again.
 watch(analyzerId, async (id) => {
@@ -605,7 +637,7 @@ const choiceClass =
                       :id="`analysis-analyzer-${item.id}-unavailable`"
                       class="text-sm font-medium text-foreground-strong"
                     >
-                      Unavailable: {{ unavailableReason(item) }}
+                      {{ unavailableLabel(item.availability) }}
                     </span>
                   </span>
                 </label>

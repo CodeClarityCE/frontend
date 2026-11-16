@@ -41,7 +41,16 @@ export class Analyzer {
 
 export type AnalyzerAvailability =
   | { state: "available" }
-  | { state: "off"; components: string[]; message: string };
+  | { state: "off"; components: string[]; message: string }
+  | { state: "down"; plugins: string[]; message: string };
+
+/** The label before the reason: "down" passes, "off" lasts until turned on. */
+export function unavailableLabel(availability?: AnalyzerAvailability): string {
+  if (!availability || availability.state === "available") return "";
+  return availability.state === "down"
+    ? `Temporarily unavailable: ${availability.message}`
+    : `Unavailable: ${availability.message}`;
+}
 
 /********************************************/
 /*                Other types               */

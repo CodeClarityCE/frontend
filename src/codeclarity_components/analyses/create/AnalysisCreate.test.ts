@@ -1,5 +1,5 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AnalysisCreate from "./AnalysisCreate.vue";
 
@@ -59,6 +59,7 @@ vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("vue-sonner", () => ({ toast: { success: vi.fn() } }));
 
 const OFF = "Needs CodeQL, which is off on this instance.";
+const DOWN = "vuln-finder is temporarily down. Try again shortly.";
 
 function analyzer(id: string, plugins: string[], availability: object): object {
   return {
@@ -78,6 +79,12 @@ const codeqlAnalyzer = analyzer("an-codeql", ["js-sbom", "codeql"], {
   state: "off",
   components: ["CodeQL"],
   message: OFF,
+});
+
+const downAnalyzer = analyzer("an-down", ["js-sbom", "vuln-finder"], {
+  state: "down",
+  plugins: ["vuln-finder"],
+  message: DOWN,
 });
 
 async function mountForm(): Promise<VueWrapper> {
@@ -116,6 +123,40 @@ describe("AnalysisCreate", () => {
     const available = wrapper.find('[data-analyzer="an-default"]');
     expect(available.text()).not.toContain("off on this instance");
     expect(available.find("button").attributes("disabled")).toBeUndefined();
+  });
+
+  describe("with a plugin down", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("shows the analyzer as temporarily unavailable, not off", async () => {
+      getAnalyzers.mockResolvedValue({ data: [downAnalyzer], total_pages: 1 });
+      const wrapper = await mountForm();
+
+      const down = wrapper.find('[data-analyzer="an-down"]');
+      expect(down.text()).toContain(`Temporarily unavailable: ${DOWN}`);
+      expect(down.text()).not.toContain("off on this instance");
+      expect(down.find("button").attributes("disabled")).toBeDefined();
+    });
+
+    it("makes the analyzer selectable again once the plugin is back", async () => {
+      vi.useFakeTimers();
+      getAnalyzers.mockResolvedValue({ data: [downAnalyzer], total_pages: 1 });
+      const wrapper = await mountForm();
+
+      getAnalyzers.mockResolvedValue({
+        data: [{ ...downAnalyzer, availability: { state: "available" } }],
+        total_pages: 1,
+      });
+      await vi.advanceTimersByTimeAsync(30_000);
+      await flushPromises();
+
+      const back = wrapper.find('[data-analyzer="an-down"]');
+      expect(back.text()).not.toContain("Temporarily unavailable");
+      expect(back.find("button").attributes("disabled")).toBeUndefined();
+      wrapper.unmount();
+    });
   });
 
   it("shows the API's reason when it refuses the analyzer", async () => {

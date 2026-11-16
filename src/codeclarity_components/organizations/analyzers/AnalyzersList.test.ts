@@ -165,6 +165,26 @@ describe("AnalyzersList", () => {
     );
   });
 
+  it("warns that an analyzer's plugin is down, naming it", async () => {
+    const down = "vuln-finder is temporarily down. Try again shortly.";
+    getAnalyzers.mockResolvedValue({
+      data: [
+        {
+          ...sample[0],
+          availability: {
+            state: "down",
+            plugins: ["vuln-finder"],
+            message: down,
+          },
+        },
+      ],
+    });
+    await render();
+
+    const row = document.querySelector("tbody tr")?.textContent ?? "";
+    expect(row).toContain(`Temporarily unavailable: ${down}`);
+  });
+
   it("offers a New analyzer link", async () => {
     await render();
 

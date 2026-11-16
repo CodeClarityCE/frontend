@@ -10,7 +10,10 @@ import {
   OwlEmptyState,
   PageHeading,
 } from "@/base_components/page";
-import type { Analyzer } from "@/codeclarity_components/organizations/analyzers/Analyzer";
+import {
+  type Analyzer,
+  unavailableLabel,
+} from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import {
   isMemberRoleGreaterOrEqualTo,
@@ -198,7 +201,7 @@ defineExpose({ fetchAnalyzers, orgInfo });
             v-if="row.availability && row.availability.state !== 'available'"
             class="text-xs font-medium text-foreground-strong"
           >
-            Unavailable: {{ row.availability.message }}
+            {{ unavailableLabel(row.availability) }}
           </span>
         </div>
       </template>

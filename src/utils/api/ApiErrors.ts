@@ -18,6 +18,7 @@ export const APIErrors = {
   ProjectDoesNotExist: "ProjectDoesNotExist",
   AnalyzerDoesNotExist: "AnalyzerDoesNotExist",
   AnaylzerMissingConfigAttribute: "AnaylzerMissingConfigAttribute",
+  AnalyzerUnavailable: "AnalyzerUnavailable",
   IntegrationWrongTokenType: "IntegrationWrongTokenType",
   FailedToRetrieveReposFromProvider: "FailedToRetrieveReposFromProvider",
   IntegrationTokenRetrievalFailed: "IntegrationTokenRetrievalFailed",

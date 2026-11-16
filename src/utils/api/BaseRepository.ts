@@ -15,7 +15,7 @@ export class BaseRepository {
   private BASE_URL: string;
 
   constructor() {
-    this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
+    this.BASE_URL = `https://${window.location.host}/${import.meta.env.VITE_API_URL}`;
   }
 
   /**

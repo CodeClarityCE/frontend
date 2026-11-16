@@ -15,7 +15,7 @@ async function initiateGithubAuthentication(): Promise<void> {
   const apiUrl =
     (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? "api/v1";
   const url = new URL(
-    `https://${window.location.hostname}/${apiUrl}/auth/github/authenticate`,
+    `https://${window.location.host}/${apiUrl}/auth/github/authenticate`,
   );
   url.searchParams.append("state", state);
   window.location.href = url.toString();
@@ -27,7 +27,7 @@ async function initiateGitlabAuthentication(): Promise<void> {
   const apiUrl =
     (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? "api/v1";
   const url = new URL(
-    `https://${window.location.hostname}/${apiUrl}/auth/gitlab/authenticate`,
+    `https://${window.location.host}/${apiUrl}/auth/gitlab/authenticate`,
   );
   url.searchParams.append("state", state);
   window.location.href = url.toString();

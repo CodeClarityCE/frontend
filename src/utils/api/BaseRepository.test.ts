@@ -65,3 +65,25 @@ describe("BaseRepository business errors", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 });
+
+describe("BaseRepository API address", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}")));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps the page's port, so a forwarded port still reaches the API", async () => {
+    // jsdom serves the page from localhost:3000.
+    expect(window.location.port).not.toBe("");
+
+    await new ProbeRepository().load();
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining(`https://${window.location.host}/`),
+      expect.anything(),
+    );
+  });
+});

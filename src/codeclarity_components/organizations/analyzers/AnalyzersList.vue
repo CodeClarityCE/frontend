@@ -12,6 +12,7 @@ import {
 } from "@/base_components/page";
 import {
   type Analyzer,
+  isUnavailable,
   unavailableLabel,
 } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
@@ -198,7 +199,7 @@ defineExpose({ fetchAnalyzers, orgInfo });
             {{ row.description }}
           </span>
           <span
-            v-if="row.availability && row.availability.state !== 'available'"
+            v-if="isUnavailable(row.availability)"
             class="text-xs font-medium text-foreground-strong"
           >
             {{ unavailableLabel(row.availability) }}

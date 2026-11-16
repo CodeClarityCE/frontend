@@ -21,6 +21,7 @@ import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.r
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
 import {
   type Analyzer,
+  isUnavailable,
   type Stage,
   unavailableLabel,
 } from "@/codeclarity_components/organizations/analyzers/Analyzer";
@@ -123,14 +124,6 @@ const failure = ref<{ code: string; message: string }>();
 
 function displayName(item: Analyzer): string {
   return item.name === "JS" ? "JavaScript Analyzer" : item.name;
-}
-
-// Why the analyzer cannot run on this instance, or nothing when it can.
-function unavailableReason(item: Analyzer): string | undefined {
-  const availability = item.availability;
-  return availability && availability.state !== "available"
-    ? availability.message
-    : undefined;
 }
 
 function plugins(item: Analyzer | undefined): Stage[] {
@@ -612,15 +605,16 @@ const choiceClass =
                   :data-analyzer="item.id"
                   :class="[
                     choiceClass,
-                    unavailableReason(item) && 'cursor-not-allowed opacity-70',
+                    isUnavailable(item.availability) &&
+                      'cursor-not-allowed opacity-70',
                   ]"
                 >
                   <RadioGroupItem
                     :value="item.id"
                     :class="radioClass"
-                    :disabled="!!unavailableReason(item)"
+                    :disabled="isUnavailable(item.availability)"
                     :aria-describedby="
-                      unavailableReason(item)
+                      isUnavailable(item.availability)
                         ? `analysis-analyzer-${item.id}-unavailable`
                         : undefined
                     "
@@ -633,7 +627,7 @@ const choiceClass =
                       {{ item.description }}
                     </span>
                     <span
-                      v-if="unavailableReason(item)"
+                      v-if="isUnavailable(item.availability)"
                       :id="`analysis-analyzer-${item.id}-unavailable`"
                       class="text-sm font-medium text-foreground-strong"
                     >

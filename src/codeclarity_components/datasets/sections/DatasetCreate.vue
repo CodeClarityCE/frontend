@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, LoaderCircle } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -125,6 +126,7 @@ async function loadIntegrations(): Promise<void> {
       pagination: { page: 0, entries_per_page: 100 },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     // An expired token is not flagged invalid by the API, but GitHub rejects it
     const now = Date.now();
@@ -167,6 +169,7 @@ async function submit(): Promise<void> {
       },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Dataset created, building in the background");
     void router.push({
@@ -328,7 +331,7 @@ onMounted(() => void loadIntegrations());
             </p>
           </fieldset>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div class="flex flex-col gap-2">
               <Label for="dataset-limit">Repositories</Label>
               <Input
@@ -400,11 +403,7 @@ onMounted(() => void loadIntegrations());
               data-testid="dataset-submit"
               arrow
             >
-              <LoaderCircle
-                v-if="submitting"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="submitting" />
               Build Dataset
             </Button>
           </div>

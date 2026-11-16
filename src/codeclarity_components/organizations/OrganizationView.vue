@@ -2,10 +2,14 @@
 import {
   type AsyncComponentLoader,
   type Component,
+  computed,
   defineAsyncComponent,
 } from "vue";
 
 import { useStateStore } from "@/stores/state";
+
+import { orgView } from "./org-route";
+import OrgNotFound from "./subcomponents/OrgNotFound.vue";
 
 // Each section renders its own page heading.
 const OrgsList = defineAsyncComponent(
@@ -48,53 +52,51 @@ const props = defineProps<{
   page?: string;
   orgId?: string;
 }>();
+
+const view = computed(() => orgView(props));
 </script>
 <template>
   <div class="flex flex-col gap-8 p-8">
-    <CreateOrg v-if="props.action === 'add' && !props.orgId" />
-    <OrgsList v-else-if="props.action === 'list' && !props.orgId" />
+    <CreateOrg v-if="view === 'create'" />
+    <OrgsList v-else-if="view === 'list'" />
     <OrgPolicies
-      v-else-if="
-        (props.page === 'policies' ||
-          props.page === 'policy' ||
-          props.page === 'vulnerability-policy') &&
-        props.orgId
-      "
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'policies'"
+      :page="props.page!"
+      :org-id="props.orgId!"
       :action="props.action"
     />
     <OrgManageAuditLogs
-      v-else-if="props.page === 'logs' && props.orgId"
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'logs'"
+      :page="props.page!"
+      :org-id="props.orgId!"
     />
     <OrgManageMembers
-      v-else-if="props.page === 'members' && props.orgId"
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'members'"
+      :page="props.page!"
+      :org-id="props.orgId!"
     />
     <OrgManageInvites
-      v-else-if="props.page === 'invites' && props.orgId"
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'invites'"
+      :page="props.page!"
+      :org-id="props.orgId!"
     />
     <OrgManageIntegrations
-      v-else-if="props.page === 'integrations' && props.orgId"
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'integrations'"
+      :page="props.page!"
+      :org-id="props.orgId!"
       :action="props.action"
     />
     <OrgAnalyzers
-      v-else-if="props.page === 'analyzers' && props.orgId"
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'analyzers'"
+      :page="props.page!"
+      :org-id="props.orgId!"
       :action="props.action"
     />
     <OrgManageOverview
-      v-else-if="props.page && props.orgId"
-      :page="props.page"
-      :org-id="props.orgId"
+      v-else-if="view === 'overview'"
+      :page="props.page!"
+      :org-id="props.orgId!"
     />
+    <OrgNotFound v-else :org-id="props.orgId" />
   </div>
 </template>

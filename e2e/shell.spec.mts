@@ -161,6 +161,16 @@ test.describe("Organisation switcher and user menu", () => {
     await expect(shell.nav).toBeHidden();
   });
 
+  test("the user menu opens Help", async ({ page }) => {
+    await page.getByRole("button", { name: /account menu/ }).click();
+    await page.getByRole("menuitem", { name: "Help" }).click();
+
+    await expect(page).toHaveURL(/\/help$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /help/i }),
+    ).toBeVisible();
+  });
+
   test("the top navigation bar is gone", async ({ page }) => {
     await expect(page.getByRole("navigation")).toHaveCount(1);
     await expect(page.getByRole("banner")).toHaveCount(0);
@@ -302,5 +312,90 @@ test.describe("App shell accessibility and look", () => {
       shell.palette.getByRole("option", { name: "Fix lag study" }),
     ).toBeVisible();
     await expectScreenshots(page, "palette");
+  });
+});
+
+test.describe("App shell on a phone", () => {
+  let shell: ShellPage;
+
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test.beforeEach(async ({ page }) => {
+    shell = new ShellPage(page);
+    await shell.signIn();
+    await page.goto("/datasets");
+  });
+
+  test("a header with a navigation trigger is shown and the sidebar starts closed", async () => {
+    await expect(shell.mobileHeader).toBeVisible();
+    await expect(shell.navTrigger).toBeVisible();
+    await expect(shell.navTrigger).toHaveAttribute("aria-expanded", "false");
+    await expect(shell.nav).toBeHidden();
+  });
+
+  test("the trigger opens the navigation and the close button closes it", async ({
+    page,
+  }) => {
+    await shell.navTrigger.tap();
+
+    await expect(shell.nav).toBeVisible();
+    await expect(shell.link("Datasets")).toBeVisible();
+
+    await page.getByRole("button", { name: "Close navigation" }).tap();
+
+    await expect(shell.nav).toBeHidden();
+    await expect(shell.navTrigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("the drawer has a close button and no desktop collapse controls", async ({
+    page,
+  }) => {
+    // Up to the sidebar breakpoint, where the desktop rail used to show.
+    for (const width of [390, 700]) {
+      await page.setViewportSize({ width, height: 844 });
+      await shell.navTrigger.tap();
+      await expect(shell.nav).toBeVisible();
+
+      const drawer = page.locator('[data-mobile="true"]');
+      await expect(
+        drawer.getByRole("button", { name: /sidebar/i }),
+      ).toHaveCount(0);
+      const close = drawer.getByRole("button", { name: "Close navigation" });
+      await expect(close.locator("svg.lucide-x")).toBeVisible();
+      await expect(close.locator("svg.lucide-panel-left")).toHaveCount(0);
+
+      await close.tap();
+      await expect(shell.nav).toBeHidden();
+    }
+  });
+
+  test("the navigation closes after following a link", async ({ page }) => {
+    await shell.navTrigger.tap();
+    await shell.link("Experiments").tap();
+
+    await expect(page).toHaveURL(/\/experiments$/);
+    await expect(shell.nav).toBeHidden();
+  });
+
+  test("logout is reachable by touch", async ({ page }) => {
+    await shell.navTrigger.tap();
+    await page.getByRole("button", { name: /account menu/ }).tap();
+    await page.getByRole("menuitem", { name: "Log out" }).tap();
+
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(shell.navTrigger).toBeHidden();
+  });
+
+  test("the header fits the viewport and the open navigation passes axe", async ({
+    page,
+  }) => {
+    const width = await page.evaluate(
+      () => document.documentElement.scrollWidth,
+    );
+    expect(width).toBeLessThanOrEqual(390);
+
+    await shell.navTrigger.tap();
+    await expect(shell.nav).toBeVisible();
+    await expectNoAxeViolations(page);
   });
 });

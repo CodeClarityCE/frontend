@@ -13,7 +13,7 @@ import {
 
 import type { Project } from "../projects/project.entity";
 
-import type { OrganizationMembership } from "./organization_membership.entity";
+import type { MembershipSummary } from "./organization_membership.entity";
 
 export class Organization {
   @IsNotEmpty()
@@ -54,7 +54,7 @@ export class Organization {
   @IsNumber()
   number_of_members!: number;
 
-  organizationMemberships!: OrganizationMembership[];
+  organizationMemberships!: MembershipSummary[];
 
   @IsDateString()
   joined_on!: Date;

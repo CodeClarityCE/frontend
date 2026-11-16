@@ -7,6 +7,7 @@ import {
   DatasetsPage,
   entry,
   sampleDatasets,
+  sampleEntries,
 } from "./pages/datasets.page.mjs";
 
 test.beforeEach(async ({ page }) => {
@@ -292,6 +293,22 @@ test.describe("New Dataset", () => {
 });
 
 test.describe("Dataset detail", () => {
+  test("with no known creator, the summary ends without a stray space", async ({
+    page,
+  }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn({
+      detail: dataset("ds-1", "Top npm packages", "READY", {
+        created_by_name: null,
+      }),
+    });
+    await datasets.gotoDetail();
+
+    const summary = page.getByText(/Created .*\./);
+    await expect(summary).toContainText("Created Oct 1, 2026, 9:00 AM.");
+    await expect(summary).not.toContainText(/\s\./);
+  });
+
   test("shows the build numbers as stat cards and the entries in a table", async ({
     page,
   }) => {
@@ -418,5 +435,31 @@ test.describe("Dataset detail", () => {
     release();
 
     await expect(datasets.heading).toHaveText("Top npm packages");
+  });
+  test("Import as projects asks first, naming the number of projects", async ({
+    page,
+  }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn({
+      detail: dataset("ds-1", "Top npm packages", "READY", {
+        entry_count: sampleEntries.length,
+      }),
+    });
+    await datasets.gotoDetail();
+    await expect(datasets.rows()).toHaveCount(5);
+
+    await page.getByRole("button", { name: "Import as projects" }).click();
+    await expect(page.getByTestId("dataset-import-hint")).toContainText(
+      "5 projects",
+    );
+    await page.getByRole("button", { name: "Keep" }).click();
+    expect(datasets.writes).toEqual([]);
+
+    await page.getByRole("button", { name: "Import as projects" }).click();
+    await page.getByRole("button", { name: "Import 5 projects" }).dblclick();
+    await expect(page.getByText("Import finished")).toBeVisible();
+    expect(datasets.writes).toEqual(
+      Array.from({ length: 5 }, () => "POST /org/org-123/projects"),
+    );
   });
 });

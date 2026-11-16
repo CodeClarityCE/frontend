@@ -23,7 +23,11 @@ import { Label } from "@/shadcn/ui/label";
 import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { errorToast, successToast } from "@/utils/toasts";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { successToast } from "@/utils/toasts";
+
+// Cancel hands control back to the import method picker.
+const emit = defineEmits<{ cancel: [] }>();
 
 // Repositories
 const projectsRepo = new ProjectRepository();
@@ -48,9 +52,10 @@ const ALLOWED_EXTENSIONS = [".zip", ".tar.gz", ".tgz"];
 const formSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(2, "A name of at least 2 characters is required")
     .max(100, "At most 100 characters"),
-  description: z.string().max(500, "At most 500 characters").optional(),
+  description: z.string().trim().max(500, "At most 500 characters").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -66,6 +71,7 @@ const [name] = form.defineField("name");
 const [description] = form.defineField("description");
 const nameError = computed(() => form.errors.value.name);
 const descriptionError = computed(() => form.errors.value.description);
+const isSubmitting = form.isSubmitting;
 const fileInput = ref<HTMLInputElement | null>(null);
 
 // File validation
@@ -95,6 +101,8 @@ function handleFileSelect(event: Event): void {
       uploadError.value =
         "Invalid file type. Please upload a ZIP or TAR.GZ archive.";
       selectedFile.value = null;
+      // Drop the rejected file so the input does not still show it.
+      input.value = "";
     }
   }
 }
@@ -130,8 +138,7 @@ function clearFile(): void {
   uploadError.value = null;
 }
 
-// Submit handler
-const onSubmit = form.handleSubmit(async (values) => {
+const onSubmit = guardFormSubmit(form, async (values) => {
   if (!selectedFile.value) {
     uploadError.value = "Please select a file to upload.";
     return;
@@ -150,6 +157,7 @@ const onSubmit = form.handleSubmit(async (values) => {
   isUploading.value = true;
   uploadProgress.value = 0;
   uploadError.value = null;
+  let projectCreated = false;
 
   try {
     // Step 1: Create the FILE project
@@ -161,9 +169,11 @@ const onSubmit = form.handleSubmit(async (values) => {
       },
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
 
     const projectId = projectResponse.id;
+    projectCreated = true;
 
     // Step 2: Upload the file
     await fileRepo.uploadFile({
@@ -180,12 +190,10 @@ const onSubmit = form.handleSubmit(async (values) => {
 
     // Navigate to projects list
     void router.push({ name: "projects" });
-  } catch (err) {
-    uploadError.value =
-      err instanceof Error
-        ? err.message
-        : "Failed to create project or upload file.";
-    errorToast("Failed to create project or upload file.");
+  } catch {
+    uploadError.value = projectCreated
+      ? "The project was created, but the archive could not be uploaded."
+      : "The project could not be created. Please try again.";
   } finally {
     isUploading.value = false;
   }
@@ -311,14 +319,18 @@ function removeFile(): void {
         </Alert>
 
         <div class="flex gap-3">
-          <Button type="submit" :disabled="isUploading || !selectedFile" arrow>
+          <Button
+            type="submit"
+            :disabled="isSubmitting || isUploading || !selectedFile"
+            arrow
+          >
             {{ isUploading ? "Uploading" : "Create project and upload" }}
           </Button>
           <Button
             type="button"
             variant="outline"
             :disabled="isUploading"
-            @click="router.back()"
+            @click="emit('cancel')"
           >
             Cancel
           </Button>

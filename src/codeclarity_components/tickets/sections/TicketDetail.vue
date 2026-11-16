@@ -7,7 +7,6 @@ import {
   CircleCheck,
   CircleX,
   Link,
-  LoaderCircle,
   Play,
   RefreshCw,
   Unlink,
@@ -16,6 +15,8 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 
 import { StatusBadge } from "@/base_components/page";
+import InfoMarkdown from "@/base_components/ui/InfoMarkdown.vue";
+import { formatPercent } from "@/codeclarity_components/results/vulnerabilities/vuln-format";
 import {
   Accordion,
   AccordionContent,
@@ -37,10 +38,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/shadcn/ui/sheet";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { formatShortDate } from "@/utils/dateUtils";
 import { getOwaspInfoById } from "@/utils/owasp";
+import { uniqueReferences } from "@/utils/references";
 import { errorToast } from "@/utils/toasts";
 
 import RiskScoreGauge from "../components/RiskScoreGauge.vue";
@@ -218,19 +221,23 @@ const cvssData = computed((): { version: string; data: any } | null => {
   return null;
 });
 
-// Format EPSS score as percentage
+// EPSS worded as on the vulnerability pages.
 const epssFormatted = computed(() => {
   const score = props.vulnerabilityDetails?.other?.epss_score;
   const percentile = props.vulnerabilityDetails?.other?.epss_percentile;
   if (score === undefined || score === null) return null;
   return {
-    score: `${(score * 100).toFixed(2)}%`,
     scoreRaw: score * 100,
-    percentile:
-      percentile !== undefined ? `${(percentile * 100).toFixed(1)}%` : null,
-    percentileRaw: percentile !== undefined ? percentile * 100 : null,
+    sublabel:
+      percentile !== undefined && percentile !== null
+        ? `Higher than ${formatPercent(percentile)} of vulnerabilities`
+        : "Chance of exploitation",
   };
 });
+
+const references = computed(() =>
+  uniqueReferences(props.vulnerabilityDetails?.references),
+);
 
 // Get CVSS base score safely
 function getCvssBaseScore(): number {
@@ -403,11 +410,7 @@ onMounted(() => {
                   :max-score="100"
                   label="EPSS"
                   type="epss"
-                  :sublabel="
-                    epssFormatted.percentile
-                      ? `Exploit chance in 30 days, top ${epssFormatted.percentile}`
-                      : 'Exploit chance in 30 days'
-                  "
+                  :sublabel="epssFormatted.sublabel"
                 />
               </li>
               <li v-if="vulnerabilityDetails.other?.vlai_score">
@@ -482,10 +485,7 @@ onMounted(() => {
           role="status"
           class="flex items-center gap-2 rounded-card bg-muted p-4 text-sm text-muted-foreground"
         >
-          <LoaderCircle
-            aria-hidden="true"
-            class="size-4 animate-spin motion-reduce:animate-none"
-          />
+          <Spinner />
           Loading vulnerability details
         </div>
 
@@ -593,19 +593,16 @@ onMounted(() => {
           </AccordionItem>
 
           <AccordionItem
-            v-if="vulnerabilityDetails.references?.length"
+            v-if="references.length"
             value="references"
             class="overflow-hidden rounded-card border"
           >
             <AccordionTrigger class="px-4 py-3 text-sm hover:no-underline">
-              References ({{ vulnerabilityDetails.references.length }})
+              References ({{ references.length }})
             </AccordionTrigger>
             <AccordionContent class="px-4 pb-4 pt-2">
               <ul class="flex max-h-48 flex-col gap-1 overflow-y-auto">
-                <li
-                  v-for="(reference, index) in vulnerabilityDetails.references"
-                  :key="index"
-                >
+                <li v-for="reference in references" :key="reference.url">
                   <a
                     :href="reference.url"
                     target="_blank"
@@ -628,9 +625,10 @@ onMounted(() => {
           >
             Description
           </h3>
-          <p class="whitespace-pre-wrap text-sm text-foreground">
-            {{ ticket.description }}
-          </p>
+          <InfoMarkdown
+            class="flex flex-col gap-2 text-sm text-foreground"
+            :markdown="ticket.description ?? ''"
+          />
         </section>
 
         <section
@@ -792,11 +790,7 @@ onMounted(() => {
         <DropdownMenu v-if="availableSyncProviders.length > 0">
           <DropdownMenuTrigger as-child>
             <Button variant="outline" :disabled="isSyncing">
-              <LoaderCircle
-                v-if="isSyncing"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+              <Spinner v-if="isSyncing" />
               <Link v-else aria-hidden="true" />
               Sync
               <ChevronDown aria-hidden="true" />

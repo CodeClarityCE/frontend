@@ -1,9 +1,9 @@
 #syntax=docker/dockerfile:1.4
 
 # Toolchain image: pinned Node + corepack + the pnpm version from package.json's
-# packageManager field (the single source of truth for pnpm). Jenkins runs its
-# Setup/Test stages inside this target, so CI uses the same toolchain as the
-# image build instead of whatever the agent host has installed. Corepack must be
+# packageManager field (the single source of truth for pnpm). CI runs
+# install, lint and tests inside this target, so it uses the same toolchain as the
+# image build instead of whatever the runner has installed. Corepack must be
 # >= 0.34.5: pnpm >= 11 ships bin/pnpm.mjs and older corepack looks for pnpm.cjs.
 FROM node:26.10.0-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS toolchain
 ENV COREPACK_HOME=/opt/corepack \
@@ -11,7 +11,7 @@ ENV COREPACK_HOME=/opt/corepack \
 WORKDIR /app
 RUN npm install -g corepack@0.36.0 --force && corepack enable
 COPY package.json ./
-# World-writable so the unprivileged Jenkins uid can use the cached pnpm.
+# World-writable so the unprivileged CI runner uid can use the cached pnpm.
 RUN corepack install && chmod -R a+rwX /opt/corepack
 
 # Dev image
@@ -28,7 +28,7 @@ ENV PNPM_STORE_DIR=/pnpm/store
 COPY --link . /app/
 # Stage the standalone pnpm config (allowBuilds + minimumReleaseAge).
 # Source of truth is .cloud/docker/pnpm-workspace.yaml; this COPY makes the
-# Dockerfile self-sufficient regardless of whether Jenkins pre-staged it.
+# Dockerfile self-sufficient regardless of whether CI pre-staged it.
 COPY .cloud/docker/pnpm-workspace.yaml ./pnpm-workspace.yaml
 RUN --mount=type=cache,id=pnpm-store-frontend,target=/pnpm/store,sharing=locked \
     pnpm install --frozen-lockfile

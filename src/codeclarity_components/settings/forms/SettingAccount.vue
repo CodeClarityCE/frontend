@@ -69,7 +69,7 @@ state.menu = "settingsAccount";
           </h2>
           <CardDescription>
             Removes your account with its projects, analysis results,
-            organisations and licence policies. This cannot be undone.
+            organisations and license policies. This cannot be undone.
           </CardDescription>
         </CardHeader>
         <CardContent>

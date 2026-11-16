@@ -26,8 +26,8 @@ const emptyPage = {
   filter_count: {},
 };
 
-// Signs the user in and answers every API call, failing the Datasets list.
-async function signInWithFailingDatasets(page: Page): Promise<void> {
+// Signs the user in and answers every API call, failing one Dataset.
+async function signInWithFailingDataset(page: Page): Promise<void> {
   const expiry = new Date(Date.now() + 86_400_000).toISOString();
   await page.addInitScript((e) => {
     localStorage.setItem(
@@ -47,17 +47,25 @@ async function signInWithFailingDatasets(page: Page): Promise<void> {
     if (url.endsWith("/auth/user")) {
       return route.fulfill({
         json: {
-          data: { ...user, default_org: { id: org.id, name: org.name } },
+          data: {
+            ...user,
+            default_org: { ...user.default_org, id: org.id, name: org.name },
+          },
         },
       });
     }
     if (/\/org\/org-123$/.test(url)) {
       return route.fulfill({ json: { data: org } });
     }
-    if (/\/org\/org-123\/datasets/.test(url)) {
+    if (/\/org\/org-123\/datasets\/ds-1$/.test(url)) {
       return route.fulfill({
         status: 500,
-        json: { status_code: 500, message: "Internal Server Error" },
+        json: {
+          status_code: 500,
+          status: "failure",
+          error_code: "InternalError",
+          error_message: "Internal Server Error",
+        },
       });
     }
     return route.fulfill({ json: emptyPage });
@@ -66,15 +74,13 @@ async function signInWithFailingDatasets(page: Page): Promise<void> {
 
 test.describe("Toasts", () => {
   test("a failed API request shows an error toast", async ({ page }) => {
-    await signInWithFailingDatasets(page);
+    await signInWithFailingDataset(page);
 
-    await page.goto("/datasets");
+    await page.goto("/datasets/detail?id=ds-1");
 
     const notifications = page.getByRole("region", { name: /Notifications/ });
     await expect(
-      notifications.getByText(
-        "Request failed to be processed. Please reload the page and try again.",
-      ),
+      notifications.getByText("Failed to load the dataset"),
     ).toBeVisible();
   });
 });

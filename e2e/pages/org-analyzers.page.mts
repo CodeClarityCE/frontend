@@ -4,7 +4,7 @@ import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
 
-/** An analyzer as the API returns it. */
+/** An analyzer as the API returns it (GET /org/:org/analyzers/:id). */
 export function analyzer(
   id: string,
   name: string,
@@ -15,14 +15,12 @@ export function analyzer(
     name,
     description: `${name} workflow for JavaScript projects`,
     created_on: "2026-10-01T09:00:00Z",
-    created_by: { id: "u-1", handle: "john", first_name: "John" },
     steps: [
       [
         {
           name: "js-sbom",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
       [
@@ -30,18 +28,19 @@ export function analyzer(
           name: "vuln-finder",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
     ],
-    organization_id: ORG,
+    supported_languages: ["javascript"],
+    language_config: { javascript: { plugins: ["js-sbom", "vuln-finder"] } },
+    logo: "js",
     ...overrides,
   };
 }
 
 export const sampleAnalyzers = [
   analyzer("an-1", "Default analyzer"),
-  analyzer("an-2", "Licence audit", {
+  analyzer("an-2", "License audit", {
     created_on: "2026-11-02T09:00:00Z",
     steps: [
       [
@@ -49,13 +48,13 @@ export const sampleAnalyzers = [
           name: "js-sbom",
           version: "1.0.0",
           config: {},
-          persistant_config: {},
         },
       ],
     ],
   }),
 ];
 
+// Dependencies as the plugins declare them: any SBOM producer will do.
 export const samplePlugins = [
   {
     name: "js-sbom",
@@ -65,17 +64,31 @@ export const samplePlugins = [
     config: {},
   },
   {
+    name: "php-sbom",
+    description: "Builds the SBOM of a PHP project",
+    version: "1.0.0",
+    depends_on: [],
+    config: {},
+  },
+  {
     name: "vuln-finder",
     description: "Finds known vulnerabilities in the SBOM",
     version: "1.0.0",
-    depends_on: ["js-sbom"],
+    depends_on: ["js-sbom", "php-sbom"],
     config: {},
   },
   {
     name: "license-finder",
-    description: "Finds licences in the SBOM",
+    description: "Finds licenses in the SBOM",
     version: "1.0.0",
-    depends_on: ["js-sbom"],
+    depends_on: ["js-sbom", "php-sbom"],
+    config: {},
+  },
+  {
+    name: "js-patching",
+    description: "Suggests upgrades that fix the vulnerabilities",
+    version: "1.0.0",
+    depends_on: ["js-sbom", "php-sbom", "vuln-finder"],
     config: {},
   },
 ];
@@ -124,7 +137,12 @@ export class OrgAnalyzersPage {
 
   /** Signs in and answers the analyzer, plugin and template endpoints. */
   async signIn(
-    options: { analyzers?: unknown[]; failList?: boolean } = {},
+    options: {
+      analyzers?: unknown[];
+      failList?: boolean;
+      plugins?: unknown[];
+      templates?: unknown[];
+    } = {},
   ): Promise<void> {
     await this.shell.signIn();
     let analyzers = [...(options.analyzers ?? sampleAnalyzers)] as Record<
@@ -144,7 +162,9 @@ export class OrgAnalyzersPage {
         });
       }
       if (request.method() === "PUT" && id) {
-        this.updated.push(request.postDataJSON());
+        const body = request.postDataJSON() as Record<string, unknown>;
+        this.updated.push(body);
+        analyzers = analyzers.map((a) => (a.id === id ? { ...a, ...body } : a));
         return route.fulfill({
           json: { status_code: 200, status: "success" },
         });
@@ -164,10 +184,10 @@ export class OrgAnalyzersPage {
       return route.fulfill({ json: paginated(analyzers) });
     });
     await this.page.route("**/api/plugin", (route: Route) =>
-      route.fulfill({ json: paginated(samplePlugins) }),
+      route.fulfill({ json: paginated(options.plugins ?? samplePlugins) }),
     );
     await this.page.route("**/api/analyzer-templates", (route: Route) =>
-      route.fulfill({ json: { data: sampleTemplates } }),
+      route.fulfill({ json: { data: options.templates ?? sampleTemplates } }),
     );
   }
 
@@ -181,6 +201,51 @@ export class OrgAnalyzersPage {
 
   async gotoEdit(id: string): Promise<void> {
     await this.shell.goto(`/orgs/edit/analyzers/${ORG}?analyzerId=${id}`);
+  }
+
+  /** The workflow canvas on the create and edit pages. */
+  canvas(): Locator {
+    return this.page.locator(".vue-flow");
+  }
+
+  /** The plugin nodes drawn on the workflow canvas. */
+  workflowNodes(): Locator {
+    return this.canvas().locator(".vue-flow__node");
+  }
+
+  /** The plugin node with this name on the canvas. */
+  workflowNode(name: string): Locator {
+    return this.workflowNodes().filter({ hasText: name });
+  }
+
+  /** The menu a right-click on the canvas opens. */
+  addPluginMenu(): Locator {
+    return this.page.getByRole("menu", { name: "Add plugin" });
+  }
+
+  /** Right-clicks an empty corner of the canvas to open the add-plugin menu. */
+  async openAddPluginMenu(): Promise<void> {
+    await this.canvas()
+      .locator(".vue-flow__pane")
+      .click({ button: "right", position: { x: 5, y: 5 } });
+    await this.addPluginMenu().waitFor();
+  }
+
+  async addPlugin(name: string): Promise<void> {
+    await this.openAddPluginMenu();
+    await this.addPluginMenu()
+      .getByRole("menuitem", { name: new RegExp(`^${name}\\b`) })
+      .click();
+  }
+
+  /** A right-click on a node removes it from the workflow. */
+  async removePlugin(name: string): Promise<void> {
+    const count = await this.workflowNodes().count();
+    await this.workflowNode(name).click({ button: "right" });
+    await this.page.waitForFunction(
+      (n) => document.querySelectorAll(".vue-flow__node").length === n,
+      count - 1,
+    );
   }
 
   /** The table's body rows, without the header row. */

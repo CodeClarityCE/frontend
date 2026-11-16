@@ -42,19 +42,7 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.emailInput.blur();
 
       // Wait for validation message
-      await expect(page.getByText(/invalid/i)).toBeVisible({ timeout: 5000 });
-    });
-
-    test("should show validation error for short password", async ({
-      page,
-    }) => {
-      await authPage.goto();
-
-      await authPage.passwordInput.fill("short");
-      await authPage.passwordInput.blur();
-
-      // Password validation requires at least 10 characters
-      await expect(page.getByText(/at least|too short|minimum/i)).toBeVisible({
+      await expect(page.getByText("Enter a valid email address")).toBeVisible({
         timeout: 5000,
       });
     });
@@ -70,28 +58,89 @@ test.describe("Authentication E2E Tests", () => {
     });
   });
 
-  test.describe("Login Flow", () => {
-    test("should display error message on failed login", async ({ page }) => {
-      await authPage.goto();
-
-      // Mock failed auth response
-      await page.route("**/api/v1/auth/login", (route) =>
+  test.describe("Failed sign in", () => {
+    const rejectWith = (page: Page, error_code: string) =>
+      page.route("**/api/auth/authenticate", (route) =>
         route.fulfill({
-          status: 401,
-          contentType: "application/json",
-          body: JSON.stringify({
-            error_code: "WrongCredentials",
-            message: "Wrong credentials",
-          }),
+          status: 400,
+          json: {
+            status_code: 400,
+            status: "failure",
+            error_code,
+            error_message: "Rejected",
+          },
         }),
       );
 
-      await authPage.login("wrong@example.com", "WrongPassword123!");
-
-      // Should show error message (either in alert or text)
-      await expect(page.getByText(/wrong|invalid|error/i).first()).toBeVisible({
-        timeout: 5000,
+    test("a double click on Sign in sends one request", async ({ page }) => {
+      let sent = 0;
+      await page.route("**/api/auth/authenticate", (route) => {
+        sent++;
+        return route.fulfill({
+          status: 400,
+          json: {
+            status_code: 400,
+            status: "failure",
+            error_code: "WrongCredentials",
+            error_message: "Rejected",
+          },
+        });
       });
+      await authPage.goto();
+      await authPage.emailInput.fill("john.doe@codeclarity.io");
+      await authPage.passwordInput.fill("WrongPassword123!");
+      await authPage.loginButton.dblclick();
+
+      await expect(page.getByRole("alert")).toBeVisible();
+      expect(sent).toBe(1);
+    });
+
+    test("keeps the email and says the credentials are wrong", async ({
+      page,
+    }) => {
+      await rejectWith(page, "WrongCredentials");
+      await authPage.goto();
+      await authPage.login("john.doe@codeclarity.io", "WrongPassword123!");
+      await expect(authPage.authError).toContainText(
+        "The email or password is incorrect",
+      );
+      await expect(authPage.emailInput).toHaveValue("john.doe@codeclarity.io");
+    });
+
+    test("does not point at social buttons that are not shown", async ({
+      page,
+    }) => {
+      await rejectWith(page, "CannotPerformActionOnSocialAccount");
+      await authPage.goto();
+      await authPage.login("john.doe@codeclarity.io", "WrongPassword123!");
+      await expect(authPage.authError).toContainText(
+        "This account signs in with GitHub or GitLab",
+      );
+      await expect(authPage.authError).not.toContainText(/button/i);
+    });
+
+    test("sends a short existing password to the server", async ({ page }) => {
+      await rejectWith(page, "WrongCredentials");
+      await authPage.goto();
+      const request = page.waitForRequest("**/api/auth/authenticate");
+      await authPage.login("john.doe@codeclarity.io", "short");
+      expect((await request).postDataJSON()).toEqual({
+        email: "john.doe@codeclarity.io",
+        password: "short",
+      });
+    });
+
+    test("explains empty and malformed fields in plain words", async ({
+      page,
+    }) => {
+      await authPage.goto();
+      await authPage.loginButton.click();
+      await expect(page.getByText("Enter your email")).toBeVisible();
+      await expect(page.getByText("Enter your password")).toBeVisible();
+      await authPage.emailInput.fill("not-an-email");
+      await authPage.loginButton.click();
+      await expect(page.getByText("Enter a valid email address")).toBeVisible();
+      await expect(page.getByText(/Required|Invalid email/)).toHaveCount(0);
     });
   });
 
@@ -139,10 +188,10 @@ test.describe("Authentication E2E Tests", () => {
       ).toBeVisible();
     });
 
-    test("links to password recovery", async ({ page }) => {
+    test("offers no password reset while the server cannot send one", async () => {
       await authPage.goto();
-      await authPage.forgotPasswordLink.click();
-      await expect(page).toHaveURL(/\/password_reset_request$/);
+      await authPage.expectFormVisible();
+      await expect(authPage.forgotPasswordLink).toHaveCount(0);
     });
 
     test("links to sign up", async ({ page }) => {
@@ -159,7 +208,6 @@ test.describe("Authentication E2E Tests", () => {
       for (const control of [
         authPage.passwordInput,
         authPage.loginButton,
-        authPage.forgotPasswordLink,
         authPage.signupLink,
       ]) {
         await page.keyboard.press("Tab");
@@ -221,6 +269,15 @@ test.describe("Sign up", () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
+  test("the logo leads to the login page", async ({ page }) => {
+    await page.goto("/signup");
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "CodeClarity" })
+      .click();
+    await expect(page).toHaveURL(/\/login$/);
+  });
+
   test("keyboard reaches every control in order with a visible focus", async ({
     page,
   }) => {
@@ -243,6 +300,89 @@ test.describe("Sign up", () => {
     }
   });
 
+  test("keeps every entry except the passwords after a failed sign up", async ({
+    page,
+  }) => {
+    await page.route("**/api/auth/register", (route) =>
+      route.fulfill({
+        status: 409,
+        json: {
+          status_code: 409,
+          status: "failure",
+          error_code: "EmailAlreadyExists",
+          error_message: "Exists",
+        },
+      }),
+    );
+    await page.goto("/signup");
+    await field(page, "Email").fill("jane@example.com");
+    await field(page, "First name").fill("Jane");
+    await field(page, "Last name").fill("Doe");
+    await field(page, "Handle").fill("janedoe");
+    await field(page, "Password", { exact: true }).fill("ThisIs4Str0ng!");
+    await field(page, "Confirm password").fill("ThisIs4Str0ng!");
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Create account" }).click();
+
+    await expect(page.locator('div[role="alert"]')).toContainText(
+      "An account with this email already exists",
+    );
+    await expect(field(page, "Email")).toHaveValue("jane@example.com");
+    await expect(field(page, "First name")).toHaveValue("Jane");
+    await expect(field(page, "Last name")).toHaveValue("Doe");
+    await expect(field(page, "Handle")).toHaveValue("janedoe");
+    await expect(page.getByRole("checkbox")).toBeChecked();
+  });
+
+  test("a double click on Create account sends one request", async ({
+    page,
+  }) => {
+    let sent = 0;
+    await page.route("**/api/auth/register", (route) => {
+      sent++;
+      return route.fulfill({
+        status: 409,
+        json: {
+          status_code: 409,
+          status: "failure",
+          error_code: "EmailAlreadyExists",
+          error_message: "Exists",
+        },
+      });
+    });
+    await page.goto("/signup");
+    await field(page, "Email").fill("jane@example.com");
+    await field(page, "First name").fill("Jane");
+    await field(page, "Last name").fill("Doe");
+    await field(page, "Handle").fill("janedoe");
+    await field(page, "Password", { exact: true }).fill("ThisIs4Str0ng!");
+    await field(page, "Confirm password").fill("ThisIs4Str0ng!");
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Create account" }).dblclick();
+
+    await expect(page.locator('div[role="alert"]')).toContainText(
+      "An account with this email already exists",
+    );
+    expect(sent).toBe(1);
+  });
+
+  test("explains each field in plain words", async ({ page }) => {
+    await page.goto("/signup");
+    await field(page, "Email").fill("jane");
+    await field(page, "First name").fill("J");
+    await field(page, "Handle").fill("jd");
+    await field(page, "Password", { exact: true }).fill("short");
+    await field(page, "Confirm password").fill("other");
+    await page.getByRole("button", { name: "Create account" }).click();
+
+    await expect(page.getByText("Enter a valid email address")).toBeVisible();
+    await expect(page.getByText("At least 2 characters").first()).toBeVisible();
+    await expect(page.getByText("At least 5 characters")).toBeVisible();
+    await expect(page.getByText("At least 10 characters")).toBeVisible();
+    await expect(page.getByText("The passwords do not match")).toBeVisible();
+    await expect(page.getByText(/String must contain/)).toHaveCount(0);
+  });
+
   test("shows validation messages when submitted empty", async ({ page }) => {
     await page.goto("/signup");
     await page.getByRole("button", { name: "Create account" }).click();
@@ -250,7 +390,8 @@ test.describe("Sign up", () => {
       "aria-invalid",
       "true",
     );
-    await expect(page.getByText("Required").first()).toBeVisible();
+    await expect(page.getByText("Enter your email")).toBeVisible();
+    await expect(page.getByText("Required")).toHaveCount(0);
   });
 
   test("has no WCAG 2.2 AA violations", async ({ page }) => {
@@ -324,7 +465,7 @@ test.describe("OAuth callback", () => {
   test("returns to sign in when the state does not match", async ({ page }) => {
     await seedAuthStore(page, { socialAuthState: "other" });
     await page.goto(callback);
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login\?notice=oauth_failed$/);
   });
 
   test("shows progress while signing in", async ({ page }) => {

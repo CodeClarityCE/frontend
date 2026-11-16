@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, LoaderCircle } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
@@ -18,10 +18,11 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import { OrgRepository } from "../organization.repository";
@@ -30,23 +31,28 @@ const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
 const submitting = ref(false);
 
+// The maximum lengths match the API's limits.
 const formSchema = z.object({
   name: z
     .string({ required_error: "A name is required" })
     .trim()
-    .min(2, { message: "At least 2 characters" }),
+    .min(2, { message: "At least 2 characters" })
+    .max(50, { message: "At most 50 characters" }),
   description: z
     .string({ required_error: "A description is required" })
     .trim()
-    .min(2, { message: "At least 2 characters" }),
+    .min(2, { message: "At least 2 characters" })
+    .max(250, { message: "At most 250 characters" }),
 });
 type FormValues = z.infer<typeof formSchema>;
 
 const form = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
 });
+const isSubmitting = form.isSubmitting;
 
-const onSubmit = form.handleSubmit(async (values) => {
+// Ignored while a submit is already running
+const onSubmit = guardFormSubmit(form, async (values) => {
   if (submitting.value) return;
   submitting.value = true;
   try {
@@ -58,18 +64,15 @@ const onSubmit = form.handleSubmit(async (values) => {
         color_scheme: "1",
       },
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast(`Created ${values.name}`);
     void router.push({
       name: "orgs",
       params: { action: "manage", page: "main", orgId: created.id },
     });
-  } catch (error) {
-    errorToast(
-      error instanceof BusinessLogicError
-        ? `The organisation could not be created: ${error.error_message}`
-        : "The organisation could not be created",
-    );
+  } catch {
+    errorToast("The organisation could not be created");
   } finally {
     submitting.value = false;
   }
@@ -125,12 +128,8 @@ const onSubmit = form.handleSubmit(async (values) => {
           </FormField>
 
           <div class="flex justify-end">
-            <Button type="submit" :disabled="submitting">
-              <LoaderCircle
-                v-if="submitting"
-                aria-hidden="true"
-                class="animate-spin motion-reduce:animate-none"
-              />
+            <Button type="submit" :disabled="submitting || isSubmitting">
+              <Spinner v-if="submitting" />
               Create organisation
             </Button>
           </div>

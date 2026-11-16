@@ -2,9 +2,9 @@
 import type { ListboxItemEmits, ListboxItemProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit, useCurrentElement } from "@vueuse/core";
+import { cn } from "@/shadcn/lib/utils";
 import { ListboxItem, useForwardPropsEmits, useId } from "reka-ui";
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { cn } from "@/shadcn/lib/utils";
 import { useCommand, useCommandGroup } from ".";
 
 const props = defineProps<
@@ -44,7 +44,7 @@ onMounted(() => {
   // textValue to perform filter
   allItems.value.set(
     id,
-    currentElement.value.textContent ?? props?.value!.toString(),
+    currentElement.value.textContent ?? props.value?.toString() ?? "",
   );
 
   const groupId = groupContext?.id;
@@ -67,9 +67,10 @@ onUnmounted(() => {
     v-bind="forwarded"
     :id="id"
     ref="itemRef"
+    data-slot="command-item"
     :class="
       cn(
-        'relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+        `data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4`,
         props.class,
       )
     "

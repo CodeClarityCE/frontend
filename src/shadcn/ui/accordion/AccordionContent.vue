@@ -2,8 +2,8 @@
 import type { AccordionContentProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
-import { AccordionContent } from "reka-ui";
 import { cn } from "@/shadcn/lib/utils";
+import { AccordionContent } from "reka-ui";
 
 const props = defineProps<
   AccordionContentProps & { class?: HTMLAttributes["class"] }
@@ -14,10 +14,11 @@ const delegatedProps = reactiveOmit(props, "class");
 
 <template>
   <AccordionContent
+    data-slot="accordion-content"
     v-bind="delegatedProps"
-    class="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
   >
-    <div :class="cn('pb-4 pt-0', props.class)">
+    <div :class="cn('pt-0 pb-4', props.class)">
       <slot />
     </div>
   </AccordionContent>

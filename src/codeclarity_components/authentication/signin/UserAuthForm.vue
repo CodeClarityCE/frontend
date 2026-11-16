@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
@@ -20,16 +20,18 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
-import {
-  BusinessLogicError,
-  ValidationError,
-} from "@/utils/api/BaseRepository";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { serverFeatures } from "@/utils/server-features";
 
 import TextLink from "../layout/TextLink.vue";
+
+import { loginRoute, redirectAfterLogin } from "./login-route";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -38,21 +40,34 @@ const authRepository: AuthRepository = new AuthRepository();
 const loading: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
-const validationError: Ref<ValidationError | undefined> = ref();
 
 // Form Validation
+// No length rule on the password: it was set under whatever rules applied then.
 const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(10).max(75),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Enter your email")
+    .email("Enter a valid email address"),
+  password: z.string().min(1, "Enter your password"),
 });
 type FormValues = z.infer<typeof formSchema>;
-const { handleSubmit } = useForm<FormValues>({
+const {
+  handleSubmit,
+  isSubmitting,
+  values: formValues,
+} = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
+  initialValues: { email: "", password: "" },
 });
 
-const onSubmit = handleSubmit((values): void => {
-  void submit(values);
-});
+const onSubmit = guardFormSubmit(
+  { handleSubmit, isSubmitting, values: formValues },
+  (values): void => {
+    if (loading.value) return;
+    void submit(values);
+  },
+);
 
 // Stores
 const userStore = useUserStore();
@@ -71,17 +86,18 @@ async function submit(values: {
   loading.value = true;
   errorCode.value = undefined;
   error.value = false;
-  validationError.value = undefined;
 
   try {
     const token: Token = await authRepository.authenticate({
       data: { email: values.email, password: values.password },
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
 
     const user: AuthenticatedUser = await authRepository.getAuthenticatedUser({
       bearerToken: token.token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
 
     authStore.setToken(token.token);
@@ -90,16 +106,19 @@ async function submit(values: {
     authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
     authStore.setAuthenticated(true);
     userStore.setUser(user);
-    void router.push("/");
+    void router.push(redirectAfterLogin(router.currentRoute.value.query));
   } catch (_err) {
     error.value = true;
 
-    if (_err instanceof ValidationError) {
-      errorCode.value = _err.error_code;
-      validationError.value = _err;
-    } else if (_err instanceof BusinessLogicError) {
+    if (_err instanceof BusinessLogicError) {
       if (_err.error_code === "AccountNotActivated") {
-        void router.push("/trial");
+        void router.replace(
+          loginRoute({
+            notice: "not_activated",
+            redirect: redirectAfterLogin(router.currentRoute.value.query),
+          }),
+        );
+        return;
       }
       errorCode.value = _err.error_code;
     }
@@ -114,42 +133,25 @@ async function submit(values: {
   <Alert v-if="error" variant="destructive">
     <CircleAlert aria-hidden="true" />
     <AlertDescription>
-      <div v-if="errorCode">
-        <div v-if="errorCode === APIErrors.InternalError">
-          An error occured during the processing of the request.
-        </div>
-        <div v-else-if="errorCode === APIErrors.WrongCredentials">
-          Wrong credentials.
-        </div>
-        <div v-else-if="errorCode === APIErrors.RegistrationNotVerified">
-          You have not yet verified your registration. Please go to your email
-          inbox and follow the instructions therein.
-        </div>
-        <div
-          v-else-if="errorCode === APIErrors.CannotPerformActionOnSocialAccount"
-        >
-          To connected using your Social account, click on the respective Social
-          button below.
-        </div>
-        <div v-else-if="errorCode === APIErrors.EntityNotFound">
-          This should not have happened. Please try again.
-          <!-- Race condition -->
-        </div>
-        <div
-          v-else-if="errorCode === APIErrors.ValidationFailed"
-          class="whitespace-break-spaces"
-        >
-          <!-- Note: this should never happen unless our client and server side validation are out of sync -->
-          {{ validationError!.toMessage("Invalid form:") }}
-        </div>
-        <div v-else>An error occured during the processing of the request.</div>
+      <div v-if="errorCode === APIErrors.WrongCredentials">
+        The email or password is incorrect.
       </div>
-      <div v-else>An error occured during the processing of the request.</div>
+      <div v-else-if="errorCode === APIErrors.RegistrationNotVerified">
+        You have not yet verified your registration. Please go to your email
+        inbox and follow the instructions therein.
+      </div>
+      <div
+        v-else-if="errorCode === APIErrors.CannotPerformActionOnSocialAccount"
+      >
+        This account signs in with GitHub or GitLab, so it has no password.
+      </div>
+      <div v-else>
+        Something went wrong while signing you in. Please try again.
+      </div>
     </AlertDescription>
   </Alert>
 
   <form
-    v-if="!loading"
     class="flex flex-col gap-4"
     :class="{ 'mt-4': error }"
     @submit="onSubmit"
@@ -182,22 +184,15 @@ async function submit(values: {
         <FormMessage />
       </FormItem>
     </FormField>
-    <Button type="submit" class="mt-2 w-full">Sign in</Button>
-    <div class="text-center text-sm">
+    <Button type="submit" class="mt-2 w-full" :disabled="loading">
+      <Spinner v-if="loading" />
+      Sign in
+    </Button>
+    <p v-if="loading" role="status" class="sr-only">Connecting</p>
+    <div v-if="serverFeatures.passwordReset" class="text-center text-sm">
       <TextLink :to="{ name: 'recoveryRequest' }">
         Forgot your password?
       </TextLink>
     </div>
   </form>
-  <div
-    v-else
-    role="status"
-    class="flex flex-col items-center gap-2 py-8 text-muted-foreground"
-  >
-    <LoaderCircle
-      aria-hidden="true"
-      class="size-6 animate-spin motion-reduce:animate-none"
-    />
-    Connecting
-  </div>
 </template>

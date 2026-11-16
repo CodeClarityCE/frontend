@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, Send } from "@lucide/vue";
+import { Send } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -20,10 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { errorToast, successToast } from "@/utils/toasts";
+import { successToast } from "@/utils/toasts";
 
 import { invitableRoles, roleLabel } from "../members/member-role";
 import { MemberRole } from "../organization.entity";
@@ -40,6 +41,8 @@ const email = ref("");
 const role = ref(String(MemberRole.USER));
 const submitted = ref(false);
 const busy = ref(false);
+// The server's refusal, shown under the email field.
+const serverError = ref<string>();
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -52,18 +55,25 @@ const emailError = computed(() => {
 
 // Errors show only after the first submit, so the form opens clean.
 const shownEmailError = computed(() =>
-  submitted.value ? emailError.value : undefined,
+  submitted.value ? (emailError.value ?? serverError.value) : undefined,
 );
+
+watch(email, () => {
+  serverError.value = undefined;
+});
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
   email.value = "";
   role.value = String(MemberRole.USER);
   submitted.value = false;
+  serverError.value = undefined;
 });
 
-function inviteError(code: string): string {
+function inviteError(code: string, address: string): string {
   switch (code) {
+    case APIErrors.UserDoesNotExist:
+      return `No CodeClarity account uses ${address}. They need to sign up before you can invite them.`;
     case APIErrors.AlreadyExists:
     case APIErrors.InvitationOrgAlreadyExists:
       return "This person already has an open invitation";
@@ -80,19 +90,22 @@ async function submit(): Promise<void> {
   submitted.value = true;
   if (emailError.value || busy.value || !authStore.getToken) return;
   busy.value = true;
+  serverError.value = undefined;
   try {
     await orgRepo.inviteUser({
       orgId: props.orgId,
       data: { user_email: email.value.trim(), role: Number(role.value) },
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast(`Invitation sent to ${email.value.trim()}`);
     open.value = false;
     emit("invited");
   } catch (err) {
-    errorToast(
-      inviteError(err instanceof BusinessLogicError ? err.error_code : ""),
+    serverError.value = inviteError(
+      err instanceof BusinessLogicError ? err.error_code : "",
+      email.value.trim(),
     );
   } finally {
     busy.value = false;
@@ -106,7 +119,8 @@ async function submit(): Promise<void> {
       <DialogHeader>
         <DialogTitle>Invite a member</DialogTitle>
         <DialogDescription>
-          They get an email with a link to join the organisation.
+          The person must already have a CodeClarity account. They get an email
+          with a link to join the organisation.
         </DialogDescription>
       </DialogHeader>
       <form
@@ -160,11 +174,7 @@ async function submit(): Promise<void> {
       <DialogFooter class="gap-2">
         <Button variant="outline" @click="open = false">Cancel</Button>
         <Button type="submit" form="invite-member-form" :disabled="busy">
-          <LoaderCircle
-            v-if="busy"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="busy" />
           <Send v-else aria-hidden="true" />
           Send invitation
         </Button>

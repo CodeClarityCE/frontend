@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { PanelLeft, Search } from "@lucide/vue";
+import { PanelLeft, Search, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { type RouteLocationRaw, RouterLink, useRoute } from "vue-router";
 
 import logo from "@/assets/images/logos/logo-green.svg";
+import { Kbd } from "@/shadcn/ui/kbd";
 import {
   Sidebar,
   SidebarContent,
@@ -40,9 +41,15 @@ defineEmits<{ openPalette: [] }>();
 
 const route = useRoute();
 const userStore = useUserStore();
-const { state, toggleSidebar } = useSidebar();
+const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar();
 
 const expanded = computed(() => state.value === "expanded");
+
+// On a phone the same button closes the navigation drawer, with a close icon.
+const toggleLabel = computed(() => {
+  if (isMobile.value) return "Close navigation";
+  return expanded.value ? "Collapse sidebar" : "Expand sidebar";
+});
 
 // Results need an analysis, so remember the last one the user opened.
 const lastResults = ref<RouteLocationRaw | null>(null);
@@ -50,6 +57,8 @@ watch(
   () => route.fullPath,
   () => {
     if (route.name === "results") lastResults.value = route.fullPath;
+    // Close the phone drawer once the user has moved to another page.
+    setOpenMobile(false);
   },
   { immediate: true },
 );
@@ -59,13 +68,29 @@ function target(item: NavItem): RouteLocationRaw | null {
   return item.to(userStore.getDefaultOrg?.id);
 }
 
-// Inside the organisation settings, its pages are listed under the item.
-const orgSubItems = computed(() => {
-  const org = userStore.getDefaultOrg;
-  if (!org || !isActive(orgSettingsItem, route.name)) return [];
-  if (route.params.orgId !== org.id) return [];
-  return orgSettingsSubItems(org);
+// Inside an organisation's settings, the links refer to that organisation.
+const viewedOrgId = computed(() =>
+  isActive(orgSettingsItem, route.name) &&
+  typeof route.params.orgId === "string" &&
+  route.params.orgId !== ""
+    ? route.params.orgId
+    : undefined,
+);
+const viewedOrg = computed(() => {
+  const id = viewedOrgId.value;
+  if (!id) return undefined;
+  if (userStore.getViewedOrg?.id === id) return userStore.getViewedOrg;
+  if (userStore.getDefaultOrg?.id === id) return userStore.getDefaultOrg;
+  return undefined;
 });
+const orgSettingsTarget = computed(() =>
+  orgSettingsItem.to(viewedOrgId.value ?? userStore.getDefaultOrg?.id)!,
+);
+
+// Inside the organisation settings, its pages are listed under the item.
+const orgSubItems = computed(() =>
+  viewedOrg.value ? orgSettingsSubItems(viewedOrg.value) : [],
+);
 
 function isSubActive(item: OrgSettingsSubItem): boolean {
   const page = typeof route.params.page === "string" ? route.params.page : "";
@@ -101,11 +126,12 @@ const activeBar =
         <button
           type="button"
           class="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted-foreground outline-hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:ml-0"
-          :aria-label="expanded ? 'Collapse sidebar' : 'Expand sidebar'"
-          :aria-expanded="expanded"
+          :aria-label="toggleLabel"
+          :aria-expanded="isMobile ? undefined : expanded"
           @click="toggleSidebar"
         >
-          <PanelLeft class="size-4" aria-hidden="true" />
+          <X v-if="isMobile" class="size-4" aria-hidden="true" />
+          <PanelLeft v-else class="size-4" aria-hidden="true" />
         </button>
       </div>
       <OrgSwitcher />
@@ -118,9 +144,9 @@ const activeBar =
           >
             <Search aria-hidden="true" />
             <span>Search</span>
-            <kbd
-              class="ml-auto rounded border border-sidebar-border px-1.5 font-mono text-xs group-data-[collapsible=icon]:hidden"
-              >{{ shortcutLabel }}</kbd
+            <Kbd
+              class="ml-auto h-auto min-w-0 rounded border border-sidebar-border bg-transparent px-1.5 font-mono font-normal text-current group-data-[collapsible=icon]:hidden"
+              >{{ shortcutLabel }}</Kbd
             >
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -185,7 +211,7 @@ const activeBar =
               :class="activeBar"
             >
               <RouterLink
-                :to="orgSettingsItem.to(userStore.getDefaultOrg?.id)!"
+                :to="orgSettingsTarget"
                 :aria-current="
                   isActive(orgSettingsItem, route.name) &&
                   orgSubItems.length === 0
@@ -201,9 +227,7 @@ const activeBar =
               <SidebarMenuSubItem v-for="sub in orgSubItems" :key="sub.label">
                 <SidebarMenuSubButton as-child :is-active="isSubActive(sub)">
                   <RouterLink
-                    :to="
-                      orgSettingsSubItemTarget(sub, userStore.getDefaultOrg!.id)
-                    "
+                    :to="orgSettingsSubItemTarget(sub, viewedOrg!.id)"
                     :aria-current="isSubActive(sub) ? 'page' : undefined"
                   >
                     <span>{{ sub.label }}</span>
@@ -220,6 +244,6 @@ const activeBar =
       <NotificationsDialog />
       <UserMenu />
     </SidebarFooter>
-    <SidebarRail />
+    <SidebarRail v-if="!isMobile" />
   </Sidebar>
 </template>

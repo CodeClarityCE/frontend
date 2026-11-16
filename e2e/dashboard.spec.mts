@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { DashboardPage } from "./pages/dashboard.page.mjs";
+import { DashboardPage, week } from "./pages/dashboard.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -57,7 +57,7 @@ test.describe("Research section", () => {
 
     const items = dashboard.list("Recently finished").getByRole("listitem");
     await expect(items).toHaveCount(3);
-    await expect(items.nth(0)).toContainText("Licence drift");
+    await expect(items.nth(0)).toContainText("License drift");
     await expect(items.nth(0)).toContainText("Completed");
     await expect(items.nth(0)).toContainText("Ended Nov 1, 2026");
     await expect(items.nth(1)).toContainText("Fix lag study");
@@ -76,7 +76,7 @@ test.describe("Research section", () => {
       .list("Recent Published results")
       .getByRole("listitem");
     await expect(items).toHaveText([
-      /Licence drift\s*Metric version 1, published Nov 2, 2026 by Jane Roe\s*Frozen/,
+      /License drift\s*Metric version 1, published Nov 2, 2026 by Jane Roe\s*Frozen/,
       /Fix lag study\s*Metric version 2, published Oct 20, 2026 by John Doe\s*Frozen/,
       /Fix lag study\s*Metric version 1, published Oct 7, 2026\s*Frozen/,
     ]);
@@ -181,7 +181,7 @@ test.describe("Project overview", () => {
     );
   });
 
-  test("draws exposure, licences and impact on the shared charts", async ({
+  test("draws exposure, licenses and impact on the shared charts", async ({
     page,
   }) => {
     const dashboard = new DashboardPage(page);
@@ -193,21 +193,21 @@ test.describe("Project overview", () => {
     );
     await expect(exposure.getByRole("img")).toHaveCount(4);
     await expect(exposure.getByRole("img").first()).toHaveAccessibleName(
-      /Oct 19 - Oct 25, 2026: summed severity 120/,
+      /Oct 12 - Oct 18, 2026: summed severity 120/,
     );
     const weeks = dashboard.projects.getByRole("list", {
       name: "Weekly exposure",
     });
     await expect(weeks.getByRole("listitem").first()).toHaveText(
-      /Nov 09 - Nov 15, 2026\s*No vulnerabilities/,
+      /Nov 02 - Nov 08, 2026\s*No vulnerabilities/,
     );
     await expect(weeks.getByRole("listitem").nth(1)).toContainText(
       "2 Critical",
     );
 
-    const licences = dashboard.chart("Dependencies by licence");
-    await expect(licences.getByRole("img")).toHaveCount(3);
-    await expect(licences.getByRole("img").first()).toHaveAccessibleName(
+    const licenses = dashboard.chart("Dependencies by license");
+    await expect(licenses.getByRole("img")).toHaveCount(3);
+    await expect(licenses.getByRole("img").first()).toHaveAccessibleName(
       "MIT: 40 dependencies (70%)",
     );
 
@@ -239,6 +239,7 @@ test.describe("Project overview", () => {
       /Critical\s*9.8\s*Code Injection/,
       /High\s*7.5\s*Prototype Pollution/,
       /Medium\s*5.3\s*Uncontrolled Resource Consumption/,
+      /Low\s*2.1\s*Information Exposure/,
     ]);
   });
 
@@ -264,6 +265,245 @@ test.describe("Project overview", () => {
       .getByRole("link", { name: /lodash prototype pollution/ })
       .click();
     await expect(page).toHaveURL(/\/tickets\?ticket_id=t-1$/);
+  });
+
+  test("labels each week with its ISO week, also across the new year", async ({
+    page,
+  }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({
+      weeklySeverity: [
+        week(52, 10, [1, 0, 0, 0, 0], 2024),
+        week(1, 20, [2, 0, 0, 0, 0], 2025),
+        week(1, 30, [3, 0, 0, 0, 0], 2026),
+      ],
+    });
+    await dashboard.goto();
+
+    await expect(
+      dashboard.projects
+        .getByRole("list", { name: "Weekly exposure" })
+        .getByRole("listitem"),
+    ).toHaveText([
+      /^Dec 29, 2025 - Jan 04, 2026/,
+      /^Dec 30, 2024 - Jan 05, 2025/,
+      /^Dec 23 - Dec 29, 2024/,
+    ]);
+  });
+
+  test("a failed summary request shows an error instead of numbers, and retries", async ({
+    page,
+  }) => {
+    const fail = ["/dashboard/quick_stats"];
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({ fail });
+    await dashboard.goto();
+
+    const alert = dashboard.projects.getByRole("alert").filter({
+      hasText: "The project numbers could not be loaded.",
+    });
+    await expect(alert).toBeVisible();
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Project numbers" }),
+    ).toHaveCount(0);
+    await expect(dashboard.projects).not.toContainText("A+");
+    await expect(
+      dashboard.projects.getByRole("heading", { name: /first analysis/ }),
+    ).toHaveCount(0);
+    await expect(
+      dashboard.chart("Dependencies by license").getByRole("img"),
+    ).toHaveCount(3);
+
+    fail.length = 0;
+    await alert.getByRole("button", { name: "Try again" }).click();
+    await expect(
+      dashboard.projects
+        .getByRole("list", { name: "Project numbers" })
+        .getByRole("listitem"),
+    ).toHaveText([
+      /Critical issues\s*2/,
+      /High severity\s*5/,
+      /Projects scanned\s*3/,
+      /Security score\s*B/,
+    ]);
+  });
+
+  test("failed vulnerability counts show errors on the tiles and on their card", async ({
+    page,
+  }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({ fail: ["/dashboard/recent_vulns"] });
+    await dashboard.goto();
+
+    await expect(
+      dashboard.projects.getByRole("alert").filter({
+        hasText: "The project numbers could not be loaded.",
+      }),
+    ).toBeVisible();
+    await expect(
+      dashboard.projects.getByRole("alert").filter({
+        hasText: "The vulnerabilities summary could not be loaded.",
+      }),
+    ).toBeVisible();
+    await expect(dashboard.projects).not.toContainText("No critical issues");
+  });
+
+  test("each chart card that fails says so and offers a retry", async ({
+    page,
+  }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({
+      fail: [
+        "/dashboard/weekly_severity_info",
+        "/dashboard/overall_license_dist",
+        "/dashboard/overall_cia_impact",
+        "/tickets/stats",
+      ],
+    });
+    await dashboard.goto();
+
+    for (const label of [
+      "vulnerability exposure",
+      "licenses",
+      "impact analysis",
+      "ticket statistics",
+    ]) {
+      const alert = dashboard.projects.getByRole("alert").filter({
+        hasText: `The ${label} could not be loaded.`,
+      });
+      await expect(alert).toBeVisible();
+      await expect(
+        alert.getByRole("button", { name: "Try again" }),
+      ).toBeVisible();
+    }
+  });
+
+  test("a failed project list shows an error, not the onboarding", async ({
+    page,
+  }) => {
+    const fail = ["/meta_data"];
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({ fail });
+    await dashboard.goto();
+
+    await expect(
+      dashboard.projects.getByRole("heading", {
+        name: "Unable to load the project overview",
+      }),
+    ).toBeVisible();
+    await expect(
+      dashboard.projects.getByRole("heading", { name: /first project/ }),
+    ).toHaveCount(0);
+
+    fail.length = 0;
+    await dashboard.projects.getByRole("button", { name: "Try again" }).click();
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Project numbers" }),
+    ).toBeVisible();
+  });
+
+  test("an organisation with projects but no analyses is asked to run one", async ({
+    page,
+  }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({ analyses: false });
+    await dashboard.goto();
+
+    await expect(
+      dashboard.projects.getByRole("heading", {
+        name: "Run your first analysis",
+      }),
+    ).toBeVisible();
+  });
+
+  test("requests each endpoint once per load", async ({ page }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn();
+    await dashboard.goto();
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Tickets by state" }),
+    ).toBeVisible();
+    await expect(dashboard.list("Recent Published results")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
+
+    const repeated = [...dashboard.requests].filter(([, n]) => n > 1);
+    expect(repeated).toEqual([]);
+
+    dashboard.requests.clear();
+    await dashboard.projects.getByRole("button", { name: "Refresh" }).click();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Tickets by state" }),
+    ).toBeVisible();
+    expect([...dashboard.requests].filter(([, n]) => n > 1)).toEqual([]);
+    expect(dashboard.requests.get("/dashboard/quick_stats")).toBe(1);
+  });
+
+  test("chart axes use whole numbers for counts and keep their labels apart", async ({
+    page,
+  }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({
+      licenseDist: {
+        MIT: 3,
+        "Apache-2.0": 2,
+        "BSD-3-Clause": 2,
+        "LGPL-2.1-or-later": 1,
+        "GPL-3.0-only": 1,
+        "MPL-2.0": 1,
+      },
+      // Two months of weeks, the API's default period.
+      weeklySeverity: [38, 39, 40, 41, 42, 43, 44, 45, 46].map((n) =>
+        week(n, 2, [0, 0, 0, 1, 0]),
+      ),
+    });
+    await dashboard.goto();
+
+    for (const name of [
+      "Dependencies by license",
+      "Summed severity of vulnerabilities by week",
+    ]) {
+      const chart = dashboard.chart(name);
+      await expect(chart).toBeVisible();
+      const svg = await chart.boundingBox();
+      const texts = await chart.locator("text").all();
+      const boxes: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        text: string;
+      }[] = [];
+      const yTicks: string[] = [];
+      for (const text of texts) {
+        const box = (await text.boundingBox())!;
+        boxes.push({ ...box, text: (await text.textContent())!.trim() });
+        if ((await text.getAttribute("text-anchor")) === "end") {
+          yTicks.push((await text.textContent())!.trim());
+        }
+      }
+      expect(yTicks.length, name).toBeGreaterThan(1);
+      for (const tick of yTicks) expect(tick, name).toMatch(/^\d+$/);
+      expect(new Set(yTicks).size, name).toBe(yTicks.length);
+      for (const [i, a] of boxes.entries()) {
+        expect(a.x, `${name}: "${a.text}"`).toBeGreaterThanOrEqual(
+          svg!.x - 0.5,
+        );
+        expect(a.x + a.width, `${name}: "${a.text}"`).toBeLessThanOrEqual(
+          svg!.x + svg!.width + 0.5,
+        );
+        for (const b of boxes.slice(i + 1)) {
+          const overlap =
+            a.x < b.x + b.width &&
+            b.x < a.x + a.width &&
+            a.y < b.y + b.height &&
+            b.y < a.y + a.height;
+          expect(overlap, `${name}: "${a.text}" overlaps "${b.text}"`).toBe(
+            false,
+          );
+        }
+      }
+    }
   });
 
   test("an organisation without projects sees how to add one", async ({
@@ -304,10 +544,10 @@ test.describe("Whole page", () => {
     for (const target of [
       link("Experiments in progress", "Upstream leverage"),
       link("Experiments in progress", "Residence time 2026"),
-      link("Recently finished", "Licence drift"),
+      link("Recently finished", "License drift"),
       link("Recently finished", "Fix lag study"),
       link("Recently finished", "Broken cohort"),
-      link("Recent Published results", "Licence drift"),
+      link("Recent Published results", "License drift"),
       link("Recent Published results", "Fix lag study"),
       link("Recent Published results", "Fix lag study", 1),
       dashboard.projects.getByRole("button", { name: "Refresh" }),
@@ -326,7 +566,7 @@ test.describe("Whole page", () => {
     await dashboard.goto();
 
     const mit = dashboard
-      .chart("Dependencies by licence")
+      .chart("Dependencies by license")
       .getByRole("img", { name: /^MIT/ });
     await mit.focus();
     await expectVisibleFocus(mit);
@@ -340,7 +580,7 @@ test.describe("Whole page", () => {
     await dashboard.signIn();
     await dashboard.goto();
     await expect(dashboard.list("Recent Published results")).toBeVisible();
-    await expect(dashboard.chart("Dependencies by licence")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
     await expect(
       dashboard.chart("Summed severity of vulnerabilities by week"),
     ).toBeVisible();

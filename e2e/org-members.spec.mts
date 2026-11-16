@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { OrgMembersPage } from "./pages/org-members.page.mjs";
+import {
+  member,
+  OrgMembersPage,
+  sampleMembers,
+} from "./pages/org-members.page.mjs";
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
@@ -48,63 +52,31 @@ test.describe("Organisation members", () => {
     ]);
   });
 
-  test("removing a member asks first in a dialog that keeps focus", async ({
+  test("member rows offer no remove action, which the server cannot do yet", async ({
     page,
   }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoMembers();
+    await expect(members.rows()).toHaveCount(3);
 
-    // Nobody can remove themselves.
+    await expect(page.getByRole("button", { name: /^Remove/ })).toHaveCount(0);
     await expect(
-      members.row("John Doe").getByRole("button", { name: /Remove/ }),
+      members.table.getByRole("columnheader", { name: "Actions" }),
     ).toHaveCount(0);
-
-    await members
-      .row("Bob Keller")
-      .getByRole("button", { name: "Remove Bob Keller" })
-      .click();
-    const dialog = page.getByRole("dialog", {
-      name: "Remove Bob Keller from the organisation?",
-    });
-    await expect(dialog).toBeVisible();
-    for (let i = 0; i < 4; i++) {
-      await page.keyboard.press("Tab");
-      await expect(dialog.locator(":focus")).toHaveCount(1);
-    }
-
-    await page.keyboard.press("Escape");
-    await expect(dialog).toHaveCount(0);
-    expect(members.deleted).toEqual([]);
-
-    await members
-      .row("Bob Keller")
-      .getByRole("button", { name: "Remove Bob Keller" })
-      .click();
-    await dialog.getByRole("button", { name: "Remove member" }).click();
-
-    await expect(dialog).toHaveCount(0);
-    await expect(members.rows()).toHaveCount(2);
-    await expect(members.row("Bob Keller")).toHaveCount(0);
-    expect(members.deleted).toEqual(["/api/org/org-123/members/u-bob"]);
   });
 
-  test("a member's audit logs open filtered to them", async ({ page }) => {
+  test("member rows link to no audit logs, which cannot be read yet", async ({
+    page,
+  }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoMembers();
+    await expect(members.rows()).toHaveCount(3);
 
-    await members
-      .row("Alice Martin")
-      .getByRole("link", { name: "Audit logs of Alice Martin" })
-      .click();
-
-    await expect(page).toHaveURL(
-      /\/orgs\/manage\/logs\/org-123\/?\?search=alice(@|%40)example\.com$/,
-    );
-    await expect(members.heading).toHaveText("Audit logs");
-    await expect(members.rows()).toHaveCount(1);
-    await expect(members.rows()).toContainText("Removed eve@example.com");
+    await expect(
+      page.getByRole("link", { name: /^Audit logs of/ }),
+    ).toHaveCount(0);
   });
 
   test("a failed load says so and offers to try again", async ({ page }) => {
@@ -117,40 +89,55 @@ test.describe("Organisation members", () => {
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
   });
+
+  test("a personal organisation lists its one member", async ({ page }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn({
+      org: { name: "JohnDoe's Org", personal: true },
+      members: [sampleMembers[0]],
+    });
+    await members.gotoMembers();
+
+    await expect(members.rows()).toHaveCount(1);
+    await expect(members.row("John Doe")).toContainText("Owner");
+    await expect(members.row("John Doe")).toContainText("(you)");
+  });
+
+  test("a response the page cannot read shows the error, not an empty list", async ({
+    page,
+  }) => {
+    const members = new OrgMembersPage(page);
+    const broken = member("u-eve", "Eve", "Stone", 3);
+    delete broken.user.first_name;
+    await members.signIn({ members: [sampleMembers[0], broken] });
+    await members.gotoMembers();
+
+    await expect(
+      page.getByText("The members could not be loaded."),
+    ).toBeVisible();
+    await expect(page.getByText("No members match.")).toHaveCount(0);
+  });
 });
 
 test.describe("Organisation audit logs", () => {
-  test("lists every entry, newest first, with severity in words", async ({
-    page,
-  }) => {
+  test("says plainly that audit logs cannot be read yet", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoLogs();
 
     await expect(members.heading).toHaveText("Audit logs");
-    await expect(members.rows()).toHaveCount(3);
-    await expect(members.rows().first()).toContainText("Project create");
-    await expect(members.rows().first()).toContainText("Low");
-    await expect(members.row("Removed eve@example.com")).toContainText("High");
-    await expect(members.row("Updated Default analyzer")).toContainText(
-      "Medium",
-    );
-    await expect(members.row("Updated Default analyzer")).toContainText(
-      "No longer a member",
-    );
+    await expect(
+      page.getByText("Reading audit logs is not available yet."),
+    ).toBeVisible();
+    await expect(page.getByRole("table")).toHaveCount(0);
   });
 
-  test("entries for one member can be widened to everyone", async ({
-    page,
-  }) => {
+  test("a moderator is sent back to the overview", async ({ page }) => {
     const members = new OrgMembersPage(page);
-    await members.signIn();
-    await members.gotoLogs("alice@example.com");
+    await members.signIn({ org: { role: 2 } });
+    await members.gotoLogs();
 
-    await expect(members.rows()).toHaveCount(1);
-    await page.getByRole("link", { name: "Show everyone" }).click();
-
-    await expect(members.rows()).toHaveCount(3);
+    await expect(page).toHaveURL(/\/orgs\/manage\/main\/org-123\/?$/);
   });
 });
 
@@ -214,39 +201,20 @@ test.describe("Organisation invitations", () => {
     ).toBeVisible();
   });
 
-  test("revoking asks first, resending sends again", async ({ page }) => {
+  test("invitations offer no resend or revoke, which the server cannot do yet", async ({
+    page,
+  }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoInvites();
+    await expect(members.rows()).toHaveCount(2);
 
-    await members
-      .row("dave@example.com")
-      .getByRole("button", {
-        name: "Resend the invitation to dave@example.com",
-      })
-      .click();
-    await expect
-      .poll(() => members.resent)
-      .toEqual(["/api/org/org-123/invitations/inv-2/resend"]);
-
-    await members
-      .row("carol@example.com")
-      .getByRole("button", {
-        name: "Revoke the invitation to carol@example.com",
-      })
-      .click();
-    const dialog = page.getByRole("dialog", {
-      name: "Revoke the invitation to carol@example.com?",
-    });
-    for (let i = 0; i < 4; i++) {
-      await page.keyboard.press("Tab");
-      await expect(dialog.locator(":focus")).toHaveCount(1);
-    }
-    await dialog.getByRole("button", { name: "Revoke invitation" }).click();
-
-    await expect(dialog).toHaveCount(0);
-    await expect(members.rows()).toHaveCount(1);
-    expect(members.deleted).toEqual(["/api/org/org-123/invitations/inv-1"]);
+    await expect(
+      page.getByRole("button", { name: /^(Resend|Revoke) the invitation/ }),
+    ).toHaveCount(0);
+    await expect(
+      members.table.getByRole("columnheader", { name: "Actions" }),
+    ).toHaveCount(0);
   });
 
   test("with no open invitations the page says so", async ({ page }) => {
@@ -262,7 +230,7 @@ test.describe("Organisation invitations", () => {
 });
 
 test.describe("Organisation members, invitations and logs: keyboard, axe and screenshots", () => {
-  test("Tab reaches the filter, sort buttons and row actions with visible focus", async ({
+  test("Tab reaches the filter and sort buttons with visible focus", async ({
     page,
   }) => {
     const members = new OrgMembersPage(page);
@@ -274,20 +242,6 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
     await expectVisibleFocus(members.filter);
     await page.keyboard.press("Tab");
     await expectVisibleFocus(members.sortButton("Member"));
-
-    const remove = members
-      .row("Bob Keller")
-      .getByRole("button", { name: "Remove Bob Keller" });
-    await remove.focus();
-    await expectVisibleFocus(remove);
-    await page.keyboard.press("Enter");
-    await expect(
-      page.getByRole("dialog", {
-        name: "Remove Bob Keller from the organisation?",
-      }),
-    ).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(remove).toBeFocused();
   });
 
   for (const view of ["members", "invites", "logs"] as const) {
@@ -299,7 +253,11 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
       if (view === "members") await members.gotoMembers();
       if (view === "invites") await members.gotoInvites();
       if (view === "logs") await members.gotoLogs();
-      await expect(members.rows().first()).toBeVisible();
+      if (view === "logs") {
+        await expect(page.getByText(/not available yet/)).toBeVisible();
+      } else {
+        await expect(members.rows().first()).toBeVisible();
+      }
 
       await expectNoAxeViolations(page);
       await expectScreenshots(page, `org-${view}`);

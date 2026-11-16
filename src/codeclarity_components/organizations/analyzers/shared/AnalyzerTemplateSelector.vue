@@ -19,7 +19,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:selectedTemplate": [template: AnalyzerTemplate | null];
-  templateChanged: [template: AnalyzerTemplate];
+  // Null when the user goes back to Custom.
+  templateChanged: [template: AnalyzerTemplate | null];
 }>();
 
 // The radio value for "no template".
@@ -36,7 +37,7 @@ const selected = computed({
   set: (value: string) => {
     const template = templates.value.find((t) => t.name === value) ?? null;
     emit("update:selectedTemplate", template);
-    if (template) emit("templateChanged", template);
+    emit("templateChanged", template);
   },
 });
 
@@ -47,6 +48,8 @@ async function loadTemplates(): Promise<void> {
   try {
     const response = await templatesRepo.getTemplates({
       bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     templates.value = response.data;
   } catch {

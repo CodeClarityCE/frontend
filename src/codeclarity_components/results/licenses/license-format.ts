@@ -32,8 +32,9 @@ export function licenseFamily(license: License): LicenseFamily {
   return "Other";
 }
 
+// A row with neither name nor id holds dependencies with no known license.
 export function licenseName(license: License): string {
-  return license.name || license.id;
+  return license.name || license.id || "Unknown license";
 }
 
 const DESCRIPTIONS: Record<string, string> = {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Eye, LoaderCircle, Plus, Ticket } from "@lucide/vue";
+import { Eye, Plus, Ticket } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
@@ -29,18 +30,9 @@ import {
   TicketPriorityLabels,
   TicketType,
   TicketTypeLabels,
+  type VulnerabilityData,
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
-
-export interface VulnerabilityData {
-  vulnerability_id: string;
-  severity_score?: number;
-  severity_class?: string;
-  affected_package?: string;
-  affected_version?: string;
-  description?: string;
-  recommended_version?: string;
-}
 
 const props = defineProps<{
   projectId: string;
@@ -115,6 +107,8 @@ async function checkDuplicate(): Promise<void> {
     const response = await ticketsRepository.checkDuplicate({
       orgId,
       bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data: {
         project_id: props.projectId,
         vulnerability_id: props.vulnerability.vulnerability_id,
@@ -155,6 +149,8 @@ async function handleSubmit(): Promise<void> {
     const result = await ticketsRepository.createTicket({
       orgId,
       bearerToken: token,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
       data: {
         title: title.value,
         description: description.value,
@@ -242,10 +238,7 @@ function viewExistingTicket(): void {
         role="status"
         class="flex items-center gap-2 text-sm text-muted-foreground"
       >
-        <LoaderCircle
-          aria-hidden="true"
-          class="size-4 animate-spin motion-reduce:animate-none"
-        />
+        <Spinner />
         Checking for existing tickets
       </p>
 
@@ -298,7 +291,7 @@ function viewExistingTicket(): void {
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="ticket-priority">Priority</Label>
             <Select v-model="priority" :disabled="isLoading">
@@ -372,11 +365,7 @@ function viewExistingTicket(): void {
           Cancel
         </Button>
         <Button :disabled="isLoading || !title.trim()" @click="handleSubmit">
-          <LoaderCircle
-            v-if="isLoading"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="isLoading" />
           <Plus v-else aria-hidden="true" />
           {{ isLoading ? "Creating..." : "Create Ticket" }}
         </Button>

@@ -1,7 +1,7 @@
-import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 import SbomDetails from "./SbomDetails.vue";
 import { dependency } from "./SbomDetails/dependency.fixture";
@@ -18,23 +18,47 @@ vi.mock("@/stores/auth", () => ({
 vi.mock("@/stores/user", () => ({
   useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
 }));
-const router = vi.hoisted(() => ({
-  back: vi.fn(),
+const route = vi.hoisted(() => ({
   query: { package_id: "lodash@4.17.20" },
 }));
 vi.mock("vue-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
-  useRoute: () => ({ query: router.query, params: {} }),
-  useRouter: () => ({ back: router.back, push: vi.fn() }),
+  useRoute: () => ({ query: route.query, params: {} }),
 }));
+
+const ANALYSIS = "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e";
+const PROJECT = "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69";
+
+// A router with the results route, so links resolve to real addresses.
+function resultsRouter(): ReturnType<typeof createRouter> {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: "/results/:page?",
+        name: "results",
+        component: { render: () => null },
+      },
+    ],
+  });
+}
 
 async function show(
   overrides: Parameters<typeof dependency>[0] = {},
 ): Promise<void> {
   repo.getDependency.mockResolvedValue({ data: dependency(overrides) });
   render(SbomDetails, {
-    props: { analysisID: "a-1", projectID: "p-1", showBack: true, runIndex: 1 },
-    global: { stubs: { SbomDependencyGraph: true } },
+    props: {
+      analysisID: ANALYSIS,
+      projectID: PROJECT,
+      showBack: true,
+      runIndex: 1,
+    },
+    global: {
+      plugins: [resultsRouter()],
+      // The real link, so its address can be checked.
+      stubs: { SbomDependencyGraph: true, RouterLink: false },
+    },
   });
   await flushPromises();
 }
@@ -53,10 +77,6 @@ function tile(label: string): string[] {
 }
 
 describe("SbomDetails", () => {
-  beforeEach(() => {
-    router.back.mockReset();
-  });
-
   it("loads the dependency named in the address", async () => {
     await show();
     expect(
@@ -84,18 +104,25 @@ describe("SbomDetails", () => {
     expect(screen.getByText("Fix critical and high first.")).toBeTruthy();
   });
 
-  it("goes back to the results", async () => {
+  it("links back to the results of its analysis", async () => {
     await show();
-    await userEvent.click(
-      screen.getByRole("button", { name: /Back to results/ }),
+    expect(
+      screen
+        .getByRole("link", { name: /Back to results/ })
+        .getAttribute("href"),
+    ).toBe(
+      `/results?analysis_id=${ANALYSIS}&project_id=${PROJECT}&run_index=1`,
     );
-    expect(router.back).toHaveBeenCalled();
   });
 
   it("says so when the dependency cannot be loaded", async () => {
     repo.getDependency.mockRejectedValue(new Error("down"));
+    // Real ids: a request with malformed ids that fails reads as not found.
     render(SbomDetails, {
-      props: { analysisID: "a-1", projectID: "p-1" },
+      props: {
+        analysisID: "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e",
+        projectID: "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69",
+      },
       global: { stubs: { SbomDependencyGraph: true } },
     });
     await flushPromises();

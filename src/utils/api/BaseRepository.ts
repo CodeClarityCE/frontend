@@ -15,7 +15,7 @@ export class BaseRepository {
   private BASE_URL: string;
 
   constructor() {
-    this.BASE_URL = `https://${window.location.hostname}/${import.meta.env.VITE_API_URL}`;
+    this.BASE_URL = `https://${window.location.host}/${import.meta.env.VITE_API_URL}`;
   }
 
   /**
@@ -505,15 +505,13 @@ export class BaseRepository {
    * Default business error handler that runs in case no business error handler was supplied by the user.
    */
   private async defaultBusinessErrorHandler(
-    business_logic_error: BusinessLogicError,
+    _business_logic_error: BusinessLogicError,
     defaultBusinessLogicErrorHandlerTextPrefix?: string,
   ): Promise<void> {
-    let prefix = "An error occured during the processing of the request.";
-    if (defaultBusinessLogicErrorHandlerTextPrefix !== undefined) {
-      prefix = defaultBusinessLogicErrorHandlerTextPrefix;
-    }
+    // Plain words only: the error code and server reason mean nothing to users.
     toast.error(
-      `${prefix} ErrorCode: ${business_logic_error.error_code}. Reason: ${business_logic_error.error_message}`,
+      defaultBusinessLogicErrorHandlerTextPrefix ??
+        "The request could not be processed. Please try again.",
     );
   }
 

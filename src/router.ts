@@ -1,5 +1,9 @@
 import type { Component } from "vue";
-import { createRouter, createWebHistory } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  type RouteLocationNormalized,
+} from "vue-router";
 
 import AnalysesView from "@/codeclarity_components/analyses/AnalysesView.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
@@ -7,6 +11,10 @@ import type { AuthenticatedUser } from "@/codeclarity_components/authentication/
 import EmailActionView from "@/codeclarity_components/authentication/email/EmailActionView.vue";
 import OAuthCallbackView from "@/codeclarity_components/authentication/oauth/OAuthCallbackView.vue";
 import PasswordResetRequestView from "@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue";
+import {
+  loginRoute,
+  redirectAfterLogin,
+} from "@/codeclarity_components/authentication/signin/login-route";
 import LoginView from "@/codeclarity_components/authentication/signin/LoginView.vue";
 import SignupView from "@/codeclarity_components/authentication/signup/SignupView.vue";
 import DashboardView from "@/codeclarity_components/dashboard/DashboardView.vue";
@@ -28,6 +36,7 @@ import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { pageTitle } from "@/utils/page-title";
 
 // Helper functions to reduce complexity in beforeEach guard
 async function refreshTokenIfNeeded(
@@ -69,10 +78,10 @@ async function fetchAuthenticatedUser(
   authStore: ReturnType<typeof useAuthStore>,
   userStore: ReturnType<typeof useUserStore>,
   authRepository: AuthRepository,
-): Promise<boolean> {
+): Promise<"ok" | "not_activated" | "failed"> {
   const token = authStore.getToken;
   if (!token) {
-    return false;
+    return "failed";
   }
 
   try {
@@ -83,14 +92,20 @@ async function fetchAuthenticatedUser(
     });
 
     if (user.activated === false) {
-      return false;
+      return "not_activated";
     }
 
     userStore.setUser(user);
-    return true;
+    return "ok";
   } catch (error) {
+    if (
+      error instanceof BusinessLogicError &&
+      error.error_code === "AccountNotActivated"
+    ) {
+      return "not_activated";
+    }
     console.error(error);
-    return false;
+    return "failed";
   }
 }
 
@@ -178,6 +193,7 @@ const router = createRouter({
     {
       path: "/tickets/integrations/clickup/callback",
       name: "clickupOAuthCallback",
+      meta: { public: true },
       component: ClickUpOAuthCallback as Component,
     },
     {
@@ -207,11 +223,13 @@ const router = createRouter({
     {
       path: "/login",
       name: "login",
+      meta: { public: true, loggedOutLayout: true },
       component: LoginView as Component,
     },
     {
       path: "/help",
       name: "help",
+      meta: { public: true },
       component: HelpView as Component,
     },
     {
@@ -223,12 +241,14 @@ const router = createRouter({
     {
       path: "/signup/:provider?",
       name: "signup",
+      meta: { public: true, loggedOutLayout: true },
       component: SignupView as Component,
       props: true,
     },
     {
       path: "/password_reset_request",
       name: "recoveryRequest",
+      meta: { public: true, loggedOutLayout: true },
       component: PasswordResetRequestView as Component,
     },
     {
@@ -246,6 +266,7 @@ const router = createRouter({
     {
       path: "/auth/gitlab/callback",
       name: "gitlabAuthCallback",
+      meta: { public: true, loggedOutLayout: true },
       component: OAuthCallbackView as Component,
       props: {
         provider: SocialProvider.GITLAB,
@@ -254,6 +275,7 @@ const router = createRouter({
     {
       path: "/auth/github/callback",
       name: "githubAuthCallback",
+      meta: { public: true, loggedOutLayout: true },
       component: OAuthCallbackView as Component,
       props: {
         provider: SocialProvider.GITHUB,
@@ -262,11 +284,13 @@ const router = createRouter({
     {
       path: "/404",
       name: "notfound",
+      meta: { public: true },
       component: NotFoundView as Component,
     },
     {
       path: "/terms",
       name: "terms",
+      meta: { public: true },
       component: TermsView as Component,
       props: {
         page: "terms",
@@ -275,6 +299,7 @@ const router = createRouter({
     {
       path: "/privacy",
       name: "privacy",
+      meta: { public: true },
       component: TermsView as Component,
       props: {
         page: "privacy",
@@ -287,22 +312,38 @@ const router = createRouter({
   ],
 });
 
+// Join links need a signed-in user; the other email links work signed out.
+function isPublicRoute(to: RouteLocationNormalized): boolean {
+  if (to.name === "emailAction") return to.params.page !== "join_org";
+  return to.meta.public === true;
+}
+
+// Pages drawn in the signed-out frame, never inside the app shell.
+export function usesLoggedOutLayout(to: RouteLocationNormalized): boolean {
+  if (to.name === "emailAction") return to.params.page !== "join_org";
+  return to.meta.loggedOutLayout === true;
+}
+
+// Remounts the page on any URL change except the selected tab, which pages handle themselves.
+export function viewKey(to: RouteLocationNormalized): string {
+  const query = Object.entries(to.query)
+    .filter(([name]) => name !== "tab")
+    .map(([name, value]) => `${name}=${String(value)}`)
+    .join("&");
+  return `${to.path}?${query}${to.hash}`;
+}
+
+declare module "vue-router" {
+  interface RouteMeta {
+    // Opens without signing in.
+    public?: boolean;
+    // Drawn in the signed-out frame instead of the app shell.
+    loggedOutLayout?: boolean;
+  }
+}
+
 router.beforeEach(async (to) => {
-  // redirect to login page if not logged in and trying to access a restricted page
-  const publicPages = [
-    "/login",
-    "/signup",
-    "/password_reset_request",
-    "/404",
-    "/terms",
-    "/privacy",
-    "/auth/gitlab/callback",
-    "/auth/github/callback",
-    "/email_action/reset_password",
-    "/email_action/confirm_registration",
-    "/tickets/integrations/clickup/callback",
-  ];
-  const authRequired = !publicPages.includes(to.path);
+  const authRequired = !isPublicRoute(to);
 
   const authStore = useAuthStore();
   const userStore = useUserStore();
@@ -314,90 +355,85 @@ router.beforeEach(async (to) => {
     loadAuthStoreFromLocalStorage();
   }
 
+  // Signed-in users get their identity on every page; on public pages a failure just signs them out.
+  const loadIdentity =
+    authStore.getToken !== undefined &&
+    (authRequired || authStore.getAuthenticated);
+  const redirect = authRequired ? to.fullPath : undefined;
+  const signOut = (
+    notice?: "not_activated",
+  ): ReturnType<typeof loginRoute> | true => {
+    userStore.$reset();
+    authStore.$reset();
+    if (!authRequired && notice === undefined) return true;
+    return loginRoute({
+      ...(notice && { notice }),
+      ...(redirect && { redirect }),
+    });
+  };
+
   // Check if token is present and needs to be refreshed
-  if (authRequired && authStore.getToken) {
+  if (loadIdentity) {
     const refreshSuccess = await refreshTokenIfNeeded(
       authStore,
       authRepository,
     );
     if (!refreshSuccess) {
-      userStore.$reset();
-      authStore.$reset();
-      return { path: "/login" };
+      return signOut();
     }
   }
 
-  // Instead of getting this from local store we will re-fetch it
-  // This happens only if the user refreshes the page (F5, or reload button) and thus the SPA state is lost
-  // The overhead is very small
-  if (
-    authRequired &&
-    authStore.getToken !== undefined &&
-    userStore.getUser === undefined
-  ) {
-    const fetchSuccess = await fetchAuthenticatedUser(
+  // Re-fetched after a page reload, since the SPA state is lost then.
+  if (loadIdentity && userStore.getUser === undefined) {
+    const fetchResult = await fetchAuthenticatedUser(
       authStore,
       userStore,
       authRepository,
     );
-    if (!fetchSuccess) {
-      userStore.$reset();
-      authStore.$reset();
-      return { path: "/login" };
+    if (fetchResult === "not_activated") {
+      return signOut("not_activated");
+    }
+    if (fetchResult === "failed") {
+      return signOut();
     }
   }
 
   // Fetch default org info
-  if (
-    authRequired &&
-    authStore.getToken !== undefined &&
-    userStore.getUser?.default_org
-  ) {
+  if (loadIdentity && userStore.getUser?.default_org) {
     const orgSuccess = await fetchDefaultOrg(
       authStore,
       userStore,
       orgRepository,
     );
     if (!orgSuccess) {
-      userStore.$reset();
-      authStore.$reset();
-      return { path: "/login" };
+      return signOut();
     }
   }
 
   const user = userStore.getUser;
 
-  // In case a user has not yet completed is social account setup, send him back
-  // We cannot send him to /signup/gitlab or /signup/github, because it requires
-  // the code returned from the oauth flow
-  if (
-    authRequired &&
-    user?.social &&
-    user.setup_done === false &&
-    to.path !== "/signup/"
-  ) {
-    userStore.$reset();
-    authStore.$reset();
-    return { path: "/login" };
+  // A social account that has not finished its setup cannot use the app yet.
+  if (authRequired && user?.social && user.setup_done === false) {
+    return signOut();
   }
 
   if (authRequired && user?.activated === false) {
-    userStore.$reset();
-    authStore.$reset();
-    return { path: "/login" };
+    return signOut("not_activated");
   }
 
   if (authRequired && authStore.getAuthenticated === false) {
-    userStore.$reset();
-    authStore.$reset();
-    return { path: "/login" };
+    return signOut();
   }
 
-  if (to.path === "/login" && authStore.getAuthenticated === true) {
-    return { path: "/" };
+  if (to.name === "login" && authStore.getAuthenticated === true) {
+    return redirectAfterLogin(to.query);
   }
 
   return true;
+});
+
+router.afterEach((to) => {
+  document.title = pageTitle(to);
 });
 
 export default router;

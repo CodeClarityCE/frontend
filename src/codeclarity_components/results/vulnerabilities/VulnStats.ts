@@ -124,7 +124,6 @@ export interface Vulnerability {
 }
 
 export interface VulnerabilityMerged {
-  Id: string;
   Sources: Source[];
   Affected: AffectedDeps[];
   Vulnerability: string;

@@ -2,9 +2,9 @@
 import type { PrimitiveProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import { cn } from "@/shadcn/lib/utils";
 import { Primitive } from "reka-ui";
 import { computed } from "vue";
-import { cn } from "@/shadcn/lib/utils";
 import { useCommand } from ".";
 
 const props = defineProps<
@@ -22,6 +22,7 @@ const isRender = computed(
 <template>
   <Primitive
     v-if="isRender"
+    data-slot="command-empty"
     v-bind="delegatedProps"
     :class="cn('py-6 text-center text-sm', props.class)"
   >

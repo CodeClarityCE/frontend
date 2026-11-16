@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { LoaderCircle, PlugZap, Settings, Trash2 } from "@lucide/vue";
+import { PlugZap, Settings, Trash2 } from "@lucide/vue";
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { StatusBadge } from "@/base_components/page";
 import ClickUpConfigModal from "@/codeclarity_components/tickets/integrations/ClickUpConfigModal.vue";
+import { connectionFailureText } from "@/codeclarity_components/tickets/integrations/connection-test";
 import {
   ExternalTicketProvider,
   type IntegrationConfigSummary,
@@ -21,12 +22,16 @@ import {
   CardHeader,
 } from "@/shadcn/ui/card";
 import { Skeleton } from "@/shadcn/ui/skeleton";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import DeleteIntegrationDialog from "../DeleteIntegrationDialog.vue";
 
 const props = defineProps<{ orgId: string }>();
+
+const CLICKUP_DELETE_TEXT =
+  "Tickets stop syncing to ClickUp. Tasks already in ClickUp stay there.";
 
 const authStore = useAuthStore();
 const ticketsRepository = new TicketsRepository();
@@ -83,7 +88,7 @@ async function testConnection(): Promise<void> {
         }
       : {
           success: false,
-          message: response.data.error ?? "The connection test failed",
+          message: connectionFailureText(response.data),
         };
   } catch {
     testResult.value = {
@@ -141,7 +146,7 @@ onMounted(() => void fetchClickUpConfig());
       v-if="loading"
       role="status"
       aria-label="Loading the ClickUp integration"
-      class="grid grid-cols-2 gap-6"
+      class="grid grid-cols-1 gap-6 lg:grid-cols-2"
     >
       <Skeleton class="h-64 rounded-card" />
       <Skeleton class="h-64 rounded-card" />
@@ -176,7 +181,7 @@ onMounted(() => void fetchClickUpConfig());
       </CardContent>
     </Card>
 
-    <div v-else class="grid grid-cols-2 items-start gap-6">
+    <div v-else class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       <Card class="rounded-card shadow-card">
         <CardHeader>
           <h3 class="text-lg font-semibold leading-none text-foreground-strong">
@@ -192,14 +197,6 @@ onMounted(() => void fetchClickUpConfig());
                 :label="clickUpConfig.enabled ? 'Connected' : 'Disabled'"
               />
             </dd>
-            <dt class="text-muted-foreground">Workspace</dt>
-            <dd>{{ clickUpConfig.workspace_name ?? "Not set" }}</dd>
-            <dt class="text-muted-foreground">List</dt>
-            <dd>{{ clickUpConfig.list_name ?? "Not set" }}</dd>
-            <dt class="text-muted-foreground">Create tasks for new tickets</dt>
-            <dd>{{ clickUpConfig.auto_sync_on_create ? "On" : "Off" }}</dd>
-            <dt class="text-muted-foreground">Sync status changes</dt>
-            <dd>{{ clickUpConfig.sync_status_changes ? "On" : "Off" }}</dd>
           </dl>
 
           <p
@@ -238,11 +235,7 @@ onMounted(() => void fetchClickUpConfig());
             :disabled="isTesting"
             @click="testConnection"
           >
-            <LoaderCircle
-              v-if="isTesting"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="isTesting" />
             <PlugZap v-else aria-hidden="true" />
             Test connection
           </Button>
@@ -263,6 +256,7 @@ onMounted(() => void fetchClickUpConfig());
     <DeleteIntegrationDialog
       v-model:open="confirmOpen"
       name="ClickUp"
+      :description="CLICKUP_DELETE_TEXT"
       :busy="isDeleting"
       @confirm="deleteIntegration"
     />

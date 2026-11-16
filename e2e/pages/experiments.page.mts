@@ -87,7 +87,7 @@ export const sampleDatasets = [
 
 export const sampleAnalyzers = [
   analyzer("an-1", "JavaScript analyzer"),
-  analyzer("an-2", "Licences only", ["license-finder"]),
+  analyzer("an-2", "Licenses only", ["license-finder"]),
 ];
 
 function paginated(data: unknown[]): Record<string, unknown> {

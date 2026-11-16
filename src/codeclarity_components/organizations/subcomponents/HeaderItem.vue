@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
@@ -22,6 +23,7 @@ const errorCode: Ref<string | undefined> = ref();
 const error: Ref<boolean> = ref(false);
 const orgRepo = new OrgRepository();
 const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const props = defineProps<{
   orgId: string;
@@ -52,6 +54,8 @@ async function fetchOrgInfo(): Promise<void> {
         handleBusinessErrors: true,
       });
       orgInfo.value = org;
+      // The sidebar links follow the organisation shown here.
+      userStore.setViewedOrg(org);
       emit("onOrgInfo", org);
     } catch (err) {
       error.value = true;

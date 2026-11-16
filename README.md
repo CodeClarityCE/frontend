@@ -104,6 +104,26 @@ pnpm build
 pnpm test:e2e
 ```
 
+### Fixture contracts
+
+The e2e specs mock the API with fixtures in `e2e/pages/*.page.mts`.
+`e2e/fixture-contracts.spec.mts` checks that each covered fixture has the same JSON shape
+(keys and types, not values) as a real API response committed in `e2e/contracts/*.json`.
+It needs no running stack.
+
+To refresh the captured responses, start the dev stack with a seeded user and an
+organisation that has a license policy and a project with an analysis (a failed
+one is preferred), then run from this directory:
+
+```sh
+node e2e/contracts/capture.mts
+```
+
+`CONTRACT_API` (default `http://localhost:3000`), `CONTRACT_EMAIL`, `CONTRACT_PASSWORD` and
+`CONTRACT_ORG` override the defaults. Review the diff, then align the fixtures until the check
+passes. A fixture with known drift is marked `drift` in the spec and expected to fail; remove
+the marker when its ticket fixes the drift, or the check fails because it passed.
+
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh

@@ -47,18 +47,18 @@ const columns: ColumnDef<OrganizationMembership, unknown>[] = [
   { id: "name", accessorFn: (m) => m.organization.name, header: "Name" },
   {
     id: "role",
-    accessorFn: (m) => roleLabels[m.organization.role] ?? "Member",
+    accessorFn: (m) => roleLabels[m.role] ?? "Member",
     header: "Your role",
   },
   {
     id: "members",
-    accessorFn: (m) => m.organization.number_of_members,
+    accessorFn: (m) => memberCount(m),
     header: "Members",
     enableGlobalFilter: false,
   },
   {
     id: "joined",
-    accessorFn: (m) => new Date(m.organization.joined_on).getTime(),
+    accessorFn: (m) => new Date(m.joined_on).getTime(),
     header: "Joined",
     enableGlobalFilter: false,
   },
@@ -69,6 +69,10 @@ const columns: ColumnDef<OrganizationMembership, unknown>[] = [
     enableGlobalFilter: false,
   },
 ];
+
+function memberCount(m: OrganizationMembership): number {
+  return m.organization.organizationMemberships?.length ?? 0;
+}
 
 async function load(): Promise<void> {
   if (!authStore.getToken) return;
@@ -172,10 +176,10 @@ onMounted(() => void load());
       </div>
     </template>
     <template #cell-members="{ row }">
-      <span class="tabular-nums">{{ row.organization.number_of_members }}</span>
+      <span class="tabular-nums">{{ memberCount(row) }}</span>
     </template>
     <template #cell-joined="{ row }">
-      {{ formatDate(row.organization.joined_on, "MMM DD, YYYY") }}
+      {{ formatDate(row.joined_on, "MMM DD, YYYY") }}
     </template>
     <template #cell-actions="{ row }">
       <div v-if="!row.organization.personal" class="flex gap-2">
@@ -189,7 +193,7 @@ onMounted(() => void load());
           Leave
         </Button>
         <Button
-          v-if="row.organization.role === MemberRole.OWNER"
+          v-if="row.role === MemberRole.OWNER"
           size="sm"
           variant="destructive"
           :aria-label="`Delete ${row.organization.name}`"

@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { LoaderCircle, LogOut, Trash2 } from "@lucide/vue";
+import { LogOut, Trash2 } from "@lucide/vue";
 import { ref } from "vue";
 
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
-import { Button } from "@/shadcn/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shadcn/ui/dialog";
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shadcn/ui/alert-dialog";
+import { Button } from "@/shadcn/ui/button";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -80,36 +82,32 @@ async function confirm(): Promise<void> {
 </script>
 
 <template>
-  <Dialog v-model:open="open">
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>
+  <AlertDialog v-model:open="open">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>
           {{ action === "delete" ? "Delete" : "Leave" }} {{ orgName }}?
-        </DialogTitle>
-        <DialogDescription v-if="action === 'delete'">
+        </AlertDialogTitle>
+        <AlertDialogDescription v-if="action === 'delete'">
           Its projects, analyses, integrations and policies are deleted for
           every member. This cannot be undone.
-        </DialogDescription>
-        <DialogDescription v-else>
+        </AlertDialogDescription>
+        <AlertDialogDescription v-else>
           You lose access to its projects and results until someone invites you
           again.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter class="gap-2">
-        <Button variant="outline" @click="open = false">Cancel</Button>
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
         <Button variant="destructive" :disabled="busy" @click="confirm">
-          <LoaderCircle
-            v-if="busy"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="busy" />
           <Trash2 v-else-if="action === 'delete'" aria-hidden="true" />
           <LogOut v-else aria-hidden="true" />
           {{
             action === "delete" ? "Delete organisation" : "Leave organisation"
           }}
         </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
 </template>

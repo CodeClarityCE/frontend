@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { onMounted, type Ref, ref } from "vue";
 import * as z from "zod";
 
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
+import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
 import router from "@/router";
 import { cn } from "@/shadcn/lib/utils";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
@@ -18,15 +19,18 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import {
   BusinessLogicError,
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { serverFeatures } from "@/utils/server-features";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
+import PasswordResetUnavailable from "../password_reset/PasswordResetUnavailable.vue";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -108,7 +112,7 @@ onMounted(() => {
   const _userIdHash = searchParams.get("userid");
 
   if (!_token || !_userIdHash) {
-    void router.push("/login");
+    void router.replace(loginRoute({ notice: "reset_link_invalid" }));
     return;
   }
 
@@ -117,7 +121,8 @@ onMounted(() => {
 });
 </script>
 <template>
-  <AuthLayout>
+  <PasswordResetUnavailable v-if="!serverFeatures.passwordReset" />
+  <AuthLayout v-else>
     <template #title>
       <template v-if="success">Password updated</template>
       <template
@@ -159,7 +164,7 @@ onMounted(() => {
         password reset and follow the link in the new email.
       </p>
       <p v-else class="text-sm">
-        An error occured during the processing of the request.
+        An error occurred during the processing of the request.
       </p>
       <RouterLink
         :to="{ name: 'recoveryRequest' }"
@@ -183,7 +188,7 @@ onMounted(() => {
             Passwords do not match.
           </div>
           <div v-else>
-            An error occured during the processing of the request.
+            An error occurred during the processing of the request.
           </div>
         </AlertDescription>
       </Alert>
@@ -218,11 +223,7 @@ onMounted(() => {
           </FormItem>
         </FormField>
         <Button type="submit" class="mt-2 w-full" :disabled="loading">
-          <LoaderCircle
-            v-if="loading"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="loading" />
           Update password
         </Button>
       </form>

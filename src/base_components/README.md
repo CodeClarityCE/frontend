@@ -2,6 +2,8 @@
 
 Shared components for every page. Build new screens from these and the shadcn components in `@/shadcn/ui`. Import each one from its own path; there is no barrel.
 
+The shadcn components are our own fork; see `src/shadcn/README.md` before changing or refreshing them.
+
 ## Directory Structure
 
 ```
@@ -33,7 +35,9 @@ Shared pieces for migrated pages. Build new screens from these and the shadcn co
   - Render a cell with a `#cell-<column id>="{ row, value }"` slot, or with the column's `cell` function.
   - Server-side mode, for lists too long to load at once: pass `total` (the number of matching rows on the server) and `data` becomes one page. Bind `v-model:page-index`, listen to `@update:sorting` (column ids are the sort keys) and, with `filterLabel`, bind `v-model:filter`; then load the page they describe. Pass `loading` only for the first load, so the table stays in place while later pages load. The vulnerability table is the example.
 
-`Skeleton` (`@/shadcn/ui/skeleton`) is the only loader for new code: shape it like the content it replaces and wrap it in `role="status"` with an `aria-label`.
+`Skeleton` (`@/shadcn/ui/skeleton`) is the loader for content that is on its way: shape it like the content it replaces and wrap it in `role="status"` with an `aria-label`.
+
+`Spinner` (`@/shadcn/ui/spinner`) is the only spinner, for work in progress inside a control, such as a button that is saving or a busy `StatusBadge`. It is hidden from screen readers unless you give it a `label`, so the control's own text must say what is happening. Never add `animate-spin` to an icon by hand.
 
 ### Button (`@/shadcn/ui/button`)
 

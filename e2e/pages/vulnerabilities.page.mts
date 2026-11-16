@@ -3,8 +3,8 @@ import { type Locator, type Page, type Route } from "@playwright/test";
 import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
-export const PROJECT = "proj-1";
-export const ANALYSIS = "an-1";
+export const PROJECT = "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03";
+export const ANALYSIS = "2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04";
 
 const project = {
   id: PROJECT,
@@ -52,6 +52,23 @@ const SCORES: Record<Level, number> = {
   low: 2.1,
 };
 
+/**
+ * A finding's affected dependency. The API sends no PatchType unless a
+ * patching result says otherwise.
+ */
+export function affected(
+  dependency: string,
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    AffectedDependency: dependency,
+    AffectedVersion: "1.0.0",
+    Sources: ["NVD"],
+    VulnerabilityId: "",
+    ...overrides,
+  };
+}
+
 /** A vulnerability finding as the list endpoint returns it. */
 export function finding(
   id: string,
@@ -59,8 +76,8 @@ export function finding(
   dependency: string,
   overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
+  // Shaped like the API's findings, which carry no Id.
   return {
-    Id: `f-${id}`,
     Vulnerability: id,
     Sources: ["NVD"],
     Description: `A ${level} flaw in ${dependency} lets an attacker run code.`,
@@ -85,19 +102,10 @@ export function finding(
         OWASPTop10Name: "Injection",
       },
     ],
-    Affected: [
-      {
-        Affected: {},
-        AffectedDependencyName: dependency,
-        AffectedVersion: "1.0.0",
-        AffectedDependency: dependency,
-        AffectedDependencyFilePath: "package.json",
-        AffectedDependencyImportPaths: [],
-        PatchType: level === "low" ? "NONE" : "FULL",
-      },
-    ],
+    Affected: [affected(dependency)],
     Conflict: { ConflictWinner: "", ConflictFlag: "NO_CONFLICT" },
-    VLAI: [],
+    // The API sends a VLAI entry with an empty score when there is none.
+    VLAI: [{ Source: "NVD", Score: "", Confidence: 0 }],
     EPSS: { Score: 0.02, Percentile: 0.4 },
     is_blacklisted: false,
     ...overrides,
@@ -243,6 +251,7 @@ function paginated(
     total_pages: Math.max(1, Math.ceil(total / perPage)),
     matching_count: total,
     filter_count: {},
+    status_code: 200,
     status: "success",
   };
 }
@@ -272,6 +281,8 @@ export class VulnerabilitiesPage {
   readonly cards: Locator;
   /** The query string of every vulnerability list request, in order. */
   readonly listRequests: URLSearchParams[] = [];
+  /** Bodies of the tickets the page created, in order. */
+  readonly createdTickets: Record<string, unknown>[] = [];
 
   constructor(page: Page) {
     this.page = page;
@@ -293,6 +304,8 @@ export class VulnerabilitiesPage {
       findings?: Record<string, unknown>[];
       details?: Record<string, unknown>;
       hold?: boolean;
+      // Tickets the project already has.
+      tickets?: Record<string, unknown>[];
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -310,6 +323,37 @@ export class VulnerabilitiesPage {
       /^https:\/\/api\d*\.(iconify\.design|simplesvg\.com|unisvg\.com)\//,
       (route) => route.abort(),
     );
+    const tickets = [...(options.tickets ?? [])];
+    await this.page.route(`**/api/org/${ORG}/tickets**`, async (route) => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      if (path.endsWith("/check-duplicate")) {
+        const body = request.postDataJSON() as { vulnerability_id: string };
+        const existing = tickets.find(
+          (t) => t.vulnerability_id === body.vulnerability_id,
+        );
+        return fulfil(route, {
+          data: existing
+            ? {
+                exists: true,
+                existing_ticket_id: existing.id,
+                existing_ticket_title: existing.title,
+              }
+            : { exists: false },
+        });
+      }
+      if (path.endsWith("/tickets") && request.method() === "POST") {
+        const body = request.postDataJSON() as Record<string, unknown>;
+        this.createdTickets.push(body);
+        const id = `t-new-${this.createdTickets.length}`;
+        tickets.push({ ...body, id, status: "OPEN" });
+        return route.fulfill({
+          status: 201,
+          json: { id, status_code: 201, status: "success" },
+        });
+      }
+      return fulfil(route, { data: [] });
+    });
     await this.page.route("**/api/knowledge/status", (route) =>
       fulfil(route, { data: { sources: [] } }),
     );
@@ -321,6 +365,8 @@ export class VulnerabilitiesPage {
         const base = `/org/${ORG}/projects/${PROJECT}`;
         const results = `${base}/analysis/${ANALYSIS}`;
         if (path === base) return fulfil(route, { data: project });
+        if (path === `${base}/tickets`)
+          return fulfil(route, paginated(tickets, 0, 100, tickets.length));
         if (path === `${base}/analyses/${ANALYSIS}`)
           return fulfil(route, { data: analysis });
         if (path === `${results}/sbom/workspaces`)

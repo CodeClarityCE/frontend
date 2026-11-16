@@ -17,7 +17,7 @@ const { getVCS, deleteVcs, getTicketing, deleteTicketing, orgInfo } =
     orgInfo: { current: {} },
   }));
 
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
+vi.mock("@/router", () => ({ default: { push: vi.fn(), replace: vi.fn() } }));
 
 vi.mock("@/stores/auth", () => ({
   useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
@@ -211,12 +211,13 @@ describe("IntegrationsList", () => {
     expect(successToast).toHaveBeenCalledWith("Deleted the GitLab integration");
   });
 
-  it("sends members who are not admins away", async () => {
+  it("sends members who are not admins to the organisation overview", async () => {
     orgInfo.current = { id: "org-1", role: MemberRole.USER };
     await render();
 
-    expect(router.push).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "orgs" }),
-    );
+    expect(router.replace).toHaveBeenCalledWith({
+      name: "orgs",
+      params: { action: "manage", page: "main", orgId: "org-1" },
+    });
   });
 });

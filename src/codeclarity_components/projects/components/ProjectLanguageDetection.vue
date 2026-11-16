@@ -1,7 +1,13 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
-import { onMounted, type Ref, ref } from "vue";
+import { computed, type Ref, ref, watch } from "vue";
 
+import {
+  byNewest,
+  isFailed,
+  isFinished,
+  isRunning,
+} from "@/codeclarity_components/projects/list/analysis-status";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useAuthStore } from "@/stores/auth";
@@ -20,20 +26,27 @@ const languageDetectionService = new LanguageDetectionService();
 
 const languages: Ref<DetectedLanguage[]> = ref([]);
 const loading = ref(false);
-const analysed = ref(false);
 const failed = ref(false);
+
+const analyses = computed(() => byNewest(props.project.analyses));
+const completed = computed(() => analyses.value.find(isFinished));
+
+// Why there are no languages yet, when no analysis has completed.
+const pending = computed(() => {
+  const latest = analyses.value[0];
+  if (!latest) return "Not analysed";
+  if (isFailed(latest)) return "Analysis failed";
+  if (isRunning(latest)) return "Analysis running";
+  return "Analysis queued";
+});
 
 async function detectLanguages(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken) return;
+  const recent = completed.value;
+  if (!orgId || !authStore.getToken || !recent) return;
 
-  const recent = languageDetectionService.getMostRecentCompletedAnalysis(
-    props.project.analyses ?? [],
-  );
-  if (!recent) return;
-
-  analysed.value = true;
   loading.value = true;
+  failed.value = false;
   try {
     languages.value = await languageDetectionService.detectProjectLanguages(
       orgId,
@@ -48,15 +61,22 @@ async function detectLanguages(): Promise<void> {
   }
 }
 
-onMounted(() => void detectLanguages());
+// Detects again only when a newer analysis completes.
+watch(
+  () => completed.value?.id,
+  () => void detectLanguages(),
+  { immediate: true },
+);
 </script>
 
 <template>
-  <span v-if="loading" role="status" aria-label="Detecting languages">
+  <span v-if="!completed" class="whitespace-nowrap text-muted-foreground">
+    {{ pending }}
+  </span>
+  <span v-else-if="loading" role="status" aria-label="Detecting languages">
     <Skeleton class="h-4 w-20" />
   </span>
   <span v-else-if="failed" class="text-muted-foreground">Unknown</span>
-  <span v-else-if="!analysed" class="text-muted-foreground">Not analysed</span>
   <span v-else-if="languages.length === 0" class="text-muted-foreground">
     None found
   </span>

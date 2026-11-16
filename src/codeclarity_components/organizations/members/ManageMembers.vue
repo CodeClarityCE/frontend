@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ScrollText, UserMinus, UserPlus } from "@lucide/vue";
+import { UserMinus, UserPlus } from "@lucide/vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
@@ -10,9 +10,9 @@ import {
   isMemberRoleGreaterThan,
   MemberRole,
   type Organization,
-  type TeamMember,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
+import type { OrganizationMembership } from "@/codeclarity_components/organizations/organization_membership.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
@@ -23,6 +23,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate } from "@/utils/dateUtils";
+import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import ConfirmDestructiveDialog from "./ConfirmDestructiveDialog.vue";
@@ -42,12 +43,12 @@ const orgId =
   props.orgId ??
   (typeof route.params.orgId === "string" ? route.params.orgId : "");
 const orgInfo = ref<Organization>();
-const members = ref<TeamMember[]>([]);
+const members = ref<OrganizationMembership[]>([]);
 const loaded = ref(false);
 const errorCode = ref<string>();
 const hasError = ref(false);
 
-const removing = ref<TeamMember>();
+const removing = ref<OrganizationMembership>();
 const removeOpen = ref(false);
 const removeBusy = ref(false);
 
@@ -58,13 +59,14 @@ const canInvite = computed(
     isMemberRoleGreaterThan(orgInfo.value.role, MemberRole.USER),
 );
 
-const columns: ColumnDef<TeamMember, unknown>[] = [
+const columns: ColumnDef<OrganizationMembership, unknown>[] = [
   {
     id: "member",
-    accessorFn: (m) => `${m.first_name} ${m.last_name} @${m.handle}`,
+    accessorFn: (m) =>
+      `${m.user.first_name} ${m.user.last_name} @${m.user.handle}`,
     header: "Member",
   },
-  { id: "email", accessorKey: "email", header: "Email" },
+  { id: "email", accessorFn: (m) => m.user.email, header: "Email" },
   {
     id: "role",
     accessorFn: (m) => roleLabel(m.role),
@@ -78,41 +80,36 @@ const columns: ColumnDef<TeamMember, unknown>[] = [
     header: "Joined",
     enableGlobalFilter: false,
   },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    enableGlobalFilter: false,
-  },
+  // Shown only once the server can remove a member.
+  ...(serverFeatures.memberRemoval
+    ? [
+        {
+          id: "actions",
+          header: "Actions",
+          enableSorting: false,
+          enableGlobalFilter: false,
+        },
+      ]
+    : []),
 ];
 
-function fullName(m: TeamMember): string {
-  return `${m.first_name} ${m.last_name}`;
+function fullName(m: OrganizationMembership): string {
+  return `${m.user.first_name} ${m.user.last_name}`;
 }
 
-function isSelf(m: TeamMember): boolean {
-  return m.id === userStore.getUser?.id;
+function isSelf(m: OrganizationMembership): boolean {
+  return m.user.id === userStore.getUser?.id;
 }
 
-function canSeeLogs(m: TeamMember): boolean {
-  if (!orgInfo.value) return false;
-  return (
-    isSelf(m) ||
-    isMemberRoleGreaterThan(orgInfo.value.role, m.role) ||
-    m.added_by === userStore.getUser?.id
-  );
+function canRemove(m: OrganizationMembership): boolean {
+  if (!serverFeatures.memberRemoval || !orgInfo.value || isSelf(m)) {
+    return false;
+  }
+  return isMemberRoleGreaterThan(orgInfo.value.role, m.role);
 }
 
-function canRemove(m: TeamMember): boolean {
-  if (!orgInfo.value || isSelf(m)) return false;
-  return (
-    isMemberRoleGreaterThan(orgInfo.value.role, m.role) ||
-    m.added_by === userStore.getUser?.id
-  );
-}
-
-async function fetchAll(token: string): Promise<TeamMember[]> {
-  const all: TeamMember[] = [];
+async function fetchAll(token: string): Promise<OrganizationMembership[]> {
+  const all: OrganizationMembership[] = [];
   for (let page = 0; ; page++) {
     const response = await orgRepo.getOrgMembers({
       orgId,
@@ -151,7 +148,7 @@ function setOrgInfo(info: Organization): void {
   }
 }
 
-function askRemove(m: TeamMember): void {
+function askRemove(m: OrganizationMembership): void {
   removing.value = m;
   removeOpen.value = true;
 }
@@ -176,7 +173,7 @@ async function confirmRemove(): Promise<void> {
   try {
     await orgRepo.revokeMembership({
       orgId,
-      userId: target.id,
+      userId: target.user.id,
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
@@ -257,7 +254,7 @@ onMounted(() => {
       :columns="columns"
       :data="members"
       :loading="!loaded"
-      :row-key="(m: TeamMember) => m.id"
+      :row-key="(m: OrganizationMembership) => m.user.id"
       caption="Members"
       filter-label="Filter members"
       empty-text="No members match."
@@ -270,7 +267,9 @@ onMounted(() => {
               (you)
             </span>
           </span>
-          <span class="text-xs text-muted-foreground">@{{ row.handle }}</span>
+          <span class="text-xs text-muted-foreground">
+            @{{ row.user.handle }}
+          </span>
         </div>
       </template>
       <template #cell-role="{ row }">
@@ -281,21 +280,6 @@ onMounted(() => {
       </template>
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
-          <Button
-            v-if="canSeeLogs(row)"
-            variant="outline"
-            size="sm"
-            :as="RouterLink"
-            :to="{
-              name: 'orgs',
-              params: { action: 'manage', page: 'logs', orgId },
-              query: { search: row.email },
-            }"
-            :aria-label="`Audit logs of ${fullName(row)}`"
-          >
-            <ScrollText aria-hidden="true" />
-            Audit logs
-          </Button>
           <Button
             v-if="canRemove(row)"
             variant="destructive"

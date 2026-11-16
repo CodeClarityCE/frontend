@@ -26,6 +26,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <TooltipPortal>
     <TooltipContent
+      data-slot="tooltip-content"
       v-bind="{ ...forwarded, ...$attrs }"
       :class="
         cn(

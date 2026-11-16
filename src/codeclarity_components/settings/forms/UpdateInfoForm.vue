@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { LoaderCircle } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
@@ -15,9 +14,11 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -42,7 +43,7 @@ const form = useForm<FormValues>({
 
 const submitting = ref(false);
 
-const onSubmit = form.handleSubmit(async (values): Promise<void> => {
+const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
   if (!user || !authStore.getToken) return;
   submitting.value = true;
@@ -69,7 +70,7 @@ const onSubmit = form.handleSubmit(async (values): Promise<void> => {
 
 <template>
   <form class="flex flex-col gap-6" novalidate @submit="onSubmit">
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <FormField v-slot="{ componentField }" name="first_name">
         <FormItem>
           <FormLabel>First name</FormLabel>
@@ -99,11 +100,7 @@ const onSubmit = form.handleSubmit(async (values): Promise<void> => {
     </div>
     <div class="flex justify-end">
       <Button type="submit" :disabled="submitting">
-        <LoaderCircle
-          v-if="submitting"
-          aria-hidden="true"
-          class="animate-spin motion-reduce:animate-none"
-        />
+        <Spinner v-if="submitting" />
         Save changes
       </Button>
     </div>

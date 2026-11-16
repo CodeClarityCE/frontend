@@ -50,6 +50,7 @@ import * as z from "zod";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import Faq from "./components/FaqComponent.vue";
@@ -99,11 +100,29 @@ const importProgressPercent = computed(() =>
       ),
 );
 
+// A web address with a host, like https://github.com/owner/repository.
+function isWebUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "https:" || url.protocol === "http:") &&
+      url.hostname.includes(".")
+    );
+  } catch {
+    return false;
+  }
+}
+
 const formSchema = z.object({
   repository: z
     .string({ required_error: "A repository URL is required" })
-    .min(2, "A repository URL is required")
-    .max(150, "At most 150 characters"),
+    .trim()
+    .min(1, "A repository URL is required")
+    .max(150, "At most 150 characters")
+    .refine(
+      isWebUrl,
+      "Enter the full URL, like https://github.com/owner/repository",
+    ),
 });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -112,8 +131,9 @@ const form = useForm<FormValues>({
 });
 const [repository] = form.defineField("repository");
 const repositoryError = computed(() => form.errors.value.repository);
+const isSubmitting = form.isSubmitting;
 
-const onSubmit = form.handleSubmit(async (values) => {
+const onSubmit = guardFormSubmit(form, async (values) => {
   if (!userStore.getDefaultOrg) return;
   if (!authStore.getAuthenticated || !authStore.getToken) return;
   try {
@@ -195,7 +215,7 @@ async function importProjectsBulk(): Promise<void> {
   const nmbFailedImports = Object.keys(_reposFailedToImport).length;
   const nmbImported = repos.length - nmbFailedImports;
   if (nmbImported > 0) {
-    successToast(`Succesfully imported ${nmbImported} repositories`);
+    successToast(`Successfully imported ${nmbImported} repositories`);
   }
   if (nmbFailedImports > 0) {
     void errorToast(`Failed to import ${nmbFailedImports} repositories`);
@@ -361,7 +381,12 @@ function onSelectedReposChange(repos: Repository[]): void {
               The full URL of the repository.
             </p>
           </div>
-          <Button type="submit" variant="outline" class="w-fit">
+          <Button
+            type="submit"
+            variant="outline"
+            class="w-fit"
+            :disabled="isSubmitting"
+          >
             <Plus aria-hidden="true" />
             Import repository
           </Button>

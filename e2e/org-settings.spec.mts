@@ -27,6 +27,18 @@ test.describe("Organisations list", () => {
     await expect(orgs.rows().first()).toContainText("Owner");
     await expect(orgs.rows().nth(1)).toContainText("Member");
     await expect(orgs.rows().nth(2)).toContainText("Personal");
+    // Member count and join date come from the membership row
+    await expect(orgs.rows().first().locator("td")).toHaveText([
+      /Test Organization/,
+      "Owner",
+      "3",
+      "Jan 15, 2024",
+      /Leave/,
+    ]);
+    await expect(orgs.rows().nth(1).locator("td").nth(2)).toHaveText("12");
+    await expect(orgs.rows().nth(1).locator("td").nth(3)).toHaveText(
+      "Mar 02, 2025",
+    );
 
     await orgs.table.getByRole("link", { name: "Test Organization" }).click();
 
@@ -79,7 +91,7 @@ test.describe("Organisations list", () => {
       name: "Delete Test Organization",
     });
     await trigger.click();
-    const dialog = page.getByRole("dialog", {
+    const dialog = page.getByRole("alertdialog", {
       name: "Delete Test Organization?",
     });
     await expect(dialog).toBeVisible();
@@ -191,7 +203,9 @@ test.describe("Create an organisation", () => {
     await expectScreenshots(page, "orgs-create-errors");
   });
 
-  test("creates it and opens its overview", async ({ page }) => {
+  test("a double click creates it once and opens its overview", async ({
+    page,
+  }) => {
     const orgs = new OrgSettingsPage(page);
     await orgs.signIn();
     await orgs.gotoCreate();
@@ -200,7 +214,7 @@ test.describe("Create an organisation", () => {
     await page
       .getByRole("textbox", { name: "Description" })
       .fill("Ecosystem studies");
-    await page.getByRole("button", { name: "Create organisation" }).click();
+    await page.getByRole("button", { name: "Create organisation" }).dblclick();
 
     await expect(page).toHaveURL(/\/orgs\/manage\/main\/org-new\/?$/);
     expect(orgs.created).toEqual([
@@ -283,7 +297,7 @@ test.describe("Organisation overview", () => {
 
     const trigger = page.getByRole("button", { name: "Leave organisation" });
     await trigger.click();
-    const dialog = page.getByRole("dialog", {
+    const dialog = page.getByRole("alertdialog", {
       name: "Leave Test Organization?",
     });
     await expect(dialog).toBeVisible();
@@ -305,7 +319,7 @@ test.describe("Organisation overview", () => {
 
     await page.getByRole("button", { name: "Leave organisation" }).click();
     await page
-      .getByRole("dialog")
+      .getByRole("alertdialog")
       .getByRole("button", { name: "Leave organisation" })
       .click();
 
@@ -366,7 +380,7 @@ test.describe("Organisation overview", () => {
     await expectScreenshots(page, "org-overview");
 
     await page.getByRole("button", { name: "Delete organisation" }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
     // Measure contrast once the dialog has finished fading in.
     await page.evaluate(() =>
       Promise.all(document.getAnimations().map((a) => a.finished)),
@@ -433,6 +447,23 @@ test.describe("Organisation settings in the sidebar", () => {
 
     await expect(orgs.shell.link("Organisation settings")).toBeVisible();
     await expect(orgs.orgNav).toHaveCount(0);
+  });
+
+  test("a moderator sees no Audit logs, which need an admin", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn({
+      org: organization(ORG, "Test Organization", { role: 2 }),
+    });
+    await orgs.gotoOverview();
+
+    await expect(orgs.orgNav.getByRole("link")).toHaveText([
+      "Overview",
+      "Members",
+      "Invites",
+      "Policies",
+    ]);
   });
 
   test("a personal organisation has no Members or Invites", async ({

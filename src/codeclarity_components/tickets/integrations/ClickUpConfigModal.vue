@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { CircleCheck, CircleX, Copy, Info, LoaderCircle, X } from "@lucide/vue";
+import { CircleCheck, CircleX, Copy, Info, X } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
@@ -29,9 +30,12 @@ import { useUserStore } from "@/stores/user";
 import {
   ExternalTicketProvider,
   type IntegrationConfigSummary,
+  type IntegrationCredentials,
   type IntegrationHierarchyItem,
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
+
+import { connectionFailureText } from "./connection-test";
 
 const props = defineProps<{
   existingConfig?: IntegrationConfigSummary;
@@ -103,6 +107,22 @@ const canSave = computed(() => {
   return listId.value.length > 0;
 });
 
+// Credentials typed in this dialog; without them the API uses the saved ones.
+const credentials = computed((): IntegrationCredentials | undefined => {
+  if (authMethod.value === "API_KEY" && apiKey.value) {
+    return { api_key: apiKey.value };
+  }
+  if (authMethod.value === "OAUTH" && accessToken.value) {
+    return { access_token: accessToken.value };
+  }
+  return undefined;
+});
+
+// A failure shown on one tab does not belong to the other.
+watch(authMethod, () => {
+  if (testResult.value && !testResult.value.success) testResult.value = null;
+});
+
 // Lets the closing animation finish before the parent unmounts the dialog.
 function close(): void {
   isOpen.value = false;
@@ -172,28 +192,33 @@ async function fetchWorkspaces(): Promise<void> {
   if (!userStore.defaultOrg?.id || !auth.getToken || !canFetchWorkspaces.value)
     return;
 
-  // First save the API key temporarily to fetch workspaces
   isLoadingWorkspaces.value = true;
   testResult.value = null;
+  workspaces.value = [];
 
   try {
-    // We need to save a temporary config first to fetch hierarchy
-    await ticketsRepository.configureClickUp({
+    // Checks the key without saving it.
+    const verified = await ticketsRepository.verifyIntegration({
       orgId: userStore.defaultOrg.id,
-      data: {
-        auth_method: authMethod.value,
-        api_key: apiKey.value,
-        list_id: "temp", // Temporary, will be updated
-      },
+      provider: ExternalTicketProvider.CLICKUP,
+      data: { api_key: apiKey.value },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
     });
+    if (!verified.data.success) {
+      testResult.value = {
+        success: false,
+        message: connectionFailureText(verified.data),
+      };
+      return;
+    }
 
     const response = await ticketsRepository.getWorkspaces({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
@@ -212,7 +237,7 @@ async function fetchWorkspaces(): Promise<void> {
   } catch {
     testResult.value = {
       success: false,
-      message: "Invalid API key or connection failed",
+      message: "ClickUp could not be reached. Try again later.",
     };
     workspaces.value = [];
   } finally {
@@ -235,6 +260,7 @@ async function fetchSpaces(): Promise<void> {
     const response = await ticketsRepository.getSpaces({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       parentId: workspaceId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
@@ -262,6 +288,7 @@ async function fetchFolders(): Promise<void> {
     const response = await ticketsRepository.getFolders({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       parentId: spaceId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
@@ -298,6 +325,7 @@ async function fetchLists(): Promise<void> {
     const response = await ticketsRepository.getLists({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       parentId: folderId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
@@ -318,7 +346,8 @@ async function createSpace(): Promise<void> {
     !userStore.defaultOrg?.id ||
     !auth.getToken ||
     !workspaceId.value ||
-    !newSpaceName.value.trim()
+    !newSpaceName.value.trim() ||
+    isCreatingSpace.value
   )
     return;
 
@@ -327,6 +356,7 @@ async function createSpace(): Promise<void> {
     const response = await ticketsRepository.createSpace({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       parentId: workspaceId.value,
       data: { name: newSpaceName.value.trim() },
       bearerToken: auth.getToken,
@@ -356,7 +386,8 @@ async function createFolder(): Promise<void> {
     !userStore.defaultOrg?.id ||
     !auth.getToken ||
     !spaceId.value ||
-    !newFolderName.value.trim()
+    !newFolderName.value.trim() ||
+    isCreatingFolder.value
   )
     return;
 
@@ -365,6 +396,7 @@ async function createFolder(): Promise<void> {
     const response = await ticketsRepository.createFolder({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       parentId: spaceId.value,
       data: { name: newFolderName.value.trim() },
       bearerToken: auth.getToken,
@@ -390,7 +422,12 @@ async function createFolder(): Promise<void> {
 }
 
 async function createList(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !newListName.value.trim())
+  if (
+    !userStore.defaultOrg?.id ||
+    !auth.getToken ||
+    !newListName.value.trim() ||
+    isCreatingList.value
+  )
     return;
 
   isCreatingList.value = true;
@@ -401,6 +438,7 @@ async function createList(): Promise<void> {
       response = await ticketsRepository.createList({
         orgId: userStore.defaultOrg.id,
         provider: ExternalTicketProvider.CLICKUP,
+        credentials: credentials.value,
         parentId: folderId.value,
         data: { name: newListName.value.trim() },
         bearerToken: auth.getToken,
@@ -413,6 +451,7 @@ async function createList(): Promise<void> {
       response = await ticketsRepository.createFolderlessList({
         orgId: userStore.defaultOrg.id,
         provider: ExternalTicketProvider.CLICKUP,
+        credentials: credentials.value,
         parentId: spaceId.value,
         data: { name: newListName.value.trim() },
         bearerToken: auth.getToken,
@@ -430,12 +469,9 @@ async function createList(): Promise<void> {
     newListName.value = "";
     showCreateList.value = false;
 
-    // Auto-save the configuration with the new list_id
-    // This ensures the list_id is persisted immediately
-    await saveConfigQuietly();
     testResult.value = {
       success: true,
-      message: `List "${response.data.name}" created and configuration saved!`,
+      message: `List "${response.data.name}" created!`,
     };
   } catch {
     testResult.value = { success: false, message: "Failed to create list" };
@@ -444,51 +480,26 @@ async function createList(): Promise<void> {
   }
 }
 
-// Save configuration without closing the modal
-async function saveConfigQuietly(): Promise<void> {
-  const orgId = userStore.defaultOrg?.id;
-  const token = auth.getToken;
-  if (!orgId || !token || !listId.value) return;
-
-  await ticketsRepository.configureClickUp({
-    orgId,
-    data: {
-      auth_method: authMethod.value,
-      api_key:
-        authMethod.value === "API_KEY" && apiKey.value
-          ? apiKey.value
-          : undefined,
-      access_token:
-        authMethod.value === "OAUTH" && accessToken.value
-          ? accessToken.value
-          : undefined,
-      workspace_id: workspaceId.value ?? undefined,
-      space_id: spaceId.value ?? undefined,
-      folder_id: folderId.value ?? undefined,
-      list_id: listId.value,
-      auto_sync_on_create: autoSyncOnCreate.value,
-      sync_status_changes: syncStatusChanges.value,
-    },
-    bearerToken: token,
-    handleBusinessErrors: true,
-    handleHTTPErrors: true,
-    handleOtherErrors: true,
-  });
-}
-
 async function testConnection(): Promise<void> {
   if (!userStore.defaultOrg?.id || !auth.getToken) return;
 
   isTesting.value = true;
+  const request = {
+    orgId: userStore.defaultOrg.id,
+    provider: ExternalTicketProvider.CLICKUP,
+    bearerToken: auth.getToken,
+    handleBusinessErrors: true,
+    handleHTTPErrors: true,
+    handleOtherErrors: true,
+  };
   try {
-    const response = await ticketsRepository.testIntegration({
-      orgId: userStore.defaultOrg.id,
-      provider: ExternalTicketProvider.CLICKUP,
-      bearerToken: auth.getToken,
-      handleBusinessErrors: true,
-      handleHTTPErrors: true,
-      handleOtherErrors: true,
-    });
+    // Tests what is typed here if anything, else the saved integration.
+    const response = credentials.value
+      ? await ticketsRepository.verifyIntegration({
+          ...request,
+          data: credentials.value,
+        })
+      : await ticketsRepository.testIntegration(request);
 
     if (response.data.success) {
       testResult.value = {
@@ -498,7 +509,7 @@ async function testConnection(): Promise<void> {
     } else {
       testResult.value = {
         success: false,
-        message: response.data.error ?? "Connection test failed",
+        message: connectionFailureText(response.data),
       };
     }
   } catch {
@@ -641,23 +652,11 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
   testResult.value = null;
 
   try {
-    // First save the OAuth config to enable hierarchy fetching
-    await ticketsRepository.configureClickUp({
-      orgId: userStore.defaultOrg.id,
-      data: {
-        auth_method: "OAUTH",
-        access_token: accessToken.value,
-        list_id: "temp", // Temporary, will be updated when user selects a list
-      },
-      bearerToken: auth.getToken,
-      handleBusinessErrors: true,
-      handleHTTPErrors: true,
-      handleOtherErrors: true,
-    });
-
+    // The token goes with the request; nothing is saved until Connect.
     const response = await ticketsRepository.getWorkspaces({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
+      credentials: credentials.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
@@ -720,11 +719,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                 :disabled="!canFetchWorkspaces || isLoadingWorkspaces"
                 @click="fetchWorkspaces"
               >
-                <LoaderCircle
-                  v-if="isLoadingWorkspaces"
-                  aria-hidden="true"
-                  class="animate-spin motion-reduce:animate-none"
-                />
+                <Spinner v-if="isLoadingWorkspaces" />
                 Verify
               </Button>
             </div>
@@ -920,11 +915,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                 Once you've created the app in ClickUp, click below to connect.
               </p>
               <Button :disabled="isConnectingOAuth" @click="startOAuthFlow">
-                <LoaderCircle
-                  v-if="isConnectingOAuth"
-                  aria-hidden="true"
-                  class="animate-spin motion-reduce:animate-none"
-                />
+                <Spinner v-if="isConnectingOAuth" />
 
                 Connect to ClickUp
               </Button>
@@ -987,11 +978,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                   :disabled="!newSpaceName.trim() || isCreatingSpace"
                   @click="createSpace"
                 >
-                  <LoaderCircle
-                    v-if="isCreatingSpace"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="isCreatingSpace" />
                   <template v-else>Create</template>
                 </Button>
                 <Button
@@ -1038,10 +1025,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               role="status"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <LoaderCircle
-                aria-hidden="true"
-                class="size-4 animate-spin motion-reduce:animate-none"
-              />
+              <Spinner />
               Loading spaces...
             </div>
 
@@ -1073,11 +1057,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                   :disabled="!newFolderName.trim() || isCreatingFolder"
                   @click="createFolder"
                 >
-                  <LoaderCircle
-                    v-if="isCreatingFolder"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="isCreatingFolder" />
                   <template v-else>Create</template>
                 </Button>
                 <Button
@@ -1125,10 +1105,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               role="status"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <LoaderCircle
-                aria-hidden="true"
-                class="size-4 animate-spin motion-reduce:animate-none"
-              />
+              <Spinner />
               Loading folders...
             </div>
 
@@ -1166,11 +1143,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                   :disabled="!newListName.trim() || isCreatingList"
                   @click="createList"
                 >
-                  <LoaderCircle
-                    v-if="isCreatingList"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="isCreatingList" />
                   <template v-else>Create</template>
                 </Button>
                 <Button
@@ -1221,10 +1194,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               role="status"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <LoaderCircle
-                aria-hidden="true"
-                class="size-4 animate-spin motion-reduce:animate-none"
-              />
+              <Spinner />
               Loading lists...
             </div>
 
@@ -1288,19 +1258,11 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
             :disabled="isTesting"
             @click="testConnection"
           >
-            <LoaderCircle
-              v-if="isTesting"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="isTesting" />
             Test Connection
           </Button>
           <Button :disabled="!canSave || isSaving" @click="saveConfiguration">
-            <LoaderCircle
-              v-if="isSaving"
-              aria-hidden="true"
-              class="animate-spin motion-reduce:animate-none"
-            />
+            <Spinner v-if="isSaving" />
             {{ existingConfig ? "Save Changes" : "Connect" }}
           </Button>
         </div>

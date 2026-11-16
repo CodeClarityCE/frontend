@@ -55,7 +55,10 @@ async function show(
     repo.getVulnerabilitiesStat.mockRejectedValue(new Error("none"));
   else
     repo.getVulnerabilitiesStat.mockResolvedValue({
-      data: { number_of_issues: options.issues ?? 4 },
+      data: {
+        number_of_issues: 5,
+        number_of_vulnerabilities: options.issues ?? 4,
+      },
     });
   render(SbomContent, {
     props: { analysisID: "a-1", projectID: "p-1", projectName: "web" },
@@ -84,17 +87,17 @@ describe("SbomContent", () => {
       ["Dependencies", "3"],
       ["Direct dependencies", "1"],
       ["Health grade", expect.any(String)],
-      ["Security issues", "4"],
+      ["Vulnerabilities", "4"],
     ]);
   });
 
   it("shows a dash when vulnerability data is missing", async () => {
     await show({ issues: null });
     const tile = screen
-      .getByText("Security issues")
+      .getByText("Vulnerabilities")
       .closest("li") as HTMLElement;
     expect(texts(tile)).toEqual([
-      "Security issues",
+      "Vulnerabilities",
       "-",
       "Vulnerability data unavailable",
     ]);

@@ -4,10 +4,13 @@ import { defineComponent, h } from "vue";
 
 import PoliciesList from "./PoliciesList.vue";
 
-const { getLicensePolicies, push } = vi.hoisted(() => ({
+const { getLicensePolicies, push, features } = vi.hoisted(() => ({
   getLicensePolicies: vi.fn(),
   push: vi.fn(),
+  features: { licensePolicyChanges: false },
 }));
+
+vi.mock("@/utils/server-features", () => ({ serverFeatures: features }));
 
 vi.mock("@/stores/auth", () => ({
   useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
@@ -69,7 +72,7 @@ const sample = [
   {
     id: "p-1",
     name: "No copyleft",
-    description: "Blocks GPL licences",
+    description: "Blocks GPL licenses",
     policy_type: "BLACKLIST",
     default: true,
     created_by: "Jane",
@@ -92,7 +95,7 @@ let wrapper: VueWrapper | undefined;
 
 async function render(): Promise<void> {
   wrapper = mount(PoliciesList, {
-    props: { page: "policy", orgId: "org-1" },
+    props: { page: "policy", orgId: "org-1", canManage: true },
     attachTo: document.body,
   });
   await flushPromises();
@@ -115,6 +118,7 @@ function tile(label: string): string {
 describe("PoliciesList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    features.licensePolicyChanges = false;
     getLicensePolicies.mockResolvedValue({ data: sample });
   });
 
@@ -157,7 +161,14 @@ describe("PoliciesList", () => {
     );
   });
 
+  it("offers no Edit while the server cannot change a policy", async () => {
+    await render();
+
+    expect(button("Edit Strict")).toBeUndefined();
+  });
+
   it("opens the editor for a policy", async () => {
+    features.licensePolicyChanges = true;
     await render();
 
     button("Edit Strict")?.click();

@@ -36,15 +36,16 @@
         rows="2"
         :placeholder="`Enter ${data.label} (one per line)...`"
       />
-      <select
+      <NativeSelect
         v-else-if="data.configType === 'boolean'"
         v-model="localValue"
-        class="w-full rounded-sm border bg-background px-2 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        wrapper-class="w-full"
+        class="h-7 bg-background py-0 pl-2 pr-7 text-xs"
         :aria-label="data.label"
       >
         <option value="true">True</option>
         <option value="false">False</option>
-      </select>
+      </NativeSelect>
       <input
         v-else
         v-model="localValue"
@@ -73,6 +74,8 @@
 import { Settings } from "@lucide/vue";
 import { Handle, Position } from "@vue-flow/core";
 import { computed } from "vue";
+
+import { NativeSelect } from "@/shadcn/ui/native-select";
 
 type ConfigValue = string | number | boolean | string[] | null | undefined;
 

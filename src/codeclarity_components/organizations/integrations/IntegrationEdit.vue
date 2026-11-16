@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type Ref, ref } from "vue";
+import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
@@ -9,34 +9,36 @@ import {
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
+import OrgNotFound from "@/codeclarity_components/organizations/subcomponents/OrgNotFound.vue";
 import router from "@/router";
 
 import OrgIntegrationManageClickUp from "./clickup/ManageClickUp.vue";
 import OrgIntegrationManageGithub from "./github/ManageGithub.vue";
 import OrgIntegrationManageGitlab from "./gitlab/ManageGitlab.vue";
 
-const provider: Ref<IntegrationProvider> = ref(IntegrationProvider.GITHUB);
-
-// Props
 defineProps<{
   orgId: string;
   page: string;
 }>();
 
-const orgInfo: Ref<Organization | undefined> = ref();
+const route = useRoute();
+const provider = computed(() => route.query.provider);
+// GitHub and GitLab integrations are opened by id; ClickUp has one per organisation.
+const hasId = computed(
+  () =>
+    typeof route.query.integrationId === "string" &&
+    route.query.integrationId !== "",
+);
 
-function setOrgInfo(_orgInfo: Organization): void {
-  orgInfo.value = _orgInfo;
-  if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-    void router.push({
+// Only admins manage integrations; others go to the organisation overview.
+function setOrgInfo(orgInfo: Organization): void {
+  if (!isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)) {
+    void router.replace({
       name: "orgs",
-      params: { action: "manage", page: "integrations", orgId: _orgInfo.id },
+      params: { action: "manage", page: "main", orgId: orgInfo.id },
     });
   }
 }
-
-const route = useRoute();
-provider.value = route.query.provider as IntegrationProvider;
 </script>
 <template>
   <div class="flex flex-col gap-8 org-manage-integration-create">
@@ -47,16 +49,22 @@ provider.value = route.query.provider as IntegrationProvider;
     ></HeaderItem>
     <div class="org-integrations-create-wrapper">
       <OrgIntegrationManageGithub
-        v-if="provider === IntegrationProvider.GITHUB"
+        v-if="provider === IntegrationProvider.GITHUB && hasId"
         :org-id="orgId"
       />
       <OrgIntegrationManageGitlab
-        v-else-if="provider === IntegrationProvider.GITLAB"
+        v-else-if="provider === IntegrationProvider.GITLAB && hasId"
         :org-id="orgId"
       />
       <OrgIntegrationManageClickUp
         v-else-if="provider === IntegrationProvider.CLICKUP"
         :org-id="orgId"
+      />
+      <OrgNotFound
+        v-else
+        :org-id="orgId"
+        subject="Integration"
+        description="This integration does not exist or the link is incomplete."
       />
     </div>
   </div>

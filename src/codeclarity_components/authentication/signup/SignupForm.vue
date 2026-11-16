@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
@@ -22,13 +22,12 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
-import {
-  BusinessLogicError,
-  ValidationError,
-} from "@/utils/api/BaseRepository";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { guardFormSubmit } from "@/utils/form/guardSubmit";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
@@ -43,32 +42,69 @@ const authRepository: AuthRepository = new AuthRepository();
 const loading: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const error: Ref<boolean> = ref(false);
-const validationError: Ref<ValidationError | undefined> = ref();
 
 // Form Validation
-const formSchema = z.object({
-  email: z.string().email(),
-  first_name: z.string().min(2).max(25),
-  last_name: z.string().min(2).max(25),
-  handle: z.string().min(5).max(50),
-  plainPassword: z.string().min(10).max(75),
-  plainPasswordConfirm: z.string().min(10).max(75),
-  agreeTerms: z.boolean().default(false),
-});
+const nameSchema = z
+  .string()
+  .trim()
+  .min(2, "At least 2 characters")
+  .max(25, "At most 25 characters");
+const formSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .min(1, "Enter your email")
+      .email("Enter a valid email address"),
+    first_name: nameSchema,
+    last_name: nameSchema,
+    handle: z
+      .string()
+      .trim()
+      .min(5, "At least 5 characters")
+      .max(50, "At most 50 characters"),
+    plainPassword: z
+      .string()
+      .min(10, "At least 10 characters")
+      .max(75, "At most 75 characters"),
+    plainPasswordConfirm: z.string().min(1, "Confirm your password"),
+    agreeTerms: z
+      .boolean()
+      .default(false)
+      .refine(
+        (val) => val === true,
+        "You must accept our terms and conditions to continue",
+      ),
+  })
+  .refine((values) => values.plainPassword === values.plainPasswordConfirm, {
+    message: "The passwords do not match",
+    path: ["plainPasswordConfirm"],
+  });
 type FormValues = z.infer<typeof formSchema>;
-const { handleSubmit } = useForm<FormValues>({
+const {
+  handleSubmit,
+  isSubmitting,
+  values: formValues,
+} = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
+  initialValues: {
+    email: "",
+    first_name: "",
+    last_name: "",
+    handle: "",
+    plainPassword: "",
+    plainPasswordConfirm: "",
+    agreeTerms: false,
+  },
 });
 
-const onSubmit = handleSubmit((values): void => {
-  if (values.agreeTerms === false) {
-    toast.warning("You must agree to our terms and conditions to continue", {
-      description: "Please check the box to continue",
-    });
-    return;
-  }
-  void submit(values);
-});
+const onSubmit = guardFormSubmit(
+  { handleSubmit, isSubmitting, values: formValues },
+  (values): void => {
+    if (loading.value) return;
+    void submit(values);
+  },
+);
 
 // Sanity Checks
 // In case the user is logged in and visits this page, redirect them
@@ -88,7 +124,6 @@ async function submit(values: {
 }): Promise<void> {
   loading.value = true;
   errorCode.value = undefined;
-  validationError.value = undefined;
   error.value = false;
 
   try {
@@ -102,6 +137,7 @@ async function submit(values: {
         password_confirmation: values.plainPasswordConfirm,
       },
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     toast.success("Account successfully created", {
       description: "Please check your email to verify your account",
@@ -110,10 +146,7 @@ async function submit(values: {
   } catch (_err) {
     error.value = true;
 
-    if (_err instanceof ValidationError) {
-      errorCode.value = _err.error_code;
-      validationError.value = _err;
-    } else if (_err instanceof BusinessLogicError) {
+    if (_err instanceof BusinessLogicError) {
       errorCode.value = _err.error_code;
     }
   } finally {
@@ -134,25 +167,21 @@ async function submit(values: {
       <CircleAlert aria-hidden="true" />
       <AlertDescription>
         <div v-if="errorCode === APIErrors.PasswordsDoNotMatch">
-          Passwords do not match.
+          The passwords do not match.
         </div>
         <div v-else-if="errorCode === APIErrors.EmailAlreadyExists">
-          A user with that email already exists.
+          An account with this email already exists.
         </div>
         <div v-else-if="errorCode === APIErrors.HandleAlreadyExists">
-          A user with that handle already exists, choose a different handle.
+          This handle is already taken. Choose a different one.
         </div>
-        <div
-          v-else-if="errorCode === APIErrors.ValidationFailed"
-          class="whitespace-break-spaces"
-        >
-          {{ validationError!.toMessage("Invalid form:") }}
+        <div v-else>
+          Something went wrong while creating your account. Please try again.
         </div>
-        <div v-else>An error occured during the processing of the request.</div>
       </AlertDescription>
     </Alert>
 
-    <form v-if="!loading" class="flex flex-col gap-4" @submit="onSubmit">
+    <form class="flex flex-col gap-4" @submit="onSubmit">
       <FormField v-slot="{ componentField }" name="email">
         <FormItem>
           <FormLabel>Email</FormLabel>
@@ -167,7 +196,7 @@ async function submit(values: {
           <FormMessage />
         </FormItem>
       </FormField>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField v-slot="{ componentField }" name="first_name">
           <FormItem>
             <FormLabel>First name</FormLabel>
@@ -266,19 +295,12 @@ async function submit(values: {
           </div>
         </FormItem>
       </FormField>
-      <Button type="submit" class="mt-2 w-full">Create account</Button>
+      <Button type="submit" class="mt-2 w-full" :disabled="loading">
+        <Spinner v-if="loading" />
+        Create account
+      </Button>
+      <p v-if="loading" role="status" class="sr-only">Creating your account</p>
     </form>
-    <div
-      v-else
-      role="status"
-      class="flex flex-col items-center gap-2 py-8 text-muted-foreground"
-    >
-      <LoaderCircle
-        aria-hidden="true"
-        class="size-6 animate-spin motion-reduce:animate-none"
-      />
-      Creating your account
-    </div>
 
     <template #footer>
       <span>

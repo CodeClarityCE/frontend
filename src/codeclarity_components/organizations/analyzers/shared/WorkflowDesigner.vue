@@ -37,6 +37,8 @@ import {
   layoutNodes,
 } from "@/utils/vueFlow";
 
+import { pluginsToAdd } from "./workflowRules";
+
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 
@@ -92,6 +94,16 @@ const availablePlugins = computed(() => {
   );
 });
 
+// Installed plugins that can go on the canvas at all.
+const installedPlugins = computed(() =>
+  props.plugins.filter((plugin) => !plugin.name.includes("notifier")),
+);
+
+// Fit the canvas to the nodes once they are drawn, without enlarging them.
+function fitToContent(): void {
+  void fitView({ padding: 0.1, maxZoom: 1 });
+}
+
 function onPaneContextMenu(event: MouseEvent): void {
   if (props.readonly) return;
   event.preventDefault();
@@ -139,71 +151,32 @@ function addNodeToGraph(plugin: Plugin): void {
 function buildPluginWithDependencies(
   plugin: Plugin,
   existingNodes: (AnalyzerNode | ConfigNode)[],
-  availablePlugins: Plugin[],
-  processedPlugins = new Set<string>(),
+  installed: Plugin[],
 ): AnalyzerNode[] {
-  // Avoid circular dependencies
-  if (processedPlugins.has(plugin.name)) {
-    return [];
-  }
-  processedPlugins.add(plugin.name);
-
-  // Check if plugin is already added
-  const existingPluginNames = existingNodes
+  const present = existingNodes
     .filter((n): n is AnalyzerNode => n.type === "analyzer")
     .map((n) => n.data.plugin.name);
 
-  if (existingPluginNames.includes(plugin.name)) {
-    return [];
-  }
-
-  const nodesToAdd: AnalyzerNode[] = [];
-
-  // First, add all dependencies recursively
-  plugin.depends_on.forEach((dependencyName) => {
-    const dependencyPlugin = availablePlugins.find(
-      (p) => p.name === dependencyName,
-    );
-    if (dependencyPlugin) {
-      const dependencyNodes = buildPluginWithDependencies(
-        dependencyPlugin,
-        [...existingNodes, ...nodesToAdd],
-        availablePlugins,
-        processedPlugins, // Pass the same set, don't create a new one
-      );
-      nodesToAdd.push(...dependencyNodes);
-    }
-  });
-
-  // Then add the plugin itself
-  const nodeId = `analyzer-${plugin.name}`;
   const flowElement = document.querySelector(".vue-flow");
   const flowRect = flowElement?.getBoundingClientRect();
-
   const canvasX = flowRect ? contextMenuPosition.value.x - flowRect.left : 200;
   const canvasY = flowRect ? contextMenuPosition.value.y - flowRect.top : 200;
 
-  const newNode: AnalyzerNode = {
-    id: nodeId,
+  return pluginsToAdd(plugin, present, installed).map((added) => ({
+    id: `analyzer-${added.name}`,
     type: "analyzer",
-    position: {
-      x: canvasX,
-      y: canvasY,
-    },
+    position: { x: canvasX, y: canvasY },
     data: {
-      label: plugin.name,
-      plugin,
-      version: plugin.version,
-      description: plugin.description,
+      label: added.name,
+      plugin: added,
+      version: added.version,
+      description: added.description,
     },
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
     selectable: true,
     deletable: true,
-  };
-
-  nodesToAdd.push(newNode);
-  return nodesToAdd;
+  }));
 }
 
 function closeContextMenu(): void {
@@ -212,6 +185,12 @@ function closeContextMenu(): void {
 
 function handleKeyDown(event: KeyboardEvent): void {
   if (props.readonly) return;
+  if (event.key === "Escape" && showContextMenu.value) {
+    closeContextMenu();
+    return;
+  }
+  // Keys pressed while the menu is open are not meant for the canvas.
+  if (showContextMenu.value) return;
   if (event.key === "Delete" || event.key === "Backspace") {
     event.preventDefault();
 
@@ -339,6 +318,7 @@ onUnmounted(() => {
       @node-context-menu="onNodeContextMenu"
       @selection-change="onSelectionChange"
       @node-click="onNodeClick"
+      @nodes-initialized="fitToContent"
     >
       <Background :gap="16" />
       <Controls
@@ -398,7 +378,13 @@ onUnmounted(() => {
           </span>
         </button>
         <p
-          v-if="availablePlugins.length === 0"
+          v-if="installedPlugins.length === 0"
+          class="px-4 py-6 text-center text-sm text-muted-foreground"
+        >
+          No plugins are installed
+        </p>
+        <p
+          v-else-if="availablePlugins.length === 0"
           class="px-4 py-6 text-center text-sm text-muted-foreground"
         >
           Every plugin is already in the workflow

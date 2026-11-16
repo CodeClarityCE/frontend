@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Columns3, List, Plug, RefreshCw } from "@lucide/vue";
 import { storeToRefs } from "pinia";
+import type { AcceptableValue } from "reka-ui";
 import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
@@ -19,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { ToggleGroup, ToggleGroupItem } from "@/shadcn/ui/toggle-group";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
@@ -51,6 +53,15 @@ const {
   updateTicketStatus,
   refresh,
 } = useTicketsData({ autoLoad: true });
+
+// Same pill look as the small secondary and ghost buttons.
+const viewToggleClass =
+  "h-8 rounded-button px-3.5 text-xs font-semibold text-foreground hover:bg-muted hover:text-foreground-strong focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground data-[state=on]:hover:bg-border";
+
+// Clicking the active view emits no value; keep it selected.
+function setViewMode(value: AcceptableValue | AcceptableValue[]): void {
+  if (value === "list" || value === "kanban") viewMode.value = value;
+}
 
 const { defaultOrg } = storeToRefs(useUserStore());
 const auth = useAuthStore();
@@ -127,30 +138,24 @@ onMounted(() => {
     <PageHeading description="Track and manage security remediation tickets.">
       <BrandEmphasis>Tickets</BrandEmphasis>
       <template #actions>
-        <div
-          role="group"
+        <ToggleGroup
+          type="single"
+          :roving-focus="false"
           aria-label="View"
-          class="flex items-center gap-1 rounded-full border bg-card p-1"
+          :spacing="1"
+          class="rounded-full border bg-card p-1"
+          :model-value="viewMode"
+          @update:model-value="setViewMode"
         >
-          <Button
-            size="sm"
-            :variant="viewMode === 'list' ? 'secondary' : 'ghost'"
-            :aria-pressed="viewMode === 'list'"
-            @click="viewMode = 'list'"
-          >
+          <ToggleGroupItem value="list" :class="viewToggleClass">
             <List aria-hidden="true" />
             List
-          </Button>
-          <Button
-            size="sm"
-            :variant="viewMode === 'kanban' ? 'secondary' : 'ghost'"
-            :aria-pressed="viewMode === 'kanban'"
-            @click="viewMode = 'kanban'"
-          >
+          </ToggleGroupItem>
+          <ToggleGroupItem value="kanban" :class="viewToggleClass">
             <Columns3 aria-hidden="true" />
             Kanban
-          </Button>
-        </div>
+          </ToggleGroupItem>
+        </ToggleGroup>
         <Button variant="outline" @click="showIntegrationsModal = true">
           <Plug aria-hidden="true" />
           Integrations
@@ -193,7 +198,7 @@ onMounted(() => {
       <ul
         v-if="loaded"
         aria-label="Ticket numbers"
-        class="grid grid-cols-4 gap-4"
+        class="grid grid-cols-2 gap-4 lg:grid-cols-4"
       >
         <StatTile label="Total" :value="quickStats.total" />
         <StatTile label="Open" :value="quickStats.open" />

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { CircleAlert, LoaderCircle } from "@lucide/vue";
+import { CircleAlert } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/shadcn/ui/form";
 import { Input } from "@/shadcn/ui/input";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import {
   BusinessLogicError,
@@ -124,7 +125,7 @@ async function submit(values: FormValues): Promise<void> {
             {{ validationError!.toMessage("Invalid form:") }}
           </div>
           <div v-else>
-            An error occured during the processing of the request.
+            An error occurred during the processing of the request.
           </div>
         </AlertDescription>
       </Alert>
@@ -145,11 +146,7 @@ async function submit(values: FormValues): Promise<void> {
           </FormItem>
         </FormField>
         <Button type="submit" class="mt-2 w-full" :disabled="loading">
-          <LoaderCircle
-            v-if="loading"
-            aria-hidden="true"
-            class="animate-spin motion-reduce:animate-none"
-          />
+          <Spinner v-if="loading" />
           Send reset link
         </Button>
       </form>

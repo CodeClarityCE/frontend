@@ -174,6 +174,14 @@ vi.mock("./analyzers/AnalyzersView.vue", () => ({
   },
 }));
 
+vi.mock("./subcomponents/OrgNotFound.vue", () => ({
+  default: {
+    name: "OrgNotFound",
+    template: "<div>Not found</div>",
+    props: ["orgId"],
+  },
+}));
+
 describe("OrganizationView", () => {
   let wrapper: any;
 
@@ -217,6 +225,7 @@ describe("OrganizationView", () => {
   it('shows PoliciesView when page is "policies" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "policies",
         orgId: "test-org-id",
       },
@@ -230,6 +239,7 @@ describe("OrganizationView", () => {
   it('shows PoliciesView when page is "policy" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "policy",
         orgId: "test-org-id",
       },
@@ -243,6 +253,7 @@ describe("OrganizationView", () => {
   it('shows ManageAuditLogs when page is "logs" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "logs",
         orgId: "test-org-id",
       },
@@ -256,6 +267,7 @@ describe("OrganizationView", () => {
   it('shows ManageMembers when page is "members" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "members",
         orgId: "test-org-id",
       },
@@ -269,6 +281,7 @@ describe("OrganizationView", () => {
   it('shows ManageInvites when page is "invites" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "invites",
         orgId: "test-org-id",
       },
@@ -282,6 +295,7 @@ describe("OrganizationView", () => {
   it('shows IntegrationsView when page is "integrations" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "integrations",
         orgId: "test-org-id",
       },
@@ -295,6 +309,7 @@ describe("OrganizationView", () => {
   it('shows AnalyzersView when page is "analyzers" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
+        action: "manage",
         page: "analyzers",
         orgId: "test-org-id",
       },
@@ -305,10 +320,11 @@ describe("OrganizationView", () => {
     expect(wrapper.html()).toContain("Analyzers");
   });
 
-  it("shows OrganizationManage as fallback when page and orgId exist", async () => {
+  it('shows OrganizationManage when page is "main" and orgId exists', async () => {
     wrapper = mount(OrganizationView, {
       props: {
-        page: "overview",
+        action: "manage",
+        page: "main",
         orgId: "test-org-id",
       },
     });
@@ -344,7 +360,15 @@ describe("OrganizationView", () => {
     expect(wrapper.props().orgId).toBe("test-org-id");
   });
 
-  it("handles undefined props gracefully", () => {
+  it("opens the invites page with the add action for its dialog", () => {
+    wrapper = mount(OrganizationView, {
+      props: { action: "add", page: "invites", orgId: "test-org-id" },
+    });
+
+    expect(wrapper.text()).toBe("Manage Invites");
+  });
+
+  it("shows not found without any params", () => {
     wrapper = mount(OrganizationView, {
       props: {
         action: undefined,
@@ -353,7 +377,20 @@ describe("OrganizationView", () => {
       },
     });
 
-    expect(wrapper.text()).toBe("");
+    expect(wrapper.text()).toBe("Not found");
+  });
+
+  it.each<Record<string, string>>([
+    { action: "manage", page: "overview", orgId: "test-org-id" },
+    { action: "edit", page: "members", orgId: "test-org-id" },
+    { action: "add", page: "logs", orgId: "test-org-id" },
+    { action: "remove", page: "analyzers", orgId: "test-org-id" },
+    { action: "manage", page: "members" },
+    { action: "nothing" },
+  ])("route %o shows not found", (props) => {
+    wrapper = mount(OrganizationView, { props });
+
+    expect(wrapper.text()).toBe("Not found");
   });
 
   it("passes correct props to child components", async () => {
@@ -377,7 +414,7 @@ describe("OrganizationView", () => {
   });
   it("shows only the section the route asks for", () => {
     wrapper = mount(OrganizationView, {
-      props: { page: "members", orgId: "test-org-id" },
+      props: { action: "manage", page: "members", orgId: "test-org-id" },
     });
 
     expect(wrapper.text()).toBe("Manage Members");
@@ -387,11 +424,20 @@ describe("OrganizationView", () => {
   it.each<[Record<string, string>, string]>([
     [{ action: "add" }, "Create Organization"],
     [{ action: "list" }, "Organizations List"],
-    [{ page: "policies", orgId: "test-org-id" }, "Policies"],
-    [{ page: "members", orgId: "test-org-id" }, "Manage Members"],
-    [{ page: "logs", orgId: "test-org-id" }, "Audit Logs"],
-    [{ page: "invites", orgId: "test-org-id" }, "Manage Invites"],
-    [{ page: "integrations", orgId: "test-org-id" }, "Integrations"],
+    [{ action: "manage", page: "policies", orgId: "test-org-id" }, "Policies"],
+    [
+      { action: "manage", page: "members", orgId: "test-org-id" },
+      "Manage Members",
+    ],
+    [{ action: "manage", page: "logs", orgId: "test-org-id" }, "Audit Logs"],
+    [
+      { action: "manage", page: "invites", orgId: "test-org-id" },
+      "Manage Invites",
+    ],
+    [
+      { action: "manage", page: "integrations", orgId: "test-org-id" },
+      "Integrations",
+    ],
   ])("route %o shows only the section text %s", (props, text) => {
     wrapper = mount(OrganizationView, { props });
 

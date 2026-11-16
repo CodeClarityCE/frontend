@@ -195,7 +195,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "oauth_failed" },
+      });
     });
 
     it("should redirect to login when code parameter is missing", async () => {
@@ -211,7 +214,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "oauth_failed" },
+      });
     });
 
     it("should redirect to login when provider is invalid", async () => {
@@ -222,7 +228,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "oauth_failed" },
+      });
     });
   });
 
@@ -237,7 +246,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "oauth_failed" },
+      });
     });
 
     it("should redirect to login when state mismatch occurs", async () => {
@@ -250,7 +262,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "oauth_failed" },
+      });
     });
 
     it("should clear social auth state when state matches", async () => {
@@ -402,7 +417,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/trial");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "not_activated" },
+      });
     });
 
     it("should display non-recoverable error for failed social authentication", async () => {
@@ -505,7 +523,7 @@ describe("OAuth2Callback", () => {
 
       expect(mockAuthStore.$reset).toHaveBeenCalled();
       expect(mockUserStore.$reset).toHaveBeenCalled();
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({ name: "login", query: {} });
     });
 
     it("should redirect to login on recoverable error button click", async () => {
@@ -528,7 +546,7 @@ describe("OAuth2Callback", () => {
 
       expect(mockAuthStore.$reset).toHaveBeenCalled();
       expect(mockUserStore.$reset).toHaveBeenCalled();
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({ name: "login", query: {} });
     });
   });
 
@@ -565,7 +583,10 @@ describe("OAuth2Callback", () => {
       });
       await nextTick();
 
-      expect(router.push).toHaveBeenCalledWith("/login");
+      expect(router.push).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "oauth_failed" },
+      });
     });
   });
 

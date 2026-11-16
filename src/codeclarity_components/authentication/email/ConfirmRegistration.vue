@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { LoaderCircle } from "@lucide/vue";
 import { onUnmounted, ref } from "vue";
 
 import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
 import router from "@/router";
 import { cn } from "@/shadcn/lib/utils";
 import { buttonVariants } from "@/shadcn/ui/button";
+import { Spinner } from "@/shadcn/ui/spinner";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 
@@ -75,10 +75,7 @@ void init();
       role="status"
       class="flex flex-col items-center gap-2 py-6 text-muted-foreground"
     >
-      <LoaderCircle
-        aria-hidden="true"
-        class="size-6 animate-spin motion-reduce:animate-none"
-      />
+      <Spinner class="size-6" />
       Confirming your registration
     </div>
 

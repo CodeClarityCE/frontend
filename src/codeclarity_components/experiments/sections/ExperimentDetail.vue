@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  ArrowLeft,
-  CircleAlert,
-  Download,
-  LoaderCircle,
-  Lock,
-} from "@lucide/vue";
+import { ArrowLeft, CircleAlert, Download, Lock } from "@lucide/vue";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
@@ -30,6 +24,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Skeleton } from "@/shadcn/ui/skeleton";
+import { Spinner } from "@/shadcn/ui/spinner";
 import {
   Table,
   TableBody,
@@ -495,8 +490,8 @@ onUnmounted(() => clearTimeout(pollTimer));
             class="rounded-sm font-semibold text-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >{{ experiment.dataset_name }}</RouterLink
           >, {{ experiment.retries }} retries per failed run. Created
-          {{ formatExperimentDate(experiment.created_on) }}
-          <template v-if="experiment.created_by_name">
+          {{ formatExperimentDate(experiment.created_on)
+          }}<template v-if="experiment.created_by_name">
             by {{ experiment.created_by_name }}</template
           >.
           <span class="mt-1 block text-sm">
@@ -685,8 +680,8 @@ onUnmounted(() => clearTimeout(pollTimer));
                 >
                   Published results, metric version
                   {{ selectedVersion.metric_version }}, published
-                  {{ formatExperimentDate(selectedVersion.published_on) }}
-                  <template v-if="selectedVersion.published_by_name">
+                  {{ formatExperimentDate(selectedVersion.published_on)
+                  }}<template v-if="selectedVersion.published_by_name">
                     by {{ selectedVersion.published_by_name }}</template
                   >. These numbers are frozen under metric version
                   {{ selectedVersion.metric_version }} and will not change.
@@ -736,11 +731,7 @@ onUnmounted(() => clearTimeout(pollTimer));
                   :data-testid="`export-${file}`"
                   @click="downloadExport(file)"
                 >
-                  <LoaderCircle
-                    v-if="exporting === file"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="exporting === file" />
                   <Download v-else aria-hidden="true" />
                   {{ file }}
                 </Button>
@@ -752,11 +743,7 @@ onUnmounted(() => clearTimeout(pollTimer));
                   data-testid="export-package"
                   @click="downloadPackage(selectedVersion.metric_version)"
                 >
-                  <LoaderCircle
-                    v-if="exporting === 'package'"
-                    aria-hidden="true"
-                    class="animate-spin motion-reduce:animate-none"
-                  />
+                  <Spinner v-if="exporting === 'package'" />
                   <Download v-else aria-hidden="true" />
                   Replication package
                 </Button>

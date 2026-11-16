@@ -14,6 +14,10 @@ import { type RouteLocationRaw, useRouter } from "vue-router";
 
 import { DatasetsRepository } from "@/codeclarity_components/datasets/datasets.repository";
 import { ExperimentsRepository } from "@/codeclarity_components/experiments/experiments.repository";
+import {
+  isMemberRoleGreaterOrEqualTo,
+  MemberRole,
+} from "@/codeclarity_components/organizations/organization.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import {
   CommandDialog,
@@ -23,7 +27,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/shadcn/ui/command";
-import { DialogDescription, DialogTitle } from "@/shadcn/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
@@ -76,7 +79,11 @@ function pages(): Action[] {
 }
 
 function actions(): Action[] {
-  const orgId = userStore.getDefaultOrg?.id;
+  const org = userStore.getDefaultOrg;
+  const orgId = org?.id;
+  // Only admins can open the analyzer form.
+  const admin =
+    !!org && isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN);
   return [
     {
       id: "create-dataset",
@@ -96,15 +103,19 @@ function actions(): Action[] {
       icon: Plus,
       to: { name: "projects", params: { page: "add" } },
     },
-    {
-      id: "create-analyzer",
-      label: "Create an analyzer",
-      icon: Settings2,
-      to: {
-        name: "orgs",
-        params: { action: "add", page: "analyzers", orgId },
-      },
-    },
+    ...(admin
+      ? [
+          {
+            id: "create-analyzer",
+            label: "Create an analyzer",
+            icon: Settings2,
+            to: {
+              name: "orgs",
+              params: { action: "add", page: "analyzers", orgId },
+            },
+          },
+        ]
+      : []),
   ];
 }
 
@@ -174,12 +185,11 @@ function go(to: RouteLocationRaw): void {
 </script>
 
 <template>
-  <CommandDialog v-model:open="open">
-    <DialogTitle class="sr-only">Command palette</DialogTitle>
-    <DialogDescription class="sr-only">
-      Search pages, Datasets, Experiments and Projects, then press Enter to go
-      there.
-    </DialogDescription>
+  <CommandDialog
+    v-model:open="open"
+    title="Command palette"
+    description="Search pages, Datasets, Experiments and Projects, then press Enter to go there."
+  >
     <CommandInput
       placeholder="Search pages, Datasets, Experiments, Projects..."
       aria-label="Search"

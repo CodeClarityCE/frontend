@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { ArrowLeft, ExternalLink, FolderArchive, Plus } from "@lucide/vue";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { RouterLink } from "vue-router";
 import { toast } from "vue-sonner";
 
@@ -12,9 +19,11 @@ import {
 } from "@/base_components/page";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
-import type {
-  Analyzer,
-  Stage,
+import {
+  type Analyzer,
+  isUnavailable,
+  type Stage,
+  unavailableLabel,
 } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
@@ -270,6 +279,30 @@ async function loadAnalyzers(orgId: string, token: string): Promise<void> {
   }
 }
 
+// While a plugin is down, the list is fetched again so it frees up by itself.
+const RECHECK_DOWN_MS = 30_000;
+let recheckTimer: ReturnType<typeof setTimeout> | undefined;
+
+function scheduleRecheck(): void {
+  clearTimeout(recheckTimer);
+  recheckTimer = undefined;
+  if (!analyzers.value.some((item) => item.availability?.state === "down")) {
+    return;
+  }
+  recheckTimer = setTimeout(() => {
+    const orgId = user.defaultOrg?.id;
+    if (!orgId || !auth.getToken) return;
+    fetchAllAnalyzers(orgId, auth.getToken)
+      .then((fresh) => {
+        analyzers.value = fresh;
+      })
+      .catch(() => scheduleRecheck());
+  }, RECHECK_DOWN_MS);
+}
+
+watch(analyzers, scheduleRecheck);
+onBeforeUnmount(() => clearTimeout(recheckTimer));
+
 // The list holds no plugin options, so the chosen analyzer is fetched again.
 watch(analyzerId, async (id) => {
   analyzer.value = undefined;
@@ -378,6 +411,7 @@ function startError(err: unknown): string {
   }
   switch (err.error_code) {
     case APIErrors.AnaylzerMissingConfigAttribute:
+    case APIErrors.AnalyzerUnavailable:
       return err.error_message;
     case APIErrors.NotAuthorized:
       return "Your role does not allow starting analyses in this organisation.";
@@ -568,15 +602,36 @@ const choiceClass =
                 <label
                   v-for="item in analyzers"
                   :key="item.id"
-                  :class="choiceClass"
+                  :data-analyzer="item.id"
+                  :class="[
+                    choiceClass,
+                    isUnavailable(item.availability) &&
+                      'cursor-not-allowed opacity-70',
+                  ]"
                 >
-                  <RadioGroupItem :value="item.id" :class="radioClass" />
+                  <RadioGroupItem
+                    :value="item.id"
+                    :class="radioClass"
+                    :disabled="isUnavailable(item.availability)"
+                    :aria-describedby="
+                      isUnavailable(item.availability)
+                        ? `analysis-analyzer-${item.id}-unavailable`
+                        : undefined
+                    "
+                  />
                   <span class="flex flex-col gap-0.5">
                     <span class="font-semibold text-foreground-strong">
                       {{ displayName(item) }}
                     </span>
                     <span class="text-sm text-muted-foreground">
                       {{ item.description }}
+                    </span>
+                    <span
+                      v-if="isUnavailable(item.availability)"
+                      :id="`analysis-analyzer-${item.id}-unavailable`"
+                      class="text-sm font-medium text-foreground-strong"
+                    >
+                      {{ unavailableLabel(item.availability) }}
                     </span>
                   </span>
                 </label>

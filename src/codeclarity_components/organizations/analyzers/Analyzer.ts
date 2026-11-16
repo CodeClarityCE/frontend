@@ -33,6 +33,35 @@ export class Analyzer {
 
   @IsOptional()
   logo?: string;
+
+  // Whether it can run on this instance, and why not
+  @IsOptional()
+  availability?: AnalyzerAvailability;
+}
+
+export type AnalyzerAvailability =
+  | { state: "available" }
+  | { state: "off"; components: string[]; message: string }
+  | { state: "down"; plugins: string[]; message: string };
+
+export type Unavailable = Exclude<AnalyzerAvailability, { state: "available" }>;
+
+/** Whether the analyzer cannot run on this instance right now. */
+export function isUnavailable(
+  availability?: AnalyzerAvailability,
+): availability is Unavailable {
+  return availability !== undefined && availability.state !== "available";
+}
+
+/**
+ * The text shown for an analyzer that cannot run: "Temporarily unavailable"
+ * while a plugin is down, "Unavailable" while a component is turned off.
+ */
+export function unavailableLabel(availability?: AnalyzerAvailability): string {
+  if (!isUnavailable(availability)) return "";
+  return availability.state === "down"
+    ? `Temporarily unavailable: ${availability.message}`
+    : `Unavailable: ${availability.message}`;
 }
 
 /********************************************/

@@ -143,6 +143,48 @@ describe("AnalyzersList", () => {
     expect(text).toContain("1 stage");
   });
 
+  it("marks an analyzer whose component is off on this instance", async () => {
+    const off = "Needs CodeQL, which is off on this instance.";
+    getAnalyzers.mockResolvedValue({
+      data: [
+        { ...sample[0], availability: { state: "available" } },
+        {
+          ...sample[1],
+          availability: { state: "off", components: ["CodeQL"], message: off },
+        },
+      ],
+    });
+    await render();
+
+    const rows = [...document.querySelectorAll("tbody tr")].map(
+      (row) => row.textContent ?? "",
+    );
+    expect(rows.find((row) => row.includes("Licenses only"))).toContain(off);
+    expect(rows.find((row) => row.includes("Default analyzer"))).not.toContain(
+      "Unavailable",
+    );
+  });
+
+  it("warns that an analyzer's plugin is down, naming it", async () => {
+    const down = "vuln-finder is temporarily down. Try again shortly.";
+    getAnalyzers.mockResolvedValue({
+      data: [
+        {
+          ...sample[0],
+          availability: {
+            state: "down",
+            plugins: ["vuln-finder"],
+            message: down,
+          },
+        },
+      ],
+    });
+    await render();
+
+    const row = document.querySelector("tbody tr")?.textContent ?? "";
+    expect(row).toContain(`Temporarily unavailable: ${down}`);
+  });
+
   it("offers a New analyzer link", async () => {
     await render();
 

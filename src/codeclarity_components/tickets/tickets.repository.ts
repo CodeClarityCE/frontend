@@ -67,8 +67,7 @@ export interface GetTicketByIdRequestOptions extends AuthRepoMethodGetRequestOpt
   ticketId: string;
 }
 
-export interface GetTicketEventsRequestOptions
-  extends AuthRepoMethodGetRequestOptions, PaginatedRepoMethodRequestOptions {
+export interface GetTicketEventsRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   ticketId: string;
 }
@@ -362,18 +361,14 @@ export class TicketsRepository extends BaseRepository {
   }
 
   /**
-   * Get ticket events (audit trail)
+   * Get ticket events (audit trail), newest first
    */
   async getTicketEvents(
     options: GetTicketEventsRequestOptions,
-  ): Promise<PaginatedResponse<TicketEvent>> {
+  ): Promise<DataResponse<TicketEvent[]>> {
     const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/events`;
 
-    const response = await this.getRequest<PaginatedResponse<TicketEvent>>({
-      queryParams: {
-        page: options.pagination.page,
-        entries_per_page: options.pagination.entries_per_page,
-      },
+    const response = await this.getRequest<DataResponse<TicketEvent[]>>({
       bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -381,15 +376,12 @@ export class TicketsRepository extends BaseRepository {
       handleOtherErrors: options.handleOtherErrors,
     });
 
-    const paginatedData = Entity.unMarshal<PaginatedResponse<TicketEvent>>(
+    const data = Entity.unMarshal<DataResponse<TicketEvent[]>>(
       response,
-      PaginatedResponse<TicketEvent>,
+      DataResponse<TicketEvent[]>,
     );
-    paginatedData.data = Entity.unMarshalMany<TicketEvent>(
-      paginatedData.data,
-      TicketEvent,
-    );
-    return paginatedData;
+    data.data = Entity.unMarshalMany<TicketEvent>(data.data, TicketEvent);
+    return data;
   }
 
   /**

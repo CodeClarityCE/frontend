@@ -48,6 +48,7 @@ import { errorToast } from "@/utils/toasts";
 
 import RiskScoreGauge from "../components/RiskScoreGauge.vue";
 import ScoreProgressBar from "../components/ScoreProgressBar.vue";
+import TicketHistory from "../components/TicketHistory.vue";
 import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
 import {
   ExternalProviderIcons,
@@ -782,6 +783,8 @@ onMounted(() => {
             </li>
           </ul>
         </section>
+
+        <TicketHistory :ticket="ticket" />
       </div>
 
       <SheetFooter

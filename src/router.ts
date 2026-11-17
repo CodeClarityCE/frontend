@@ -66,9 +66,7 @@ async function refreshTokenIfNeeded(
         authStore.tokenExpiry = newToken.token_expiry;
         return true;
       } catch (error) {
-        logger.warn("Could not refresh the session token", {
-          stack: error instanceof Error ? error.stack : undefined,
-        });
+        logger.warn("Could not refresh the session token", {}, error);
         return false;
       }
     }
@@ -107,9 +105,7 @@ async function fetchAuthenticatedUser(
     ) {
       return "not_activated";
     }
-    logger.error("Could not fetch the signed-in user", {
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    logger.error("Could not fetch the signed-in user", {}, error);
     return "failed";
   }
 }
@@ -169,9 +165,7 @@ async function fetchFallbackOrg(
     userStore.setDefaultOrg(org);
     return true;
   } catch (error) {
-    logger.error("Could not fetch a fallback organization", {
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    logger.error("Could not fetch a fallback organization", {}, error);
     return false;
   }
 }

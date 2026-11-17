@@ -107,6 +107,20 @@ describe("logger", () => {
     });
   });
 
+  it("takes the stack from a caught error", () => {
+    const failure = new Error("Save failed");
+
+    logger.error("Could not save the project", { projectId: "p1" }, failure);
+    logger.warn("Could not refresh the token", {}, "not an error");
+
+    const [saved, refreshed] = sentReports();
+    expect(saved?.body.fields).toMatchObject({
+      projectId: "p1",
+      stack: failure.stack,
+    });
+    expect(refreshed?.body.fields).not.toHaveProperty("stack");
+  });
+
   it("trims a long stack to about 4 KB", () => {
     const frame = "    at someFunction (https://localhost/src/file.ts:10:20)\n";
     logger.error("Render failed", { stack: frame.repeat(500) });

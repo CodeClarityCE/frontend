@@ -29,7 +29,8 @@ describe("loadAuthStoreFromLocalStorage", () => {
     expect(auth.getInitialized).toBe(true);
     expect(logger.warn).toHaveBeenCalledWith(
       "Could not restore the saved session",
-      expect.objectContaining({ stack: expect.any(String) as string }),
+      {},
+      expect.any(Error),
     );
   });
 });

@@ -131,9 +131,7 @@ function getFromLocalStorageOrDefault(): AuthStoreState {
     const parsed = JSON.parse(authState) as AuthStoreState;
     return Entity.unMarshal<AuthStoreState>(parsed, AuthStoreState);
   } catch (err) {
-    logger.warn("Could not restore the saved session", {
-      stack: err instanceof Error ? err.stack : undefined,
-    });
+    logger.warn("Could not restore the saved session", {}, err);
     return defaultValues();
   }
 }

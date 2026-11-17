@@ -18,6 +18,7 @@ export interface LogContext {
 }
 
 // Only these context keys leave the browser; the server filters again.
+// Keep in sync with ALLOWED_FIELDS in api/src/base_modules/logs/logs.controller.ts.
 const ALLOWED_FIELDS = [
   "route",
   "component",
@@ -111,16 +112,23 @@ function print(level: LogLevel, msg: string, context: LogContext): void {
   console[level](msg, context);
 }
 
+// Adds the stack of a caught error to the context, when it is an Error.
+function withStack(context: LogContext, error: unknown): LogContext {
+  return error instanceof Error ? { ...context, stack: error.stack } : context;
+}
+
 export const logger = {
-  /** Sends an error report to the server. */
-  error(msg: string, context: LogContext = {}): void {
-    print("error", msg, context);
-    report("error", msg, context);
+  /** Sends an error report to the server; pass a caught error to send its stack. */
+  error(msg: string, context: LogContext = {}, error?: unknown): void {
+    const full = withStack(context, error);
+    print("error", msg, full);
+    report("error", msg, full);
   },
-  /** Sends a warning report to the server. */
-  warn(msg: string, context: LogContext = {}): void {
-    print("warn", msg, context);
-    report("warn", msg, context);
+  /** Sends a warning report to the server; pass a caught error to send its stack. */
+  warn(msg: string, context: LogContext = {}, error?: unknown): void {
+    const full = withStack(context, error);
+    print("warn", msg, full);
+    report("warn", msg, full);
   },
   /** Prints in dev builds only; never sent. */
   info(msg: string, context: LogContext = {}): void {
@@ -132,11 +140,9 @@ export const logger = {
   },
 };
 
-// Turns any thrown value into a message and, for errors, a stack.
-function describeFailure(reason: unknown): { msg: string; stack?: string } {
-  if (reason instanceof Error)
-    return { msg: reason.message, stack: reason.stack };
-  return { msg: String(reason) };
+// Turns any thrown value into a message.
+function describeFailure(reason: unknown): string {
+  return reason instanceof Error ? reason.message : String(reason);
 }
 
 function componentName(
@@ -151,13 +157,15 @@ function componentName(
  */
 export function installLogger(app: App): () => void {
   app.config.errorHandler = (err, instance): void => {
-    const { msg, stack } = describeFailure(err);
-    logger.error(msg, { component: componentName(instance), stack });
+    logger.error(
+      describeFailure(err),
+      { component: componentName(instance) },
+      err,
+    );
   };
 
   const onRejection = (event: PromiseRejectionEvent): void => {
-    const { msg, stack } = describeFailure(event.reason);
-    logger.error(msg, { stack });
+    logger.error(describeFailure(event.reason), {}, event.reason);
   };
   window.addEventListener("unhandledrejection", onRejection);
 

@@ -257,7 +257,8 @@ async function deleteAnalysis(): Promise<void> {
         <DialogTitle>Delete this analysis?</DialogTitle>
         <DialogDescription>
           The analysis started {{ formatDateTime(toDelete?.created_on) }} and
-          all its results are deleted. This cannot be undone.
+          all its results are deleted. Tickets it found are kept. This cannot be
+          undone.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>

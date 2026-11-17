@@ -5,6 +5,8 @@ import {
 } from "class-transformer";
 import { validateSync } from "class-validator";
 
+import { logger } from "@/utils/logger";
+
 import { MalformedResponse } from "./ApiErrors";
 
 export abstract class Entity {
@@ -54,7 +56,7 @@ export abstract class Entity {
   static validate(instance: unknown): void {
     const errors = validateSync(instance as object, { stopAtFirstError: true });
     if (errors.length > 0) {
-      console.error(errors);
+      logger.debug("Entity failed validation", { errors });
       throw new MalformedResponse();
     }
   }
@@ -69,9 +71,12 @@ export abstract class Entity {
         Entity.validate(instance);
         validItems.push(instance as T);
       } catch (error) {
-        console.error(error);
-        console.error("Entity failed validation:");
-        console.error(instance);
+        // Bad items are skipped so the rest of the list still renders.
+        logger.warn("Dropped an entity that failed validation", {
+          entity: (instance as object | null)?.constructor?.name,
+          stack: error instanceof Error ? error.stack : undefined,
+          instance,
+        });
       }
     }
     return validItems;

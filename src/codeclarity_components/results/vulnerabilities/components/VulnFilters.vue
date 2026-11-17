@@ -22,6 +22,13 @@ import {
 const filterState = defineModel<FilterState>("filterState", {
   required: true,
 });
+// How many results each option would leave, for categories that show counts.
+const props = defineProps<{ counts?: Record<string, number> }>();
+
+function count(showCounts: boolean | undefined, option: string): string {
+  const value = props.counts?.[option];
+  return showCounts && value !== undefined ? ` (${value})` : "";
+}
 
 const categories = computed(() =>
   Object.entries(filterState.value.filterConfig).filter(
@@ -68,7 +75,7 @@ function remove(filter: ActiveFilter): void {
             @select.prevent
             @update:model-value="setOption(name, option, $event === true)"
           >
-            {{ entry.title }}
+            {{ entry.title }}{{ count(category.showCounts, option) }}
           </DropdownMenuCheckboxItem>
         </template>
       </DropdownMenuContent>

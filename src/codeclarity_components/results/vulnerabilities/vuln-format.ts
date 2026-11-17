@@ -198,13 +198,13 @@ export interface PatchStatus {
   tone: StatusTone;
 }
 
-// A dependency with no patching result has an unknown patch status.
+// A dependency without a patch type was not checked (patching did not run, or not a JavaScript dependency).
 export function patchStatus(patchType: string | undefined): PatchStatus {
   if (patchType === "FULL") return { label: "Patchable", tone: "success" };
   if (patchType === "PARTIAL")
     return { label: "Partially patchable", tone: "warning" };
   if (patchType === "NONE") return { label: "Not patchable", tone: "danger" };
-  return { label: "Patch status unknown", tone: "neutral" };
+  return { label: "Not checked", tone: "neutral" };
 }
 
 // The AI assessments that carry a score; the API sends empty ones too.

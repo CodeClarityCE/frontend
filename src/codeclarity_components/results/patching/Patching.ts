@@ -79,15 +79,6 @@ interface AnalysisInfo {
   self_managed_workspace_name: string;
 }
 
-export interface PatchOccurenceInfo {
-  affected_deps: string[];
-  vulnerability_id: string;
-  all_occurences: string[][];
-  introduced_occurences: string[][];
-  unpatched_occurences: string[][];
-  patched_occurences: string[][];
-}
-
 export enum Status {
   Success = "success",
   Failure = "failure",

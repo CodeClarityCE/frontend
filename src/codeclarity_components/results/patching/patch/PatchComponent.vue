@@ -80,6 +80,23 @@ const upgrade = computed(() => semverText(props.patch.Update));
             />
           </ul>
         </section>
+        <section
+          v-if="(patch.Introduced?.length ?? 0) > 0"
+          class="flex flex-col gap-2"
+        >
+          <h3 class="text-sm font-semibold text-foreground-strong">
+            Introduced by the upgrade ({{ patch.Introduced.length }})
+          </h3>
+          <ul class="flex flex-col gap-2">
+            <PatchInformation
+              v-for="(item, index) in patch.Introduced"
+              :key="`new-${index}`"
+              :patch="item"
+              :patch-info="patch"
+              introduced
+            />
+          </ul>
+        </section>
       </div>
     </DialogContent>
   </Dialog>

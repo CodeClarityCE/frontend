@@ -15,6 +15,8 @@ export enum ActionClassType {
   Analyzer = "Analyzer",
   Analysis = "Analysis",
   Organization = "Organization",
+  // Spelling matches the value the API sends.
+  Unkown = "Unkown",
 }
 
 export enum ActionType {
@@ -24,10 +26,18 @@ export enum ActionType {
   AnalyzerCreate = "AnalyzerCreate",
   AnalyzerUpdate = "AnalyzerUpdate",
   AnalyzerDelete = "AnalyzerDelete",
+  AnalysisStarted = "AnalysisStarted",
+  AnalysisDeleted = "AnalysisDeleted",
+  AnalysisFailed = "AnalysisFailed",
   OrganizationUserLeft = "OrganizationUserLeft",
+  OrganizationCreated = "OrganizationCreated",
   OrganizationMembershipRevoked = "OrganizationMembershipRevoked",
+  OrganizationInvitationRevoked = "OrganizationInvitationRevoked",
   OrganizationMemberJoined = "OrganizationMemberJoined",
   OrganizationMemberInvited = "OrganizationMemberInvited",
+  OrganizationIntegrationAdded = "OrganizationIntegrationAdded",
+  OrganizationIntegrationUpdated = "OrganizationIntegrationUpdated",
+  OrganizationIntegrationDeleted = "OrganizationIntegrationDeleted",
 }
 
 export class AuditLog {

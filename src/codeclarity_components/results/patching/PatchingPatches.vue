@@ -67,10 +67,6 @@ watch([() => props.projectID, () => props.analysisID], () => void load(), {
 const FIELDS = [
   ["dependencies", "Dependencies"],
   ["devDependencies", "Development dependencies"],
-  ["peerDependencies", "Peer dependencies"],
-  ["optionalDependencies", "Optional dependencies"],
-  ["bundleDependencies", "Bundled dependencies"],
-  ["bundledDependencies", "Bundled dependencies"],
 ] as const;
 
 interface Change {
@@ -106,11 +102,9 @@ const groups = computed(() => {
   const manifest = data.value?.patched_manifest;
   if (!manifest) return [];
   return FIELDS.flatMap(([field, title]) => {
-    const deps = manifest[field];
-    if (!deps || typeof deps !== "object") return [];
-    const changes = Object.entries(deps)
-      .filter(([, info]) => typeof info === "object" && info !== null)
-      .map(([name, info]) => change(name, info as UpgradeInfo));
+    const changes = Object.entries(manifest[field] ?? {}).map(([name, info]) =>
+      change(name, info),
+    );
     return changes.length > 0 ? [{ field, title, changes }] : [];
   });
 });
@@ -135,7 +129,7 @@ function copy(text: string): void {
 }
 
 function copyManifest(): void {
-  copy(JSON.stringify(data.value?.patched_manifest_raw ?? {}, null, 2));
+  copy(data.value?.patched_manifest_raw ?? "");
 }
 </script>
 
@@ -184,12 +178,13 @@ function copyManifest(): void {
       <ol class="flex list-decimal flex-col gap-4 pl-5 text-sm">
         <li class="flex flex-col items-start gap-2">
           <span>
-            Replace <code class="font-mono">{{ packageFile }}</code> with the
-            patched manifest.
+            Update these dependency entries in
+            <code class="font-mono">{{ packageFile }}</code
+            >.
           </span>
           <Button variant="outline" size="sm" @click="copyManifest">
             <Copy aria-hidden="true" class="size-4" />
-            Copy the patched manifest
+            Copy the dependency entries
           </Button>
         </li>
         <li v-if="command" class="flex flex-col items-start gap-2">

@@ -23,25 +23,29 @@ const toasts = vi.hoisted(() => ({
 }));
 vi.mock("@/utils/toasts", () => toasts);
 
-const upgrade = (patch_type: string, vulnerable: boolean, to = "") => ({
+const upgrade = (
+  patch_type: string | null,
+  vulnerable: boolean,
+  to: string | null = null,
+) => ({
+  original_constraint: "^1.0.0",
   vulnerable,
   patch_type,
-  original_constraint: "^1.0.0",
   upgrade_to: to,
+  potential_breaking_changes: false,
 });
 
 function manifest(package_manager = "NPM") {
   return {
-    patched_manifest_raw: { name: "web" },
+    patched_manifest_raw:
+      '{\n  "dependencies": {\n    "express": "^4.21.2"\n  }\n}',
     patched_manifest: {
-      name: "web",
-      version: "1.0.0",
       dependencies: {
-        express: upgrade("FULL", true, "^4.21.2"),
+        express: upgrade("FULL", true, "4.21.2"),
         request: upgrade("NONE", true),
-        ms: upgrade("NONE", false),
+        ms: upgrade(null, false),
       },
-      devDependencies: { vitest: upgrade("PARTIAL", true, "^3.2.4") },
+      devDependencies: { vitest: upgrade("PARTIAL", true, "3.2.4") },
     },
     other_info: { package_manager, relative_package_file: "app/package.json" },
   };
@@ -70,22 +74,29 @@ describe("PatchingPatches", () => {
   it("lists each dependency change with its patch status", async () => {
     await show();
     expect(changes("Dependencies")).toEqual([
-      "express ^1.0.0 to ^4.21.2 Full patch",
+      "express ^1.0.0 to 4.21.2 Full patch",
       "request ^1.0.0 No patch",
       "ms ^1.0.0 Not vulnerable",
     ]);
     expect(changes("Development dependencies")).toEqual([
-      "vitest ^1.0.0 to ^3.2.4 Partial patch",
+      "vitest ^1.0.0 to 3.2.4 Partial patch",
     ]);
   });
 
-  it("copies the patched manifest", async () => {
+  it("asks to update the dependency entries of the manifest", async () => {
+    await show();
+    expect(
+      screen.getByText(/Update these dependency entries in/).textContent,
+    ).toContain("app/package.json");
+  });
+
+  it("copies the dependency entries as they are sent", async () => {
     await show();
     await userEvent.click(
-      screen.getByRole("button", { name: "Copy the patched manifest" }),
+      screen.getByRole("button", { name: "Copy the dependency entries" }),
     );
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      JSON.stringify({ name: "web" }, null, 2),
+      '{\n  "dependencies": {\n    "express": "^4.21.2"\n  }\n}',
     );
     expect(toasts.successToast).toHaveBeenCalledWith("Copied to the clipboard");
   });

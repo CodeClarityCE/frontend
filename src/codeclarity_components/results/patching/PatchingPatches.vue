@@ -67,10 +67,6 @@ watch([() => props.projectID, () => props.analysisID], () => void load(), {
 const FIELDS = [
   ["dependencies", "Dependencies"],
   ["devDependencies", "Development dependencies"],
-  ["peerDependencies", "Peer dependencies"],
-  ["optionalDependencies", "Optional dependencies"],
-  ["bundleDependencies", "Bundled dependencies"],
-  ["bundledDependencies", "Bundled dependencies"],
 ] as const;
 
 interface Change {
@@ -106,11 +102,9 @@ const groups = computed(() => {
   const manifest = data.value?.patched_manifest;
   if (!manifest) return [];
   return FIELDS.flatMap(([field, title]) => {
-    const deps = manifest[field];
-    if (!deps || typeof deps !== "object") return [];
-    const changes = Object.entries(deps)
-      .filter(([, info]) => typeof info === "object" && info !== null)
-      .map(([name, info]) => change(name, info as UpgradeInfo));
+    const changes = Object.entries(manifest[field] ?? {}).map(([name, info]) =>
+      change(name, info),
+    );
     return changes.length > 0 ? [{ field, title, changes }] : [];
   });
 });

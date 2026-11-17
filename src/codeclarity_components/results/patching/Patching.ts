@@ -168,17 +168,10 @@ export enum IntroductionType {
   Mixed = "MIXED",
 }
 
+/** The direct dependency entries of a workspace's manifest, keyed by package name. */
 export interface PatchedManifest {
-  [key: string]: string | UpgradeInfo | undefined;
-  name: string;
-  version: string;
-  description: string;
-  dependencies?: UpgradeInfo;
-  devDependencies?: UpgradeInfo;
-  optionalDependencies?: UpgradeInfo;
-  peerDependencies?: UpgradeInfo;
-  bundleDependencies?: UpgradeInfo;
-  bundledDependencies?: UpgradeInfo;
+  dependencies: Record<string, UpgradeInfo>;
+  devDependencies: Record<string, UpgradeInfo>;
 }
 
 export interface OtherInfo {
@@ -201,7 +194,8 @@ export interface UpgradeInfo {
   upgrade_to: string | null;
   original_constraint: string;
   potential_breaking_changes: boolean;
-  patch_type: PatchType;
+  /** FULL, PARTIAL or NONE for a vulnerable dependency, null otherwise. */
+  patch_type: PatchType | null;
   // severity_dist:               SeverityDist;
   // after_upgrade_severity_dist: SeverityDist;
   partial_patch?: FullPatch;

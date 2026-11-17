@@ -23,11 +23,16 @@ const toasts = vi.hoisted(() => ({
 }));
 vi.mock("@/utils/toasts", () => toasts);
 
-const upgrade = (patch_type: string, vulnerable: boolean, to = "") => ({
+const upgrade = (
+  patch_type: string | null,
+  vulnerable: boolean,
+  to: string | null = null,
+) => ({
+  original_constraint: "^1.0.0",
   vulnerable,
   patch_type,
-  original_constraint: "^1.0.0",
   upgrade_to: to,
+  potential_breaking_changes: false,
 });
 
 function manifest(package_manager = "NPM") {
@@ -35,14 +40,12 @@ function manifest(package_manager = "NPM") {
     patched_manifest_raw:
       '{\n  "dependencies": {\n    "express": "^4.21.2"\n  }\n}',
     patched_manifest: {
-      name: "web",
-      version: "1.0.0",
       dependencies: {
-        express: upgrade("FULL", true, "^4.21.2"),
+        express: upgrade("FULL", true, "4.21.2"),
         request: upgrade("NONE", true),
-        ms: upgrade("NONE", false),
+        ms: upgrade(null, false),
       },
-      devDependencies: { vitest: upgrade("PARTIAL", true, "^3.2.4") },
+      devDependencies: { vitest: upgrade("PARTIAL", true, "3.2.4") },
     },
     other_info: { package_manager, relative_package_file: "app/package.json" },
   };
@@ -71,12 +74,12 @@ describe("PatchingPatches", () => {
   it("lists each dependency change with its patch status", async () => {
     await show();
     expect(changes("Dependencies")).toEqual([
-      "express ^1.0.0 to ^4.21.2 Full patch",
+      "express ^1.0.0 to 4.21.2 Full patch",
       "request ^1.0.0 No patch",
       "ms ^1.0.0 Not vulnerable",
     ]);
     expect(changes("Development dependencies")).toEqual([
-      "vitest ^1.0.0 to ^3.2.4 Partial patch",
+      "vitest ^1.0.0 to 3.2.4 Partial patch",
     ]);
   });
 

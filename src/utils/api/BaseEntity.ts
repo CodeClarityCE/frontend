@@ -54,9 +54,10 @@ export abstract class Entity {
   }
 
   static validate(instance: unknown): void {
-    const errors = validateSync(instance as object, { stopAtFirstError: true });
-    if (errors.length > 0) {
-      logger.debug("Entity failed validation", { errors });
+    if (Entity.hasErrors(instance)) {
+      logger.warn("Entity failed validation", {
+        component: Entity.className(instance),
+      });
       throw new MalformedResponse();
     }
   }
@@ -67,18 +68,30 @@ export abstract class Entity {
     }
     const validItems: T[] = [];
     for (const instance of instances) {
-      try {
-        Entity.validate(instance);
-        validItems.push(instance as T);
-      } catch (error) {
+      if (Entity.hasErrors(instance)) {
         // Bad items are skipped so the rest of the list still renders.
         logger.warn("Dropped an entity that failed validation", {
-          entity: (instance as object | null)?.constructor?.name,
-          stack: error instanceof Error ? error.stack : undefined,
-          instance,
+          component: Entity.className(instance),
         });
+      } else {
+        validItems.push(instance as T);
       }
     }
     return validItems;
+  }
+
+  // True when the instance fails validation or cannot be validated at all.
+  private static hasErrors(instance: unknown): boolean {
+    try {
+      return (
+        validateSync(instance as object, { stopAtFirstError: true }).length > 0
+      );
+    } catch {
+      return true;
+    }
+  }
+
+  private static className(instance: unknown): string | undefined {
+    return (instance as object | null)?.constructor?.name;
   }
 }

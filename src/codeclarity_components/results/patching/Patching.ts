@@ -187,17 +187,18 @@ export interface OtherInfo {
 }
 
 export class PatchedManifestData {
-  patched_manifest_raw: unknown;
+  /** The dependencies and devDependencies blocks with upgraded constraints, as JSON text. */
+  patched_manifest_raw = "";
   patched_manifest!: PatchedManifest;
   other_info!: OtherInfo;
 }
 
 export interface UpgradeInfo {
   [key: string]:
-    string | UpgradeInfo | boolean | FullPatch | NonePatch | undefined;
+    string | UpgradeInfo | boolean | FullPatch | NonePatch | null | undefined;
   vulnerable: boolean;
   upgrade_to_installed_ver: boolean;
-  upgrade_to: string;
+  upgrade_to: string | null;
   original_constraint: string;
   potential_breaking_changes: boolean;
   patch_type: PatchType;

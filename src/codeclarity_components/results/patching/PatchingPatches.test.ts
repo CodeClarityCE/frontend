@@ -32,7 +32,8 @@ const upgrade = (patch_type: string, vulnerable: boolean, to = "") => ({
 
 function manifest(package_manager = "NPM") {
   return {
-    patched_manifest_raw: { name: "web" },
+    patched_manifest_raw:
+      '{\n  "dependencies": {\n    "express": "^4.21.2"\n  }\n}',
     patched_manifest: {
       name: "web",
       version: "1.0.0",
@@ -79,13 +80,20 @@ describe("PatchingPatches", () => {
     ]);
   });
 
-  it("copies the patched manifest", async () => {
+  it("asks to update the dependency entries of the manifest", async () => {
+    await show();
+    expect(
+      screen.getByText(/Update these dependency entries in/).textContent,
+    ).toContain("app/package.json");
+  });
+
+  it("copies the dependency entries as they are sent", async () => {
     await show();
     await userEvent.click(
-      screen.getByRole("button", { name: "Copy the patched manifest" }),
+      screen.getByRole("button", { name: "Copy the dependency entries" }),
     );
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      JSON.stringify({ name: "web" }, null, 2),
+      '{\n  "dependencies": {\n    "express": "^4.21.2"\n  }\n}',
     );
     expect(toasts.successToast).toHaveBeenCalledWith("Copied to the clipboard");
   });

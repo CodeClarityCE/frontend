@@ -51,15 +51,17 @@ function toFields(context: LogContext): ReportFields {
   return fields;
 }
 
-// Posts error reports to the API's POST /logs route.
+// Posts error reports to the API's POST /logs route with a plain fetch,
+// so a failed report never redirects to the login page or shows a toast.
 class LogsRepository extends BaseRepository {
-  send(report: ErrorReport, bearerToken: string): Promise<unknown> {
-    return this.postRequest({
-      url: this.buildUrl("/logs"),
-      bearerToken,
-      data: report,
-      handleBusinessErrors: true,
-      handleHTTPErrors: true,
+  send(report: ErrorReport, bearerToken: string): Promise<Response> {
+    return fetch(this.buildUrl("/logs"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearerToken}`,
+      },
+      body: JSON.stringify(report),
     });
   }
 }

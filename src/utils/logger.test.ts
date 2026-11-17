@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
 import { toast } from "vue-sonner";
 
+import router from "@/router";
 import { useAuthStore } from "@/stores/auth";
 
 import { installLogger, logger } from "./logger";
@@ -172,6 +173,28 @@ describe("logger", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(toast.error).not.toHaveBeenCalled();
     expect(rejections).toEqual([]);
+  });
+
+  it("stays on the page when the server says the session is gone", async () => {
+    vi.mocked(router.push).mockClear();
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status_code: 401,
+          status: "failure",
+          error_code: "NotAuthenticated",
+          error_message: "Not authenticated",
+        }),
+        { status: 401 },
+      ),
+    );
+
+    logger.error("Upload failed");
+    await vi.runAllTimersAsync();
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(router.push).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("drops reports made before the app has a store", () => {
